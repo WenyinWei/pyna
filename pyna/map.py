@@ -1,4 +1,5 @@
 
+from setuptools import PackageFinder
 import sympy
 
 
@@ -18,7 +19,7 @@ class Map:
         
         self._next_xi_funcs = next_xi_funcs
 
-        self._lambda_type = "numpy"
+        self.lambda_type = "numpy"
         self._param_dict = dict()
 
     @property
@@ -34,7 +35,12 @@ class Map:
     def value_dim(self):
         return len(self.next_xi_funcs)
     @property
-    def func_type(self):
+    def func_type(self): 
+        """The type of the functions
+
+        Returns:
+            str: could be "sympy_expr", "whatever_callable" or etc.
+        """
         return self._func_type
 
     @property
@@ -60,10 +66,26 @@ class Map:
         else:
             return False
 
+    @property
+    def lambda_type(self):
+        return self._lambda_type # could be "numpy", "cupy" or etc.
+    @lambda_type.setter
+    def lambda_type(self, lambda_type_value:str):
+        from .sysutil import if_package_installed
+        if lambda_type_value == "numpy":
+            if not if_package_installed("numpy"):
+                raise ImportError("The lambdifying requires numpy package.")
+            self._lambda_type = "numpy"
+        elif lambda_type_value == "cupy":
+            if not if_package_installed("cupy"):
+                raise ImportError("The lambdifying requires cupy package.")
+            self._lambda_type = "cupy"
+        else:
+            raise NotImplementedError()
     def next_xi_lambdas(self, lambda_type:str = None):
         if lambda_type is None:
-            if self._lambda_type is None:
-                self._lambda_type = "numpy"
+            if self.lambda_type is None:
+                self.lambda_type = "numpy"
 
         if self._func_type == "sympy_expr":
             if self._lambda_type == "numpy":
@@ -90,7 +112,7 @@ class MapSameDim(Map):
         return super().__or__(other) 
     def inv(self):
         raise NotImplementedError()
-        
+
 class Map1D(MapSameDim):
     def __init__(self, xi_syms:list, next_xi_funcs:list):
         if len(xi_syms) != 1 or len(next_xi_funcs) != 1:
