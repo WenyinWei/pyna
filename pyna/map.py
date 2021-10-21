@@ -1,5 +1,3 @@
-
-from setuptools import PackageFinder
 import sympy
 
 
