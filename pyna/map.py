@@ -98,6 +98,17 @@ class Map:
         return (lam(*xi_arrays) for lam in self.next_xi_lambdas(lambda_type=lambda_type))
 
     def __or__(self, other):
+        """pipeline | operator
+
+        Args:
+            other (Map): The other Map to be pipelined into.
+
+        Returns:
+            Map: The composite of `self` and `other` maps.
+
+        Note:
+            The pipeline operator is very dedicated (and fragile for developers who have little knowledge about Pyhton scope rules) in order to achieve dynamic polymorphism. Notice that we delay the definition of MapBuilder until the definitions of Map, MapSameDim, Map1D and Map2D, which fully utilize the power of polymorphism of Python. Please refer to [StackOverflow: Declaration functions in python after call](https://stackoverflow.com/questions/17953219/declaration-functions-in-python-after-call) for tutorial on how this works.
+        """
         sym_subs_dict = {key: self.next_xi_funcs[i] for i, key in enumerate(other.xi_syms)}
         return MapBuilder(self.xi_syms, [func.subs(sym_subs_dict) for func in other.next_xi_funcs])
 
