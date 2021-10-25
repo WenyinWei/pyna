@@ -13,10 +13,13 @@ class Map:
         raise NotImplementedError()
 
 class MapSympy(Map):
-    def __init__(self, xi_syms:list, next_xi_exprs:list, param_dict:dict = dict()):
+    def __init__(self, xi_syms:list, next_xi_exprs:list, param_dict:dict = None):
         self._xi_syms = xi_syms
         self._next_xi_exprs = next_xi_exprs
-        self._param_dict = param_dict
+        if param_dict is None:
+            self._param_dict = dict()
+        else:
+            self._param_dict = param_dict
 
     @property
     def xi_syms(self):
@@ -54,19 +57,9 @@ class MapSympy(Map):
         else:
             return False
 
-    @staticmethod
-    def check_lambda_package_available(lambda_type_value:str):
-        from .sysutil import if_package_installed
-        if lambda_type_value == "numpy":
-            if not if_package_installed("numpy"):
-                raise ImportError("The lambdifying requires numpy package.")
-        elif lambda_type_value == "cupy":
-            if not if_package_installed("cupy"):
-                raise ImportError("The lambdifying requires cupy package.")
-        else:
-            raise NotImplementedError()
     def next_xi_lambdas(self, lambda_type:str = "numpy"):
-        MapSympy.check_lambda_package_available(lambda_type)
+        from .sysutil import check_lambdify_package_available
+        check_lambdify_package_available(lambda_type)
 
         if lambda_type == "numpy":
             lambda_list = [sympy.lambdify(self.xi_syms, func.subs(self.param_dict)) for func in self.next_xi_exprs]
@@ -148,6 +141,11 @@ class MapCallable(Map):
     def value_dim(self):
         raise len(self.next_xi_funcs)
 
+
+    def next_xi_lambdas(self, lambda_type:str = None):
+        if lambda_type is not None:
+            raise ValueError("The Map is already MapCallable, clients can no longer specify which way to lambdify the functions. ")
+        return self.next_xi_funcs
 
     def __call__(self, xi_arrays: list):
         return (lam(*xi_arrays) for lam in self.next_xi_lambdas)
