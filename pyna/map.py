@@ -35,10 +35,13 @@ class MapSympy(Map):
         return len(self.next_xi_exprs)
 
     @property
-    def free_symbols(self) -> sympy.sets.sets.Set:
+    def free_symbols(self) -> sympy.sets.sets.FiniteSet:
         from functools import reduce
         from operator import or_
-        return reduce(or_, [func.free_symbols for func in self.next_xi_exprs])
+        return reduce(or_, [sympy.FiniteSet(*func.free_symbols) for func in self.next_xi_exprs])
+    @property
+    def free_params(self) -> sympy.sets.sets.FiniteSet:
+        return self.free_symbols - sympy.FiniteSet(*self.xi_syms)
     @property
     def param_dict(self):
         return self._param_dict
@@ -50,9 +53,9 @@ class MapSympy(Map):
             if not key in self.free_symbols:
                 raise ValueError("Your input `param_dict` contains some weird symbol(s) which do(es)n't appear in the function sympy expressions.")
         self._param_dict = param_dict_
-    @property
+
     def param_dict_cover_free_symbols(self) -> bool:
-        if (self.free_symbols - sympy.FiniteSet( self.param_dict.keys() )).is_empty:
+        if (self.free_params - sympy.FiniteSet( *self.param_dict.keys() )).is_empty:
             return True
         else:
             return False
@@ -60,6 +63,8 @@ class MapSympy(Map):
     def next_xi_lambdas(self, lambda_type:str = "numpy"):
         from .sysutil import check_lambdify_package_available
         check_lambdify_package_available(lambda_type)
+        if not self.param_dict_cover_free_symbols():
+            raise ValueError("Missing param value, check if every free symbol has been filled values by setting param_dict.")
 
         if lambda_type == "numpy":
             lambda_list = [sympy.lambdify(self.xi_syms, func.subs(self.param_dict)) for func in self.next_xi_exprs]
@@ -150,7 +155,30 @@ class MapCallable(Map):
     def __call__(self, xi_arrays: list):
         return (lam(*xi_arrays) for lam in self.next_xi_lambdas)
 
-        
+class MapUniCallable(MapCallable):
+    def __init__(self, next_xi_func: callable) -> None:
+        super().__init__()
+        self._next_xi_func = next_xi_func
+
+    @property
+    def arg_dim(self):
+        raise NotImplementedError()
+    @property
+    def next_xi_funcs(self):
+        raise NotImplementedError()
+    @property
+    def value_dim(self):
+        raise len(self.next_xi_funcs)
+
+
+    def next_xi_lambdas(self, lambda_type:str = None):
+        if lambda_type is not None:
+            raise ValueError("The Map is already MapCallable, clients can no longer specify which way to lambdify the functions. ")
+        raise NotImplementedError()
+
+    def __call__(self, xi_arrays: list):
+        return self._next_xi_func(*xi_arrays)
+
 class MapCallableComposite(MapCallable):
     def __init__(self, first_map: MapCallable, second_map: MapCallable):
         self._first_map = first_map
