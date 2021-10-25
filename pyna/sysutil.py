@@ -23,4 +23,13 @@ def if_package_installed(package_name:str) -> bool:
     else:
         # print(f"can't find the {package_name!r} module")
         return False
-        
+
+def check_lambdify_package_available(lambda_type:str):
+    if lambda_type == "numpy":
+        if not if_package_installed("numpy"):
+            raise ImportError("The lambdifying requires numpy package.")
+    elif lambda_type == "cupy":
+        if not if_package_installed("cupy"):
+            raise ImportError("The lambdifying requires cupy package.")
+    else:
+        raise NotImplementedError()
