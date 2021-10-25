@@ -35,10 +35,13 @@ class FlowSympy(Flow):
         return len(self.diff_xi_exprs)
 
     @property
-    def free_symbols(self) -> sympy.sets.sets.Set:
+    def free_symbols(self) -> sympy.sets.sets.FiniteSet:
         from functools import reduce
         from operator import or_
-        return reduce(or_, [func.free_symbols for func in self.diff_xi_exprs])
+        return reduce(or_, [sympy.FiniteSet(*func.free_symbols) for func in self.diff_xi_exprs])
+    @property
+    def free_params(self) -> sympy.sets.sets.FiniteSet:
+        return self.free_symbols - sympy.FiniteSet(*self.xi_syms)
     @property
     def param_dict(self):
         return self._param_dict
@@ -50,9 +53,9 @@ class FlowSympy(Flow):
             if not key in self.free_symbols:
                 raise ValueError("Your input `param_dict` contains some weird symbol(s) which do(es)n't appear in the function sympy expressions.")
         self._param_dict = param_dict_
-    @property
+
     def param_dict_cover_free_symbols(self) -> bool:
-        if (self.free_symbols - sympy.FiniteSet( self.param_dict.keys() )).is_empty:
+        if (self.free_params - sympy.FiniteSet( *self.param_dict.keys() )).is_empty:
             return True
         else:
             return False
@@ -61,6 +64,8 @@ class FlowSympy(Flow):
     def diff_xi_lambdas(self, lambda_type:str = "numpy"):
         from .sysutil import check_lambdify_package_available
         check_lambdify_package_available(lambda_type)
+        if not self.param_dict_cover_free_symbols():
+            raise ValueError("Missing param value, check if every free symbol has been filled values by setting param_dict.")
 
         if lambda_type == "numpy":
             lambda_list = [sympy.lambdify(self.xi_syms, func.subs(self.param_dict)) for func in self.diff_xi_exprs]
