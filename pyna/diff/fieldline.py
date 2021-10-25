@@ -1,6 +1,6 @@
 
 def high_order_diff_of_fieldline_ODE_RZPhi(ndiff_R, ndiff_Z, method="Bruno"): # method can be chosen between "Bruno" or "brute_force"
-    from sympy import Symbol, symbols, Eq, Function #, init_printing; init_printing()
+    from sympy import Symbol, symbols, Function
     R, Z, Phi = symbols("R, Z, \phi", real=True)
     x0_R, x0_Z = symbols("x_{0R}, x_{0Z}", real=True)
     X_R, X_Z = [Function(latexstr, real=True)(x0_R, x0_Z, Phi) for latexstr in ["X_R", "X_Z"] ]
@@ -73,7 +73,6 @@ def high_order_diff_of_fieldline_ODE_RZPhi(ndiff_R, ndiff_Z, method="Bruno"): # 
 
     factored_result = result.factor()
     def _collect_factor_power_of_high_order_result(factored_result):
-        # import numpy as np
         import pandas as pd
         from sympy.core.numbers import Integer
         from sympy.core.function import Derivative
@@ -89,7 +88,6 @@ def high_order_diff_of_fieldline_ODE_RZPhi(ndiff_R, ndiff_Z, method="Bruno"): # 
         # XRZ_index now has been prepared as ['C', 'XR[0,1]', 'XZ[0,1]', 'XR[1,0]', 'XZ[0,1]', 'XR[0,2]', 'XZ[0,2]'， 'XR[1,1]', 'XZ[1,1]', etc.]
 
         how_many_terms_in_result = len(factored_result.args)
-        # XRZ_df = pd.DataFrame(np.zeros( (len(XRZ_index),how_many_terms_in_result ), dtype=int), index= XRZ_index)
         XRZ_df = pd.DataFrame(0, index=XRZ_index, columns=range(how_many_terms_in_result))
         # Collect the terms from `factored_result` and store the power number of each factor into a dataframe
         for i, term in enumerate(factored_result.args):
@@ -102,12 +100,12 @@ def high_order_diff_of_fieldline_ODE_RZPhi(ndiff_R, ndiff_Z, method="Bruno"): # 
                 if factor.func is Pow: # if the factor has power, record the power number in dataframe
                     factor_inside_power = factor.args[0]
                     factor_power = factor.args[1]
-                else:
+                else: # factor_power = 1 if there is no explicit power.
                     factor_inside_power = factor
                     factor_power = 1
                 
                 assert(factor_inside_power.func is Derivative)
-                if factor_inside_power.args[0] == XRdot: # We don't care the ∂ XRdot/∂[R/Z] factor and their info would not be recorded in dataframe because they can be calculated from other factors.
+                if factor_inside_power.args[0] == XRdot: # We don't care the ∂ XRdot/∂[R^{n_R}/Z^{n_Z}] factor and their info would not be recorded in dataframe because they can be calculated from other factors.
                     continue
                 
                 if factor_inside_power.args[0] == X_R:
