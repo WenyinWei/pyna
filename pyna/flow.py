@@ -1,6 +1,8 @@
 from typing import Any
 import sympy
 
+from pyna.withparam import WithParam
+
 class Flow:
     @property
     def arg_dim(self):
@@ -12,7 +14,7 @@ class Flow:
     def __call__(self, *args: Any, **kwds: Any) -> Any:
         raise NotImplementedError()
 
-class FlowSympy(Flow):
+class FlowSympy(Flow, WithParam):
     def __init__(self, xi_syms:list, diff_xi_exprs:list, param_dict:dict = None):
         self._xi_syms = xi_syms
         self._diff_xi_exprs = diff_xi_exprs
@@ -42,23 +44,6 @@ class FlowSympy(Flow):
     @property
     def free_params(self) -> sympy.sets.sets.FiniteSet:
         return self.free_symbols - sympy.FiniteSet(*self.xi_syms)
-    @property
-    def param_dict(self):
-        return self._param_dict
-    @param_dict.setter
-    def param_dict(self, param_dict_:dict): # you can update the parameter dict, but must as a whole.
-        if not isinstance(param_dict_, dict):
-            raise ValueError("The param_dict arg must be a python dict object.")
-        for key in param_dict_.keys():
-            if not key in self.free_symbols:
-                raise ValueError("Your input `param_dict` contains some weird symbol(s) which do(es)n't appear in the function sympy expressions.")
-        self._param_dict = param_dict_
-
-    def param_dict_cover_free_symbols(self) -> bool:
-        if (self.free_params - sympy.FiniteSet( *self.param_dict.keys() )).is_empty:
-            return True
-        else:
-            return False
 
 
     def diff_xi_lambdas(self, lambda_type:str = "numpy"):
