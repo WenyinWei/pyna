@@ -1,6 +1,11 @@
 import sympy
 
 class WithParam:
+    def __init__(self, param_dict: dict = None) -> None:
+        if param_dict is None:
+            self.param_dict = dict()
+        else:
+            self.param_dict = param_dict
 
     # NOTE: pure virtual method
     @property
@@ -17,7 +22,7 @@ class WithParam:
         # Reference Implementation
         # return self.free_symbols - sympy.FiniteSet(*self.xi_syms)
         raise NotImplementedError()
-        
+
     @property
     def param_dict(self):
         return self._param_dict

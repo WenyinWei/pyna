@@ -18,10 +18,7 @@ class MapSympy(Map, WithParam):
     def __init__(self, xi_syms:list, next_xi_exprs:list, param_dict:dict = None):
         self._xi_syms = xi_syms
         self._next_xi_exprs = next_xi_exprs
-        if param_dict is None:
-            self._param_dict = dict()
-        else:
-            self._param_dict = param_dict
+        WithParam.__init__(self, param_dict)
 
     @property
     def xi_syms(self):
