@@ -1,4 +1,8 @@
 
+import numpy as np
+from functools import lru_cache
+
+
 def high_order_diff_of_fieldline_ODE_RZPhi(ndiff_R, ndiff_Z, method="Bruno"): # method can be chosen between "Bruno" or "brute_force"
     from sympy import Symbol, symbols, Function
     R, Z, Phi = symbols("R, Z, \phi", real=True)
@@ -128,3 +132,43 @@ def high_order_diff_of_fieldline_ODE_RZPhi(ndiff_R, ndiff_Z, method="Bruno"): # 
         # The dataframe has been prepared
     
     return factored_result, _collect_factor_power_of_high_order_result(factored_result)
+
+class _FieldDifferenatiableRZ:
+    def __init__(self, field: np.ndarray, R, Z, Phi) -> None:
+        self._field = field # field of shape (field dimension, nR, nZ, nPhi)
+        self._R = R
+        self._Z = Z
+        self._Phi = Phi
+    
+    @lru_cache
+    def diff_RZ(self, nR:int, nZ:int):
+        if nR == 0 and nZ == 0:
+            return self._field.copy()
+        elif nZ > 0:
+            return np.gradient(self.diff_RZ(nR, nZ-1), self._Z, axis=-2, edge_order=2)
+        elif nR > 0:
+            return np.gradient(self.diff_RZ(nR-1, nZ), self._R, axis=-3, edge_order=2)
+        else:
+            raise ValueError("nR, nZ to differentiate in the R,Z axis shall be >= 0.")
+
+    @lru_cache
+    def diff_RZ_interpolator(self, nR:int, nZ:int):
+        from scipy.interpolate import RegularGridInterpolator
+        if nR > 0 and nZ > 0:
+            return RegularGridInterpolator( 
+                (self._R[nR:-nR], self._Z[nZ:-nZ], self._Phi), self.diff_RZ(nR, nZ)[...,nR:-nR, nZ:-nZ,:],
+                method="linear", bounds_error=True )
+        elif nR > 0 and nZ == 0:
+            return RegularGridInterpolator( 
+                (self._R[nR:-nR], self._Z, self._Phi), self.diff_RZ(nR, nZ)[...,nR:-nR, :,:],
+                method="linear", bounds_error=True )
+        elif nR == 0 and nZ > 0:
+            return RegularGridInterpolator( 
+                (self._R, self._Z[nZ:-nZ], self._Phi), self.diff_RZ(nR, nZ)[...,:, nZ:-nZ,:],
+                method="linear", bounds_error=True )
+        elif nR == 0 and nZ == 0:
+            return RegularGridInterpolator( 
+                (self._R, self._Z, self._Phi), self.diff_RZ(nR, nZ)[...,:, :,:],
+                method="linear", bounds_error=True )
+        else:
+            raise ValueError("nR, nZ to differentiate in the R,Z axis shall be >= 0.")
