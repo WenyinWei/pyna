@@ -1,4 +1,5 @@
 
+
 import numpy as np
 from functools import lru_cache
 
@@ -168,7 +169,90 @@ class _FieldDifferenatiableRZ:
                 method="linear", bounds_error=True )
         elif nR == 0 and nZ == 0:
             return RegularGridInterpolator( 
-                (self._R, self._Z, self._Phi), self.diff_RZ(nR, nZ)[...,:, :,:],
+                (self._R, self._Z, self._Phi), self.diff_RZ(nR, nZ)[...,:,:,:],
                 method="linear", bounds_error=True )
         else:
             raise ValueError("nR, nZ to differentiate in the R,Z axis shall be >= 0.")
+
+from ..flow import FlowCallable
+from scipy.integrate import solve_ivp
+from functools import reduce
+import operator
+def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(BR, BZ, BPhi, R, Z, Phi, t_span, y0, highest_order=1, *arg, **kwarg):
+    RBRdBPhi = R[:,None,None]*BR/BPhi
+    RBZdBPhi = R[:,None,None]*BZ/BPhi
+    RBRdBPhi_field = _FieldDifferenatiableRZ(RBRdBPhi, R, Z, Phi)
+    RBZdBPhi_field = _FieldDifferenatiableRZ(RBZdBPhi, R, Z, Phi)
+    
+    pflow = FlowCallable([
+        lambda R_, Z_, Phi_: RBRdBPhi_field.diff_RZ_interpolator(0,0)([R_, Z_, Phi_])[0],
+        lambda R_, Z_, Phi_: RBZdBPhi_field.diff_RZ_interpolator(0,0)([R_, Z_, Phi_])[0]
+    ])
+
+    fltsol = solve_ivp(lambda t, y: [lam(*y, t) for lam in pflow.diff_xi_lambdas()], t_span, y0, dense_output=True, *arg, **kwarg) # in case of magneitc field, this is [R*BR/BPhi, R*BZ/BPhi] 
+    partial_derivative_sols = [fltsol]
+
+    # Give the lambda function according to a dataframe 
+    def high_order_partial_derivative_diff_eq_lambda(RZ, termdf):
+        termdf_index = termdfs[ndiff_R].index
+        term_lambdas = [] 
+        for term in termdf: # for each column
+            factor_lambdas = [lambda t,y: float(termdf[term][0]), ] #  initialized with coefficient
+            factor_XR_num, factor_XZ_num = 0, 0
+            for pow_ind, pow_int in enumerate( termdf[term][1:-2*(ndiff+1)] ): # skip the first coeff term and the last 2(n+1) factors with same differential order (i.e. ndiff).
+                if pow_int != 0:
+                    factor_name = termdf_index[pow_ind+1] # +1 because we skip the first coefficient row
+                    factor_ndiff_R, factor_ndiff_Z = factor_name[3:-1].split(',')
+                    factor_ndiff_R, factor_ndiff_Z = int( factor_ndiff_R ), int( factor_ndiff_Z )
+                    factor_RZ = factor_name[1]
+                    if factor_RZ == 'R':
+                        factor_XR_num += 1 
+                    elif factor_RZ == 'Z':
+                        factor_XZ_num += 1 
+                    factor_ndiff = factor_ndiff_R + factor_ndiff_Z
+                    factor_lookup_ind = 2*factor_ndiff_R if factor_RZ=='R' else 2*factor_ndiff_R+1
+                    factor_lambdas.append( lambda t,y: (partial_derivative_sols[factor_ndiff].sol(t)[factor_lookup_ind])**pow_int )
+            for pow_ind, pow_int in enumerate( termdf[term][-2*(ndiff+1):] ): 
+                if pow_int != 0:
+                    factor_name = termdf_index[-2*(ndiff+1)+pow_ind] 
+                    factor_ndiff_R, factor_ndiff_Z = factor_name[3:-1].split(',')
+                    factor_ndiff_R, factor_ndiff_Z = int( factor_ndiff_R ), int( factor_ndiff_Z )
+                    factor_RZ = factor_name[1]
+                    if factor_RZ == 'R':
+                        factor_XR_num += 1 
+                    elif factor_RZ == 'Z':
+                        factor_XZ_num += 1
+                    factor_ndiff = ndiff
+                    assert(ndiff == factor_ndiff_R + factor_ndiff_Z)
+                    factor_lookup_ind = 2*factor_ndiff_R if factor_RZ=='R' else 2*factor_ndiff_R+1
+                    factor_lambdas.append( lambda t,y: y[factor_lookup_ind]**pow_int )
+            if RZ == 'R': # multiply factors like ∂^{n}R*BR/BPhi/∂R^{n}
+                factor_lambdas.append( lambda t,y: RBRdBPhi_field.diff_RZ_interpolator(factor_XR_num, factor_XZ_num)([*fltsol.sol(t), t])[0]  )
+            elif RZ == 'Z': 
+                factor_lambdas.append( lambda t,y: RBZdBPhi_field.diff_RZ_interpolator(factor_XR_num, factor_XZ_num)([*fltsol.sol(t), t])[0]  )
+            term_lambda = lambda t,y: reduce(operator.mul, ( factor_lam(t,y) for factor_lam in factor_lambdas ))
+            term_lambdas.append(term_lambda)
+        diffeq_lambda = lambda t, y: sum( term_lam(t,y) for term_lam in term_lambdas )
+        return diffeq_lambda
+
+    for ndiff in range(1, highest_order+1):
+        termdfs = [None]*(ndiff+1)
+        diffeq_lambdas = []
+        for ndiff_R in range(ndiff+1): # Totally 2(n+1) distinct partial derivatives of order n.
+            ndiff_Z = ndiff - ndiff_R
+            _, termdfs[ndiff_R] = high_order_diff_of_fieldline_ODE_RZPhi(ndiff_R, ndiff_Z)
+            # Totally (n+1) dataframes recording how many power for each factor, ∂XR[nR,nZ]/∂φ and ∂XZ[nR,nZ]/∂φ share a same dataframe.
+            # termdfs.append(termdf) # store the term dataframes in case of termdf are removed during computation
+
+            diffeq_lambdas.append( high_order_partial_derivative_diff_eq_lambda('R', termdfs[ndiff_R]) )
+            diffeq_lambdas.append( high_order_partial_derivative_diff_eq_lambda('Z', termdfs[ndiff_R]) )
+        
+        def high_order_evolve_diff_eqs(t, y):
+            return [lam(t,y) for lam in diffeq_lambdas]                
+        # We need to solve these 2(n+1) partial derivatives together since they are correlated.
+        y0 = [0.0, 1.0, 1.0, 0.0] if ndiff ==1 else [0.0]*(2*(ndiff+1))
+        partial_derivative_sols.append(
+            solve_ivp(high_order_evolve_diff_eqs, t_span, y0, dense_output=True, *arg, **kwarg) )
+    return partial_derivative_sols
+        
+
