@@ -41,6 +41,17 @@ class WithParam:
         else:
             return False
 
-from sympy import NDimArray
-class ArrayWithParam(NDimArray, WithParam):
-    pass
+from sympy.tensor.array import ImmutableDenseNDimArray
+class ImmutableDenseNDimArrayWithParam(ImmutableDenseNDimArray, WithParam):
+    def __new__(cls, arr: ImmutableDenseNDimArray, param_dict:dict = None) -> None:
+        return ImmutableDenseNDimArray.__new__(cls, arr)
+    def __init__(self, arr: ImmutableDenseNDimArray, param_dict:dict = None) -> None:
+        WithParam.__init__(self, param_dict)
+        
+    @property
+    def free_symbols(self) -> sympy.sets.sets.FiniteSet: 
+        return ImmutableDenseNDimArray.free_symbols.fget(self)
+
+    @property
+    def free_params(self) -> sympy.sets.sets.FiniteSet: 
+        return self.free_symbols
