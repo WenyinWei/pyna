@@ -206,9 +206,9 @@ def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(BR, BZ, BPhi, R, Z, Phi, t_span
                     factor_ndiff_R, factor_ndiff_Z = int( factor_ndiff_R ), int( factor_ndiff_Z )
                     factor_RZ = factor_name[1]
                     if factor_RZ == 'R':
-                        factor_XR_num += 1 
+                        factor_XR_num += pow_int
                     elif factor_RZ == 'Z':
-                        factor_XZ_num += 1 
+                        factor_XZ_num += pow_int
                     factor_ndiff = factor_ndiff_R + factor_ndiff_Z
                     factor_lookup_ind = 2*factor_ndiff_R if factor_RZ=='R' else 2*factor_ndiff_R+1
                     factor_lambdas.append( lambda t,y: (partial_derivative_sols[factor_ndiff].sol(t)[factor_lookup_ind])**pow_int )
@@ -219,9 +219,9 @@ def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(BR, BZ, BPhi, R, Z, Phi, t_span
                     factor_ndiff_R, factor_ndiff_Z = int( factor_ndiff_R ), int( factor_ndiff_Z )
                     factor_RZ = factor_name[1]
                     if factor_RZ == 'R':
-                        factor_XR_num += 1 
+                        factor_XR_num += pow_int
                     elif factor_RZ == 'Z':
-                        factor_XZ_num += 1
+                        factor_XZ_num += pow_int
                     factor_ndiff = ndiff
                     assert(ndiff == factor_ndiff_R + factor_ndiff_Z)
                     factor_lookup_ind = 2*factor_ndiff_R if factor_RZ=='R' else 2*factor_ndiff_R+1
