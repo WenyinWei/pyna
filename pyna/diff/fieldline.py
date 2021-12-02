@@ -188,8 +188,8 @@ def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(BR, BZ, BPhi, R, Z, Phi, t_span
         lambda R_, Z_, Phi_: RBRdBPhi_field.diff_RZ_interpolator(0,0)([R_, Z_, Phi_])[0],
         lambda R_, Z_, Phi_: RBZdBPhi_field.diff_RZ_interpolator(0,0)([R_, Z_, Phi_])[0]
     ])
-
-    fltsol = solve_ivp(lambda t, y: [lam(*y, t) for lam in pflow.diff_xi_lambdas()], t_span, y0, dense_output=True, *arg, **kwarg) # in case of magneitc field, this is [R*BR/BPhi, R*BZ/BPhi] 
+    dPhi = Phi[1] - Phi[0]
+    fltsol = solve_ivp(lambda t, y: [lam(*y, t%(2*np.pi) ) for lam in pflow.diff_xi_lambdas()], t_span, y0, max_step=dPhi, dense_output=True, *arg, **kwarg) # in case of magneitc field, this is [R*BR/BPhi, R*BZ/BPhi] 
     partial_derivative_sols = [fltsol]
 
     # Give the lambda function according to a dataframe 
@@ -259,7 +259,7 @@ def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(BR, BZ, BPhi, R, Z, Phi, t_span
                             for factor_ndiff, factor_lookup_ind, pow_int in suborder_factor_params[iterm]), 1.0 ) *
                         reduce(operator.mul, (y[factor_lookup_ind]**pow_int
                             for factor_ndiff, factor_lookup_ind, pow_int in sameorder_factor_params[iterm]), 1.0 ) *
-                        RBRdBPhi_field.diff_RZ_interpolator(factor_XR_num[iterm], factor_XZ_num[iterm])([*fltsol.sol(t), t])[0]
+                        RBRdBPhi_field.diff_RZ_interpolator(factor_XR_num[iterm], factor_XZ_num[iterm])([*fltsol.sol(t), t%(2*np.pi) ])[0]
                     )
                     term_vals_Z.append(
                         float(termdf[term][0]) * 
@@ -267,7 +267,7 @@ def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(BR, BZ, BPhi, R, Z, Phi, t_span
                             for factor_ndiff, factor_lookup_ind, pow_int in suborder_factor_params[iterm]), 1.0 ) *
                         reduce(operator.mul, (y[factor_lookup_ind]**pow_int
                             for factor_ndiff, factor_lookup_ind, pow_int in sameorder_factor_params[iterm]), 1.0 ) *
-                        RBZdBPhi_field.diff_RZ_interpolator(factor_XR_num[iterm], factor_XZ_num[iterm])([*fltsol.sol(t), t])[0]
+                        RBZdBPhi_field.diff_RZ_interpolator(factor_XR_num[iterm], factor_XZ_num[iterm])([*fltsol.sol(t), t%(2*np.pi) ])[0]
                     )
                 diffeq_vals[2*ndiff_R  ] = sum(term_vals_R)
                 diffeq_vals[2*ndiff_R+1] = sum(term_vals_Z)
@@ -276,7 +276,7 @@ def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(BR, BZ, BPhi, R, Z, Phi, t_span
         # We need to solve these 2(n+1) partial derivatives together since they are correlated.
         y0 = [0.0, 1.0, 1.0, 0.0] if ndiff ==1 else [0.0]*(2*(ndiff+1))
         partial_derivative_sols.append(
-            solve_ivp(high_order_evolve_diff_eqs, t_span, y0, dense_output=True, *arg, **kwarg) )
+            solve_ivp(high_order_evolve_diff_eqs, t_span, y0, max_step=dPhi, dense_output=True, *arg, **kwarg) )
     return partial_derivative_sols
     
 ''' The following function is identical with the above one in terms of the result, but the following one doesn't handle the termdf in advance.
