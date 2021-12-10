@@ -178,7 +178,7 @@ from ..flow import FlowCallable
 from scipy.integrate import solve_ivp
 from functools import reduce
 import operator
-def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(BR, BZ, BPhi, R, Z, Phi, t_span, y0, highest_order=1, *arg, **kwarg):
+def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(R, Z, Phi, BR, BZ, BPhi,  t_span, y0, highest_order=1, *arg, **kwarg):
     RBRdBPhi = R[:,None,None]*BR/BPhi
     RBZdBPhi = R[:,None,None]*BZ/BPhi
     RBRdBPhi_field = _FieldDifferenatiableRZ(RBRdBPhi, R, Z, Phi)
@@ -281,35 +281,35 @@ def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(BR, BZ, BPhi, R, Z, Phi, t_span
 
 import ray 
 @ray.remote
-def Poincare_trace(BR, BZ, BPhi, R, Z, Phi, x0_RZPhi, Poincare_section_Phi, times):
+def Poincare_trace(R, Z, Phi, BR, BZ, BPhi,  x0_RZPhi, Poincare_section_Phi, times):
     Phigap_from_x0_to_section = ( Poincare_section_Phi - x0_RZPhi[-1] ) % (2*np.pi) # which shall be a float falling in the range [0, 2pi)
     if times[0] >= 0 and times[1] >= 0:
         pos_trace = RZ_partial_derivative_of_map_4_Flow_Phi_as_t(
-            BR, BZ, BPhi, R, Z, Phi, 
+            R, Z, Phi, BR, BZ, BPhi,  
             t_span = [x0_RZPhi[-1], x0_RZPhi[-1] + Phigap_from_x0_to_section + 2*np.pi*times[1] ], y0=x0_RZPhi[:-1], highest_order=0, 
             t_eval = np.linspace(x0_RZPhi[-1] + Phigap_from_x0_to_section + 2*np.pi*times[0], x0_RZPhi[-1] + Phigap_from_x0_to_section + 2*np.pi*times[1], times[1]-times[0] + 1 ) )[0].y 
         return pos_trace
     elif times[0] < 0 and times[1] >= 0:
         pos_trace = RZ_partial_derivative_of_map_4_Flow_Phi_as_t(
-            BR, BZ, BPhi, R, Z, Phi, 
+            R, Z, Phi, BR, BZ, BPhi,  
             t_span = [x0_RZPhi[-1], x0_RZPhi[-1] + Phigap_from_x0_to_section + 2*np.pi*times[1] ], y0=x0_RZPhi[:-1], highest_order=0, 
             t_eval = np.linspace(x0_RZPhi[-1] + Phigap_from_x0_to_section + 2*np.pi*0, x0_RZPhi[-1] + Phigap_from_x0_to_section + 2*np.pi*times[1], times[1] + 1 ) )[0].y 
         neg_trace = RZ_partial_derivative_of_map_4_Flow_Phi_as_t(
-            BR, BZ, BPhi, R, Z, Phi, 
+            R, Z, Phi, BR, BZ, BPhi,  
             t_span = [x0_RZPhi[-1], x0_RZPhi[-1] + Phigap_from_x0_to_section + 2*np.pi*times[0] ], y0=x0_RZPhi[:-1], highest_order=0, 
             t_eval = np.linspace(x0_RZPhi[-1] + Phigap_from_x0_to_section + 2*np.pi*(-1), x0_RZPhi[-1] + Phigap_from_x0_to_section + 2*np.pi*times[0], abs(times[0]) ) )[0].y 
         return np.concatenate( (neg_trace[:,::-1], pos_trace), axis=1)
     elif times[0] < 0 and times[1] < 0:
         neg_trace = RZ_partial_derivative_of_map_4_Flow_Phi_as_t(
-            BR, BZ, BPhi, R, Z, Phi, 
+            R, Z, Phi, BR, BZ, BPhi,  
             t_span = [x0_RZPhi[-1], x0_RZPhi[-1] + Phigap_from_x0_to_section + 2*np.pi*times[0] ], y0=x0_RZPhi[:-1], highest_order=0, 
             t_eval = np.linspace(x0_RZPhi[-1] + Phigap_from_x0_to_section + 2*np.pi*times[-1], x0_RZPhi[-1] + Phigap_from_x0_to_section + 2*np.pi*times[0], abs(times[0]-times[1])+1 ) )[0].y 
         return neg_trace[:,::-1]
 
-def Poincare_plot(BR, BZ, BPhi, R, Z, Phi, init_RZPhi, Poincare_section_Phi, fig, ax):
+def Poincare_plot(R, Z, Phi, BR, BZ, BPhi,  init_RZPhi, Poincare_section_Phi, fig, ax):
     x_trace_future_list = []
     for i in range(len(init_RZPhi)):
-        x_trace_future_list.append( Poincare_trace.remote(BR, BZ, BPhi, R, Z, Phi, init_RZPhi[i,:], Poincare_section_Phi, times=[-2,50])  ) # TODO: make the 'times' setting smarter in the future
+        x_trace_future_list.append( Poincare_trace.remote(R, Z, Phi, BR, BZ, BPhi,  init_RZPhi[i,:], Poincare_section_Phi, times=[-2,50])  ) # TODO: make the 'times' setting smarter in the future
     for i in range(len(init_RZPhi)):
         x_trace = ray.get(x_trace_future_list[i])
         ax.scatter( x_trace[0,:], x_trace[1,:], s=0.3 )
