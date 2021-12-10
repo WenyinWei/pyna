@@ -1,8 +1,12 @@
 from ..map import MapSympy, MapCallable
 import sympy
 from sympy import derive_by_array
+import numpy as np
 
-
+def jac_col_2_mat(jac):
+    return np.array( [
+        [jac[2], jac[0]], 
+        [jac[3], jac[1]]])
 
 def Jacobian_4_MapSympy(pmap: MapSympy):
     from ..withparam import ImmutableDenseNDimArrayWithParam

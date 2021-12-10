@@ -1,11 +1,11 @@
-
 from pyna.diff.fieldline import _FieldDifferenatiableRZ
+from pyna.diff.fixedpoint import Jac_evolution_along_Xcycle
 from scipy.integrate import solve_ivp
 import numpy as np
 
 
 
-def central_finite_difference_first_derivative(arr:np.ndarray, dPhi:float, accuracy_order=4):
+def _central_finite_difference_first_derivative(arr:np.ndarray, dPhi:float, accuracy_order=4):
     """1st derivative of a periodic function with spacing dPhi
 
     Args:
@@ -35,7 +35,21 @@ def central_finite_difference_first_derivative(arr:np.ndarray, dPhi:float, accur
             + (np.roll(arr, 4) - np.roll(arr, -4) )  * ( -1 / 280 )  ) / dPhi
         
 
-def solve_manifold_growth(R, Z, Phi, BR, BZ, BPhi):
+def grow_manifold_from_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, S_span, Phi_span):
+
+    DP_Xcycle = Jac_evolution_along_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span)
+
+    Phi_start, Phi_end = Phi_span[0], Phi_span[1]
+    dPhi = Phi[1]-Phi[0]
+    Phi_manifold = np.linspace(Phi_start, Phi_end, num=int( len(Phi)/1 ), endpoint=True)
+    nPhi_manifold = len(Phi_manifold)
+    dPhi_manifold = Phi_manifold[1]-Phi_manifold[0]
+
+    RZ_Xcycle_arr = Xcycle_RZdiff[0].sol(Phi_manifold).T
+    DP_Xcycle_arr = DP_Xcycle.sol(Phi_manifold).T.reshape( (len(Phi_manifold),2,2) )
+    import numpy.linalg
+    eigen_val_Xcycle, eigen_vec_Xcycle = numpy.linalg.eig(DP_Xcycle_arr)
+
     RBRdBPhi = R[:,None,None]*BR/BPhi
     RBZdBPhi = R[:,None,None]*BZ/BPhi
     RBRdBPhi_field = _FieldDifferenatiableRZ(RBRdBPhi, R, Z, Phi)
@@ -44,21 +58,14 @@ def solve_manifold_growth(R, Z, Phi, BR, BZ, BPhi):
     def manifold_growth_ODE(t,y):
         
         XR_each_phi, XZ_each_phi = y[:nPhi_manifold-1], y[nPhi_manifold-1:]
-    #     dXRdPhi = (np.roll(XR_each_phi, 1) - np.roll(XR_each_phi, -1) )  / (2*dPhi_manifold)
-    #     dXZdPhi = (np.roll(XZ_each_phi, 1) - np.roll(XZ_each_phi, -1) )  / (2*dPhi_manifold)
-        dXRdPhi = (np.roll(XR_each_phi, 1) - np.roll(XR_each_phi, -1) )  / (dPhi_manifold) * 2 / 3 \
-            - (np.roll(XR_each_phi, 2) - np.roll(XR_each_phi, -2) )  / (dPhi_manifold) * 1 / 12 
-        dXZdPhi = (np.roll(XZ_each_phi, 1) - np.roll(XZ_each_phi, -1) )  / (dPhi_manifold) * 2 / 3 \
-            - (np.roll(XZ_each_phi, 2) - np.roll(XZ_each_phi, -2) )  / (dPhi_manifold) * 1 / 12 
+        dXRdPhi = _central_finite_difference_first_derivative(XR_each_phi, dPhi_manifold)
+        dXZdPhi = _central_finite_difference_first_derivative(XZ_each_phi, dPhi_manifold)
         
         try:
             sampled_RBRdBPhi = RBRdBPhi_field.diff_RZ_interpolator(0,0)( np.vstack( (XR_each_phi, XZ_each_phi, Phi_manifold[:-1]) ).T )
             sampled_RBZdBPhi = RBZdBPhi_field.diff_RZ_interpolator(0,0)( np.vstack( (XR_each_phi, XZ_each_phi, Phi_manifold[:-1]) ).T )
-        except:
-            print("error at ", t,)
-            print(XR_each_phi)
-            print(XZ_each_phi)
-            print(Phi)
+        except Exception as e:
+            raise RuntimeError(f"Error when growing the manifold from X cycle at {t}. The error is {e}")
         dsdPhi = np.sqrt(  (sampled_RBRdBPhi-dXRdPhi)**2 + (sampled_RBZdBPhi-dXZdPhi)**2 ) # as denominator of dXRds and dXZds expressions
         dXRds = (sampled_RBRdBPhi-dXRdPhi) / dsdPhi
         dXZds = (sampled_RBZdBPhi-dXZdPhi) / dsdPhi
@@ -73,3 +80,15 @@ def solve_manifold_growth(R, Z, Phi, BR, BZ, BPhi):
                     RZ_Xcycle_bitshift_along_eigvec.reshape( (2*(nPhi_manifold-1),), order='F' ), dense_output=True, 
                     first_step=0.5e-4, max_step=1e-4
                             )
+
+    s_len = 200
+    s_arr = np.empty( (s_len) )
+    s_arr[0], s_arr[1:] = 0.0, np.linspace(s_span[0], s_span[1], num=s_len-1)
+    # (2, s_len, nPhi_manifold), 2 for (XR, XZ), s_len for len(s_arr), nPhi_manifold for 
+    manifold_RZ_SPhi = np.empty( (2, s_len, nPhi_manifold) ) 
+    # initial cycle whose s = 0
+    manifold_RZ_SPhi[:,0,:] = RZ_Xcycle_arr.T
+    manifold_RZ_SPhi[:,1:s_len,:nPhi_manifold-1] = manifold_sol.sol(s_arr[1:]).reshape( (nPhi_manifold-1,2,s_len-1), order='F' ).transpose(1,2,0)
+    # seam the head and tail of manifold
+    manifold_RZ_SPhi[:,:,-1] = manifold_RZ_SPhi[:,:,0]
+    return s_arr, Phi_manifold, manifold_RZ_SPhi
