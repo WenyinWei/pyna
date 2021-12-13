@@ -35,13 +35,13 @@ def _central_finite_difference_first_derivative(arr:np.ndarray, dPhi:float, accu
             + (np.roll(arr, 4) - np.roll(arr, -4) )  * ( -1 / 280 )  ) / dPhi
         
 
-def grow_manifold_from_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, S_span, Phi_span):
+def grow_manifold_from_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, S_span, S_num:int, Phi_span, Phi_num:int, S_init = 2e-2):
 
     DP_Xcycle = Jac_evolution_along_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span)
 
     Phi_start, Phi_end = Phi_span[0], Phi_span[1]
     dPhi = Phi[1]-Phi[0]
-    Phi_manifold = np.linspace(Phi_start, Phi_end, num=int( len(Phi)/1 ), endpoint=True)
+    Phi_manifold = np.linspace(Phi_start, Phi_end, num=Phi_num, endpoint=True)
     nPhi_manifold = len(Phi_manifold)
     dPhi_manifold = Phi_manifold[1]-Phi_manifold[0]
 
@@ -72,23 +72,21 @@ def grow_manifold_from_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, S_span, Ph
         return np.concatenate( (dXRds, dXZds), axis=0)
 
 
-    s_span = [0.02, 2.5]
-    RZ_Xcycle_bitshift_along_eigvec = RZ_Xcycle_arr + s_span[0] * eigen_vec_Xcycle[:,:,0] # the first eigen vec direction
+    RZ_Xcycle_bitshift_along_eigvec = RZ_Xcycle_arr + S_init * eigen_vec_Xcycle[:,:,0] # the first eigen vec direction
     RZ_Xcycle_bitshift_along_eigvec = RZ_Xcycle_bitshift_along_eigvec[:-1,:] # Remove the last repeated element
 
-    manifold_sol = solve_ivp(manifold_growth_ODE, s_span, 
+    manifold_sol = solve_ivp(manifold_growth_ODE, S_span, 
                     RZ_Xcycle_bitshift_along_eigvec.reshape( (2*(nPhi_manifold-1),), order='F' ), dense_output=True, 
                     first_step=0.5e-4, max_step=1e-4
                             )
 
-    s_len = 200
-    s_arr = np.empty( (s_len) )
-    s_arr[0], s_arr[1:] = 0.0, np.linspace(s_span[0], s_span[1], num=s_len-1)
+    S_arr = np.empty( (S_num) )
+    S_arr[0], S_arr[1:] = 0.0, np.linspace(S_span[0], S_span[1], num=S_num-1)
     # (2, s_len, nPhi_manifold), 2 for (XR, XZ), s_len for len(s_arr), nPhi_manifold for 
-    manifold_RZ_SPhi = np.empty( (2, s_len, nPhi_manifold) ) 
+    manifold_RZ_SPhi = np.empty( (2, S_num, nPhi_manifold) ) 
     # initial cycle whose s = 0
     manifold_RZ_SPhi[:,0,:] = RZ_Xcycle_arr.T
-    manifold_RZ_SPhi[:,1:s_len,:nPhi_manifold-1] = manifold_sol.sol(s_arr[1:]).reshape( (nPhi_manifold-1,2,s_len-1), order='F' ).transpose(1,2,0)
+    manifold_RZ_SPhi[:,1:S_num,:nPhi_manifold-1] = manifold_sol.sol(S_arr[1:]).reshape( (nPhi_manifold-1,2,S_num-1), order='F' ).transpose(1,2,0)
     # seam the head and tail of manifold
     manifold_RZ_SPhi[:,:,-1] = manifold_RZ_SPhi[:,:,0]
-    return s_arr, Phi_manifold, manifold_RZ_SPhi
+    return S_arr, Phi_manifold, manifold_RZ_SPhi
