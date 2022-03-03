@@ -25,7 +25,8 @@ def Newton_discrete(R, Z, Phi, BR, BZ, BPhi, x0_RZPhi, tor_turn:int=1, zone_of_i
 def draw_eig_direction(x0, eigtheta, eigval, fig, ax, unit_data_len:float=0.05, circ_wanted=False):
     ax.arrow(x=x0[0], y=x0[1], 
         dx=eigval*np.cos(eigtheta)*unit_data_len, 
-        dy=eigval*np.sin(eigtheta)*unit_data_len)
+        dy=eigval*np.sin(eigtheta)*unit_data_len,
+        head_width=16e-3)
     if circ_wanted:
         circ_theta = np.linspace(0, 2*np.pi)
         circ_theta = np.linspace(0, 2*np.pi)
