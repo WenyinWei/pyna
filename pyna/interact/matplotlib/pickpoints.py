@@ -28,7 +28,7 @@ class Line2DExtender:
             self.line.figure.canvas.mpl_disconnect(self.cid_key_press)
             
 
-def uniformly_scattered_points_in_polygon(polygon:Line2DExtender, ny=40):
+def uniformly_scattered_points_in_polygon(polygon:Line2DExtender, ny=40, dydx=1):
     if polygon.xs[-1] != polygon.xs[0]:
         raise ValueError("The polygon is not closed in x coordinate.")
     if polygon.ys[-1] != polygon.ys[0]:
@@ -38,7 +38,7 @@ def uniformly_scattered_points_in_polygon(polygon:Line2DExtender, ny=40):
     ymin, ymax = min(polygon.ys), max(polygon.ys)
     ygap = ymax - ymin
     dy = ygap / ny
-    dx = dy
+    dx = dy / dydx
     yarr = np.linspace(ymin+dy, ymax, num=ny, endpoint=False)
     
     scattered_points_x = []
