@@ -5,21 +5,27 @@ import numpy as np
 from numpy import linalg as LA 
 from scipy.integrate import solve_ivp
 
-def Newton_discrete(R, Z, Phi, BR, BZ, BPhi, x0_RZPhi, tor_turn:int=1, zone_of_interest_callback=None, h=1.0, epsilon=1e-5):
+def Newton_discrete(R, Z, Phi, BR, BZ, BPhi, x0_RZPhi, tor_turn:int=1, zone_of_interest_callback=None, h=1.0, epsilon=1e-5, ret_trace=False):
     xRZ_trace = [np.asarray(x0_RZPhi[:-1])]
     while len(xRZ_trace)==1 or np.linalg.norm( xRZ_trace[-2] - xRZ_trace[-1] ) > epsilon:
         RZdiff_sols = RZ_partial_derivative_of_map_4_Flow_Phi_as_t(R, Z, Phi, BR, BZ, BPhi, [x0_RZPhi[-1], x0_RZPhi[-1] + 2*tor_turn*np.pi], xRZ_trace[-1], highest_order=1)
         x_mapped = RZdiff_sols[0].sol(x0_RZPhi[-1] + 2*tor_turn*np.pi) 
         if zone_of_interest_callback is not None:
             if not zone_of_interest_callback(*x_mapped):
-                return None
+                if ret_trace:
+                    return xRZ_trace.append(None)
+                else:
+                    return None
         Jac_comp = RZdiff_sols[1].sol(x0_RZPhi[-1] + 2*tor_turn*np.pi)
         Jac = np.array( [
             [Jac_comp[2]-1, Jac_comp[0]], 
             [Jac_comp[3], Jac_comp[1]-1]])
         xRZ_trace.append( np.ravel(
             xRZ_trace[-1] - h * np.matmul( np.linalg.inv(Jac), np.array([[x_mapped[0]- xRZ_trace[-1][0] ], [x_mapped[1]- xRZ_trace[-1][1] ]])).T) )
-    return xRZ_trace[-1]
+    if not ret_trace:
+        return xRZ_trace[-1]
+    else:
+        return xRZ_trace
 
 
 def draw_eig_direction(x0, eigtheta, eigval, fig, ax, unit_data_len:float=0.05, circ_wanted=False):
