@@ -35,9 +35,7 @@ def _central_finite_difference_first_derivative(arr:np.ndarray, dPhi:float, accu
             + (np.roll(arr, 4) - np.roll(arr, -4) )  * ( -1 / 280 )  ) / dPhi
         
 
-def grow_manifold_from_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, S_span, S_num:int, Phi_span, Phi_num:int, S_init = 2e-2):
-
-    DP_Xcycle = Jac_evolution_along_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span)
+def grow_manifold_from_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Xcycle_eig_theta, S_span, S_num:int, Phi_span, Phi_num:int, rev_eigvec=False, first_step=5e-5, max_step=1e-4):
 
     Phi_start, Phi_end = Phi_span[0], Phi_span[1]
     dPhi = Phi[1]-Phi[0]
@@ -46,16 +44,19 @@ def grow_manifold_from_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, S_span, S_
     dPhi_manifold = Phi_manifold[1]-Phi_manifold[0]
 
     RZ_Xcycle_arr = Xcycle_RZdiff[0].sol(Phi_manifold).T
-    DP_Xcycle_arr = DP_Xcycle.sol(Phi_manifold).T.reshape( (len(Phi_manifold),2,2) )
-    import numpy.linalg
-    eigen_val_Xcycle, eigen_vec_Xcycle = numpy.linalg.eig(DP_Xcycle_arr)
+    eigentheta_Xcycle = Xcycle_eig_theta.sol(Phi_manifold)[0,:]
+    if Xcycle_eig_theta.sol(Phi_manifold)[1,0] > 1.0: # Unstable manifold of Poincare map
+        StaOrNot = False
+    else: # Stable manifold of Poincare map
+        StaOrNot = True
+
 
     RBRdBPhi = R[:,None,None]*BR/BPhi
     RBZdBPhi = R[:,None,None]*BZ/BPhi
     RBRdBPhi_field = _FieldDifferenatiableRZ(RBRdBPhi, R, Z, Phi)
     RBZdBPhi_field = _FieldDifferenatiableRZ(RBZdBPhi, R, Z, Phi)
 
-    def manifold_growth_ODE(t,y):
+    def Usta_manifold_growth_ODE(t,y):
         
         XR_each_phi, XZ_each_phi = y[:nPhi_manifold-1], y[nPhi_manifold-1:]
         dXRdPhi = _central_finite_difference_first_derivative(XR_each_phi, dPhi_manifold)
@@ -70,15 +71,36 @@ def grow_manifold_from_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, S_span, S_
         dXRds = (sampled_RBRdBPhi-dXRdPhi) / dsdPhi
         dXZds = (sampled_RBZdBPhi-dXZdPhi) / dsdPhi
         return np.concatenate( (dXRds, dXZds), axis=0)
+    def Sta_manifold_growth_ODE(t,y):
+        
+        XR_each_phi, XZ_each_phi = y[:nPhi_manifold-1], y[nPhi_manifold-1:]
+        dXRdPhi = _central_finite_difference_first_derivative(XR_each_phi, dPhi_manifold)
+        dXZdPhi = _central_finite_difference_first_derivative(XZ_each_phi, dPhi_manifold)
+        
+        try:
+            sampled_RBRdBPhi = RBRdBPhi_field.diff_RZ_interpolator(0,0)( np.vstack( (XR_each_phi, XZ_each_phi, Phi_manifold[:-1]) ).T )
+            sampled_RBZdBPhi = RBZdBPhi_field.diff_RZ_interpolator(0,0)( np.vstack( (XR_each_phi, XZ_each_phi, Phi_manifold[:-1]) ).T )
+        except Exception as e:
+            raise RuntimeError(f"Error when growing the manifold from X cycle at {t}. The error is {e}")
+        dsdPhi = np.sqrt(  (sampled_RBRdBPhi-dXRdPhi)**2 + (sampled_RBZdBPhi-dXZdPhi)**2 ) # as denominator of dXRds and dXZds expressions
+        dXRds = (sampled_RBRdBPhi-dXRdPhi) / dsdPhi
+        dXZds = (sampled_RBZdBPhi-dXZdPhi) / dsdPhi
+        return -np.concatenate( (dXRds, dXZds), axis=0)
 
-
-    RZ_Xcycle_bitshift_along_eigvec = RZ_Xcycle_arr + S_init * eigen_vec_Xcycle[:,:,0] # the first eigen vec direction
+    if not rev_eigvec:
+        RZ_Xcycle_bitshift_along_eigvec = RZ_Xcycle_arr + S_span[0] * np.array([np.cos( eigentheta_Xcycle ) , np.sin( eigentheta_Xcycle )] ).T
+    else:
+        RZ_Xcycle_bitshift_along_eigvec = RZ_Xcycle_arr + S_span[0] * np.array([np.cos( eigentheta_Xcycle+np.pi ) , np.sin( eigentheta_Xcycle+np.pi )] ).T
     RZ_Xcycle_bitshift_along_eigvec = RZ_Xcycle_bitshift_along_eigvec[:-1,:] # Remove the last repeated element
 
-    manifold_sol = solve_ivp(manifold_growth_ODE, S_span, 
-                    RZ_Xcycle_bitshift_along_eigvec.reshape( (2*(nPhi_manifold-1),), order='F' ), dense_output=True, 
-                    first_step=0.5e-4, max_step=1e-4
-                            )
+    if StaOrNot:
+        manifold_sol = solve_ivp(Sta_manifold_growth_ODE, S_span, 
+                        RZ_Xcycle_bitshift_along_eigvec.reshape( (2*(nPhi_manifold-1),), order='F' ), 
+                        dense_output=True, first_step=first_step, max_step=max_step)
+    else:
+        manifold_sol = solve_ivp(Usta_manifold_growth_ODE, S_span, 
+                        RZ_Xcycle_bitshift_along_eigvec.reshape( (2*(nPhi_manifold-1),), order='F' ), 
+                        dense_output=True, first_step=first_step, max_step=max_step)
 
     S_arr = np.empty( (S_num) )
     S_arr[0], S_arr[1:] = 0.0, np.linspace(S_span[0], S_span[1], num=S_num-1)
