@@ -85,7 +85,7 @@ def Jac_evolution_along_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span)
     return solve_ivp(cycle_dDPdPhi, [Phi_start, Phi_end], DP_init, dense_output=True, 
             first_step = Phi[1]-Phi[0], max_step = Phi[1]-Phi[0] ) 
 
-def Jac_lambda_theta_evolution_along_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span):
+def Jac_theta_val_evolution_along_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span):
 
     jac_sol = Jac_evolution_along_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span)
     Phi_start, Phi_end = Phi_span[0], Phi_span[-1]
