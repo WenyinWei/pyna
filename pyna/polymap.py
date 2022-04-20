@@ -13,8 +13,8 @@ class PolyMap2d:
     def __pow__(self, pw):
         if pw==0:
             return PolyMap2d(
-                Poly2d( np.array([[0,0], [1,0],]), uncertain_from_ord=np.inf  ),
-                Poly2d( np.array([[0,1], [0,0],]), uncertain_from_ord=np.inf  ), 
+                Poly2d( np.array([[0,0], [1,0],]), ),
+                Poly2d( np.array([[0,1], [0,0],]), ), 
             )            
         elif pw==1:
             return self
