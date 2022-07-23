@@ -3,7 +3,7 @@ import itertools
 
 class Poly2d:
     def __init__(self, poly2d_arr, ):
-        self._arr = poly2d_arr
+        self._arr = np.copy( poly2d_arr )
     
     def __add__(self, other):
         c1, c2 = self._arr, other._arr
@@ -64,3 +64,11 @@ class Poly2d:
             
             
         return Poly2d( c_of_z_in_x, )
+
+        
+def anti_diagnoal(a, offset=0):
+    a_hori_len = a.shape[1]
+    return np.fliplr(a).diagonal(offset = a_hori_len-1-offset) 
+def set_Poly2d_anti_diagnoal(poly2d, offset, x):
+    for i in range(len(x)):
+        poly2d._arr[i, offset-i] = x[i]
