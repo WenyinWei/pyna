@@ -17,23 +17,23 @@ def grow_manifold_from_Xcycle_naive_carousel(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZd
 #         except:
 #             break
 
-    Xcycle_RZ_arr = Xcycle_RZdiff[0].sol(W_Phi).T # in shape [W_nPhi, 2]
-
-    # Use eigind : 1, 2, 3, 4. 1 & 3 are contrary, 2 & 4 are contrary.
+    # Use eigind : 1, 2, 3, 4. 1 & 3 are on the contrary, 2 & 4 are on the contrary.
     if eigind in [1, 2]:
         eigind_equiv = eigind 
     elif eigind in [3, 4]: 
         eigind_equiv = eigind - 2
     else:
-        raise ValueError("eigind should be either 1, 2, 3, or 4 integer.")
+        raise ValueError("eigind should be either 1, 2, 3, or 4.")
     eigval_interp, eigvec_interp = eigvec_interpolator_along_Xcycle(Jac_evosol_along_Xcycle)
 
-    Xcycle_eigvec = eigvec_interp(W_Phi)[:,:,eigind_equiv]
+    Xcycle_eigvec = eigvec_interp(W_Phi)[:,:,eigind_equiv-1]
     W_PhiInd_RZ = np.empty( (W_nPhi, Ind_num, 2) ) 
+    Xcycle_RZ_arr = Xcycle_RZdiff[0].sol(W_Phi).T # in shape [W_nPhi, 2]
     if eigind in [1, 2]:
         Xcycle_bitshift_along_eigvec_RZ = Xcycle_RZ_arr + first_step * Xcycle_eigvec
     elif eigind in [3, 4]: 
         Xcycle_bitshift_along_eigvec_RZ = Xcycle_RZ_arr - first_step * Xcycle_eigvec
+    W_PhiInd_RZ[:,0,:] = Xcycle_RZ_arr
     W_PhiInd_RZ[:,1,:] = Xcycle_bitshift_along_eigvec_RZ
     W_PhiInd_s = np.empty( (W_nPhi, Ind_num,) )
     W_PhiInd_s[:,0], W_PhiInd_s[:,1] = 0.0, first_step # initial cycle s = 0, the bitshift cycle in the direction of eigenvector s = first_step
@@ -41,12 +41,12 @@ def grow_manifold_from_Xcycle_naive_carousel(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZd
     total_DeltaPhi = Ind_num * W_dPhi
     initpts_RZPhi = np.stack( (W_PhiInd_RZ[:,1,0], W_PhiInd_RZ[:,1,1], W_Phi) , axis=1)[:-1,:] # in shape of [W_nPhi-1, 3]
 
-    if eigval_interp(Phi_start)[eigind_equiv] > 1.0: # Unstable manifold of Phi-increasing Poincare map
-        fltres = bundle_tracing_with_t_as_DeltaPhi(R, Z, Phi, BR, BZ, BPhi, total_DeltaPhi, initpts_RZPhi, pos_or_neg=True,)
+    if eigval_interp(Phi_start)[eigind_equiv-1] > 1.0: # Unstable manifold of Phi-increasing Poincare map
+        fltres = bundle_tracing_with_t_as_DeltaPhi(R, Z, Phi, BR, BZ, BPhi, total_DeltaPhi, initpts_RZPhi, pos_or_neg=True, max_step=W_dPhi/3)
         for i in range(2, Ind_num):
             W_PhiInd_RZ[:-1,i,:] = np.roll( fltres.sol.mat_interp( (i-1)*W_dPhi )[:,:-1], i-1, axis=0 ) # in shape of [W_nPhi-1, 2]
-    elif 0.0 < eigval_interp(Phi_start)[eigind_equiv] < 1.0: # Stable manifold of Phi-increasing Poincare map
-        fltres = bundle_tracing_with_t_as_DeltaPhi(R, Z, Phi, BR, BZ, BPhi, total_DeltaPhi, initpts_RZPhi, pos_or_neg=False,)
+    elif 0.0 < eigval_interp(Phi_start)[eigind_equiv-1] < 1.0: # Stable manifold of Phi-increasing Poincare map
+        fltres = bundle_tracing_with_t_as_DeltaPhi(R, Z, Phi, BR, BZ, BPhi, total_DeltaPhi, initpts_RZPhi, pos_or_neg=False, max_step=W_dPhi/3)
         for i in range(2, Ind_num):
             W_PhiInd_RZ[:-1,i,:] = np.roll( fltres.sol.mat_interp( (i-1)*W_dPhi )[:,:-1], -(i-1), axis=0 ) # in shape of [W_nPhi-1, 2]
     else:
@@ -91,19 +91,18 @@ def _central_finite_difference_first_derivative(arr:np.ndarray, dPhi:float, accu
             + (np.roll(arr, 4) - np.roll(arr, -4) )  * ( -1 / 280 )  ) / dPhi
 
 from deprecated import deprecated
-@deprecated(version='0.0.2', reason="Numerically unstable algorithm, try grow_manifold_from_Xcycle instead.")
 def grow_manifold_from_Xcycle_eig_interp(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Jac_evosol_along_Xcycle, eigind, S_span, S_num:int, Phi_span, Phi_num:int, rev_eigvec=False, first_step=5e-5, max_step=1e-4):
     
     Phi_start, Phi_end = Phi_span[0], Phi_span[1]
     dPhi = Phi[1]-Phi[0]
-    Phi_manifold = np.linspace(Phi_start, Phi_end, num=Phi_num, endpoint=True)
-    nPhi_manifold = len(Phi_manifold)
-    dPhi_manifold = Phi_manifold[1]-Phi_manifold[0]
+    W_Phi = np.linspace(Phi_start, Phi_end, num=Phi_num, endpoint=True)
+    W_nPhi = len(W_Phi)
+    W_dPhi = W_Phi[1]-W_Phi[0]
 
-    RZ_Xcycle_arr = Xcycle_RZdiff[0].sol(Phi_manifold).T
+    RZ_Xcycle_arr = Xcycle_RZdiff[0].sol(W_Phi).T
     eigval_interp, eigvec_interp = eigvec_interpolator_along_Xcycle(Jac_evosol_along_Xcycle)
-    eigvec_Xcycle = eigvec_interp(Phi_manifold)[:,:,eigind]
-    if eigval_interp(Xcycle_RZdiff[0].t[0])[eigind] > 1.0: # Unstable manifold of Poincare map
+    eigvec_Xcycle = eigvec_interp(W_Phi)[:,:,eigind]
+    if eigval_interp(Phi_start)[eigind] > 1.0: # Unstable manifold of Poincare map
         StaOrNot = False
     else: # Stable manifold of Poincare map
         StaOrNot = True
@@ -113,36 +112,21 @@ def grow_manifold_from_Xcycle_eig_interp(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff,
     RBRdBPhi_field = _FieldDifferenatiableRZ(RBRdBPhi, R, Z, Phi)
     RBZdBPhi_field = _FieldDifferenatiableRZ(RBZdBPhi, R, Z, Phi)
 
-    def Usta_manifold_growth_ODE(t,y):
+    def manifold_growth_ODE(t,y):
         
-        XR_each_phi, XZ_each_phi = y[:nPhi_manifold-1], y[nPhi_manifold-1:]
-        dXRdPhi = _central_finite_difference_first_derivative(XR_each_phi, dPhi_manifold)
-        dXZdPhi = _central_finite_difference_first_derivative(XZ_each_phi, dPhi_manifold)
-        
-        try:
-            sampled_RBRdBPhi = RBRdBPhi_field.diff_RZ_interpolator(0,0)( np.vstack( (XR_each_phi, XZ_each_phi, Phi_manifold[:-1]%(2*np.pi) ) ).T )
-            sampled_RBZdBPhi = RBZdBPhi_field.diff_RZ_interpolator(0,0)( np.vstack( (XR_each_phi, XZ_each_phi, Phi_manifold[:-1]%(2*np.pi) ) ).T )
-        except Exception as e:
-            raise RuntimeError(f"Error when growing the manifold from X cycle at {t}. The error is {e}")
-        dsdPhi = np.sqrt(  (sampled_RBRdBPhi-dXRdPhi)**2 + (sampled_RBZdBPhi-dXZdPhi)**2 ) # as denominator of dXRds and dXZds expressions
-        dXRds = (sampled_RBRdBPhi-dXRdPhi) / dsdPhi
-        dXZds = (sampled_RBZdBPhi-dXZdPhi) / dsdPhi
-        return np.concatenate( (dXRds, dXZds), axis=0)
-    def Sta_manifold_growth_ODE(t,y):
-        
-        XR_each_phi, XZ_each_phi = y[:nPhi_manifold-1], y[nPhi_manifold-1:]
-        dXRdPhi = _central_finite_difference_first_derivative(XR_each_phi, dPhi_manifold)
-        dXZdPhi = _central_finite_difference_first_derivative(XZ_each_phi, dPhi_manifold)
+        XR_each_phi, XZ_each_phi = y[:W_nPhi-1], y[W_nPhi-1:]
+        pXRpPhi = _central_finite_difference_first_derivative(XR_each_phi, W_dPhi)
+        pXZpPhi = _central_finite_difference_first_derivative(XZ_each_phi, W_dPhi)
         
         try:
-            sampled_RBRdBPhi = RBRdBPhi_field.diff_RZ_interpolator(0,0)( np.vstack( (XR_each_phi, XZ_each_phi, Phi_manifold[:-1]%(2*np.pi) ) ).T )
-            sampled_RBZdBPhi = RBZdBPhi_field.diff_RZ_interpolator(0,0)( np.vstack( (XR_each_phi, XZ_each_phi, Phi_manifold[:-1]%(2*np.pi) ) ).T )
+            RBRdBPhi_oncycle = RBRdBPhi_field.diff_RZ_interpolator(0,0)( np.vstack( (XR_each_phi, XZ_each_phi, W_Phi[:-1]%(2*np.pi) ) ).T )
+            RBZdBPhi_oncycle = RBZdBPhi_field.diff_RZ_interpolator(0,0)( np.vstack( (XR_each_phi, XZ_each_phi, W_Phi[:-1]%(2*np.pi) ) ).T )
         except Exception as e:
             raise RuntimeError(f"Error when growing the manifold from X cycle at {t}. The error is {e}")
-        dsdPhi = np.sqrt(  (sampled_RBRdBPhi-dXRdPhi)**2 + (sampled_RBZdBPhi-dXZdPhi)**2 ) # as denominator of dXRds and dXZds expressions
-        dXRds = (sampled_RBRdBPhi-dXRdPhi) / dsdPhi
-        dXZds = (sampled_RBZdBPhi-dXZdPhi) / dsdPhi
-        return -np.concatenate( (dXRds, dXZds), axis=0)
+        dsdPhi = np.sqrt(  (RBRdBPhi_oncycle-pXRpPhi)**2 + (RBZdBPhi_oncycle-pXZpPhi)**2 ) # as denominator of pXRps and pXZps expressions
+        pXRps = (RBRdBPhi_oncycle-pXRpPhi) / dsdPhi
+        pXZps = (RBZdBPhi_oncycle-pXZpPhi) / dsdPhi
+        return np.concatenate( (pXRps, pXZps), axis=0)
 
     if not rev_eigvec:
         RZ_Xcycle_bitshift_along_eigvec = RZ_Xcycle_arr + S_span[0] * eigvec_Xcycle
@@ -151,24 +135,24 @@ def grow_manifold_from_Xcycle_eig_interp(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff,
     RZ_Xcycle_bitshift_along_eigvec = RZ_Xcycle_bitshift_along_eigvec[:-1,:] # Remove the last repeated element
 
     if StaOrNot:
-        manifold_sol = solve_ivp(Sta_manifold_growth_ODE, S_span, 
-                        RZ_Xcycle_bitshift_along_eigvec.reshape( (2*(nPhi_manifold-1),), order='F' ), method="LSODA", 
+        W_sol = solve_ivp(-manifold_growth_ODE, S_span, 
+                        RZ_Xcycle_bitshift_along_eigvec.reshape( (2*(W_nPhi-1),), order='F' ), 
                         dense_output=True, first_step=first_step, max_step=max_step)
     else:
-        manifold_sol = solve_ivp(Usta_manifold_growth_ODE, S_span, 
-                        RZ_Xcycle_bitshift_along_eigvec.reshape( (2*(nPhi_manifold-1),), order='F' ), method="LSODA",
+        W_sol = solve_ivp(manifold_growth_ODE, S_span, 
+                        RZ_Xcycle_bitshift_along_eigvec.reshape( (2*(W_nPhi-1),), order='F' ), 
                         dense_output=True, first_step=first_step, max_step=max_step)
 
     S_arr = np.empty( (S_num) )
     S_arr[0], S_arr[1:] = 0.0, np.linspace(S_span[0], S_span[1], num=S_num-1)
     # (2, s_len, nPhi_manifold), 2 for (XR, XZ), s_len for len(s_arr), nPhi_manifold for 
-    manifold_RZ_SPhi = np.empty( (2, S_num, nPhi_manifold) ) 
+    W_RZ_SPhi = np.empty( (2, S_num, W_nPhi) ) 
     # initial cycle whose s = 0
-    manifold_RZ_SPhi[:,0,:] = RZ_Xcycle_arr.T
-    manifold_RZ_SPhi[:,1:S_num,:nPhi_manifold-1] = manifold_sol.sol(S_arr[1:]).reshape( (nPhi_manifold-1,2,S_num-1), order='F' ).transpose(1,2,0)
+    W_RZ_SPhi[:,0,:] = RZ_Xcycle_arr.T
+    W_RZ_SPhi[:,1:S_num,:W_nPhi-1] = W_sol.sol(S_arr[1:]).reshape( (W_nPhi-1,2,S_num-1), order='F' ).transpose(1,2,0)
     # seam the head and tail of manifold
-    manifold_RZ_SPhi[:,:,-1] = manifold_RZ_SPhi[:,:,0]
-    return S_arr, Phi_manifold, manifold_RZ_SPhi
+    W_RZ_SPhi[:,:,-1] = W_RZ_SPhi[:,:,0]
+    return S_arr, W_Phi, W_RZ_SPhi
 
 
 def smooth1D(x, window_len=11, window='hanning'):
