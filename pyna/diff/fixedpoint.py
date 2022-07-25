@@ -1,9 +1,11 @@
+from random import sample
 from pyna.diff.fieldline import _FieldDifferenatiableRZ
 from pyna.diff.fieldline import RZ_partial_derivative_of_map_4_Flow_Phi_as_t
 
 import numpy as np
 from numpy import linalg as LA 
 from scipy.integrate import solve_ivp
+from scipy.interpolate import interp1d
 
 def Newton_discrete(R, Z, Phi, BR, BZ, BPhi, x0_RZPhi, tor_turn:int=1, zone_of_interest_callback=None, h=1.0, epsilon=1e-5, ret_trace=False):
     xRZ_trace = [np.asarray(x0_RZPhi[:-1])]
@@ -32,7 +34,7 @@ def draw_eig_direction(x0, eigtheta, eigval, fig, ax, unit_data_len:float=0.05, 
     ax.arrow(x=x0[0], y=x0[1], 
         dx=eigval*np.cos(eigtheta)*unit_data_len, 
         dy=eigval*np.sin(eigtheta)*unit_data_len,
-        head_width=16e-3)
+        length_includes_head=True, head_width=16e-3)
     if circ_wanted:
         circ_theta = np.linspace(0, 2*np.pi)
         circ_theta = np.linspace(0, 2*np.pi)
@@ -90,42 +92,5 @@ def Jac_evolution_along_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span)
 
     return solve_ivp(cycle_dDPdPhi, [Phi_start, Phi_end], DP_init, dense_output=True, 
             first_step = Phi[1]-Phi[0], max_step = Phi[1]-Phi[0] ) 
-
-def Jac_theta_val_evolution_along_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span):
-
-    jac_sol = Jac_evolution_along_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span)
-    Phi_start, Phi_end = Phi_span[0], Phi_span[-1]
-
-    RBRdBPhi = R[:,None,None]*BR/BPhi
-    RBZdBPhi = R[:,None,None]*BZ/BPhi
-    RBRdBPhi_field = _FieldDifferenatiableRZ(RBRdBPhi, R, Z, Phi)
-    RBZdBPhi_field = _FieldDifferenatiableRZ(RBZdBPhi, R, Z, Phi)
     
-    # Jac evolution ode equation expressions
-    M_A_interp = RBRdBPhi_field.diff_RZ_interpolator(1,0)
-    M_B_interp = RBRdBPhi_field.diff_RZ_interpolator(0,1)
-    M_C_interp = RBZdBPhi_field.diff_RZ_interpolator(1,0)
-    M_D_interp = RBZdBPhi_field.diff_RZ_interpolator(0,1)
-    M_lambda = lambda R_, Z_, Phi_: np.array([
-        [M_A_interp([R_, Z_, Phi_])[0], M_B_interp([R_, Z_, Phi_])[0] ], 
-        [M_C_interp([R_, Z_, Phi_])[0], M_D_interp([R_, Z_, Phi_])[0] ] ])
-    def cycle_dtheta_lambda_dPhi(t, y):
-        M = M_lambda( *Xcycle_RZdiff[0].sol(t) , t)
-        eigtheta = y[0]
-        eigvalue = y[1]
-        DP = jac_sol.sol(t).reshape( (2,2) )
-        dDPdPhi = M @ DP - DP @ M
-        DP_A, DP_B = DP[0,0], DP[0,1]
-        DP_C, DP_D = DP[1,0], DP[1,1]
-        first_mat = np.array([
-            [DP_B*np.cos(eigtheta) - (DP_A-eigvalue)*np.sin(eigtheta), -np.cos(eigtheta)], 
-            [(DP_D-eigvalue)*np.cos(eigtheta) - DP_C*np.sin(eigtheta), -np.sin(eigtheta)]])
-        return ( LA.inv(first_mat) @ dDPdPhi @ np.array([[np.cos(eigtheta)], [np.sin(eigtheta)]]) ).flatten()
     
-    # Jac evolution init condition
-    w, v = LA.eig( jac_sol.sol(Phi_start).reshape( (2,2) ) )
-    return [
-        solve_ivp(cycle_dtheta_lambda_dPhi, [Phi_start, Phi_end], np.array([np.arctan2(v[1,0], v[0,0]), w[0] ]), dense_output=True, 
-            first_step = Phi[1]-Phi[0], max_step = Phi[1]-Phi[0] ), 
-        solve_ivp(cycle_dtheta_lambda_dPhi, [Phi_start, Phi_end], np.array([np.arctan2(v[1,1], v[0,1]), w[1] ]), dense_output=True, 
-            first_step = Phi[1]-Phi[0], max_step = Phi[1]-Phi[0] )]
