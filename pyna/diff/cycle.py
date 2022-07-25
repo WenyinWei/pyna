@@ -2,6 +2,9 @@ from pyna.diff.fieldline import _FieldDifferenatiableRZ
 from scipy.integrate import solve_ivp
 import numpy as np
 
+from deprecated import deprecated
+
+
 def Jac_evolution_along_cycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span):
 
     Phi_start, Phi_end = Phi_span[0], Phi_span[-1]
@@ -151,3 +154,94 @@ def Jac_theta_val_evolution_along_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff,
     #     cycle_dlambdas_thetas_dPhi, [0.0, 6*np.pi], 
     #     np.array([ np.arctan2(v[1,0], v[0,0]), np.arctan2(v[1,1], v[0,1]), ]), dense_output=True, args=(w[0], w[1], nturn),
     #     first_step = (Phi[1]-Phi[0])/50, max_step = (Phi[1]-Phi[0])/50, method="LSODA")
+
+def eigvec_interpolator_along_Xcycle(Jac_evosol_along_Xcycle):
+    t1, t2 = Jac_evosol_along_Xcycle.t[0], Jac_evosol_along_Xcycle.t[1]
+    t = Jac_evosol_along_Xcycle.t
+    
+    DPs = Jac_evosol_along_Xcycle.sol(t).T.reshape((len(t),2,2))
+    eigvals, eigvecs = LA.eig(DPs)
+    DP_init = Jac_evosol_along_Xcycle.sol(t1).reshape( (2,2) )
+    eigval_init, eigvec_init = LA.eig(DP_init)
+    
+    for i in range(len(t)):
+        if not np.allclose( eigvals[i,0], eigval_init[0], rtol=1e-3, atol=1e-4):
+            eigvals[i,[0,1]] = eigvals[i,[1,0]]
+            eigvecs[i,:,[0,1]] = eigvecs[i,:,[1,0]]
+    
+    if np.dot( eigvecs[0,:,0], eigvec_init[:,0] ) < 0:
+        eigvecs[0,:,0] *= -1
+    if np.dot( eigvecs[0,:,1], eigvec_init[:,1] ) < 0:
+        eigvecs[0,:,1] *= -1
+    
+    for i in range(1, len(t)):
+        if np.dot( eigvecs[i,:,0], eigvecs[i-1,:,0] ) < 0:
+            eigvecs[i,:,0] *= -1
+        if np.dot( eigvecs[i,:,1], eigvecs[i-1,:,1] ) < 0:
+            eigvecs[i,:,1] *= -1
+    
+    return interp1d(t, eigvals, axis=0), interp1d(t, eigvecs, axis=0)  
+    
+    
+@deprecated(version='0.1.0', reason="Numerical blow up, unstoppable computation. Never reach the end.")
+def Jac_theta_evolution(R,Z,Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span ):
+    """_summary_
+
+    Args:
+        R (_type_): _description_
+        Z (_type_): _description_
+        Phi (_type_): _description_
+        BR (_type_): _description_
+        BZ (_type_): _description_
+        BPhi (_type_): _description_
+        Xcycle_RZdiff (_type_): _description_
+        Phi_span (_type_): _description_
+
+    Returns:
+        _type_: _description_
+
+    Example:
+        from pyna.diff.Xcycle import Jac_theta_evolution
+        jac_theta_sols = Jac_theta_evolution(R,Z,Phi, BR_tot, BZ_tot, BPhi_tot, UPX_RZdiff, Phi_span=[0.0, 2*np.pi])
+
+    """
+    jac_sol = Jac_evolution_along_cycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span)
+    eigvals, eigvecs = np.linalg.eig( jac_sol.sol(0.0).reshape( (2,2) ) )
+    tet1_init = np.arctan2(eigvecs[1,0], eigvecs[0,0])
+    tet2_init = np.arctan2(eigvecs[1,1], eigvecs[0,1])
+    
+    RBRdBPhi = R[:,None,None]*BR/BPhi
+    RBZdBPhi = R[:,None,None]*BZ/BPhi
+    RBRdBPhi_field = _FieldDifferenatiableRZ(RBRdBPhi, R, Z, Phi)
+    RBZdBPhi_field = _FieldDifferenatiableRZ(RBZdBPhi, R, Z, Phi)
+
+    # Jac evolution ode equation expressions
+    M_A_interp = RBRdBPhi_field.diff_RZ_interpolator(1,0)
+    M_B_interp = RBRdBPhi_field.diff_RZ_interpolator(0,1)
+    M_C_interp = RBZdBPhi_field.diff_RZ_interpolator(1,0)
+    M_D_interp = RBZdBPhi_field.diff_RZ_interpolator(0,1)
+    M_lambda = lambda R_, Z_, Phi_: np.array([
+        [M_A_interp([R_, Z_, Phi_])[0], M_B_interp([R_, Z_, Phi_])[0] ], 
+        [M_C_interp([R_, Z_, Phi_])[0], M_D_interp([R_, Z_, Phi_])[0] ] ])
+    def cycle_dtheta_dPhi(t, y):
+        M = M_lambda( *Xcycle_RZdiff[0].sol(t) , t%(2*np.pi)) # TODO: consider how to mod Xcycle_RZdiff[0].sol(t) by $2k\pi$
+        tet1, tet2 = y[0], y[1]
+        DP = jac_sol.sol(t).reshape( (2,2) ) # TODO: consider how to mod jac_sol.sol(t) by $2k\pi$
+        dDPdPhi = M @ DP - DP @ M
+        Rot = np.array([
+            [0.0, -1.0], 
+            [1.0,  0.0]])
+        Lam=np.array([
+            [eigvals[0],  0.0], 
+            [0.0,  eigvals[1]]])
+        V = np.array([
+            [np.cos(tet1), np.cos(tet2)], 
+            [np.sin(tet1), np.sin(tet2)]])
+        TET__prime = np.linalg.inv( Rot@V@Lam - DP@Rot@V  )@dDPdPhi@V
+        return [TET__prime[0,0], TET__prime[1,1] ]
+
+    Jac_theta_sol = solve_ivp(cycle_dtheta_dPhi, Phi_span, 
+                         np.array([tet1_init, tet2_init,]), dense_output=True, method="LSODA", # NOTE: by our numerical experiments, when the eigenvector varies just a little bit along the cycle, only "LSODA" method does not cause numerical issue. In fact, other methods would let the time step become too big since TET' is small.
+                         init_step=(Phi[1]-Phi[0]), max_step = (Phi[1]-Phi[0]) )
+    Jac_theta_sol.eigvals = list(eigvals)
+    return Jac_theta_sol
