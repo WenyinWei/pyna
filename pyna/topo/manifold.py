@@ -1,10 +1,13 @@
-from multiprocessing.sharedctypes import Value
+from pyna.field import RegualrCylindricalGridField
+from pyna.flt import bundle_tracing_with_t_as_DeltaPhi
 from pyna.diff.fieldline import _FieldDifferenatiableRZ
 from pyna.diff.cycle import eigvec_interpolator_along_Xcycle
+
+from multiprocessing.sharedctypes import Value
 from scipy.integrate import solve_ivp
 import numpy as np
-from pyna.flt import bundle_tracing_with_t_as_DeltaPhi
-def grow_manifold_from_Xcycle_naive_carousel(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Jac_evosol_along_Xcycle, eigind:int, Phi_span, W_nPhi:int, Ind_num:int, first_step=5e-5, max_step=1e-4):    
+
+def grow_manifold_from_Xcycle_naive_carousel(afield:RegualrCylindricalGridField, Xcycle_RZdiff, Jac_evosol_along_Xcycle, eigind:int, Phi_span, W_nPhi:int, Ind_num:int, first_step=5e-5, max_step=1e-4):    
     Phi_start, Phi_end = Phi_span[0], Phi_span[1]
     W_Phi = np.linspace(Phi_start, Phi_end, num=W_nPhi, endpoint=True)
     W_dPhi = W_Phi[1]-W_Phi[0]
@@ -42,11 +45,11 @@ def grow_manifold_from_Xcycle_naive_carousel(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZd
     initpts_RZPhi = np.stack( (W_PhiInd_RZ[:,1,0], W_PhiInd_RZ[:,1,1], W_Phi) , axis=1)[:-1,:] # in shape of [W_nPhi-1, 3]
 
     if eigval_interp(Phi_start)[eigind_equiv-1] > 1.0: # Unstable manifold of Phi-increasing Poincare map
-        fltres = bundle_tracing_with_t_as_DeltaPhi(R, Z, Phi, BR, BZ, BPhi, total_DeltaPhi, initpts_RZPhi, pos_or_neg=True, max_step=W_dPhi/3)
+        fltres = bundle_tracing_with_t_as_DeltaPhi(afield, total_DeltaPhi, initpts_RZPhi, pos_or_neg=True, max_step=W_dPhi/3)
         for i in range(2, Ind_num):
             W_PhiInd_RZ[:-1,i,:] = np.roll( fltres.sol.mat_interp( (i-1)*W_dPhi )[:,:-1], i-1, axis=0 ) # in shape of [W_nPhi-1, 2]
     elif 0.0 < eigval_interp(Phi_start)[eigind_equiv-1] < 1.0: # Stable manifold of Phi-increasing Poincare map
-        fltres = bundle_tracing_with_t_as_DeltaPhi(R, Z, Phi, BR, BZ, BPhi, total_DeltaPhi, initpts_RZPhi, pos_or_neg=False, max_step=W_dPhi/3)
+        fltres = bundle_tracing_with_t_as_DeltaPhi(afield, total_DeltaPhi, initpts_RZPhi, pos_or_neg=False, max_step=W_dPhi/3)
         for i in range(2, Ind_num):
             W_PhiInd_RZ[:-1,i,:] = np.roll( fltres.sol.mat_interp( (i-1)*W_dPhi )[:,:-1], -(i-1), axis=0 ) # in shape of [W_nPhi-1, 2]
     else:
