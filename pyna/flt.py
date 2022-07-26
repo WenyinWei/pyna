@@ -1,10 +1,11 @@
-
+from pyna.field import RegualrCylindricalGridField
 
 from scipy.interpolate import RegularGridInterpolator
 from scipy.integrate import solve_ivp
 import numpy as np
 
-def bundle_tracing_with_t_as_DeltaPhi(R, Z, Phi, BR, BZ, BPhi, total_DeltaPhi, initpts_RZPhi, pos_or_neg:bool=True, *arg, **kwarg):
+def bundle_tracing_with_t_as_DeltaPhi(afield:RegualrCylindricalGridField, total_DeltaPhi, initpts_RZPhi, pos_or_neg:bool=True, *arg, **kwarg):
+    R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
     RBRdBPhi = R[:,None,None]*BR/BPhi
     RBZdBPhi = R[:,None,None]*BZ/BPhi
     RBRdBPhi_interp = RegularGridInterpolator( 
