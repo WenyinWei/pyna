@@ -38,8 +38,9 @@ def grow_manifold_from_Xcycle_naive_carousel(afield:RegualrCylindricalGridField,
         Xcycle_bitshift_along_eigvec_RZ = Xcycle_RZ_arr - first_step * Xcycle_eigvec
     W_PhiInd_RZ[:,0,:] = Xcycle_RZ_arr
     W_PhiInd_RZ[:,1,:] = Xcycle_bitshift_along_eigvec_RZ
-    W_PhiInd_s = np.empty( (W_nPhi, Ind_num,) )
-    W_PhiInd_s[:,0], W_PhiInd_s[:,1] = 0.0, first_step # initial cycle s = 0, the bitshift cycle in the direction of eigenvector s = first_step
+    # FIXME: carousel does not guarantee the manifold points we acquired are ordered.
+    # W_PhiInd_s = np.empty( (W_nPhi, Ind_num,) )
+    # W_PhiInd_s[:,0], W_PhiInd_s[:,1] = 0.0, first_step # initial cycle s = 0, the bitshift cycle in the direction of eigenvector s = first_step
     
     total_DeltaPhi = Ind_num * W_dPhi
     initpts_RZPhi = np.stack( (W_PhiInd_RZ[:,1,0], W_PhiInd_RZ[:,1,1], W_Phi) , axis=1)[:-1,:] # in shape of [W_nPhi-1, 3]
@@ -57,12 +58,12 @@ def grow_manifold_from_Xcycle_naive_carousel(afield:RegualrCylindricalGridField,
     
     W_PhiInd_RZ[-1,:,:] = W_PhiInd_RZ[0,:,:] # seam the head and tail of manifold
     
-    for i in range(2, Ind_num):
-        W_PhiInd_s[:,i] = W_PhiInd_s[:,i-1] + np.sqrt(
-            (W_PhiInd_RZ[:,i,0] - W_PhiInd_RZ[:,i-1,0])**2 
-          + (W_PhiInd_RZ[:,i,1] - W_PhiInd_RZ[:,i-1,1])**2)
+    # for i in range(2, Ind_num):
+    #     W_PhiInd_s[:,i] = W_PhiInd_s[:,i-1] + np.sqrt(
+    #         (W_PhiInd_RZ[:,i,0] - W_PhiInd_RZ[:,i-1,0])**2 
+    #       + (W_PhiInd_RZ[:,i,1] - W_PhiInd_RZ[:,i-1,1])**2)
     
-    return W_Phi, W_PhiInd_RZ, W_PhiInd_s
+    return W_Phi, W_PhiInd_RZ
 
 def _central_finite_difference_first_derivative(arr:np.ndarray, dPhi:float, accuracy_order=4):
     """1st derivative of a periodic function with spacing dPhi
@@ -94,8 +95,9 @@ def _central_finite_difference_first_derivative(arr:np.ndarray, dPhi:float, accu
             + (np.roll(arr, 4) - np.roll(arr, -4) )  * ( -1 / 280 )  ) / dPhi
 
 from deprecated import deprecated
-def grow_manifold_from_Xcycle_eig_interp(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Jac_evosol_along_Xcycle, eigind, S_span, S_num:int, Phi_span, Phi_num:int, rev_eigvec=False, first_step=5e-5, max_step=1e-4):
-    
+def grow_manifold_from_Xcycle_eig_interp(afield:RegualrCylindricalGridField, Xcycle_RZdiff, Jac_evosol_along_Xcycle, eigind, S_span, S_num:int, Phi_span, Phi_num:int, rev_eigvec=False, first_step=5e-5, max_step=1e-4):
+    R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
+
     Phi_start, Phi_end = Phi_span[0], Phi_span[1]
     dPhi = Phi[1]-Phi[0]
     W_Phi = np.linspace(Phi_start, Phi_end, num=Phi_num, endpoint=True)
