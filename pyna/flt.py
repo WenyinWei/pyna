@@ -4,7 +4,7 @@ from scipy.interpolate import RegularGridInterpolator
 from scipy.integrate import solve_ivp
 import numpy as np
 
-def bundle_tracing_with_t_as_DeltaPhi(afield:RegualrCylindricalGridField, total_DeltaPhi, initpts_RZPhi, pos_or_neg:bool=True, *arg, **kwarg):
+def bundle_tracing_with_t_as_DeltaPhi(afield:RegualrCylindricalGridField, total_deltaPhi, initpts_RZPhi, pos_or_neg:bool=True, *arg, **kwarg):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
     RBRdBPhi = R[:,None,None]*BR/BPhi
     RBZdBPhi = R[:,None,None]*BZ/BPhi
@@ -37,7 +37,7 @@ def bundle_tracing_with_t_as_DeltaPhi(afield:RegualrCylindricalGridField, total_
             dXRdPhi =-RBRdBPhi_interp(pts_RZPhi) 
             dXZdPhi =-RBZdBPhi_interp(pts_RZPhi) 
             return np.concatenate((dXRdPhi, dXZdPhi,-dPhidPhi))
-    fltres = solve_ivp(dXRXZdPhi, [0.0, total_DeltaPhi], initps_RZPhi_flattened, dense_output=True, *arg, **kwarg)
+    fltres = solve_ivp(dXRXZdPhi, [0.0, total_deltaPhi], initps_RZPhi_flattened, dense_output=True, *arg, **kwarg)
     fltres.sol.mat_interp = lambda t: fltres.sol.__call__(t).reshape( (pts_num, 3), order='F')
     fltres.phi_increasing = pos_or_neg
     return fltres
