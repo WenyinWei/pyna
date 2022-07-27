@@ -2,8 +2,12 @@
 
 **P**ython package dedicated for research on **DYNA**mic system.
 
+```shell
+pip install pyna-chaos
 ```
-pip install pyna
+
+```python
+import pyna
 ```
 
 Plan to support:
