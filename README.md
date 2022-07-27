@@ -2,6 +2,10 @@
 
 **P**ython package dedicated for research on **DYNA**mic system.
 
+```
+pip install pyna
+```
+
 Plan to support:
 - One dimensional Map / Flow
 - Two dimensional Map / Flow
