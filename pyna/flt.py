@@ -39,4 +39,5 @@ def bundle_tracing_with_t_as_DeltaPhi(afield:RegualrCylindricalGridField, total_
             return np.concatenate((dXRdPhi, dXZdPhi,-dPhidPhi))
     fltres = solve_ivp(dXRXZdPhi, [0.0, total_DeltaPhi], initps_RZPhi_flattened, dense_output=True, *arg, **kwarg)
     fltres.sol.mat_interp = lambda t: fltres.sol.__call__(t).reshape( (pts_num, 3), order='F')
+    fltres.phi_increasing = pos_or_neg
     return fltres
