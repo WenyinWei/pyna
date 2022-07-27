@@ -7,6 +7,53 @@ from multiprocessing.sharedctypes import Value
 from scipy.integrate import solve_ivp
 import numpy as np
 
+
+def grow_manifold_from_Xcycle_naive_init_segment(
+    afield:RegualrCylindricalGridField, 
+    Xcycle_RZdiff, 
+    Jac_evosol_along_Xcycle, 
+    eigind:int, Phi_span, total_deltaPhi:float, ptsnum_initseg:int, Ind_num:int, first_step=5e-5, *arg_sovle_ivp, **kwarg_solve_ivp):    
+    Phi_start, Phi_end = Phi_span[0], Phi_span[1]
+
+    # Use eigind : 1, 2, 3, 4. 1 & 3 are on the contrary, 2 & 4 are on the contrary.
+    if eigind in [1, 2]:
+        eigind_equiv = eigind 
+    elif eigind in [3, 4]: 
+        eigind_equiv = eigind - 2
+    else:
+        raise ValueError("eigind should be either 1, 2, 3, or 4.")
+    eigval_interp, eigvec_interp = eigvec_interpolator_along_Xcycle(Jac_evosol_along_Xcycle)
+
+    Xcycle_eigvec = eigvec_interp(Phi_start)[:,eigind_equiv-1]
+    W_PhiInd_RZ = np.empty( (ptsnum_initseg, Ind_num, 2) ) 
+    Xcycle_RZ = Xcycle_RZdiff[0].sol(Phi_start) # in shape [2,]
+    if eigind in [1, 2]:
+        Xcycle_bitshift_along_eigvec_RZ = 
+    elif eigind in [3, 4]: 
+        Xcycle_bitshift_along_eigvec_RZ = Xcycle_RZ - first_step * Xcycle_eigvec
+    W_PhiInd_RZ[:,0,:] = Xcycle_RZ
+    W_PhiInd_RZ[:,1,:] = Xcycle_bitshift_along_eigvec_RZ
+    
+    total_DeltaPhi = Ind_num * W_dPhi
+    
+    eigval = eigval_interp(Phi_start)[eigind_equiv-1]
+    if eigval > 1.0: # Unstable manifold of Phi-increasing Poincare map
+        initpts_RZPhi = np.stack( (
+            Xcycle_RZ + first_step * np.linspace(1.0, eigval, num=ptsnum_initseg, endpoint=False)[:,None] * Xcycle_eigvec[None,:], 
+            Phi_start * np.ones((ptsnum_initseg,)) ) , axis=1) # in shape of [ptsnum_initseg, 3]
+        fltres = bundle_tracing_with_t_as_DeltaPhi(afield, total_DeltaPhi, initpts_RZPhi, phi_increasing=True, *arg_sovle_ivp, **kwarg_solve_ivp)
+        for i in range(2, Ind_num):
+            W_PhiInd_RZ[:-1,i,:] = np.roll( fltres.sol.mat_interp( (i-1)*W_dPhi )[:,:-1], i-1, axis=0 ) # in shape of [W_nPhi-1, 2]
+    elif 0.0 < eigval < 1.0: # Stable manifold of Phi-increasing Poincare map
+        initpts_RZPhi = np.stack( (
+            Xcycle_RZ + first_step * np.linspace(1.0, 1.0/eigval, num=ptsnum_initseg, endpoint=False)[:,None] * Xcycle_eigvec[None,:], 
+            Phi_start * np.ones((ptsnum_initseg,)) ) , axis=1) # in shape of [ptsnum_initseg, 3]
+        fltres = bundle_tracing_with_t_as_DeltaPhi(afield, total_DeltaPhi, initpts_RZPhi, phi_increasing=False, *arg_sovle_ivp, **kwarg_solve_ivp)
+    else:
+        raise NotImplementedError("We have not yet implemented the grow_manifold_from_Xcycle function for Mobiusian cycles.")
+
+    return fltres
+
 def grow_manifold_from_Xcycle_naive_carousel(afield:RegualrCylindricalGridField, Xcycle_RZdiff, Jac_evosol_along_Xcycle, eigind:int, Phi_span, W_nPhi:int, Ind_num:int, first_step=5e-5, max_step=1e-4):    
     Phi_start, Phi_end = Phi_span[0], Phi_span[1]
     W_Phi = np.linspace(Phi_start, Phi_end, num=W_nPhi, endpoint=True)
@@ -46,11 +93,11 @@ def grow_manifold_from_Xcycle_naive_carousel(afield:RegualrCylindricalGridField,
     initpts_RZPhi = np.stack( (W_PhiInd_RZ[:,1,0], W_PhiInd_RZ[:,1,1], W_Phi) , axis=1)[:-1,:] # in shape of [W_nPhi-1, 3]
 
     if eigval_interp(Phi_start)[eigind_equiv-1] > 1.0: # Unstable manifold of Phi-increasing Poincare map
-        fltres = bundle_tracing_with_t_as_DeltaPhi(afield, total_DeltaPhi, initpts_RZPhi, pos_or_neg=True, max_step=W_dPhi/3)
+        fltres = bundle_tracing_with_t_as_DeltaPhi(afield, total_DeltaPhi, initpts_RZPhi, phi_increasing=True, max_step=W_dPhi/3)
         for i in range(2, Ind_num):
             W_PhiInd_RZ[:-1,i,:] = np.roll( fltres.sol.mat_interp( (i-1)*W_dPhi )[:,:-1], i-1, axis=0 ) # in shape of [W_nPhi-1, 2]
     elif 0.0 < eigval_interp(Phi_start)[eigind_equiv-1] < 1.0: # Stable manifold of Phi-increasing Poincare map
-        fltres = bundle_tracing_with_t_as_DeltaPhi(afield, total_DeltaPhi, initpts_RZPhi, pos_or_neg=False, max_step=W_dPhi/3)
+        fltres = bundle_tracing_with_t_as_DeltaPhi(afield, total_DeltaPhi, initpts_RZPhi, phi_increasing=False, max_step=W_dPhi/3)
         for i in range(2, Ind_num):
             W_PhiInd_RZ[:-1,i,:] = np.roll( fltres.sol.mat_interp( (i-1)*W_dPhi )[:,:-1], -(i-1), axis=0 ) # in shape of [W_nPhi-1, 2]
     else:
