@@ -4,7 +4,7 @@ from scipy.interpolate import RegularGridInterpolator
 from scipy.integrate import solve_ivp
 import numpy as np
 
-def bundle_tracing_with_t_as_DeltaPhi(afield:RegualrCylindricalGridField, total_deltaPhi, initpts_RZPhi, phi_increasing:bool=True, *arg, **kwarg):
+def bundle_tracing_with_t_as_DeltaPhi(afield:RegualrCylindricalGridField, total_deltaPhi, initpts_RZPhi, phi_increasing:bool, *arg, **kwarg):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
     RBRdBPhi = R[:,None,None]*BR/BPhi
     RBZdBPhi = R[:,None,None]*BZ/BPhi
