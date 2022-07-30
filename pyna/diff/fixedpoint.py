@@ -1,16 +1,20 @@
 from random import sample
 from pyna.diff.fieldline import _FieldDifferenatiableRZ
 from pyna.diff.fieldline import RZ_partial_derivative_of_map_4_Flow_Phi_as_t
+from pyna.field import RegualrCylindricalGridField
 
 import numpy as np
 from numpy import linalg as LA 
 from scipy.integrate import solve_ivp
 from scipy.interpolate import interp1d
 
-def Newton_discrete(R, Z, Phi, BR, BZ, BPhi, x0_RZPhi, tor_turn:int=1, zone_of_interest_callback=None, h=1.0, epsilon=1e-5, ret_trace=False):
+def Newton_discrete(afield:RegualrCylindricalGridField, 
+                    x0_RZPhi, tor_turn:int=1, zone_of_interest_callback=None, h=1.0, epsilon=1e-5, ret_trace=False):
+    R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
+    
     xRZ_trace = [np.asarray(x0_RZPhi[:-1])]
     while len(xRZ_trace)==1 or np.linalg.norm( xRZ_trace[-2] - xRZ_trace[-1] ) > epsilon:
-        RZdiff_sols = RZ_partial_derivative_of_map_4_Flow_Phi_as_t(R, Z, Phi, BR, BZ, BPhi, [x0_RZPhi[-1], x0_RZPhi[-1] + 2*tor_turn*np.pi], xRZ_trace[-1], highest_order=1)
+        RZdiff_sols = RZ_partial_derivative_of_map_4_Flow_Phi_as_t(afield, [x0_RZPhi[-1], x0_RZPhi[-1] + 2*tor_turn*np.pi], xRZ_trace[-1], highest_order=1)
         x_mapped = RZdiff_sols[0].sol(x0_RZPhi[-1] + 2*tor_turn*np.pi) 
         if zone_of_interest_callback is not None:
             if not zone_of_interest_callback(*x_mapped):
@@ -55,8 +59,9 @@ def draw_Jac_direction(x0, jac, fig, ax, unit_data_len:float=0.05):
     circ_y = x0[1] + unit_data_len * np.sin( circ_theta ) 
     ax.plot(circ_x, circ_y)
     
-def Jac_evolution_along_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span):
-
+def Jac_evolution_along_Xcycle(afield:RegualrCylindricalGridField, Xcycle_RZdiff, Phi_span):
+    R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
+    
     Phi_start, Phi_end = Phi_span[0], Phi_span[-1]
     nturn = round( (Phi_end - Phi_start) / (2*np.pi) )
     if abs( nturn - (Phi_end - Phi_start) / (2*np.pi) ) > 0.10:
