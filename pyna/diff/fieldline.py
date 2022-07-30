@@ -178,7 +178,10 @@ from ..flow import FlowCallable
 from scipy.integrate import solve_ivp
 from functools import reduce
 import operator
-def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(R, Z, Phi, BR, BZ, BPhi,  t_span, y0, highest_order=1, *arg, **kwarg):
+from pyna.field import RegualrCylindricalGridField
+def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(afield:RegualrCylindricalGridField, t_span, y0, highest_order=1, *arg, **kwarg):
+    R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
+    
     RBRdBPhi = R[:,None,None]*BR/BPhi
     RBZdBPhi = R[:,None,None]*BZ/BPhi
     RBRdBPhi_field = _FieldDifferenatiableRZ(RBRdBPhi, R, Z, Phi)
@@ -279,9 +282,10 @@ def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(R, Z, Phi, BR, BZ, BPhi,  t_spa
             solve_ivp(high_order_evolve_diff_eqs, t_span, y0, max_step=dPhi, dense_output=True, *arg, **kwarg) )
     return partial_derivative_sols
 
-import ray 
-@ray.remote
-def Poincare_trace(R, Z, Phi, BR, BZ, BPhi,  x0_RZPhi, Poincare_section_Phi, times):
+
+def Poincare_trace(afield:RegualrCylindricalGridField,  x0_RZPhi, Poincare_section_Phi, times):
+    R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
+    
     Phigap_from_x0_to_section = ( Poincare_section_Phi - x0_RZPhi[-1] ) % (2*np.pi) # which shall be a float falling in the range [0, 2pi)
     if times[0] >= 0 and times[1] >= 0:
         pos_trace = RZ_partial_derivative_of_map_4_Flow_Phi_as_t(
@@ -306,7 +310,9 @@ def Poincare_trace(R, Z, Phi, BR, BZ, BPhi,  x0_RZPhi, Poincare_section_Phi, tim
             t_eval = np.linspace(x0_RZPhi[-1] + Phigap_from_x0_to_section + 2*np.pi*times[-1], x0_RZPhi[-1] + Phigap_from_x0_to_section + 2*np.pi*times[0], abs(times[0]-times[1])+1 ) )[0].y 
         return neg_trace[:,::-1]
 
-def Poincare_plot(R, Z, Phi, BR, BZ, BPhi,  init_RZPhi, Poincare_section_Phi, fig, ax):
+def Poincare_plot(afield:RegualrCylindricalGridField,  init_RZPhi, Poincare_section_Phi, fig, ax):
+    R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
+    
     x_trace_future_list = []
     for i in range(len(init_RZPhi)):
         x_trace_future_list.append( Poincare_trace.remote(R, Z, Phi, BR, BZ, BPhi,  init_RZPhi[i,:], Poincare_section_Phi, times=[-2,50])  ) # TODO: make the 'times' setting smarter in the future
