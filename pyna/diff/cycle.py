@@ -1,12 +1,14 @@
 from pyna.diff.fieldline import _FieldDifferenatiableRZ
+from pyna.field import RegualrCylindricalGridField
 from scipy.integrate import solve_ivp
 import numpy as np
 
 from deprecated import deprecated
 
 
-def Jac_evolution_along_cycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span):
-
+def Jac_evolution_along_cycle(afield:RegualrCylindricalGridField, Xcycle_RZdiff, Phi_span):
+    R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
+    
     Phi_start, Phi_end = Phi_span[0], Phi_span[-1]
     nturn = round( (Phi_end - Phi_start) / (2*np.pi) )
     if abs( nturn - (Phi_end - Phi_start) / (2*np.pi) ) > 0.10:
@@ -45,10 +47,11 @@ def Jac_evolution_along_cycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span):
 
 
 from deprecated import deprecated
-@deprecated(reason="This function is not reliable to point out the right eigenvector directions.")
-def Jac_theta_val_evolution_along_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span):
+@deprecated(reason="This function is not reliable to point out the right eigenvector directions. Test it later. Enhancement needed.")
+def Jac_theta_val_evolution_along_Xcycle(afield:RegualrCylindricalGridField, Xcycle_RZdiff, Phi_span):
+    R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
 
-    jac_sol = Jac_evolution_along_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span)
+    jac_sol = Jac_evolution_along_cycle(afield, Xcycle_RZdiff, Phi_span)
     Phi_start, Phi_end = Phi_span[0], Phi_span[-1]
 
     RBRdBPhi = R[:,None,None]*BR/BPhi
@@ -155,6 +158,8 @@ def Jac_theta_val_evolution_along_Xcycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff,
     #     np.array([ np.arctan2(v[1,0], v[0,0]), np.arctan2(v[1,1], v[0,1]), ]), dense_output=True, args=(w[0], w[1], nturn),
     #     first_step = (Phi[1]-Phi[0])/50, max_step = (Phi[1]-Phi[0])/50, method="LSODA")
 
+import numpy.linalg as LA
+from scipy.interpolate import interp1d
 def eigvec_interpolator_along_Xcycle(Jac_evosol_along_Xcycle):
     t1, t2 = Jac_evosol_along_Xcycle.t[0], Jac_evosol_along_Xcycle.t[1]
     t = Jac_evosol_along_Xcycle.t
@@ -184,7 +189,7 @@ def eigvec_interpolator_along_Xcycle(Jac_evosol_along_Xcycle):
     
     
 @deprecated(version='0.1.0', reason="Numerical blow up, unstoppable computation. Never reach the end.")
-def Jac_theta_evolution(R,Z,Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span ):
+def Jac_theta_evolution(afield:RegualrCylindricalGridField, Xcycle_RZdiff, Phi_span ):
     """_summary_
 
     Args:
@@ -205,7 +210,9 @@ def Jac_theta_evolution(R,Z,Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span ):
         jac_theta_sols = Jac_theta_evolution(R,Z,Phi, BR_tot, BZ_tot, BPhi_tot, UPX_RZdiff, Phi_span=[0.0, 2*np.pi])
 
     """
-    jac_sol = Jac_evolution_along_cycle(R, Z, Phi, BR, BZ, BPhi, Xcycle_RZdiff, Phi_span)
+    R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
+    
+    jac_sol = Jac_evolution_along_cycle(afield, Xcycle_RZdiff, Phi_span)
     eigvals, eigvecs = np.linalg.eig( jac_sol.sol(0.0).reshape( (2,2) ) )
     tet1_init = np.arctan2(eigvecs[1,0], eigvecs[0,0])
     tet2_init = np.arctan2(eigvecs[1,1], eigvecs[0,1])
