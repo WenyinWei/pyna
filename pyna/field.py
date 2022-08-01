@@ -124,7 +124,6 @@ def CreateRegualrCylindricalGridFieldNumpySharedMemory(
     BPhi_shm = shared_memory.SharedMemory(create=True, size=BPhi.nbytes)
     
     shm_names = [R_shm.name, Z_shm.name, Phi_shm.name, BR_shm.name, BZ_shm.name, BPhi_shm.name]
-    print("shm_names:", shm_names)
     
     R_ = ndarray(R.shape, dtype=R.dtype, buffer=R_shm.buf)
     Z_ = ndarray(Z.shape, dtype=Z.dtype, buffer=Z_shm.buf)
