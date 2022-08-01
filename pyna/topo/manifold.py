@@ -7,7 +7,7 @@ from pyna.diff.cycle import eigvec_interpolator_along_Xcycle
 from multiprocessing.sharedctypes import Value
 from scipy.integrate import solve_ivp
 import numpy as np
-
+from numpy import ndarray
 
 
 def grow_manifold_from_Xcycle_naive_init_segment(
@@ -257,3 +257,69 @@ def smooth1D(x, window_len=11, window='hanning'):
 
     y=np.convolve(w/w.sum(),s,mode='valid')
     return y
+
+
+def _transect_initPhi0_Wivp_at_a_phi(Wivp_bundle, phi:float, mturn:int):
+    """assert Phi_span of bundle_tracing starts from 0.0
+    """
+    import numpy as np
+    phi %= 2*mturn*np.pi
+    
+    ordered_seglist = []
+    if Wivp_bundle.phi_increasing:
+        t = phi
+        while Wivp_bundle.t.min() <= t <= Wivp_bundle.t.max():
+            ordered_seglist.append(Wivp_bundle.sol.mat_interp( t ))
+            t += 2*mturn*np.pi
+    else:
+        t = 2*mturn*np.pi - phi
+        while Wivp_bundle.t.min() <= t <= Wivp_bundle.t.max():
+            ordered_seglist.append(Wivp_bundle.sol.mat_interp( t ))
+            t += 2*mturn*np.pi
+    W1d_RZPhi = np.concatenate(ordered_seglist , axis=0)
+    return W1d_RZPhi
+
+
+
+def accumulate_s_from_RZ_arr(W1d_RZ:ndarray):
+    W1d_s = np.empty( (W1d_RZ.shape[0]) )
+    W1d_s[0] = 0.0
+    W1d_s[1:] = np.add.accumulate(
+        np.sqrt(
+            (W1d_RZ[1:,0] - W1d_RZ[:-1,0])**2 + (W1d_RZ[1:,1] - W1d_RZ[:-1,1])**2
+        ))
+    return W1d_s
+
+
+def create_W1d_interpolator_s_to_RZdRZds(
+    afield:RegualrCylindricalGridField, 
+    Wivp_bundle, phi:float, phi_epsilon:float, mturn=int):
+    R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
+    
+    W1d_phi0_RZPhi = _transect_initPhi0_Wivp_at_a_phi(Wivp_bundle, phi+                        0.0, mturn)
+    W1d_phip_RZPhi = _transect_initPhi0_Wivp_at_a_phi(Wivp_bundle, phi+                phi_epsilon, mturn)
+    W1d_phim_RZPhi = _transect_initPhi0_Wivp_at_a_phi(Wivp_bundle, phi+2*(mturn)*np.pi-phi_epsilon, mturn)
+
+    W1d_phi0_s = accumulate_s_from_RZ_arr(W1d_phi0_RZPhi[:,:-1])
+    W1d_phip_s = accumulate_s_from_RZ_arr(W1d_phip_RZPhi[:,:-1])
+    W1d_phim_s = accumulate_s_from_RZ_arr(W1d_phim_RZPhi[:,:-1])
+
+    from scipy.interpolate import interp1d
+    W1d_phi0_s_interp_R, W1d_phi0_s_interp_Z = interp1d(W1d_phi0_s, W1d_phi0_RZPhi[:,0], ), interp1d(W1d_phi0_s, W1d_phi0_RZPhi[:,1], )
+    W1d_phip_s_interp_R, W1d_phip_s_interp_Z = interp1d(W1d_phip_s, W1d_phip_RZPhi[:,0], ), interp1d(W1d_phip_s, W1d_phip_RZPhi[:,1], )
+    W1d_phim_s_interp_R, W1d_phim_s_interp_Z = interp1d(W1d_phim_s, W1d_phim_RZPhi[:,0], ), interp1d(W1d_phim_s, W1d_phim_RZPhi[:,1], )
+
+    RBRoBPhi = R[:,None,None]*BR/BPhi
+    RBZoBPhi = R[:,None,None]*BZ/BPhi
+    RBRoBPhi_field = _FieldDifferenatiableRZ(RBRoBPhi, R, Z, Phi)
+    RBZoBPhi_field = _FieldDifferenatiableRZ(RBZoBPhi, R, Z, Phi)
+    
+    def _interpolator(s:ndarray):
+        x, y = W1d_phi0_s_interp_R(s), W1d_phi0_s_interp_Z(s)
+        dx = RBRoBPhi_field.diff_RZ_interpolator(0,0)( np.stack([x, y, phi*np.ones_like(x) ], axis=-1) ) - (W1d_phip_s_interp_R(s)-W1d_phim_s_interp_R(s))/(2*phi_epsilon)
+        dy = RBZoBPhi_field.diff_RZ_interpolator(0,0)( np.stack([x, y, phi*np.ones_like(x) ], axis=-1) ) - (W1d_phip_s_interp_Z(s)-W1d_phim_s_interp_Z(s))/(2*phi_epsilon)
+        dl = (dx**2+dy**2)**(1/2)
+        dx/= dl
+        dy/= dl
+        return np.stack( [x,y,dx,dy], axis=-1 )
+    return _interpolator
