@@ -1,8 +1,15 @@
 from pyna.field import RegualrCylindricalGridField
 
+
 from scipy.interpolate import RegularGridInterpolator
+from scipy.integrate import OdeSolution
+def _mat_interp(self, t):
+    return self.__call__(t).reshape( (self.pts_num, 3), order='F')
+OdeSolution.mat_interp = _mat_interp
 from scipy.integrate import solve_ivp
+
 import numpy as np
+
 
 def bundle_tracing_with_t_as_DeltaPhi(afield:RegualrCylindricalGridField, total_deltaPhi, initpts_RZPhi, phi_increasing:bool, *arg, **kwarg):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
@@ -37,7 +44,24 @@ def bundle_tracing_with_t_as_DeltaPhi(afield:RegualrCylindricalGridField, total_
             dXRdPhi =-RBRdBPhi_interp(pts_RZPhi) 
             dXZdPhi =-RBZdBPhi_interp(pts_RZPhi) 
             return np.concatenate((dXRdPhi, dXZdPhi,-dPhidPhi))
-    fltres = solve_ivp(dXRXZdPhi, [0.0, total_deltaPhi], initps_RZPhi_flattened, dense_output=True, *arg, **kwarg)
-    fltres.sol.mat_interp = lambda t: fltres.sol.__call__(t).reshape( (pts_num, 3), order='F')
+        
+    def out_of_grid(t, y):
+        R_, Z_ = y[:pts_num], y[pts_num:2*pts_num]
+        R_max, R_min = max(R_), min(R_)
+        Z_max, Z_min = max(Z_), min(Z_)
+        return min( 
+            R_min - R[1], R[-2] - R_max, 
+            Z_min - Z[1], Z[-2] - Z_max, )
+    out_of_grid.terminal = True
+    
+    fltres = solve_ivp(
+        dXRXZdPhi, 
+        [0.0, total_deltaPhi], 
+        initps_RZPhi_flattened, events=out_of_grid, dense_output=True, *arg, **kwarg)
+    
+    fltres.sol.pts_num = pts_num
+    # def mat_interp(self, t):
+    #     return self.__call__(t).reshape( (self.pts_num, 3), order='F')
+    # fltres.sol.mat_interp = mat_interp # lambda t: fltres.sol.__call__(t).reshape( (pts_num, 3), order='F')
     fltres.phi_increasing = phi_increasing
     return fltres
