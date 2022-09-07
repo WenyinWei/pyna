@@ -65,3 +65,20 @@ def bundle_tracing_with_t_as_DeltaPhi(afield:RegualrCylindricalGridField, total_
     # fltres.sol.mat_interp = mat_interp # lambda t: fltres.sol.__call__(t).reshape( (pts_num, 3), order='F')
     fltres.phi_increasing = phi_increasing
     return fltres
+
+def save_Poincare_orbits(filename:str, list_of_arrRZPhi):
+    np.savez(filename, *list_of_arrRZPhi)
+def load_Poincare_orbits(filename:str):
+    Poincare_orbits_list = [ ]
+    Poincare_orbits_npz = np.load(filename)
+    for var in Poincare_orbits_npz.files:
+        Poincare_orbits_list.append( Poincare_orbits_npz[var] )
+    return Poincare_orbits_list
+# def read_Poincare_orbits(filename:str): # The old reading function, which reads the data into a list of lists of numpy array shape [3]
+#     Poincare_orbits_list = [ ]
+#     Poincare_orbits_npz = np.load(filename)
+#     for var in Poincare_orbits_npz.files:
+#         Poincare_orbits_list.append([])
+#         for i in range(Poincare_orbits_npz[var].shape[0]):
+#             Poincare_orbits_list[-1].append(Poincare_orbits_npz[var][i,:])
+#     return Poincare_orbits_list
