@@ -6,12 +6,15 @@ class Poly2d:
         self._arr = np.copy( poly2d_arr )
     
     
-    def __call__(self, xi): # TODO: to speed up this function by memorization
+    def __call__(self, xi, highest_ord=None): # TODO: to speed up this function by memorization
         xR = xi[...,0]
         xZ = xi[...,1]
         ans = np.zeros_like(xR)
         for Rord in range(self._arr.shape[0]):
             for Zord in range(self._arr.shape[1]):
+                if highest_ord is not None:
+                    if Rord+Zord > highest_ord:
+                        continue
                 if self._arr[Rord, Zord] != 0.0:
                     ans += self._arr[Rord, Zord] * np.power(xR, Rord) * np.power(xZ, Zord)
         return ans
