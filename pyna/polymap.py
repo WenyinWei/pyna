@@ -20,7 +20,31 @@ class PolyMap2d:
         elif pw==1:
             return self
         return self**(pw-1) @ self
-
+    @property
+    def Rord_max(self):
+        return max( self._cor1poly.shape[0], self._cor2poly.shape[0] )
+    @property
+    def Zord_max(self):
+        return max( self._cor1poly.shape[1], self._cor2poly.shape[1] )
+    
+    def __call__(self, xi):
+        xR = xi[...,0]
+        xZ = xi[...,1]
+        ans = np.zeros_like(xi)
+        if self._cor1poly.shape != self._cor2poly.shape:
+            raise ValueError("The __call__ function (for the moment) requries the two polynomial arrays to be of the same shape.")
+        for Rord in range(self.Rord_max):
+            for Zord in range(self.Zord_max):
+                if self._cor1poly[Rord, Zord] != 0.0 or self._cor2poly[Rord, Zord] != 0.0:
+                    xR_pw = np.power(xR, Rord)
+                    xZ_pw = np.power(xZ, Zord)
+                    if self._cor1poly[Rord, Zord] != 0.0:
+                        ans += self._cor1poly[Rord, Zord] * xR_pw * xZ_pw
+                    if self._cor2poly[Rord, Zord] != 0.0:
+                        ans += self._cor2poly[Rord, Zord] * xR_pw * xZ_pw
+        return ans
+    
+    
 from numpy import linalg as LA
 from pyna.polynomial import anti_diagnoal, set_Poly2d_anti_diagnoal
 from scipy.optimize import minimize
