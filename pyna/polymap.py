@@ -27,7 +27,7 @@ class PolyMap2d:
     def Zord_max(self):
         return max( self._cor1poly.shape[1], self._cor2poly.shape[1] )
     
-    def __call__(self, xi):
+    def __call__(self, xi, highest_ord=None):
         xR = xi[...,0]
         xZ = xi[...,1]
         ans = np.zeros_like(xi)
@@ -35,6 +35,9 @@ class PolyMap2d:
             raise ValueError("The __call__ function (for the moment) requries the two polynomial arrays to be of the same shape.")
         for Rord in range(self.Rord_max):
             for Zord in range(self.Zord_max):
+                if highest_ord is not None:
+                    if Rord+Zord > highest_ord:
+                        continue
                 if self._cor1poly[Rord, Zord] != 0.0 or self._cor2poly[Rord, Zord] != 0.0:
                     xR_pw = np.power(xR, Rord)
                     xZ_pw = np.power(xZ, Zord)
