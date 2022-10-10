@@ -5,6 +5,17 @@ class Poly2d:
     def __init__(self, poly2d_arr, ):
         self._arr = np.copy( poly2d_arr )
     
+    
+    def __call__(self, xi): # TODO: to speed up this function by memorization
+        xR = xi[...,0]
+        xZ = xi[...,1]
+        ans = np.zeros_like(xR)
+        for Rord in range(self._arr.shape[0]):
+            for Zord in range(self._arr.shape[1]):
+                if self._arr[Rord, Zord] != 0.0:
+                    ans += self._arr[Rord, Zord] * np.power(xR, Rord) * np.power(xZ, Zord)
+        return ans
+    
     def __add__(self, other):
         c1, c2 = self._arr, other._arr
         ans = np.zeros([max(c1.shape[i], c2.shape[i] ) for i in range(c1.ndim)])
@@ -58,9 +69,10 @@ class Poly2d:
             ky1_max*y1_kx2_max+ky2_max*y2_kx2_max+1])
 
         for ky1, ky2 in itertools.product(*[range(l) for l in c_of_z_in_y.shape]) :
-            temp = c_of_z_in_y[ky1, ky2] * (y1_in_x**ky1 * y2_in_x**ky2)._arr
-            x1_span, x2_span = temp.shape
-            c_of_z_in_x[:x1_span, :x2_span] += temp
+            if c_of_z_in_y[ky1, ky2] != 0.0:
+                temp = c_of_z_in_y[ky1, ky2] * (y1_in_x**ky1 * y2_in_x**ky2)._arr
+                x1_span, x2_span = temp.shape
+                c_of_z_in_x[:x1_span, :x2_span] += temp
             
             
         return Poly2d( c_of_z_in_x, )
