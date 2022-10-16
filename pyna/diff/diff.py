@@ -30,6 +30,16 @@ def partial_derivatives_num_until_order(k):
         d = 2
         return int( (2*a0 + (k-1)*d )*k/2 )
     
+def which_k_is_this_factor_No(factor_No):
+    if factor_No < 0:
+        raise ValueError("The argument factor_No must be a positive int.")
+    k_ = 1
+    while True:
+        if partial_derivatives_num_until_order(k_-1) <= factor_No \
+        and factor_No < partial_derivatives_num_until_order(k_):
+            return k_
+        k_ += 1
+    
 def term_added_one_more_factor(term, factor_No):
     term_with_one_more_factor = [ list(factor) for factor in term ]
     found_new_factor = False
@@ -47,6 +57,7 @@ def dict_safe_add(d, term, n):
         d[term] += n
     else:
         d[term] = n
+        
         
 def px0R_px0Z_terms_collected_as_dict(Rord, Zord,):
     k = Rord + Zord
@@ -73,12 +84,7 @@ def px0R_px0Z_terms_collected_as_dict(Rord, Zord,):
                 dict_safe_add(d_ans, term_with_one_more_pXZpx0R, termC)
                     
                 for factor_No, factor_pw in term: # iterate every factor to apply chain rules
-                    which_k_is_this_factor = None
-                    for k_ in range(1, k +1):
-                        if partial_derivatives_num_until_order(k_-1) <= factor_No \
-                        and factor_No < partial_derivatives_num_until_order(k_):
-                            which_k_is_this_factor = k_
-                            break
+                    which_k_is_this_factor = which_k_is_this_factor_No(factor_No)
                     factor_No_in_this_ord = factor_No - partial_derivatives_num_until_order(which_k_is_this_factor-1)
                     if (factor_No % 2) == 0: # \partial XR term
                         old_factor_Rord = int( factor_No_in_this_ord/2 )
@@ -113,12 +119,7 @@ def px0R_px0Z_terms_collected_as_dict(Rord, Zord,):
                 dict_safe_add(d_ans, term_with_one_more_pXZpx0R, termC)
                     
                 for factor_No, factor_pw in term: # iterate every factor to apply chain rules
-                    which_k_is_this_factor = None
-                    for k_ in range(1, k +1):
-                        if partial_derivatives_num_until_order(k_-1) <= factor_No \
-                        and factor_No < partial_derivatives_num_until_order(k_):
-                            which_k_is_this_factor = k_
-                            break
+                    which_k_is_this_factor = which_k_is_this_factor_No(factor_No)
                     factor_No_in_this_ord = factor_No - partial_derivatives_num_until_order(which_k_is_this_factor-1)
                     if (factor_No % 2) == 0: # \partial XR term
                         old_factor_Rord = int( factor_No_in_this_ord/2 )
