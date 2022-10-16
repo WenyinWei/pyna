@@ -52,6 +52,16 @@ def term_added_one_more_factor(term, factor_No):
         term_with_one_more_factor.sort(key=lambda a: a[0])
     return tuple( tuple( factor ) for factor in term_with_one_more_factor )
 
+def term_removed_one_factor(term, factor_No):
+    new_term = [list(factor) for factor in term]
+    for ifactor, factor in enumerate(new_term):
+        if factor[0] == factor_No: 
+            new_term[ifactor][1] -= 1 
+            if new_term[ifactor][1] == 0:
+                del new_term[ifactor]
+            break
+    return tuple( tuple( factor ) for factor in new_term )
+
 def dict_safe_add(d, term, n):
     if term in d:
         d[term] += n
@@ -96,15 +106,7 @@ def px0R_px0Z_terms_collected_as_dict(Rord, Zord,):
                         factor_No_new = partial_derivatives_num_until_order(which_k_is_this_factor) + 2*new_factor_Rord + 1 
 #                     print(f"factor_No_new {factor_No_new}")
                         
-                    new_term = [list(factor) for factor in term]
-                    
-                    for ifactor, factor in enumerate(new_term):
-                        if factor[0] == factor_No: 
-                            new_term[ifactor][1] -= 1 
-                            if new_term[ifactor][1] == 0:
-                                del new_term[ifactor]
-                            break
-                            
+                    new_term = term_removed_one_factor(term, factor_No)
                     new_term = term_added_one_more_factor(new_term, factor_No_new)
                     dict_safe_add(d_ans, new_term, factor_pw*termC)
                         
@@ -130,15 +132,7 @@ def px0R_px0Z_terms_collected_as_dict(Rord, Zord,):
                         new_factor_Rord = old_factor_Rord  
                         factor_No_new = partial_derivatives_num_until_order(which_k_is_this_factor) + 2*new_factor_Rord + 1 
                         
-                    new_term = [list(factor) for factor in term]
-                    
-                    for ifactor, factor in enumerate(new_term):
-                        if factor[0] == factor_No: 
-                            new_term[ifactor][1] -= 1 
-                            if new_term[ifactor][1] == 0:
-                                del new_term[ifactor]
-                            break
-                            
+                    new_term = term_removed_one_factor(term, factor_No)
                     new_term = term_added_one_more_factor(new_term, factor_No_new)
                     dict_safe_add(d_ans, new_term, factor_pw*termC)
         return d_ans
