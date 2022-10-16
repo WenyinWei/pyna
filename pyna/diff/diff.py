@@ -69,7 +69,7 @@ def dict_safe_add(d, term, n):
         d[term] = n
         
         
-def px0R_px0Z_terms_collected_as_dict(Rord, Zord,):
+def px0R_px0Z_terms_collected_as_dict_factorNo_factorPow(Rord, Zord,):
     k = Rord + Zord
     if Rord==1 and Zord ==0:
         return {
@@ -84,7 +84,7 @@ def px0R_px0Z_terms_collected_as_dict(Rord, Zord,):
     else:
         d_ans = dict()
         if Rord >= 2 or (Rord==1 and Zord==1):
-            d_Rord_minus_1 = px0R_px0Z_terms_collected_as_dict(Rord-1, Zord,)
+            d_Rord_minus_1 = px0R_px0Z_terms_collected_as_dict_factorNo_factorPow(Rord-1, Zord,)
             for term, termC in d_Rord_minus_1.items():
                 
                 term_with_one_more_pXRpx0R = term_added_one_more_factor(term, 2) # one more pXRpx0R (indexed 2)
@@ -111,7 +111,7 @@ def px0R_px0Z_terms_collected_as_dict(Rord, Zord,):
                     dict_safe_add(d_ans, new_term, factor_pw*termC)
                         
         elif Zord >= 2:
-            d_Zord_minus_1 = px0R_px0Z_terms_collected_as_dict(Rord, Zord-1,)
+            d_Zord_minus_1 = px0R_px0Z_terms_collected_as_dict_factorNo_factorPow(Rord, Zord-1,)
             for term, termC in d_Zord_minus_1.items():
                 
                 term_with_one_more_pXRpx0R = term_added_one_more_factor(term, 0) # one more pXRpx0Z (indexed 0)
@@ -136,7 +136,19 @@ def px0R_px0Z_terms_collected_as_dict(Rord, Zord,):
                     new_term = term_added_one_more_factor(new_term, factor_No_new)
                     dict_safe_add(d_ans, new_term, factor_pw*termC)
         return d_ans
-    
+
+def px0R_px0Z_terms_collected_as_dict_k_factorNoInk_factorPow(Rord, Zord):
+    new_d = dict()
+    d = px0R_px0Z_terms_collected_as_dict_factorNo_factorPow(Rord, Zord) # dict for \partial^{Rord+Zord} XR or XZ  / \partial x_{0R}^{Rord} \partial x_{0Z}^{Zord}
+    for term, termC in d.items():
+        new_term = tuple( (
+            which_k_is_this_factor_No(factor_No), 
+            factor_No - partial_derivatives_num_until_order(which_k_is_this_factor_No(factor_No) -1),
+            factor_pw
+            ) for factor_No, factor_pw in term)
+        new_d[new_term] = termC
+    return new_d
+        
 import sparse
 import numpy as np
 import copy
