@@ -30,6 +30,118 @@ def partial_derivatives_num_until_order(k):
         d = 2
         return int( (2*a0 + (k-1)*d )*k/2 )
     
+def term_added_one_more_factor(term, factor_No):
+    term_with_one_more_factor = [ list(factor) for factor in term ]
+    found_new_factor = False
+    for ifactor, factor in enumerate(term_with_one_more_factor):    
+        if factor[0] == factor_No: 
+            term_with_one_more_factor[ifactor][1] += 1
+            found_new_factor = True
+    if not found_new_factor:
+        term_with_one_more_factor.append([factor_No, 1])
+        term_with_one_more_factor.sort(key=lambda a: a[0])
+    return tuple( tuple( factor ) for factor in term_with_one_more_factor )
+
+def dict_safe_add(d, term, n):
+    if term in d:
+        d[term] += n
+    else:
+        d[term] = n
+        
+def px0R_px0Z_terms_collected_as_dict(Rord, Zord,):
+    k = Rord + Zord
+    if Rord==1 and Zord ==0:
+        return {
+            ( (2,1), ): 1,
+            ( (3,1), ): 1,
+        }
+    elif Rord==0 and Zord ==1:
+        return {
+            ( (0,1), ): 1,
+            ( (1,1), ): 1,
+        }
+    else:
+        d_ans = dict()
+        if Rord >= 2 or (Rord==1 and Zord==1):
+            d_Rord_minus_1 = px0R_px0Z_terms_collected_as_dict(Rord-1, Zord,)
+            for term, termC in d_Rord_minus_1.items():
+                
+                term_with_one_more_pXRpx0R = term_added_one_more_factor(term, 2) # one more pXRpx0R (indexed 2)
+                dict_safe_add(d_ans, term_with_one_more_pXRpx0R, termC)
+                    
+                term_with_one_more_pXZpx0R = term_added_one_more_factor(term, 3) # one more pXZpx0R (indexed 3)
+                dict_safe_add(d_ans, term_with_one_more_pXZpx0R, termC)
+                    
+                for factor_No, factor_pw in term: # iterate every factor to apply chain rules
+                    which_k_is_this_factor = None
+                    for k_ in range(1, k +1):
+                        if partial_derivatives_num_until_order(k_-1) <= factor_No \
+                        and factor_No < partial_derivatives_num_until_order(k_):
+                            which_k_is_this_factor = k_
+                            break
+                    factor_No_in_this_ord = factor_No - partial_derivatives_num_until_order(which_k_is_this_factor-1)
+                    if (factor_No % 2) == 0: # \partial XR term
+                        old_factor_Rord = int( factor_No_in_this_ord/2 )
+                        new_factor_Rord = old_factor_Rord + 1 
+                        factor_No_new = partial_derivatives_num_until_order(which_k_is_this_factor) + 2*new_factor_Rord    
+                    elif (factor_No % 2) == 1: # \partial XZ term
+                        old_factor_Rord = int( (factor_No_in_this_ord-1)/2 )
+                        new_factor_Rord = old_factor_Rord + 1 
+                        factor_No_new = partial_derivatives_num_until_order(which_k_is_this_factor) + 2*new_factor_Rord + 1 
+#                     print(f"factor_No_new {factor_No_new}")
+                        
+                    new_term = [list(factor) for factor in term]
+                    
+                    for ifactor, factor in enumerate(new_term):
+                        if factor[0] == factor_No: 
+                            new_term[ifactor][1] -= 1 
+                            if new_term[ifactor][1] == 0:
+                                del new_term[ifactor]
+                            break
+                            
+                    new_term = term_added_one_more_factor(new_term, factor_No_new)
+                    dict_safe_add(d_ans, new_term, factor_pw*termC)
+                        
+        elif Zord >= 2:
+            d_Zord_minus_1 = px0R_px0Z_terms_collected_as_dict(Rord, Zord-1,)
+            for term, termC in d_Zord_minus_1.items():
+                
+                term_with_one_more_pXRpx0R = term_added_one_more_factor(term, 0) # one more pXRpx0Z (indexed 0)
+                dict_safe_add(d_ans, term_with_one_more_pXRpx0R, termC)
+                    
+                term_with_one_more_pXZpx0R = term_added_one_more_factor(term, 1) # one more pXZpx0Z (indexed 1)
+                dict_safe_add(d_ans, term_with_one_more_pXZpx0R, termC)
+                    
+                for factor_No, factor_pw in term: # iterate every factor to apply chain rules
+                    which_k_is_this_factor = None
+                    for k_ in range(1, k +1):
+                        if partial_derivatives_num_until_order(k_-1) <= factor_No \
+                        and factor_No < partial_derivatives_num_until_order(k_):
+                            which_k_is_this_factor = k_
+                            break
+                    factor_No_in_this_ord = factor_No - partial_derivatives_num_until_order(which_k_is_this_factor-1)
+                    if (factor_No % 2) == 0: # \partial XR term
+                        old_factor_Rord = int( factor_No_in_this_ord/2 )
+                        new_factor_Rord = old_factor_Rord  
+                        factor_No_new = partial_derivatives_num_until_order(which_k_is_this_factor) + 2*new_factor_Rord    
+                    elif (factor_No % 2) == 1: # \partial XZ term
+                        old_factor_Rord = int( (factor_No_in_this_ord-1)/2 )
+                        new_factor_Rord = old_factor_Rord  
+                        factor_No_new = partial_derivatives_num_until_order(which_k_is_this_factor) + 2*new_factor_Rord + 1 
+                        
+                    new_term = [list(factor) for factor in term]
+                    
+                    for ifactor, factor in enumerate(new_term):
+                        if factor[0] == factor_No: 
+                            new_term[ifactor][1] -= 1 
+                            if new_term[ifactor][1] == 0:
+                                del new_term[ifactor]
+                            break
+                            
+                    new_term = term_added_one_more_factor(new_term, factor_No_new)
+                    dict_safe_add(d_ans, new_term, factor_pw*termC)
+        return d_ans
+    
 import sparse
 import numpy as np
 import copy
