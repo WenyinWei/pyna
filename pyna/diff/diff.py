@@ -34,7 +34,7 @@ import sparse
 import numpy as np
 import copy
 def px0R_px0Z_terms_collected_as_a_sparse_array(Rord, Zord,): 
-    """generate a super-sparse and super-high-dimensional array to store the inter-componenet relationship of high order derivatives of field line tracing. (FIXME: due to the sparse.DOK array dimension limit, this function fails for Rord+Zord>=4 cases. )
+    """generate a super-sparse and super-high-dimensional array to store the inter-componenet relationship of high order derivatives of field line tracing. (FIXME: due to the sparse.DOK array dimension limit, this function fails for Rord+Zord>=4 cases. For details, see [ValueError: array size defined by dims is larger than the maximum possible size](https://github.com/pydata/sparse/issues/429) )
 
     Args:
         Rord (int): how many orders of derivative in R component
