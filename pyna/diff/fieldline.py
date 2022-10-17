@@ -276,6 +276,80 @@ def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(afield:RegualrCylindricalGridFi
     return XpRpZ_sols
 
 
+from pyna.diff.diff import px0R_px0Z_terms_collected_as_dict_k_factorNoInk_factorPow
+def partial_XRZ_partial_x0RZ_until_ordk_along_field_line(afield:RegualrCylindricalGridField, t_span, y0, highest_order=1, *arg, **kwarg):
+    R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
+    
+    RBRdBPhi = R[:,None,None]*BR/BPhi
+    RBZdBPhi = R[:,None,None]*BZ/BPhi
+    RBRdBPhi_field = _FieldDifferenatiableRZ(RBRdBPhi, R, Z, Phi)
+    RBZdBPhi_field = _FieldDifferenatiableRZ(RBZdBPhi, R, Z, Phi)
+    
+    pflow = FlowCallable([
+        lambda R_, Z_, Phi_: RBRdBPhi_field.diff_RZ_interpolator(0,0)([R_, Z_, Phi_])[0],
+        lambda R_, Z_, Phi_: RBZdBPhi_field.diff_RZ_interpolator(0,0)([R_, Z_, Phi_])[0]
+    ])
+    dPhi = Phi[1] - Phi[0]
+    fltsol = solve_ivp(lambda t, y: [lam(*y, t%(2*np.pi) ) for lam in pflow.diff_xi_lambdas()], t_span, y0, max_step=dPhi, dense_output=True, *arg, **kwarg) # in case of magneitc field, this is [R*BR/BPhi, R*BZ/BPhi] 
+    XpRpZ_sols = [fltsol]
+
+    for RZord in range(1, highest_order+1):
+        print(f"The {RZord}th order is being handled.")
+        # Totally (n+1) dict for (2n+2) variables, ∂XR[nR,nZ]/∂φ and ∂XZ[nR,nZ]/∂φ share the same dict.
+        dicts_k_factorNoInk_factorPow = tuple(  px0R_px0Z_terms_collected_as_dict_k_factorNoInk_factorPow(Rord, RZord-Rord) for Rord in range(0, RZord+1) )
+        Rords_terms_factors_params = tuple( tuple(dicts_k_factorNoInk_factorPow[Rord].keys()) for Rord in range(0, RZord+1) )
+        Rords_termCs = tuple( tuple(dicts_k_factorNoInk_factorPow[Rord].values()) for Rord in range(0, RZord+1) )
+        Rords_terms_XR_num = []
+        Rords_terms_XZ_num = []
+        for Rord in range(0, RZord+1):
+            Rords_terms_XR_num.append( [0, ] * len(Rords_terms_factors_params[Rord]) )
+            Rords_terms_XZ_num.append( [0, ] * len(Rords_terms_factors_params[Rord]) )
+            for iterm, factors_params in enumerate(Rords_terms_factors_params[Rord]):            
+                for _, factor_NoInk, factor_pw in factors_params:
+                    if factor_NoInk % 2 == 0:
+                        Rords_terms_XR_num[Rord][iterm] += factor_pw
+                    elif factor_NoInk % 2 == 1:
+                        Rords_terms_XZ_num[Rord][iterm] += factor_pw
+        Rords_terms_XR_num = tuple( tuple(terms_XR_num) for terms_XR_num in Rords_terms_XR_num )
+        Rords_terms_XZ_num = tuple( tuple(terms_XZ_num) for terms_XZ_num in Rords_terms_XZ_num )
+        
+        Rords_terms_subord_factors_params = \
+            tuple( 
+                tuple(
+                    filter(lambda params: params[0]<RZord, factors_params) 
+                for factors_params in terms_factors_params) 
+            for terms_factors_params in Rords_terms_factors_params )
+        Rords_terms_sameord_factors_params = \
+            tuple( 
+                tuple(
+                    filter(lambda params: params[0]==RZord, factors_params) 
+                for factors_params in terms_factors_params) 
+            for terms_factors_params in Rords_terms_factors_params )
+        
+        def high_order_evolve_diff_eqs(t, y):
+            diffeq_vals = [0.0, ]*(2*(RZord+1)) # np.zeros([2*(RZord+1),]) 
+            XpRpZ_value_cache = tuple( XpRpZ_sols[RZord_].sol(t) for RZord_ in range(RZord) )
+            for Rord in range(0, RZord+1):
+                for iterm in range(len(dicts_k_factorNoInk_factorPow[Rord])):
+                    # multiply factors like ∂^{n}R*BR/BPhi/∂R^{n}
+                    termC = Rords_termCs[Rord][iterm]
+                    term_subord_prod = reduce(operator.mul, (XpRpZ_value_cache[RZord][factor_NoInk]**factor_pw
+                            for RZord, factor_NoInk, factor_pw in Rords_terms_subord_factors_params[Rord][iterm]), 1.0 )
+                    term_sameord_prod = reduce(operator.mul, (y[factor_NoInk]**factor_pw
+                            for RZord, factor_NoInk, factor_pw in Rords_terms_sameord_factors_params[Rord][iterm]), 1.0 )
+                    diffeq_vals[2*Rord  ] += termC * term_subord_prod * term_sameord_prod * \
+                        RBRdBPhi_field.diff_RZ_interpolator(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])([*fltsol.sol(t), t%(2*np.pi) ])[0]
+                    diffeq_vals[2*Rord+1] += termC * term_subord_prod * term_sameord_prod * \
+                        RBZdBPhi_field.diff_RZ_interpolator(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])([*fltsol.sol(t), t%(2*np.pi) ])[0]
+            # print(diffeq_vals)
+            return diffeq_vals
+        # We need to solve these 2(n+1) partial derivatives together since they are correlated.
+        y0 = [0.0, 1.0, 1.0, 0.0] if RZord ==1 else [0.0]*(2*(RZord+1))
+        XpRpZ_sols.append(
+            solve_ivp(high_order_evolve_diff_eqs, t_span, y0, max_step=dPhi, dense_output=True, *arg, **kwarg) )
+    return XpRpZ_sols
+
+
 def Poincare_trace(afield:RegualrCylindricalGridField,  x0_RZPhi, Poincare_section_Phi, times):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
     
