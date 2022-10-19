@@ -326,49 +326,17 @@ def partial_XRZ_partial_x0RZ_until_ordk_along_field_line(afield:RegualrCylindric
         
         
         Rords_subord_factorsum = np.zeros( (2*RZord+2, len(t_eval)) ) 
-        if False: # RZord > 2: # TODO: This part could be parallelized with multi-threading if GIL (global interpreter lock) is released.
-            def calc_Rord_subord_factorsum(Rord):
-                XR_ans = np.zeros( (len(t_eval) ) )
-                XZ_ans = np.zeros( (len(t_eval) ) )
-                for iterm, factors_params in enumerate(Rords_terms_factors_params[Rord]):
-                    if factors_params[0][0] == RZord:
-                        continue # skip this term because it consist of one same-order factor.
-                    termC = Rords_termCs[Rord][iterm]        
-                    term_subord_prod = reduce(operator.mul, (XpRpZ_sols[RZord].y[factor_NoInk,:]**factor_pw
-                                        for RZord, factor_NoInk, factor_pw in factors_params), 1.0 )
-                    # print(f"termC: {termC}")
-                    # print(f"term_subord_prod: {term_subord_prod}")
-                    # print(f"RBRdBPhi_field.diff_RZ_interpolator(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])(flt_RZPhi_eval): {RBRdBPhi_field.diff_RZ_interpolator(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])(flt_RZPhi_eval)}")
-                    XR_ans += termC * term_subord_prod  * \
-                        RBRdBPhi_field.diff_RZ_interpolator(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])(flt_RZPhi_eval)
-                    XZ_ans += termC * term_subord_prod  * \
-                        RBZdBPhi_field.diff_RZ_interpolator(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])(flt_RZPhi_eval)
-                return XR_ans, XR_ans
-        
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                subord_factorsum_collected_as_list = executor.map(calc_Rord_subord_factorsum, range(0, RZord+1) )
-                # with multiprocessing.Pool() as p:
-                #     subord_factorsum_collected_as_list = p.map(calc_Rord_subord_factorsum, range(0,RZord+1))
-                for Rord, subord_factorsum_ in enumerate( subord_factorsum_collected_as_list ):
-                    # print(f"Rord: {Rord}")
-                    # print(f"subord_factorsum_: {subord_factorsum_}")
-                    Rords_subord_factorsum[2*Rord  ,:] = subord_factorsum_[0]
-                    Rords_subord_factorsum[2*Rord+1,:] = subord_factorsum_[1]
-                # for Rord in range(0, RZord+1):
-                #     Rords_subord_factorsum[2*Rord  ,:] = subord_factorsum_collected_as_list[Rord][0]
-                #     Rords_subord_factorsum[2*Rord+1,:] = subord_factorsum_collected_as_list[Rord][1]
-        else:
-            for Rord in range(0, RZord+1):
-                for iterm, factors_params in enumerate(Rords_terms_factors_params[Rord]):
-                    if factors_params[0][0] == RZord:
-                        continue # skip this term because it consist of one same-order factor.
-                    termC = Rords_termCs[Rord][iterm]        
-                    term_subord_prod = reduce(operator.mul, (XpRpZ_sols[RZord].y[factor_NoInk,:]**factor_pw
-                                        for RZord, factor_NoInk, factor_pw in factors_params), 1.0 )
-                    Rords_subord_factorsum[2*Rord  ,:] += termC * term_subord_prod  * \
-                        RBRdBPhi_field.diff_RZ_interpolator(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])(flt_RZPhi_eval)
-                    Rords_subord_factorsum[2*Rord+1,:] += termC * term_subord_prod  * \
-                        RBZdBPhi_field.diff_RZ_interpolator(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])(flt_RZPhi_eval)
+        for Rord in range(0, RZord+1):
+            for iterm, factors_params in enumerate(Rords_terms_factors_params[Rord]):
+                if factors_params[0][0] == RZord:
+                    continue # skip this term because it consist of one same-order factor.
+                termC = Rords_termCs[Rord][iterm]        
+                term_subord_prod = reduce(operator.mul, (XpRpZ_sols[RZord].y[factor_NoInk,:]**factor_pw
+                                    for RZord, factor_NoInk, factor_pw in factors_params), 1.0 )
+                Rords_subord_factorsum[2*Rord  ,:] += termC * term_subord_prod  * \
+                    RBRdBPhi_field.diff_RZ_interpolator(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])(flt_RZPhi_eval)
+                Rords_subord_factorsum[2*Rord+1,:] += termC * term_subord_prod  * \
+                    RBZdBPhi_field.diff_RZ_interpolator(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])(flt_RZPhi_eval)
         Rords_subord_factorsum_interpolator = scipy.interpolate.interp1d(t_eval, Rords_subord_factorsum, axis=1)
         
         Rords_sameord_terms_factors_params = \
