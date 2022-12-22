@@ -11,7 +11,7 @@ jobs:
           pip install sphinx sphinx_rtd_theme sphinxcontrib-napoleon sphinxcontrib-apidoc git+https://github.com/elcorto/sphinx-autodoc.git
       - name: Automatically extract API from comment
         run: |
-          cd docs && sphinx-autodoc pyna && cd ..
+          sphinx-apidoc -o docs/api -E .
       - name: Sphinx build
         run: |
           sphinx-build docs _build
