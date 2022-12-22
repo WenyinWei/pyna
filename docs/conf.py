@@ -29,7 +29,7 @@ extensions = [
     'sphinx.ext.napoleon', # to let sphinx understand Google/Numpy style comment
     ]
 apidoc_module_dir = '../pyna'
-apidoc_output_dir = './docs/api'
+apidoc_output_dir = 'api'
 apidoc_excluded_paths = [ ]
 apidoc_separate_modules = True
 
