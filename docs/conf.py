@@ -18,6 +18,7 @@ author = 'Wenyin Wei'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
+    'sphinxcontrib.apidoc',
     'sphinx.ext.autodoc', 
     'sphinx.ext.doctest', 
     'sphinx.ext.todo', 
