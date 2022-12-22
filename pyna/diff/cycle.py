@@ -37,10 +37,10 @@ def Jac_evolution_along_cycle(afield:RegualrCylindricalGridField, Xcycle_RZdiff,
     
     # Jac evolution init condition
     DP_init = np.array([
-        Xcycle_RZdiff[1].y[2], 
-        Xcycle_RZdiff[1].y[0], 
-        Xcycle_RZdiff[1].y[3], 
-        Xcycle_RZdiff[1].y[1] ]).flatten()
+        Xcycle_RZdiff[1].sol(Phi_end)[2], 
+        Xcycle_RZdiff[1].sol(Phi_end)[0], 
+        Xcycle_RZdiff[1].sol(Phi_end)[3], 
+        Xcycle_RZdiff[1].sol(Phi_end)[1] ]).flatten()
 
     return solve_ivp(cycle_dDPdPhi, [Phi_start, Phi_end], DP_init, dense_output=True, 
             first_step = Phi[1]-Phi[0], max_step = Phi[1]-Phi[0] ) 
