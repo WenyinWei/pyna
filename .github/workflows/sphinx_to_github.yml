@@ -8,7 +8,7 @@ jobs:
       - uses: actions/setup-python@v2
       - name: Install dependencies
         run: |
-          pip install sphinx sphinx_rtd_theme sphinxcontrib-napoleon sphinxcontrib-apidoc
+          pip install sphinx sphinx_rtd_theme sphinxcontrib-napoleon sphinxcontrib-apidoc git+https://github.com/elcorto/sphinx-autodoc.git
       - name: Automatically extract API from comment
         run: |
           cd docs && sphinx-autodoc pyna && cd ..
