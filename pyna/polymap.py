@@ -22,29 +22,31 @@ class PolyMap2d:
         return self**(pw-1) @ self
     @property
     def Rord_max(self):
-        return max( self._cor1poly.shape[0], self._cor2poly.shape[0] )
+        return max( self._cor1poly._arr.shape[0]-1, self._cor2poly._arr.shape[0]-1 )
     @property
     def Zord_max(self):
-        return max( self._cor1poly.shape[1], self._cor2poly.shape[1] )
+        return max( self._cor1poly._arr.shape[1]-1, self._cor2poly._arr.shape[1]-1 )
     
     def __call__(self, xi, highest_ord=None):
         xR = xi[...,0]
         xZ = xi[...,1]
         ans = np.zeros_like(xi)
-        if self._cor1poly.shape != self._cor2poly.shape:
+        if self._cor1poly._arr.shape != self._cor2poly._arr.shape:
             raise ValueError("The __call__ function (for the moment) requries the two polynomial arrays to be of the same shape.")
-        for Rord in range(self.Rord_max):
-            for Zord in range(self.Zord_max):
+        for Rord in range(self.Rord_max+1):
+            for Zord in range(self.Zord_max+1):
+                if Rord+Zord == 0:
+                    continue
                 if highest_ord is not None:
                     if Rord+Zord > highest_ord:
                         continue
-                if self._cor1poly[Rord, Zord] != 0.0 or self._cor2poly[Rord, Zord] != 0.0:
+                if self._cor1poly._arr[Rord, Zord] != 0.0 or self._cor2poly._arr[Rord, Zord] != 0.0:
                     xR_pw = np.power(xR, Rord)
                     xZ_pw = np.power(xZ, Zord)
-                    if self._cor1poly[Rord, Zord] != 0.0:
-                        ans += self._cor1poly[Rord, Zord] * xR_pw * xZ_pw
-                    if self._cor2poly[Rord, Zord] != 0.0:
-                        ans += self._cor2poly[Rord, Zord] * xR_pw * xZ_pw
+                    if self._cor1poly._arr[Rord, Zord] != 0.0:
+                        ans[...,0] += self._cor1poly._arr[Rord, Zord] * xR_pw * xZ_pw
+                    if self._cor2poly._arr[Rord, Zord] != 0.0:
+                        ans[...,1] += self._cor2poly._arr[Rord, Zord] * xR_pw * xZ_pw
         return ans
     
     

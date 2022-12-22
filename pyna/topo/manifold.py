@@ -14,7 +14,7 @@ def grow_manifold_from_Xcycle_naive_init_segment(
     afield:RegualrCylindricalGridField, 
     Xcycle_RZdiff, 
     Jac_evosol_along_Xcycle, 
-    eigind:int, Phi_span, total_deltaPhi:float, ptsnum_initseg:int=300, initseg_len=0.8e-3, *arg_sovle_ivp, **kwarg_solve_ivp):    
+    eigind:int, Phi_span, total_deltaPhi:float, ptsnum_initseg:int=300, initseg_len=0.8e-4, *arg_sovle_ivp, **kwarg_solve_ivp):    
     Phi_start, Phi_end = Phi_span[0], Phi_span[1]
 
     # Use eigind : 1, 2, 3, 4. 1 & 3 are on the contrary, 2 & 4 are on the contrary.
@@ -316,8 +316,8 @@ def create_W1d_interpolator_s_to_RZdRZds(
     
     def _interpolator(s:ndarray):
         x, y = W1d_phi0_s_interp_R(s), W1d_phi0_s_interp_Z(s)
-        dx = RBRoBPhi_field.diff_RZ_interpolator(0,0)( np.stack([x, y, phi*np.ones_like(x) ], axis=-1) ) - (W1d_phip_s_interp_R(s)-W1d_phim_s_interp_R(s))/(2*phi_epsilon)
-        dy = RBZoBPhi_field.diff_RZ_interpolator(0,0)( np.stack([x, y, phi*np.ones_like(x) ], axis=-1) ) - (W1d_phip_s_interp_Z(s)-W1d_phim_s_interp_Z(s))/(2*phi_epsilon)
+        dx = RBRoBPhi_field.diff_RZ_interpolator(0,0)( np.stack([x, y, phi*np.ones_like(x) % (2*np.pi) ], axis=-1) ) - (W1d_phip_s_interp_R(s)-W1d_phim_s_interp_R(s))/(2*phi_epsilon)
+        dy = RBZoBPhi_field.diff_RZ_interpolator(0,0)( np.stack([x, y, phi*np.ones_like(x) % (2*np.pi) ], axis=-1) ) - (W1d_phip_s_interp_Z(s)-W1d_phim_s_interp_Z(s))/(2*phi_epsilon)
         dl = (dx**2+dy**2)**(1/2)
         dx/= dl
         dy/= dl

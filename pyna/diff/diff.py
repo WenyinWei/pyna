@@ -148,8 +148,7 @@ def px0R_px0Z_terms_collected_as_dict_k_factorNoInk_factorPow(Rord, Zord):
             ) for factor_No, factor_pw in term)
         new_d[new_term] = termC
     return new_d
-        
-import sparse
+
 import numpy as np
 import copy
 def px0R_px0Z_terms_collected_as_a_sparse_array(Rord, Zord,): 

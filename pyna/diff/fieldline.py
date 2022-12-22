@@ -141,35 +141,64 @@ class _FieldDifferenatiableRZ:
         self._Z = Z
         self._Phi = Phi
     
-    @cache
+    @lru_cache
     def diff_RZ(self, nR:int, nZ:int):
         if nR == 0 and nZ == 0:
             return self._field.copy()
         elif nZ > 0:
-            return np.gradient(self.diff_RZ(nR, nZ-1), self._Z, axis=-2, edge_order=2)
+            # return np.gradient(self.diff_RZ(nR, nZ-1), self._Z, axis=-2, edge_order=2)
+            lastord = self.diff_RZ(nR, nZ-1)
+            return (
+                -1 * (lastord[...,:,4:,:] - lastord[...,:,:-4,:]) 
+                + 8 * (lastord[...,:,3:-1,:] - lastord[...,:,1:-3,:]) 
+            ) / (12*(self._Z[1]-self._Z[0]) )
+            # return (
+            #     (lastord[...,:,6:,:] - lastord[...,:,:-6,:]) 
+            #     - 9 * (lastord[...,:,5:-1,:] - lastord[...,:,1:-5,:]) 
+            #     + 45 * (lastord[...,:,4:-2,:]-lastord[...,:,2:-4,:])
+            # ) / (60*(self._Z[1]-self._Z[0]) )
         elif nR > 0:
-            return np.gradient(self.diff_RZ(nR-1, nZ), self._R, axis=-3, edge_order=2)
+            # return np.gradient(self.diff_RZ(nR-1, nZ), self._R, axis=-3, edge_order=2)
+            lastord = self.diff_RZ(nR-1, nZ)
+            return (
+                -1 * (lastord[...,4:,:,:] - lastord[...,:-4,:,:]) 
+                + 8 * (lastord[...,3:-1,:,:] - lastord[...,1:-3,:,:]) 
+                ) / (12*(self._R[1]-self._R[0]) )
+            # return (
+            #     (lastord[...,6:,:,:] - lastord[...,:-6,:,:]) 
+            #     - 9 * (lastord[...,5:-1,:,:] - lastord[...,1:-5,:,:]) 
+            #     + 45 * (lastord[...,4:-2,:,:]-lastord[...,2:-4,:,:])
+            #     ) / (60*(self._R[1]-self._R[0]) )
         else:
             raise ValueError("nR, nZ to differentiate in the R,Z axis shall be >= 0.")
 
-    @cache
+    # @cache
     def diff_RZ_interpolator(self, nR:int, nZ:int):
         from scipy.interpolate import RegularGridInterpolator
         if nR > 0 and nZ > 0:
+            # return RegularGridInterpolator( 
+            #     (self._R[nR:-nR], self._Z[nZ:-nZ], self._Phi), self.diff_RZ(nR, nZ)[...,nR:-nR, nZ:-nZ,:],
+            #     method="linear", bounds_error=True )
             return RegularGridInterpolator( 
-                (self._R[nR:-nR], self._Z[nZ:-nZ], self._Phi), self.diff_RZ(nR, nZ)[...,nR:-nR, nZ:-nZ,:],
+                (self._R[2*nR:-2*nR], self._Z[2*nZ:-2*nZ], self._Phi), self.diff_RZ(nR, nZ),
                 method="linear", bounds_error=True )
         elif nR > 0 and nZ == 0:
+            # return RegularGridInterpolator( 
+            #     (self._R[nR:-nR], self._Z, self._Phi), self.diff_RZ(nR, nZ)[...,nR:-nR, :,:],
+            #     method="linear", bounds_error=True )
             return RegularGridInterpolator( 
-                (self._R[nR:-nR], self._Z, self._Phi), self.diff_RZ(nR, nZ)[...,nR:-nR, :,:],
+                (self._R[2*nR:-2*nR], self._Z, self._Phi), self.diff_RZ(nR, nZ),
                 method="linear", bounds_error=True )
         elif nR == 0 and nZ > 0:
             return RegularGridInterpolator( 
-                (self._R, self._Z[nZ:-nZ], self._Phi), self.diff_RZ(nR, nZ)[...,:, nZ:-nZ,:],
+                (self._R, self._Z[2*nZ:-2*nZ], self._Phi), self.diff_RZ(nR, nZ),
                 method="linear", bounds_error=True )
+            # return RegularGridInterpolator( 
+            #     (self._R, self._Z[nZ:-nZ], self._Phi), self.diff_RZ(nR, nZ)[...,:, nZ:-nZ,:],
+            #     method="linear", bounds_error=True )
         elif nR == 0 and nZ == 0:
             return RegularGridInterpolator( 
-                (self._R, self._Z, self._Phi), self.diff_RZ(nR, nZ)[...,:,:,:],
+                (self._R, self._Z, self._Phi), self.diff_RZ(nR, nZ),
                 method="linear", bounds_error=True )
         else:
             raise ValueError("nR, nZ to differentiate in the R,Z axis shall be >= 0.")
@@ -304,6 +333,13 @@ def partial_XRZ_partial_x0RZ_until_ordk_along_field_line(afield:RegualrCylindric
     flt_RZPhi_eval[:,:-1] = fltsol.sol(t_eval).T
     flt_RZPhi_eval[:, -1] = t_eval % (2*np.pi)
     
+    @cache    
+    def RBRdBPhi_oncycle(Rord, Zord):
+        return RBRdBPhi_field.diff_RZ_interpolator(Rord, Zord)(flt_RZPhi_eval)
+    @cache
+    def RBZdBPhi_oncycle(Rord, Zord):
+        return RBZdBPhi_field.diff_RZ_interpolator(Rord, Zord)(flt_RZPhi_eval)
+    
     for RZord in range(1, highest_order+1):
         print(f"The {RZord}th order is being handled.")
         # Totally (n+1) dict for (2n+2) variables, ∂XR[nR,nZ]/∂φ and ∂XZ[nR,nZ]/∂φ share the same dict.
@@ -334,9 +370,11 @@ def partial_XRZ_partial_x0RZ_until_ordk_along_field_line(afield:RegualrCylindric
                 term_subord_prod = reduce(operator.mul, (XpRpZ_sols[RZord].y[factor_NoInk,:]**factor_pw
                                     for RZord, factor_NoInk, factor_pw in factors_params), 1.0 )
                 Rords_subord_factorsum[2*Rord  ,:] += termC * term_subord_prod  * \
-                    RBRdBPhi_field.diff_RZ_interpolator(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])(flt_RZPhi_eval)
+                    RBRdBPhi_oncycle(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])
+                    # RBRdBPhi_field.diff_RZ_interpolator(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])(flt_RZPhi_eval)
                 Rords_subord_factorsum[2*Rord+1,:] += termC * term_subord_prod  * \
-                    RBZdBPhi_field.diff_RZ_interpolator(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])(flt_RZPhi_eval)
+                    RBZdBPhi_oncycle(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])
+                    # RBZdBPhi_field.diff_RZ_interpolator(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])(flt_RZPhi_eval)
         Rords_subord_factorsum_interpolator = scipy.interpolate.interp1d(t_eval, Rords_subord_factorsum, axis=1)
         
         Rords_sameord_terms_factors_params = \
