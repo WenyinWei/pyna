@@ -10,7 +10,7 @@ Welcome to pyna's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+Pyna is a python package to integrate utilities for dynamical system problems, such as locating periodic points, drawing invariant manifolds and calculating the monodromy matrix.
 
 Indices and tables
 ==================
