@@ -30,7 +30,7 @@ extensions = [
     ]
 apidoc_module_dir = '../pyna'
 apidoc_output_dir = './docs/api'
-apidoc_excluded_paths = [ ,]
+apidoc_excluded_paths = [ ]
 apidoc_separate_modules = True
 
 templates_path = ['_templates']
