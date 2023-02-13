@@ -143,6 +143,14 @@ class Ak_interpolator:
 from numpy import ndarray
 from multiprocessing import shared_memory
 class RegualrCylindricalGridFieldNumpySharedMemory(RegualrCylindricalGridField):
+    """
+    According to the document of multiprocessing.shared_memory
+    
+    As a resource for sharing data across processes, shared memory blocks may outlive the original process that created them. When one process no longer needs access to a shared memory block that might still be needed by other processes, the `close()` method should be called. When a shared memory block is no longer needed by any process, the `unlink()` method should be called to ensure proper cleanup.
+
+    Args:
+        RegualrCylindricalGridField: super class
+    """
     def __init__(self, 
                  shm_names:list, 
                  np_shapes:list,
