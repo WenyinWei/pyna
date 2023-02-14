@@ -144,9 +144,11 @@ from numpy import ndarray
 from multiprocessing import shared_memory
 class RegualrCylindricalGridFieldNumpySharedMemory(RegualrCylindricalGridField):
     """
-    According to the document of multiprocessing.shared_memory
+    According to the document of multiprocessing.shared_memory:
     
     As a resource for sharing data across processes, shared memory blocks may outlive the original process that created them. When one process no longer needs access to a shared memory block that might still be needed by other processes, the `close()` method should be called. When a shared memory block is no longer needed by any process, the `unlink()` method should be called to ensure proper cleanup.
+    
+    原则上，一个进程不再使用这个共享资源的时候调用`close()`方法，当所有进程都不再需要它的时候调用`unlink()`，但实际上在科学计算中我们并不是很关心内存泄漏，只要在用户的电脑有足够的内存，完全可以等程序把你电脑炸了重新启动就好了，let it crash。
 
     Args:
         RegualrCylindricalGridField: super class
