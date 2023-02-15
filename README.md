@@ -3,7 +3,14 @@
 **P**ython package dedicated for research on **DYNA**mic system.
 
 ```bash
+# Release version
 pip install pyna-chaos
+
+# Latest version
+git clone git@github.com:WenyinWei/pyna.git
+cd pyna
+pip install -e .
+# git pull for latest update 
 ```
 
 ```python
