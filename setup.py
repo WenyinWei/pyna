@@ -24,6 +24,6 @@ setuptools.setup(
         "scipy", "sympy", "numpy", "pandas", # fundamental python packages
         "matplotlib", "plotly",
         "jupyter", "notebook", "ipympl", # "ipympl" for %matplotlib widget
-        "sparse", # for storing data of high order derivatives inter-relation
+        # "sparse", # for storing data of high order derivatives inter-relation
     ]
 )
