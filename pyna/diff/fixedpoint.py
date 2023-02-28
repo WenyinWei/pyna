@@ -23,11 +23,11 @@ def Newton_discrete(afield:RegualrCylindricalGridField,
                 else:
                     return None
         Jac_comp = RZdiff_sols[1].sol(x0_RZPhi[-1] + 2*tor_turn*np.pi)
-        Jac = np.array( [
+        Jac_minus_I = np.array( [
             [Jac_comp[2]-1, Jac_comp[0]], 
             [Jac_comp[3], Jac_comp[1]-1]])
         xRZ_trace.append( np.ravel(
-            xRZ_trace[-1] - h * np.matmul( np.linalg.inv(Jac), np.array([[x_mapped[0]- xRZ_trace[-1][0] ], [x_mapped[1]- xRZ_trace[-1][1] ]])).T) )
+            xRZ_trace[-1] - h * np.matmul( np.linalg.inv(Jac_minus_I), np.array([[x_mapped[0]- xRZ_trace[-1][0] ], [x_mapped[1]- xRZ_trace[-1][1] ]])).T) )
     if not ret_trace:
         return xRZ_trace[-1]
     else:
