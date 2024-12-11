@@ -16,7 +16,7 @@ def space_dirderivative(f, xyz, t, direction, h=1e-8):
     return (f(x + dx, y + dy, z + dz, t) - f(x - dx, y - dy, z - dz, t)) / (2 * h)
 
 
-def particle_motion_forward(t, state, p):
+def particle_motion(t, state, p):
     x, y, z, vx, vy, vz = state
     q, m0, EBfield = p
     E, B = EBfield.E_and_B_at(x, y, z, t)
@@ -24,16 +24,8 @@ def particle_motion_forward(t, state, p):
     F = q * (E + np.cross(v, B))
     ax, ay, az = F / m0
     return [vx, vy, vz, ax, ay, az]
-def particle_motion_backward(t, state, p):
-    x, y, z, vx, vy, vz = state
-    q, m0, EBfield = p
-    E, B = EBfield.E_and_B_at(x, y, z, -t)
-    v = np.array([vx, vy, vz])
-    F = q * (E + np.cross(v, B))
-    ax, ay, az = F / m0
-    return [-vx, -vy, -vz, -ax, -ay, -az]
 
-def particle_motion_withoutALforce_forward(t, state, p):
+def particle_motion_withoutALforce(t, state, p):
     x, y, z, vx, vy, vz = state
     xyz = np.array([x, y, z])
     q, m0, EBfield = p
@@ -52,7 +44,7 @@ def particle_motion_withoutALforce_forward(t, state, p):
     
     return [vx, vy, vz, *a]
 
-def particle_motion_withALforce_forward(t, state, p):
+def particle_motion_withALforce(t, state, p):
     x, y, z, vx, vy, vz = state
     xyz = np.array([x, y, z])
     q, m0, EBfield = p
@@ -94,7 +86,7 @@ def particle_motion_withALforce_forward(t, state, p):
     # print("Percentage of AL force: ", np.linalg.norm(a_ALforce) / np.linalg.norm(a) * 100, "%")
     return [vx, vy, vz, *a_total]
 
-def gc_motion_forward(t, state, p):
+def gc_motion(t, state, p):
     x, y, z, v_parallel = state
     xyz = np.array([x, y, z])
     q, m0, mu, EBfield = p
@@ -103,15 +95,15 @@ def gc_motion_forward(t, state, p):
     g = np.array([0, 0, 0])  
     # g = np.array([0, 0, -9.81])  # Assuming gravitational acceleration
     
-    ppt_hatb = time_derivative(EBfield.hatb_at, xyz, t)
-    pps_hatb = space_dirderivative(EBfield.hatb_at, xyz, t, hatb)
+    partialt_hatb = time_derivative(EBfield.hatb_at, xyz, t)
+    partials_hatb = space_dirderivative(EBfield.hatb_at, xyz, t, hatb)
     vE = EBfield.vE_at(x, y, z, t)
 
-    term1 = -E + (mu / q) * EBfield.gradB_abs_at(x, y, z, t)
+    term1 = -E + (mu / q) * EBfield.grad_Babs_at(x, y, z, t)
     term2 = (m0 / q) * (
         -g 
-        + v_parallel * ppt_hatb 
-        + v_parallel**2 * pps_hatb 
+        + v_parallel * partialt_hatb 
+        + v_parallel**2 * partials_hatb 
         + v_parallel * np.linalg.norm(vE) * space_dirderivative(EBfield.hatb_at, xyz, t, vE) 
     )
     term3 = (m0 / q) * (
@@ -127,10 +119,10 @@ def gc_motion_forward(t, state, p):
     v_parallel_dot = (
         (m0 / q) * g_parallel 
         + E_parallel 
-        - (mu / q) * space_dirderivative(EBfield.B_abs_at, xyz, t, hatb) 
+        - (mu / q) * space_dirderivative(EBfield.Babs_at, xyz, t, hatb) 
         + (m0 / q) * np.dot(vE, 
-                            ppt_hatb 
-                            + v_parallel * pps_hatb 
+                            partialt_hatb 
+                            + v_parallel * partials_hatb 
                             + np.linalg.norm(vE) * space_dirderivative(EBfield.hatb_at, xyz, t, vE)
                             )
     )
@@ -138,7 +130,7 @@ def gc_motion_forward(t, state, p):
 
     return [*(v_parallel*hatb + R_perp_dot), v_parallel_dot]
 
-def gc_motion_stateRdotR_forward(t, state, p):
+def gc_motion_stateRdotR(t, state, p):
     x, y, z, vx, vy, vz = state
     R = np.array([x, y, z])
     dotR = np.array([vx, vy, vz])
@@ -153,7 +145,7 @@ def gc_motion_stateRdotR_forward(t, state, p):
     return [vx, vy, vz, *a]
 
 
-def gc_motion_stateRv_forward(t, state, p):
+def gc_motion_stateRv(t, state, p):
     x, y, z, vx, vy, vz = state
     R = np.array([x, y, z])
     v = np.array([vx, vy, vz])
@@ -237,7 +229,7 @@ def gc_motion_stateRv_forward(t, state, p):
     # )
     return [*(v_ll * hatb + R_perp_dot), *v_dot]
 
-def particle_motion_relativistic_forward(t, state, p):
+def particle_motion_relativistic(t, state, p):
     x, y, z, vx, vy, vz, ax, ay, az = state
     q, m0, EBfield = p
     E, B = EBfield.E_and_B_at(x, y, z, t)
