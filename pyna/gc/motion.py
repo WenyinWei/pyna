@@ -161,6 +161,22 @@ def gc_motion_stateRv(t, state, p):
     partials_hatb = space_dirderivative(EBfield.hatb_at, R, t, hatb)
     vE = EBfield.vE_at(x, y, z, t)
 
+    # Calculate \dot{\vec{R}}_\perp
+    term1 = -E + (mu / q) * EBfield.grad_Babs_at(x, y, z, t)
+    term2 = (m0 / q) * (
+        -g 
+        + v_ll * partialt_hatb 
+        + v_ll**2 * partials_hatb 
+        + v_ll * np.linalg.norm(vE) * space_dirderivative(EBfield.hatb_at, R, t, vE) 
+    )
+    term3 = (m0 / q) * (
+        time_derivative(EBfield.vE_at, R, t)
+        + v_ll * space_dirderivative(EBfield.vE_at, R, t, hatb)
+        + np.linalg.norm(vE) * space_dirderivative(EBfield.vE_at, R, t, vE)
+    )
+
+    R_perp_dot = np.cross(hatb, term1 + term2 + term3) / np.linalg.norm(B)
+
     # # Calculate \dot{\vec{v}}, approach 2
     # term_force_ll = hatb * np.dot(hatb, g + (q/m0) * E - (mu / m0) * EBfield.grad_Babs_at(x, y, z, t) )
 
@@ -185,13 +201,13 @@ def gc_motion_stateRv(t, state, p):
     # v_dot = term_force_ll + term_hatb_dot + vE_dot_l_ + term_crossb
 
     
-    # # Calculate \dot{\vec{v}}, approach 3
-    # v_dot = (
-    #     q/m0 * E
-    #     - mu/m0 * EBfield.grad_Babs_at(x, y, z, t)  
-    #     + g 
-    #     + q/m0 * np.cross(v, B)
-    # )
+    # Calculate \dot{\vec{v}}, approach 3
+    v_dot = (
+        q/m0 * E
+        - mu/m0 * EBfield.grad_Babs_at(x, y, z, t)  
+        + g 
+        + q/m0 * np.cross(v, B)
+    )
     return [*(v_ll * hatb + R_perp_dot), *v_dot]
 
 def particle_motion_relativistic(t, state, p):
