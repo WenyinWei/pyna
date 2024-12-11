@@ -138,6 +138,105 @@ def gc_motion_forward(t, state, p):
 
     return [*(v_parallel*hatb + R_perp_dot), v_parallel_dot]
 
+def gc_motion_stateRdotR_forward(t, state, p):
+    x, y, z, vx, vy, vz = state
+    R = np.array([x, y, z])
+    dotR = np.array([vx, vy, vz])
+    q, m0, mu, EBfield = p
+    E, B = EBfield.E_at(x, y, z, t), EBfield.B_at(x, y, z, t)
+    hatb = EBfield.hatb_at(x, y, z, t)
+    g = np.array([0, 0, 0])  
+    # g = np.array([0, 0, -9.81])  # Assuming gravitational acceleration
+    
+    a = q / m0 * (E + np.cross(dotR, B)) - mu / m0 * EBfield.grad_Babs_at(x, y, z, t)
+
+    return [vx, vy, vz, *a]
+
+
+def gc_motion_stateRv_forward(t, state, p):
+    x, y, z, vx, vy, vz = state
+    R = np.array([x, y, z])
+    v = np.array([vx, vy, vz])
+    q, m0, mu, EBfield = p
+    E, B = EBfield.E_at(x, y, z, t), EBfield.B_at(x, y, z, t)
+    hatb = EBfield.hatb_at(x, y, z, t)
+    g = np.array([0, 0, 0])  
+    # g = np.array([0, 0, -9.81])  # Assuming gravitational acceleration
+
+    v_ll = np.dot(v, hatb)
+    v_l_ = v - v_ll * hatb
+    partialt_hatb = time_derivative(EBfield.hatb_at, R, t)
+    partials_hatb = space_dirderivative(EBfield.hatb_at, R, t, hatb)
+    vE = EBfield.vE_at(x, y, z, t)
+
+    # Calculate \dot{\vec{R}}_\perp
+    term1 = -E + (mu / q) * EBfield.grad_Babs_at(x, y, z, t)
+    term2 = (m0 / q) * (
+        -g 
+        + v_ll * partialt_hatb 
+        + v_ll**2 * partials_hatb 
+        + v_ll * np.linalg.norm(vE) * space_dirderivative(EBfield.hatb_at, R, t, vE) 
+    )
+    term3 = (m0 / q) * (
+        time_derivative(EBfield.vE_at, R, t)
+        + v_ll * space_dirderivative(EBfield.vE_at, R, t, hatb)
+        + np.linalg.norm(vE) * space_dirderivative(EBfield.vE_at, R, t, vE)
+    )
+
+    R_perp_dot = np.cross(hatb, term1 + term2 + term3) / np.linalg.norm(B)
+
+    # Calculate \dot{\vec{v}}, approach 1
+    term_force_ll = hatb * np.dot(hatb, g + (q/m0) * E - (mu / m0) * EBfield.grad_Babs_at(x, y, z, t) )
+
+    hatb_dot = (
+        partialt_hatb 
+        + v_ll * partials_hatb 
+        + np.linalg.norm(vE) * space_dirderivative(EBfield.hatb_at, R, t, vE) 
+    )
+    term_hatb_dot = v_ll * hatb_dot + hatb * np.dot(vE-v_l_, hatb_dot)
+    
+    Babs_dot = (
+        time_derivative(EBfield.Babs_at, R, t)
+        + v_ll * space_dirderivative(EBfield.Babs_at, R, t, hatb)
+        + np.linalg.norm(vE) * space_dirderivative(EBfield.Babs_at, R, t, vE)
+    )
+    term_Babs_dot = v_l_ / (2 * np.linalg.norm(B) ) * Babs_dot
+
+    v_dot = term_force_ll + term_hatb_dot + term_Babs_dot
+
+    # # Calculate \dot{\vec{v}}, approach 2
+    # term_force_ll = hatb * np.dot(hatb, g + (q/m0) * E - (mu / m0) * EBfield.grad_Babs_at(x, y, z, t) )
+
+    # hatb_dot = (
+    #     partialt_hatb 
+    #     + v_ll * partials_hatb 
+    #     + np.linalg.norm(vE) * space_dirderivative(EBfield.hatb_at, R, t, vE) 
+    # )
+    # term_hatb_dot = v_ll * hatb_dot
+    # # term_hatb_dot = 2*hatb * np.dot( - v + vE, hatb_dot) + np.dot(v, hatb) * hatb_dot
+    # # term_hatb_dot = 2*hatb * np.dot( - v + v_ll * hatb + vE, hatb_dot) + np.dot((v - vE), hatb) * hatb_dot
+    
+    # vE_dot = (
+    #     time_derivative(EBfield.vE_at, R, t)
+    #     + v_ll * space_dirderivative(EBfield.vE_at, R, t, hatb)
+    #     + np.linalg.norm(vE) * space_dirderivative(EBfield.vE_at, R, t, vE)
+    # )
+    # vE_dot_l_ = vE_dot - np.dot(vE_dot, hatb) * hatb
+
+    # term_crossb = q*np.linalg.norm(B)/m0 * np.cross( v - R_perp_dot, hatb)
+
+    # v_dot = term_force_ll + term_hatb_dot + vE_dot_l_ + term_crossb
+
+    
+    # # Calculate \dot{\vec{v}}, approach 3
+    # v_dot = (
+    #     q/m0 * E
+    #     - mu/m0 * EBfield.grad_Babs_at(x, y, z, t)  
+    #     + g 
+    #     + q/m0 * np.cross(v, B)
+    # )
+    return [*(v_ll * hatb + R_perp_dot), *v_dot]
+
 def particle_motion_relativistic_forward(t, state, p):
     x, y, z, vx, vy, vz, ax, ay, az = state
     q, m0, EBfield = p
