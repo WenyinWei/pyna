@@ -221,7 +221,7 @@ def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(afield:RegualrCylindricalGridFi
         lambda R_, Z_, Phi_: RBZdBPhi_field.diff_RZ_interpolator(0,0)([R_, Z_, Phi_])[0]
     ])
     dPhi = Phi[1] - Phi[0]
-    fltsol = solve_ivp(lambda t, y: [lam(*y, t%(2*np.pi) ) for lam in pflow.diff_xi_lambdas()], t_span, y0, max_step=dPhi, dense_output=True, *arg, **kwarg) # in case of magneitc field, this is [R*BR/BPhi, R*BZ/BPhi] 
+    fltsol = solve_ivp(lambda t, y: [lam(*y, t%(2*np.pi) ) for lam in pflow.diff_xi_lambdas()], t_span, y0, max_step=dPhi/2, dense_output=True, *arg, **kwarg) # in case of magneitc field, this is [R*BR/BPhi, R*BZ/BPhi] 
     XpRpZ_sols = [fltsol]
 
     # Give the lambda function according to a dataframe 
