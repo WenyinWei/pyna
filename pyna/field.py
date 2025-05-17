@@ -29,6 +29,97 @@ class RegualrCylindricalGridField:
     def BPhi(self):
         return self._BPhi
     
+
+class CylindricalGridVectorField:
+    def __init__(self, R, Z, Phi, BR, BZ, BPhi) -> None:
+        self._R = R
+        self._Z = Z
+        self._Phi = Phi
+        self._BR = BR
+        self._BZ = BZ
+        self._BPhi = BPhi
+
+    @property
+    def R(self):
+        return self._R
+    @property
+    def Z(self):
+        return self._Z
+    @property
+    def Phi(self):
+        return self._Phi
+    @property
+    def BR(self):
+        return self._BR
+    @property
+    def BZ(self):
+        return self._BZ
+    @property
+    def BPhi(self):
+        return self._BPhi
+    
+class CylindricalGridAxiVectorField(CylindricalGridVectorField):
+    def __init__(self, R, Z, BR, BZ, BPhi) -> None:
+        self._R = R
+        self._Z = Z
+        self._BR = BR
+        self._BZ = BZ
+        self._BPhi = BPhi
+
+    @property
+    def R(self):
+        return self._R
+    @property
+    def Z(self):
+        return self._Z
+    @property
+    def BR(self):
+        return self._BR
+    @property
+    def BZ(self):
+        return self._BZ
+    @property
+    def BPhi(self):
+        return self._BPhi
+    
+
+class CylindricalGridScalarField:
+    def __init__(self, R, Z, Phi, B) -> None:
+        self._R = R
+        self._Z = Z
+        self._Phi = Phi
+        self._B = B
+
+        @property
+        def R(self):
+            return self._R
+        @property
+        def Z(self):
+            return self._Z
+        @property
+        def Phi(self):
+            return self._Phi
+        @property
+        def B(self):
+            return self._B
+        
+class CylindricalGridAxiScalarField(CylindricalGridScalarField):
+    def __init__(self, R, Z, B) -> None:
+        self._R = R
+        self._Z = Z
+        self._B = B
+
+        @property
+        def R(self):
+            return self._R
+        @property
+        def Z(self):
+            return self._Z
+        @property
+        def B(self):
+            return self._B
+
+
 # @lru_cache
 # def diff_RZ(self, nR:int, nZ:int):
 #     if nR == 0 and nZ == 0:
