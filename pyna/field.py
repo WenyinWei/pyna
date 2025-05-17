@@ -180,6 +180,17 @@ class CylindricalGridAxiScalarField(CylindricalGridScalarField):
             self.R, self.Z,
             B=self.B - other.B
         )
+    
+    def grad(self):
+        """计算标量场的梯度"""
+        grad_R = np.gradient(self.B, self.R, axis=0)
+        grad_Z = np.gradient(self.B, self.Z, axis=1)
+        return CylindricalGridAxiVectorField(
+            self.R, self.Z,
+            BR=grad_R,
+            BZ=grad_Z,
+            BPhi=np.zeros_like(grad_R)
+        )
 
 # @lru_cache
 # def diff_RZ(self, nR:int, nZ:int):
