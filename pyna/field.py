@@ -82,6 +82,43 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
     def BPhi(self):
         return self._BPhi
     
+    def __add__(self, other):
+        """计算两个矢量场的和"""
+        return CylindricalGridAxiVectorField(
+            self.R, self.Z,
+            BR=self.BR + other.BR,
+            BZ=self.BZ + other.BZ,
+            BPhi=self.BPhi + other.BPhi
+        )
+    def __sub__(self, other):
+        """计算两个矢量场的差"""
+        return CylindricalGridAxiVectorField(
+            self.R, self.Z,
+            BR=self.BR - other.BR,
+            BZ=self.BZ - other.BZ,
+            BPhi=self.BPhi - other.BPhi
+        )
+
+    def dot(self, other):
+        """计算两个矢量场的点乘"""
+        dot_product = self.BR * other.BR + self.BZ * other.BZ + self.BPhi * other.BPhi
+        return CylindricalGridAxiScalarField(
+            self.R, self.Z,
+            B=dot_product
+        )
+    
+    def cross(self, other):
+        """计算两个矢量场的叉乘"""
+        cross_BR = self.BZ * other.BPhi - self.BPhi * other.BZ
+        cross_BZ = self.BPhi * other.BR - self.BR * other.BPhi
+        cross_BPhi = self.BR * other.BZ - self.BZ * other.BR
+        return CylindricalGridAxiVectorField(
+            self.R, self.Z,
+            BR=cross_BR,
+            BZ=cross_BZ,
+            BPhi=cross_BPhi
+        )
+    
 
 class CylindricalGridScalarField:
     def __init__(self, R, Z, Phi, B) -> None:
@@ -119,6 +156,18 @@ class CylindricalGridAxiScalarField(CylindricalGridScalarField):
         def B(self):
             return self._B
 
+    def __add__(self, other):
+        """计算两个标量场的和"""
+        return CylindricalGridAxiScalarField(
+            self.R, self.Z,
+            B=self.B + other.B
+        )
+    def __sub__(self, other):
+        """计算两个标量场的差"""
+        return CylindricalGridAxiScalarField(
+            self.R, self.Z,
+            B=self.B - other.B
+        )
 
 # @lru_cache
 # def diff_RZ(self, nR:int, nZ:int):
