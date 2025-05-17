@@ -119,6 +119,18 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
             BPhi=cross_BPhi
         )
     
+    def curl(self):
+        """计算矢量场的旋度"""
+        curl_BR = - np.gradient(self.BZ, self.Phi, axis=2)
+        curl_BPhi = (np.gradient(self.BR, self.Z, axis=1) - np.gradient(self.BZ, self.R, axis=0) )
+        curl_BZ = self.BPhi / self.R[:,None] + np.gradient( self.BPhi, self.R, axis=0) 
+        return CylindricalGridAxiVectorField(
+            self.R, self.Z,
+            BR=curl_BR,
+            BZ=curl_BZ,
+            BPhi=curl_BPhi
+        )
+    
 
 class CylindricalGridScalarField:
     def __init__(self, R, Z, Phi, B) -> None:
