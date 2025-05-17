@@ -158,15 +158,15 @@ class CylindricalGridAxiScalarField(CylindricalGridScalarField):
         self._Z = Z
         self._B = B
 
-        @property
-        def R(self):
-            return self._R
-        @property
-        def Z(self):
-            return self._Z
-        @property
-        def B(self):
-            return self._B
+    @property
+    def R(self):
+        return self._R
+    @property
+    def Z(self):
+        return self._Z
+    @property
+    def B(self):
+        return self._B
 
     def __add__(self, other):
         """计算两个标量场的和"""
