@@ -126,7 +126,7 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
             )
         else:
             raise TypeError(f"CylindricalGridAxiVectorField cannot multiply with a {type(other)}.")
-        __rmul__ = __mul__
+    __rmul__ = __mul__
 
     def dot(self, other):
         """计算两个矢量场的点乘"""
