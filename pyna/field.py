@@ -106,6 +106,27 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
             BZ  = -self.BZ,
             BPhi= -self.BPhi
         )
+    def __mul__(self, other):
+        """计算矢量场乘以一个标量"""
+        if isinstance(other, CylindricalGridAxiVectorField):
+            return self.dot(other)
+        if isinstance(other, CylindricalGridAxiScalarField):
+            return CylindricalGridAxiVectorField(
+            self.R, self.Z,
+            BR=self.BR * other.B,
+            BZ=self.BZ * other.B,
+            BPhi=self.BPhi * other.B
+            )
+        if isinstance(other, (int, float)):
+            return CylindricalGridAxiVectorField(
+            self.R, self.Z,
+            BR=self.BR * other,
+            BZ=self.BZ * other,
+            BPhi=self.BPhi * other
+            )
+        else:
+            raise TypeError(f"CylindricalGridAxiVectorField cannot multiply with a {type(other)}.")
+        __rmul__ = __mul__
 
     def dot(self, other):
         """计算两个矢量场的点乘"""
@@ -188,7 +209,14 @@ class CylindricalGridAxiScalarField(CylindricalGridScalarField):
             self.R, self.Z,
             B=self.B - other.B
         )
-    
+    def __mul__(self, other):
+        """计算标量场乘以一个标量"""
+        return CylindricalGridAxiScalarField(
+            self.R, self.Z,
+            B=self.B * other
+        )
+    __rmul__ = __mul__
+
     def grad(self):
         """计算标量场的梯度"""
         grad_R = np.gradient(self.B, self.R, axis=0)
