@@ -110,14 +110,14 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
         """计算矢量场乘以一个标量"""
         if isinstance(other, CylindricalGridAxiVectorField):
             return self.dot(other)
-        if isinstance(other, CylindricalGridAxiScalarField):
+        elif isinstance(other, CylindricalGridAxiScalarField):
             return CylindricalGridAxiVectorField(
             self.R, self.Z,
             BR=self.BR * other.B,
             BZ=self.BZ * other.B,
             BPhi=self.BPhi * other.B
             )
-        if isinstance(other, (int, float)):
+        elif isinstance(other, (int, float)):
             return CylindricalGridAxiVectorField(
             self.R, self.Z,
             BR=self.BR * other,
@@ -168,18 +168,18 @@ class CylindricalGridScalarField:
         self._Phi = Phi
         self._B = B
 
-        @property
-        def R(self):
-            return self._R
-        @property
-        def Z(self):
-            return self._Z
-        @property
-        def Phi(self):
-            return self._Phi
-        @property
-        def B(self):
-            return self._B
+    @property
+    def R(self):
+        return self._R
+    @property
+    def Z(self):
+        return self._Z
+    @property
+    def Phi(self):
+        return self._Phi
+    @property
+    def B(self):
+        return self._B
         
 class CylindricalGridAxiScalarField(CylindricalGridScalarField):
     def __init__(self, R, Z, B) -> None:
