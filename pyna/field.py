@@ -98,6 +98,14 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
             BZ=self.BZ - other.BZ,
             BPhi=self.BPhi - other.BPhi
         )
+    def __neg__(self):
+        """计算矢量场的负"""
+        return CylindricalGridAxiVectorField(
+            self.R, self.Z,
+            BR  = -self.BR,
+            BZ  = -self.BZ,
+            BPhi= -self.BPhi
+        )
 
     def dot(self, other):
         """计算两个矢量场的点乘"""
@@ -109,14 +117,14 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
     
     def cross(self, other):
         """计算两个矢量场的叉乘"""
-        cross_BR = self.BZ * other.BPhi - self.BPhi * other.BZ
-        cross_BZ = self.BPhi * other.BR - self.BR * other.BPhi
-        cross_BPhi = self.BR * other.BZ - self.BZ * other.BR
+        cross_BR = self.BPhi * other.BZ - self.BZ * other.BPhi
+        cross_BPhi = self.BZ * other.BR - self.BR * other.BZ
+        cross_BZ = self.BR * other.BPhi - self.BPhi * other.BR
         return CylindricalGridAxiVectorField(
             self.R, self.Z,
-            BR=cross_BR,
-            BZ=cross_BZ,
-            BPhi=cross_BPhi
+            BR  = cross_BR,
+            BZ  = cross_BZ,
+            BPhi= cross_BPhi
         )
     
     def curl(self):
@@ -126,9 +134,9 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
         curl_BZ = self.BPhi / self.R[:,None] + np.gradient( self.BPhi, self.R, axis=0) 
         return CylindricalGridAxiVectorField(
             self.R, self.Z,
-            BR=curl_BR,
-            BZ=curl_BZ,
-            BPhi=curl_BPhi
+            BR  = curl_BR,
+            BZ  = curl_BZ,
+            BPhi= curl_BPhi
         )
     
 
