@@ -127,6 +127,16 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
         else:
             raise TypeError(f"CylindricalGridAxiVectorField cannot multiply with a {type(other)}.")
     __rmul__ = __mul__
+    def __truediv__(self, other):
+        if isinstance(other, (int, float)):
+            return CylindricalGridAxiVectorField(
+                self.R, self.Z,
+                BR=self.BR / other,
+                BZ=self.BZ / other,
+                BPhi=self.BPhi / other
+            )
+        else:
+            raise TypeError(f"CylindricalGridAxiVectorField cannot be divided by a {type(other)}.")
 
     def dot(self, other):
         """计算两个矢量场的点乘"""
@@ -150,8 +160,8 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
     
     def curl(self):
         """计算矢量场的旋度"""
-        curl_BR = - np.gradient(self.BZ, self.Phi, axis=2)
-        curl_BPhi = (np.gradient(self.BR, self.Z, axis=1) - np.gradient(self.BZ, self.R, axis=0) )
+        curl_BR = - np.gradient(self.BPhi, self.Z, axis=1)
+        curl_BPhi = np.gradient(self.BR, self.Z, axis=1) - np.gradient(self.BZ, self.R, axis=0) 
         curl_BZ = self.BPhi / self.R[:,None] + np.gradient( self.BPhi, self.R, axis=0) 
         return CylindricalGridAxiVectorField(
             self.R, self.Z,
@@ -198,25 +208,35 @@ class CylindricalGridAxiScalarField(CylindricalGridScalarField):
         return self._B
 
     def __add__(self, other):
-        """计算两个标量场的和"""
         return CylindricalGridAxiScalarField(
             self.R, self.Z,
             B=self.B + other.B
         )
     def __sub__(self, other):
-        """计算两个标量场的差"""
         return CylindricalGridAxiScalarField(
             self.R, self.Z,
             B=self.B - other.B
         )
     def __mul__(self, other):
-        """计算标量场乘以一个标量"""
         return CylindricalGridAxiScalarField(
             self.R, self.Z,
             B=self.B * other
         )
     __rmul__ = __mul__
-
+    def __neg__(self):
+        return CylindricalGridAxiScalarField(
+            self.R, self.Z,
+            B=-self.B
+        )
+    def __truediv__(self, other):
+        if isinstance(other, (int, float)):
+            return CylindricalGridAxiScalarField(
+                self.R, self.Z,
+                B=self.B / other
+            )
+        else:
+            raise TypeError(f"CylindricalGridAxiScalarField cannot be divided by a {type(other)}.")
+        
     def grad(self):
         """计算标量场的梯度"""
         grad_R = np.gradient(self.B, self.R, axis=0)
