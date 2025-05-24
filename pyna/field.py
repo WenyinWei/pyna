@@ -157,7 +157,12 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
             BZ  = cross_BZ,
             BPhi= cross_BPhi
         )
-    
+    def div(self):
+        """计算矢量场的散度"""
+        return CylindricalGridAxiScalarField(
+            self.R, self.Z,
+            B = self.BR / self.R[:,None] + np.gradient(self.BR, self.R, axis=0) + np.gradient(self.BZ, self.Z, axis=1) 
+        )
     def curl(self):
         """计算矢量场的旋度"""
         curl_BR = - np.gradient(self.BPhi, self.Z, axis=1)
