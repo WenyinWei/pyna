@@ -163,25 +163,25 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
         """计算两个矢量场的和"""
         return CylindricalGridAxiVectorField(
             self.R, self.Z,
-            BR=self.BR + other.BR,
-            BZ=self.BZ + other.BZ,
-            BPhi=self.BPhi + other.BPhi
+            BR   = self.BR + other.BR,
+            BZ   = self.BZ + other.BZ,
+            BPhi = self.BPhi + other.BPhi
         )
     def __sub__(self, other):
         """计算两个矢量场的差"""
         return CylindricalGridAxiVectorField(
             self.R, self.Z,
-            BR=self.BR - other.BR,
-            BZ=self.BZ - other.BZ,
-            BPhi=self.BPhi - other.BPhi
+            BR   = self.BR - other.BR,
+            BZ   = self.BZ - other.BZ,
+            BPhi = self.BPhi - other.BPhi
         )
     def __neg__(self):
         """计算矢量场的负"""
         return CylindricalGridAxiVectorField(
             self.R, self.Z,
-            BR  = -self.BR,
-            BZ  = -self.BZ,
-            BPhi= -self.BPhi
+            BR   = -self.BR,
+            BZ   = -self.BZ,
+            BPhi = -self.BPhi
         )
     def __mul__(self, other):
         """计算矢量场乘以一个标量"""
@@ -190,16 +190,16 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
         elif isinstance(other, CylindricalGridAxiScalarField):
             return CylindricalGridAxiVectorField(
             self.R, self.Z,
-            BR=self.BR * other.B,
-            BZ=self.BZ * other.B,
-            BPhi=self.BPhi * other.B
+            BR   = self.BR * other.B,
+            BZ   = self.BZ * other.B,
+            BPhi = self.BPhi * other.B
             )
         elif isinstance(other, (int, float)):
             return CylindricalGridAxiVectorField(
             self.R, self.Z,
-            BR=self.BR * other,
-            BZ=self.BZ * other,
-            BPhi=self.BPhi * other
+            BR   = self.BR * other,
+            BZ   = self.BZ * other,
+            BPhi = self.BPhi * other
             )
         else:
             raise TypeError(f"CylindricalGridAxiVectorField cannot multiply with a {type(other)}.")
@@ -208,9 +208,9 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
         if isinstance(other, (int, float)):
             return CylindricalGridAxiVectorField(
                 self.R, self.Z,
-                BR=self.BR / other,
-                BZ=self.BZ / other,
-                BPhi=self.BPhi / other
+                BR   = self.BR / other,
+                BZ   = self.BZ / other,
+                BPhi = self.BPhi / other
             )
         else:
             raise TypeError(f"CylindricalGridAxiVectorField cannot be divided by a {type(other)}.")
@@ -230,9 +230,9 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
         cross_BZ = self.BR * other.BPhi - self.BPhi * other.BR
         return CylindricalGridAxiVectorField(
             self.R, self.Z,
-            BR  = cross_BR,
-            BZ  = cross_BZ,
-            BPhi= cross_BPhi
+            BR   = cross_BR,
+            BZ   = cross_BZ,
+            BPhi = cross_BPhi
         )
     def div(self):
         """计算矢量场的散度"""
@@ -247,9 +247,9 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
         curl_BZ = self.BPhi / self.R[:,None] + np.gradient( self.BPhi, self.R, axis=0) 
         return CylindricalGridAxiVectorField(
             self.R, self.Z,
-            BR  = curl_BR,
-            BZ  = curl_BZ,
-            BPhi= curl_BPhi
+            BR   = curl_BR,
+            BZ   = curl_BZ,
+            BPhi = curl_BPhi
         )
     
 
