@@ -58,6 +58,83 @@ class CylindricalGridVectorField:
     def BPhi(self):
         return self._BPhi
     
+    def __add__(self, other):
+        """Add two vector fields."""
+        return CylindricalGridVectorField(
+            self.R, self.Z, self.Phi,
+            BR   = self.BR + other.BR,
+            BZ   = self.BZ + other.BZ,
+            BPhi = self.BPhi + other.BPhi
+        )
+
+    def __sub__(self, other):
+        """Subtract two vector fields."""
+        return CylindricalGridVectorField(
+            self.R, self.Z, self.Phi,
+            BR   = self.BR - other.BR,
+            BZ   = self.BZ - other.BZ,
+            BPhi = self.BPhi - other.BPhi
+        )
+
+    def __neg__(self):
+        """Negate the vector field."""
+        return CylindricalGridVectorField(
+            self.R, self.Z, self.Phi,
+            BR  = -self.BR,
+            BZ  = -self.BZ,
+            BPhi= -self.BPhi
+        )
+
+    def __mul__(self, other):
+        """Multiply the vector field by a scalar or perform dot product."""
+        if isinstance(other, CylindricalGridVectorField):
+            return self.dot(other)
+        elif isinstance(other, (int, float)):
+            return CylindricalGridVectorField(
+                self.R, self.Z, self.Phi,
+                BR=self.BR * other,
+                BZ=self.BZ * other,
+                BPhi=self.BPhi * other
+            )
+        else:
+            raise TypeError(f"CylindricalGridVectorField cannot multiply with a {type(other)}.")
+
+    __rmul__ = __mul__
+
+    def __truediv__(self, other):
+        """Divide the vector field by a scalar."""
+        if isinstance(other, (int, float)):
+            return CylindricalGridVectorField(
+                self.R, self.Z, self.Phi,
+                BR   = self.BR / other,
+                BZ   = self.BZ / other,
+                BPhi = self.BPhi / other
+            )
+        else:
+            raise TypeError(f"CylindricalGridVectorField cannot be divided by a {type(other)}.")
+
+    def dot(self, other):
+        """Compute the dot product of two vector fields."""
+        dot_product = self.BR * other.BR + self.BZ * other.BZ + self.BPhi * other.BPhi
+        return CylindricalGridScalarField(
+            self.R, self.Z, self.Phi,
+            B=dot_product
+        )
+
+    def cross(self, other):
+        """Compute the cross product of two vector fields."""
+        cross_BR = self.BPhi * other.BZ - self.BZ * other.BPhi
+        cross_BPhi = self.BZ * other.BR - self.BR * other.BZ
+        cross_BZ = self.BR * other.BPhi - self.BPhi * other.BR
+        return CylindricalGridVectorField(
+            self.R, self.Z, self.Phi,
+            BR   = cross_BR,
+            BZ   = cross_BZ,
+            BPhi = cross_BPhi
+        )
+    
+    
+    
 class CylindricalGridAxiVectorField(CylindricalGridVectorField):
     def __init__(self, R, Z, BR, BZ, BPhi) -> None:
         self._R = R
