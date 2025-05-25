@@ -133,7 +133,49 @@ class CylindricalGridVectorField:
             BPhi = cross_BPhi
         )
     
+    @cached_property
+    def div(self):
+        """Compute the divergence of the vector field.
+        The divergence is computed using the formula:
+        .. math::
+            \\nabla \\cdot \\mathbf{B} = \\frac{1}{R} \\frac{\\partial (R B_R)}{\\partial R} + \\frac{1}{R} \\frac{\\partial B_{\\phi}}{\\partial \\phi} + \\frac{\\partial B_Z}{\\partial Z}
+        where :math:`R` is the radial coordinate, :math:`Z` is the axial coordinate, and :math:`\\phi` is the azimuthal angle.        
+        """
+        dPhi = self.Phi[1] - self.Phi[0]
+        dBPhi_dPhi = self.BPhi[..., 2:] - self.BPhi[..., :-2]
+        dBPhi_dPhi /= 2*dPhi
+        dBPhi_dPhi[:,:,-1] = dBPhi_dPhi[:,:,0] = (self.BPhi[..., 1] - self.BPhi[..., -2]) / (2*dPhi)
+        return CylindricalGridScalarField(
+            self.R, self.Z, self.Phi,
+            self.BR / self.R[:, None, None] + np.gradient(self.BR, self.R, axis=0) + dBPhi_dPhi / self.R[:, None, None] + np.gradient(self.BZ, self.Z, axis=1)
+        )
     
+    @cached_property
+    def curl(self):
+        """Compute the curl of the vector field.
+        The curl is computed using the formula:
+        .. math::
+            \\nabla \\times \\mathbf{B} = \\left(\\frac{1}{R} \\frac{\\partial B_Z}{\\partial \\phi} - \\frac{\\partial B_{\\phi}}{\\partial Z}\\right) \\hat{e}_\\phi
+                                            + \\left(\\frac{\\partial B_R}{\\partial Z} - \\frac{\\partial B_Z}{\\partial R} \\right) \\hat{e}_\\phi
+                                            + \\left( \\frac{1}{R} \\frac{\\partial (R B_{\\phi})}{\\partial R} - \\frac{1}{R} \\frac{\\partial B_R}{\\partial \\phi}\\right)
+        where :math:`R` is the radial coordinate, :math:`Z` is the axial coordinate, and :math:`\\phi` is the azimuthal angle.
+        """
+        dPhi = self.Phi[1] - self.Phi[0]
+        dBR_dPhi = np.zeros_like(self.BR)
+        dBR_dPhi[..., 1:-1] = (self.BR[..., 2:] - self.BR[..., :-2]) / (2*dPhi)
+        dBR_dPhi[:,:,-1] = dBR_dPhi[:,:,0] = (self.BR[..., 1] - self.BR[..., -2]) / (2*dPhi)
+        
+        dBZ_dPhi = np.zeros_like(self.BZ)
+        dBZ_dPhi[..., 1:-1] = (self.BZ[..., 2:] - self.BZ[..., :-2]) / (2*dPhi)
+        dBZ_dPhi[:,:,-1] = dBZ_dPhi[:,:,0] = (self.BZ[..., 1] - self.BZ[..., -2]) / (2*dPhi)
+        
+        
+        return CylindricalGridVectorField(
+            self.R, self.Z, self.Phi,
+            BR   = dBZ_dPhi / R[:, None, None] - np.gradient(self.BPhi, self.Z, axis=1),
+            BZ   = np.gradient(self.BR, self.Z, axis=1) - np.gradient(self.BZ, self.R, axis=0),
+            BPhi = self.BPhi / self.R[:, None, None] + np.gradient(self.BPhi, self.R, axis=0) - dBR_dPhi / self.R[:, None, None],
+        )
     
 class CylindricalGridAxiVectorField(CylindricalGridVectorField):
     def __init__(self, R, Z, BR, BZ, BPhi) -> None:
