@@ -155,9 +155,9 @@ class CylindricalGridVectorField:
         """Compute the curl of the vector field.
         The curl is computed using the formula:
         .. math::
-            \\nabla \\times \\mathbf{B} = \\left(\\frac{1}{R} \\frac{\\partial B_Z}{\\partial \\phi} - \\frac{\\partial B_{\\phi}}{\\partial Z}\\right) \\hat{e}_\\phi
+            \\nabla \\times \\mathbf{B} = \\left(\\frac{1}{R} \\frac{\\partial B_Z}{\\partial \\phi} - \\frac{\\partial B_{\\phi}}{\\partial Z}\\right) \\hat{e}_R
                                             + \\left(\\frac{\\partial B_R}{\\partial Z} - \\frac{\\partial B_Z}{\\partial R} \\right) \\hat{e}_\\phi
-                                            + \\left( \\frac{1}{R} \\frac{\\partial (R B_{\\phi})}{\\partial R} - \\frac{1}{R} \\frac{\\partial B_R}{\\partial \\phi}\\right)
+                                            + \\left( \\frac{1}{R} \\frac{\\partial (R B_{\\phi})}{\\partial R} - \\frac{1}{R} \\frac{\\partial B_R}{\\partial \\phi}\\right) \\hat{e}_Z
         where :math:`R` is the radial coordinate, :math:`Z` is the axial coordinate, and :math:`\\phi` is the azimuthal angle.
         """
         dPhi = self.Phi[1] - self.Phi[0]
@@ -276,14 +276,29 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
             BZ   = cross_BZ,
             BPhi = cross_BPhi
         )
+        
     def div(self):
-        """计算矢量场的散度"""
+        """Compute the divergence of the vector field.
+        The divergence is computed using the formula:
+        .. math::
+            \\nabla \\cdot \\mathbf{B} = \\frac{1}{R} \\frac{\\partial (R B_R)}{\\partial R} + \\frac{\\partial B_Z}{\\partial Z}
+        where :math:`R` is the radial coordinate, :math:`Z` is the axial coordinate.        
+        """
         return CylindricalGridAxiScalarField(
             self.R, self.Z,
             B = self.BR / self.R[:,None] + np.gradient(self.BR, self.R, axis=0) + np.gradient(self.BZ, self.Z, axis=1) 
         )
+        
     def curl(self):
-        """计算矢量场的旋度"""
+        """Compute the curl of the vector field.
+        The curl is computed using the formula:
+        .. math::
+            \\nabla \\times \\mathbf{B} = - \\frac{\\partial B_{\\phi}}{\\partial Z} \\hat{e}_R
+                                            + \\left(\\frac{\\partial B_R}{\\partial Z} - \\frac{\\partial B_Z}{\\partial R} \\right) \\hat{e}_\\phi
+                                            + \\frac{1}{R} \\frac{\\partial (R B_{\\phi})}{\\partial R} \\hat{e}_Z
+        where :math:`R` is the radial coordinate, :math:`Z` is the axial coordinate.
+        
+        """
         curl_BR = - np.gradient(self.BPhi, self.Z, axis=1)
         curl_BPhi = np.gradient(self.BR, self.Z, axis=1) - np.gradient(self.BZ, self.R, axis=0) 
         curl_BZ = self.BPhi / self.R[:,None] + np.gradient( self.BPhi, self.R, axis=0) 
