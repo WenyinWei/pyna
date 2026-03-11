@@ -1,5 +1,6 @@
 import numpy as np
 from functools import lru_cache
+from functools import cached_property
 
 class RegualrCylindricalGridField:
     def __init__(self, R, Z, Phi, BR, BZ, BPhi) -> None:
@@ -209,6 +210,7 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
             BZ   = self.BZ + other.BZ,
             BPhi = self.BPhi + other.BPhi
         )
+        
     def __sub__(self, other):
         """计算两个矢量场的差"""
         return CylindricalGridAxiVectorField(
@@ -217,6 +219,7 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
             BZ   = self.BZ - other.BZ,
             BPhi = self.BPhi - other.BPhi
         )
+        
     def __neg__(self):
         """计算矢量场的负"""
         return CylindricalGridAxiVectorField(
@@ -225,6 +228,7 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
             BZ   = -self.BZ,
             BPhi = -self.BPhi
         )
+        
     def __mul__(self, other):
         """计算矢量场乘以一个标量"""
         if isinstance(other, CylindricalGridAxiVectorField):
@@ -245,7 +249,9 @@ class CylindricalGridAxiVectorField(CylindricalGridVectorField):
             )
         else:
             raise TypeError(f"CylindricalGridAxiVectorField cannot multiply with a {type(other)}.")
+        
     __rmul__ = __mul__
+    
     def __truediv__(self, other):
         if isinstance(other, (int, float)):
             return CylindricalGridAxiVectorField(
@@ -375,7 +381,8 @@ class CylindricalGridAxiScalarField(CylindricalGridScalarField):
             )
         else:
             raise TypeError(f"CylindricalGridAxiScalarField cannot be divided by a {type(other)}.")
-        
+    
+    
     def grad(self):
         """计算标量场的梯度"""
         grad_R = np.gradient(self.B, self.R, axis=0)
