@@ -505,3 +505,8 @@ class Ak_interpolator:
                 Ak[i] = RBZoBPhi_kdiffRZ[sum( i[1:] )]
         return Ak
     
+
+# ---------------------------------------------------------------------------
+# New hierarchy (added 2026) ¡ª see pyna.mag.field for the VectorField3D-based
+# replacements.  All classes above remain unchanged for backward compatibility.
+# ---------------------------------------------------------------------------
