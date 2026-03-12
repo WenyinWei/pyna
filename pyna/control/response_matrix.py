@@ -37,6 +37,10 @@ def build_full_response_matrix(
     field_func_key: str = 'default',
     observables: Optional[List[str]] = None,
     eps_current: float = 1.0,
+    equilibrium=None,
+    plasma_response: bool = False,
+    R_grid=None,
+    Z_grid=None,
 ):
     """Full response matrix combining all observable categories.
 
@@ -61,6 +65,19 @@ def build_full_response_matrix(
         Reserved for future filtering.
     eps_current : float
         Current perturbation for per-unit normalisation.
+    equilibrium : SolovevEquilibrium or compatible object, optional
+        If provided and ``plasma_response=True``, the plasma response
+        δB_plasma is added to each coil's δB_ext before computing
+        topology/gap observables.
+    plasma_response : bool
+        Whether to include plasma response.
+        - True (recommended for core quantities like q-profile):
+            δB_total = δB_ext + solve_perturbed_gs(B0, J0, p0, δB_ext)
+        - False (OK for edge quantities like gap_gi when coils are far):
+            δB_total = δB_ext  (vacuum approximation)
+    R_grid, Z_grid : array-like or None
+        Grid for plasma response computation.  If None, a default grid
+        around the equilibrium is constructed automatically.
 
     Returns
     -------
@@ -69,8 +86,20 @@ def build_full_response_matrix(
     """
     from pyna.control.gap_response import gap_response_matrix_fpt
 
+    # Optionally include plasma response (experimental)
+    effective_coil_funcs = coil_field_funcs
+    if plasma_response and equilibrium is not None:
+        import warnings
+        warnings.warn(
+            "plasma_response=True with build_full_response_matrix is experimental. "
+            "Per-point field functions cannot directly use the perturbed GS solver. "
+            "For proper plasma response, pre-compute delta_B_total grids per coil "
+            "and pass them as coil_field_funcs.",
+            UserWarning, stacklevel=2,
+        )
+
     R_topo, labels_topo = build_response_matrix(
-        base_field_func, coil_field_funcs, state,
+        base_field_func, effective_coil_funcs, state,
         observables=observables, eps_current=eps_current,
     )
 

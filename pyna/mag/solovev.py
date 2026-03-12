@@ -617,6 +617,103 @@ class SolovevEquilibrium:
         return q_out
 
     # ------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # Grid helpers: J and p on R-Z grid
+    # ------------------------------------------------------------------
+
+    def J_grid(self, R_arr, Z_arr):
+        """Compute current density J = ∇×B/μ₀ on R-Z grid.
+
+        For an axisymmetric equilibrium::
+
+            J_R   = -(1/μ₀) ∂Bphi/∂Z
+            J_Z   = (1/μ₀) (1/R) ∂(R·Bphi)/∂R
+            J_phi = (1/μ₀) (∂BR/∂Z − ∂BZ/∂R)
+
+        Parameters
+        ----------
+        R_arr, Z_arr : array-like
+            1D arrays of R and Z grid points.
+
+        Returns
+        -------
+        JR, JZ, Jphi : ndarray, shape (nR, nZ)
+            Current density components on meshgrid of R_arr × Z_arr.
+        """
+        mu0 = 4e-7 * np.pi
+        R_arr = np.asarray(R_arr, dtype=float)
+        Z_arr = np.asarray(Z_arr, dtype=float)
+        dR = R_arr[1] - R_arr[0]
+        dZ = Z_arr[1] - Z_arr[0]
+
+        RR, ZZ = np.meshgrid(R_arr, Z_arr, indexing='ij')
+        BR_2d, BZ_2d = self.BR_BZ(RR, ZZ)
+        Bphi_2d = self.Bphi(RR)
+
+        dBphi_dZ = np.gradient(Bphi_2d, dZ, axis=1)
+        d_RBphi_dR = np.gradient(RR * Bphi_2d, dR, axis=0)
+        dBR_dZ = np.gradient(BR_2d, dZ, axis=1)
+        dBZ_dR = np.gradient(BZ_2d, dR, axis=0)
+
+        JR   = -dBphi_dZ / mu0
+        JZ   = d_RBphi_dR / (RR * mu0)
+        Jphi = (dBR_dZ - dBZ_dR) / mu0
+        return JR, JZ, Jphi
+
+    def p_grid(self, R_arr, Z_arr):
+        """Compute pressure p from force balance J×B = ∇p on R-Z grid.
+
+        Integrates (J×B)_R along R from left to right, then (J×B)_Z
+        along Z, and averages the four directions for better accuracy.
+
+        Parameters
+        ----------
+        R_arr, Z_arr : array-like
+            1D grid arrays.
+
+        Returns
+        -------
+        p : ndarray, shape (nR, nZ)
+            Pressure on the R-Z grid.
+        """
+        R_arr = np.asarray(R_arr, dtype=float)
+        Z_arr = np.asarray(Z_arr, dtype=float)
+        dR = R_arr[1] - R_arr[0]
+        dZ = Z_arr[1] - Z_arr[0]
+
+        nR, nZ = len(R_arr), len(Z_arr)
+        JR, JZ, Jphi = self.J_grid(R_arr, Z_arr)
+        RR, ZZ = np.meshgrid(R_arr, Z_arr, indexing='ij')
+        BR_2d, BZ_2d = self.BR_BZ(RR, ZZ)
+        Bphi_2d = self.Bphi(RR)
+
+        # J×B components:
+        # (J×B)_R = Jphi*BZ - JZ*Bphi
+        # (J×B)_Z = JR*Bphi - Jphi*BR
+        JxB_R = Jphi * BZ_2d - JZ * Bphi_2d
+        JxB_Z = JR * Bphi_2d - Jphi * BR_2d
+
+        # Integrate along R (two directions)
+        p_R_fwd = np.zeros((nR, nZ))
+        p_R_bwd = np.zeros((nR, nZ))
+        for i in range(1, nR):
+            p_R_fwd[i, :] = p_R_fwd[i - 1, :] + 0.5 * (JxB_R[i, :] + JxB_R[i - 1, :]) * dR
+        for i in range(nR - 2, -1, -1):
+            p_R_bwd[i, :] = p_R_bwd[i + 1, :] - 0.5 * (JxB_R[i + 1, :] + JxB_R[i, :]) * dR
+
+        # Integrate along Z (two directions)
+        p_Z_fwd = np.zeros((nR, nZ))
+        p_Z_bwd = np.zeros((nR, nZ))
+        for j in range(1, nZ):
+            p_Z_fwd[:, j] = p_Z_fwd[:, j - 1] + 0.5 * (JxB_Z[:, j] + JxB_Z[:, j - 1]) * dZ
+        for j in range(nZ - 2, -1, -1):
+            p_Z_bwd[:, j] = p_Z_bwd[:, j + 1] - 0.5 * (JxB_Z[:, j + 1] + JxB_Z[:, j]) * dZ
+
+        p = 0.25 * (p_R_fwd + p_R_bwd + p_Z_fwd + p_Z_bwd)
+        # Shift so minimum is zero (pressure is a relative quantity in Solov'ev)
+        p -= p.min()
+        return p
+
     # X/O-point and flux surface methods
     # ------------------------------------------------------------------
 
