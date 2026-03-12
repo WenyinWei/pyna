@@ -48,29 +48,29 @@ class MonodromyAnalysis:
         Jacobian matrix J(φ) at each φ.
     DPm_arr : ndarray, shape (N, 2, 2)
         DPm matrix (commutator evolution).
-    monodromy : ndarray, shape (2, 2)
+    Jac : ndarray, shape (2, 2)
         M = J(φ_end).
     """
     phi_arr: np.ndarray
     trajectory: np.ndarray
     J_arr: np.ndarray
     DPm_arr: np.ndarray
-    monodromy: np.ndarray
+    Jac: np.ndarray
 
     @property
     def eigenvalues(self) -> np.ndarray:
         """Eigenvalues of the monodromy matrix."""
-        return np.linalg.eigvals(self.monodromy)
+        return np.linalg.eigvals(self.Jac)
 
     @property
     def stability_index(self) -> float:
         """Tr(M)/2 for a 2×2 symplectic map."""
-        return float(np.trace(self.monodromy) / 2.0)
+        return float(np.trace(self.Jac) / 2.0)
 
     @property
     def greene_residue(self) -> float:
         """Greene's residue R = (2 - Tr(M))/4. R<0: hyperbolic, 0<R<1: elliptic."""
-        return float((2.0 - np.trace(self.monodromy)) / 4.0)
+        return float((2.0 - np.trace(self.Jac)) / 4.0)
 
     def J_at(self, phi: float) -> np.ndarray:
         """Interpolate Jacobian matrix J at arbitrary φ."""
@@ -187,7 +187,7 @@ def build_delta_b_pol_func(
 # Compute monodromy
 # ---------------------------------------------------------------------------
 
-def compute_monodromy(
+def compute_Jac(
     field_func: Callable,
     orbit,
     n_turns: Optional[int] = None,
@@ -283,14 +283,14 @@ def compute_monodromy(
     traj = sol.y[:2].T                   # (N, 2)
     J_arr = sol.y[2:6].T.reshape(-1, 2, 2)   # (N, 2, 2)
     DPm_arr = sol.y[6:10].T.reshape(-1, 2, 2)  # (N, 2, 2)
-    monodromy = J_arr[-1]
+    Jac = J_arr[-1]
 
     return MonodromyAnalysis(
         phi_arr=phi_arr,
         trajectory=traj,
         J_arr=J_arr,
         DPm_arr=DPm_arr,
-        monodromy=monodromy,
+        Jac=Jac,
     )
 
 
@@ -361,7 +361,7 @@ def orbit_shift_under_perturbation(
         atol=1e-9,
     )
 
-    M = monodromy_analysis.monodromy
+    M = monodromy_analysis.Jac
     Xpart_end = sol_part.y[:, -1]
 
     # Step 2: periodic BC: X(phi_end) = X(phi0)
@@ -422,7 +422,7 @@ def monodromy_change_under_perturbation(
     phi_arr = monodromy_analysis.phi_arr
     J_arr = monodromy_analysis.J_arr
     traj = monodromy_analysis.trajectory
-    M = monodromy_analysis.monodromy
+    M = monodromy_analysis.Jac
 
     integrand = np.zeros((len(phi_arr), 2, 2))
 

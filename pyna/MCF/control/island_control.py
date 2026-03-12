@@ -98,7 +98,7 @@ def compute_resonant_amplitude(
 
 def _make_coil_field_func(coil_set):
     """Wrap a CoilSet into a (R, Z, phi) → (BR, BZ, BPhi) scalar callable."""
-    from pyna.mag.coil_system import biot_savart_field
+    from pyna.MCF.coils.coil_system import biot_savart_field
 
     def field_func(R, Z, phi):
         br_tot = 0.0
@@ -193,7 +193,7 @@ def island_suppression_current(
     currents : ndarray  shape (N_coils,)
     report : dict
     """
-    from pyna.mag.coil_system import biot_savart_field
+    from pyna.MCF.coils.coil_system import biot_savart_field
 
     psi_list = stellarator.resonant_psi(target_m, target_n)
     if not psi_list:

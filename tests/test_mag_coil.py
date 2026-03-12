@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 from scipy.constants import mu_0, pi
-from pyna.mag.coil import BRBZ_induced_by_current_loop
+from pyna.MCF.coils.coil import BRBZ_induced_by_current_loop
 
 
 # On-axis (R→0) check is singular; instead test the well-known on-axis formula

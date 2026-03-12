@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from pyna.mag.Solovev import SolovevEquilibrium, solovev_iter_like
+from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium, solovev_iter_like
 from pyna.topo.poincare import PoincareMap, ToroidalSection
 from pyna.flt import FieldLineTracer
 from pyna.topo.island import locate_rational_surface, island_halfwidth

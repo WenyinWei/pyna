@@ -37,15 +37,15 @@ class _ManifoldBase:
     # Subclasses set this to 'stable' or 'unstable'
     _branch = None
 
-    def __init__(self, x_point, monodromy, field_func,
+    def __init__(self, x_point, Jac, field_func,
                  phi_span=(0.0, 2 * np.pi)):
         self.x_point = np.asarray(x_point, dtype=float)
-        self.monodromy = np.asarray(monodromy, dtype=float)
+        self.Jac = np.asarray(Jac, dtype=float)
         self.field_func = field_func
         self.phi_span = phi_span
 
-        # Compute eigenvalues / eigenvectors of the monodromy matrix
-        eigvals, eigvecs = np.linalg.eig(monodromy)
+        # Compute eigenvalues / eigenvectors of the Jacobian matrix
+        eigvals, eigvecs = np.linalg.eig(Jac)
         self._eigvals = eigvals
         self._eigvecs = eigvecs  # columns are eigenvectors
 

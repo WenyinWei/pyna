@@ -1,7 +1,7 @@
 """Tests for SolovevEquilibrium."""
 import numpy as np
 import pytest
-from pyna.mag.Solovev import SolovevEquilibrium, solovev_iter_like
+from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium, solovev_iter_like
 
 
 def test_factory_creates_equilibrium():

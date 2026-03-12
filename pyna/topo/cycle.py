@@ -30,28 +30,28 @@ class PeriodicOrbit:
         Number of toroidal turns (period of Poincaré map).
     trajectory : ndarray, shape (N, 3)
         Full orbit trajectory (R, Z, phi).
-    monodromy : ndarray, shape (2, 2)
-        Monodromy matrix M = J(2π·n). Eigenvalues characterize stability.
+    Jac : ndarray, shape (2, 2)
+        Jac matrix M = J(2π·n). Eigenvalues characterize stability.
     """
     rzphi0: np.ndarray
     period_n: int
     trajectory: np.ndarray
-    monodromy: np.ndarray
+    Jac: np.ndarray
 
     @property
     def is_stable(self) -> bool:
         """True if |eigenvalues| ≤ 1 (elliptic, O-point type)."""
-        eigvals = np.linalg.eigvals(self.monodromy)
+        eigvals = np.linalg.eigvals(self.Jac)
         return bool(np.all(np.abs(eigvals) <= 1.0 + 1e-6))
 
     @property
     def eigenvalues(self) -> np.ndarray:
-        return np.linalg.eigvals(self.monodromy)
+        return np.linalg.eigvals(self.Jac)
 
     @property
     def stability_index(self) -> float:
         """Tr(M)/2 for a 2x2 symplectic map. |k|<1 → elliptic, |k|>1 → hyperbolic."""
-        return float(np.trace(self.monodromy) / 2.0)
+        return float(np.trace(self.Jac) / 2.0)
 
 
 # ---------------------------------------------------------------------------
@@ -260,7 +260,7 @@ def _try_find_cycle_from_seed(
                 rzphi0=rzphi.copy(),
                 period_n=n_turns,
                 trajectory=traj,
-                monodromy=J,
+                Jac=J,
             )
 
         # Jacobian of G = P^n - I: dG/dx0 = J_poincare - I

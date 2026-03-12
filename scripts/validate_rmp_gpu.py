@@ -15,7 +15,7 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from pyna.mag.Solovev import SolovevEquilibrium
+from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
 from pyna.topo.island_extract import extract_island_width
 
 

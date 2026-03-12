@@ -1,7 +1,7 @@
 """Tests for pyna.mag.measure — field-line measurement functions."""
 import numpy as np
 import pytest
-from pyna.mag.measure import (
+from pyna.MCF.diagnostics.measure import (
     field_line_length,
     field_line_endpoints,
     field_line_min_psi,

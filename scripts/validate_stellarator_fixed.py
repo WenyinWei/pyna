@@ -16,7 +16,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from pyna.mag.stellarator import SimpleStellarartor
+from pyna.MCF.equilibrium.stellarator import SimpleStellarartor
 from pyna.flt import _rk4_step
 from pyna.topo.island_extract import extract_island_width
 
@@ -158,7 +158,7 @@ for ax, pts, label, chain in zip(axes, section_crossings, section_labels, island
     ax.tick_params(labelsize=7)
 
 fig.suptitle(
-    f'Stellarator Boundary Islands �?CPU (FieldLineTracer)\n'
+    f'Stellarator Boundary Islands ?CPU (FieldLineTracer)\n'
     f'q=5/1 at ψ={psi_res:.3f}, ε_h=0.04, m_h=5, n_h=1',
     fontsize=11
 )

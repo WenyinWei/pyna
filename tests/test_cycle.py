@@ -15,14 +15,14 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from pyna.mag.stellarator import SimpleStellarartor
+from pyna.MCF.equilibrium.stellarator import SimpleStellarartor
 from pyna.topo.cycle import (
     poincare_map_n,
     jacobian_of_poincare_map,
     find_cycle,
     PeriodicOrbit,
 )
-from pyna.topo.monodromy import compute_monodromy
+from pyna.topo.monodromy import compute_Jac as compute_monodromy
 
 
 # ---------------------------------------------------------------------------
@@ -158,7 +158,7 @@ class TestFindCycle:
         if orbit is None:
             pytest.skip("Orbit not found")
         assert isinstance(orbit, PeriodicOrbit)
-        assert orbit.monodromy.shape == (2, 2)
+        assert orbit.Jac.shape == (2, 2)
         assert orbit.trajectory.shape[1] == 3
 
     def test_find_opoint(self, field_func, opoint_rzphi, RZlimit):
@@ -184,7 +184,7 @@ class TestFindCycle:
         )
         if orbit is None:
             pytest.skip("Orbit not found")
-        det_M = np.linalg.det(orbit.monodromy)
+        det_M = np.linalg.det(orbit.Jac)
         assert abs(det_M - 1.0) < 0.1, f"det(M) = {det_M:.6f}, expected ≈ 1"
 
 
@@ -200,7 +200,7 @@ class TestComputeMonodromy:
             pytest.skip("Orbit not found for monodromy test")
 
         analysis = compute_monodromy(field_func, orbit, dt_output=0.15, rtol=1e-7, atol=1e-8)
-        det_M = np.linalg.det(analysis.monodromy)
+        det_M = np.linalg.det(analysis.Jac)
         assert abs(det_M - 1.0) < 0.1, f"det(M) = {det_M:.6f}, expected ≈ 1"
 
     def test_monodromy_has_correct_shape(self, field_func, xpoint_rzphi, RZlimit):
@@ -212,7 +212,7 @@ class TestComputeMonodromy:
             pytest.skip("Orbit not found")
 
         analysis = compute_monodromy(field_func, orbit, dt_output=0.15)
-        assert analysis.monodromy.shape == (2, 2)
+        assert analysis.Jac.shape == (2, 2)
         assert analysis.J_arr.shape[1:] == (2, 2)
         assert analysis.DPm_arr.shape[1:] == (2, 2)
         assert analysis.trajectory.shape[1] == 2
