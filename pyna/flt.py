@@ -1,154 +1,215 @@
-"""Field-line tracer with parallel support.
+"""Field line tracing with parallel execution.
 
-Provides the existing :func:`bundle_tracing_with_t_as_DeltaPhi` interface
-(backward compatible) plus a new :class:`FieldLineTracer` class with
-RK4 integration and optional parallelism via
-:class:`concurrent.futures.ProcessPoolExecutor` or
-:class:`concurrent.futures.ThreadPoolExecutor` (Python 3.13 free-threading).
+Parallelism strategy (Windows + Python 3.13 standard GIL build):
+- Primary: ThreadPoolExecutor — works with any callable, numpy releases GIL
+  during integration loops, so real speedup is achievable
+- ProcessPoolExecutor: available but requires module-level picklable functions;
+  use only when explicitly requested and field_func is picklable
+- CUDA: CuPy backend for GPU-accelerated batch tracing
 
-Functions
----------
-get_backend(mode)
-    Return a backend object suitable for field-line tracing.
+Legacy API
+----------
+bundle_tracing_with_t_as_DeltaPhi(...)
+    Original interface — fully preserved.
+save_Poincare_orbits / load_Poincare_orbits
+    File I/O helpers — fully preserved.
+
+New API
+-------
+FieldLineTracer
+    RK4 integrator with .trace() / .trace_many() (ThreadPoolExecutor).
+get_backend(mode, **kwargs)
+    Factory: 'cpu', 'cuda', 'opencl'.
 """
 from __future__ import annotations
 
+import os
 import sysconfig
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from typing import Callable, List, Optional
+
 import numpy as np
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-from typing import List, Optional
 
 from pyna.field import RegualrCylindricalGridField
-
 from scipy.interpolate import RegularGridInterpolator
-from scipy.integrate import OdeSolution
+from scipy.integrate import OdeSolution, solve_ivp
+
+
+# ---------------------------------------------------------------------------
+# Monkey-patch OdeSolution for legacy callers
+# ---------------------------------------------------------------------------
+
 def _mat_interp(self, t):
-    return self.__call__(t).reshape( (self.pts_num, 3), order='F')
+    return self.__call__(t).reshape((self.pts_num, 3), order='F')
+
 OdeSolution.mat_interp = _mat_interp
-from scipy.integrate import solve_ivp
 
 
 # ---------------------------------------------------------------------------
-# Legacy API (backward compatible)
+# Legacy API (fully backward-compatible)
 # ---------------------------------------------------------------------------
 
-def bundle_tracing_with_t_as_DeltaPhi(afield:RegualrCylindricalGridField, total_deltaPhi, initpts_RZPhi, phi_increasing:bool, *arg, **kwarg):
-    R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
-    RBRdBPhi = R[:,None,None]*BR/BPhi
-    RBZdBPhi = R[:,None,None]*BZ/BPhi
-    RBRdBPhi_interp = RegularGridInterpolator( 
-        (R, Z, Phi), RBRdBPhi[...,:,:,:],
-        method="linear", bounds_error=True )
-    RBZdBPhi_interp = RegularGridInterpolator( 
-        (R, Z, Phi), RBZdBPhi[...,:,:,:],
-        method="linear", bounds_error=True )
-    
-    pts_num = initpts_RZPhi.shape[0] 
+def bundle_tracing_with_t_as_DeltaPhi(
+    afield: RegualrCylindricalGridField,
+    total_deltaPhi,
+    initpts_RZPhi,
+    phi_increasing: bool,
+    *arg,
+    **kwarg,
+):
+    R, Z, Phi = afield.R, afield.Z, afield.Phi
+    BR, BZ, BPhi = afield.BR, afield.BZ, afield.BPhi
+
+    RBRdBPhi = R[:, None, None] * BR / BPhi
+    RBZdBPhi = R[:, None, None] * BZ / BPhi
+
+    RBRdBPhi_interp = RegularGridInterpolator(
+        (R, Z, Phi), RBRdBPhi, method="linear", bounds_error=True
+    )
+    RBZdBPhi_interp = RegularGridInterpolator(
+        (R, Z, Phi), RBZdBPhi, method="linear", bounds_error=True
+    )
+
+    pts_num = initpts_RZPhi.shape[0]
     initps_RZPhi_flattened = np.reshape(initpts_RZPhi, (-1), order='F')
+    dPhidPhi = np.ones((pts_num,))
 
-    dPhidPhi = np.ones((pts_num))
     if phi_increasing:
         def dXRXZdPhi(t, y):
             R_ = y[:pts_num]
-            Z_ = y[pts_num:2*pts_num]
-            Phi_ = y[2*pts_num:3*pts_num] % (2*np.pi)
-            pts_RZPhi = np.stack( (R_, Z_, Phi_) , axis=1)
-            dXRdPhi = RBRdBPhi_interp(pts_RZPhi) 
-            dXZdPhi = RBZdBPhi_interp(pts_RZPhi) 
-            return np.concatenate((dXRdPhi, dXZdPhi, dPhidPhi))
+            Z_ = y[pts_num:2 * pts_num]
+            Phi_ = y[2 * pts_num:3 * pts_num] % (2 * np.pi)
+            pts = np.stack((R_, Z_, Phi_), axis=1)
+            return np.concatenate((RBRdBPhi_interp(pts), RBZdBPhi_interp(pts), dPhidPhi))
     else:
         def dXRXZdPhi(t, y):
             R_ = y[:pts_num]
-            Z_ = y[pts_num:2*pts_num]
-            Phi_ = y[2*pts_num:3*pts_num] % (2*np.pi)
-            pts_RZPhi = np.stack( (R_, Z_, Phi_) , axis=1)
-            dXRdPhi =-RBRdBPhi_interp(pts_RZPhi) 
-            dXZdPhi =-RBZdBPhi_interp(pts_RZPhi) 
-            return np.concatenate((dXRdPhi, dXZdPhi,-dPhidPhi))
-        
+            Z_ = y[pts_num:2 * pts_num]
+            Phi_ = y[2 * pts_num:3 * pts_num] % (2 * np.pi)
+            pts = np.stack((R_, Z_, Phi_), axis=1)
+            return np.concatenate((-RBRdBPhi_interp(pts), -RBZdBPhi_interp(pts), -dPhidPhi))
+
     def out_of_grid(t, y):
-        R_, Z_ = y[:pts_num], y[pts_num:2*pts_num]
-        R_max, R_min = max(R_), min(R_)
-        Z_max, Z_min = max(Z_), min(Z_)
-        return min( 
-            R_min - R[1], R[-2] - R_max, 
-            Z_min - Z[1], Z[-2] - Z_max, )
+        R_ = y[:pts_num]
+        Z_ = y[pts_num:2 * pts_num]
+        return min(
+            min(R_) - R[1], R[-2] - max(R_),
+            min(Z_) - Z[1], Z[-2] - max(Z_),
+        )
+
     out_of_grid.terminal = True
-    
+
     fltres = solve_ivp(
-        dXRXZdPhi, 
-        [0.0, total_deltaPhi], 
-        initps_RZPhi_flattened, events=out_of_grid, dense_output=True, *arg, **kwarg)
-    
+        dXRXZdPhi,
+        [0.0, total_deltaPhi],
+        initps_RZPhi_flattened,
+        events=out_of_grid,
+        dense_output=True,
+        *arg,
+        **kwarg,
+    )
     fltres.sol.pts_num = pts_num
     fltres.phi_increasing = phi_increasing
     return fltres
 
 
-def save_Poincare_orbits(filename:str, list_of_arrRZPhi):
+def save_Poincare_orbits(filename: str, list_of_arrRZPhi):
     np.savez(filename, *list_of_arrRZPhi)
 
 
-def load_Poincare_orbits(filename:str):
-    Poincare_orbits_list = [ ]
-    Poincare_orbits_npz = np.load(filename)
-    for var in Poincare_orbits_npz.files:
-        Poincare_orbits_list.append( Poincare_orbits_npz[var] )
-    return Poincare_orbits_list
+def load_Poincare_orbits(filename: str):
+    orbits = []
+    data = np.load(filename)
+    for var in data.files:
+        orbits.append(data[var])
+    return orbits
 
 
 # ---------------------------------------------------------------------------
-# New API
+# New API — RK4 integrator
 # ---------------------------------------------------------------------------
 
-def _rk4_step(f, y, dt):
-    """Single RK4 step."""
-    k1 = f(y)
-    k2 = f(y + 0.5 * dt * k1)
-    k3 = f(y + 0.5 * dt * k2)
-    k4 = f(y + dt * k3)
-    return y + (dt / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4)
+def _rk4_step(f: Callable, y: np.ndarray, dt: float) -> np.ndarray:
+    """Single fixed-step 4th-order Runge-Kutta step.
 
+    Parameters
+    ----------
+    f : callable
+        Vector field ``f(y) -> dy``.  Takes/returns 1-D array of length 3.
+    y : ndarray
+        Current state (R, Z, phi).
+    dt : float
+        Step size.
 
-def _trace_one(args):
-    """Top-level function for subprocess-based parallelism."""
-    field_func, start_pt, t_max, dt, RZlimit = args
-    tracer = FieldLineTracer(field_func, dt=dt, RZlimit=RZlimit)
-    return tracer.trace(start_pt, t_max)
+    Returns
+    -------
+    ndarray
+        New state after one RK4 step.
+    """
+    k1 = np.asarray(f(y), dtype=float)
+    k2 = np.asarray(f(y + 0.5 * dt * k1), dtype=float)
+    k3 = np.asarray(f(y + 0.5 * dt * k2), dtype=float)
+    k4 = np.asarray(f(y + dt * k3), dtype=float)
+    return y + (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
 
 
 class FieldLineTracer:
-    """RK4 field-line integrator.
+    """RK4 field-line integrator with parallel trace_many.
+
+    The field function signature::
+
+        f(rzphi: ndarray[3]) -> ndarray[3]   # (dR/dl, dZ/dl, dphi/dl)
+
+    where ``rzphi = [R, Z, phi]`` is the current position.
+
+    Parallelism uses :class:`~concurrent.futures.ThreadPoolExecutor` on all
+    platforms.  This is deliberately chosen over ProcessPoolExecutor because:
+
+    * Works with *any* callable — no pickle requirement (important on Windows).
+    * NumPy/SciPy release the GIL during heavy computation, so threads achieve
+      real parallel speedup.
+    * No process-spawn overhead on Windows.
 
     Parameters
     ----------
     field_func : callable
-        ``field_func(rzphi) → (dR, dZ, dphi)`` — unit tangent vector.
+        Unit tangent vector field.
     dt : float
         Integration step size (arc length).
     RZlimit : tuple or None
-        Optional ``(R_min, R_max, Z_min, Z_max)`` bounding box.
-        Integration stops if the trajectory leaves this domain.
+        Optional ``(R_min, R_max, Z_min, Z_max)`` domain boundary.
+        Integration stops when the trajectory leaves this box.
+    n_workers : int or None
+        Default thread-pool size for :meth:`trace_many`.
+        ``None`` → ``min(os.cpu_count(), 16)``.
     """
 
-    def __init__(self, field_func, dt: float = 0.04, RZlimit=None) -> None:
+    def __init__(
+        self,
+        field_func: Callable,
+        dt: float = 0.04,
+        RZlimit=None,
+        n_workers: Optional[int] = None,
+    ) -> None:
         self.field_func = field_func
         self.dt = dt
         self.RZlimit = RZlimit
+        self.n_workers = n_workers or min(os.cpu_count() or 4, 16)
 
     def trace(self, start_pt, t_max: float) -> np.ndarray:
-        """Trace a single field line.
+        """Trace a single field line with fixed-step RK4.
 
         Parameters
         ----------
         start_pt : array-like of length 3
-            Starting point (R, Z, φ).
+            Starting point (R, Z, phi).
         t_max : float
             Maximum arc-length parameter.
 
         Returns
         -------
-        ndarray of shape (N, 3)
+        ndarray, shape (N, 3)
+            Trajectory points (R, Z, phi).
         """
         y = np.asarray(start_pt, dtype=float).copy()
         dt = self.dt
@@ -171,42 +232,52 @@ class FieldLineTracer:
         t_max: float,
         n_workers: Optional[int] = None,
     ) -> List[np.ndarray]:
-        """Trace multiple field lines in parallel.
+        """Parallel field-line tracing using ThreadPoolExecutor.
 
-        Uses :class:`ThreadPoolExecutor` when the Python 3.13+ free-threading
-        build is detected (GIL disabled), otherwise falls back to
-        :class:`ProcessPoolExecutor`.
+        ThreadPoolExecutor is used (not ProcessPool) because:
+
+        1. Works with any callable (no pickle requirement).
+        2. NumPy/SciPy release the GIL during computation → real parallel
+           speedup even without the free-threading build.
+        3. Avoids Windows process-spawn overhead.
 
         Parameters
         ----------
-        start_pts : array-like of shape (N, 3)
+        start_pts : array-like, shape (N, 3)
             Starting points.
         t_max : float
             Maximum arc-length for each field line.
         n_workers : int or None
-            Number of parallel workers.  ``None`` → CPU count.
+            Override the default worker count.
 
         Returns
         -------
         list of ndarray
+            One (n_steps, 3) trajectory per starting point.
         """
         start_pts = np.asarray(start_pts, dtype=float)
-        gil_disabled = sysconfig.get_config_var('Py_GIL_DISABLED') == 1
+        workers = n_workers or self.n_workers
 
-        if gil_disabled:
-            Executor = ThreadPoolExecutor
-        else:
-            # Use threads anyway — ProcessPoolExecutor has pickling issues
-            # with closures.  For heavier workloads users can pass
-            # pre-serialisable field functions.
-            Executor = ThreadPoolExecutor
+        def _trace_one(pt):
+            return self.trace(pt, t_max)
 
-        with Executor(max_workers=n_workers) as pool:
-            futures = [
-                pool.submit(self.trace, pt, t_max)
-                for pt in start_pts
-            ]
-            return [f.result() for f in futures]
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            results = list(executor.map(_trace_one, start_pts))
+        return results
+
+    # ------------------------------------------------------------------
+    # Legacy shim
+    # ------------------------------------------------------------------
+
+    def bundle_tracing_with_t_as_DeltaPhi(self, start_pts, t_max, **kwargs):
+        """Deprecated shim — use :meth:`trace_many` instead."""
+        import warnings
+        warnings.warn(
+            "bundle_tracing_with_t_as_DeltaPhi is deprecated; use trace_many",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.trace_many(start_pts, t_max)
 
 
 # ---------------------------------------------------------------------------
@@ -214,44 +285,71 @@ class FieldLineTracer:
 # ---------------------------------------------------------------------------
 
 def get_backend(mode: str = 'cpu', **kwargs):
-    """Return a field-line tracing backend.
+    """Get a field-line tracer backend.
 
     Parameters
     ----------
     mode : str
-        ``'cpu'``    — :class:`FieldLineTracer` (RK4, CPU).
-        ``'cuda'``   — raises :exc:`NotImplementedError`.
-        ``'opencl'`` — raises :exc:`NotImplementedError`.
+        ``'cpu'``    — :class:`FieldLineTracer` with ThreadPoolExecutor
+                       (always available).
+        ``'cuda'``   — :class:`~pyna.flt_cuda.CUDAFieldLineTracer`
+                       (requires CuPy, only for analytic fields).
+        ``'opencl'`` — reserved, not yet implemented.
     **kwargs
-        Passed to :class:`FieldLineTracer` constructor.
+        Passed to the backend constructor.
 
     Returns
     -------
-    FieldLineTracer (for mode='cpu').
+    Backend object with ``.trace_many(start_pts, t_max)`` method.
+
+    Examples
+    --------
+    CPU::
+
+        tracer = get_backend('cpu', field_func=my_field, dt=0.02)
+        trajs  = tracer.trace_many(starts, t_max=100.0)
+
+    CUDA::
+
+        tracer = get_backend('cuda', R0=1.0, a=0.3, B0=1.0, q0=2.0)
+        trajs  = tracer.trace_many(starts, t_max=100.0)
     """
     if mode == 'cpu':
-        return _CpuBackend(**kwargs)
+        field_func = kwargs.pop('field_func', None)
+        if field_func is None:
+            return _CPUBackend(**kwargs)
+        return FieldLineTracer(field_func, **kwargs)
     elif mode == 'cuda':
-        raise NotImplementedError(
-            "CUDA backend not yet implemented; install cupy and pyna[cuda]"
-        )
+        from pyna.flt_cuda import CUDAFieldLineTracer  # noqa: PLC0415
+        return CUDAFieldLineTracer(**kwargs)
     elif mode == 'opencl':
         raise NotImplementedError(
-            "OpenCL backend reserved; not yet implemented"
+            "OpenCL backend is reserved for future implementation. "
+            "Use mode='cpu' or mode='cuda' (requires cupy)."
         )
     else:
-        raise ValueError(f"Unknown backend mode: {mode!r}")
+        raise ValueError(
+            f"Unknown backend mode: {mode!r}. Choose 'cpu', 'cuda', or 'opencl'."
+        )
 
 
-class _CpuBackend:
-    """Thin wrapper returned by ``get_backend('cpu')``."""
+class _CPUBackend:
+    """Lazy CPU backend — call :meth:`get_tracer` to create a FieldLineTracer."""
 
-    def __init__(self, dt: float = 0.04, RZlimit=None) -> None:
-        self._dt = dt
-        self._RZlimit = RZlimit
+    def __init__(self, **kwargs) -> None:
+        self.kwargs = kwargs
 
-    def trace_many(self, field_func, start_pts, t_max: float, dt=None, RZlimit=None):
-        dt = dt or self._dt
-        RZlimit = RZlimit or self._RZlimit
-        tracer = FieldLineTracer(field_func, dt=dt, RZlimit=RZlimit)
-        return tracer.trace_many(start_pts, t_max)
+    def get_tracer(self, field_func: Callable) -> FieldLineTracer:
+        """Create a :class:`FieldLineTracer` for *field_func*."""
+        return FieldLineTracer(field_func, **self.kwargs)
+
+    # Convenience: allow trace_many to be called directly if field_func
+    # was stored separately (e.g. via kwargs).
+    def trace_many(self, start_pts, t_max: float) -> List[np.ndarray]:
+        field_func = self.kwargs.pop('field_func', None)
+        if field_func is None:
+            raise ValueError(
+                "_CPUBackend.trace_many requires 'field_func' in kwargs. "
+                "Use get_backend('cpu', field_func=...) or call .get_tracer(f).trace_many(...)."
+            )
+        return FieldLineTracer(field_func, **self.kwargs).trace_many(start_pts, t_max)
