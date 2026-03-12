@@ -10,3 +10,8 @@ from pyna.mag.coordinate import (
     STET2RZ,
     calc_dRZdSTET_mesh,
 )
+
+from pyna.mag.grad_shafranov import (
+    recover_pressure_simplest,
+    solve_GS_perturbed,
+)
