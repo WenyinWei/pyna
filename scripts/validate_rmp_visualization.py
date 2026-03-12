@@ -115,10 +115,10 @@ start_pts = np.column_stack([
 ])
 
 section = ToroidalSection(phi0=0.0)
-tracer = FieldLineTracer(field_func, dt=0.04)
+tracer = FieldLineTracer(field_func, dt=0.1)
 
-print(f"Tracing {n_lines} field lines near q={m_mode}/{n_mode} (t_max=2500)…")
-trajs = tracer.trace_many(start_pts, t_max=2500.0)
+print(f"Tracing {n_lines} field lines near q={m_mode}/{n_mode} (t_max=500)…")
+trajs = tracer.trace_many(start_pts, t_max=500.0)
 
 pmap = PoincareMap([section])
 for traj in trajs:
