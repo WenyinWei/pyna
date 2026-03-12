@@ -1,44 +1,54 @@
 # Configuration file for the Sphinx documentation builder.
-#
-# For the full list of built-in configuration values, see the documentation:
-# https://www.sphinx-doc.org/en/master/usage/configuration.html
-
-# -- Project information -----------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
-
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../'))
+sys.path.insert(0, os.path.abspath('..'))
 
 project = 'pyna'
-copyright = '2022, Wenyin Wei'
+copyright = '2024, Wenyin Wei'
 author = 'Wenyin Wei'
-
-# -- General configuration ---------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
+release = '0.1.0'
 
 extensions = [
-    'sphinx.ext.autodoc', 
-    'sphinx.ext.doctest', 
-    'sphinx.ext.todo', 
-    'sphinx.ext.mathjax', 
-    'sphinx.ext.ifconfig', 
-    'sphinx.ext.viewcode', 
-    'sphinx.ext.githubpages', 
-    'sphinx.ext.napoleon', # to let sphinx understand Google/Numpy style comment
-    ]
-apidoc_module_dir = '../pyna'
-apidoc_output_dir = 'generated/api'
-apidoc_excluded_paths = [ ]
-apidoc_separate_modules = True
+    'sphinx.ext.autodoc',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.intersphinx',
+    'sphinx_autodoc_typehints',
+    'myst_parser',
+    'nbsphinx',
+]
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
-
-
-# -- Options for HTML output -------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
-
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+
+html_theme_options = {
+    'logo_only': False,
+    'display_version': True,
+    'navigation_depth': 4,
+}
+
+# MyST parser settings (for .md files)
+myst_enable_extensions = [
+    'amsmath',
+    'colon_fence',
+    'dollarmath',
+]
+
+# Napoleon settings (Google/NumPy docstrings)
+napoleon_google_docstring = True
+napoleon_numpy_docstring = True
+napoleon_include_init_with_doc = True
+
+# nbsphinx settings
+nbsphinx_execute = 'never'  # don't re-execute notebooks during build
+
+intersphinx_mapping = {
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy/', None),
+}
+
+autodoc_mock_imports = ['cupy', 'dolfinx', 'ufl', 'petsc4py', 'mpi4py']
