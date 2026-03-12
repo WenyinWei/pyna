@@ -38,14 +38,14 @@ print(f"psi_res={psi_res:.4f}  r_res={r_res:.4f} m")
 # 2. Start points near q=4/1 surface and trace
 # ---------------------------------------------------------------------------
 start_pts = st.start_points_near_resonance(4, 1, n_lines=24, delta_psi=0.06)
-print(f"Tracing {len(start_pts)} field lines (t_max=3000, dt=0.05)…")
+print(f"Tracing {len(start_pts)} field lines (t_max=600, dt=0.1)…")
 
 n_phi_sections = 4
 phi_sections = [k * np.pi / 2 for k in range(n_phi_sections)]
 sections = [ToroidalSection(phi0=phi) for phi in phi_sections]
 
-tracer = FieldLineTracer(st.field_func, dt=0.05)
-trajs = tracer.trace_many(start_pts, t_max=3000.0)
+tracer = FieldLineTracer(st.field_func, dt=0.1)
+trajs = tracer.trace_many(start_pts, t_max=600.0)
 
 pmap = PoincareMap(sections)
 for traj in trajs:
