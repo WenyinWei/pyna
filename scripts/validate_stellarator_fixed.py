@@ -1,6 +1,6 @@
 """CPU-based stellarator boundary island visualization.
 
-Uses FieldLineTracer + ThreadPoolExecutor (n_workers=16).
+Uses on-the-fly crossing detection (memory-efficient).
 SimpleStellarartor: R0=3.0, r0=0.35, B0=1.0, q0=1.5, q1=5.5, m_h=5, n_h=1, epsilon_h=0.04
 """
 from __future__ import annotations
@@ -12,11 +12,12 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import sys
 import os
+from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from pyna.mag.stellarator import SimpleStellarartor
-from pyna.flt import FieldLineTracer
+from pyna.flt import _rk4_step
 from pyna.topo.island_extract import extract_island_width
 
 # ---------------------------------------------------------------------------
@@ -44,82 +45,70 @@ else:
     print(f"  q=5/1 not found; using psi_res=0.9")
 
 # ---------------------------------------------------------------------------
-# 3. Build start points (50 lines from psi=0.3 to 0.92)
+# 3. 6 Poincaré sections
+# ---------------------------------------------------------------------------
+sections = [k * np.pi / 3 for k in range(6)]
+section_labels = ['φ=0', 'φ=π/3', 'φ=2π/3', 'φ=π', 'φ=4π/3', 'φ=5π/3']
+N_sections = len(sections)
+
+# ---------------------------------------------------------------------------
+# 4. Start points: 50 lines psi=0.3 to 0.92
 # ---------------------------------------------------------------------------
 N_lines = 50
 psi_all = np.linspace(0.3, 0.92, N_lines)
 r_all = np.sqrt(psi_all) * st.r0
-start_pts = np.column_stack([
-    st.R0 + r_all,
-    np.zeros(N_lines),
-    np.zeros(N_lines),
-])
-print(f"  {N_lines} field lines, R range: {start_pts[:,0].min():.3f}–{start_pts[:,0].max():.3f} m")
+start_pts = [
+    [st.R0 + r_all[i], 0.0, 0.0]
+    for i in range(N_lines)
+]
+print(f"  {N_lines} field lines, R range: {st.R0+r_all[0]:.3f}–{st.R0+r_all[-1]:.3f} m")
 
 # ---------------------------------------------------------------------------
-# 4. Trace
+# 5. Trace with on-the-fly crossing detection for all 6 sections
 # ---------------------------------------------------------------------------
 T_MAX = 3000.0
 DT = 0.07
+N_steps = int(T_MAX / DT)
 
-print(f"\nTracing {N_lines} field lines (t_max={T_MAX}, dt={DT}, n_workers=16)...")
-tracer = FieldLineTracer(field_func=st.field_func, dt=DT, n_workers=16)
+field_func = st.field_func
+
+def trace_and_collect_all_sections(start_pt):
+    """Trace one field line and collect crossings for all 6 sections."""
+    y = np.array(start_pt, dtype=float)
+    # Store (phi_shift_prev) for each section
+    phi_shift_prev = np.array([(y[2] - phi_sec) % (2 * np.pi) for phi_sec in sections])
+    crossings = [[] for _ in range(N_sections)]
+    for _ in range(N_steps):
+        y = _rk4_step(field_func, y, DT)
+        for k, phi_sec in enumerate(sections):
+            phi_shift = (y[2] - phi_sec) % (2 * np.pi)
+            p0, p1 = phi_shift_prev[k], phi_shift
+            # Upward crossing: phi_shift drops from near 2pi to near 0
+            if p0 > np.pi and p1 < p0 - np.pi:
+                crossings[k].append([y[0], y[1]])
+            phi_shift_prev[k] = phi_shift
+    return [np.array(c) if c else np.empty((0, 2)) for c in crossings]
+
+print(f"\nTracing {N_lines} field lines (t_max={T_MAX}, dt={DT}, n_workers=8)...")
 t0 = time.time()
-trajs = tracer.trace_many(start_pts, t_max=T_MAX, n_workers=16)
+with ThreadPoolExecutor(max_workers=8) as executor:
+    results = list(executor.map(trace_and_collect_all_sections, start_pts))
 t_cpu = time.time() - t0
-total_pts = sum(len(t) for t in trajs)
-print(f"  Done in {t_cpu:.1f} s, {total_pts:,} total steps")
+print(f"  Done in {t_cpu:.1f} s")
 
-# ---------------------------------------------------------------------------
-# 5. Crossing detection for arbitrary phi section
-# ---------------------------------------------------------------------------
-
-def detect_crossings_at_phi(traj, phi_sec):
-    """Detect upward crossings of (phi - phi_sec) mod 2pi = 0."""
-    R = traj[:, 0]
-    Z = traj[:, 1]
-    phi = traj[:, 2]
-    # shifted so we look for zero crossings
-    phi_shift = (phi - phi_sec) % (2 * np.pi)
-    crossings = []
-    for i in range(1, len(phi)):
-        p0, p1 = phi_shift[i-1], phi_shift[i]
-        # Upward crossing: phi_shift drops from near 2pi to near 0
-        if p0 > np.pi and p1 < p0 - np.pi:
-            dphi = (2*np.pi - p0) + p1
-            frac = (2*np.pi - p0) / dphi if dphi > 1e-30 else 0.5
-            R_c = R[i-1] + frac * (R[i] - R[i-1])
-            Z_c = Z[i-1] + frac * (Z[i] - Z[i-1])
-            crossings.append([R_c, Z_c])
-    return np.array(crossings) if crossings else np.empty((0, 2))
-
-
-# ---------------------------------------------------------------------------
-# 6. Collect crossings for 6 sections
-# ---------------------------------------------------------------------------
-sections = [k * np.pi / 3 for k in range(6)]
-section_labels = ['φ=0', 'φ=π/3', 'φ=2π/3', 'φ=π', 'φ=4π/3', 'φ=5π/3']
-
-print("\nCollecting crossings for 6 sections...")
+# Merge crossings per section
 section_crossings = []
-for phi_sec in sections:
-    pts_all = []
-    for traj in trajs:
-        if traj is None or len(traj) < 2:
-            continue
-        pts = detect_crossings_at_phi(traj, phi_sec)
-        if len(pts) > 0:
-            pts_all.append(pts)
-    if pts_all:
-        merged = np.vstack(pts_all)
-        section_crossings.append(merged)
-        print(f"  phi={phi_sec:.3f}: {len(merged):,} crossings")
+for k in range(N_sections):
+    pts_k = [results[i][k] for i in range(N_lines) if len(results[i][k]) > 0]
+    if pts_k:
+        merged = np.vstack(pts_k)
     else:
-        section_crossings.append(np.empty((0, 2)))
-        print(f"  phi={phi_sec:.3f}: 0 crossings")
+        merged = np.empty((0, 2))
+    section_crossings.append(merged)
+    print(f"  {section_labels[k]}: {len(merged):,} crossings")
 
 # ---------------------------------------------------------------------------
-# 7. Island extraction per section
+# 6. Island extraction per section
 # ---------------------------------------------------------------------------
 island_chains = []
 for i, (pts, phi_sec) in enumerate(zip(section_crossings, sections)):
@@ -139,7 +128,7 @@ for i, (pts, phi_sec) in enumerate(zip(section_crossings, sections)):
         island_chains.append(None)
 
 # ---------------------------------------------------------------------------
-# 8. 2×3 panel plot
+# 7. 2×3 panel plot
 # ---------------------------------------------------------------------------
 fig, axes = plt.subplots(2, 3, figsize=(14, 9))
 axes = axes.ravel()
@@ -180,7 +169,7 @@ print(f"\nSaved 6-panel: {outpath_6panel}")
 plt.close()
 
 # ---------------------------------------------------------------------------
-# 9. Island half-width vs section plot
+# 8. Island half-width vs section
 # ---------------------------------------------------------------------------
 fig2, ax2 = plt.subplots(figsize=(8, 4))
 phi_degrees = [s * 180 / np.pi for s in sections]

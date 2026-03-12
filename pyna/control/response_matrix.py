@@ -29,6 +29,65 @@ from pyna.control.fpt import (
 from pyna.control.topology_state import TopologyState
 
 
+def build_full_response_matrix(
+    base_field_func: Callable,
+    coil_field_funcs: List[Callable],
+    state: TopologyState,
+    wall=None,
+    field_func_key: str = 'default',
+    observables: Optional[List[str]] = None,
+    eps_current: float = 1.0,
+):
+    """Full response matrix combining all observable categories.
+
+    Combines:
+    - X/O-point shifts and DPm eigenvalue changes (FPT closed-form)
+    - Plasma-wall gap responses (FPT manifold shift, if wall is supplied)
+    - q-profile (placeholder zeros, to be filled by pyna-qprofile-response)
+
+    Parameters
+    ----------
+    base_field_func : callable
+        Base equilibrium field function.
+    coil_field_funcs : list of callable
+        Per-unit-current coil field functions.
+    state : TopologyState
+        Current topology state with at least one X-point.
+    wall : WallGeometry or None
+        First wall geometry.  If None, gap rows are zero placeholders.
+    field_func_key : str
+        Hashable key identifying the equilibrium (for caching manifold growth).
+    observables : list of str or None
+        Reserved for future filtering.
+    eps_current : float
+        Current perturbation for per-unit normalisation.
+
+    Returns
+    -------
+    R_full : ndarray, shape (n_obs_full, n_coils)
+    labels_full : list of str
+    """
+    from pyna.control.gap_response import gap_response_matrix_fpt
+
+    R_topo, labels_topo = build_response_matrix(
+        base_field_func, coil_field_funcs, state,
+        observables=observables, eps_current=eps_current,
+    )
+
+    if wall is not None and len(state.xpoints) > 0:
+        R_gap, labels_gap = gap_response_matrix_fpt(
+            base_field_func, coil_field_funcs, wall,
+            state.xpoints[0], field_func_key,
+        )
+        R_full = np.vstack([R_topo, R_gap])
+        labels_full = labels_topo + [f'gap.{n}' for n in labels_gap]
+    else:
+        R_full = R_topo
+        labels_full = labels_topo
+
+    return R_full, labels_full
+
+
 def build_response_matrix(
     base_field_func: Callable,
     coil_field_funcs: List[Callable],

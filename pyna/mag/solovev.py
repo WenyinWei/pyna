@@ -480,6 +480,72 @@ class SolovevEquilibrium:
         R = np.asarray(R, dtype=float)
         return self._B0 * self.R0 / R
 
+    def psi_lcfs(self) -> float:
+        """Return the physical poloidal flux ψ_phys at the LCFS (= 0 in C&F normalisation).
+
+        In our normalisation ``psi()`` returns ψ_norm in [0,1], so the LCFS
+        corresponds to ψ_norm = 1.  This convenience method returns that value.
+        """
+        return 1.0
+
+    def flux_surface(
+        self,
+        psi_norm: float,
+        n_theta: int = None,
+        n_grid: int = 300,
+    ) -> tuple:
+        """Return (R, Z) arrays tracing the flux surface at normalised flux *psi_norm*.
+
+        ``psi_norm = 0`` is the magnetic axis, ``psi_norm = 1`` is the LCFS.
+
+        Uses matplotlib contour extraction on a fine (R, Z) grid.
+
+        Parameters
+        ----------
+        psi_norm : float
+            Normalised poloidal flux label in (0, 1].
+        n_theta : int or None
+            Not used (kept for API compatibility).
+        n_grid : int
+            Grid resolution for the contour search.
+
+        Returns
+        -------
+        R_arr, Z_arr : ndarray
+            Coordinate arrays of the flux-surface contour.
+        """
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+
+        psi_norm = float(np.clip(psi_norm, 1e-4, 1.0))
+
+        R_min = self.R0 - 1.25 * self.a
+        R_max = self.R0 + 1.25 * self.a
+        Z_min = -1.25 * self.a * self.kappa
+        Z_max = +1.25 * self.a * self.kappa
+
+        R_grid = np.linspace(R_min, R_max, n_grid)
+        Z_grid = np.linspace(Z_min, Z_max, n_grid)
+        RR, ZZ = np.meshgrid(R_grid, Z_grid)
+
+        PSI = self.psi(RR, ZZ)  # ψ_norm on grid
+
+        fig, ax = plt.subplots()
+        try:
+            cs = ax.contour(RR, ZZ, PSI, levels=[psi_norm])
+            paths = cs.get_paths()
+            if not paths:
+                raise ValueError(f"No contour found for psi_norm={psi_norm}")
+            # Pick the longest path (the main flux surface)
+            path = max(paths, key=lambda p: len(p.vertices))
+            R_arr = path.vertices[:, 0]
+            Z_arr = path.vertices[:, 1]
+        finally:
+            plt.close(fig)
+
+        return R_arr, Z_arr
+
     def q_profile(self, psi_values, n_theta: int = 512) -> np.ndarray:
         """Safety factor profile by poloidal field-line integration.
 
