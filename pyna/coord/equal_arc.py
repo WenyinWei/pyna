@@ -51,19 +51,25 @@ def build_equal_arc_mesh(S, TET, R_mesh, Z_mesh, n_theta=181):
             Z_mesh_ea[i, :] = Z_s[0]
             continue
 
+        # TET may include endpoint (0 and 2π are the same physical point).
+        # Use only unique points (drop the last if it duplicates the first).
+        if np.allclose(R_s[0], R_s[-1]) and np.allclose(Z_s[0], Z_s[-1]):
+            R_loop = R_s[:-1]
+            Z_loop = Z_s[:-1]
+        else:
+            R_loop = R_s
+            Z_loop = Z_s
+
         # Close the loop for arc-length computation
-        R_closed = np.append(R_s, R_s[0])
-        Z_closed = np.append(Z_s, Z_s[0])
+        R_closed = np.append(R_loop, R_loop[0])
+        Z_closed = np.append(Z_loop, Z_loop[0])
         dR = np.diff(R_closed)
         dZ = np.diff(Z_closed)
         ds = np.sqrt(dR ** 2 + dZ ** 2)
         s_cumulative = np.concatenate([[0], np.cumsum(ds)])
         s_total = s_cumulative[-1]
 
-        # Build uniform arc-length parametrisation
-        # s_cumulative runs 0..s_total over ntheta+1 points (closed loop)
-        # TET_ea runs 0..2π over n_theta points (last = 2π = same as first)
-        # We map s_uniform[k] = k/n_theta * s_total for k=0..n_theta-1, then endpoint=2π → s_total
+        # Uniform arc-length parametrisation, n_theta points inclusive
         s_uniform = np.linspace(0, s_total, n_theta, endpoint=True)
 
         R_mesh_ea[i] = interp1d(

@@ -150,22 +150,43 @@ class TestBoozer:
 
 class TestHamada:
     def test_area_elements_uniform(self, pest_mesh):
-        """Hamada angle: cumulative area should be uniform in θ_H within 5%."""
+        """Hamada angle: cumulative area (from axis) should be linear in θ_H."""
         from pyna.coord.hamada import build_Hamada_mesh
         S, TET, R_mesh, Z_mesh, q_iS, eq = pest_mesh
         _, TET_H, R_H, Z_H = build_Hamada_mesh(S, TET, R_mesh, Z_mesh, n_theta=91)
 
+        # Estimate magnetic axis
+        R_ax = R_mesh[0, 0]
+        Z_ax = Z_mesh[0, 0]
+
         for i in range(2, len(S) - 1):
             R_s = R_H[i, :]
             Z_s = Z_H[i, :]
-            R_closed = np.append(R_s, R_s[0])
-            Z_closed = np.append(Z_s, Z_s[0])
-            dA = 0.5 * (R_closed[:-1] * Z_closed[1:] - R_closed[1:] * Z_closed[:-1])
-            if abs(dA.mean()) > 1e-10:
-                variation = dA.std() / abs(dA.mean())
-                assert variation < 0.05, (
-                    f"Surface i={i}: area element variation {variation:.3f} > 5%"
-                )
+            # Drop endpoint duplicate
+            if np.allclose(R_s[0], R_s[-1]) and np.allclose(Z_s[0], Z_s[-1]):
+                R_loop = R_s[:-1]
+                Z_loop = Z_s[:-1]
+            else:
+                R_loop = R_s
+                Z_loop = Z_s
+            R_closed = np.append(R_loop, R_loop[0])
+            Z_closed = np.append(Z_loop, Z_loop[0])
+            # Triangle area from axis to each segment
+            dA = 0.5 * (
+                (R_closed[:-1] - R_ax) * (Z_closed[1:] - Z_ax)
+                - (R_closed[1:] - R_ax) * (Z_closed[:-1] - Z_ax)
+            )
+            A_cumulative = np.cumsum(dA)
+            A_total = A_cumulative[-1]
+            if abs(A_total) < 1e-10:
+                continue
+            # Cumulative area should be approximately linear in index (equal-area)
+            A_norm = A_cumulative / A_total
+            A_expected = np.linspace(1.0 / len(R_loop), 1.0, len(R_loop))
+            max_deviation = np.max(np.abs(A_norm - A_expected))
+            assert max_deviation < 0.05, (
+                f"Surface i={i}: cumulative area deviation {max_deviation:.3f} > 5%"
+            )
 
     def test_output_shapes(self, pest_mesh):
         from pyna.coord.hamada import build_Hamada_mesh
