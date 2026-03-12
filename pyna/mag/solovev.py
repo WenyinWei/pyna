@@ -15,6 +15,7 @@ from __future__ import annotations
 import numpy as np
 from scipy.optimize import minimize_scalar, brentq
 from scipy.interpolate import UnivariateSpline
+from functools import lru_cache
 
 
 # ---------------------------------------------------------------------------
@@ -614,6 +615,91 @@ class SolovevEquilibrium:
             q_out[i] = float(np.sum(integrand2) / (2 * np.pi * self._lam))
 
         return q_out
+
+    # ------------------------------------------------------------------
+    # X/O-point and flux surface methods
+    # ------------------------------------------------------------------
+
+    def find_xpoint(self, R0_guess=None, Z0_guess=None):
+        """Find divertor X-point (lower single null for typical params).
+
+        Returns
+        -------
+        (R_xpt, Z_xpt) : tuple of float
+            X-point location in metres.
+        """
+        from scipy.optimize import minimize
+        if R0_guess is None:
+            R0_guess = self.R0 - 0.3 * self.a
+        if Z0_guess is None:
+            Z0_guess = -self.a * self.kappa * 0.95
+
+        def Bpol2(rz):
+            BR, BZ = self.BR_BZ(rz[0], rz[1])
+            return float(BR ** 2 + BZ ** 2)
+
+        res = minimize(Bpol2, [R0_guess, Z0_guess], method='Nelder-Mead',
+                       options={'xatol': 1e-7, 'fatol': 1e-20, 'maxiter': 10000})
+        return tuple(res.x)
+
+    def find_opoint(self):
+        """Find magnetic axis (O-point).
+
+        Returns
+        -------
+        (R_axis, Z_axis) : tuple of float
+            Magnetic axis in metres.
+        """
+        return self.magnetic_axis
+
+    def psi_lcfs(self) -> float:
+        """ψ_norm value at the last closed flux surface (= 1.0 by definition)."""
+        return 1.0
+
+    def flux_surface(self, psi_norm: float, n_pts: int = 300) -> tuple:
+        """Return (R, Z) contour of the flux surface at normalised ψ.
+
+        Parameters
+        ----------
+        psi_norm : float
+            0 → magnetic axis, 1 → LCFS.
+        n_pts : int
+            Grid resolution for contour extraction.
+
+        Returns
+        -------
+        R_arr, Z_arr : ndarray
+            Coordinates of the flux-surface contour in metres.
+
+        Notes
+        -----
+        Uses matplotlib contour extraction with the Agg (non-display) backend.
+        """
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+
+        R_arr = np.linspace(self.R0 - 1.3 * self.a, self.R0 + 1.3 * self.a, n_pts)
+        Z_arr = np.linspace(-1.3 * self.a * self.kappa,
+                             1.3 * self.a * self.kappa, n_pts)
+        RR, ZZ = np.meshgrid(R_arr, Z_arr)
+        PSI = self.psi(RR, ZZ)
+
+        fig, ax = plt.subplots()
+        cs = ax.contour(RR, ZZ, PSI, levels=[float(psi_norm)])
+        # matplotlib >= 3.8 removed .collections; use .get_paths() directly
+        if hasattr(cs, 'collections'):
+            paths = cs.collections[0].get_paths()
+        else:
+            paths = cs.get_paths()
+        plt.close(fig)
+
+        if not paths:
+            raise ValueError(f"No contour found for psi_norm={psi_norm}")
+
+        # Return longest path (should be the main flux surface)
+        path = max(paths, key=lambda p: len(p.vertices))
+        return path.vertices[:, 0], path.vertices[:, 1]
 
 
 # ---------------------------------------------------------------------------
