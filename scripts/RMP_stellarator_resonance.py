@@ -2,7 +2,7 @@
 RMP Stellarator Resonance — Multi-Section Verification
 =======================================================
 6-panel figure at φ = 0°, 60°, 120°, 180°, 240°, 300°
-Each panel: Poincaré scatter + island O/X markers at predicted poloidal angles.
+Each panel: Poincar scatter + island O/X markers at predicted poloidal angles.
 """
 import sys
 sys.path.insert(0, r'D:\Repo\pyna')
@@ -102,7 +102,7 @@ def field_func_with_rmp(rzphi_1d):
 
     return np.array([BR_tot / B_mag, BZ_tot / B_mag, B_phi / (R * B_mag)])
 
-# ── 5. Trace Poincaré maps at 6 sections ──────────────────────────────────
+# ── 5. Trace Poincar maps at 6 sections ──────────────────────────────────
 phi_sections = np.array([0, 60, 120, 180, 240, 300]) * np.pi / 180.0
 
 # Start points: scan radially from near axis to LCFS
@@ -124,7 +124,7 @@ n_turns = 120
 t_max = n_turns * 2 * np.pi * eq.R0
 dt    = 0.06   # step size in arc length
 
-print(f"[3] Tracing Poincaré maps: {len(R_starts)} field lines × {n_turns} turns...")
+print(f"[3] Tracing Poincar maps: {len(R_starts)} field lines × {n_turns} turns...")
 print(f"    t_max={t_max:.1f} m, dt={dt}, steps/line={int(t_max/dt)}")
 
 pmap = poincare_from_fieldlines(
@@ -221,7 +221,7 @@ for idx, phi_s in enumerate(phi_sections):
     if col == 0:
         ax.set_ylabel('$Z$ (m)', fontsize=9)
     # white background set in rcParams
-    ax.set_facecolor('#0a0a12')   # dark background for Poincaré
+    ax.set_facecolor('white')
 
 # Colorbar for ψ_norm
 sm = plt.cm.ScalarMappable(cmap='plasma', norm=Normalize(0, 1))
