@@ -22,6 +22,8 @@ plt.rcParams.update({
     'figure.dpi': 150,
     'text.usetex': False,
     'axes.linewidth': 0.7,
+    'figure.facecolor': 'white',
+    'axes.facecolor': 'white',
 })
 
 from pyna.MCF.equilibrium.stellarator import SimpleStellarartor, simple_stellarator
@@ -42,10 +44,11 @@ print(f"  eq: R0={eq.R0}, r0={eq.r0}, B0={eq.B0}, q=[{eq.q0},{eq.q1}]")
 # ── 2. RMP perturbation ────────────────────────────────────────────────────
 base_m, base_n = 2, 1
 B_rmp = 1e-3   # 1 mT
+# Rename: use RMP (capital) as per naming convention
 R0_eq = eq.R0
 r0_eq = eq.r0
 
-def delta_B_rmp(R, Z, phi, m=base_m, n=base_n, B_amp=B_rmp):
+def delta_B_RMP(R, Z, phi, m=base_m, n=base_n, B_amp=B_rmp):
     theta_pol = np.arctan2(Z, R - R0_eq)
     phase = m * theta_pol - n * phi
     dBR = B_amp * np.cos(phase) * np.cos(theta_pol)
@@ -55,7 +58,7 @@ def delta_B_rmp(R, Z, phi, m=base_m, n=base_n, B_amp=B_rmp):
 # ── 3. Find resonant components ────────────────────────────────────────────
 print("[2] Finding resonant components...")
 components = find_resonant_components_analytic(
-    eq, delta_B_rmp, base_m=base_m, base_n=base_n,
+    eq, delta_B_RMP, base_m=base_m, base_n=base_n,
     max_harmonic=3, n_theta=64, n_phi=32,
 )
 print(f"  Found {len(components)} resonant components")
@@ -90,7 +93,7 @@ def field_func_with_rmp(rzphi_1d):
     delta_BR_eq = eq.epsilon_h * eq.B0 * psi * np.cos(eq.m_h * theta - eq.n_h * phi)
 
     # RMP perturbation
-    db = delta_B_rmp(R, Z, phi)
+    db = delta_B_RMP(R, Z, phi)
 
     BR_tot = BR0 + delta_BR_eq + db[0]
     BZ_tot = BZ0                + db[1]
@@ -103,7 +106,7 @@ def field_func_with_rmp(rzphi_1d):
 phi_sections = np.array([0, 60, 120, 180, 240, 300]) * np.pi / 180.0
 
 # Start points: scan radially from near axis to LCFS
-R_starts = np.linspace(eq.R0 + 0.04*eq.r0, eq.R0 + 0.92*eq.r0, 18)
+R_starts = np.linspace(eq.R0 + 0.04*eq.r0, eq.R0 + 0.92*eq.r0, 22)
 Z_starts = np.zeros_like(R_starts)
 
 # Start all lines at phi=0 section
@@ -150,7 +153,7 @@ R_max = eq.R0 + 1.15 * eq.r0
 Z_lim = 1.15 * eq.r0
 
 # ψ_norm colormap: each starting field line gets a color based on its R (proxy for psi)
-cmap_poincare = cm.colormaps['plasma']
+cmap_poincare = cm.get_cmap('plasma')
 psi_starts = ((R_starts - eq.R0)**2) / eq.r0**2   # normalized psi at start
 psi_norm_starts = psi_starts / psi_starts.max()
 
@@ -171,7 +174,7 @@ for idx, phi_s in enumerate(phi_sections):
         psi_pts = ((R_pts - eq.R0)**2 + Z_pts**2) / eq.r0**2
         psi_pts_norm = np.clip(psi_pts, 0, 1)
         colors_scatter = cmap_poincare(psi_pts_norm * 0.87 + 0.05)
-        ax.scatter(R_pts, Z_pts, s=0.3, c=colors_scatter, rasterized=True, zorder=2)
+        ax.scatter(R_pts, Z_pts, s=0.8, c=colors_scatter, rasterized=True, alpha=0.6, zorder=2)
 
     # Draw resonant surface circles and O/X markers
     for comp in components:
@@ -217,7 +220,7 @@ for idx, phi_s in enumerate(phi_sections):
     ax.set_xlabel('$R$ (m)', fontsize=9)
     if col == 0:
         ax.set_ylabel('$Z$ (m)', fontsize=9)
-    ax.tick_params(labelsize=8)
+    # white background set in rcParams
     ax.set_facecolor('#0a0a12')   # dark background for Poincaré
 
 # Colorbar for ψ_norm
@@ -257,7 +260,7 @@ fig.suptitle(
 )
 
 out_path = r'D:\Repo\pyna\scripts\RMP_stellarator_resonance.png'
-plt.savefig(out_path, dpi=150, bbox_inches='tight', facecolor='#0d0d1a')
+plt.savefig(out_path, dpi=150, bbox_inches='tight', facecolor='white')
 print(f"\nSaved: {out_path}")
 plt.close()
 print("[Done]")
