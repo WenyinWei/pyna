@@ -5,6 +5,21 @@ For a SimpleStellarartor, compute resonant components analytically:
   - Island half-width via Rutherford formula
   - O-point phase from the RMP field structure
 
+O-point Phase Convention
+------------------------
+For resonant component b_{m,-n} = |b|·exp(iφ) in the Fourier expansion
+  δBψ = Σ b_{mn} exp(i(mθ* + nφ))
+
+The fixed points of the Poincaré map (one toroidal turn) satisfy:
+  δBψ = 0  →  mθ* − nφ + φ_mn = ±π/2
+
+Stability analysis (q' > 0):
+  O-point: mθ_O + φ_mn = −π/2  →  θ_O = (−π/2 − φ_mn)/m
+  X-point: mθ_X + φ_mn = +π/2  →  θ_X = (+π/2 − φ_mn)/m
+
+Reference: Rutherford (1973); Nardon (2007) thesis App. A;
+           White, Theory of Toroidally Confined Plasmas, Ch. 4.
+
 References
 ----------
 Boozer, Phys. Fluids B 3 (1991) — resonance condition
@@ -120,10 +135,22 @@ def find_resonant_components_analytic(
         # Convert to meters: r ≈ sqrt(ψ) * r0
         half_width_r = half_width_psi * eq.r0 / (2.0 * np.sqrt(max(psi_res, 0.01)))
 
-        # O-point phase
+        # O-point phase (derived from stability analysis of island Hamiltonian)
+        # Fixed points where δBψ = 2|b|cos(mθ + arg(b)) = 0, i.e., mθ + arg(b) = ±π/2
+        # For q' > 0 (normal shear):
+        #   O-point (stable):   mθ_O + arg(b) = -π/2  →  θ_O = (-π/2 - arg(b)) / m
+        #   X-point (unstable): mθ_X + arg(b) = +π/2  →  θ_X = (+π/2 - arg(b)) / m
+        # Reference: Nardon (2007) thesis, App. A; Rutherford (1973)
         phi_mn = np.angle(b_mn)
-        opoint_theta = (phi_mn / m_k) % (2*np.pi / m_k)
-        xpoint_theta = opoint_theta + np.pi / m_k
+        # Determine sign of q' to handle reversed-shear case
+        q_prime_sign = 1 if (getattr(eq, 'q1', 1.0) - getattr(eq, 'q0', 0.5)) >= 0 else -1
+        opoint_theta = ((-np.pi/2) * q_prime_sign - phi_mn) / m_k % (2 * np.pi / m_k)
+        xpoint_theta = ((+np.pi/2) * q_prime_sign - phi_mn) / m_k % (2 * np.pi / m_k)
+
+        print(f"  k={k}: ({m_k},{n_k}) ψ_res={psi_res:.3f} q_res={q_res:.3f} "
+              f"|b_mn|={abs(b_mn):.3e} phase_arg={np.degrees(phi_mn):.1f}° "
+              f"w_ψ={half_width_psi:.4f} ({half_width_r*100:.2f} cm) "
+              f"θ_O={np.degrees(opoint_theta):.1f}° θ_X={np.degrees(xpoint_theta):.1f}°")
 
         components.append(ResonantComponent(
             m=m_k, n=n_k,
@@ -136,11 +163,6 @@ def find_resonant_components_analytic(
             opoint_theta=opoint_theta,
             xpoint_theta=xpoint_theta,
         ))
-
-        print(f"  k={k}: ({m_k},{n_k}) ψ_res={psi_res:.3f} q_res={q_res:.3f} "
-              f"|b_mn|={abs(b_mn):.3e} "
-              f"w_ψ={half_width_psi:.4f} ({half_width_r*100:.2f} cm) "
-              f"θ_O={np.degrees(opoint_theta):.1f}°")
 
     return components
 
@@ -165,9 +187,12 @@ def plot_island_width_bars(
 
         for i_op in range(comp.m):
             theta_op = comp.opoint_theta + i_op * 2*np.pi / comp.m
+            theta_xp = comp.xpoint_theta + i_op * 2*np.pi / comp.m
 
             R_O = R0 + r_res * np.cos(theta_op)
             Z_O =      r_res * np.sin(theta_op)
+            R_X = R0 + r_res * np.cos(theta_xp)
+            Z_X =      r_res * np.sin(theta_xp)
 
             r_inner = max(0.01, r_res - comp.half_width_r)
             r_outer = r_res + comp.half_width_r
@@ -177,10 +202,15 @@ def plot_island_width_bars(
             R_out = R0 + r_outer * np.cos(theta_op)
             Z_out =      r_outer * np.sin(theta_op)
 
+            # Island width bar at O-point (filled circle + line)
             ax.plot([R_in, R_out], [Z_in, Z_out],
                     color=color, linewidth=3.5, alpha=0.85,
                     solid_capstyle='round', zorder=5)
-            ax.plot(R_O, Z_O, 'o', color=color, markersize=5, zorder=6)
+            ax.plot(R_O, Z_O, 'o', color=color, markersize=6, zorder=6,
+                    label=f'O ({comp.m},{comp.n})' if i_op == 0 else None)
+            # X-point marker
+            ax.plot(R_X, Z_X, 'x', color=color, markersize=7, markeredgewidth=1.5,
+                    zorder=6, alpha=0.7)
 
         if label_harmonics:
             theta_op0 = comp.opoint_theta
