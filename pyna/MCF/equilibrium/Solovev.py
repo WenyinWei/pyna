@@ -753,6 +753,38 @@ class SolovevEquilibrium:
         """ψ_norm value at the last closed flux surface (= 1.0 by definition)."""
         return 1.0
 
+    def resonant_psi(self, m: int, n: int, n_scan: int = 200) -> list:
+        """Find ψ_norm values where q(ψ) = m/n.
+
+        Parameters
+        ----------
+        m, n : int
+            Poloidal and toroidal mode numbers; resonance at q = m/n.
+        n_scan : int
+            Number of points to scan in ψ_norm ∈ [0.02, 0.97].
+
+        Returns
+        -------
+        list of float
+            ψ_norm values where q = m/n (sorted ascending).
+        """
+        from scipy.optimize import brentq
+        q_target = m / n
+        psi_arr = np.linspace(0.02, 0.97, n_scan)
+        q_arr = self.q_profile(psi_arr)
+        results = []
+        for i in range(len(psi_arr) - 1):
+            if (q_arr[i] - q_target) * (q_arr[i + 1] - q_target) < 0:
+                try:
+                    psi_r = brentq(
+                        lambda p: float(self.q_profile(np.array([p]))[0]) - q_target,
+                        psi_arr[i], psi_arr[i + 1], xtol=1e-6,
+                    )
+                    results.append(float(psi_r))
+                except Exception:
+                    pass
+        return results
+
     def flux_surface(self, psi_norm: float, n_pts: int = 300) -> tuple:
         """Return (R, Z) contour of the flux surface at normalised ψ.
 
