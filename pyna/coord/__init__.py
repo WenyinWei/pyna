@@ -30,6 +30,11 @@ from pyna.coord.PEST import (
     co_comp_of_a_field,
 )
 
+# Additional magnetic coordinate systems
+from pyna.coord.equal_arc import build_equal_arc_mesh
+from pyna.coord.hamada import build_Hamada_mesh
+from pyna.coord.boozer import build_Boozer_mesh
+
 __all__ = [
     "RZPhi_range_2_XYZ_mesh",
     "RZPhi_mesh_2_XYZ_mesh",
@@ -38,4 +43,7 @@ __all__ = [
     "g_i_g__i_from_STET_mesh",
     "counter_comp_of_a_field",
     "co_comp_of_a_field",
+    "build_equal_arc_mesh",
+    "build_Hamada_mesh",
+    "build_Boozer_mesh",
 ]
