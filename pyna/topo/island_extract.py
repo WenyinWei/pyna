@@ -1,9 +1,9 @@
-"""Island O/X-point extraction from PoincarÃ© scatter data.
+"""Island O/X-point extraction from Poincar?? scatter data.
 
 Provides
 --------
-* :class:`IslandChain` â€?dataclass holding O/X points and widths.
-* :func:`extract_island_width` â€?infer island geometry from PoincarÃ© data.
+* :class:`IslandChain` ???dataclass holding O/X points and widths.
+* :func:`extract_island_width` ???infer island geometry from Poincar?? data.
 """
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ class IslandChain:
     half_width_r : float
         Average radial half-width in metres.
     half_width_psi : float
-        Average half-width in normalised Ïˆ coordinate.
+        Average half-width in normalised ?? coordinate.
     """
 
     O_points: np.ndarray
@@ -43,13 +43,13 @@ def extract_island_width(
     max_newton_iter: int = 50,
     n_fallback_seeds: int = 8,
 ) -> IslandChain:
-    """Extract O/X points and island half-widths from PoincarÃ© scatter data.
+    """Extract O/X points and island half-widths from Poincar?? scatter data.
 
     Algorithm
     ---------
-    1. Compute angles from magnetic axis for each PoincarÃ© point.
+    1. Compute angles from magnetic axis for each Poincar?? point.
     2. Bin into *mode_m* groups by angle.
-    3. Cluster centroid â†?initial O-point candidate.
+    3. Cluster centroid ???initial O-point candidate.
     4. Refine each O-point using Nelder-Mead to minimise the radial variance
        of the points in that cluster.  Fallback seeds if optimisation diverges.
     5. X-points: midpoints between O-points in angle (same radial distance).
@@ -64,7 +64,7 @@ def extract_island_width(
     mode_m : int
         Number of islands in the chain.
     psi_func : callable
-        ``psi_func(R, Z) â†?psi_norm``.
+        ``psi_func(R, Z) ???psi_norm``.
     max_newton_iter : int
         Not used directly; kept for API compatibility.
     n_fallback_seeds : int
@@ -79,8 +79,8 @@ def extract_island_width(
     Z_pts = pts[:, 1]
 
     # Angles from magnetic axis
-    angles = np.arctan2(Z_pts - Z_axis, R_pts - R_axis)  # in (-Ï€, Ï€]
-    # Normalise to [0, 2Ï€)
+    angles = np.arctan2(Z_pts - Z_axis, R_pts - R_axis)  # in (-??, ??]
+    # Normalise to [0, 2??)
     angles = angles % (2 * np.pi)
     # Radial distances from axis
     r_pts = np.sqrt((R_pts - R_axis) ** 2 + (Z_pts - Z_axis) ** 2)
@@ -107,7 +107,7 @@ def extract_island_width(
         R0_k = float(np.mean(R_k))
         Z0_k = float(np.mean(Z_k))
 
-        # Minimise radial variance in cluster â€?proxy for O-point location
+        # Minimise radial variance in cluster ???proxy for O-point location
         def objective(rz):
             R_c, Z_c = rz[0], rz[1]
             r_c = np.sqrt((R_k - R_c) ** 2 + (Z_k - Z_c) ** 2)
@@ -143,7 +143,7 @@ def extract_island_width(
         r_max = float(np.max(r_from_O))
         half_widths_R.append((r_max - r_min) / 2.0)
 
-        # Ïˆ half-width
+        # ?? half-width
         try:
             psi_O = float(psi_func(R_O, Z_O))
             angle_O = float(np.arctan2(Z_O - Z_axis, R_O - R_axis))
