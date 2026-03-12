@@ -238,7 +238,7 @@ def _try_find_cycle_from_seed(
     RZlimit: Optional[Tuple],
     max_iter: int,
     tol: float,
-    damping: float = 0.98,
+    damping: float = 0.5,
 ) -> Optional[PeriodicOrbit]:
     """Internal Newton-Raphson cycle finder from a single seed."""
     x0 = np.array([seed_rzphi[0], seed_rzphi[1]], dtype=float)
@@ -279,6 +279,10 @@ def _try_find_cycle_from_seed(
             R_min, R_max, Z_min, Z_max = RZlimit
             if not (R_min < x0[0] < R_max and Z_min < x0[1] < Z_max):
                 return None
+        # Also cap step size to avoid wild Newton excursions
+        step_norm = np.linalg.norm(delta)
+        if step_norm > 0.1:
+            return None
 
     return None
 
