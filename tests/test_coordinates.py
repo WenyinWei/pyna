@@ -9,7 +9,7 @@ import pytest
 
 @pytest.fixture(scope="module")
 def solovev_eq():
-    from pyna.mag.solovev import solovev_iter_like
+    from pyna.mag.Solovev import solovev_iter_like
     return solovev_iter_like(scale=0.3)
 
 
@@ -40,7 +40,7 @@ def pest_mesh(solovev_eq):
 class TestEqualArc:
     def test_arc_lengths_uniform(self, pest_mesh):
         """Arc lengths in θ_ea space should be uniform within 2% on each surface."""
-        from pyna.coord.equal_arc import build_equal_arc_mesh
+        from pyna.coord.EqualArc import build_equal_arc_mesh
         S, TET, R_mesh, Z_mesh, q_iS, eq = pest_mesh
         _, TET_ea, R_ea, Z_ea = build_equal_arc_mesh(S, TET, R_mesh, Z_mesh, n_theta=91)
 
@@ -58,7 +58,7 @@ class TestEqualArc:
                 )
 
     def test_output_shapes(self, pest_mesh):
-        from pyna.coord.equal_arc import build_equal_arc_mesh
+        from pyna.coord.EqualArc import build_equal_arc_mesh
         S, TET, R_mesh, Z_mesh, q_iS, eq = pest_mesh
         n_theta = 61
         S_out, TET_ea, R_ea, Z_ea = build_equal_arc_mesh(S, TET, R_mesh, Z_mesh, n_theta=n_theta)
@@ -107,7 +107,7 @@ class TestPEST:
 class TestBoozer:
     def test_lambda_smooth_and_bounded(self, pest_mesh):
         """Boozer angle correction λ should be smooth and bounded."""
-        from pyna.coord.boozer import build_Boozer_mesh
+        from pyna.coord.Boozer import build_Boozer_mesh
         S, TET, R_mesh, Z_mesh, q_iS, eq = pest_mesh
         _, TET_B, R_B, Z_B, lam = build_Boozer_mesh(
             S, TET, R_mesh, Z_mesh, q_iS, equilibrium=eq, n_theta=91
@@ -120,7 +120,7 @@ class TestBoozer:
 
     def test_lambda_periodic(self, pest_mesh):
         """λ should satisfy λ(θ*=0) ≈ λ(θ*=2π) (periodic correction)."""
-        from pyna.coord.boozer import build_Boozer_mesh
+        from pyna.coord.Boozer import build_Boozer_mesh
         S, TET, R_mesh, Z_mesh, q_iS, eq = pest_mesh
         _, TET_B, R_B, Z_B, lam = build_Boozer_mesh(
             S, TET, R_mesh, Z_mesh, q_iS, equilibrium=eq, n_theta=91
@@ -131,7 +131,7 @@ class TestBoozer:
             )
 
     def test_output_shapes(self, pest_mesh):
-        from pyna.coord.boozer import build_Boozer_mesh
+        from pyna.coord.Boozer import build_Boozer_mesh
         S, TET, R_mesh, Z_mesh, q_iS, eq = pest_mesh
         n_theta = 61
         S_out, TET_B, R_B, Z_B, lam = build_Boozer_mesh(
@@ -151,7 +151,7 @@ class TestBoozer:
 class TestHamada:
     def test_area_elements_uniform(self, pest_mesh):
         """Hamada angle: cumulative area (from axis) should be linear in θ_H."""
-        from pyna.coord.hamada import build_Hamada_mesh
+        from pyna.coord.Hamada import build_Hamada_mesh
         S, TET, R_mesh, Z_mesh, q_iS, eq = pest_mesh
         _, TET_H, R_H, Z_H = build_Hamada_mesh(S, TET, R_mesh, Z_mesh, n_theta=91)
 
@@ -189,7 +189,7 @@ class TestHamada:
             )
 
     def test_output_shapes(self, pest_mesh):
-        from pyna.coord.hamada import build_Hamada_mesh
+        from pyna.coord.Hamada import build_Hamada_mesh
         S, TET, R_mesh, Z_mesh, q_iS, eq = pest_mesh
         n_theta = 61
         S_out, TET_H, R_H, Z_H = build_Hamada_mesh(S, TET, R_mesh, Z_mesh, n_theta=n_theta)

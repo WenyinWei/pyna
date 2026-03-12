@@ -16,7 +16,7 @@ from pyna.flt import FieldLineTracer
 from pyna.topo.island_extract import extract_island_width
 
 # ---------------------------------------------------------------------------
-# 1. Build stellarator: q=4/1 at psi=(4-1.5)/(5.0-1.5)=2.5/3.5â‰ˆ0.714
+# 1. Build stellarator: q=4/1 at psi=(4-1.5)/(5.0-1.5)=2.5/3.5â‰?.714
 #    with m_h=4, n_h=1 helical ripple
 # ---------------------------------------------------------------------------
 st = simple_stellarator(R0=3.0, r0=0.3, B0=1.0, q0=1.5, q1=5.0,
@@ -38,7 +38,7 @@ print(f"psi_res={psi_res:.4f}  r_res={r_res:.4f} m")
 # 2. Start points near q=4/1 surface and trace
 # ---------------------------------------------------------------------------
 start_pts = st.start_points_near_resonance(4, 1, n_lines=24, delta_psi=0.06)
-print(f"Tracing {len(start_pts)} field lines (t_max=600, dt=0.1)â€¦")
+print(f"Tracing {len(start_pts)} field lines (t_max=600, dt=0.1)â€?)
 
 n_phi_sections = 4
 phi_sections = [k * np.pi / 2 for k in range(n_phi_sections)]
@@ -161,7 +161,7 @@ for x, y in zip(phi_degs, hw_vals):
         ax5.text(x, y + 0.02, f'{y:.2f} cm', ha='center', va='bottom', fontsize=8)
 
 fig.suptitle(
-    f"Simple stellarator q=4/1 island chain â€” 4 toroidal sections\n"
+    f"Simple stellarator q=4/1 island chain â€?4 toroidal sections\n"
     f"R0={st.R0} m, r0={st.r0} m, m_h={st.m_h}, n_h={st.n_h}, Îµ_h={st.epsilon_h}",
     fontsize=11
 )

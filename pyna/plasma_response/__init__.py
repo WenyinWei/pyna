@@ -9,6 +9,6 @@ solve_perturbed_gs : solve linearised MHD equilibrium for δB_plasma
 compute_plasma_response : convenience wrapper returning δB_total
 """
 
-from .perturb_gs import solve_perturbed_gs, compute_plasma_response
+from .PerturbGS import solve_perturbed_gs, compute_plasma_response
 
 __all__ = ["solve_perturbed_gs", "compute_plasma_response"]

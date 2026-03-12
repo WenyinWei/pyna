@@ -13,7 +13,7 @@ from pyna.control.qprofile_response import (
     iota_response_matrix,
     build_qprofile_response,
 )
-from pyna.mag.solovev import SolovevEquilibrium, solovev_iter_like
+from pyna.mag.Solovev import SolovevEquilibrium, solovev_iter_like
 
 
 # ── fixtures ──────────────────────────────────────────────────────────────

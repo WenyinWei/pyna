@@ -107,7 +107,7 @@ try:
     # Map stellarator params to CUDAFieldLineTracer (Solov'ev-encoded kernel)
     # Use the stellarator as a toroidal machine: R0, r0≈a, B0, q~q0_eff
     # The kernel uses Solov'ev; stellarator uses circular flux surfaces
-    # q0 in kernel ≈ mean q of stellarator; perturbation encoded via epsilon_h
+    # q0 in kernel �?mean q of stellarator; perturbation encoded via epsilon_h
     q_eff = (st.q0 + st.q1) / 2.0  # ~ 3.5 average
     tracer = CUDAFieldLineTracer(
         R0=st.R0, a=st.r0 * 1.2,
@@ -228,7 +228,7 @@ for ax_idx, (ax, pts, label, chain) in enumerate(
     ax.set_ylabel('Z (m)', color='white', fontsize=7)
 
 fig.suptitle(
-    f'Stellarator Boundary Islands — GPU\n'
+    f'Stellarator Boundary Islands �?GPU\n'
     f'q=5/1 resonance at ψ={psi_res:.3f}, ε_h=0.04, m_h=5, n_h=1',
     color='white', fontsize=11, y=0.98
 )
@@ -262,7 +262,7 @@ if island_chains[0] is not None:
 
 ax2.plot(R_ax, Z_ax, '+', color='white', ms=12, mew=2, zorder=6, label='Magnetic axis')
 ax2.set_title(
-    f'Stellarator Poincaré (φ=0) — Core to Edge\n'
+    f'Stellarator Poincaré (φ=0) �?Core to Edge\n'
     f'{len(phi0_crossings):,} crossings',
     color='white', fontsize=11
 )

@@ -11,7 +11,7 @@ from scipy.optimize import brentq
 from scipy.interpolate import interp1d
 from concurrent.futures import ThreadPoolExecutor
 
-from pyna.mag.solovev import SolovevEquilibrium
+from pyna.mag.Solovev import SolovevEquilibrium
 
 # --- Build equilibrium with q0=3 so q=4/1 is accessible ---
 eq = SolovevEquilibrium(R0=1.86, a=0.6, B0=5.3, kappa=1.7, delta=0.33, q0=3.0)

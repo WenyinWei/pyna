@@ -1,8 +1,8 @@
-"""Tests for pyna.mag.rmp — RMP spectrum and island width pipeline."""
+"""Tests for pyna.mag.RMP — RMP spectrum and island width pipeline."""
 import numpy as np
 import pytest
 from pyna.mag.equilibrium import SyntheticCircularTokamakEquilibrium
-from pyna.mag.rmp import normalize_b, rmp_spectrum_2d, island_width_at_rational_surfaces
+from pyna.mag.RMP import normalize_b, rmp_spectrum_2d, island_width_at_rational_surfaces
 
 
 # ---------------------------------------------------------------------------

@@ -11,7 +11,7 @@ from pyna.mag.coordinate import (
     calc_dRZdSTET_mesh,
 )
 
-from pyna.mag.grad_shafranov import (
+from pyna.mag.GradShafranov import (
     recover_pressure_simplest,
     solve_GS_perturbed,
 )

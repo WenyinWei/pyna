@@ -19,7 +19,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from pyna.flt import FieldLineTracer, get_backend
 
 # ---------------------------------------------------------------------------
-# Solov'ev equilibrium â€” analytic field function (for CPU tracer)
+# Solov'ev equilibrium â€?analytic field function (for CPU tracer)
 # ---------------------------------------------------------------------------
 
 R0, a, B0, q0 = 1.0, 0.3, 1.0, 2.0
@@ -58,7 +58,7 @@ results: dict[str, dict] = {}
 # ---------------------------------------------------------------------------
 # 1. CPU serial (n_workers=1)
 # ---------------------------------------------------------------------------
-print("Running CPU serial (n_workers=1)â€¦")
+print("Running CPU serial (n_workers=1)â€?)
 tracer_serial = FieldLineTracer(solovev_field, dt=DT, RZlimit=RZLIMIT, n_workers=1)
 t0 = time.perf_counter()
 trajs_serial = tracer_serial.trace_many(starts, T_MAX, n_workers=1)
@@ -69,7 +69,7 @@ print(f"  Serial:   {t_serial:.3f}s  (speedup 1.00Ã—)")
 # ---------------------------------------------------------------------------
 # 2. CPU parallel ThreadPool (n_workers=8)
 # ---------------------------------------------------------------------------
-print("Running CPU parallel ThreadPool (n_workers=8)â€¦")
+print("Running CPU parallel ThreadPool (n_workers=8)â€?)
 tracer_parallel = FieldLineTracer(solovev_field, dt=DT, RZlimit=RZLIMIT, n_workers=8)
 t0 = time.perf_counter()
 trajs_parallel = tracer_parallel.trace_many(starts, T_MAX, n_workers=8)
@@ -83,7 +83,7 @@ print(f"  Parallel: {t_parallel:.3f}s  (speedup {speedup_parallel:.2f}Ã—)")
 # ---------------------------------------------------------------------------
 try:
     import cupy as cp
-    print("Running GPU CUDAâ€¦")
+    print("Running GPU CUDAâ€?)
     cuda_tracer = get_backend(
         'cuda', R0=R0, a=a, B0=B0, q0=q0,
         dt=DT, RZlimit=RZLIMIT,
