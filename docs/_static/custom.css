@@ -1,0 +1,10 @@
+/* custom.css for pyna docs */
+
+.wy-nav-content {
+    max-width: 1200px;
+}
+
+/* Improve code block readability */
+.highlight {
+    background: #f8f8f8;
+}

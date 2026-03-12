@@ -1,20 +1,34 @@
-.. pyna documentation master file, created by
-   sphinx-quickstart on Thu Dec 22 17:53:56 2022.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+pyna — Python Dynamical Systems Library
+=========================================
 
-Welcome to pyna's documentation!
-================================
+.. image:: https://img.shields.io/badge/version-0.1.0-blue
+.. image:: https://img.shields.io/badge/python-3.10+-green
+.. image:: https://img.shields.io/badge/license-MIT-lightgrey
+
+**pyna** is a Python library for dynamical systems analysis and magnetic confinement fusion (MCF) plasma physics research.
+
+**核心特性 / Core Features**
+
+- 🔀 **Field Line Tracing (FLT)** — RK4 integrator, CUDA acceleration (118× speedup)
+- 🌀 **Poincaré Maps & Island Analysis** — X/O point detection, island width extraction
+- 🎯 **FPT Topology Control** — Functional Perturbation Theory for magnetic topology control
+- 🧲 **MCF Equilibria** — Solov'ev, GS solver, stellarator configurations
+- 📐 **Magnetic Coordinates** — PEST, Boozer, Hamada, Equal-arc
+- ⚡ **C++ Acceleration (cyna)** — Optional C++ backend for performance-critical ops
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: English Documentation
 
-Pyna is a python package to integrate utilities for dynamical system problems, such as locating periodic points, drawing invariant manifolds and calculating the monodromy matrix.
+   en/installation
+   en/quickstart
+   en/api/index
+   en/tutorials/index
 
-Indices and tables
-==================
+.. toctree::
+   :maxdepth: 2
+   :caption: 中文文档
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   zh/installation
+   zh/quickstart
+   zh/api/index
