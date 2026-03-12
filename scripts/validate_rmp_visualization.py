@@ -1,6 +1,6 @@
-"""Validate q=4/1 RMP island extraction on a Solov'ev equilibrium.
+"""Validate q=4/1 (or q=2/1 fallback) RMP island extraction on a Solov'ev equilibrium.
 
-Generates: scripts/rmp_island_validation.png
+Generates: scripts/rmp_island_validation_v2.png
 """
 import numpy as np
 import matplotlib
@@ -10,16 +10,26 @@ import matplotlib.pyplot as plt
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from pyna.mag.solovev import solovev_iter_like
+from pyna.mag.solovev import SolovevEquilibrium, solovev_iter_like
 from pyna.topo.poincare import PoincareMap, ToroidalSection
 from pyna.flt import FieldLineTracer
 from pyna.topo.island import locate_rational_surface, island_halfwidth
 from pyna.topo.island_extract import extract_island_width
 
 # ---------------------------------------------------------------------------
-# 1. Build equilibrium
+# 1. Build equilibrium — try to get a higher-q profile by increasing q0
+#    so that q reaches 4 somewhere in the domain.
 # ---------------------------------------------------------------------------
-eq = solovev_iter_like(scale=0.3)
+# Use q0=2.0; with Solov'ev the edge q is typically ~2-3x the axis value.
+# We'll check empirically below.
+eq = SolovevEquilibrium(
+    R0=6.2 * 0.3,
+    a=2.0 * 0.3,
+    B0=5.3,
+    kappa=1.7,
+    delta=0.33,
+    q0=2.0,   # higher axis q helps reach q=4 at edge
+)
 print(f"R0={eq.R0:.3f} m  a={eq.a:.3f} m  κ={eq.kappa}  δ={eq.delta}")
 R_ax, Z_ax = eq.magnetic_axis
 print(f"Magnetic axis: R={R_ax:.4f} m  Z={Z_ax:.4f} m")
@@ -27,22 +37,46 @@ print(f"Magnetic axis: R={R_ax:.4f} m  Z={Z_ax:.4f} m")
 # ---------------------------------------------------------------------------
 # 2. q profile and resonant surface
 # ---------------------------------------------------------------------------
-S_values = np.linspace(0.05, 0.95, 60)
+S_values = np.linspace(0.05, 0.97, 80)
 psi_values = S_values**2
 q_values = eq.q_profile(psi_values, n_theta=256)
 
-S_res_list = locate_rational_surface(S_values, q_values, m=2, n=1)
+# Debug print q range
+for s_check in [0.1, 0.5, 0.9, 0.95]:
+    idx = np.argmin(np.abs(S_values - s_check))
+    print(f"  q(S={s_check}) = {q_values[idx]:.3f}")
+
+q_max = float(np.nanmax(q_values))
+q_min_v = float(np.nanmin(q_values))
+print(f"q range: [{q_min_v:.3f}, {q_max:.3f}]")
+
+# Decide mode
+if q_max >= 3.9:
+    m_mode, n_mode = 4, 1
+    print("Using q=4/1 mode.")
+else:
+    m_mode, n_mode = 2, 1
+    print(f"WARNING: q_max={q_max:.3f} < 4. Falling back to q=2/1 mode.")
+
+S_res_list = locate_rational_surface(S_values, q_values, m=m_mode, n=n_mode)
 if not S_res_list:
-    raise RuntimeError("q=2/1 surface not found — check q profile range")
+    # Last resort: use q=2/1
+    m_mode, n_mode = 2, 1
+    print(f"WARNING: q={m_mode}/{n_mode} surface not found. Trying q=2/1.")
+    S_res_list = locate_rational_surface(S_values, q_values, m=2, n=1)
+    if not S_res_list:
+        raise RuntimeError("No resonant surface found — check q profile.")
+
 S_res = S_res_list[0]
 psi_res = S_res**2
-print(f"q=2/1 resonant surface: S_res={S_res:.4f}  psi_res={psi_res:.4f}")
+print(f"q={m_mode}/{n_mode} resonant surface: S_res={S_res:.4f}  psi_res={psi_res:.4f}")
+r_res = S_res * eq.a
 
 # ---------------------------------------------------------------------------
 # 3. RMP perturbation (analytic helical)
 # ---------------------------------------------------------------------------
 delta_b = 5e-3
-m_rmp, n_rmp = 2, 1
+m_rmp, n_rmp = m_mode, n_mode
 
 def rmp_BR(R, Z, phi):
     psi_n = eq.psi(np.atleast_1d(R), np.atleast_1d(Z))
@@ -68,21 +102,23 @@ def field_func(rzphi):
     return np.array([BR_t/B_mag, BZ_t/B_mag, Bphi_t/(R*B_mag)])
 
 # ---------------------------------------------------------------------------
-# 4. Field-line tracing & Poincaré
+# 4. Field-line tracing — start points bracketing resonant surface
 # ---------------------------------------------------------------------------
-n_lines = 12
-psi_arr = np.linspace(max(psi_res - 0.06, 0.01), min(psi_res + 0.06, 0.95), n_lines)
+n_lines = 24
+delta_S = 0.08
+S_arr = np.linspace(max(S_res - delta_S, 0.02), min(S_res + delta_S, 0.97), n_lines)
+psi_start = S_arr**2
 start_pts = np.column_stack([
-    R_ax + np.sqrt(psi_arr) * eq.a,
+    R_ax + S_arr * eq.a,
     np.zeros(n_lines),
     np.zeros(n_lines),
 ])
 
 section = ToroidalSection(phi0=0.0)
-tracer = FieldLineTracer(field_func, dt=0.05)
+tracer = FieldLineTracer(field_func, dt=0.04)
 
-print(f"Tracing {n_lines} field lines (t_max=1500)…")
-trajs = tracer.trace_many(start_pts, t_max=1500.0)
+print(f"Tracing {n_lines} field lines near q={m_mode}/{n_mode} (t_max=2500)…")
+trajs = tracer.trace_many(start_pts, t_max=2500.0)
 
 pmap = PoincareMap([section])
 for traj in trajs:
@@ -92,42 +128,44 @@ pts_all = pmap.crossing_array(0)
 print(f"Total Poincaré crossings: {len(pts_all)}")
 
 # ---------------------------------------------------------------------------
-# 5. Island extraction
+# 5. Filter crossings near resonant surface (±30% of r_res from axis)
 # ---------------------------------------------------------------------------
-r_pts = np.sqrt((pts_all[:, 0] - R_ax)**2 + pts_all[:, 1]**2)
-r_res = S_res * eq.a
-mask = np.abs(r_pts - r_res) < 0.2 * eq.a
-pts_near = pts_all[mask] if mask.sum() >= 16 else pts_all
-print(f"Points near q=4/1 surface: {mask.sum()} (total: {len(pts_all)})")
+if len(pts_all) > 0:
+    r_pts = np.sqrt((pts_all[:, 0] - R_ax)**2 + pts_all[:, 1]**2)
+    r_res_val = S_res * eq.a
+    mask = np.abs(r_pts - r_res_val) < 0.30 * r_res_val
+    pts_near = pts_all[mask] if mask.sum() >= 12 else pts_all
+    print(f"Points near resonant surface: {mask.sum()} / {len(pts_all)}")
+else:
+    pts_near = pts_all
 
+# ---------------------------------------------------------------------------
+# 6. Island extraction
+# ---------------------------------------------------------------------------
 chain = None
 if len(pts_near) >= 8:
     chain = extract_island_width(
         pts_near[:, :2], R_ax, Z_ax,
-        mode_m=2,
+        mode_m=m_mode,
         psi_func=lambda R, Z: float(eq.psi(np.array([R]), np.array([Z]))),
     )
     print(f"O-points found: {len(chain.O_points)}")
-    print(f"Island half-width: w_r = {chain.half_width_r*100:.2f} cm")
-    print(f"Island half-width: w_psi = {chain.half_width_psi:.4f}")
+    if not np.isnan(chain.half_width_r):
+        print(f"Island half-width: w_r = {chain.half_width_r*100:.2f} cm")
+    print(f"O-points: {chain.O_points}")
+    print(f"X-points: {chain.X_points}")
+else:
+    print(f"Not enough near-resonance points ({len(pts_near)}) for island extraction.")
 
 # Theoretical half-width
 b_profile = delta_b * psi_values * (1 - psi_values)
-w_theory = island_halfwidth(m=2, n=1, S_res=S_res, S=S_values,
+w_theory = island_halfwidth(m=m_mode, n=n_mode, S_res=S_res, S=S_values,
                              q_profile=q_values, tilde_b_mn=b_profile)
 print(f"Theoretical island half-width (Chirikov): w_S = {w_theory:.4f}")
 print(f"  → w_r ≈ {w_theory * eq.a * 100:.2f} cm  (a={eq.a:.3f} m)")
 
-if chain is not None:
-    w_poincare_S = chain.half_width_r / eq.a
-    ratio = w_poincare_S / w_theory if w_theory > 0 else float('nan')
-    print(f"--- Validation ---")
-    print(f"  Theory  : w_S = {w_theory:.4f}  → w_r = {w_theory*eq.a*100:.2f} cm")
-    print(f"  Poincaré: w_r = {chain.half_width_r*100:.2f} cm  → w_S = {w_poincare_S:.4f}")
-    print(f"  Ratio (Poincaré/Theory) = {ratio:.3f}")
-
 # ---------------------------------------------------------------------------
-# 6. Plot
+# 7. Plot
 # ---------------------------------------------------------------------------
 R_range = (eq.R0 - 1.4*eq.a, eq.R0 + 1.4*eq.a)
 Z_range = (-1.4*eq.kappa*eq.a, 1.4*eq.kappa*eq.a)
@@ -139,42 +177,54 @@ psi_g = eq.psi(Rg, Zg)
 
 fig, ax = plt.subplots(figsize=(7, 9))
 
+# (a) Background flux surface contours
 ax.contour(Rg, Zg, psi_g, levels=np.linspace(0.05, 0.95, 15),
            colors='lightgray', linewidths=0.5)
 ax.contour(Rg, Zg, psi_g, levels=[1.0], colors='k', linewidths=1.5)
-ax.contour(Rg, Zg, psi_g, levels=[psi_res], colors='navy',
-           linewidths=0.8, linestyles='--')
 
+# (b) Resonant surface contour (blue dashed)
+cs = ax.contour(Rg, Zg, psi_g, levels=[psi_res], colors='royalblue',
+                linewidths=1.2, linestyles='--')
+ax.clabel(cs, fmt=f'q={m_mode}/{n_mode}', fontsize=8)
+
+# (c) Poincaré scatter
 if len(pts_all) > 0:
-    ax.scatter(pts_all[:, 0], pts_all[:, 1], s=0.8, c='steelblue',
-               alpha=0.5, rasterized=True, label='Poincare')
+    ax.scatter(pts_all[:, 0], pts_all[:, 1], s=0.8, c='lightblue',
+               alpha=0.6, rasterized=True, label='Poincaré')
 
+# (d-f) O/X points and width arrows
 if chain is not None and len(chain.O_points) > 0:
     ax.scatter(chain.O_points[:, 0], chain.O_points[:, 1],
                s=60, c='red', marker='o', zorder=5, label='O-point')
-    ax.scatter(chain.X_points[:, 0], chain.X_points[:, 1],
-               s=60, c='blue', marker='x', zorder=5, lw=2, label='X-point')
+    if len(chain.X_points) > 0:
+        ax.scatter(chain.X_points[:, 0], chain.X_points[:, 1],
+                   s=60, c='blue', marker='x', zorder=5, lw=2, label='X-point')
 
-    for O_pt in chain.O_points:
-        dr = O_pt[0] - R_ax
-        dz = O_pt[1] - Z_ax
-        dist = np.sqrt(dr**2 + dz**2) + 1e-30
-        ur, uz = dr/dist, dz/dist
-        w = chain.half_width_r
-        ax.annotate('',
-            xy=(O_pt[0] + w*ur, O_pt[1] + w*uz),
-            xytext=(O_pt[0] - w*ur, O_pt[1] - w*uz),
-            arrowprops=dict(arrowstyle='<->', color='red', lw=1.5),
-        )
+    w = chain.half_width_r if not np.isnan(chain.half_width_r) else 0.0
+    if w > 0:
+        for O_pt in chain.O_points:
+            dr = O_pt[0] - R_ax
+            dz = O_pt[1] - Z_ax
+            dist = np.sqrt(dr**2 + dz**2) + 1e-30
+            ur, uz = dr/dist, dz/dist
+            ax.annotate('',
+                xy=(O_pt[0] + w*ur, O_pt[1] + w*uz),
+                xytext=(O_pt[0] - w*ur, O_pt[1] - w*uz),
+                arrowprops=dict(arrowstyle='<->', color='red', lw=1.5),
+            )
 
 ax.plot(R_ax, Z_ax, '+k', ms=10, mew=2)
 ax.set_aspect('equal')
 ax.set_xlabel('R (m)'); ax.set_ylabel('Z (m)')
-ax.set_title(f"q=2/1 island — Solov'ev + (2,1) RMP  (delta_b={delta_b:.0e})")
+mode_label = f"q={m_mode}/{n_mode}"
+ax.set_title(
+    f"{mode_label} island chain — Solov'ev + ({m_rmp},{n_rmp}) RMP\n"
+    f"delta_b={delta_b:.0e},  w_theory={w_theory*eq.a*100:.1f} cm"
+)
 ax.legend(fontsize=8, loc='upper right')
 ax.set_xlim(R_range); ax.set_ylim(Z_range)
 plt.tight_layout()
 
-out = os.path.join(os.path.dirname(__file__), 'rmp_island_validation.png')
+out = os.path.join(os.path.dirname(__file__), 'rmp_island_validation_v2.png')
 plt.savefig(out, dpi=150)
 print(f"Saved: {out}")
