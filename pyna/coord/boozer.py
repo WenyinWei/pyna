@@ -136,7 +136,7 @@ def build_Boozer_mesh(S, TET, R_mesh, Z_mesh, q_iS,
             continue
 
         # Flux-surface average of Jacobian
-        jac_avg = np.trapz(jac_s, TET) / (2 * np.pi)
+        jac_avg = np.trapezoid(jac_s, TET) / (2 * np.pi)
         if abs(jac_avg) < 1e-30:
             continue
 
