@@ -407,6 +407,11 @@ def find_all_cycles_near_resonance(
 
     found_orbits: list[PeriodicOrbit] = []
 
+    # For this stellarator model, q = m/n (tokamak convention: q = toroidal/poloidal).
+    # The orbit period in toroidal turns equals m (the numerator), not n.
+    # dθ/dφ = 1/q = n/m → after m toroidal turns, θ advances by 2πn → closed.
+    orbit_period = m
+
     for theta in seed_angles:
         seed = np.array([
             R0 + r_res * np.cos(theta),
@@ -414,7 +419,7 @@ def find_all_cycles_near_resonance(
             0.0,
         ])
         orbit = find_cycle(
-            field_func, seed, n_turns=n, dt=dt, RZlimit=RZlimit,
+            field_func, seed, n_turns=orbit_period, dt=dt, RZlimit=RZlimit,
             max_iter=50, tol=1e-8,
             n_fallback_seeds=6, fallback_radius=0.3 * r_res,
         )
