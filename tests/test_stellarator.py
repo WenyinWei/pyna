@@ -1,7 +1,7 @@
 """Tests for SimpleStellarartor."""
 import numpy as np
 import pytest
-from pyna.mag.stellarator import SimpleStellarartor, simple_stellarator
+from pyna.MCF.equilibrium.stellarator import SimpleStellarartor, simple_stellarator
 
 
 def make_st():

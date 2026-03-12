@@ -16,7 +16,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from pyna.mag.Solovev import SolovevEquilibrium
+from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
 from pyna.control._cached_fpt import CachedFPTAnalyzer
 from pyna.control.fpt import A_matrix as raw_A_matrix, DPm_axisymmetric
 

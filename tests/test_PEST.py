@@ -42,7 +42,7 @@ def _make_simple_equilibrium(nR=40, nZ=40):
 
 def test_build_PEST_mesh_output_shapes():
     """build_PEST_mesh should return arrays of the expected shapes."""
-    from pyna.coord.PEST import build_PEST_mesh
+    from pyna.MCF.coords.PEST import build_PEST_mesh
 
     R, Z, BR0, BZ0, BPhi0, psi_norm, Rmaxis, Zmaxis = _make_simple_equilibrium()
     ns, ntheta = 8, 13
@@ -61,7 +61,7 @@ def test_build_PEST_mesh_output_shapes():
 
 def test_build_PEST_mesh_S_monotone():
     """S should be monotonically increasing (or at least non-negative)."""
-    from pyna.coord.PEST import build_PEST_mesh
+    from pyna.MCF.coords.PEST import build_PEST_mesh
 
     R, Z, BR0, BZ0, BPhi0, psi_norm, Rmaxis, Zmaxis = _make_simple_equilibrium()
     ns = 6
@@ -75,7 +75,7 @@ def test_build_PEST_mesh_S_monotone():
 
 def test_RZmesh_isoSTET_deprecated():
     """RZmesh_isoSTET should emit a DeprecationWarning."""
-    from pyna.coord.PEST import RZmesh_isoSTET
+    from pyna.MCF.coords.PEST import RZmesh_isoSTET
 
     R, Z, BR0, BZ0, BPhi0, psi_norm, Rmaxis, Zmaxis = _make_simple_equilibrium()
 
@@ -89,7 +89,7 @@ def test_RZmesh_isoSTET_deprecated():
 
 def test_metric_tensor_biorthogonality():
     """g^i · g_j = δᵢⱼ approximately on interior grid points."""
-    from pyna.coord.PEST import build_PEST_mesh, g_i_g__i_from_STET_mesh
+    from pyna.MCF.coords.PEST import build_PEST_mesh, g_i_g__i_from_STET_mesh
 
     R, Z, BR0, BZ0, BPhi0, psi_norm, Rmaxis, Zmaxis = _make_simple_equilibrium()
     ns, ntheta = 8, 13

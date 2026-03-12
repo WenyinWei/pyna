@@ -5,7 +5,7 @@ Run with:  py -3.13 -m pytest tests/test_fpt.py -v
 
 import numpy as np
 import pytest
-from pyna.mag.Solovev import SolovevEquilibrium
+from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
 
 
 # ─────────────────────────────────────────────────────────────────────────────

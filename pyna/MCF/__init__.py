@@ -11,5 +11,3 @@ diagnostics     : Plasma diagnostic observables
 """
 from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
 from pyna.MCF.equilibrium.axisymmetric import AxisymEquilibrium
-from pyna.MCF.coils.coil import Coil
-from pyna.MCF.coils.RMP import RMPCoilSet

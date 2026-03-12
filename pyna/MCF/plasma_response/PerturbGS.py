@@ -497,7 +497,7 @@ def compute_plasma_response(
     delta_B_total : CylindricalVectorField
         Total perturbation δB_ext + δB_plasma on the same R-Z grid.
     """
-    from pyna.mag.Solovev import SolovevEquilibrium
+    from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
 
     if R_grid is None:
         R_grid = delta_B_ext.R
@@ -531,7 +531,7 @@ def compute_plasma_response(
 
 def _solovev_grid_fields(eq, R_arr, Z_arr):
     """Build B0, J0, p0 CylindricalVectorField / CylindricalScalarField from SolovevEquilibrium."""
-    from pyna.mag.Solovev import SolovevEquilibrium
+    from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
 
     nR, nZ = len(R_arr), len(Z_arr)
     RR, ZZ = np.meshgrid(R_arr, Z_arr, indexing='ij')

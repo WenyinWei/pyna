@@ -11,8 +11,8 @@ import time
 import numpy as np
 import pytest
 
-from pyna.control.wall import WallGeometry, make_east_like_wall
-from pyna.control.gap_response import gap_response_matrix_fpt, _grow_manifold
+from pyna.MCF.control.wall import WallGeometry, make_east_like_wall
+from pyna.MCF.control.gap_response import gap_response_matrix_fpt, _grow_manifold
 from pyna.control.topology_state import XPointState
 from pyna.control.fpt import A_matrix, DPm_axisymmetric
 

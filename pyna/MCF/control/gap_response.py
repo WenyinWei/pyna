@@ -24,7 +24,7 @@ import joblib
 _memory = joblib.Memory(location='.cache/gap_response', verbose=0)
 
 if TYPE_CHECKING:
-    from pyna.control.wall import WallGeometry
+    from pyna.MCF.control.wall import WallGeometry
     from pyna.control.topology_state import XPointState
 
 

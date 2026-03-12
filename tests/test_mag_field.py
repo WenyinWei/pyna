@@ -1,7 +1,7 @@
 """Tests for pyna.mag.field — VectorField3D hierarchy for cylindrical grids."""
 import numpy as np
 import pytest
-from pyna.mag.field import (
+from pyna.MCF.coils.field import (
     CylindricalGridVectorField3D,
     CylindricalGridAxiVectorField3D,
     RegualrCylindricalGridField,

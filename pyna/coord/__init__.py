@@ -1,10 +1,6 @@
+"""pyna.coord — backward-compatibility shim.
+Files have moved to pyna.MCF.coords; this module re-exports everything.
 """
-pyna.coord — coordinate system utilities.
-
-Includes the old coord.py utilities and the new PEST coordinate system.
-"""
-
-# Legacy flat-module functions (previously in pyna/coord.py)
 import numpy as np
 
 
@@ -21,19 +17,16 @@ def RZPhi_mesh_2_XYZ_mesh(Rv, Zv, Phiv):
     return Xv, Yv, Zv
 
 
-# PEST coordinate system
-from pyna.coord.PEST import (
+from pyna.MCF.coords.PEST import (
     build_PEST_mesh,
     RZmesh_isoSTET,
     g_i_g__i_from_STET_mesh,
     counter_comp_of_a_field,
     co_comp_of_a_field,
 )
-
-# Additional magnetic coordinate systems
-from pyna.coord.EqualArc import build_equal_arc_mesh
-from pyna.coord.Hamada import build_Hamada_mesh
-from pyna.coord.Boozer import build_Boozer_mesh
+from pyna.MCF.coords.EqualArc import build_equal_arc_mesh
+from pyna.MCF.coords.Hamada import build_Hamada_mesh
+from pyna.MCF.coords.Boozer import build_Boozer_mesh
 
 __all__ = [
     "RZPhi_range_2_XYZ_mesh",

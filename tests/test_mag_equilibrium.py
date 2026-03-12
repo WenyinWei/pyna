@@ -1,7 +1,7 @@
 """Tests for pyna.mag.equilibrium — synthetic tokamak equilibrium."""
 import numpy as np
 import pytest
-from pyna.mag.equilibrium import SyntheticCircularTokamakEquilibrium, time_linear_weighting
+from pyna.MCF.equilibrium.axisymmetric import SyntheticCircularTokamakEquilibrium, time_linear_weighting
 
 
 @pytest.fixture()

@@ -33,7 +33,7 @@ def make_circular_loop_pts(a, Z0=0.0, N=200):
 class TestBiotSavart:
     def test_on_axis_Bz(self):
         """Bz on the axis of a circular loop must match analytic formula."""
-        from pyna.mag.coil_system import biot_savart_field
+        from pyna.MCF.coils.coil_system import biot_savart_field
 
         a = 0.5    # loop radius (m)
         I = 1000.0 # current (A)
@@ -57,7 +57,7 @@ class TestBiotSavart:
 
     def test_zero_current(self):
         """Zero current → zero field."""
-        from pyna.mag.coil_system import biot_savart_field
+        from pyna.MCF.coils.coil_system import biot_savart_field
 
         pts = make_circular_loop_pts(0.5, N=100)
         R = np.array([[0.5]])
@@ -67,7 +67,7 @@ class TestBiotSavart:
 
     def test_sign_convention(self):
         """Positive current in +phi direction → positive Bz at centre (small R)."""
-        from pyna.mag.coil_system import biot_savart_field
+        from pyna.MCF.coils.coil_system import biot_savart_field
 
         a = 0.3
         I = 500.0
@@ -84,7 +84,7 @@ class TestBiotSavart:
 
 class TestCoilSet:
     def test_add_and_len(self):
-        from pyna.mag.coil_system import CoilSet
+        from pyna.MCF.coils.coil_system import CoilSet
 
         cs = CoilSet()
         pts = make_circular_loop_pts(0.5, N=50)
@@ -93,7 +93,7 @@ class TestCoilSet:
         assert len(cs) == 2
 
     def test_scale_currents(self):
-        from pyna.mag.coil_system import CoilSet
+        from pyna.MCF.coils.coil_system import CoilSet
 
         cs = CoilSet()
         pts = make_circular_loop_pts(0.5, N=50)
@@ -102,7 +102,7 @@ class TestCoilSet:
         assert abs(cs.coils[0][1] - 200.0) < 1e-10
 
     def test_set_current(self):
-        from pyna.mag.coil_system import CoilSet
+        from pyna.MCF.coils.coil_system import CoilSet
 
         cs = CoilSet()
         pts = make_circular_loop_pts(0.5, N=50)
@@ -112,7 +112,7 @@ class TestCoilSet:
 
     def test_field_on_grid_shape(self):
         """field_on_grid returns arrays of correct shape."""
-        from pyna.mag.coil_system import CoilSet
+        from pyna.MCF.coils.coil_system import CoilSet
 
         cs = CoilSet()
         pts = make_circular_loop_pts(0.5, N=50)
@@ -126,7 +126,7 @@ class TestCoilSet:
         assert BP.shape == (5, 4)
 
     def test_get_set_currents(self):
-        from pyna.mag.coil_system import CoilSet
+        from pyna.MCF.coils.coil_system import CoilSet
 
         cs = CoilSet()
         for I in [10.0, 20.0, 30.0]:
@@ -144,7 +144,7 @@ class TestCoilSet:
 
 class TestStellaratorControlCoils:
     def test_correct_number_of_coils(self):
-        from pyna.mag.coil_system import StellaratorControlCoils
+        from pyna.MCF.coils.coil_system import StellaratorControlCoils
 
         N = 12
         scc = StellaratorControlCoils(R0=3.0, r_coil=0.35, N_coils=N,
@@ -153,7 +153,7 @@ class TestStellaratorControlCoils:
 
     def test_coil_pts_shape(self):
         """Each coil should have 5 points (closed rectangle)."""
-        from pyna.mag.coil_system import StellaratorControlCoils
+        from pyna.MCF.coils.coil_system import StellaratorControlCoils
 
         scc = StellaratorControlCoils(R0=3.0, r_coil=0.35, N_coils=8,
                                        m_target=4, n_target=4, I0=1.0)
@@ -162,7 +162,7 @@ class TestStellaratorControlCoils:
 
     def test_current_phasing(self):
         """Currents should follow cos(n_target * phi_k) phasing."""
-        from pyna.mag.coil_system import StellaratorControlCoils
+        from pyna.MCF.coils.coil_system import StellaratorControlCoils
 
         N = 16
         n_t = 4
@@ -176,7 +176,7 @@ class TestStellaratorControlCoils:
 
     def test_coil_pts_closed(self):
         """First and last point of each saddle coil should match (closed loop)."""
-        from pyna.mag.coil_system import StellaratorControlCoils
+        from pyna.MCF.coils.coil_system import StellaratorControlCoils
 
         scc = StellaratorControlCoils(R0=3.0, r_coil=0.35, N_coils=8,
                                        m_target=2, n_target=3, I0=1.0)
@@ -184,7 +184,7 @@ class TestStellaratorControlCoils:
             assert np.allclose(pts[0], pts[-1]), "Coil not closed (first != last point)"
 
     def test_repr(self):
-        from pyna.mag.coil_system import StellaratorControlCoils
+        from pyna.MCF.coils.coil_system import StellaratorControlCoils
 
         scc = StellaratorControlCoils(3.0, 0.35, 8, 4, 4)
         assert 'StellaratorControlCoils' in repr(scc)
@@ -223,7 +223,7 @@ class TestIMASEquilibriumIDS:
 
     def test_from_stellarator(self):
         from pyna.imas_compat import IMASEquilibriumIDS
-        from pyna.mag.stellarator import SimpleStellarartor
+        from pyna.MCF.equilibrium.stellarator import SimpleStellarartor
 
         st = SimpleStellarartor()
         ids = IMASEquilibriumIDS.from_stellarator(st, n_psi=32, n_theta=64)
@@ -236,7 +236,7 @@ class TestIMASEquilibriumIDS:
 class TestIMASCoilsNonAxisymmetric:
     def test_from_coil_set_round_trip(self):
         from pyna.imas_compat import IMASCoilsNonAxisymmetric
-        from pyna.mag.coil_system import CoilSet
+        from pyna.MCF.coils.coil_system import CoilSet
 
         cs = CoilSet()
         for I in [100.0, -100.0]:
