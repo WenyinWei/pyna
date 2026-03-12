@@ -28,7 +28,7 @@ eq = SolovevEquilibrium(
     B0=5.3,
     kappa=1.7,
     delta=0.33,
-    q0=2.0,   # higher axis q helps reach q=4 at edge
+    q0=3.0,   # q0=3.0 gives q_max~4.75, so q=4/1 is reachable
 )
 print(f"R0={eq.R0:.3f} m  a={eq.a:.3f} m  κ={eq.kappa}  δ={eq.delta}")
 R_ax, Z_ax = eq.magnetic_axis
