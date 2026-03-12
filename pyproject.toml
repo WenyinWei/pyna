@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "pyna-chaos"
+version = "0.1.0"
+description = "Python library for dynamical systems and magnetic confinement fusion analysis"
+readme = "README.md"
+license = {text = "GPL-3.0-or-later"}
+authors = [{name = "Wenyin Wei", email = "wenyin.wei.ww@gmail.com"}]
+requires-python = ">=3.9"
+keywords = ["dynamical systems", "chaos", "plasma physics", "MHD", "Poincaré map", "magnetic confinement"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "numpy>=1.22",
+    "scipy>=1.8",
+    "matplotlib>=3.5",
+    "sympy>=1.10",
+]
+
+[project.optional-dependencies]
+cuda = ["cupy-cuda12x"]
+dev = ["pytest", "jupyter", "notebook"]
+docs = ["sphinx", "myst-parser", "sphinx-rtd-theme"]
+
+[project.urls]
+Homepage = "https://github.com/WenyinWei/pyna"
+Repository = "https://github.com/WenyinWei/pyna"
+Issues = "https://github.com/WenyinWei/pyna/issues"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

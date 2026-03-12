@@ -42,7 +42,7 @@ def test_half_width_positive():
         mode_m=4,
         psi_func=lambda R, Z: ((R - 2.0)**2 + Z**2) / 0.5**2,
     )
-    assert chain.half_width_R > 0
+    assert chain.half_width_r > 0
 
 
 def test_x_points_count():
