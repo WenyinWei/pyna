@@ -25,7 +25,7 @@ import joblib
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from pyna.mag.solovev import SolovevEquilibrium, _eval_psi_cf, _eval_grad_cf
+from pyna.mag.Solovev import SolovevEquilibrium, _eval_psi_cf, _eval_grad_cf
 from pyna.control.fpt import A_matrix, cycle_shift, delta_g_from_delta_B
 
 # ---------------------------------------------------------------------------

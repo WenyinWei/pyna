@@ -16,7 +16,7 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from pyna.mag.solovev import SolovevEquilibrium
+from pyna.mag.Solovev import SolovevEquilibrium
 from pyna.control.fpt import A_matrix, cycle_shift, delta_g_from_delta_B
 
 # Import from validation script

@@ -31,9 +31,9 @@ from pyna.coord.PEST import (
 )
 
 # Additional magnetic coordinate systems
-from pyna.coord.equal_arc import build_equal_arc_mesh
-from pyna.coord.hamada import build_Hamada_mesh
-from pyna.coord.boozer import build_Boozer_mesh
+from pyna.coord.EqualArc import build_equal_arc_mesh
+from pyna.coord.Hamada import build_Hamada_mesh
+from pyna.coord.Boozer import build_Boozer_mesh
 
 __all__ = [
     "RZPhi_range_2_XYZ_mesh",

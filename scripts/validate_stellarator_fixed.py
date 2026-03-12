@@ -158,7 +158,7 @@ for ax, pts, label, chain in zip(axes, section_crossings, section_labels, island
     ax.tick_params(labelsize=7)
 
 fig.suptitle(
-    f'Stellarator Boundary Islands — CPU (FieldLineTracer)\n'
+    f'Stellarator Boundary Islands �?CPU (FieldLineTracer)\n'
     f'q=5/1 at ψ={psi_res:.3f}, ε_h=0.04, m_h=5, n_h=1',
     fontsize=11
 )
