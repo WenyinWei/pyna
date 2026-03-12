@@ -131,18 +131,30 @@ def find_critical_point(eq: SolovevEquilibrium, R0: float, Z0: float):
 def find_critical_point_perturbed(eq: SolovevEquilibrium,
                                    coil_R: float, coil_Z: float, delta_I: float,
                                    R0: float, Z0: float):
-    """Find critical point of Bpol in perturbed field."""
+    """Find critical point of Bpol in perturbed field using fsolve for accuracy."""
+    from scipy.optimize import fsolve
+    def eqs(rz):
+        R, Z = rz
+        BR, BZ = eq.BR_BZ(R, Z)
+        dBR, dBZ, _ = circular_coil_field(coil_R, coil_Z, delta_I, R, Z)
+        return [float(BR) + dBR, float(BZ) + dBZ]
+    try:
+        sol = fsolve(eqs, [R0, Z0], full_output=True)
+        return sol[0]
+    except Exception:
+        pass
+    # Fallback: Nelder-Mead with small simplex
     def obj(rz):
         R, Z = rz
         if R <= 0.0:
             return 1e10
         BR, BZ = eq.BR_BZ(R, Z)
         dBR, dBZ, _ = circular_coil_field(coil_R, coil_Z, delta_I, R, Z)
-        BR_tot = BR + dBR
-        BZ_tot = BZ + dBZ
-        return BR_tot**2 + BZ_tot**2
+        return (float(BR) + dBR)**2 + (float(BZ) + dBZ)**2
+    simplex = np.array([[R0, Z0], [R0 + 1e-4, Z0], [R0, Z0 + 1e-4]])
     result = minimize(obj, [R0, Z0], method='Nelder-Mead',
-                      options={'xatol': 1e-8, 'fatol': 1e-18, 'maxiter': 50000})
+                      options={'xatol': 1e-10, 'fatol': 1e-22, 'maxiter': 100000,
+                               'initial_simplex': simplex})
     return result.x
 
 
