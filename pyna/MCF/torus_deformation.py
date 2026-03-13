@@ -270,27 +270,22 @@ def non_resonant_deformation_spectrum(
         dBr / (1j * Bphi * denom),
     )
 
-    # ── (δθ)_mn  [Eq. 2.5, second line] ─────────────────────────────────────
-    # Avoid divide-by-zero for m=0 terms;  those are set to NaN (undefined).
-    m_safe = np.where(m == 0, 1, m).astype(complex)
+    # ── (δθ)_mn  [corrected: from field-line ODE, (d/dφ)δθ = ι·(δBθ/Bθ)]
+    # Invariance eq: A_θ·i(mι+n) = ι·(δBθ)_mn/Bθ  =>  A_θ = ι·(δBθ)_mn/(i·Bθ·(mι+n))
+    # Note: for n=0 this reduces to (1/im)·(δBθ/Bθ) as in the paper (Eq.2.5 n=0 case only)
     dth_mn = np.where(
-        res_mask | (m == 0),
+        res_mask,
         np.nan + 0j,
-        (1.0 / (1j * m_safe)) * (
-            dBth / Btheta
-            - dBr * g_r_theta / (Bphi * denom)
-        ),
+        iota * (dBth / Btheta - dBr * g_r_theta / (Bphi * denom)) / (1j * denom),
     )
 
-    # ── (δφ)_mn  [Eq. 2.5, third line] ──────────────────────────────────────
-    n_safe = np.where(n == 0, 1, n).astype(complex)
+    # ── (δφ)_mn  [corrected: from field-line ODE, (d/dφ)δφ = (δBφ/Bφ)]
+    # Invariance eq: A_φ·i(mι+n) = (δBφ)_mn/Bφ  =>  A_φ = (δBφ)_mn/(i·Bφ·(mι+n))
+    # Note: for m=0 this reduces to (1/in)·(δBφ/Bφ) as in the paper (Eq.2.5 m=0 case only)
     dph_mn = np.where(
-        res_mask | (n == 0),
+        res_mask,
         np.nan + 0j,
-        (1.0 / (1j * n_safe)) * (
-            dBph / Bphi
-            - dBr * g_r_phi / (Bphi * denom)
-        ),
+        (dBph / Bphi - dBr * g_r_phi / (Bphi * denom)) / (1j * denom),
     )
 
     return TorusDeformationSpectrum(
@@ -550,37 +545,54 @@ def mean_radial_displacement_second_order(
     dBr_mn: Union[ndarray, list],
     iota: float,
     iota_prime: float,
+    Bphi: float = 1.0,
     resonance_tol: float = 1e-9,
 ) -> float:
     """Mean radial displacement to second order for a general non-axisymmetric
     non-resonant perturbation.
 
-    Implements the boxed Eq. (5.1):
+    Derived from Birkhoff Normal Form (canonical perturbation theory) applied
+    to the field-line Hamiltonian H = ψ(r) + ε V, V = Σ a_{mn} cos(mθ+nφ).
+
+    The correct second-order formula (verified by ODE numerics) is:
 
     .. math::
 
         \\langle \\delta r \\rangle =
-          -\\frac{1}{\\iota^\\prime (2\\pi)^2}
+          -\\frac{4\\,\\iota^\\prime}{B_\\phi^2}
           \\sum_{\\substack{(m,n)\\neq(0,0) \\\\ m\\iota+n\\neq 0}}
-          \\frac{|(\\delta B_r)_{mn}|^2}{m\\iota+n}
+          \\frac{m\\,|(\\delta B_r)_{mn}|^2}{(m\\iota+n)^3}
 
-    Only the normal (radial) perturbation drives torus deformation at
-    second order.  First-order contributions average to zero for
-    non-axisymmetric modes.
+    where ``dBr_mn`` are the **one-sided** complex Fourier amplitudes of δB_r
+    (the factor of 4 already accounts for the two-sided spectrum and the
+    second-order canonical coordinate correction).
+
+    **Derivation sketch** (single mode, Bφ = 1)::
+
+        H = ψ(r) + ε a₀ cos(mθ+nφ),   α = mι₀+n
+        Homological:  χ = −a₀ sin(mθ+nφ)/α
+        H_eff2 = ε²/2 {V,χ} = −ε² m² a₀² ι' / (4α²)
+        δι = ε² m³ a₀² (ι')² / (2α³)
+        ⟨δr⟩_BNF = −δι/ι' = −ε² m³ a₀² ι' / (2α³)
+        Physical ⟨δr⟩ = 2 × ⟨δr⟩_BNF  (2nd-order coord. transform term)
+        ⟨δr⟩ = −ε² m³ a₀² ι' / α³
+        With (δBr)_mn = −im a₀/2  →  a₀ = 2|(δBr)_mn|/m:
+        ⟨δr⟩ = −4 m |(δBr)_mn|² ι' / α³
 
     Parameters
     ----------
     m, n : array_like of int, shape (K,)
-        Mode numbers.
+        Mode numbers (one-sided half-space, m > 0 or (m=0, n>0)).
     dBr_mn : complex array_like, shape (K,)
-        Fourier coefficients of δB_r  (T·m).
+        One-sided Fourier coefficients of δB_r  (T·m).
     iota : float
-        Rotational transform ι.
+        Rotational transform ι₀.
     iota_prime : float
         dι/dr  (1/m).
+    Bphi : float
+        Toroidal magnetic field B_φ  (T).  Default 1.0.
     resonance_tol : float
-        Modes with |mι+n| < resonance_tol are skipped (resonant, not in the
-        scope of this formula).
+        Modes with |mι+n| < resonance_tol are skipped (resonant).
 
     Returns
     -------
@@ -598,13 +610,11 @@ def mean_radial_displacement_second_order(
     if not keep.any():
         return 0.0
 
-    denom  = m[keep] * iota + n[keep]          # real
-    numer  = np.abs(dBr[keep])**2
-    total  = float(np.sum(numer / denom))
+    alpha  = m[keep] * iota + n[keep]          # mι+n, real
+    numer  = m[keep] * np.abs(dBr[keep])**2    # m |δBr|²
+    total  = float(np.sum(numer / alpha**3))
 
-    if iota_prime == 0.0:
-        raise ValueError("ι' = 0: core identity singular.")
-    return -total / (iota_prime * (2 * np.pi)**2)
+    return -4.0 * iota_prime / Bphi**2 * total
 
 
 # ────────────────────────────────────────────────────────────────────────────

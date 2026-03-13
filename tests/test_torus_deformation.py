@@ -69,7 +69,12 @@ def test_radial_deformation_single_mode():
 # ────────────────────────────────────────────────────────────────────────────
 
 def test_poloidal_deformation_axisymmetric():
-    """(δθ)_mn = (1/im) * (δBθ)_mn / Bθ  when g^{rθ}=0."""
+    """(δθ)_mn = ι₀*(δBθ)_mn / (Bθ * i*(mι₀+n))  — corrected Eq.(3.2).
+
+    The original paper formula (δθ)_mn = (δBθ)_mn/(Bθ*im) is only valid for n=0.
+    The correct general formula (from field-line ODE, g^{rθ}=0) is:
+        (δθ)_mn = ι₀ * (δBθ)_mn / (Bθ * i*(mι₀+n))
+    """
     m_val, n_val = 3, 1
     dBth = 0.005 + 0.002j
 
@@ -79,7 +84,8 @@ def test_poloidal_deformation_axisymmetric():
         g_r_theta=0.0,
     )
 
-    expected = dBth / (1j * m_val * BTHETA)
+    alpha    = m_val * IOTA + n_val
+    expected = IOTA * dBth / (BTHETA * 1j * alpha)
     np.testing.assert_allclose(spec.delta_theta[0], expected, rtol=1e-12)
 
 
@@ -213,17 +219,22 @@ def test_dc_formula_q_profile_equivalence():
 # ────────────────────────────────────────────────────────────────────────────
 
 def test_second_order_single_mode():
-    """Single non-resonant mode: verify against manual formula."""
-    m_val, n_val = 1, 0   # n=0 is axisymmetric but still uses |δBr|²/(mι+n) sum
-    dBr = 0.02 + 0j
+    """Single non-resonant mode: verify against BNF-derived formula.
+
+    Correct formula (Birkhoff Normal Form, ODE-verified):
+        <δr> = -4 * iota' * m * |δBr|^2 / (Bphi^2 * alpha^3)
+    where alpha = m*iota + n.
+    """
+    m_val, n_val = 1, 0
+    dBr  = 0.02 + 0j
+    Bphi = 1.0
 
     dr = mean_radial_displacement_second_order(
-        [m_val], [n_val], [dBr], IOTA, IOTA_PRIME
+        [m_val], [n_val], [dBr], IOTA, IOTA_PRIME, Bphi=Bphi
     )
 
-    denom  = m_val * IOTA + n_val
-    numer  = abs(dBr)**2
-    expected = -numer / denom / (IOTA_PRIME * (2 * np.pi)**2)
+    alpha    = m_val * IOTA + n_val
+    expected = -4.0 * IOTA_PRIME * m_val * abs(dBr)**2 / (Bphi**2 * alpha**3)
     assert dr == pytest.approx(expected, rel=1e-12)
 
 
