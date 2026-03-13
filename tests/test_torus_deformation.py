@@ -60,7 +60,7 @@ def test_radial_deformation_single_mode():
     )
 
     denom = m_val * IOTA + n_val
-    expected = 1j * dBr / (BPHI * denom)
+    expected = dBr / (1j * BPHI * denom)
     np.testing.assert_allclose(spec.delta_r[0], expected, rtol=1e-12)
 
 
@@ -248,7 +248,7 @@ def test_peak_valley_phase():
     result = deformation_peak_valley(m_val, n_val, dBr, IOTA, BPHI, n_peaks=3)
 
     denom     = m_val * IOTA + n_val
-    dr_mn     = 1j * dBr / (BPHI * denom)
+    dr_mn     = dBr / (BPHI * denom * 1j)
     phase_dr  = np.angle(dr_mn)
 
     # At peak: cos(phase_dr + peak_phase) = cos(0) = 1  →  peak_phase = −phase_dr
