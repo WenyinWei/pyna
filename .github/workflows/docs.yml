@@ -15,24 +15,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
-      - name: Install dependencies
+
+      - name: Install package + docs dependencies
         run: |
-          pip install pyna-chaos || pip install -e .
-          pip install sphinx sphinx-rtd-theme myst-parser nbsphinx sphinx-autodoc-typehints
-      
+          pip install -e ".[docs]"
+
       - name: Build Sphinx docs
         run: |
           cd docs
           make html
-      
+
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: docs/_build/html
 
@@ -45,4 +44,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4

@@ -1,26 +1,50 @@
-Topology Analysis (``pyna.topo``)
-===================================
+Topology (``pyna.topo``)
+========================
 
-.. automodule:: pyna.topo.island
-   :members:
+The ``pyna.topo`` package provides algorithms for analysing the topological
+structure of Poincaré maps: magnetic islands, X/O cycles, stable/unstable
+manifolds, and heteroclinic tangles.
+
+.. contents:: Submodules
+   :depth: 2
+   :local:
+
+----
+
+Poincaré Maps
+-------------
 
 .. automodule:: pyna.topo.poincare
    :members:
+   :undoc-members:
+   :show-inheritance:
+
+----
+
+Magnetic Islands
+----------------
+
+.. automodule:: pyna.topo.island
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+----
+
+Manifold Computation
+---------------------
+
+.. automodule:: pyna.topo.manifold
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+----
+
+Periodic Orbits / Cycles
+-------------------------
 
 .. automodule:: pyna.topo.cycle
    :members:
-
-.. automodule:: pyna.topo.monodromy
-   :members:
-
-.. automodule:: pyna.topo.manifold_improve
-   :members:
-
-.. automodule:: pyna.topo.variational
-   :members:
-
-.. automodule:: pyna.topo.island_extract
-   :members:
-
-.. automodule:: pyna.topo.classical_maps
-   :members:
+   :undoc-members:
+   :show-inheritance:

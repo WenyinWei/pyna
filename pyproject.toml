@@ -4,7 +4,7 @@ build-backend = "setuptools.backends.legacy:build"
 
 [project]
 name = "pyna-chaos"
-version = "0.1.0"
+version = "0.3.0"
 description = "Python library for dynamical systems and magnetic confinement fusion analysis"
 readme = "README.md"
 license = {text = "GPL-3.0-or-later"}
@@ -28,7 +28,17 @@ dependencies = [
 [project.optional-dependencies]
 cuda = ["cupy-cuda12x"]
 dev = ["pytest", "jupyter", "notebook"]
-docs = ["sphinx", "myst-parser", "sphinx-rtd-theme"]
+docs = [
+    "sphinx>=7",
+    "furo",
+    "myst-parser",
+    "nbsphinx",
+    "sphinx-autodoc-typehints",
+    "sphinx-copybutton",
+    "sphinx-design",
+    "sphinx-autoapi",
+    "ipykernel",
+]
 
 [project.urls]
 Homepage = "https://github.com/WenyinWei/pyna"
