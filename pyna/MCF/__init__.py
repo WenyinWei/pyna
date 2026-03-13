@@ -11,3 +11,18 @@ diagnostics     : Plasma diagnostic observables
 """
 from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
 from pyna.MCF.equilibrium.axisymmetric import AxisymEquilibrium
+from pyna.MCF.torus_deformation import (
+    TorusDeformationSpectrum,
+    non_resonant_deformation_spectrum,
+    poincare_section_deformation,
+    iota_variation_pf,
+    mean_radial_displacement,
+    mean_radial_displacement_pf,
+    mean_radial_displacement_dc,
+    mean_radial_displacement_second_order,
+    deformation_peak_valley,
+    green_function_spectrum,
+    iota_to_q,
+    q_to_iota,
+    iota_prime_from_q_prime,
+)
