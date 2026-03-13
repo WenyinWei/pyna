@@ -263,11 +263,11 @@ def non_resonant_deformation_spectrum(
             UserWarning, stacklevel=2,
         )
 
-    # ── (δr)_mn  [Eq. 2.5, first line] ──────────────────────────────────────
+    # ── (δr)_mn  [corrected: A·i(mι+n) = f_mn  ⟹  A = f_mn / (i(mι+n)) = −i·f_mn/(mι+n)] ──
     dr_mn = np.where(
         res_mask,
         np.nan + 0j,
-        1j * dBr / (Bphi * denom),
+        dBr / (1j * Bphi * denom),
     )
 
     # ── (δθ)_mn  [Eq. 2.5, second line] ─────────────────────────────────────
@@ -660,7 +660,7 @@ def deformation_peak_valley(
             f"Mode ({m},{n}) is resonant with ι={iota:.6f} (mι+n={denom:.2e}). "
             "Peak/valley formula requires non-resonant condition."
         )
-    dr_mn = 1j * dBr_mn / (Bphi * denom)
+    dr_mn = dBr_mn / (1j * Bphi * denom)
     phase_dr = float(np.angle(dr_mn))
     amplitude = 2.0 * abs(dr_mn)
 
@@ -726,7 +726,7 @@ def green_function_spectrum(
     n = np.asarray(n, dtype=int)
     denom = _safe_denom(m, n, iota, eps=regularise_eps)
     res   = _check_resonant(m, n, iota, tol=resonance_tol)
-    G = np.where(res, np.nan + 0j, 1j / (Bphi * denom))
+    G = np.where(res, np.nan + 0j, 1.0 / (1j * Bphi * denom))
     return G
 
 
