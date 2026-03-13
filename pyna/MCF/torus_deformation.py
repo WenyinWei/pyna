@@ -236,7 +236,7 @@ def non_resonant_deformation_spectrum(
         Contravariant metric element g^{rφ}.  Zero for axisymmetric
         equilibria.
     resonance_tol : float
-        Modes with |mι+n| < resonance_tol are flagged as resonant and
+        Modes with `|mι+n|` < resonance_tol are flagged as resonant and
         their deformation coefficients are set to NaN.
     regularise_eps : float
         If > 0, add ε·i·sgn(mι+n) to the denominator (Eq. 2.9).
@@ -592,7 +592,7 @@ def mean_radial_displacement_second_order(
     Bphi : float
         Toroidal magnetic field B_φ  (T).  Default 1.0.
     resonance_tol : float
-        Modes with |mι+n| < resonance_tol are skipped (resonant).
+        Modes with `|mι+n|` < resonance_tol are skipped (resonant).
 
     Returns
     -------
