@@ -40,4 +40,4 @@ FPT Topology Control
    coil = Coil(R=2.5, Z=-1.2, I=1000)
    delta_g = coil.delta_g_at(R_xpt, Z_xpt, eq)
    shift = cycle_shift(A, delta_g)
-   print(f"X-point shift: δR={shift[0]*1000:.2f} mm, δZ={shift[1]*1000:.2f} mm")
+   print(f"X-point shift: ?R={shift[0]*1000:.2f} mm, ?Z={shift[1]*1000:.2f} mm")

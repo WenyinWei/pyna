@@ -1,4 +1,4 @@
-# pyna — Python DYNAmics
+# pyna -- Python DYNAmics
 
 <p align="center">
   <a href="https://pypi.org/project/pyna-chaos/"><img src="https://img.shields.io/pypi/v/pyna-chaos?color=blue&label=PyPI" alt="PyPI"></a>
@@ -185,4 +185,4 @@ Contributions are welcome! Please open an issue or pull request on [GitHub](http
 
 ## 📄 License
 
-[GPL-3.0-or-later](LICENSE) © 2024–2026 Wenyin Wei
+[GPL-3.0-or-later](LICENSE) © 2024-2026 Wenyin Wei

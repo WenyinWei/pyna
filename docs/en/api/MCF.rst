@@ -147,35 +147,13 @@ the Fourier convention :math:`f(\theta,\varphi)=\sum_{mn} f_{mn}\,e^{i(m\theta+n
 
 **Key results implemented:**
 
-- **Theorem 2** — full :math:`(\delta r, \delta\theta, \delta\varphi)_{mn}` spectra
-- **Theorem 3** — universal 1-D Poincaré-section ring deformation
-- **Eq. (4.2)** — mean radial displacement for PF coil perturbations
-- **Eq. (4.3)** — DC (m=n=0) simplification
-- **Eq. (5.1)** — second-order non-axisymmetric formula
+- **Theorem 2** -- full :math:`(\delta r, \delta\theta, \delta\varphi)_{mn}` spectra
+- **Theorem 3** -- universal 1-D Poincaré-section ring deformation
+- **Eq. (4.2)** -- mean radial displacement for PF coil perturbations
+- **Eq. (4.3)** -- DC (m=n=0) simplification
+- **Eq. (5.1)** -- second-order non-axisymmetric formula
 
 .. automodule:: pyna.MCF.torus_deformation
    :members:
    :undoc-members:
    :show-inheritance:
-
-The :class:`~pyna.MCF.torus_deformation.TorusDeformationSpectrum` dataclass
-holds the full output spectrum:
-
-.. autoclass:: pyna.MCF.torus_deformation.TorusDeformationSpectrum
-   :members:
-   :undoc-members:
-
-**Primary computational functions:**
-
-.. autofunction:: pyna.MCF.torus_deformation.non_resonant_deformation_spectrum
-.. autofunction:: pyna.MCF.torus_deformation.poincare_section_deformation
-.. autofunction:: pyna.MCF.torus_deformation.iota_variation_pf
-.. autofunction:: pyna.MCF.torus_deformation.mean_radial_displacement
-.. autofunction:: pyna.MCF.torus_deformation.mean_radial_displacement_pf
-.. autofunction:: pyna.MCF.torus_deformation.mean_radial_displacement_dc
-.. autofunction:: pyna.MCF.torus_deformation.mean_radial_displacement_second_order
-.. autofunction:: pyna.MCF.torus_deformation.deformation_peak_valley
-.. autofunction:: pyna.MCF.torus_deformation.green_function_spectrum
-.. autofunction:: pyna.MCF.torus_deformation.iota_to_q
-.. autofunction:: pyna.MCF.torus_deformation.q_to_iota
-.. autofunction:: pyna.MCF.torus_deformation.iota_prime_from_q_prime

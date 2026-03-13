@@ -6,10 +6,10 @@ top of the abstract :mod:`pyna.system` hierarchy.
 
 **Backends:**
 
-- **CPU/serial** — pure-Python RK4 integrator
-- **CPU/parallel** — multi-process or multi-threaded variants
-- **CUDA** — optional GPU backend via CuPy (up to 118× speedup)
-- **OpenCL** — experimental
+- **CPU/serial** -- pure-Python RK4 integrator
+- **CPU/parallel** -- multi-process or multi-threaded variants
+- **CUDA** -- optional GPU backend via CuPy (up to 118× speedup)
+- **OpenCL** -- experimental
 
 .. contents:: Submodules
    :depth: 2

@@ -4,7 +4,7 @@ import sys
 sys.path.insert(0, os.path.abspath('..'))
 
 project = 'pyna'
-copyright = '2024–2026, Wenyin Wei'
+copyright = '2024-2026, Wenyin Wei'
 author = 'Wenyin Wei'
 release = '0.3.0'
 version = '0.3.0'
@@ -26,7 +26,7 @@ extensions = [
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
-# ── Theme ──────────────────────────────────────────────────────────────────
+# ? Theme ?
 html_theme = 'furo'
 html_static_path = ['_static']
 
@@ -48,7 +48,7 @@ html_theme_options = {
     "navigation_with_keys": True,
 }
 
-# ── MyST parser settings ───────────────────────────────────────────────────
+# ? MyST parser settings ?
 myst_enable_extensions = [
     'amsmath',
     'colon_fence',
@@ -57,17 +57,17 @@ myst_enable_extensions = [
     'html_image',
 ]
 
-# ── Napoleon settings (Google/NumPy docstrings) ────────────────────────────
+# ? Napoleon settings (Google/NumPy docstrings) ?
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
 napoleon_include_init_with_doc = True
 napoleon_use_admonition_for_notes = True
 napoleon_use_rtype = False
 
-# ── nbsphinx settings ─────────────────────────────────────────────────────
+# ? nbsphinx settings ?
 nbsphinx_execute = 'never'
 
-# ── intersphinx ───────────────────────────────────────────────────────────
+# ? intersphinx ?
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
     'numpy':  ('https://numpy.org/doc/stable/', None),
@@ -75,7 +75,7 @@ intersphinx_mapping = {
     'matplotlib': ('https://matplotlib.org/stable/', None),
 }
 
-# ── autodoc ───────────────────────────────────────────────────────────────
+# ? autodoc ?
 autodoc_mock_imports = ['cupy', 'dolfinx', 'ufl', 'petsc4py', 'mpi4py']
 autodoc_default_options = {
     'members': True,
@@ -83,9 +83,17 @@ autodoc_default_options = {
     'show-inheritance': True,
 }
 
-# ── autosectionlabel ──────────────────────────────────────────────────────
+# ? autosectionlabel ?
 autosectionlabel_prefix_document = True
 
-# ── copybutton ────────────────────────────────────────────────────────────
+# ? copybutton ?
 copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
 copybutton_prompt_is_regexp = True
+
+# Suppress duplicate-object warnings from existing source docstrings
+suppress_warnings = [
+    'autosectionlabel.*',
+    'ref.duplicate',
+]
+
+nitpicky = False
