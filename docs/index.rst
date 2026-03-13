@@ -1,20 +1,56 @@
-pyna — Python Dynamical Systems Library
-=========================================
+pyna — Python DYNAmics
+======================
 
-.. image:: https://img.shields.io/badge/version-0.1.0-blue
-.. image:: https://img.shields.io/badge/python-3.10+-green
-.. image:: https://img.shields.io/badge/license-MIT-lightgrey
+.. image:: https://img.shields.io/pypi/v/pyna-chaos?color=blue&label=PyPI
+   :target: https://pypi.org/project/pyna-chaos/
+.. image:: https://img.shields.io/pypi/pyversions/pyna-chaos
+.. image:: https://img.shields.io/badge/license-GPL--3.0-green
+.. image:: https://github.com/WenyinWei/pyna/actions/workflows/docs.yml/badge.svg
+   :target: https://github.com/WenyinWei/pyna/actions
 
-**pyna** is a Python library for dynamical systems analysis and magnetic confinement fusion (MCF) plasma physics research.
+**pyna** is a Python library for **dynamical systems analysis** and
+**magnetic confinement fusion (MCF) physics** — from field-line tracing and
+Poincaré maps to analytic torus-deformation theory and publication-quality
+tokamak visualizations.
 
-**核心特性 / Core Features**
+.. grid:: 2
+   :gutter: 3
 
-- 🔀 **Field Line Tracing (FLT)** — RK4 integrator, CUDA acceleration (118× speedup)
-- 🌀 **Poincaré Maps & Island Analysis** — X/O point detection, island width extraction
-- 🎯 **FPT Topology Control** — Functional Perturbation Theory for magnetic topology control
-- 🧲 **MCF Equilibria** — Solov'ev, GS solver, stellarator configurations
-- 📐 **Magnetic Coordinates** — PEST, Boozer, Hamada, Equal-arc
-- ⚡ **C++ Acceleration (cyna)** — Optional C++ backend for performance-critical ops
+   .. grid-item-card:: 🔀 Field-line Tracing
+      :link: en/api/flt
+      :link-type: doc
+
+      RK4 integrator with optional CUDA acceleration (118× speedup).
+
+   .. grid-item-card:: 🌀 Poincaré Maps & Islands
+      :link: en/api/topo
+      :link-type: doc
+
+      Multi-section maps, X/O-point detection, island width extraction.
+
+   .. grid-item-card:: 🗺️ Manifold Visualization
+      :link: en/api/MCF
+      :link-type: doc
+
+      Publication-quality stable/unstable manifold plots for tokamaks.
+
+   .. grid-item-card:: 📡 Torus Deformation
+      :link: en/api/MCF
+      :link-type: doc
+
+      Non-resonant BNF-derived analytic spectral theory (Wei 2025).
+
+   .. grid-item-card:: 🧲 MCF Equilibria
+      :link: en/api/MCF
+      :link-type: doc
+
+      Solov'ev, Grad-Shafranov, stellarator analytic/numeric solutions.
+
+   .. grid-item-card:: 📐 Magnetic Coordinates
+      :link: en/api/MCF
+      :link-type: doc
+
+      PEST, Boozer, Hamada, Equal-arc transformations.
 
 .. toctree::
    :maxdepth: 2
