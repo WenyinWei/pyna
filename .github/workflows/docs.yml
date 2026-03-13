@@ -21,15 +21,18 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install package + docs dependencies
+      - name: Install docs dependencies
         run: |
-          pip install --upgrade pip setuptools wheel
-          pip install -e ".[docs]"
+          pip install --upgrade pip
+          pip install sphinx>=7 furo myst-parser nbsphinx sphinx-autodoc-typehints \
+                      sphinx-copybutton sphinx-design ipykernel \
+                      numpy scipy matplotlib sympy
+          pip install --no-build-isolation --no-deps .
 
       - name: Build Sphinx docs
         run: |
           cd docs
-          make html
+          make html SPHINXOPTS="-q"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
