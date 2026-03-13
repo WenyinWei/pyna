@@ -23,6 +23,7 @@ jobs:
 
       - name: Install package + docs dependencies
         run: |
+          pip install --upgrade pip setuptools wheel
           pip install -e ".[docs]"
 
       - name: Build Sphinx docs
