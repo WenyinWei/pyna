@@ -199,59 +199,33 @@ class _ManifoldBase:
         )
         return sol.y[:, -1]  # final position
 
-    def _sort_by_arclength(self, pts):
-        """Sort points along the manifold using a greedy nearest-neighbor chain.
-
-        Starts from the point nearest to the X-point and greedily appends the
-        nearest unvisited point.  This gives arc-length ordering even when the
-        manifold folds back on itself.
-
-        Parameters
-        ----------
-        pts : ndarray, shape (N, 2)
-
-        Returns
-        -------
-        sorted_pts : ndarray, shape (N, 2)
-        """
-        if len(pts) <= 2:
-            return pts
-
-        dists_from_x = np.linalg.norm(pts - self.x_point, axis=1)
-        start_idx = int(np.argmin(dists_from_x))
-
-        remaining = list(range(len(pts)))
-        ordered_indices = [remaining.pop(start_idx)]
-
-        while remaining:
-            last_pt = pts[ordered_indices[-1]]
-            local_dists = np.linalg.norm(pts[remaining] - last_pt, axis=1)
-            nearest_local = int(np.argmin(local_dists))
-            ordered_indices.append(remaining.pop(nearest_local))
-
-        return pts[ordered_indices]
-
     def grow(self, n_turns=20, init_length=1e-4, n_init_pts=5,
-             both_sides=True, **solve_ivp_kwargs):
-        """Grow the manifold by iterating the Poincaré map.
+             both_sides=True, RZlimit=None, **solve_ivp_kwargs):
+        """Grow the manifold using geometric-series seeding (carousel method).
 
-        Uses the per-generation approach: each application of the Poincaré map
-        produces one "generation" of n_init_pts points that are stored as a
-        separate segment.  Within each generation, points are naturally ordered
-        by their seed label (1 … n_init_pts) – no global sorting is needed and
-        fold-induced mis-connections are avoided.
+        Seed points are placed at distances ``init_length * |λ|^k``
+        (k = 0 … n_init_pts-1) along the eigenvector, so that after one
+        Poincaré map iteration point *k* lands near the original position of
+        point *k+1*.  This guarantees that ``np.vstack([gen0, gen1, …])``
+        is monotone in arc-length without any post-sort.
+
+        Points that escape outside *RZlimit* or fail to integrate are stored
+        as NaN and masked when plotting — they do NOT abort the rest of the
+        bundle.
 
         Parameters
         ----------
         n_turns : int
-            Number of map iterations (number of generations stored = n_turns + 1,
-            including the initial seed).
+            Number of map iterations.
         init_length : float
-            Total length of initial seed segment along eigenvector.
+            Distance of the *first* seed point from the X-point along the
+            eigenvector (``init_length * |λ|^0``).
         n_init_pts : int
-            Number of seed points per generation.
+            Number of seed points.
         both_sides : bool
-            If True, grow in both ±eigenvector directions.
+            Grow in both ±eigenvector directions.
+        RZlimit : tuple (R_min, R_max, Z_min, Z_max) or None
+            Points outside this box are treated as lost (replaced with NaN).
         **solve_ivp_kwargs :
             Forwarded to ``solve_ivp``.
         """
@@ -260,30 +234,71 @@ class _ManifoldBase:
 
         phi_s, phi_e = self.phi_span
         if self._branch == 'stable':
-            phi_span_iter = (phi_e, phi_s)
+            phi_span_iter = (phi_e, phi_s)   # integrate backward
         else:
-            phi_span_iter = (phi_s, phi_e)
+            phi_span_iter = (phi_s, phi_e)   # integrate forward
+
+        lam_abs = float(np.abs(self._lam))   # |λ_u| for unstable, |λ_s| for stable
 
         for sgn in signs:
-            # Seed points: uniformly spaced along eigenvector direction
-            epsilons = np.linspace(init_length / n_init_pts, init_length, n_init_pts)
-            pts = np.array([self.x_point + sgn * eps * self._evec for eps in epsilons])
+            # Geometric-series seed points: distance = init_length * lam_abs^k
+            pts = np.array([
+                self.x_point + sgn * (init_length * lam_abs**k) * self._evec
+                for k in range(n_init_pts)
+            ])  # shape (n_init_pts, 2)
 
-            # Generation 0: initial seed (already ordered by label)
-            self.segments.append(pts.copy())
+            all_gens = []
 
-            for turn_idx in range(1, n_turns + 1):
-                new_pts = np.empty_like(pts)
-                for k in range(len(pts)):
-                    new_pts[k] = self._integrate_fieldline(
-                        pts[k], phi_span_iter, **solve_ivp_kwargs)
+            for _turn in range(n_turns + 1):
+                # Store current generation (may contain NaN for lost points)
+                all_gens.append(pts.copy())
+
+                if _turn == n_turns:
+                    break
+
+                # Advance each point independently; mask failures
+                new_pts = np.full_like(pts, np.nan)
+                for k in range(n_init_pts):
+                    if np.any(np.isnan(pts[k])):
+                        continue   # already lost
+                    try:
+                        p = self._integrate_fieldline(pts[k], phi_span_iter,
+                                                      **solve_ivp_kwargs)
+                        # Check wall
+                        if RZlimit is not None:
+                            Rm, RM, Zm, ZM = RZlimit
+                            if not (Rm <= p[0] <= RM and Zm <= p[1] <= ZM):
+                                continue   # lost — leave as NaN
+                        new_pts[k] = p
+                    except Exception:
+                        pass   # leave as NaN
                 pts = new_pts
-                self.segments.append(pts.copy())
 
-        # Run health checks on the full collection of all segments
-        all_pts = np.vstack(self.segments)
-        self._check_not_straight(all_pts, self._evec, n_turns)
-        self._check_self_intersection(all_pts, n_turns)
+            # Build monotone segment:
+            #   gen0 fully: [pts[0], pts[1], ..., pts[n-1]]
+            #   Then ONLY the last point (index n-1) from each subsequent generation.
+            #
+            # Why: after 1 map, gen1[k] ≈ gen0[k+1].  So gen0 already spans
+            # the range [eps*lam^0 … eps*lam^{n-1}].  gen1[n-1] ≈ eps*lam^n is
+            # the ONE new frontier point beyond gen0[-1].  gen1[0..n-2] would
+            # approximate gen0[1..n-1] and if appended would reverse direction.
+            seg_rows = []
+            for gi, gen in enumerate(all_gens):
+                if gi == 0:
+                    for k in range(n_init_pts):
+                        if not np.any(np.isnan(gen[k])):
+                            seg_rows.append(gen[k])
+                else:
+                    k = n_init_pts - 1
+                    if not np.any(np.isnan(gen[k])):
+                        seg_rows.append(gen[k])
+
+            if len(seg_rows) >= 2:
+                seg = np.array(seg_rows)
+                self._check_not_straight(seg, self._evec, n_turns)
+                self._check_self_intersection(seg, n_turns)
+                self.segments.append(seg)
+
         return self
 
     def plot(self, ax, **kwargs):
