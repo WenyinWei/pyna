@@ -32,8 +32,20 @@ def greens_function_cylinder(
     K(k) and E(k) from scipy.special. The modulus k is:
         k^2 = 4 R_src R_obs / ((R_src + R_obs)^2 + (Z_src - Z_obs)^2)
     """
-    # TODO: implement via scipy.special.ellipk / ellipe
-    raise NotImplementedError
+    from scipy.special import ellipk, ellipe
+    mu0 = 4*np.pi*1e-7
+    a = R_src
+    z = Z_obs - Z_src
+    R = R_obs
+    denom = (R+a)**2 + z**2
+    k2 = 4*a*R / (denom + 1e-30)
+    k2 = np.clip(k2, 0, 0.9999)
+    K = ellipk(k2)
+    E = ellipe(k2)
+    common = mu0/(2*np.pi) / np.sqrt(denom + 1e-30)
+    B_Z = common * ((a**2 + R**2 + z**2) / ((R-a)**2 + z**2 + 1e-30) * E - K)
+    B_R = common * (z/R) * ((a**2 + R**2 + z**2) / ((R-a)**2 + z**2 + 1e-30) * E - K)
+    return np.array([B_R, B_Z, np.zeros_like(B_R)])
 
 
 def lundquist_number(
@@ -67,8 +79,16 @@ def lundquist_number(
     Resistive time: tau_R = mu0 * L^2 / eta
     S = tau_R / tau_A
     """
-    # TODO: use Spitzer resistivity and local field/density
-    raise NotImplementedError
+    Z_eff = 1.0; ln_Lambda = 15.0
+    eta = 5.2e-5 * Z_eff * ln_Lambda / (T_eV**1.5)
+    mu0 = 4*np.pi*1e-7
+    n_e = 1e20; m_p = 1.67e-27
+    B = equilibrium.B0 * equilibrium.R0 / R
+    v_A = B / np.sqrt(mu0 * n_e * m_p)
+    a = getattr(equilibrium, 'r0', 0.3)
+    tau_R = mu0 * a**2 / eta
+    tau_A = a / v_A
+    return tau_R / tau_A
 
 
 def toroidal_fft(arr: np.ndarray, n_max: int) -> dict:
