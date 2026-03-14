@@ -4,7 +4,7 @@ All expensive computations in pyna use this module for caching.
 Cache is disk-persistent (joblib.Memory), stored in ~/.pyna_cache/.
 
 Cache categories and their keys:
-  'biot_savart'   : (coil_R, coil_Z, coil_I, R_pts, Z_pts) → (BR, BZ, Bphi)
+  'Biot_Savart'   : (coil_R, coil_Z, coil_I, R_pts, Z_pts) → (BR, BZ, Bphi)
   'A_matrix'      : (eq_hash, R, Z, phi, eps) → 2×2 array
   'DPm'           : (eq_hash, R, Z) → 2×2 array
   'manifold'      : (eq_hash, R_xpt, Z_xpt, s_max) → (N,2) array
