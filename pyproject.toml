@@ -37,6 +37,7 @@ docs = [
     "sphinx-design",
     "sphinx-autoapi",
     "ipykernel",
+    "scikit-image",
 ]
 
 [project.urls]
