@@ -153,6 +153,15 @@ def _natural_perturbation_func(stellarator):
     Previously used psi_norm directly (causing b_nat ≈ 0) and also returned
     only a Cartesian-R component, adding an extra cos(theta) that destroyed
     the (m,n) Fourier integral.
+
+    .. note::
+        This function extracts the Fourier component at ``(m_h, n_h)`` as
+        defined on the stellarator object.  For ``compute_resonant_amplitude``
+        to return a physically meaningful b_nat at the target ``q = m/n``
+        surface, the stellarator must be constructed with ``m_h = m`` and
+        ``n_h = n`` matching the control target.  For example, to control the
+        ``q = 4/3`` island chain, use ``m_h=4, n_h=3`` when building the
+        equilibrium with :func:`simple_stellarator`.
     """
     def field_func(R, Z, phi):
         theta = np.arctan2(Z, R - stellarator.R0)
