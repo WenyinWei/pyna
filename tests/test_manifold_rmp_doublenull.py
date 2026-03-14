@@ -260,3 +260,69 @@ class TestManifoldPhysics:
             f"Unstable manifold did not diverge: dist_first={dist_first:.4f}, "
             f"dist_last={dist_last:.4f}"
         )
+
+
+class TestManifoldOrdering:
+    """Regression tests for the arc-length ordering fix (was: generation zigzag bug)."""
+
+    def test_linear_saddle_no_direction_reversals(self):
+        """Unstable manifold of linear saddle must be monotone along R-axis."""
+        alpha = 0.15
+        R0, Z0 = 1.0, 0.5
+        lambda_u = np.exp(2 * np.pi * alpha)
+        lambda_s = np.exp(-2 * np.pi * alpha)
+        Jac = np.diag([lambda_u, lambda_s])
+
+        def field_func(R, Z, phi):
+            return np.array([alpha * (R - R0), -alpha * (Z - Z0)])
+
+        import warnings
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            um = UnstableManifold([R0, Z0], Jac, field_func, phi_span=(0.0, 2 * np.pi))
+            um.grow(n_turns=8, init_length=1e-4, n_init_pts=6, both_sides=True)
+            large_jump_warnings = [x for x in w if 'large jumps' in str(x.message)]
+
+        assert len(um.segments) == 2
+
+        for si, seg in enumerate(um.segments):
+            dR = np.diff(seg[:, 0])
+            nonzero_dR = dR[np.abs(dR) > 1e-12]
+            if len(nonzero_dR) > 1:
+                sign_changes = int(np.sum(np.diff(np.sign(nonzero_dR)) != 0))
+            else:
+                sign_changes = 0
+            assert sign_changes == 0, (
+                f"Segment {si}: {sign_changes} R direction reversals (expected 0). "
+                f"Arc-length ordering failed."
+            )
+
+        assert len(large_jump_warnings) == 0, (
+            f"Got {len(large_jump_warnings)} spurious large-jump warnings after fix. "
+            f"These should be 0 for a linear saddle."
+        )
+
+    def test_linear_saddle_stays_on_manifold(self):
+        """Points on unstable manifold of linear saddle must have Z ~= Z0."""
+        alpha = 0.15
+        R0, Z0 = 1.0, 0.5
+        lambda_u = np.exp(2 * np.pi * alpha)
+        lambda_s = np.exp(-2 * np.pi * alpha)
+        Jac = np.diag([lambda_u, lambda_s])
+
+        def field_func(R, Z, phi):
+            return np.array([alpha * (R - R0), -alpha * (Z - Z0)])
+
+        import warnings
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter("always")
+            um = UnstableManifold([R0, Z0], Jac, field_func, phi_span=(0.0, 2 * np.pi))
+            um.grow(n_turns=8, init_length=1e-4, n_init_pts=6, both_sides=False)
+
+        assert um.segments, "No segments grown"
+        seg = um.segments[0]
+        Z_deviation = np.abs(seg[:, 1] - Z0).max()
+        assert Z_deviation < 1e-8, (
+            f"Unstable manifold deviated from Z=Z0: max deviation={Z_deviation:.2e}. "
+            f"Expected < 1e-8 for linear saddle."
+        )
