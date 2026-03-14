@@ -73,8 +73,18 @@ class PerturbationField:
     def from_callable(cls, grid: CylindricalGrid,
                       field_func: Callable[[float, float, float], Tuple[float, float, float]]):
         """Build from a callable field_func(R, Z, phi) -> (dBR, dBZ, dBphi)."""
-        # TODO: vectorize over grid
-        raise NotImplementedError
+        R3d, Z3d, phi3d = grid.meshgrid()
+        dBR = np.zeros(grid.shape)
+        dBZ = np.zeros(grid.shape)
+        dBphi = np.zeros(grid.shape)
+        for i in range(grid.shape[0]):
+            for j in range(grid.shape[1]):
+                for k in range(grid.shape[2]):
+                    br, bz, bp = field_func(R3d[i,j,k], Z3d[i,j,k], phi3d[i,j,k])
+                    dBR[i,j,k] = br
+                    dBZ[i,j,k] = bz
+                    dBphi[i,j,k] = bp
+        return cls(grid=grid, dBR=dBR, dBZ=dBZ, dBphi=dBphi)
 
     def toroidal_modes(self, n_max: int = 10) -> Dict[int, np.ndarray]:
         """Decompose into toroidal Fourier modes n = 0..n_max.
@@ -84,8 +94,14 @@ class PerturbationField:
         modes : dict {n: complex array of shape (NR, NZ, 3)}
             Each entry is the complex amplitude [dBR_n, dBZ_n, dBphi_n].
         """
-        # TODO: np.fft.rfft along phi axis
-        raise NotImplementedError
+        fft_R = np.fft.rfft(self.dBR, axis=2)
+        fft_Z = np.fft.rfft(self.dBZ, axis=2)
+        fft_P = np.fft.rfft(self.dBphi, axis=2)
+        Nphi = self.grid.shape[2]
+        modes = {}
+        for n in range(min(n_max+1, fft_R.shape[2])):
+            modes[n] = np.stack([fft_R[:,:,n], fft_Z[:,:,n], fft_P[:,:,n]], axis=-1) / Nphi
+        return modes
 
 
 @dataclass
