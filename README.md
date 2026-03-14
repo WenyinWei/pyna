@@ -6,6 +6,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-green" alt="License"></a>
   <a href="https://wenyinwei.github.io/pyna/"><img src="https://img.shields.io/badge/docs-online-blue" alt="Docs"></a>
   <a href="https://github.com/WenyinWei/pyna/actions"><img src="https://github.com/WenyinWei/pyna/actions/workflows/docs.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/WenyinWei/pyna/actions/workflows/notebook-tests.yml"><img src="https://github.com/WenyinWei/pyna/actions/workflows/notebook-tests.yml/badge.svg" alt="Notebook Tests"></a>
 </p>
 
 **pyna** (**Py**thon **D**Y**NA**mics) is a research library for **dynamical systems** and **magnetic confinement fusion (MCF)** plasma physics. It covers the full workflow from analytic equilibria and field-line tracing to topological island analysis, manifold visualization, and non-resonant torus deformation theory.
