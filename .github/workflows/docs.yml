@@ -24,10 +24,10 @@ jobs:
       - name: Install docs dependencies
         run: |
           pip install --upgrade pip
-          pip install "sphinx>=7" furo myst-parser nbsphinx sphinx-autodoc-typehints \
+          pip install --upgrade "sphinx>=7" furo myst-parser nbsphinx sphinx-autodoc-typehints \
                       sphinx-copybutton sphinx-design ipykernel \
-                      numpy scipy matplotlib sympy scikit-image joblib
-          pip install --no-build-isolation --no-deps .
+                      numpy scipy matplotlib sympy scikit-image joblib deprecated pandas
+          pip install --upgrade --no-build-isolation --no-deps .
 
       - name: Install pandoc
         run: sudo apt-get install -y pandoc
