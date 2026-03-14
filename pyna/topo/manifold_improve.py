@@ -199,24 +199,57 @@ class _ManifoldBase:
         )
         return sol.y[:, -1]  # final position
 
+    def _sort_by_arclength(self, pts):
+        """Sort points along the manifold using a greedy nearest-neighbor chain.
+
+        Starts from the point nearest to the X-point and greedily appends the
+        nearest unvisited point.  This gives arc-length ordering even when the
+        manifold folds back on itself.
+
+        Parameters
+        ----------
+        pts : ndarray, shape (N, 2)
+
+        Returns
+        -------
+        sorted_pts : ndarray, shape (N, 2)
+        """
+        if len(pts) <= 2:
+            return pts
+
+        dists_from_x = np.linalg.norm(pts - self.x_point, axis=1)
+        start_idx = int(np.argmin(dists_from_x))
+
+        remaining = list(range(len(pts)))
+        ordered_indices = [remaining.pop(start_idx)]
+
+        while remaining:
+            last_pt = pts[ordered_indices[-1]]
+            local_dists = np.linalg.norm(pts[remaining] - last_pt, axis=1)
+            nearest_local = int(np.argmin(local_dists))
+            ordered_indices.append(remaining.pop(nearest_local))
+
+        return pts[ordered_indices]
+
     def grow(self, n_turns=20, init_length=1e-4, n_init_pts=5,
              both_sides=True, **solve_ivp_kwargs):
         """Grow the manifold by iterating the Poincaré map.
 
-        Starting from a short initial segment along the eigenvector, each
-        point is iterated forward (unstable) or backward (stable) under the
-        Poincaré map for ``n_turns`` turns.
+        Uses the fundamental-domain method: seeds along the eigenvector are
+        iterated turn by turn. All points from all turns are collected, then
+        sorted by arc-length (nearest-neighbor chain from the X-point) so the
+        resulting segment is ordered along the manifold without zigzag artifacts.
 
         Parameters
         ----------
         n_turns : int
             Number of map iterations.
         init_length : float
-            Length of the initial perturbation segment.
+            Total length of initial seed segment along eigenvector.
         n_init_pts : int
-            Number of seed points on the initial segment.
+            Number of seed points.
         both_sides : bool
-            If True, also grow the manifold in the −eigenvector direction.
+            If True, grow in both ±eigenvector directions.
         **solve_ivp_kwargs :
             Forwarded to ``solve_ivp``.
         """
@@ -225,34 +258,38 @@ class _ManifoldBase:
 
         phi_s, phi_e = self.phi_span
         if self._branch == 'stable':
-            # Integrate backward (reverse φ span) so seeds converge to X-pt
             phi_span_iter = (phi_e, phi_s)
         else:
             phi_span_iter = (phi_s, phi_e)
 
         for sgn in signs:
-            pts = np.empty((n_init_pts, 2))
-            for k, eps in enumerate(
-                    np.linspace(0, init_length, n_init_pts, endpoint=True)):
-                pts[k] = self.x_point + sgn * eps * self._evec
+            # Seed points: uniformly spaced along eigenvector direction
+            epsilons = np.linspace(init_length / n_init_pts, init_length, n_init_pts)
+            pts = np.array([self.x_point + sgn * eps * self._evec for eps in epsilons])
 
-            # Iterate the map
-            seg_list = [pts.copy()]
+            # Collect points from all generations
+            all_pts_list = [pts.copy()]
+
             for turn_idx in range(1, n_turns + 1):
                 new_pts = np.empty_like(pts)
-                for k in range(n_init_pts):
+                for k in range(len(pts)):
                     new_pts[k] = self._integrate_fieldline(
                         pts[k], phi_span_iter, **solve_ivp_kwargs)
                 pts = new_pts
-                seg_list.append(pts.copy())
-                # Health checks
-                self._check_not_straight(np.vstack(seg_list), self._evec, turn_idx)
-                self._check_step_size(np.vstack(seg_list), turn_idx)
-                if turn_idx % 5 == 0:
-                    self._check_self_intersection(np.vstack(seg_list), turn_idx)
+                all_pts_list.append(pts.copy())
 
-            # Flatten into a single (N, 2) array ordered along the manifold
-            self.segments.append(np.vstack(seg_list))
+                # Per-turn health check on current generation
+                self._check_step_size(pts, turn_idx)
+
+            # Sort all collected points by arc-length from X-point
+            combined = np.vstack(all_pts_list)
+            sorted_seg = self._sort_by_arclength(combined)
+
+            # Final health checks on sorted segment
+            self._check_not_straight(sorted_seg, self._evec, n_turns)
+            self._check_self_intersection(sorted_seg, n_turns)
+
+            self.segments.append(sorted_seg)
 
         return self
 
