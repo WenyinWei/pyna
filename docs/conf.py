@@ -24,7 +24,12 @@ extensions = [
 ]
 
 templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = [
+    '_build', 'Thumbs.db', '.DS_Store',
+    # Only include tutorial notebooks; skip examples and research
+    'notebooks/examples/*',
+    'notebooks/research/*',
+]
 
 # ? Theme ?
 html_theme = 'furo'
@@ -77,7 +82,7 @@ intersphinx_mapping = {
 }
 
 # ? autodoc ?
-autodoc_mock_imports = ['cupy', 'dolfinx', 'ufl', 'petsc4py', 'mpi4py']
+autodoc_mock_imports = ['cupy', 'dolfinx', 'ufl', 'petsc4py', 'mpi4py', 'deprecated', 'joblib', 'plotly']
 autodoc_default_options = {
     'members': True,
     'undoc-members': False,
