@@ -18,10 +18,12 @@ from __future__ import annotations
 import numpy as np
 from typing import Callable, List, TYPE_CHECKING
 
-import joblib
-
-# Disk-persistent cache for expensive manifold integrations
-_memory = joblib.Memory(location='.cache/gap_response', verbose=0)
+try:
+    import joblib
+    _memory = joblib.Memory(location='.cache/gap_response', verbose=0)
+except ImportError:
+    joblib = None  # type: ignore
+    _memory = None
 
 if TYPE_CHECKING:
     from pyna.MCF.control.wall import WallGeometry
