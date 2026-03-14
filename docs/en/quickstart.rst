@@ -78,6 +78,16 @@ appear as closed curves; a magnetic island shows up as a chain of dots.
    plt.tight_layout()
    plt.show()
 
+.. figure:: /_static/quickstart_poincare.png
+   :align: center
+   :width: 80%
+   :alt: Poincaré map of a Solov'ev analytic equilibrium showing nested flux surfaces
+
+   **Figure 1.** Poincaré map of the Solov'ev analytic equilibrium (EAST-like parameters,
+   250 toroidal transits per field line).  Each colour corresponds to one field line;
+   nested closed curves are flux surfaces.  The red cross marks the magnetic axis;
+   the black curve is the last closed flux surface (LCFS, ψ = 1).
+
 Each concentric ring corresponds to one field line winding around a flux
 surface.  The q = m/n rational surface is where a resonant perturbation
 (e.g. an RMP coil) can open a magnetic island.
