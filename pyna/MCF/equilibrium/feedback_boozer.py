@@ -60,13 +60,14 @@ class BoozerSurface:
         """Return (m,n) pairs where m - iota*n ≈ 0 (resonant modes).
         
         Scans n from 1..10 and finds m = round(iota*n).
+        Only includes modes within 15% of exact resonance.
         """
         # TODO: make n_max configurable; currently hard-coded to 10
         n_max = 10
         modes = []
         for n in range(1, n_max + 1):
             m = round(self.iota * n)
-            if m > 0:
+            if m > 0 and abs(m - self.iota * n) < 0.15:
                 modes.append((m, n))
         return modes
 
@@ -148,13 +149,29 @@ def mhd_response_operator(
     Kinetic screening (Nave & Wesson):
         C_mn = C_ideal * K(omega_star, omega_A)
     """
-    if model not in ('ideal_mhd', 'resistive', 'kinetic_screening'):
-        raise ValueError(f"Unknown model '{model}'. Choose from: "
-                         "'ideal_mhd', 'resistive', 'kinetic_screening'.")
-    if model == 'resistive' and lundquist is None:
-        raise ValueError("lundquist (Lundquist number S) must be provided for model='resistive'.")
-    # TODO: implement each model
-    raise NotImplementedError
+    m, n = mode
+    delta_iota = surface.iota - m / n
+
+    if model == 'ideal_mhd':
+        epsilon = 1e-3
+        C_mn = 1.0 / (delta_iota**2 + epsilon**2)**0.5 * beta_local * 0.1
+        return complex(1.0 + C_mn, 0.0)
+
+    elif model == 'resistive':
+        if lundquist is None:
+            raise ValueError("lundquist number required for resistive model")
+        S = lundquist
+        C_ideal = mhd_response_operator(surface, mode, beta_local, 'ideal_mhd')
+        shield = 1.0 / (1.0 + 1j * S**(-1/3) / (abs(delta_iota) + 1e-6))
+        return C_ideal * shield
+
+    elif model == 'kinetic_screening':
+        C_ideal = mhd_response_operator(surface, mode, beta_local, 'ideal_mhd')
+        screening = 1.0 / (1.0 + 1j * 0.5 / (abs(delta_iota) + 1e-4))
+        return C_ideal * screening
+
+    else:
+        raise ValueError(f"Unknown model: {model}. Choose ideal_mhd, resistive, or kinetic_screening")
 
 
 def compute_boozer_response(
@@ -199,8 +216,30 @@ def compute_boozer_response(
     - Results should agree in non-chaotic interior
     - Disagreement at edge → signature of chaos onset
     """
-    # TODO: implement
-    raise NotImplementedError
+    if beta_profile is None:
+        beta_profile = lambda psi_n: 0.02 * (1 - psi_n)
+    if iota_profile is None:
+        if hasattr(equilibrium, 'q_of_psi'):
+            iota_profile = lambda psi_n: 1.0 / float(equilibrium.q_of_psi(psi_n))
+        else:
+            raise ValueError("equilibrium must have q_of_psi or provide iota_profile")
+
+    new_modes = {}
+    for psi_n, surface_modes in perturbation.modes.items():
+        iota = iota_profile(psi_n)
+        beta = beta_profile(psi_n)
+        surface = BoozerSurface(
+            psi_norm=psi_n, iota=iota,
+            theta_B=np.linspace(0, 2*np.pi, 64),
+            phi_B=np.linspace(0, 2*np.pi, 32),
+        )
+        new_surface_modes = {}
+        for (m, n), amplitude in surface_modes.items():
+            C_mn = mhd_response_operator(surface, (m, n), beta, model)
+            new_surface_modes[(m, n)] = amplitude * C_mn
+        new_modes[psi_n] = new_surface_modes
+
+    return BoozerPerturbation(surfaces=perturbation.surfaces, modes=new_modes)
 
 
 def island_width_with_response(
@@ -231,5 +270,31 @@ def island_width_with_response(
         'w_total': island half-width including plasma response  
         'amplification': w_total / w_external
     """
-    # TODO: use island_halfwidth from pyna.topo
-    raise NotImplementedError
+    m, n = mode
+
+    def get_amplitude(pert, psi_n, m, n):
+        if psi_n in pert.modes and (m, n) in pert.modes[psi_n]:
+            return abs(pert.modes[psi_n][(m, n)])
+        return 0.0
+
+    if hasattr(equilibrium, 'resonant_psi'):
+        psi_list = equilibrium.resonant_psi(m, n)
+    else:
+        psi_list = []
+
+    if not psi_list:
+        return {'w_external': 0.0, 'w_total': 0.0, 'amplification': 1.0}
+
+    psi_res = psi_list[0]
+    b_ext = get_amplitude(perturbation, psi_res, m, n)
+    b_tot = get_amplitude(response, psi_res, m, n)
+
+    shear = abs(float(equilibrium.q_of_psi(min(psi_res + 0.05, 0.95))) -
+                float(equilibrium.q_of_psi(max(psi_res - 0.05, 0.05)))) / 0.1
+
+    factor = 4.0 / (m * shear + 1e-6)
+    w_ext = factor * np.sqrt(max(b_ext, 0))
+    w_tot = factor * np.sqrt(max(b_tot, 0))
+    amp = w_tot / (w_ext + 1e-30)
+
+    return {'w_external': w_ext, 'w_total': w_tot, 'amplification': amp}
