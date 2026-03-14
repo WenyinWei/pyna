@@ -72,6 +72,7 @@ napoleon_use_rtype = False
 # ? nbsphinx settings ?
 nbsphinx_execute = 'auto'
 nbsphinx_timeout = 300  # seconds per notebook
+nbsphinx_allow_errors = True  # don't fail the whole build on notebook errors
 
 # ? intersphinx ?
 intersphinx_mapping = {
