@@ -71,12 +71,10 @@ def chirikov_overlap(
     if island_widths.ndim != 1 or len(island_widths) < 2:
         raise ValueError("Need at least two islands (1-D arrays of length ≥ 2).")
 
-    # TODO: implement
-    # delta = np.diff(island_positions)          # gap between adjacent O-points
-    # sum_w = island_widths[:-1] + island_widths[1:]  # sum of half-widths
-    # sigma = sum_w / delta
-    # return sigma
-    raise NotImplementedError("chirikov_overlap: TODO")
+    delta = np.diff(island_positions)          # gap between adjacent O-points
+    sum_w = island_widths[:-1] + island_widths[1:]  # sum of half-widths
+    sigma = sum_w / delta
+    return sigma
 
 
 def ftle_field(
@@ -143,34 +141,45 @@ def ftle_field(
     if R_grid.shape != Z_grid.shape:
         raise ValueError("R_grid and Z_grid must have the same shape.")
 
-    # TODO: implement using pyna.flt.FieldLineTracer + finite difference Jacobian
-    # Example skeleton:
-    #
-    # from pyna.flt import FieldLineTracer
-    # tracer = FieldLineTracer(field_func, dt=dt)
-    # eps = 1e-6  # stencil half-width
-    # ftle = np.empty_like(R_grid)
-    #
-    # for idx in np.ndindex(R_grid.shape):
-    #     R0, Z0 = R_grid[idx], Z_grid[idx]
-    #     # Integrate 4 perturbed neighbours
-    #     seeds = np.array([
-    #         [R0 + eps, Z0, phi0],
-    #         [R0 - eps, Z0, phi0],
-    #         [R0, Z0 + eps, phi0],
-    #         [R0, Z0 - eps, phi0],
-    #     ])
-    #     final = tracer.trace_many(seeds, t_max)
-    #     dR_dR0 = (final[0, 0] - final[1, 0]) / (2 * eps)
-    #     dR_dZ0 = (final[2, 0] - final[3, 0]) / (2 * eps)
-    #     dZ_dR0 = (final[0, 1] - final[1, 1]) / (2 * eps)
-    #     dZ_dZ0 = (final[2, 1] - final[3, 1]) / (2 * eps)
-    #     J = np.array([[dR_dR0, dR_dZ0], [dZ_dR0, dZ_dZ0]])
-    #     lam_max = np.linalg.norm(J, ord=2) ** 2  # max singular value squared
-    #     ftle[idx] = np.log(np.sqrt(lam_max)) / t_max
-    #
-    # return ftle
-    raise NotImplementedError("ftle_field: TODO")
+    from pyna.flt import FieldLineTracer
+    tracer = FieldLineTracer(field_func, dt=dt)
+
+    eps = 1e-4  # stencil half-width
+    NR, NZ = R_grid.shape
+    ftle = np.full((NR, NZ), np.nan)
+
+    for i in range(NR):
+        for j in range(NZ):
+            R0 = R_grid[i, j]
+            Z0 = Z_grid[i, j]
+
+            # 4 perturbed starts
+            starts = np.array([
+                [R0 + eps, Z0, phi0],
+                [R0 - eps, Z0, phi0],
+                [R0, Z0 + eps, phi0],
+                [R0, Z0 - eps, phi0],
+            ])
+
+            try:
+                trajs = [tracer.trace(s, t_max)[-1] for s in starts]
+
+                # Jacobian: dR/dR0, dZ/dR0, dR/dZ0, dZ/dZ0
+                dR_dR0 = (trajs[0][0] - trajs[1][0]) / (2 * eps)
+                dZ_dR0 = (trajs[0][1] - trajs[1][1]) / (2 * eps)
+                dR_dZ0 = (trajs[2][0] - trajs[3][0]) / (2 * eps)
+                dZ_dZ0 = (trajs[2][1] - trajs[3][1]) / (2 * eps)
+
+                J = np.array([[dR_dR0, dR_dZ0],
+                               [dZ_dR0, dZ_dZ0]])
+
+                # FTLE = log(max singular value) / t_max
+                sv = np.linalg.svd(J, compute_uv=False)
+                ftle[i, j] = np.log(sv[0] + 1e-30) / t_max
+            except Exception:
+                pass  # leave as nan
+
+    return ftle
 
 
 def chaotic_boundary_estimate(
@@ -216,21 +225,24 @@ def chaotic_boundary_estimate(
     if not (0.0 < threshold_percentile < 100.0):
         raise ValueError("threshold_percentile must be in (0, 100).")
 
-    # TODO: implement contour extraction
-    # Option A – skimage (preferred):
-    #   from skimage.measure import find_contours
-    #   level = np.nanpercentile(ftle, threshold_percentile)
-    #   contours = find_contours(ftle, level)
-    #   # Map pixel indices back to (R, Z) coordinates
-    #   ...
-    #
-    # Option B – matplotlib:
-    #   import matplotlib.pyplot as plt
-    #   fig, ax = plt.subplots()
-    #   cs = ax.contour(R_grid, Z_grid, ftle, levels=[level])
-    #   paths = cs.collections[0].get_paths()
-    #   R_boundary = np.concatenate([p.vertices[:, 0] for p in paths])
-    #   Z_boundary = np.concatenate([p.vertices[:, 1] for p in paths])
-    #   plt.close(fig)
-    #   return R_boundary, Z_boundary
-    raise NotImplementedError("chaotic_boundary_estimate: TODO")
+    threshold = np.percentile(ftle[np.isfinite(ftle)], threshold_percentile)
+    mask = ftle > threshold
+    # Try skimage first, fall back to scipy
+    try:
+        from skimage import measure
+        contours = measure.find_contours(ftle, threshold)
+        if not contours:
+            return np.array([]), np.array([])
+        # Convert pixel indices back to R,Z coords
+        longest = max(contours, key=len)
+        # longest[:,0] = row index (R), longest[:,1] = col index (Z)
+        R_bdy = np.interp(longest[:, 0], np.arange(R_grid.shape[0]), R_grid[:, 0])
+        Z_bdy = np.interp(longest[:, 1], np.arange(Z_grid.shape[1]), Z_grid[0, :])
+        return R_bdy, Z_bdy
+    except ImportError:
+        # fallback: return boundary pixels from scipy erosion
+        from scipy import ndimage
+        boundary = mask & ~ndimage.binary_erosion(mask)
+        R_bdy = R_grid[boundary]
+        Z_bdy = Z_grid[boundary]
+        return R_bdy, Z_bdy
