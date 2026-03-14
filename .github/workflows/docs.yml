@@ -32,6 +32,7 @@ jobs:
       - name: Build Sphinx docs
         run: |
           cd docs
+          ln -sf ../notebooks notebooks
           make html SPHINXOPTS="-q"
 
       - name: Upload artifact
