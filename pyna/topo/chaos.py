@@ -225,24 +225,21 @@ def chaotic_boundary_estimate(
     if not (0.0 < threshold_percentile < 100.0):
         raise ValueError("threshold_percentile must be in (0, 100).")
 
-    threshold = np.percentile(ftle[np.isfinite(ftle)], threshold_percentile)
-    mask = ftle > threshold
-    # Try skimage first, fall back to scipy
     try:
-        from skimage import measure
-        contours = measure.find_contours(ftle, threshold)
-        if not contours:
-            return np.array([]), np.array([])
-        # Convert pixel indices back to R,Z coords
-        longest = max(contours, key=len)
-        # longest[:,0] = row index (R), longest[:,1] = col index (Z)
-        R_bdy = np.interp(longest[:, 0], np.arange(R_grid.shape[0]), R_grid[:, 0])
-        Z_bdy = np.interp(longest[:, 1], np.arange(Z_grid.shape[1]), Z_grid[0, :])
-        return R_bdy, Z_bdy
-    except ImportError:
-        # fallback: return boundary pixels from scipy erosion
-        from scipy import ndimage
-        boundary = mask & ~ndimage.binary_erosion(mask)
-        R_bdy = R_grid[boundary]
-        Z_bdy = Z_grid[boundary]
-        return R_bdy, Z_bdy
+        from skimage import measure as _skimage_measure
+    except ImportError as err:
+        raise ImportError(
+            "scikit-image is required for chaotic_boundary_estimate(). "
+            "Install it with: pip install scikit-image"
+        ) from err
+
+    threshold = np.percentile(ftle[np.isfinite(ftle)], threshold_percentile)
+    contours = _skimage_measure.find_contours(ftle, threshold)
+    if not contours:
+        return np.array([]), np.array([])
+    # Convert pixel indices back to R,Z coords
+    longest = max(contours, key=len)
+    # longest[:,0] = row index (R), longest[:,1] = col index (Z)
+    R_bdy = np.interp(longest[:, 0], np.arange(R_grid.shape[0]), R_grid[:, 0])
+    Z_bdy = np.interp(longest[:, 1], np.arange(Z_grid.shape[1]), Z_grid[0, :])
+    return R_bdy, Z_bdy

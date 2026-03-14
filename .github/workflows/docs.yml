@@ -26,7 +26,7 @@ jobs:
           pip install --upgrade pip
           pip install "sphinx>=7" furo myst-parser nbsphinx sphinx-autodoc-typehints \
                       sphinx-copybutton sphinx-design ipykernel \
-                      numpy scipy matplotlib sympy
+                      numpy scipy matplotlib sympy scikit-image
           pip install --no-build-isolation --no-deps .
 
       - name: Install pandoc
