@@ -13,6 +13,15 @@ from scipy.integrate import solve_ivp
 
 
 # ---------------------------------------------------------------------------
+# Warning class
+# ---------------------------------------------------------------------------
+
+class ManifoldWarning(UserWarning):
+    """Warning for suspicious manifold growth behavior."""
+    pass
+
+
+# ---------------------------------------------------------------------------
 # Base class
 # ---------------------------------------------------------------------------
 
@@ -52,6 +61,9 @@ class _ManifoldBase:
         # Select the eigenvector corresponding to this branch
         self._select_eigenvector()
 
+        # Run health check on the X-point
+        self._verify_xpoint()
+
         # Storage for grown manifold points
         self.segments: list[np.ndarray] = []  # each element: ndarray shape (N, 2)
 
@@ -75,6 +87,104 @@ class _ManifoldBase:
 
         self._lam = lam
         self._evec = vec / np.linalg.norm(vec)
+
+    def _verify_xpoint(self, tol=1e-4):
+        """Check the given x_point is actually a hyperbolic fixed point."""
+        import warnings
+        mods = np.abs(self._eigvals)
+        if not (mods.max() > 1.0 + tol and mods.min() < 1.0 - tol):
+            warnings.warn(
+                f"X-point does not appear to be hyperbolic: |λ| = {mods}. "
+                f"Manifold growth will likely produce straight lines. "
+                f"Ensure n_turns matches the orbit period (e.g. n_turns=TARGET_N for q=m/n).",
+                ManifoldWarning,
+                stacklevel=3,
+            )
+        det = np.linalg.det(self.Jac)
+        if abs(det - 1.0) > 0.01:
+            warnings.warn(
+                f"Monodromy matrix det={det:.4f} deviates from 1 (expected for area-preserving map). "
+                f"Numerical integration may be inaccurate.",
+                ManifoldWarning,
+                stacklevel=3,
+            )
+
+    def _check_not_straight(self, segment, eigvec, turn_idx):
+        """Warn if segment is suspiciously straight (manifold not curving)."""
+        import warnings
+        if len(segment) < 4:
+            return
+        diffs = np.diff(segment, axis=0)
+        norms = np.linalg.norm(diffs, axis=1, keepdims=True)
+        norms = np.where(norms < 1e-15, 1e-15, norms)
+        dirs = diffs / norms
+        dots = np.einsum('ij,ij->i', dirs[:-1], dirs[1:])
+        dots = np.clip(dots, -1.0, 1.0)
+        angles = np.degrees(np.arccos(dots))
+        max_angle = angles.max() if len(angles) > 0 else 0.0
+        if max_angle < 2.0 and turn_idx >= 3:
+            warnings.warn(
+                f"Manifold appears straight after {turn_idx} turns (max angle change {max_angle:.2f}°). "
+                f"Check: (1) Is x_point a true fixed point? (2) Is phi_span correct for the orbit period? "
+                f"(3) Is field_func returning dR/dphi not unit tangent?",
+                ManifoldWarning,
+                stacklevel=4,
+            )
+
+    def _check_step_size(self, segment, turn_idx):
+        """Warn if manifold has large jumps (fold/cusp overshoot)."""
+        import warnings
+        if len(segment) < 3:
+            return
+        dists = np.linalg.norm(np.diff(segment, axis=0), axis=1)
+        median_d = np.median(dists)
+        if median_d < 1e-15:
+            return
+        bad = dists > 10.0 * median_d
+        if bad.any():
+            warnings.warn(
+                f"Manifold segment has large jumps at turn {turn_idx} "
+                f"(max/median = {dists.max()/median_d:.1f}x). "
+                f"Consider smaller init_length or finer dt at folds.",
+                ManifoldWarning,
+                stacklevel=4,
+            )
+
+    def _check_self_intersection(self, segment, turn_idx):
+        """Warn if a manifold branch appears to self-intersect."""
+        import warnings
+        if len(segment) < 6:
+            return
+        pts = segment
+        n = len(pts)
+
+        def _ccw(A, B, C):
+            return (C[1]-A[1])*(B[0]-A[0]) > (B[1]-A[1])*(C[0]-A[0])
+
+        def _segments_intersect(p1, p2, p3, p4):
+            return (_ccw(p1,p3,p4) != _ccw(p2,p3,p4) and
+                    _ccw(p1,p2,p3) != _ccw(p1,p2,p4))
+
+        found = False
+        step = max(1, n // 40)
+        idxs = list(range(0, n, step))
+        for i in range(len(idxs)-1):
+            for j in range(i+2, len(idxs)-1):
+                if _segments_intersect(pts[idxs[i]], pts[idxs[i+1]],
+                                       pts[idxs[j]], pts[idxs[j+1]]):
+                    found = True
+                    break
+            if found:
+                break
+
+        if found:
+            warnings.warn(
+                f"Manifold branch appears to self-intersect at turn {turn_idx}. "
+                f"This may indicate (1) overshoot at a fold, (2) wrong branch direction, "
+                f"or (3) insufficient integration accuracy.",
+                ManifoldWarning,
+                stacklevel=4,
+            )
 
     def _integrate_fieldline(self, x0, phi_span, **kwargs):
         """Integrate a single field line from x0 over phi_span."""
@@ -128,13 +238,18 @@ class _ManifoldBase:
 
             # Iterate the map
             seg_list = [pts.copy()]
-            for _ in range(n_turns):
+            for turn_idx in range(1, n_turns + 1):
                 new_pts = np.empty_like(pts)
                 for k in range(n_init_pts):
                     new_pts[k] = self._integrate_fieldline(
                         pts[k], phi_span_iter, **solve_ivp_kwargs)
                 pts = new_pts
                 seg_list.append(pts.copy())
+                # Health checks
+                self._check_not_straight(np.vstack(seg_list), self._evec, turn_idx)
+                self._check_step_size(np.vstack(seg_list), turn_idx)
+                if turn_idx % 5 == 0:
+                    self._check_self_intersection(np.vstack(seg_list), turn_idx)
 
             # Flatten into a single (N, 2) array ordered along the manifold
             self.segments.append(np.vstack(seg_list))
