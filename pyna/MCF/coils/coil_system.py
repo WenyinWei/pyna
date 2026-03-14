@@ -3,7 +3,7 @@
 Provides:
 - CoilSet: a collection of current-carrying coils
 - StellaratorControlCoils: standard external island control coil geometry
-- biot_savart_field: numerical Biot-Savart computation on a cylindrical grid
+- Biot_Savart_field: numerical Biot-Savart computation on a cylindrical grid
 
 The Biot-Savart integration is parallelized over coils and grid points.
 """
@@ -17,7 +17,7 @@ import os
 MU0_OVER_4PI = 1e-7  # mu0 / (4*pi)  [T·m/A]
 
 
-def biot_savart_field(coil_pts, coil_current, R_grid, Z_grid, Phi_grid=None):
+def Biot_Savart_field(coil_pts, coil_current, R_grid, Z_grid, Phi_grid=None):
     """Compute magnetic field from a current-carrying coil via Biot-Savart.
 
     Parameters
@@ -147,7 +147,7 @@ class CoilSet:
 
         def _compute_coil(coil_item):
             pts, current = coil_item
-            return biot_savart_field(pts, current, RR, ZZ, PP)
+            return Biot_Savart_field(pts, current, RR, ZZ, PP)
 
         if n_workers > 1 and len(self.coils) > 1:
             with ThreadPoolExecutor(max_workers=n_workers) as ex:
@@ -274,3 +274,7 @@ class StellaratorControlCoils(CoilSet):
             f"N_coils={self._N_coils}, m={self.m_target}, n={self.n_target}, "
             f"I0={self.I0} A)"
         )
+
+
+# Backwards-compatibility alias
+biot_savart_field = Biot_Savart_field

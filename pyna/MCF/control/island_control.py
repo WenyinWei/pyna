@@ -55,7 +55,7 @@ def compute_resonant_amplitude(
     field_func_perturbation : callable
         Function f(R, Z, phi) → (BR_pert, BZ_pert, BPhi_pert) giving the
         perturbation field at a point.  For a CoilSet, use a wrapper that
-        calls biot_savart_field.
+        calls Biot_Savart_field.
     S_res : float
         Normalised flux coordinate of the resonant surface (ψ_norm ∈ [0,1]).
     m, n : int
@@ -98,7 +98,7 @@ def compute_resonant_amplitude(
 
 def _make_coil_field_func(coil_set):
     """Wrap a CoilSet into a (R, Z, phi) → (BR, BZ, BPhi) scalar callable."""
-    from pyna.MCF.coils.coil_system import biot_savart_field
+    from pyna.MCF.coils.coil_system import Biot_Savart_field
 
     def field_func(R, Z, phi):
         br_tot = 0.0
@@ -109,7 +109,7 @@ def _make_coil_field_func(coil_set):
             R_arr = np.array([[R]])
             Z_arr = np.array([[Z]])
             phi_arr = np.array([[phi]])
-            br, bz, bp = biot_savart_field(pts, current, R_arr, Z_arr, phi_arr)
+            br, bz, bp = Biot_Savart_field(pts, current, R_arr, Z_arr, phi_arr)
             br_tot += float(br[0, 0])
             bz_tot += float(bz[0, 0])
             bp_tot += float(bp[0, 0])
@@ -193,7 +193,7 @@ def island_suppression_current(
     currents : ndarray  shape (N_coils,)
     report : dict
     """
-    from pyna.MCF.coils.coil_system import biot_savart_field
+    from pyna.MCF.coils.coil_system import Biot_Savart_field
 
     psi_list = stellarator.resonant_psi(target_m, target_n)
     if not psi_list:
