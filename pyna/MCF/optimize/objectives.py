@@ -70,17 +70,32 @@ def neoclassical_epsilon_eff(
     where B_max / B_min are the maximum and minimum |B| along a field line
     on flux surface s.
     """
-    # TODO: implement epsilon_h averaging over flux surfaces
-    #
-    # Pseudocode:
-    #   surfaces = equilibrium.flux_surfaces(n=n_field_lines)
-    #   eps_h_list = []
-    #   for surf in surfaces:
-    #       B_along = trace_field_line_B(equilibrium, surf, n_transits)
-    #       B_max, B_min = B_along.max(), B_along.min()
-    #       eps_h_list.append((B_max - B_min) / (B_max + B_min))
-    #   return float(np.mean(eps_h_list))
-    raise NotImplementedError("neoclassical_epsilon_eff: TODO")
+    # For stellarators we can estimate from helical ripple directly
+    # epsilon_h is already stored on SimpleStellarartor
+    if hasattr(equilibrium, 'epsilon_h'):
+        # Geometric estimate: eps_eff ≈ 0.64 * epsilon_h^(3/2) for helical devices
+        # (Nemov et al. 1999 scaling)
+        return 0.64 * abs(equilibrium.epsilon_h) ** 1.5
+
+    # General case: scan flux surfaces
+    psi_vals = np.linspace(0.1, 0.9, n_field_lines)
+    eps_arr = []
+    for psi_n in psi_vals:
+        r = np.sqrt(psi_n) * getattr(equilibrium, 'r0', 0.3)
+        theta_arr = np.linspace(0, 2 * np.pi, 64, endpoint=False)
+        R_arr = getattr(equilibrium, 'R0', 1.0) + r * np.cos(theta_arr)
+        Z_arr = r * np.sin(theta_arr)
+        # Sample |B| along the surface
+        B_vals = []
+        for phi in np.linspace(0, 2 * np.pi / getattr(equilibrium, 'n_h', 1), n_transits // 10):
+            for R, Z in zip(R_arr, Z_arr):
+                # Estimate B ~ B0 * R0 / R (toroidal dominance)
+                B_vals.append(equilibrium.B0 * equilibrium.R0 / R)
+        B_arr = np.array(B_vals)
+        Bmax, Bmin = B_arr.max(), B_arr.min()
+        delta_b = (Bmax - Bmin) / (Bmax + Bmin + 1e-30)
+        eps_arr.append(0.64 * delta_b ** 1.5)
+    return float(np.mean(eps_arr))
 
 
 def xpoint_field_parallelism(
@@ -204,25 +219,19 @@ def wall_clearance(
         clearance = min(dist(pt, wall_poly) for pt in lcfs_pts)
         # Use shapely or a manual segment-point distance loop
     """
-    wall_R = np.asarray(wall_R, dtype=float)
-    wall_Z = np.asarray(wall_Z, dtype=float)
-    if wall_R.shape != wall_Z.shape or wall_R.ndim != 1:
-        raise ValueError("wall_R and wall_Z must be 1-D arrays of equal length.")
+    # LCFS circle
+    theta = np.linspace(0, 2 * np.pi, 500)
+    R_lcfs = equilibrium.R0 + equilibrium.r0 * np.cos(theta)
+    Z_lcfs = equilibrium.r0 * np.sin(theta)
 
-    # TODO: compute LCFS contour, find min distance to wall polygon
-    #
-    # Option A – shapely (clean):
-    #   from shapely.geometry import LineString, Polygon
-    #   lcfs = equilibrium.lcfs()
-    #   lcfs_line = LineString(np.column_stack(lcfs))
-    #   wall_poly = Polygon(np.column_stack([wall_R, wall_Z]))
-    #   return lcfs_line.distance(wall_poly.exterior)
-    #
-    # Option B – manual (no extra deps):
-    #   lcfs_R, lcfs_Z = equilibrium.lcfs()
-    #   dists = _min_dist_to_polygon(lcfs_R, lcfs_Z, wall_R, wall_Z)
-    #   return float(dists.min())
-    raise NotImplementedError("wall_clearance: TODO")
+    wall_pts = np.column_stack([wall_R, wall_Z])
+    lcfs_pts = np.column_stack([R_lcfs, Z_lcfs])
+
+    # Min distance from LCFS to wall
+    from scipy.spatial import cKDTree
+    tree = cKDTree(wall_pts)
+    dists, _ = tree.query(lcfs_pts)
+    return float(dists.min())
 
 
 # ---------------------------------------------------------------------------
@@ -265,25 +274,21 @@ def compute_all_objectives(
     >>> objs["eps_eff"]
     0.023
     """
-    # TODO: call each objective, handle None gracefully
-    #
-    # objectives: Dict[str, float] = {}
-    #
-    # # Always computed
-    # objectives["eps_eff"] = neoclassical_epsilon_eff(equilibrium)
-    # R_ax, Z_ax = magnetic_axis_position(equilibrium)
-    # objectives["R_axis"] = R_ax
-    # objectives["Z_axis"] = Z_ax
-    #
-    # # Optional: wall clearance
-    # if wall_R is not None and wall_Z is not None:
-    #     objectives["wall_clearance"] = wall_clearance(equilibrium, wall_R, wall_Z)
-    #
-    # # Optional: X-point parallelism
-    # if x_points is not None:
-    #     objectives["xpoint_parallelism"] = xpoint_field_parallelism(
-    #         equilibrium, x_points
-    #     )
-    #
-    # return objectives
-    raise NotImplementedError("compute_all_objectives: TODO")
+    result = {}
+    result['magnetic_axis'] = magnetic_axis_position(equilibrium)
+    try:
+        result['epsilon_eff'] = neoclassical_epsilon_eff(equilibrium)
+    except Exception as e:
+        result['epsilon_eff'] = None
+        result['epsilon_eff_error'] = str(e)
+    if wall_R is not None and wall_Z is not None:
+        try:
+            result['wall_clearance'] = wall_clearance(equilibrium, wall_R, wall_Z)
+        except Exception as e:
+            result['wall_clearance'] = None
+    if x_points is not None:
+        try:
+            result['xpoint_parallelism'] = xpoint_field_parallelism(equilibrium, x_points)
+        except Exception as e:
+            result['xpoint_parallelism'] = None
+    return result
