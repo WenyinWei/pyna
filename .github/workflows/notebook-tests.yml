@@ -25,9 +25,9 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install numpy scipy matplotlib sympy scikit-image joblib \
+          pip install --upgrade numpy scipy matplotlib sympy scikit-image joblib deprecated pandas \
                       jupyter nbmake pytest pytest-timeout ipykernel
-          pip install --no-build-isolation --no-deps .
+          pip install --upgrade --no-build-isolation --no-deps .
           sudo apt-get install -y pandoc
 
       - name: Run tutorial notebooks
