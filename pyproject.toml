@@ -7,14 +7,13 @@ name = "pyna-chaos"
 version = "0.3.0"
 description = "Python library for dynamical systems and magnetic confinement fusion analysis"
 readme = "README.md"
-license = {text = "GPL-3.0-or-later"}
+license = "GPL-3.0-or-later"
 authors = [{name = "Wenyin Wei", email = "wenyin.wei.ww@gmail.com"}]
 requires-python = ">=3.9"
 keywords = ["dynamical systems", "chaos", "plasma physics", "MHD", "Poincaré map", "magnetic confinement"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Physics",
 ]
@@ -44,6 +43,10 @@ docs = [
 Homepage = "https://github.com/WenyinWei/pyna"
 Repository = "https://github.com/WenyinWei/pyna"
 Issues = "https://github.com/WenyinWei/pyna/issues"
+
+[tool.setuptools.packages.find]
+include = ["pyna*", "cyna*"]
+exclude = ["notebooks*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
