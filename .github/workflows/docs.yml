@@ -29,6 +29,9 @@ jobs:
                       numpy scipy matplotlib sympy
           pip install --no-build-isolation --no-deps .
 
+      - name: Install pandoc
+        run: sudo apt-get install -y pandoc
+
       - name: Build Sphinx docs
         run: |
           cd docs
