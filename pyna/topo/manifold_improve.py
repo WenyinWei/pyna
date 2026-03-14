@@ -235,19 +235,21 @@ class _ManifoldBase:
              both_sides=True, **solve_ivp_kwargs):
         """Grow the manifold by iterating the Poincaré map.
 
-        Uses the fundamental-domain method: seeds along the eigenvector are
-        iterated turn by turn. All points from all turns are collected, then
-        sorted by arc-length (nearest-neighbor chain from the X-point) so the
-        resulting segment is ordered along the manifold without zigzag artifacts.
+        Uses the per-generation approach: each application of the Poincaré map
+        produces one "generation" of n_init_pts points that are stored as a
+        separate segment.  Within each generation, points are naturally ordered
+        by their seed label (1 … n_init_pts) – no global sorting is needed and
+        fold-induced mis-connections are avoided.
 
         Parameters
         ----------
         n_turns : int
-            Number of map iterations.
+            Number of map iterations (number of generations stored = n_turns + 1,
+            including the initial seed).
         init_length : float
             Total length of initial seed segment along eigenvector.
         n_init_pts : int
-            Number of seed points.
+            Number of seed points per generation.
         both_sides : bool
             If True, grow in both ±eigenvector directions.
         **solve_ivp_kwargs :
@@ -267,8 +269,8 @@ class _ManifoldBase:
             epsilons = np.linspace(init_length / n_init_pts, init_length, n_init_pts)
             pts = np.array([self.x_point + sgn * eps * self._evec for eps in epsilons])
 
-            # Collect points from all generations
-            all_pts_list = [pts.copy()]
+            # Generation 0: initial seed (already ordered by label)
+            self.segments.append(pts.copy())
 
             for turn_idx in range(1, n_turns + 1):
                 new_pts = np.empty_like(pts)
@@ -276,21 +278,12 @@ class _ManifoldBase:
                     new_pts[k] = self._integrate_fieldline(
                         pts[k], phi_span_iter, **solve_ivp_kwargs)
                 pts = new_pts
-                all_pts_list.append(pts.copy())
+                self.segments.append(pts.copy())
 
-                # Per-turn health check on current generation
-                self._check_step_size(pts, turn_idx)
-
-            # Sort all collected points by arc-length from X-point
-            combined = np.vstack(all_pts_list)
-            sorted_seg = self._sort_by_arclength(combined)
-
-            # Final health checks on sorted segment
-            self._check_not_straight(sorted_seg, self._evec, n_turns)
-            self._check_self_intersection(sorted_seg, n_turns)
-
-            self.segments.append(sorted_seg)
-
+        # Run health checks on the full collection of all segments
+        all_pts = np.vstack(self.segments)
+        self._check_not_straight(all_pts, self._evec, n_turns)
+        self._check_self_intersection(all_pts, n_turns)
         return self
 
     def plot(self, ax, **kwargs):
