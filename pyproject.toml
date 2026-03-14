@@ -38,6 +38,11 @@ docs = [
     "sphinx-autoapi",
     "ipykernel",
     "scikit-image",
+    "joblib",
+    "deprecated",
+    "pandas",
+    "pytest-timeout",
+    "nbmake",
 ]
 
 [project.urls]
