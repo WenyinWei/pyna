@@ -59,7 +59,6 @@ def Jac_evolution_along_cycle(afield:RegualrCylindricalGridField, Xcycle_RZdiff,
             first_step = Phi[1]-Phi[0], max_step = Phi[1]-Phi[0] ) 
 
 
-from deprecated import deprecated
 @deprecated(reason="This function is not reliable to point out the right eigenvector directions. Test it later. Enhancement needed.")
 def Jac_theta_val_evolution_along_Xcycle(afield:RegualrCylindricalGridField, Xcycle_RZdiff, Phi_span):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
