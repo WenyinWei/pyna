@@ -136,7 +136,7 @@ def _natural_field_func(stellarator):
             BZ0 = B_pol * np.cos(theta)
         else:
             BR0 = BZ0 = 0.0
-        delta_BR = (stellarator.epsilon_h * stellarator.B0 * psi *
+        delta_BR = (stellarator.epsilon_h * stellarator.B0 * np.sqrt(max(psi, 1e-12)) *
                     np.cos(stellarator.m_h * theta - stellarator.n_h * phi))
         return BR0 + delta_BR, BZ0, 0.0
 
@@ -144,13 +144,24 @@ def _natural_field_func(stellarator):
 
 
 def _natural_perturbation_func(stellarator):
-    """Extract only the helical perturbation part of the stellarator field."""
+    """Extract only the helical perturbation part of the stellarator field.
+
+    Returns the perturbation in (BR, BZ) such that the radial projection
+    b_rad = BR*cos(theta) + BZ*sin(theta) equals the helical ripple amplitude.
+
+    The helical ripple amplitude scales as rho/r0 = sqrt(psi_norm).
+    Previously used psi_norm directly (causing b_nat ≈ 0) and also returned
+    only a Cartesian-R component, adding an extra cos(theta) that destroyed
+    the (m,n) Fourier integral.
+    """
     def field_func(R, Z, phi):
         theta = np.arctan2(Z, R - stellarator.R0)
         psi = stellarator.psi_ax(R, Z)
-        delta_BR = (stellarator.epsilon_h * stellarator.B0 * psi *
-                    np.cos(stellarator.m_h * theta - stellarator.n_h * phi))
-        return delta_BR, 0.0, 0.0
+        # psi_ax returns rho²/r0² (normalised flux); sqrt gives rho/r0
+        b_rad = (stellarator.epsilon_h * stellarator.B0 * np.sqrt(max(psi, 1e-12)) *
+                 np.cos(stellarator.m_h * theta - stellarator.n_h * phi))
+        # Project onto (R, Z) so that br*cos(theta)+bz*sin(theta) == b_rad
+        return b_rad * np.cos(theta), b_rad * np.sin(theta), 0.0
 
     return field_func
 
