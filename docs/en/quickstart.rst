@@ -1,43 +1,140 @@
 Quick Start
 ===========
 
-Field Line Tracing
-------------------
+This page walks you through the three core capabilities of **pyna** — field-line
+tracing, Poincaré maps, and island topology — using a simple analytic tokamak
+equilibrium that requires no external data files.
+
+.. note::
+
+   All examples use the **Solov'ev analytic equilibrium** (Cerfon & Freidberg 2010),
+   scaled to EAST-like parameters (R₀ ≈ 1.86 m, B₀ = 5.3 T).  It is a good
+   all-purpose test bed: exact Grad–Shafranov solution, closed-form field
+   components, adjustable shape.
+
+----
+
+1. Build an Analytic Equilibrium
+---------------------------------
+
+Start by importing the equilibrium and inspecting its basic parameters:
+
 .. code-block:: python
 
    import numpy as np
-   from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
-   from pyna.flt import trace_fieldlines
+   import matplotlib.pyplot as plt
+   from pyna.MCF.equilibrium.Solovev import solovev_iter_like
 
-   # Build analytic equilibrium (Cerfon & Freidberg 2010)
-   eq = SolovevEquilibrium(R0=1.86, a=0.6, B0=5.3, kappa=1.7, delta=0.33, q0=3.0)
+   eq = solovev_iter_like(scale=0.3)          # EAST-like size
+   Rmaxis, Zmaxis = eq.magnetic_axis
 
-   # Trace field lines
-   starts = np.array([[1.86 + 0.3*i, 0.0] for i in range(5)])
-   result = trace_fieldlines(eq.field_line_rhs, starts, n_turns=100)
+   print(f"R0 = {eq.R0:.2f} m   a = {eq.a:.2f} m   B0 = {eq.B0:.1f} T")
+   print(f"κ  = {eq.kappa:.2f}  δ = {eq.delta:.2f}  q0 = {eq.q0:.2f}")
+   print(f"Magnetic axis: R = {Rmaxis:.3f} m, Z = {Zmaxis:.3f} m")
 
-Poincaré Map
-------------
+The returned ``eq`` object exposes ``eq.BR_BZ(R, Z)``, ``eq.Bphi(R)``,
+``eq.psi(R, Z)`` (normalised flux), and ``eq.q_profile(psi)``.
+
+----
+
+2. Trace Field Lines and Build a Poincaré Map
+----------------------------------------------
+
+A Poincaré map records the (R, Z) coordinates each time a field line crosses
+the midplane (φ = 0).  After many toroidal transits, nested flux surfaces
+appear as closed curves; a magnetic island shows up as a chain of dots.
+
 .. code-block:: python
 
-   from pyna.topo.poincare import poincare_from_fieldlines
-   
-   section_R = np.linspace(1.2, 2.4, 200)
-   points = poincare_from_fieldlines(eq.field_line_rhs, section_R, n_turns=500)
+   from pyna.flt import FieldLineTracer, get_backend
+   from pyna.topo.poincare import PoincareMap, ToroidalSection, poincare_from_fieldlines
 
-FPT Topology Control
---------------------
+   # --- define the ODE right-hand side: dR/dφ, dZ/dφ ---
+   def field_rhs(phi, RZ):
+       R, Z = RZ
+       BR, BZ = eq.BR_BZ(R, Z)
+       Bphi   = eq.Bphi(R)
+       return [R * BR / Bphi, R * BZ / Bphi]
+
+   # --- seed 8 field lines radially outward from the axis ---
+   R_starts = np.linspace(Rmaxis + 0.05, Rmaxis + 0.45, 8)
+   Z_starts = np.zeros(8)
+
+   # --- integrate 300 toroidal turns per line ---
+   backend = get_backend('cpu')
+   flt = FieldLineTracer(field_rhs, backend=backend)
+   poincare_pts = poincare_from_fieldlines(
+       flt, R_starts, Z_starts, n_turns=300
+   )
+
+   # --- plot ---
+   fig, ax = plt.subplots(figsize=(6, 6))
+   for Rs, Zs in poincare_pts:
+       ax.scatter(Rs, Zs, s=0.8, color='steelblue')
+   ax.set_xlabel('R (m)')
+   ax.set_ylabel('Z (m)')
+   ax.set_aspect('equal')
+   ax.set_title('Poincaré map — Solov\'ev equilibrium')
+   plt.tight_layout()
+   plt.show()
+
+Each concentric ring corresponds to one field line winding around a flux
+surface.  The q = m/n rational surface is where a resonant perturbation
+(e.g. an RMP coil) can open a magnetic island.
+
+----
+
+3. Locate a Rational Surface and Measure an Island
+----------------------------------------------------
+
+After adding a small resonant perturbation, a magnetic island opens at the
+q = 2/1 surface.  pyna can locate the surface and measure the island half-width
+in a single call:
+
 .. code-block:: python
 
-   from pyna.control.fpt import A_matrix, cycle_shift
-   from pyna.MCF.coils.coil import Coil
-   
-   # Compute FPT A-matrix at X-point
-   R_xpt, Z_xpt = 1.55, -0.85
-   A = A_matrix(eq.field_line_rhs, R_xpt, Z_xpt)
-   
-   # Predict X-point shift under coil perturbation
-   coil = Coil(R=2.5, Z=-1.2, I=1000)
-   delta_g = coil.delta_g_at(R_xpt, Z_xpt, eq)
-   shift = cycle_shift(A, delta_g)
-   print(f"X-point shift: ?R={shift[0]*1000:.2f} mm, ?Z={shift[1]*1000:.2f} mm")
+   from pyna.topo.island import locate_rational_surface, island_halfwidth
+
+   # Build q(S) from PEST mesh
+   from pyna.MCF.coords.PEST import build_PEST_mesh
+
+   nR, nZ = 100, 100
+   R_grid = np.linspace(0.3*eq.R0, 1.5*eq.R0, nR)
+   Z_grid = np.linspace(-eq.a*eq.kappa*1.3, eq.a*eq.kappa*1.3, nZ)
+   Rg, Zg  = np.meshgrid(R_grid, Z_grid, indexing='ij')
+
+   BR, BZ   = eq.BR_BZ(Rg, Zg)
+   Bphi     = eq.Bphi(Rg)
+   psi_norm = eq.psi(Rg, Zg)
+
+   S, TET, R_mesh, Z_mesh, q_iS = build_PEST_mesh(
+       R_grid, Z_grid, BR, BZ, Bphi, psi_norm,
+       Rmaxis, Zmaxis, ns=40, ntheta=181
+   )
+   S_values = S[1:]
+   q_values = q_iS[1:]
+   print(f"q range: {q_values[0]:.2f} → {q_values[-1]:.2f}")
+
+   # Locate q = 2/1 surface
+   res = locate_rational_surface(S_values, q_values, m=2, n=1)
+   print(f"q=2/1 surface at S = {res[0]:.4f}  (ψ_norm = {res[0]**2:.4f})")
+
+The returned ``S_res`` value (S = √ψ_norm) tells you exactly where the
+resonant layer sits.  Pass it to ``island_halfwidth`` together with the
+perturbed Poincaré map to get the island width in metres.
+
+----
+
+4. Next Steps
+--------------
+
+- **Tutorials** — worked examples with plots:
+  :doc:`/notebooks/tutorials/magnetic_coordinates_comparison`,
+  :doc:`/notebooks/tutorials/rmp_island_validation_solovev`
+
+- **API reference** — full docstrings:
+  :doc:`/en/api/index`
+
+- **CUDA acceleration** — install ``cupy-cuda12x`` and pass
+  ``backend=get_backend('cuda')`` to the tracer for 100× speed-up on
+  island-width scans.
