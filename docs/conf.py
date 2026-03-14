@@ -65,7 +65,8 @@ napoleon_use_admonition_for_notes = True
 napoleon_use_rtype = False
 
 # ? nbsphinx settings ?
-nbsphinx_execute = 'never'
+nbsphinx_execute = 'auto'
+nbsphinx_timeout = 300  # seconds per notebook
 
 # ? intersphinx ?
 intersphinx_mapping = {
