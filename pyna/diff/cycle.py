@@ -3,21 +3,7 @@ from pyna.field import RegualrCylindricalGridField
 from scipy.integrate import solve_ivp
 import numpy as np
 
-try:
-    from deprecated import deprecated
-except ImportError:
-    import warnings, functools
-    def deprecated(*args, **kwargs):  # type: ignore
-        def decorator(func):
-            @functools.wraps(func)
-            def wrapper(*a, **kw):
-                warnings.warn(f"{func.__name__} is deprecated.", DeprecationWarning, stacklevel=2)
-                return func(*a, **kw)
-            return wrapper
-        if len(args) == 1 and callable(args[0]):
-            return decorator(args[0])
-        return decorator
-
+from deprecated import deprecated
 
 def Jac_evolution_along_cycle(afield:RegualrCylindricalGridField, Xcycle_RZdiff, Phi_span):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
