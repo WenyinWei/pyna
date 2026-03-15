@@ -351,3 +351,240 @@ def plot_island_width_bars(
                 ha='center', va='center', zorder=7,
                 fontweight='bold',
             )
+
+
+# ---------------------------------------------------------------------------
+# 2-D (m, n) Fourier spectrum heatmap utilities
+# ---------------------------------------------------------------------------
+
+def compute_mn_spectrum(
+    delta_B_func,
+    S: float,
+    equilibrium,
+    m_max: int = 6,
+    n_max: int = 4,
+    n_theta: int = 64,
+    n_phi: int = 64,
+    phi0: float = 0.0,
+) -> np.ndarray:
+    """Compute the 2-D (m, n) Fourier spectrum of delta_B on a flux surface.
+
+    Samples the radial perturbation field delta_B^psi = delta_BR * cos(theta)
+    + delta_BZ * sin(theta) on a flux surface at normalised label S, then
+    returns a (2*m_max+1) x (2*n_max+1) array of complex Fourier amplitudes
+    b_{m,n} for m in [-m_max, m_max] and n in [-n_max, n_max].
+
+    Parameters
+    ----------
+    delta_B_func : callable
+        ``(R, Z, phi) -> [dBR, dBZ, dBphi]``
+    S : float
+        Normalised flux label (r_minor / r0)^2.
+    equilibrium :
+        Provides ``R0``, ``r0``.
+    m_max, n_max : int
+        Maximum poloidal / toroidal mode numbers.
+    n_theta, n_phi : int
+        Sampling resolution in theta and phi.
+    phi0 : float
+        Starting toroidal angle (unused; sampling covers full [0, 2pi)).
+
+    Returns
+    -------
+    b_mn : ndarray, shape (2*m_max+1, 2*n_max+1), complex
+        b_mn[i, j] = amplitude for m = i - m_max, n = j - n_max.
+    """
+    R0, r0 = equilibrium.R0, equilibrium.r0
+    r = np.sqrt(S) * r0
+
+    theta = np.linspace(0, 2 * np.pi, n_theta, endpoint=False)
+    phi   = np.linspace(0, 2 * np.pi, n_phi,   endpoint=False)
+
+    R_surf = R0 + r * np.cos(theta)
+    Z_surf =      r * np.sin(theta)
+
+    dBpsi = np.zeros((n_theta, n_phi), dtype=complex)
+    for j_phi in range(n_phi):
+        for i_th in range(n_theta):
+            try:
+                db = delta_B_func(R_surf[i_th], Z_surf[i_th], phi[j_phi])
+                dBpsi[i_th, j_phi] = (
+                    db[0] * np.cos(theta[i_th]) + db[1] * np.sin(theta[i_th])
+                )
+            except Exception:
+                pass
+
+    # Full 2-D DFT: b_{m,n} at fftfreq indices
+    B_fft = np.fft.fft2(dBpsi) / (n_theta * n_phi)
+    m_freq = np.fft.fftfreq(n_theta, 1 / n_theta).astype(int)
+    n_freq = np.fft.fftfreq(n_phi,   1 / n_phi).astype(int)
+
+    b_mn = np.zeros((2 * m_max + 1, 2 * n_max + 1), dtype=complex)
+    for i, m in enumerate(range(-m_max, m_max + 1)):
+        im = np.where(m_freq == m)[0]
+        if not len(im):
+            continue
+        for j, n in enumerate(range(-n_max, n_max + 1)):
+            jn = np.where(n_freq == n)[0]
+            if not len(jn):
+                continue
+            b_mn[i, j] = B_fft[im[0], jn[0]]
+
+    return b_mn
+
+
+def plot_mn_heatmap(
+    b_mn: np.ndarray,
+    m_max: int = 6,
+    n_max: int = 4,
+    ax=None,
+    log_scale: bool = True,
+    title: str = r'$|\tilde{b}_{mn}|$ spectrum',
+    cmap: str = 'hot_r',
+    vmin: float = None,
+    annotate: bool = True,
+    highlight_modes: list = None,
+) -> "tuple[plt.Figure, plt.Axes]":
+    """Plot a (m, n) Fourier amplitude heatmap.
+
+    Parameters
+    ----------
+    b_mn : ndarray, shape (2*m_max+1, 2*n_max+1)
+        Complex Fourier amplitudes from ``compute_mn_spectrum``.
+    m_max, n_max : int
+        Must match the shape of b_mn.
+    ax : matplotlib Axes or None
+    log_scale : bool
+        Use log10 colour scale (recommended for large dynamic range).
+    title : str
+    cmap : str
+        Matplotlib colourmap name.
+    vmin : float or None
+        Minimum value for colour scale (log10 units if log_scale=True).
+    annotate : bool
+        Annotate each cell with its numeric value.
+    highlight_modes : list of (m, n) tuples
+        Draw a red box around these specific modes.
+
+    Returns
+    -------
+    fig, ax : Figure, Axes
+    """
+    amps = np.abs(b_mn)
+    m_range = np.arange(-m_max, m_max + 1)
+    n_range = np.arange(-n_max, n_max + 1)
+
+    if log_scale:
+        plot_data = np.log10(amps + 1e-30)
+        cbar_label = r'$\log_{10}|\tilde{b}_{mn}|$'
+        if vmin is None:
+            vmin = plot_data.max() - 6  # show 6 decades
+    else:
+        plot_data = amps
+        cbar_label = r'$|\tilde{b}_{mn}|$'
+        if vmin is None:
+            vmin = 0.0
+
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(max(5, 0.6 * len(n_range) + 1.5),
+                                        max(4, 0.5 * len(m_range) + 1.5)))
+    else:
+        fig = ax.figure
+
+    im = ax.imshow(
+        plot_data,
+        origin='lower',
+        aspect='auto',
+        cmap=cmap,
+        vmin=vmin,
+        vmax=plot_data.max(),
+        extent=[-n_max - 0.5, n_max + 0.5, -m_max - 0.5, m_max + 0.5],
+        interpolation='nearest',
+    )
+    cbar = fig.colorbar(im, ax=ax, pad=0.02, shrink=0.85)
+    cbar.set_label(cbar_label, fontsize=9)
+
+    ax.set_xlabel('n  (toroidal mode)', fontsize=10)
+    ax.set_ylabel('m  (poloidal mode)',  fontsize=10)
+    ax.set_title(title, fontsize=11)
+    ax.set_xticks(n_range)
+    ax.set_yticks(m_range)
+    ax.axvline(0, color='white', lw=0.5, alpha=0.4)
+    ax.axhline(0, color='white', lw=0.5, alpha=0.4)
+
+    if annotate:
+        for i, m in enumerate(m_range):
+            for j, n in enumerate(n_range):
+                val = amps[i, j]
+                if log_scale:
+                    txt = f'{np.log10(val+1e-30):.1f}'
+                else:
+                    txt = f'{val:.1e}'
+                ax.text(n, m, txt, ha='center', va='center',
+                        fontsize=5.5, color='white' if plot_data[i, j] > (plot_data.max() + vmin) / 2 else 'black')
+
+    if highlight_modes:
+        for (hm, hn) in highlight_modes:
+            if abs(hm) <= m_max and abs(hn) <= n_max:
+                ax.add_patch(plt.Rectangle(
+                    (hn - 0.5, hm - 0.5), 1, 1,
+                    linewidth=2, edgecolor='red', facecolor='none', zorder=5,
+                ))
+
+    return fig, ax
+
+
+def plot_mn_heatmap_radial(
+    delta_B_func,
+    equilibrium,
+    S_values: np.ndarray,
+    m_max: int = 4,
+    n_max: int = 3,
+    n_theta: int = 32,
+    n_phi: int = 32,
+    target_modes: list = None,
+    fig_title: str = 'Fourier spectrum vs flux surface',
+    cmap: str = 'hot_r',
+) -> "tuple[plt.Figure, list]":
+    """Plot one (m,n)-heatmap per flux surface, arranged in a row.
+
+    For each S in S_values, compute the full (m,n) spectrum and plot
+    a heatmap.  Useful for showing how the resonant structure varies
+    radially across the plasma.
+
+    Parameters
+    ----------
+    S_values : array_like
+        Normalised flux labels at which to evaluate the spectrum.
+    target_modes : list of (m,n) or None
+        Highlight these modes with a red box in every panel.
+
+    Returns
+    -------
+    fig, axes
+    """
+    S_values = np.atleast_1d(S_values)
+    nS = len(S_values)
+
+    fig, axes = plt.subplots(1, nS, figsize=(3.5 * nS, 3.5))
+    if nS == 1:
+        axes = [axes]
+
+    for ax, S in zip(axes, S_values):
+        b_mn = compute_mn_spectrum(
+            delta_B_func, S, equilibrium,
+            m_max=m_max, n_max=n_max,
+            n_theta=n_theta, n_phi=n_phi,
+        )
+        plot_mn_heatmap(
+            b_mn, m_max=m_max, n_max=n_max,
+            ax=ax, log_scale=True,
+            title=f'S={S:.2f}  (q={equilibrium.q_of_psi(S):.2f})',
+            cmap=cmap,
+            annotate=(nS <= 4),
+            highlight_modes=target_modes,
+        )
+
+    fig.suptitle(fig_title, fontsize=12)
+    plt.tight_layout()
+    return fig, axes
