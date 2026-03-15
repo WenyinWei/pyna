@@ -7,6 +7,7 @@ from pyna.topo.chaos import (
     ftle_field,
     chaotic_boundary_estimate,
 )
+from pyna.topo.topology_analysis import analyse_topology, TopologyReport
 
 __all__ = [
     "PoincareMapVariationalEquations",
@@ -16,4 +17,7 @@ __all__ = [
     "chirikov_overlap",
     "ftle_field",
     "chaotic_boundary_estimate",
+    # high-level facade
+    "analyse_topology",
+    "TopologyReport",
 ]
