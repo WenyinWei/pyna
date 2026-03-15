@@ -81,7 +81,7 @@ from pyna.MCF.control.island_control import (
     _make_coil_field_func,
 )
 from pyna.topo.chaos import chirikov_overlap
-from pyna.topo.variational import PoincareMapVariationalEquations
+from pyna.topo.variational import PoincareMapVariationalEquations, _fd_jacobian
 
 
 # ---------------------------------------------------------------------------
@@ -258,6 +258,8 @@ class UnperturbedSurfaceReconstructor:
             Half-gap in S around the resonance where surfaces are "intact"
             (e.g. 0.15 means use S ∈ [S_res ± 0.15, S_res ± 0.30]).
         """
+        from scipy.interpolate import CubicSpline
+
         R0, r0 = self.stella.R0, self.stella.r0
 
         # Reference radii: inner band and outer band, away from resonance
@@ -273,70 +275,179 @@ class UnperturbedSurfaceReconstructor:
         )
         s_refs = np.concatenate([s_inner, s_outer])
 
-        # For each reference surface, compute the time-averaged <R(θ)>, <Z(θ)>
-        # by tracing a ring of field lines and recording their Poincaré piercings
-        self._ref_s = s_refs
-        self._ref_shapes = []
+        # ODE right-hand side: dy/dphi = [dR/dphi, dZ/dphi]
+        # field_func(rzphi) → [dR/ds, dZ/ds, dphi/ds]; convert to per-phi
+        def ode_rzphi(phi, y):
+            rzphi = np.array([y[0], y[1], phi])
+            tang = np.asarray(field_func(rzphi), dtype=float)
+            dphi_ds = tang[2]
+            if abs(dphi_ds) < 1e-15:
+                return np.array([0.0, 0.0])
+            return np.array([tang[0] / dphi_ds, tang[1] / dphi_ds])
 
-        for S in s_refs:
+        self._ref_s = s_refs
+        # Store Fourier coefficients: list of (R_coeffs, Z_coeffs) per surface
+        # R_coeffs, Z_coeffs: complex arrays of length n_fourier+1
+        n_f = self.n_fourier + 1
+        R_coeff_arr = np.zeros((len(s_refs), n_f), dtype=complex)
+        Z_coeff_arr = np.zeros((len(s_refs), n_f), dtype=complex)
+
+        for si, S in enumerate(s_refs):
             r_minor = np.sqrt(S) * r0
             thetas = np.linspace(0, 2 * np.pi, n_theta, endpoint=False)
-            R_avg = np.zeros(n_theta)
-            Z_avg = np.zeros(n_theta)
 
-            for i, th in enumerate(thetas):
+            # Collect all Poincaré piercings for this surface
+            all_R = []
+            all_Z = []
+
+            for th in thetas:
                 R_start = R0 + r_minor * np.cos(th)
                 Z_start = r_minor * np.sin(th)
-                # Trace and accumulate Poincaré piercings
-                piercings_R = []
-                piercings_Z = []
-                state = np.array([R_start, Z_start, phi0])
+                state = np.array([R_start, Z_start])
+                cur_phi = phi0
 
-                def event_phi(phi, y, _phi0=phi0):
-                    return (phi - _phi0) % (2 * np.pi) - np.pi  # crosses every turn
-
-                for _turn in range(n_turns):
-                    phi_end = phi0 + (_turn + 1) * 2 * np.pi
+                for turn in range(n_turns):
+                    phi_end = phi0 + (turn + 1) * 2 * np.pi
                     try:
                         sol = solve_ivp(
-                            lambda phi, y: np.asarray(field_func(y), dtype=float)[[0, 1]],
-                            (state[2], phi_end),
-                            state[:2],
+                            ode_rzphi,
+                            (cur_phi, phi_end),
+                            state,
                             method='DOP853',
                             rtol=1e-8, atol=1e-11,
                             dense_output=False,
                         )
                         if sol.success:
-                            piercings_R.append(sol.y[0, -1])
-                            piercings_Z.append(sol.y[1, -1])
-                            state = np.array([sol.y[0, -1], sol.y[1, -1], phi_end])
+                            state = sol.y[:, -1]
+                            cur_phi = phi_end
+                            all_R.append(state[0])
+                            all_Z.append(state[1])
                     except Exception:
                         break
 
-                if piercings_R:
-                    R_avg[i] = np.mean(piercings_R)
-                    Z_avg[i] = np.mean(piercings_Z)
-                else:
-                    R_avg[i] = R_start
-                    Z_avg[i] = Z_start
+            if len(all_R) >= 4:
+                all_R = np.array(all_R)
+                all_Z = np.array(all_Z)
+                # Compute poloidal angle relative to magnetic axis
+                angles = np.arctan2(all_Z, all_R - R0)
+                # Sort by angle
+                sort_idx = np.argsort(angles)
+                angles_s = angles[sort_idx]
+                R_s = all_R[sort_idx]
+                Z_s = all_Z[sort_idx]
+                # Interpolate onto uniform theta grid
+                # Wrap to handle periodicity
+                angles_ext = np.concatenate([angles_s - 2 * np.pi, angles_s, angles_s + 2 * np.pi])
+                R_ext = np.concatenate([R_s, R_s, R_s])
+                Z_ext = np.concatenate([Z_s, Z_s, Z_s])
+                theta_uniform = np.linspace(-np.pi, np.pi, n_theta, endpoint=False)
+                R_uniform = np.interp(theta_uniform, angles_ext, R_ext)
+                Z_uniform = np.interp(theta_uniform, angles_ext, Z_ext)
+                # Extract Fourier coefficients via rfft
+                R_fft = np.fft.rfft(R_uniform) / n_theta
+                Z_fft = np.fft.rfft(Z_uniform) / n_theta
+                R_coeff_arr[si, :] = R_fft[:n_f]
+                Z_coeff_arr[si, :] = Z_fft[:n_f]
+            else:
+                # Fallback: use circular approximation
+                R_coeff_arr[si, 0] = R0
+                if n_f > 1:
+                    R_coeff_arr[si, 1] = r_minor / 2.0  # cos mode
+                    Z_coeff_arr[si, 1] = -1j * r_minor / 2.0  # sin mode via imag
 
-            self._ref_shapes.append((R_avg, Z_avg))
+        # Fit splines of Fourier coefficients vs S and store for extrapolation
+        self._R_splines_re = []
+        self._R_splines_im = []
+        self._Z_splines_re = []
+        self._Z_splines_im = []
+        for k in range(n_f):
+            try:
+                self._R_splines_re.append(CubicSpline(s_refs, R_coeff_arr[:, k].real, extrapolate=True))
+                self._R_splines_im.append(CubicSpline(s_refs, R_coeff_arr[:, k].imag, extrapolate=True))
+                self._Z_splines_re.append(CubicSpline(s_refs, Z_coeff_arr[:, k].real, extrapolate=True))
+                self._Z_splines_im.append(CubicSpline(s_refs, Z_coeff_arr[:, k].imag, extrapolate=True))
+            except Exception:
+                # Not enough points for cubic spline; use linear
+                from scipy.interpolate import interp1d
+                self._R_splines_re.append(interp1d(s_refs, R_coeff_arr[:, k].real, fill_value='extrapolate'))
+                self._R_splines_im.append(interp1d(s_refs, R_coeff_arr[:, k].imag, fill_value='extrapolate'))
+                self._Z_splines_re.append(interp1d(s_refs, Z_coeff_arr[:, k].real, fill_value='extrapolate'))
+                self._Z_splines_im.append(interp1d(s_refs, Z_coeff_arr[:, k].imag, fill_value='extrapolate'))
 
-        # Fit Fourier coefficients: R(S, θ) = Σ_k [a_k(S) cos(kθ) + b_k(S) sin(kθ)]
-        # ... for now, store raw shapes; extrapolation uses simple linear interp in S
+        self._S_res = S_res
+        self._phi0 = phi0
+        self._n_theta_fit = n_theta
+        self._s_refs = s_refs
         self._fitted = True
+
+    def _surface_contour(self, S: float, n_theta: int = 64) -> Tuple[np.ndarray, np.ndarray]:
+        """Return R(θ), Z(θ) for the extrapolated surface at flux label S."""
+        n_f = self.n_fourier + 1
+        theta = np.linspace(-np.pi, np.pi, n_theta, endpoint=False)
+        R_fft = np.zeros(n_theta // 2 + 1, dtype=complex)
+        Z_fft = np.zeros(n_theta // 2 + 1, dtype=complex)
+        for k in range(min(n_f, n_theta // 2 + 1)):
+            R_fft[k] = self._R_splines_re[k](S) + 1j * self._R_splines_im[k](S)
+            Z_fft[k] = self._Z_splines_re[k](S) + 1j * self._Z_splines_im[k](S)
+        R_arr = np.fft.irfft(R_fft * n_theta, n=n_theta)
+        Z_arr = np.fft.irfft(Z_fft * n_theta, n=n_theta)
+        return R_arr, Z_arr
 
     def psi0_at(self, R: float, Z: float) -> float:
         """Evaluate the extrapolated unperturbed flux label ψ₀ at (R, Z).
 
         Falls back to the analytic ψ of the stellarator model if ``fit``
-        has not been called.
+        has not been called.  Near S_res, extrapolates the fitted Fourier
+        surface model; elsewhere uses the analytic value.
         """
         if not getattr(self, '_fitted', False):
             return float(self.stella.psi_ax(R, Z))
-        # Simple fallback: use stellarator analytic value
-        # (full extrapolation requires more geometry; placeholder for now)
-        return float(self.stella.psi_ax(R, Z))
+
+        # For points near S_res, use the fitted/extrapolated surfaces.
+        # Strategy: find the S value such that (R,Z) lies on the extrapolated
+        # contour at S, using a distance-bisection approach.
+        #
+        # For robustness, we bracket using the reference surfaces:
+        # compute the mean radius of each reference surface and interpolate.
+        R0 = self.stella.R0
+        r_query = np.sqrt((R - R0) ** 2 + Z ** 2)  # minor radius of query point
+
+        # Mean minor radius of each reference surface
+        r_refs = []
+        for k, S in enumerate(self._s_refs):
+            try:
+                R_c, Z_c = self._surface_contour(S, n_theta=32)
+                r_mean = np.mean(np.sqrt((R_c - R0) ** 2 + Z_c ** 2))
+            except Exception:
+                r_mean = np.sqrt(S) * self.stella.r0
+            r_refs.append(r_mean)
+        r_refs = np.array(r_refs)
+
+        # Also include S_res using extrapolation
+        try:
+            R_res, Z_res = self._surface_contour(self._S_res, n_theta=32)
+            r_res_mean = np.mean(np.sqrt((R_res - R0) ** 2 + Z_res ** 2))
+            s_all = np.append(self._s_refs, self._S_res)
+            r_all = np.append(r_refs, r_res_mean)
+        except Exception:
+            s_all = self._s_refs
+            r_all = r_refs
+
+        # Sort by r_mean and interpolate to get S(r_query)
+        sort_idx = np.argsort(r_all)
+        r_sorted = r_all[sort_idx]
+        s_sorted = s_all[sort_idx]
+
+        if r_query <= r_sorted[0]:
+            psi0 = float(s_sorted[0])
+        elif r_query >= r_sorted[-1]:
+            psi0 = float(s_sorted[-1])
+        else:
+            psi0 = float(np.interp(r_query, r_sorted, s_sorted))
+
+        # Clamp to valid range
+        psi0 = float(np.clip(psi0, 1e-4, 1.0 - 1e-4))
+        return psi0
 
 
 # ---------------------------------------------------------------------------
@@ -394,49 +505,78 @@ def epsilon_eff_proxy(
     S_values: np.ndarray,
     coil_currents: Optional[np.ndarray] = None,
 ) -> np.ndarray:
-    """Estimate the neoclassical effective ripple ε_eff(S) as a proxy.
+    """Compute the neoclassical effective ripple ε_eff(S) via flux-surface average.
 
-    For a stellarator with helical ripple amplitude δB/B ~ ε_h, the
-    neoclassical effective ripple in the 1/ν regime scales as:
+    In the 1/ν regime, the effective ripple is defined as:
 
-        ε_eff(S) ~ ε_h² · (r/R₀)^(3/2)
+        ε_eff(ψ) = sqrt( <(|B| - <|B|>)²>_FSA ) / <|B|>_FSA
 
-    This function computes the total helical ripple including the coil
-    perturbation contribution and estimates the fractional change in ε_eff.
+    where <·>_FSA is the flux surface average (averaged over poloidal angle
+    at phi=0 cross-section).
+
+    For each flux surface labelled by S, n_theta=16 points are sampled along
+    the poloidal circle at phi=0. The background |B| is computed from
+    field_func tangent vector using B_phi = B0*R0/R, and any coil perturbation
+    is added vectorially.
 
     Returns
     -------
     eps_eff : ndarray, shape (len(S_values),)
-        Proxy neoclassical ripple at each flux surface.
+        Neoclassical effective ripple at each flux surface.
     """
     R0, r0, B0 = stellarator.R0, stellarator.r0, stellarator.B0
-    eps_h_base = getattr(stellarator, 'epsilon_h', 0.0)
+    n_theta = 16
+    thetas = np.linspace(0, 2 * np.pi, n_theta, endpoint=False)
+    phi = 0.0  # sample at phi=0 cross-section
 
     eps_eff = np.zeros(len(S_values))
     for i, S in enumerate(S_values):
         r = np.sqrt(S) * r0
-        rho = r / R0
-        # Base ripple from equilibrium
-        eps_ripple = eps_h_base
+        B_mags = np.zeros(n_theta)
 
-        # Add coil perturbation contribution (rough estimate)
-        if coil_perturbation_func is not None and coil_currents is not None:
-            # Sample radial B perturbation along this surface
-            thetas = np.linspace(0, 2 * np.pi, 16, endpoint=False)
-            b_rads = []
-            for th in thetas:
-                R_pt = R0 + r * np.cos(th)
-                Z_pt = r * np.sin(th)
+        for k, th in enumerate(thetas):
+            R_pt = R0 + r * np.cos(th)
+            Z_pt = r * np.sin(th)
+
+            # Get background B magnitude from field_func tangent vector
+            # field_func returns unit tangent [dR/ds, dZ/ds, dphi/ds]
+            # B_phi = B0 * R0 / R  (tokamak/stellarator toroidal field)
+            # dphi/ds = B_phi / (R * B_mag) => B_mag = B_phi / (R * dphi_ds)
+            try:
+                tang = stellarator.field_func(np.array([R_pt, Z_pt, phi]))
+                dphi_ds = tang[2]
+                if abs(dphi_ds) > 1e-30:
+                    B_phi = B0 * R0 / R_pt
+                    B_mag = B_phi / (R_pt * dphi_ds)
+                else:
+                    B_mag = B0
+            except Exception:
+                B_mag = B0
+
+            # Add coil perturbation field if provided
+            if coil_perturbation_func is not None:
                 try:
-                    br, bz, bp = coil_perturbation_func(R_pt, Z_pt, 0.0)
-                    b_rads.append(abs(br * np.cos(th) + bz * np.sin(th)) / (B0 + 1e-30))
+                    br_coil, bz_coil, bp_coil = coil_perturbation_func(R_pt, Z_pt, phi)
+                    # Reconstruct full B vector: background + perturbation
+                    if abs(tang[2]) > 1e-30:
+                        B_R_bg = tang[0] * B_mag
+                        B_Z_bg = tang[1] * B_mag
+                        B_phi_bg = B0 * R0 / R_pt
+                    else:
+                        B_R_bg, B_Z_bg, B_phi_bg = 0.0, 0.0, B0
+                    B_R_tot = B_R_bg + br_coil
+                    B_Z_tot = B_Z_bg + bz_coil
+                    B_phi_tot = B_phi_bg + bp_coil
+                    B_mag = np.sqrt(B_R_tot**2 + B_Z_tot**2 + B_phi_tot**2)
                 except Exception:
                     pass
-            if b_rads:
-                eps_ripple = np.sqrt(eps_h_base**2 + np.mean(np.array(b_rads)**2))
 
-        # ε_eff proxy: ~ε_ripple^(3/2) * (r/R0)^(3/2)  (1/ν regime scaling)
-        eps_eff[i] = eps_ripple ** 1.5 * rho ** 1.5
+            B_mags[k] = B_mag
+
+        # Flux surface average: ε_eff = sqrt(Var(|B|)) / <|B|>
+        B_mean = np.mean(B_mags)
+        B_var = np.mean((B_mags - B_mean) ** 2)
+        eps_eff[i] = np.sqrt(B_var) / (B_mean + 1e-30)
 
     return eps_eff
 
@@ -571,15 +711,88 @@ class IslandOptimizer:
     # Eigenvalue objective: monodromy at X-point
     # ------------------------------------------------------------------
 
+    def _refine_xpoint(
+        self,
+        xpt_est: np.ndarray,
+        total_field_2d: Callable,
+        phi_span: Tuple[float, float],
+        n_iter: int = 10,
+        tol: float = 1e-9,
+    ) -> np.ndarray:
+        """Newton iteration to refine an X-point (unstable fixed point) of the
+        m-turn Poincaré map.
+
+        Starting from an analytic estimate ``xpt_est``, iterates:
+
+            x_{k+1} = x_k + (J - I)^{-1} (x_end - x_k)
+
+        where J is the monodromy (Jacobian) of the integrated map and
+        x_end is the endpoint of the integrated orbit.  Converges when
+        |x_end - x_k| < tol.
+
+        Parameters
+        ----------
+        xpt_est : ndarray, shape (2,)
+            Initial estimate [R, Z] of the X-point.
+        total_field_2d : callable
+            ``total_field_2d(R, Z, phi) → [dR/dphi, dZ/dphi]``
+        phi_span : (phi0, phi1)
+            Integration range (one full period = phi0 + 2π*n).
+        n_iter : int
+            Maximum Newton iterations.
+        tol : float
+            Convergence tolerance on |x_end - x_start|.
+
+        Returns
+        -------
+        xpt : ndarray, shape (2,)
+            Refined X-point.  If Newton fails, returns the initial estimate.
+        """
+        x = np.array(xpt_est, dtype=float)
+        vq = PoincareMapVariationalEquations(total_field_2d, fd_eps=1e-6)
+
+        for _k in range(n_iter):
+            try:
+                M = vq.jacobian_matrix(x, phi_span)
+                # Also integrate the orbit to get x_end
+                sol = solve_ivp(
+                    lambda phi, y: np.asarray(total_field_2d(y[0], y[1], phi), dtype=float),
+                    phi_span,
+                    x,
+                    method='DOP853',
+                    rtol=1e-10, atol=1e-12,
+                    dense_output=False,
+                )
+                if not sol.success:
+                    break
+                x_end = sol.y[:, -1]
+                residual = x_end - x
+                if np.linalg.norm(residual) < tol:
+                    return x_end  # converged to fixed point
+                # Newton step: (J - I) dx = -(x_end - x_start) re-arranged as
+                # x_new = x + (J - I)^{-1} (x_end - x)
+                A = M - np.eye(2)
+                try:
+                    dx = np.linalg.solve(A, residual)
+                except np.linalg.LinAlgError:
+                    break
+                x = x + dx
+            except Exception:
+                break
+
+        return x
+
     def _eigenvalue_objective(
         self,
         I_vec: np.ndarray,
         mode: Tuple[int, int],
     ) -> float:
-        """Penalty for |λ_unstable - 1| at the X-point of mode (m,n).
+        """Penalty for |λ_unstable - 1|² at the Newton-refined X-point of mode (m,n).
 
-        The monodromy matrix is computed numerically using the total field
-        (background + coil perturbation at current I_vec).
+        Uses Newton iteration (see :meth:`_refine_xpoint`) to locate the
+        X-point to high precision before computing the monodromy matrix.
+        The total field includes the background equilibrium plus the coil
+        perturbation at current ``I_vec``.
         """
         m, n = mode
         psi_list = self.stella.resonant_psi(m, n)
@@ -594,7 +807,7 @@ class IslandOptimizer:
         self.coils.set_currents(I_vec)
         coil_func = _make_coil_field_func(self.coils)
 
-        # Build total field_func_2d
+        # Build total field_func_2d: (R, Z, phi) → [dR/dphi, dZ/dphi]
         def total_field_2d(R, Z, phi):
             tang = self.stella.field_func(np.array([R, Z, phi]))
             dphi_ds = tang[2]
@@ -612,9 +825,7 @@ class IslandOptimizer:
                 pass
             return np.array([dRdphi, dZdphi])
 
-        # Newton-refine X-point near resonant surface
-        # Simple: use the stellarator's analytic X-point estimate
-        # (first order: X-point at theta = pi/m from O-point)
+        # Analytic first-order estimate: X-point at theta = pi/m
         theta_x = np.pi / m
         xpt_est = np.array([
             self.stella.R0 + r_res * np.cos(theta_x),
@@ -623,8 +834,12 @@ class IslandOptimizer:
 
         phi_span = (self.phi0, self.phi0 + 2 * np.pi * n)
         try:
+            # Newton-refine X-point to |residual| < 1e-9
+            xpt = self._refine_xpoint(xpt_est, total_field_2d, phi_span,
+                                      n_iter=10, tol=1e-9)
+            # Compute monodromy matrix at refined X-point
             vq = PoincareMapVariationalEquations(total_field_2d, fd_eps=1e-6)
-            M = vq.jacobian_matrix(xpt_est, phi_span)
+            M = vq.jacobian_matrix(xpt, phi_span)
             eigvals = np.abs(np.linalg.eigvals(M))
             lam_u = max(eigvals)
             penalty = (lam_u - 1.0) ** 2
