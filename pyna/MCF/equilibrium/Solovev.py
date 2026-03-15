@@ -835,6 +835,159 @@ class SolovevEquilibrium:
 # Factory
 # ---------------------------------------------------------------------------
 
+def _solovev_coeffs_single_null(
+    eps: float,
+    kappa: float,
+    delta_u: float,
+    delta_l: float,
+    kappa_x: float,
+    A: float = 0.0,
+):
+    """Solve the C&F boundary-value system for a **single-null** equilibrium.
+
+    The up-down-symmetric formulation uses 3 LCFS points + 4 curvature/tangent
+    conditions.  Here we replace the bottom-curvature condition with a
+    requirement that the lower separatrix X-point (where B_pol = 0) lies on
+    the LCFS (ψ = 0 in C&F normalisation).
+
+    Parameters
+    ----------
+    eps : float
+        Inverse aspect ratio a/R₀.
+    kappa : float
+        Upper elongation (height of the LCFS top above the midplane, in units
+        of the minor radius).
+    delta_u : float
+        Upper triangularity.
+    delta_l : float
+        Lower triangularity (controls the horizontal position of the X-point).
+    kappa_x : float
+        Poloidal coordinate of the X-point in units of the minor radius,
+        i.e. |Z_x| = kappa_x * a.
+    A : float, optional
+        C&F free parameter.  Default 0.
+
+    Returns
+    -------
+    c : ndarray, shape (7,)
+        Homogeneous-basis coefficients.
+    xpt_norm : tuple (x_x, y_x)
+        Normalised (R/R₀, Z/R₀) of the imposed X-point.
+    """
+    alpha_u = np.arcsin(delta_u)
+
+    # LCFS boundary points (normalised)
+    x1, y1 = 1.0 + eps, 0.0                           # outer equatorial
+    x2, y2 = 1.0 - eps, 0.0                           # inner equatorial
+    x3, y3 = 1.0 - delta_u * eps, kappa * eps         # upper top
+    x_x   = 1.0 - delta_l * eps                       # X-point (lower)
+    y_x   = -kappa_x * eps
+
+    # Curvature parameters (C&F eq. 15) for the upper boundary
+    N1 = -(1.0 + alpha_u) ** 2 / (kappa ** 2 * eps)
+    N2 =  (1.0 - alpha_u) ** 2 / (kappa ** 2 * eps)
+
+    M   = np.zeros((7, 7))
+    rhs = np.zeros(7)
+
+    bd1 = _basis_and_derivs(x1, y1);   pp1 = _particular_and_derivs(x1, y1, A)
+    bd2 = _basis_and_derivs(x2, y2);   pp2 = _particular_and_derivs(x2, y2, A)
+    bd3 = _basis_and_derivs(x3, y3);   pp3 = _particular_and_derivs(x3, y3, A)
+    bdx = _basis_and_derivs(x_x, y_x); ppx = _particular_and_derivs(x_x, y_x, A)
+
+    # 1 – ψ(outer equatorial) = 0
+    M[0]  = bd1[:, 0];                  rhs[0]  = -pp1[0]
+    # 2 – ψ(inner equatorial) = 0
+    M[1]  = bd2[:, 0];                  rhs[1]  = -pp2[0]
+    # 3 – ψ(upper top) = 0
+    M[2]  = bd3[:, 0];                  rhs[2]  = -pp3[0]
+    # 4 – ∂ψ/∂x(upper top) = 0  (horizontal tangent)
+    M[3]  = bd3[:, 1];                  rhs[3]  = -pp3[1]
+    # 5 – curvature at outer equatorial
+    M[4]  = bd1[:, 4] + N1 * bd1[:, 1]; rhs[4] = -(pp1[4] + N1 * pp1[1])
+    # 6 – curvature at inner equatorial
+    M[5]  = bd2[:, 4] + N2 * bd2[:, 1]; rhs[5] = -(pp2[4] + N2 * pp2[1])
+    # 7 – ψ(X-point) = 0  (X-point lies on the LCFS)
+    M[6]  = bdx[:, 0];                  rhs[6]  = -ppx[0]
+
+    c = np.linalg.solve(M, rhs)
+    return c, (x_x, y_x)
+
+
+def solovev_single_null(
+    R0: float = 1.86,
+    a: float = 0.595,
+    B0: float = 5.3,
+    kappa: float = 1.8,
+    delta_u: float = 0.33,
+    delta_l: float = 0.40,
+    kappa_x: float = 1.5,
+    q0: float = 1.5,
+    A: float = 0.0,
+) -> SolovevEquilibrium:
+    """Create a **single-null divertor** Solov'ev equilibrium.
+
+    The lower X-point is placed on the last closed flux surface by choosing
+    boundary conditions that force ψ = 0 at an asymmetric lower point.  The
+    Grad-Shafranov solve uses the same 7 C&F (2010) homogeneous basis
+    functions, but the 7th boundary condition is replaced by ψ(X-point) = 0
+    instead of the bottom-curvature condition used in the up-down-symmetric
+    case.
+
+    Parameters
+    ----------
+    R0 : float
+        Major radius (m).  Default 1.86.
+    a : float
+        Minor radius (m).  Default 0.595.
+    B0 : float
+        On-axis toroidal field (T).  Default 5.3.
+    kappa : float
+        Upper elongation.  Default 1.8.
+    delta_u : float
+        Upper triangularity.  Default 0.33.
+    delta_l : float
+        Lower triangularity (X-point horizontal position).  Default 0.40.
+    kappa_x : float
+        |Z_x| / a of the lower X-point.  Default 1.5.
+    q0 : float
+        Safety factor at the magnetic axis.  Default 1.5.
+    A : float
+        C&F free parameter.  Default 0.
+
+    Returns
+    -------
+    SolovevEquilibrium
+        An equilibrium whose lower separatrix X-point satisfies B_pol ≈ 0
+        and ψ_norm ≈ 1.
+
+    Examples
+    --------
+    >>> eq = solovev_single_null()
+    >>> R_x, Z_x = eq.find_xpoint()
+    >>> print(f"X-point: R={R_x:.3f} m  Z={Z_x:.3f} m")
+    """
+    eps = a / R0
+    c_sn, _xpt_norm = _solovev_coeffs_single_null(
+        eps, kappa, delta_u, delta_l, kappa_x, A
+    )
+
+    # Build the equilibrium using the up-down-symmetric class (same basis)
+    eq = SolovevEquilibrium(
+        R0=R0, a=a, B0=B0,
+        kappa=kappa, delta=delta_u,
+        q0=q0, A=A,
+    )
+
+    # Inject the asymmetric coefficients
+    eq._c = c_sn
+    eq._x_ax, eq._y_ax = eq._find_axis()
+    eq._psi_cf_ax = _eval_psi_cf(eq._x_ax, eq._y_ax, c_sn, A)
+    eq._lam = eq._compute_lambda()
+
+    return eq
+
+
 def solovev_iter_like(scale: float = 1.0) -> SolovevEquilibrium:
     """Create a scaled ITER-like Solov'ev equilibrium.
 
