@@ -668,8 +668,29 @@ class IslandOptimizer:
 
     def _build_response(self, modes: List[Tuple[int, int]], verbose: bool = True) -> None:
         """Compute and cache the coil response vectors for all requested modes."""
+        from joblib import Parallel, delayed
+
         nat_func = _natural_perturbation_func(self.stella)
         saved_coils = [(pts.copy(), float(I)) for pts, I in self.coils.coils]
+
+        def _unit_response(k, coil_pts_list, S_res, m, n, stella, n_theta, n_phi):
+            """Compute response for coil k at unit current (fully self-contained)."""
+            from pyna.MCF.control.island_control import (
+                compute_resonant_amplitude,
+                _make_coil_field_func,
+            )
+            # Build a lightweight coil object with only coil k active
+            class _TmpCoils:
+                pass
+            tmp = _TmpCoils()
+            tmp.coils = [
+                (pts.copy(), 1.0 if j == k else 0.0)
+                for j, pts in enumerate(coil_pts_list)
+            ]
+            coil_func = _make_coil_field_func(tmp)
+            return compute_resonant_amplitude(coil_func, S_res, m, n, stella, n_theta, n_phi)
+
+        coil_pts_list = [pts.copy() for pts, _ in saved_coils]
 
         for (m, n) in modes:
             if (m, n) in self._response_cache:
@@ -690,19 +711,15 @@ class IslandOptimizer:
                 nat_func, S_res, m, n, self.stella, self.n_theta, self.n_phi
             )
 
-            R_vec = np.zeros(self._N_coils, dtype=complex)
-            for k in range(self._N_coils):
-                # Unit-current sweep
-                for j in range(self._N_coils):
-                    self.coils.coils[j] = (
-                        self.coils.coils[j][0],
-                        1.0 if j == k else 0.0,
-                    )
-                coil_func = _make_coil_field_func(self.coils)
-                R_vec[k] = compute_resonant_amplitude(
-                    coil_func, S_res, m, n, self.stella, self.n_theta, self.n_phi
+            # Parallel unit-current sweep over coils
+            r_vals = Parallel(n_jobs=-1, backend='loky')(
+                delayed(_unit_response)(
+                    k, coil_pts_list, S_res, m, n,
+                    self.stella, self.n_theta, self.n_phi
                 )
-            self._response_cache[(m, n)] = R_vec
+                for k in range(self._N_coils)
+            )
+            self._response_cache[(m, n)] = np.array(r_vals, dtype=complex)
 
         # Restore coils
         self.coils.coils = [(pts.copy(), float(I)) for pts, I in saved_coils]
