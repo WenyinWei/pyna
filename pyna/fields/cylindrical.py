@@ -276,6 +276,31 @@ class CylindricalVectorField3D(VectorField3D):
                    name=str(d.get('name', '')), units=str(d.get('units', '')))
 
 
+class AxiSymmetricVectorField3D(CylindricalVectorField3D):
+    """Axisymmetric vector field: components depend only on (R, Z)."""
+
+    def __init__(self, R, Z, VR_2d, VZ_2d, VPhi_2d,
+                 name="", units="", properties=FieldProperty.NONE):
+        Phi = np.array([0.0])
+        def _e(a): return np.asarray(a, dtype=float)[:, :, np.newaxis]
+        super().__init__(R, Z, Phi, _e(VR_2d), _e(VZ_2d), _e(VPhi_2d),
+                         field_periods=1, name=name, units=units, properties=properties)
+
+    def __call__(self, coords: np.ndarray, **kwargs) -> np.ndarray:
+        """Override: ignore phi (axisymmetric), always query at phi=0."""
+        coords = np.asarray(coords, dtype=float)
+        coords_axi = coords.copy()
+        coords_axi[..., 2] = 0.0  # force phi=0
+        return super().__call__(coords_axi, **kwargs)
+
+    def interpolate_at(self, R, Z, Phi=None):
+        """Override: ignore Phi."""
+        R = np.asarray(R, dtype=float)
+        Z = np.asarray(Z, dtype=float)
+        Phi_zero = np.zeros_like(R)
+        return super().interpolate_at(R, Z, Phi_zero)
+
+
 class AxiSymmetricScalarField3D(CylindricalScalarField3D):
     """Axisymmetric scalar field: value depends only on (R, Z)."""
 
@@ -289,13 +314,8 @@ class AxiSymmetricScalarField3D(CylindricalScalarField3D):
     def value_2d(self) -> np.ndarray:
         return self._value[:, :, 0]
 
-
-class AxiSymmetricVectorField3D(CylindricalVectorField3D):
-    """Axisymmetric vector field: components depend only on (R, Z)."""
-
-    def __init__(self, R, Z, VR_2d, VZ_2d, VPhi_2d,
-                 name="", units="", properties=FieldProperty.NONE):
-        Phi = np.array([0.0])
-        def _e(a): return np.asarray(a, dtype=float)[:, :, np.newaxis]
-        super().__init__(R, Z, Phi, _e(VR_2d), _e(VZ_2d), _e(VPhi_2d),
-                         field_periods=1, name=name, units=units, properties=properties)
+    def __call__(self, coords: np.ndarray, **kwargs) -> np.ndarray:
+        coords = np.asarray(coords, dtype=float)
+        coords_axi = coords.copy()
+        coords_axi[..., 2] = 0.0
+        return super().__call__(coords_axi, **kwargs)

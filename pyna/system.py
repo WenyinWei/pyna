@@ -93,7 +93,7 @@ class VectorField2D(VectorField):
         return 2
 
 
-class VectorField3D(VectorField):
+class _LegacyVectorField3D(VectorField):
     """Three-dimensional vector field: dx/dt = f(x), x ∈ ℝ³.
 
     This is the most important special case for plasma physics:
@@ -141,7 +141,7 @@ class VectorField4D(VectorField):
         return 4
 
 
-class AxiSymmetricVectorField3D(VectorField3D):
+class _LegacyAxiSymmetricVectorField3D(_LegacyVectorField3D):
     """Axisymmetric 3-D vector field (no φ dependence in cylindrical coords).
 
     Special case of :class:`VectorField3D` where the field components
@@ -155,3 +155,17 @@ class AxiSymmetricVectorField3D(VectorField3D):
     """
 
     pass
+
+
+# ── Canonical names point to pyna.fields.base ─────────────────────────────────
+# CylindricalVectorField3D inherits from fields.base.VectorField3D, so
+# isinstance(field, VectorField3D) works for all cylindrical fields.
+from pyna.fields.base import (  # noqa: E402
+    VectorField3D as VectorField3D,
+    VectorField3D as AxiSymmetricVectorField3D,  # compat alias
+    VectorField as _FieldsVectorField,
+)
+
+# Register fields.base classes as virtual subclasses of system.VectorField
+# so isinstance(cylindrical_field, system.VectorField) returns True.
+VectorField.register(_FieldsVectorField)
