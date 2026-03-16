@@ -161,7 +161,7 @@ refactor(coils): Biot_Savart_field with backwards-compat alias
 Class names should be read as **"what it is" first, "what kind" second**.
 This keeps related classes adjacent in IDE autocomplete and `dir()` output.
 
-**Rule:** Primary noun (the thing being described) comes first; backend, algorithm, symmetry, or variant qualifiers come after.
+**Rule:** Primary noun (the thing being described) comes first; backend, algorithm, symmetry, or variant qualifiers come after — and **qualifiers themselves are ordered from most fundamental to most specific**. A qualifier that is a prerequisite for another comes first.
 
 | ❌ Wrong | ✅ Correct | Reason |
 |---|---|---|
@@ -169,10 +169,15 @@ This keeps related classes adjacent in IDE autocomplete and `dir()` output.
 | `BiotSavartCoilField` | `CoilFieldBiotSavart` | CoilField is the noun; Biot-Savart is the method |
 | `AnalyticCircularCoilField` | `CoilFieldAnalyticCircular` | CoilField is the noun; analytic+circular is the variant |
 | `VectorPotentialField` | `CoilFieldVectorPotential` | CoilField is the noun; vector-potential is the method |
-| `AxiSymmetricVectorField3D` | `VectorField3DAxiSymmetric` | VectorField3D is the noun; axisymmetric is a constraint |
-| `AxiSymmetricScalarField3D` | `ScalarField3DAxiSymmetric` | ScalarField3D is the noun; axisymmetric is a constraint |
+| `AxiSymmetricVectorField3D` | `VectorField3DAxiSymmetric` | `3D` before `AxiSymmetric`: dimensionality is prerequisite for symmetry |
+| `AxiSymmetricScalarField3D` | `ScalarField3DAxiSymmetric` | same: you must first know it's 3D, then constrain to axisymmetric |
 
-**Why:** When you type `CoilField` in your IDE, you immediately see all coil field variants together. When you type `FieldLineTracer`, you see CPU and CUDA backends side by side.
+**Qualifier ordering principle:** Ask "does qualifier A need to exist before qualifier B makes sense?" If yes, A comes first. Examples:
+- `3D` before `AxiSymmetric` — axisymmetry is a constraint on a 3D space; without 3D there is no axisymmetry to speak of
+- `Cylindrical` before `AxiSymmetric` — `VectorFieldCylindrical3DAxiSymmetric` if fully spelled out
+- Backend type (e.g. `CUDA`) is always last — it's the most incidental qualifier
+
+**Why:** When you type `CoilField` in your IDE, you immediately see all coil field variants together. When you type `FieldLineTracer`, you see CPU and CUDA backends side by side. Consistent qualifier ordering makes the hierarchy readable without opening the source.
 
 **No backward-compat aliases.** Rename and update all call sites immediately.
 
