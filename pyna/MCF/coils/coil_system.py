@@ -278,3 +278,51 @@ class StellaratorControlCoils(CoilSet):
 
 # Backwards-compatibility alias
 biot_savart_field = Biot_Savart_field
+
+
+from pyna.MCF.coils.base import VacuumCoilField
+
+
+class BiotSavartCoilField(VacuumCoilField):
+    """Vacuum field from a numerically-defined coil via Biot-Savart law.
+
+    Parameters
+    ----------
+    coil_pts : ndarray, shape (N, 3)
+        XYZ coordinates of coil vertices (meters).
+    current : float
+        Coil current in amperes.
+    """
+
+    def __init__(self, coil_pts: np.ndarray, current: float = 1.0) -> None:
+        self._pts = np.asarray(coil_pts, dtype=float)
+        self._I = float(current)
+
+    @property
+    def current(self) -> float:
+        return self._I
+
+    @current.setter
+    def current(self, value: float) -> None:
+        self._I = float(value)
+
+    def B_at(self, R, Z, phi):
+        R = np.asarray(R, dtype=float)
+        Z = np.asarray(Z, dtype=float)
+        phi = np.asarray(phi, dtype=float)
+        shape = np.broadcast(R, Z, phi).shape
+        R_f = R.ravel(); Z_f = Z.ravel(); phi_f = phi.ravel()
+        # Biot_Savart_field expects 2D arrays
+        R2 = R_f.reshape(-1, 1)
+        Z2 = Z_f.reshape(-1, 1)
+        P2 = phi_f.reshape(-1, 1)
+        BR, BZ, Bp = Biot_Savart_field(self._pts, self._I, R2, Z2, P2)
+        return (
+            np.squeeze(BR).reshape(shape),
+            np.squeeze(BZ).reshape(shape),
+            np.squeeze(Bp).reshape(shape),
+        )
+
+    def divergence_free(self) -> bool:
+        # Biot-Savart satisfies ∇·B = 0 analytically
+        return True
