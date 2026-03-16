@@ -241,3 +241,15 @@ class CylindricalVectorField:
         return cls(R=np.asarray(R), Z=np.asarray(Z), Phi=np.asarray(Phi),
                    VR=np.asarray(VR), VZ=np.asarray(VZ), VPhi=np.asarray(VPhi),
                    field_periods=field_periods)
+
+
+# ── Backward-compat aliases pointing to pyna.fields ──────────────────────────
+# New code should import from pyna.fields directly.
+from pyna.fields.cylindrical import (
+    CylindricalScalarField3D as _NewScalar,
+    CylindricalVectorField3D as _NewVector,
+)
+
+# Make old names equal to new classes (seamless upgrade)
+CylindricalScalarField = _NewScalar
+CylindricalVectorField = _NewVector

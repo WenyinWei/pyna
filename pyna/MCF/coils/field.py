@@ -298,3 +298,11 @@ class CylindricalGridAxiVectorField3D(AxiSymmetricVectorField3D):
 #: Alias for :class:`CylindricalGridVectorField3D`.
 #: The misspelled name is kept for backward compatibility with existing code.
 RegualrCylindricalGridField = CylindricalGridVectorField3D
+
+
+# ── New names pointing to pyna.fields (additive, do NOT overwrite) ────────────
+from pyna.fields.cylindrical import (
+    CylindricalVectorField3D,
+    AxiSymmetricVectorField3D as _AxiNew,
+)
+CylindricalGridAxiVectorField3D_new = _AxiNew
