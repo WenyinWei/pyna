@@ -30,7 +30,7 @@ from typing import Callable, List, Optional
 
 import numpy as np
 
-from pyna.field import RegualrCylindricalGridField
+from pyna.MCF.coils.field import RegualrCylindricalGridField
 from scipy.interpolate import RegularGridInterpolator
 from scipy.integrate import OdeSolution, solve_ivp
 

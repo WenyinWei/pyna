@@ -1,7 +1,7 @@
 from random import sample
 from pyna.diff.fieldline import _FieldDifferenatiableRZ
 from pyna.diff.fieldline import RZ_partial_derivative_of_map_4_Flow_Phi_as_t
-from pyna.field import RegualrCylindricalGridField
+from pyna.MCF.coils.field import RegualrCylindricalGridField
 
 import numpy as np
 from numpy import linalg as LA 

@@ -1,5 +1,5 @@
 from mimetypes import init
-from pyna.field import RegualrCylindricalGridField
+from pyna.MCF.coils.field import RegualrCylindricalGridField
 from pyna.flt import bundle_tracing_with_t_as_DeltaPhi
 from pyna.diff.fieldline import _FieldDifferenatiableRZ
 from pyna.diff.cycle import eigvec_interpolator_along_Xcycle

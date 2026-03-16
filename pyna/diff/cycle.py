@@ -1,5 +1,5 @@
 from pyna.diff.fieldline import _FieldDifferenatiableRZ
-from pyna.field import RegualrCylindricalGridField
+from pyna.MCF.coils.field import RegualrCylindricalGridField
 from scipy.integrate import solve_ivp
 import numpy as np
 

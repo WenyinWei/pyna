@@ -207,7 +207,7 @@ from ..flow import FlowCallable
 from scipy.integrate import solve_ivp
 from functools import reduce
 import operator
-from pyna.field import RegualrCylindricalGridField
+from pyna.MCF.coils.field import RegualrCylindricalGridField
 def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(afield:RegualrCylindricalGridField, t_span, y0, highest_order=1, *arg, **kwarg):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
     
