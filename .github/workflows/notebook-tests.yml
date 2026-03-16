@@ -13,44 +13,49 @@ on:
 
 jobs:
   notebook-tests:
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: ubuntu-latest-4-core
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python environment
-        shell: pwsh
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
         run: |
-          py -3 -m pip install --upgrade pip
-          py -3 -m pip install --upgrade numpy scipy matplotlib sympy scikit-image joblib deprecated pandas `
-                      jupyter nbmake pytest pytest-timeout ipykernel cupy-cuda12x
-          py -3 -m pip install --upgrade --no-build-isolation --no-deps .
+          pip install --upgrade pip
+          pip install --upgrade numpy scipy matplotlib sympy scikit-image joblib deprecated pandas \
+                      jupyter nbmake pytest pytest-timeout ipykernel
+          pip install --upgrade --no-build-isolation --no-deps .
+          sudo apt-get install -y pandoc
 
       - name: Run tutorial notebooks
         id: nbtest
-        shell: pwsh
         run: |
-          $result = py -3 -m pytest --nbmake notebooks/tutorials/ `
-                        --timeout=600 `
-                        -v --tb=short 2>&1
-          $result | Tee-Object -FilePath "$env:TEMP\nb_results.txt"
-          $exitCode = $LASTEXITCODE
+          set +e
+          pytest --nbmake notebooks/tutorials/ \
+                 --timeout=300 \
+                 -v --tb=short \
+                 2>&1 | tee /tmp/nb_results.txt
+          EXIT_CODE=${PIPESTATUS[0]}
 
-          $lines = Get-Content "$env:TEMP\nb_results.txt"
-          $passed = ($lines | Select-String "^PASSED").Count
-          $failed = ($lines | Select-String "^FAILED|^ERROR").Count
-          $total  = $passed + $failed
+          PASSED=$(grep -cE " PASSED" /tmp/nb_results.txt || true)
+          FAILED=$(grep -cE " FAILED| ERROR" /tmp/nb_results.txt || true)
+          TOTAL=$((PASSED + FAILED))
 
-          "total=$total"  | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          "passed=$passed" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          "failed=$failed" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          echo "total=$TOTAL"   >> $GITHUB_OUTPUT
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          echo "failed=$FAILED" >> $GITHUB_OUTPUT
 
-          # Job summary
-          "## 📓 Notebook Test Results"    | Out-File $env:GITHUB_STEP_SUMMARY -Append
-          ""                               | Out-File $env:GITHUB_STEP_SUMMARY -Append
-          "| Metric | Count |"             | Out-File $env:GITHUB_STEP_SUMMARY -Append
-          "|--------|-------|"             | Out-File $env:GITHUB_STEP_SUMMARY -Append
-          "| ✅ Passed | $passed |"         | Out-File $env:GITHUB_STEP_SUMMARY -Append
-          "| ❌ Failed | $failed |"         | Out-File $env:GITHUB_STEP_SUMMARY -Append
-          "| 📊 Total  | $total  |"         | Out-File $env:GITHUB_STEP_SUMMARY -Append
+          echo "## 📓 Notebook Test Results"  >> $GITHUB_STEP_SUMMARY
+          echo ""                             >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Count |"           >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|"           >> $GITHUB_STEP_SUMMARY
+          echo "| ✅ Passed | $PASSED |"       >> $GITHUB_STEP_SUMMARY
+          echo "| ❌ Failed | $FAILED |"       >> $GITHUB_STEP_SUMMARY
+          echo "| 📊 Total  | $TOTAL  |"       >> $GITHUB_STEP_SUMMARY
+          echo ""                             >> $GITHUB_STEP_SUMMARY
+          tail -20 /tmp/nb_results.txt        >> $GITHUB_STEP_SUMMARY
 
-          exit $exitCode
+          exit $EXIT_CODE
