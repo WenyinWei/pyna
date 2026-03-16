@@ -4,3 +4,4 @@ from pyna.MCF.coils.coil import BRBZ_induced_by_current_loop, BRBZ_induced_by_th
 from pyna.MCF.coils.coil_system import CoilSet, Biot_Savart_field, biot_savart_field, BiotSavartCoilField
 from pyna.MCF.coils.field import CylindricalGridVectorField3D, CylindricalGridAxiVectorField3D
 from pyna.MCF.coils.RMP import normalize_b, rmp_spectrum_2d, island_width_at_rational_surfaces
+from pyna.MCF.coils.vector_potential import VectorPotentialField
