@@ -8,6 +8,7 @@ from pyna.topo.chaos import (
     chaotic_boundary_estimate,
 )
 from pyna.topo.topology_analysis import analyse_topology, TopologyReport
+from pyna.topo.fixed_points import find_periodic_orbit, classify_fixed_point
 
 __all__ = [
     "PoincareMapVariationalEquations",
@@ -20,4 +21,7 @@ __all__ = [
     # high-level facade
     "analyse_topology",
     "TopologyReport",
+    # fixed points
+    "find_periodic_orbit",
+    "classify_fixed_point",
 ]
