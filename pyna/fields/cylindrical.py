@@ -12,6 +12,7 @@ import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 from pyna.fields.base import ScalarField3D, VectorField3D
 from pyna.fields.properties import FieldProperty
+from pyna.fields.coords import CylindricalCoords3D as _CylCoords3D
 
 
 class CylindricalScalarField3D(ScalarField3D):
@@ -42,7 +43,8 @@ class CylindricalScalarField3D(ScalarField3D):
         units: str = "",
         properties: FieldProperty = FieldProperty.NONE,
     ) -> None:
-        super().__init__(properties=properties, name=name, units=units)
+        super().__init__(properties=properties, name=name, units=units,
+                         coords=_CylCoords3D())
         self._R = np.asarray(R, dtype=float)
         self._Z = np.asarray(Z, dtype=float)
         self._Phi = np.asarray(Phi, dtype=float)
@@ -134,7 +136,8 @@ class CylindricalVectorField3D(VectorField3D):
         units: str = "",
         properties: FieldProperty = FieldProperty.NONE,
     ) -> None:
-        super().__init__(properties=properties, name=name, units=units)
+        super().__init__(properties=properties, name=name, units=units,
+                         coords=_CylCoords3D())
         self._R = np.asarray(R, dtype=float)
         self._Z = np.asarray(Z, dtype=float)
         self._Phi = np.asarray(Phi, dtype=float)
@@ -170,12 +173,6 @@ class CylindricalVectorField3D(VectorField3D):
     def BZ(self) -> np.ndarray: return self._VZ
     @property
     def BPhi(self) -> np.ndarray: return self._VPhi
-
-    @property
-    def coords(self):
-        """Return the CylindricalCoords3D coordinate system for this field."""
-        from pyna.fields.coords import CylindricalCoords3D
-        return CylindricalCoords3D()
 
     def _build_interps(self):
         if self._interp_VR is None:

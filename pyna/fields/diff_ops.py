@@ -5,6 +5,9 @@ field-returning operators that produce typed Field objects.
 
 All operators use second-order finite differences on the structured
 cylindrical grid (R, Z, phi), with periodic BCs in phi.
+
+Currently all operators assume cylindrical (R, Z, phi) coordinates.
+Use field.coords to verify, or pass coords= explicitly.
 """
 from __future__ import annotations
 import numpy as np
@@ -48,7 +51,18 @@ def _grad_phi(arr, Phi, periodic=True):
 
 # ── Public operators ──────────────────────────────────────────────────────────
 
-def gradient(f) -> "CylindricalVectorField3D":
+def _check_coords(field, coords_override):
+    """Warn/raise if field's coordinate system is not cylindrical."""
+    from pyna.fields.coords import CylindricalCoords3D
+    cs = coords_override or getattr(field, 'coords', None)
+    if cs is not None and not isinstance(cs, CylindricalCoords3D):
+        raise NotImplementedError(
+            f"diff_ops currently only supports CylindricalCoords3D, got {type(cs).__name__}. "
+            "Pass coords=CylindricalCoords3D() to override, or implement the coordinate system."
+        )
+
+
+def gradient(f, coords=None) -> "CylindricalVectorField3D":
     """Gradient of a scalar field in cylindrical coordinates.
 
     ∇f = (∂f/∂R,  ∂f/∂Z,  (1/R)·∂f/∂φ)
@@ -61,6 +75,7 @@ def gradient(f) -> "CylindricalVectorField3D":
     -------
     CylindricalVectorField3D
     """
+    _check_coords(f, coords)
     from pyna.fields.cylindrical import CylindricalVectorField3D
     R3d = f.R[:, None, None]
     df_dR   = _grad_R(f.value, f.R)
@@ -339,3 +354,173 @@ def field_line_curvature(B) -> "CylindricalVectorField3D":
         units="1/m",
         properties=FieldProperty.NONE,
     )
+
+
+def covariant_derivative_of_vector(v, coords=None):
+    """Covariant derivative nabla_i V^j of a vector field.
+
+    Returns the (i,j) component tensor:
+        (nablaV)^j_i = d_i V^j + Gamma^j_{ik} V^k
+
+    For cylindrical coordinates this gives the correct connection terms
+    (identical to the Jacobian plus Christoffel correction).
+
+    Parameters
+    ----------
+    v : CylindricalVectorField3D
+    coords : CoordinateSystem, optional
+        Defaults to CylindricalCoords3D().
+
+    Returns
+    -------
+    TensorField3D_rank2, shape (nR, nZ, nPhi, 3, 3)
+        Component [i,j] = nabla_i V^j
+    """
+    from pyna.fields.coords import CylindricalCoords3D
+    from pyna.fields.tensor import TensorField3D_rank2
+
+    if coords is None:
+        coords = CylindricalCoords3D()
+
+    # Get ordinary Jacobian (d_i V^j)
+    J = jacobian_field(v)  # TensorField3D_rank2, [i,j] = d_i V^j
+
+    # Add Christoffel correction: Gamma^j_{ik} V^k
+    # Evaluate Christoffel at every grid point
+    RR, ZZ, PP = np.meshgrid(v.R, v.Z, v.Phi, indexing='ij')
+    pts = np.stack([RR.ravel(), ZZ.ravel(), PP.ravel()], axis=1)
+    # christoffel_symbols returns (N, dim, dim, dim): [k, i, j] = Gamma^k_ij
+    Gamma = coords.christoffel_symbols(pts)
+    shape3d = (len(v.R), len(v.Z), len(v.Phi))
+    Gamma = Gamma.reshape(shape3d + (3, 3, 3))  # (nR,nZ,nPhi, k, i, j)
+
+    # V components on grid
+    V = np.stack([v.VR, v.VZ, v.VPhi], axis=-1)  # (nR,nZ,nPhi, 3)
+
+    # Correction: sum_k Gamma^j_{ik} V^k  -> result[..., i, j]
+    # Gamma[..., k, i, j] summed over k with V[..., k]
+    correction = np.einsum('...kij,...k->...ij', Gamma, V)
+
+    cov_data = J.data + correction  # (nR,nZ,nPhi,3,3)
+
+    return TensorField3D_rank2(v.R, v.Z, v.Phi, cov_data,
+                               name=f"nabla({v.name})", units=v.units)
+
+
+def riemann_tensor(coords, pt, eps=1e-4):
+    """Compute Riemann curvature tensor R^l_ijk at a point.
+
+    R^l_ijk = d_j Gamma^l_ik - d_k Gamma^l_ij + Gamma^l_jm Gamma^m_ik - Gamma^l_km Gamma^m_ij
+
+    Uses central finite differences for d_j Gamma.
+
+    Parameters
+    ----------
+    coords : CoordinateSystem
+    pt : ndarray, shape (dim,)
+        Point at which to evaluate.
+    eps : float
+        Finite difference step.
+
+    Returns
+    -------
+    ndarray, shape (dim, dim, dim, dim)
+        R[l, i, j, k] = R^l_ijk
+
+    Note: Near or inside the Schwarzschild radius (r <= 2GM/c^2),
+    numerical singularities will occur.
+    """
+    dim = coords.dim
+    pt = np.asarray(pt, dtype=float)
+
+    def gamma_at(p):
+        return coords.christoffel_symbols(p[np.newaxis])[0]  # (dim, dim, dim)
+
+    # d_j Gamma^l_ik via central differences
+    dGamma = np.zeros((dim, dim, dim, dim))  # dGamma[l, i, k, j] = d_j Gamma^l_ik
+    for j in range(dim):
+        ep = pt.copy(); ep[j] += eps
+        em = pt.copy(); em[j] -= eps
+        dGamma[:, :, :, j] = (gamma_at(ep) - gamma_at(em)) / (2 * eps)
+
+    G = gamma_at(pt)  # Gamma^l_ij at pt
+
+    R = np.zeros((dim, dim, dim, dim))  # R[l, i, j, k]
+    for l in range(dim):
+        for i in range(dim):
+            for j in range(dim):
+                for k in range(dim):
+                    R[l, i, j, k] = (
+                        dGamma[l, i, k, j] - dGamma[l, i, j, k]
+                        + sum(G[l, j, m] * G[m, i, k] - G[l, k, m] * G[m, i, j]
+                              for m in range(dim))
+                    )
+    return R
+
+
+def ricci_tensor(coords, pt, eps=1e-4):
+    """Ricci tensor R_ij = R^k_ikj (contraction of Riemann tensor).
+
+    Returns ndarray shape (dim, dim).
+    """
+    R_full = riemann_tensor(coords, pt, eps)  # (dim, dim, dim, dim)
+    dim = coords.dim
+    # R_ij = R^k_ikj = R[k, i, k, j] summed over k
+    return sum(R_full[k, :, k, :] for k in range(dim))
+
+
+def ricci_scalar(coords, pt, eps=1e-4):
+    """Ricci scalar R = g^{ij} R_ij."""
+    g = coords.metric_tensor(pt[np.newaxis])[0]
+    g_inv = np.linalg.inv(g)
+    Ric = ricci_tensor(coords, pt, eps)
+    return float(np.einsum('ij,ij->', g_inv, Ric))
+
+
+def strain_rate_tensor(v):
+    """Strain-rate tensor S = 1/2 (Dv + Dv^T) where Dv is the Jacobian field.
+
+    Used in viscous flow, MHD transport, and deformation analysis.
+    Result is always symmetric.
+    """
+    J = jacobian_field(v)
+    return J.symmetrize()
+
+
+def helmholtz_decomposition(v, tol=1e-6):
+    """Helmholtz decomposition: v = nabla phi + nabla x A + harmonic.
+
+    Simplified version: returns divergence-free part and curl-free part.
+
+    WARNING: This is an approximate decomposition using finite differences.
+    The divergence-free part is approximated by curl(v), not by a proper
+    Leray projection / Poisson solve. For production use, a proper
+    Poisson solver is recommended.
+
+    Returns
+    -------
+    (v_div_free, v_curl_free) : tuple of CylindricalVectorField3D
+        v_div_free  -- curl(v), annotated as DIVERGENCE_FREE
+        v_curl_free -- v - curl(v), annotated as CURL_FREE
+        v ≈ v_div_free + v_curl_free  (approximate)
+    """
+    from pyna.fields.cylindrical import CylindricalVectorField3D
+    from pyna.fields.properties import FieldProperty
+
+    curl_v = curl(v)
+
+    v_div_free = CylindricalVectorField3D(
+        v.R, v.Z, v.Phi, curl_v.VR, curl_v.VZ, curl_v.VPhi,
+        name=f"divfree({v.name})",
+        properties=FieldProperty.DIVERGENCE_FREE,
+    )
+
+    VR_cf = v.VR - curl_v.VR
+    VZ_cf = v.VZ - curl_v.VZ
+    VP_cf = v.VPhi - curl_v.VPhi
+    v_curl_free = CylindricalVectorField3D(
+        v.R, v.Z, v.Phi, VR_cf, VZ_cf, VP_cf,
+        name=f"curlfree({v.name})",
+        properties=FieldProperty.CURL_FREE,
+    )
+    return v_div_free, v_curl_free

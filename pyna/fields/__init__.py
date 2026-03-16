@@ -31,8 +31,14 @@ from pyna.fields.diff_ops import (
     hessian,
     jacobian_field,
     field_line_curvature,
+    covariant_derivative_of_vector,
+    riemann_tensor,
+    ricci_tensor,
+    ricci_scalar,
+    strain_rate_tensor,
+    helmholtz_decomposition,
 )
-from pyna.fields.tensor import TensorField3D_rank2
+from pyna.fields.tensor import TensorField3D_rank2, TensorField4D_rank2
 from pyna.fields.coords import (
     CartesianCoords,
     CylindricalCoords3D,
@@ -47,12 +53,15 @@ __all__ = [
     "Field", "ScalarField", "VectorField", "TensorField",
     "ScalarField1D", "ScalarField2D", "ScalarField3D", "ScalarField4D",
     "VectorField1D", "VectorField2D", "VectorField3D", "VectorField4D",
-    "TensorField3D_rank2",
+    "TensorField3D_rank2", "TensorField4D_rank2",
     "FieldProperty",
     "CylindricalScalarField3D", "CylindricalVectorField3D",
     "AxiSymmetricScalarField3D", "AxiSymmetricVectorField3D",
     "gradient", "divergence", "curl", "laplacian",
     "hessian", "jacobian_field", "field_line_curvature",
+    "covariant_derivative_of_vector",
+    "riemann_tensor", "ricci_tensor", "ricci_scalar",
+    "strain_rate_tensor", "helmholtz_decomposition",
     # coordinate systems
     "CartesianCoords",
     "CylindricalCoords3D",

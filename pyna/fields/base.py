@@ -36,10 +36,21 @@ class Field(ABC):
         properties: FieldProperty = FieldProperty.NONE,
         name: str = "",
         units: str = "",
+        coords=None,
     ) -> None:
         self._properties = properties
         self.name = name
         self.units = units
+        self._coords = coords  # CoordinateSystem instance or None
+
+    @property
+    def coords(self):
+        """CoordinateSystem associated with this field, or None."""
+        return self._coords
+
+    @coords.setter
+    def coords(self, value):
+        self._coords = value
 
     @property
     @abstractmethod
@@ -166,3 +177,12 @@ class TensorField3D_rank2(TensorField):
 
     @property
     def range_rank(self) -> int: return 2
+
+
+# ── system.py backward compat ─────────────────────────────────────────────────
+# pyna.system used to define its own VectorField3D / AxiSymmetricVectorField3D.
+# Those classes are re-exported from here so that
+#   from pyna.system import VectorField3D
+# gives the same class as
+#   from pyna.fields.base import VectorField3D
+# (handled by pyna/system.py importing these names and re-exporting them)
