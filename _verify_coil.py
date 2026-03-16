@@ -1,10 +1,10 @@
 import numpy as np
-from pyna.MCF.coils.coil import BRBZ_induced_by_current_loop, AnalyticCircularCoilField
+from pyna.MCF.coils.coil import BRBZ_induced_by_current_loop, CoilFieldAnalyticCircular
 
 # Horizontal loop at origin, radius=1.0, current=1000 A
 a = 1.0
 I = 1000.0
-coil = AnalyticCircularCoilField(radius=a, center_xyz=[0, 0, 0], normal_xyz=[0, 0, 1], current=I)
+coil = CoilFieldAnalyticCircular(radius=a, center_xyz=[0, 0, 0], normal_xyz=[0, 0, 1], current=I)
 
 # Test points (R, Z, phi)
 Rs = np.array([0.5, 1.5, 0.3, 2.0])

@@ -17,7 +17,7 @@ from typing import Optional, Tuple
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 
-from pyna.system import VectorField3D, AxiSymmetricVectorField3D
+from pyna.system import VectorField3D, VectorField3DAxiSymmetric
 
 
 # ---------------------------------------------------------------------------
@@ -172,11 +172,11 @@ class CylindricalGridVectorField3D(VectorField3D):
 # Axisymmetric specialisation
 # ---------------------------------------------------------------------------
 
-class CylindricalGridAxiVectorField3D(AxiSymmetricVectorField3D):
+class CylindricalGridAxiVectorField3D(VectorField3DAxiSymmetric):
     """Axisymmetric 3-D magnetic field stored on a regular (R, Z) grid.
 
     The field components do not depend on the toroidal angle φ.
-    Extends :class:`~pyna.system.AxiSymmetricVectorField3D` so that
+    Extends :class:`~pyna.system.VectorField3DAxiSymmetric` so that
     this object can participate in the dynamical-systems hierarchy.
 
     Parameters
@@ -241,7 +241,7 @@ class CylindricalGridAxiVectorField3D(AxiSymmetricVectorField3D):
         return self._BPhi
 
     # ------------------------------------------------------------------
-    # VectorField3D / AxiSymmetricVectorField3D interface
+    # VectorField3D / VectorField3DAxiSymmetric interface
     # ------------------------------------------------------------------
 
     def __call__(
@@ -303,14 +303,14 @@ RegualrCylindricalGridField = CylindricalGridVectorField3D
 # ── New names pointing to pyna.fields (additive, do NOT overwrite) ────────────
 from pyna.fields.cylindrical import (
     CylindricalVectorField3D,
-    AxiSymmetricVectorField3D as _AxiNew,
+    VectorField3DAxiSymmetric as _AxiNew,
 )
 CylindricalGridAxiVectorField3D_new = _AxiNew
 
 
 # ── GradShafranov-compatible shims (old BR/BZ/BPhi / B= API) ─────────────────
 from pyna.fields.cylindrical import (  # noqa: E402
-    AxiSymmetricScalarField3D as _AxiScalar,
+    ScalarField3DAxiSymmetric as _AxiScalar,
 )
 import numpy as _np  # noqa: E402
 

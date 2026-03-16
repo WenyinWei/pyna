@@ -102,14 +102,14 @@ DT    = 0.04
 
 gpu_ok = False
 try:
-    from pyna.flt_cuda import CUDAFieldLineTracer
+    from pyna.flt_cuda import FieldLineTracerCUDA
 
-    # Map stellarator params to CUDAFieldLineTracer (Solov'ev-encoded kernel)
+    # Map stellarator params to FieldLineTracerCUDA (Solov'ev-encoded kernel)
     # Use the stellarator as a toroidal machine: R0, r0≈a, B0, q~q0_eff
     # The kernel uses Solov'ev; stellarator uses circular flux surfaces
     # q0 in kernel ?mean q of stellarator; perturbation encoded via epsilon_h
     q_eff = (st.q0 + st.q1) / 2.0  # ~ 3.5 average
-    tracer = CUDAFieldLineTracer(
+    tracer = FieldLineTracerCUDA(
         R0=st.R0, a=st.r0 * 1.2,
         B0=st.B0, q0=q_eff,
         epsilon_h=st.epsilon_h, m_h=float(st.m_h), n_h=float(st.n_h),

@@ -11,7 +11,7 @@ from scipy.interpolate import RegularGridInterpolator
 from pyna.MCF.coils.base import VacuumCoilField
 
 
-class VectorPotentialField(VacuumCoilField):
+class CoilFieldVectorPotential(VacuumCoilField):
     """Magnetic field B = ∇×A from a numerically-specified vector potential.
 
     The curl is computed via second-order central finite differences on the
@@ -108,11 +108,11 @@ class VectorPotentialField(VacuumCoilField):
         Phi: np.ndarray,
         *,
         gauge: str = "coulomb",
-    ) -> "VectorPotentialField":
+    ) -> "CoilFieldVectorPotential":
         """Construct by numerically integrating A from a given coil field.
 
         Uses the Coulomb gauge (∇·A = 0) Biot-Savart integral formula
-        for the vector potential — only valid for BiotSavartCoilField.
+        for the vector potential — only valid for CoilFieldBiotSavart.
         For general fields, raises NotImplementedError.
 
         Parameters

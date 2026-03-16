@@ -1,6 +1,6 @@
 """GPU-accelerated RMP island chain validation.
 
-Uses CUDAFieldLineTracer for dense Poincaré coverage.
+Uses FieldLineTracerCUDA for dense Poincaré coverage.
 Target: q=4/1 island chain in Solov'ev equilibrium + (4,1) RMP perturbation.
 """
 from __future__ import annotations
@@ -124,8 +124,8 @@ DT    = 0.05
 
 gpu_ok = False
 try:
-    from pyna.flt_cuda import CUDAFieldLineTracer
-    tracer = CUDAFieldLineTracer(
+    from pyna.flt_cuda import FieldLineTracerCUDA
+    tracer = FieldLineTracerCUDA(
         R0=eq.R0, a=eq.a, B0=eq._B0, q0=eq.q0,
         epsilon_h=0.01, m_h=4.0, n_h=1.0,
         dt=DT,

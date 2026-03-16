@@ -292,7 +292,7 @@ def get_backend(mode: str = 'cpu', **kwargs):
     mode : str
         ``'cpu'``    — :class:`FieldLineTracer` with ThreadPoolExecutor
                        (always available).
-        ``'cuda'``   — :class:`~pyna.flt_cuda.CUDAFieldLineTracer`
+        ``'cuda'``   — :class:`~pyna.flt_cuda.FieldLineTracerCUDA`
                        (requires CuPy, only for analytic fields).
         ``'opencl'`` — reserved, not yet implemented.
     **kwargs
@@ -320,8 +320,8 @@ def get_backend(mode: str = 'cpu', **kwargs):
             return _CPUBackend(**kwargs)
         return FieldLineTracer(field_func, **kwargs)
     elif mode == 'cuda':
-        from pyna.flt_cuda import CUDAFieldLineTracer  # noqa: PLC0415
-        return CUDAFieldLineTracer(**kwargs)
+        from pyna.flt_cuda import FieldLineTracerCUDA  # noqa: PLC0415
+        return FieldLineTracerCUDA(**kwargs)
     elif mode == 'opencl':
         raise NotImplementedError(
             "OpenCL backend is reserved for future implementation. "

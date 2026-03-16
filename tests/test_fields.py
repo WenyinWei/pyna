@@ -138,14 +138,14 @@ def test_scalar_npz_roundtrip(linear_scalar_field):
 # ── Group 4: AxiSymmetric ─────────────────────────────────────────────────────
 
 def test_axi_vector_2d():
-    from pyna.fields.cylindrical import AxiSymmetricVectorField3D
+    from pyna.fields.cylindrical import VectorField3DAxiSymmetric
     R   = np.linspace(1.0, 3.0, 10)
     Z   = np.linspace(-1.0, 1.0, 8)
     shape2d = (len(R), len(Z))
     VR_2d   = np.zeros(shape2d)
     VZ_2d   = np.ones(shape2d)
     VPhi_2d = np.zeros(shape2d)
-    f = AxiSymmetricVectorField3D(R, Z, VR_2d, VZ_2d, VPhi_2d)
+    f = VectorField3DAxiSymmetric(R, Z, VR_2d, VZ_2d, VPhi_2d)
     # Phi dimension should be length 1 (axisymmetric)
     assert f.VZ.shape[2] == 1
     # Calling should still return (N, 3)
@@ -328,5 +328,5 @@ def test_compat_field_data():
 
 
 def test_compat_system(uniform_Bz_field):
-    from pyna.system import VectorField3D, AxiSymmetricVectorField3D
+    from pyna.system import VectorField3D, VectorField3DAxiSymmetric
     assert isinstance(uniform_Bz_field, VectorField3D)

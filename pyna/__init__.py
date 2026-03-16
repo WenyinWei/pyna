@@ -28,5 +28,5 @@ from pyna.system import (
     VectorField2D,
     VectorField3D,
     VectorField4D,
-    AxiSymmetricVectorField3D,
+    VectorField3DAxiSymmetric,
 )

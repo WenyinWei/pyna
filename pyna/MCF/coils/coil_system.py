@@ -302,7 +302,7 @@ biot_savart_field = Biot_Savart_field
 from pyna.MCF.coils.base import VacuumCoilField
 
 
-class BiotSavartCoilField(VacuumCoilField):
+class CoilFieldBiotSavart(VacuumCoilField):
     """Vacuum field from a numerically-defined coil via Biot-Savart law.
 
     Parameters

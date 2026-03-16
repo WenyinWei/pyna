@@ -158,7 +158,7 @@ void rk4_trace_kernel(
 # Python class
 # ---------------------------------------------------------------------------
 
-class CUDAFieldLineTracer:
+class FieldLineTracerCUDA:
     """GPU-accelerated batched field-line tracer for Solov'ev equilibria.
 
     All field lines are traced simultaneously on the GPU; each CUDA thread

@@ -1,7 +1,7 @@
-"""Tests for VectorPotentialField: B = curl(A)."""
+"""Tests for CoilFieldVectorPotential: B = curl(A)."""
 import numpy as np
 import pytest
-from pyna.MCF.coils.vector_potential import VectorPotentialField
+from pyna.MCF.coils.vector_potential import CoilFieldVectorPotential
 
 
 def make_uniform_Bz_field(B0=1.0, nR=50, nZ=50, nPhi=32):
@@ -16,7 +16,7 @@ def make_uniform_Bz_field(B0=1.0, nR=50, nZ=50, nPhi=32):
     AZ = np.zeros_like(R3)
     APhi = B0 * R3 / 2.0  # A_φ = B0*R/2
 
-    return VectorPotentialField(R, Z, Phi, AR, AZ, APhi), B0, R, Z, Phi
+    return CoilFieldVectorPotential(R, Z, Phi, AR, AZ, APhi), B0, R, Z, Phi
 
 
 def test_uniform_Bz_recovery():

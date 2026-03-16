@@ -180,7 +180,7 @@ class TensorField3D_rank2(TensorField):
 
 
 # ── system.py backward compat ─────────────────────────────────────────────────
-# pyna.system used to define its own VectorField3D / AxiSymmetricVectorField3D.
+# pyna.system used to define its own VectorField3D / VectorField3DAxiSymmetric.
 # Those classes are re-exported from here so that
 #   from pyna.system import VectorField3D
 # gives the same class as

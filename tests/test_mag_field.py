@@ -6,7 +6,7 @@ from pyna.MCF.coils.field import (
     CylindricalGridAxiVectorField3D,
     RegualrCylindricalGridField,
 )
-from pyna.system import VectorField3D, AxiSymmetricVectorField3D, VectorField
+from pyna.system import VectorField3D, VectorField3DAxiSymmetric, VectorField
 
 
 # ---------------------------------------------------------------------------
@@ -46,7 +46,7 @@ def test_cgvf3d_mro(vf3d):
 
 
 def test_axiavf3d_mro(axivf3d):
-    assert isinstance(axivf3d, AxiSymmetricVectorField3D)
+    assert isinstance(axivf3d, VectorField3DAxiSymmetric)
     assert isinstance(axivf3d, VectorField3D)
 
 

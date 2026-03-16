@@ -110,7 +110,7 @@ except ImportError:
 
 
 @pytest.mark.skipif(not _CUDA_OK, reason="CuPy not available")
-class TestCUDAFieldLineTracer:
+class TestFieldLineTracerCUDA:
 
     def test_cuda_trace_many_shape(self):
         tracer = get_backend('cuda', R0=R0, a=a, B0=B0, q0=q0, dt=DT, RZlimit=RZLIMIT)

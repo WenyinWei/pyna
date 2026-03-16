@@ -273,7 +273,7 @@ class CylindricalVectorField3D(VectorField3D):
                    name=str(d.get('name', '')), units=str(d.get('units', '')))
 
 
-class AxiSymmetricVectorField3D(CylindricalVectorField3D):
+class VectorField3DAxiSymmetric(CylindricalVectorField3D):
     """Axisymmetric vector field: components depend only on (R, Z)."""
 
     def __init__(self, R, Z, VR_2d, VZ_2d, VPhi_2d,
@@ -298,7 +298,7 @@ class AxiSymmetricVectorField3D(CylindricalVectorField3D):
         return super().interpolate_at(R, Z, Phi_zero)
 
 
-class AxiSymmetricScalarField3D(CylindricalScalarField3D):
+class ScalarField3DAxiSymmetric(CylindricalScalarField3D):
     """Axisymmetric scalar field: value depends only on (R, Z)."""
 
     def __init__(self, R, Z, value_2d, name="", units="", properties=FieldProperty.NONE):

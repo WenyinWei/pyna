@@ -9,7 +9,7 @@ from pyna.system import (
     VectorField2D,
     VectorField3D,
     VectorField4D,
-    AxiSymmetricVectorField3D,
+    VectorField3DAxiSymmetric,
 )
 
 
@@ -32,7 +32,7 @@ class _ConcreteVF3D(VectorField3D):
         return (0.0, 0.0, 1.0)
 
 
-class _ConcreteAxiVF3D(AxiSymmetricVectorField3D):
+class _ConcreteAxiVF3D(VectorField3DAxiSymmetric):
     def __call__(self, rzphi, t=None):
         return (0.0, 0.0, 1.0)
 
@@ -89,7 +89,7 @@ def test_vf3d_mro():
 
 def test_axisym_mro():
     vf = _ConcreteAxiVF3D()
-    assert isinstance(vf, AxiSymmetricVectorField3D)
+    assert isinstance(vf, VectorField3DAxiSymmetric)
     assert isinstance(vf, VectorField3D)
     assert isinstance(vf, VectorField)
     assert isinstance(vf, AutonomousDynamicalSystem)

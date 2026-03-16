@@ -2,7 +2,7 @@
 
 New hierarchy replacing:
   - pyna.field_data.CylindricalScalarField / CylindricalVectorField
-  - pyna.system.VectorField3D / AxiSymmetricVectorField3D
+  - pyna.system.VectorField3D / VectorField3DAxiSymmetric
   - pyna.field.RegualrCylindricalGridField / CylindricalGridVectorField3D
 
 All old names remain importable via backward-compat aliases in their
@@ -20,8 +20,8 @@ from pyna.fields.base import (
 from pyna.fields.cylindrical import (
     CylindricalScalarField3D,
     CylindricalVectorField3D,
-    AxiSymmetricScalarField3D,
-    AxiSymmetricVectorField3D,
+    ScalarField3DAxiSymmetric,
+    VectorField3DAxiSymmetric,
 )
 from pyna.fields.diff_ops import (
     gradient,
@@ -56,7 +56,7 @@ __all__ = [
     "TensorField3D_rank2", "TensorField4D_rank2",
     "FieldProperty",
     "CylindricalScalarField3D", "CylindricalVectorField3D",
-    "AxiSymmetricScalarField3D", "AxiSymmetricVectorField3D",
+    "ScalarField3DAxiSymmetric", "VectorField3DAxiSymmetric",
     "gradient", "divergence", "curl", "laplacian",
     "hessian", "jacobian_field", "field_line_curvature",
     "covariant_derivative_of_vector",
