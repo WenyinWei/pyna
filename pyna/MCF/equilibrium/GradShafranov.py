@@ -30,7 +30,7 @@ import numpy as np
 from scipy.sparse import lil_matrix
 from scipy.sparse.linalg import lsqr, bicgstab
 
-from pyna.field import CylindricalGridAxiVectorField, CylindricalGridAxiScalarField
+from pyna.MCF.coils.field import CylindricalGridAxiVectorField, CylindricalGridAxiScalarField
 
 
 # ---------------------------------------------------------------------------

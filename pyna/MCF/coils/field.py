@@ -306,3 +306,36 @@ from pyna.fields.cylindrical import (
     AxiSymmetricVectorField3D as _AxiNew,
 )
 CylindricalGridAxiVectorField3D_new = _AxiNew
+
+
+# ── GradShafranov-compatible shims (old BR/BZ/BPhi / B= API) ─────────────────
+from pyna.fields.cylindrical import (  # noqa: E402
+    AxiSymmetricScalarField3D as _AxiScalar,
+)
+import numpy as _np  # noqa: E402
+
+
+class CylindricalGridAxiVectorField(_AxiNew):
+    """Backward-compat shim: old API CylindricalGridAxiVectorField(R, Z, BR, BZ, BPhi)."""
+
+    def __init__(self, R, Z, BR, BZ, BPhi):
+        Phi = _np.array([0.0])
+        def _e(a): return _np.asarray(a, dtype=float)[:, :, _np.newaxis]
+        super().__init__(R, Z, _e(BR), _e(BZ), _e(BPhi))
+
+    @property
+    def BR(self): return self.VR[:, :, 0]
+    @property
+    def BZ(self): return self.VZ[:, :, 0]
+    @property
+    def BPhi(self): return self.VPhi[:, :, 0]
+
+
+class CylindricalGridAxiScalarField(_AxiScalar):
+    """Backward-compat shim: old API CylindricalGridAxiScalarField(R, Z, B=value)."""
+
+    def __init__(self, R, Z, B):
+        super().__init__(R, Z, _np.asarray(B, dtype=float))
+
+    @property
+    def B(self): return self.value_2d
