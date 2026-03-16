@@ -1191,12 +1191,31 @@ class IslandOptimizer:
             R = self._response_cache.get((m, n), np.zeros(self._N_coils, dtype=complex))
             rows.append(R.real)
             rows.append(R.imag)
-        return np.vstack(rows)
+        mat = np.vstack(rows)
+        if not np.isfinite(mat).all():
+            import warnings
+            warnings.warn("sensitivity_matrix contains non-finite values; "
+                          "check Biot-Savart near-wire regions.")
+        return mat
 
     def condition_number(self) -> float:
         """Condition number of the response matrix (diagnostic for controllability)."""
         A = self.sensitivity_matrix()
-        sv = np.linalg.svd(A, compute_uv=False)
-        if sv[-1] < 1e-30:
+        # Guard against NaN/inf from Biot-Savart near-wire or degenerate coils
+        if not np.isfinite(A).all():
+            bad_cols = np.where(~np.isfinite(A).all(axis=0))[0]
+            import warnings
+            warnings.warn(f"Response matrix has {len(bad_cols)} non-finite column(s) "
+                          f"at coil indices {bad_cols}; dropping them for SVD.")
+            A = A[:, np.isfinite(A).all(axis=0)]
+        if A.size == 0 or A.shape[1] == 0:
+            return np.inf
+        try:
+            sv = np.linalg.svd(A, compute_uv=False)
+        except np.linalg.LinAlgError:
+            # Fall back to robust SVD via scipy
+            from scipy.linalg import svd as scipy_svd
+            sv = scipy_svd(A, compute_uv=False, check_finite=False, lapack_driver='gesdd')
+        if len(sv) == 0 or sv[-1] < 1e-30:
             return np.inf
         return float(sv[0] / sv[-1])

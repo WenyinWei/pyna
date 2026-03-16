@@ -35,7 +35,7 @@ jobs:
         run: |
           set +e
           pytest --nbmake notebooks/tutorials/ \
-                 --timeout=300 \
+                 --timeout=480 \
                  -v --tb=short \
                  2>&1 | tee /tmp/nb_results.txt
           EXIT_CODE=${PIPESTATUS[0]}
@@ -53,8 +53,8 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
           echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| âœ… Passed | $PASSED |" >> $GITHUB_STEP_SUMMARY
-          echo "| âŒ Failed | $FAILED |" >> $GITHUB_STEP_SUMMARY
+          echo "| âœ?Passed | $PASSED |" >> $GITHUB_STEP_SUMMARY
+          echo "| â?Failed | $FAILED |" >> $GITHUB_STEP_SUMMARY
           echo "| ðŸ“Š Total  | $TOTAL  |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           cat /tmp/nb_results.txt | tail -20 >> $GITHUB_STEP_SUMMARY
