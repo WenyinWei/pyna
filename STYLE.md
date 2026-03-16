@@ -156,7 +156,29 @@ refactor(coils): Biot_Savart_field with backwards-compat alias
 
 ---
 
-## 8. Quick Reference Cheatsheet
+## 8. Class Naming — Noun First, Qualifier Last
+
+Class names should be read as **"what it is" first, "what kind" second**.
+This keeps related classes adjacent in IDE autocomplete and `dir()` output.
+
+**Rule:** Primary noun (the thing being described) comes first; backend, algorithm, symmetry, or variant qualifiers come after.
+
+| ❌ Wrong | ✅ Correct | Reason |
+|---|---|---|
+| `CUDAFieldLineTracer` | `FieldLineTracerCUDA` | Tracer is the noun; CUDA is the backend |
+| `BiotSavartCoilField` | `CoilFieldBiotSavart` | CoilField is the noun; Biot-Savart is the method |
+| `AnalyticCircularCoilField` | `CoilFieldAnalyticCircular` | CoilField is the noun; analytic+circular is the variant |
+| `VectorPotentialField` | `CoilFieldVectorPotential` | CoilField is the noun; vector-potential is the method |
+| `AxiSymmetricVectorField3D` | `VectorField3DAxiSymmetric` | VectorField3D is the noun; axisymmetric is a constraint |
+| `AxiSymmetricScalarField3D` | `ScalarField3DAxiSymmetric` | ScalarField3D is the noun; axisymmetric is a constraint |
+
+**Why:** When you type `CoilField` in your IDE, you immediately see all coil field variants together. When you type `FieldLineTracer`, you see CPU and CUDA backends side by side.
+
+**No backward-compat aliases.** Rename and update all call sites immediately.
+
+---
+
+## 9. Quick Reference Cheatsheet
 
 ```
 Person/acronym names    →  Capitalize: Biot_Savart, Grad_Shafranov, RMP, FPT, MHD, PEST
