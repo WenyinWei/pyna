@@ -2,6 +2,14 @@ import numpy as np
 from functools import lru_cache
 from functools import cached_property
 
+import warnings as _warnings
+_warnings.warn(
+    "pyna.field is deprecated and will be removed in a future version. "
+    "Use pyna.MCF.coils.field or pyna.fields instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 class RegualrCylindricalGridField:
     def __init__(self, R, Z, Phi, BR, BZ, BPhi) -> None:
         self._R = R
