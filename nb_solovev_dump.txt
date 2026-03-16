@@ -1,0 +1,248 @@
+﻿=== Cell 1 ===
+import numpy as np
+import matplotlib.pyplot as plt
+
+from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium, solovev_iter_like
+from pyna.topo.poincare import PoincareMap, ToroidalSection, poincare_from_fieldlines
+from pyna.flt import FieldLineTracer, get_backend
+from pyna.topo.island import locate_rational_surface, island_halfwidth
+from pyna.topo.island_extract import extract_island_width
+
+=== Cell 3 ===
+eq = solovev_iter_like(scale=0.3)   # scaled-down ITER-like, ~R0=1.86 m
+print(f"R0={eq.R0:.3f} m  a={eq.a:.3f} m  魏={eq.kappa}  未={eq.delta}")
+R_ax, Z_ax = eq.magnetic_axis
+print(f"Magnetic axis: R={R_ax:.4f} m  Z={Z_ax:.4f} m")
+
+=== Cell 4 ===
+# Plot equilibrium
+R_range = (eq.R0 - 1.4*eq.a, eq.R0 + 1.4*eq.a)
+Z_range = (-1.4*eq.kappa*eq.a, 1.4*eq.kappa*eq.a)
+
+R1d = np.linspace(*R_range, 300)
+Z1d = np.linspace(*Z_range, 300)
+Rg, Zg = np.meshgrid(R1d, Z1d)
+psi_g = eq.psi(Rg, Zg)
+
+fig, ax = plt.subplots(figsize=(5, 8))
+cs = ax.contour(Rg, Zg, psi_g, levels=np.linspace(0, 1, 21), cmap='RdYlBu_r')
+ax.contour(Rg, Zg, psi_g, levels=[1.0], colors='k', linewidths=2)  # LCFS
+ax.plot(R_ax, Z_ax, '+k', ms=10, label='axis')
+ax.set_aspect('equal'); ax.set_xlabel('R (m)'); ax.set_ylabel('Z (m)')
+ax.set_title("Solov'ev equilibrium 锟?normalised 蠄")
+plt.colorbar(cs, ax=ax, label='蠄_norm')
+plt.tight_layout()
+plt.show()
+
+=== Cell 6 ===
+S_values = np.linspace(0.05, 0.95, 60)
+psi_values = S_values**2
+q_values = eq.q_profile(psi_values, n_theta=256)
+
+fig, ax = plt.subplots(figsize=(6, 3))
+ax.plot(S_values, q_values, 'b-', lw=2)
+ax.axhline(2, color='r', ls='--', lw=1, label='q=2')
+ax.axhline(3, color='gray', ls=':', lw=0.8, label='q=3')
+ax.axhline(2, color='gray', ls=':', lw=0.8, label='q=2')
+ax.set_xlabel('S = 鈭毾坃norm');  ax.set_ylabel('q')
+ax.set_title('Safety factor profile')
+ax.legend(); plt.tight_layout(); plt.show()
+
+=== Cell 7 ===
+# Locate q=2/1 resonant surface
+S_res_list = locate_rational_surface(S_values, q_values, m=2, n=1)
+if not S_res_list:
+    raise RuntimeError('q=2/1 surface not found 锟?check q profile range')
+S_res = S_res_list[0]
+psi_res = S_res**2
+print(f'q=2/1 resonant surface: S_res={S_res:.4f}  psi_res={psi_res:.4f}')
+
+=== Cell 9 ===
+# RMP amplitude
+delta_b = 5e-3  # 未BR / B0
+m_rmp, n_rmp = 2, 1
+
+def rmp_BR(R, Z, phi):
+    """Analytic 未BR for (m=2, n=1) helical perturbation."""
+    psi_n = eq.psi(np.atleast_1d(R), np.atleast_1d(Z))
+    envelope = psi_n * (1 - psi_n)
+    return delta_b * eq.B0 * envelope * np.cos(m_rmp * np.arctan2(Z - Z_ax, R - R_ax) - n_rmp * phi)
+
+def rmp_BZ(R, Z, phi):
+    psi_n = eq.psi(np.atleast_1d(R), np.atleast_1d(Z))
+    envelope = psi_n * (1 - psi_n)
+    return delta_b * eq.B0 * envelope * np.sin(m_rmp * np.arctan2(Z - Z_ax, R - R_ax) - n_rmp * phi)
+
+def field_func(rzphi):
+    """Returns unit tangent (dR, dZ, d蠁)/B for field-line ODE."""
+    rzphi = np.asarray(rzphi)
+    R, Z, phi = rzphi[0], rzphi[1], rzphi[2]
+    BR0, BZ0 = eq.BR_BZ(np.array([R]), np.array([Z]))
+    Bphi0 = eq.Bphi(np.array([R]))
+    dBR = rmp_BR(R, Z, phi)
+    dBZ = rmp_BZ(R, Z, phi)
+    BR_t = float(BR0[0]) + float(np.squeeze(dBR))
+    BZ_t = float(BZ0[0]) + float(np.squeeze(dBZ))
+    Bphi_t = float(Bphi0[0])
+    B_mag = np.sqrt(BR_t**2 + BZ_t**2 + Bphi_t**2) + 1e-30
+    return np.array([BR_t/B_mag, BZ_t/B_mag, Bphi_t/(R*B_mag)])
+
+=== Cell 11 ===
+# Launch field lines bracketing q=2/1 surface
+n_lines = 6  # reduced for tutorial speed
+psi_arr = np.linspace(max(psi_res - 0.06, 0.01), min(psi_res + 0.06, 0.95), n_lines)
+start_pts = np.column_stack([
+    R_ax + np.sqrt(psi_arr) * eq.a,
+    np.zeros(n_lines),
+    np.zeros(n_lines),
+])
+
+section = ToroidalSection(phi0=0.0)
+tracer = FieldLineTracer(field_func, dt=0.05)
+
+print(f"Tracing {n_lines} field lines (t_max=1500)...")
+trajs = tracer.trace_many(start_pts, t_max=150.0)
+
+pmap = PoincareMap([section])
+for traj in trajs:
+    pmap.record_trajectory(traj)
+
+pts_all = pmap.crossing_array(0)
+print(f"Total Poincar茅 crossings: {len(pts_all)}")
+
+=== Cell 13 ===
+# Filter to points near the resonant surface
+r_pts = np.sqrt((pts_all[:, 0] - R_ax)**2 + pts_all[:, 1]**2)
+r_res = S_res * eq.a
+mask = np.abs(r_pts - r_res) < 0.2 * eq.a
+pts_near = pts_all[mask] if mask.sum() >= 16 else pts_all
+print(f'Points near q=2/1 surface: {mask.sum()} (total: {len(pts_all)})')
+
+if len(pts_near) >= 8:
+    chain = extract_island_width(
+        pts_near[:, :2], R_ax, Z_ax,
+        mode_m=2,
+        psi_func=lambda R, Z: float(eq.psi(np.array([R]), np.array([Z]))),
+    )
+    print(f'O-points found: {len(chain.O_points)}')
+    print(f'Island half-width (Poincar茅): w_R = {chain.half_width_r*100:.2f} cm')
+    print(f'Island half-width (Poincar茅): w_蠄 = {chain.half_width_psi:.4f}')
+else:
+    chain = None
+    print('Not enough points for island extraction 锟?increase t_max or n_lines')
+
+=== Cell 15 ===
+# Build tilde_b profile for the (2,1) mode: b_mn(S) = delta_b * envelope
+# where envelope = psi_n*(1-psi_n) and psi_n = S^2
+b_profile = delta_b * psi_values * (1 - psi_values)  # shape (nS,)
+
+w_theory = island_halfwidth(
+    m=2, n=1,
+    S_res=S_res,
+    S=S_values,
+    q_profile=q_values,
+    tilde_b_mn=b_profile,
+)
+print(f'Theoretical island half-width (Chirikov): w_S = {w_theory:.4f}')
+print(f'  锟?w_R 锟?{w_theory * eq.a * 100:.2f} cm  (using a={eq.a:.3f} m)')
+
+=== Cell 17 ===
+if chain is not None:
+    w_poincare_S = chain.half_width_r / eq.a  # convert to S units
+    ratio = w_poincare_S / w_theory if w_theory > 0 else np.nan
+    print(f'--- Island width validation (q=2/1) ---')
+    print(f'  Theory  (Chirikov): w_S = {w_theory:.4f}  =>  w_R = {w_theory*eq.a*100:.2f} cm')
+    print(f'  Poincar茅 (extracted): w_R = {chain.half_width_r*100:.2f} cm  =>  w_S 锟?{w_poincare_S:.4f}')
+    print(f'  Ratio (Poincar茅 / theory): {ratio:.3f}')
+    if 0.5 < ratio < 2.0:
+        print('  锟?Agreement within factor of 2 (expected for vacuum perturbation formula)')
+    else:
+        print('  锟?Large discrepancy 锟?may need more field-line turns or different perturbation amplitude')
+
+=== Cell 19 ===
+fig, ax = plt.subplots(figsize=(7, 9))
+
+# Background: 蠄 contours
+cs = ax.contour(Rg, Zg, psi_g, levels=np.linspace(0.05, 0.95, 15),
+                colors='lightgray', linewidths=0.5)
+ax.contour(Rg, Zg, psi_g, levels=[1.0], colors='k', linewidths=1.5)
+ax.contour(Rg, Zg, psi_g, levels=[psi_res], colors='navy',
+           linewidths=0.8, linestyles='--')
+
+# Poincar茅 scatter
+if len(pts_all) > 0:
+    ax.scatter(pts_all[:, 0], pts_all[:, 1], s=0.8, c='steelblue',
+               alpha=0.5, rasterized=True, label='Poincar茅')
+
+# O/X points and island width bars
+if chain is not None and len(chain.O_points) > 0:
+    ax.scatter(chain.O_points[:, 0], chain.O_points[:, 1],
+               s=60, c='red', marker='o', zorder=5, label='O-point')
+    ax.scatter(chain.X_points[:, 0], chain.X_points[:, 1],
+               s=60, c='blue', marker='x', zorder=5, lw=2, label='X-point')
+
+    # Radial double-headed arrow (卤half_width_r) at each O-point
+    for O_pt in chain.O_points:
+        dr = O_pt[0] - R_ax
+        dz = O_pt[1] - Z_ax
+        dist = np.sqrt(dr**2 + dz**2) + 1e-30
+        ur, uz = dr/dist, dz/dist
+        w = chain.half_width_r
+        ax.annotate('',
+            xy=(O_pt[0] + w*ur, O_pt[1
+
+=== Cell 21 ===
+# 鈹€鈹€ Stable / Unstable Manifold Visualisation 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+from pyna.topo.variational import PoincareMapVariationalEquations
+from pyna.topo.manifold_improve import StableManifold, UnstableManifold
+from pyna.MCF.visual.tokamak_manifold import _manifold_line_collection, manifold_legend_handles
+
+# Convert unit-tangent field_func -> (dR/dphi, dZ/dphi) form
+def field_func_2d(R, Z, phi):
+    tang = field_func(np.array([R, Z, phi]))  # [dR/ds, dZ/ds, dphi/ds]
+    dphi_ds = tang[2]
+    if abs(dphi_ds) < 1e-15:
+        return np.array([0.0, 0.0])
+    return np.array([tang[0] / dphi_ds, tang[1] / dphi_ds])
+
+# Pick the first X-point from the island chain
+if chain is not None and len(chain.X_points) > 0:
+    R_xpt, Z_xpt = chain.X_points[0, 0], chain.X_points[0, 1]
+    print(f"Using X-point: R={R_xpt:.4f} m  Z={Z_xpt:.4f} m")
+
+    # Compute monodromy matrix
+    vq = PoincareMapVariationalEquations(field_func_2d, fd_eps=1e-5)
+    M = vq.jacobian_matrix([R_xpt, Z_xpt], phi_span=(0, 2 * np.pi))
+    print("Monodromy matrix:\n", M)
+
+    # Grow manifolds
+    sm = StableManifold([R_xpt, Z_xpt], M, field_func_2d)
+    um = UnstableManifold([R_xpt, Z_xpt], M, field_func_2d)
+    sm.grow
+
+=== Cell 23 ===
+# =========================================================================
+# Single-null divertor equilibrium: separatrix X-point & stable/unstable manifolds
+#
+# The divertor X-point IS a fixed point of the 1-turn Poincar茅 map (phi: 0鈫?蟺).
+# A field line starting on the X-point returns to the same (R,Z) after one
+# toroidal transit.  The monodromy matrix J has eigenvalues (位_u, 位_s) with
+# 位_u路位_s = 1 (area-preserving), |位_u|>1, |位_s|<1  鈫? hyperbolic fixed point.
+# =========================================================================
+
+from pyna.MCF.equilibrium.Solovev import solovev_single_null
+from pyna.topo.variational import PoincareMapVariationalEquations
+from pyna.topo.manifold_improve import StableManifold, UnstableManifold
+from pyna.MCF.visual.tokamak_manifold import _manifold_line_collection
+
+# -----------------------------------------------------------------------
+# 1. Build single-null equilibrium
+# -----------------------------------------------------------------------
+eq_sn = solovev_single_null(
+    R0=1.86, a=0.595, B0=5.3,
+    kappa=1.8, delta_u=0.33, delta_l=0.40, kappa_x=1.5,
+    q0=1.5,
+)
+R_ax_sn, Z_ax_sn = eq_sn.magnetic_axis
+print(f'Magnetic axis: R={R_ax_
+

@@ -104,7 +104,12 @@ class TestFieldLineTracer:
 
 try:
     import cupy  # noqa: F401
-    _CUDA_OK = True
+    # Also verify get_backend('cuda') doesn't raise NotImplementedError
+    try:
+        get_backend('cuda')
+        _CUDA_OK = True
+    except NotImplementedError:
+        _CUDA_OK = False
 except ImportError:
     _CUDA_OK = False
 
