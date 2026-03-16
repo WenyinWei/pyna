@@ -70,28 +70,47 @@ def Biot_Savart_field(coil_pts, coil_current, R_grid, Z_grid, Phi_grid=None):
     Bz_out = np.zeros(n_pts)
 
     # Segment-wise Biot-Savart
+    # Points closer than NEAR_WIRE_FACTOR * segment_length to a segment midpoint
+    # are considered "inside the wire" and receive NaN to flag unreliable values.
+    NEAR_WIRE_FACTOR = 0.1  # fraction of segment length used as singularity radius
+
+    near_mask = np.zeros(n_pts, dtype=bool)  # accumulate near-wire flags
+
     N_seg = len(coil_pts) - 1
     for i in range(N_seg):
         P1 = coil_pts[i]
         P2 = coil_pts[i + 1]
         dl = P2 - P1  # (3,)
+        seg_len = np.linalg.norm(dl)
+        r_singularity = NEAR_WIRE_FACTOR * seg_len  # physical cutoff radius (m)
         mid = 0.5 * (P1 + P2)
 
         # r = field_point - mid
         rx = Xf - mid[0]
         ry = Yf - mid[1]
         rz = Zf - mid[2]
-        r_mag = np.sqrt(rx**2 + ry**2 + rz**2) + 1e-30
+        r_mag = np.sqrt(rx**2 + ry**2 + rz**2)
+
+        # Mark grid points that are too close to this segment as unreliable
+        near_mask |= (r_mag < r_singularity)
+
+        # Avoid division by zero with a tiny epsilon (result will be NaN'd later)
+        r_mag_safe = np.where(r_mag > 0, r_mag, 1.0)
 
         # dl x r
         cx = dl[1] * rz - dl[2] * ry
         cy = dl[2] * rx - dl[0] * rz
         cz = dl[0] * ry - dl[1] * rx
 
-        coeff = MU0_OVER_4PI * coil_current / r_mag**3
+        coeff = MU0_OVER_4PI * coil_current / r_mag_safe**3
         Bx += coeff * cx
         By += coeff * cy
         Bz_out += coeff * cz
+
+    # Overwrite near-wire points with NaN
+    Bx[near_mask] = np.nan
+    By[near_mask] = np.nan
+    Bz_out[near_mask] = np.nan
 
     # Convert Bx, By, Bz -> BR, BPhi, BZ
     cos_phi = np.cos(Phif)
