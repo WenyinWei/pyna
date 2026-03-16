@@ -320,10 +320,8 @@ def get_backend(mode: str = 'cpu', **kwargs):
             return _CPUBackend(**kwargs)
         return FieldLineTracer(field_func, **kwargs)
     elif mode == 'cuda':
-        raise NotImplementedError(
-            "CUDA backend is reserved for future implementation. "
-            "Use mode='cpu' for the CPU backend."
-        )
+        from pyna.flt_cuda import CUDAFieldLineTracer  # noqa: PLC0415
+        return CUDAFieldLineTracer(**kwargs)
     elif mode == 'opencl':
         raise NotImplementedError(
             "OpenCL backend is reserved for future implementation. "
