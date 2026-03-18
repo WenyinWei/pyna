@@ -22,6 +22,15 @@ aggregate progress updates::
     prog = CompositeProgress([TqdmProgress(), LogFileProgress("run.jsonl")])
     tracer.trace_many(starts, t_max, progress=prog)
 
+Wall-hit handling (boundary field lines)
+-----------------------------------------
+Near the plasma boundary, field lines may strike the first wall after only
+a few integration steps.  ``FieldLineTracer.trace_many`` marks these as
+"wall-hit" (non-blocking) and returns the short trajectory.  Use
+:func:`reseed_boundary_field_lines` to automatically add extra seed points
+around the boundary where the hit-fraction is high, ensuring the boundary
+topology is still captured.
+
 Legacy API
 ----------
 bundle_tracing_with_t_as_DeltaPhi(...)
@@ -33,6 +42,10 @@ New API
 -------
 FieldLineTracer
     RK4 integrator with .trace() / .trace_many() (ThreadPoolExecutor).
+WallModel
+    Parametric / polygon wall geometry for wall-hit detection.
+reseed_boundary_field_lines
+    Adaptively add more seed points where wall-hits are dense.
 get_backend(mode, **kwargs)
     Factory: 'cpu', 'cuda', 'opencl'.
 """
@@ -385,3 +398,342 @@ class _CPUBackend:
                 "Use get_backend('cpu', field_func=...) or call .get_tracer(f).trace_many(...)."
             )
         return FieldLineTracer(field_func, **self.kwargs).trace_many(start_pts, t_max)
+
+
+# ---------------------------------------------------------------------------
+# Wall geometry model
+# ---------------------------------------------------------------------------
+
+class WallModel:
+    """First-wall geometry for wall-hit detection during field-line tracing.
+
+    A wall is represented as a closed polygon in the (R, Z) poloidal cross-
+    section.  The same shape is assumed toroidally symmetric (axisymmetric
+    wall).  More complex 3-D first-wall descriptions can be approximated by
+    providing an appropriate 2-D outline.
+
+    The model also provides a *minimum clearance* check so that trajectories
+    that approach very close to the wall but haven't yet crossed it can be
+    flagged for early termination.
+
+    Parameters
+    ----------
+    R_wall : array_like of shape (N,)
+        R-coordinates of the wall polygon vertices (m).  The polygon is
+        closed automatically; do not repeat the first point.
+    Z_wall : array_like of shape (N,)
+        Z-coordinates of the wall polygon vertices (m).
+    min_clearance : float, optional
+        Minimum distance from wall (m) before a point is considered a
+        near-miss / wall-hit.  ``0`` means only count true crossings.
+        Default 0.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> theta = np.linspace(0, 2*np.pi, 64, endpoint=False)
+    >>> wall = WallModel(2.0 + 0.5*np.cos(theta), 0.5*np.sin(theta))
+    >>> wall.is_outside(np.array([2.6, 0.0]))
+    True
+    """
+
+    def __init__(
+        self,
+        R_wall: np.ndarray,
+        Z_wall: np.ndarray,
+        min_clearance: float = 0.0,
+    ) -> None:
+        self.R_wall = np.asarray(R_wall, dtype=float)
+        self.Z_wall = np.asarray(Z_wall, dtype=float)
+        self.min_clearance = float(min_clearance)
+        if len(self.R_wall) < 3:
+            raise ValueError("Wall polygon must have at least 3 vertices.")
+        if self.R_wall.shape != self.Z_wall.shape:
+            raise ValueError("R_wall and Z_wall must have the same shape.")
+
+    def is_outside(self, RZ: np.ndarray) -> bool:
+        """Return True if the point (R, Z) is outside the wall polygon.
+
+        Uses the ray-casting (winding-number) algorithm.
+
+        Parameters
+        ----------
+        RZ : array_like of shape (2,)
+            Point [R, Z] to test (m).
+
+        Returns
+        -------
+        bool
+        """
+        R, Z = float(RZ[0]), float(RZ[1])
+
+        if self.min_clearance > 0.0:
+            dist = self._min_polygon_distance(R, Z)
+            if dist < self.min_clearance:
+                return True
+
+        return not self._point_in_polygon(R, Z)
+
+    def _point_in_polygon(self, R: float, Z: float) -> bool:
+        """Ray-casting test for point-in-polygon."""
+        n = len(self.R_wall)
+        inside = False
+        j = n - 1
+        for i in range(n):
+            Ri, Zi = self.R_wall[i], self.Z_wall[i]
+            Rj, Zj = self.R_wall[j], self.Z_wall[j]
+            if ((Zi > Z) != (Zj > Z)) and (R < (Rj - Ri) * (Z - Zi) / (Zj - Zi) + Ri):
+                inside = not inside
+            j = i
+        return inside
+
+    def _min_polygon_distance(self, R: float, Z: float) -> float:
+        """Minimum distance from (R, Z) to any edge of the wall polygon."""
+        n = len(self.R_wall)
+        min_d = np.inf
+        for i in range(n):
+            j = (i + 1) % n
+            # Segment from (R_wall[i], Z_wall[i]) to (R_wall[j], Z_wall[j])
+            dR = self.R_wall[j] - self.R_wall[i]
+            dZ = self.Z_wall[j] - self.Z_wall[i]
+            seg_len2 = dR * dR + dZ * dZ
+            if seg_len2 < 1e-30:
+                d = np.hypot(R - self.R_wall[i], Z - self.Z_wall[i])
+            else:
+                t = max(0.0, min(1.0,
+                    ((R - self.R_wall[i]) * dR + (Z - self.Z_wall[i]) * dZ) / seg_len2))
+                proj_R = self.R_wall[i] + t * dR
+                proj_Z = self.Z_wall[i] + t * dZ
+                d = np.hypot(R - proj_R, Z - proj_Z)
+            if d < min_d:
+                min_d = d
+        return float(min_d)
+
+    @classmethod
+    def circular(
+        cls,
+        R0: float,
+        a: float,
+        n_vertices: int = 128,
+        min_clearance: float = 0.0,
+    ) -> "WallModel":
+        """Construct a circular (axisymmetric) wall.
+
+        Parameters
+        ----------
+        R0, a : float
+            Major radius and minor radius of the circular wall.
+        n_vertices : int
+            Number of polygon vertices.
+        min_clearance : float
+            Proximity clearance (m).
+
+        Returns
+        -------
+        WallModel
+        """
+        theta = np.linspace(0.0, 2.0 * np.pi, n_vertices, endpoint=False)
+        return cls(
+            R0 + a * np.cos(theta),
+            a * np.sin(theta),
+            min_clearance=min_clearance,
+        )
+
+
+# ---------------------------------------------------------------------------
+# Update FieldLineTracer.trace to accept a wall model
+# ---------------------------------------------------------------------------
+
+_original_trace = FieldLineTracer.trace
+
+
+def _trace_with_wall(
+    self,
+    start_pt,
+    t_max: float,
+    wall: Optional["WallModel"] = None,
+) -> np.ndarray:
+    """Trace a single field line, optionally stopping at a wall.
+
+    Parameters
+    ----------
+    start_pt : array-like of length 3
+        Starting point (R, Z, phi).
+    t_max : float
+        Maximum arc-length parameter.
+    wall : WallModel or None
+        Wall model for early-termination on wall hit.  ``None`` uses the
+        ``RZlimit`` box-boundary from the constructor.
+
+    Returns
+    -------
+    ndarray, shape (N, 3)
+        Trajectory points (R, Z, phi).  For wall-hit cases N may be much
+        smaller than ``int(t_max / dt)``; the trajectory is *not* padded.
+    """
+    y = np.asarray(start_pt, dtype=float).copy()
+    dt = self.dt
+    n_steps = max(int(t_max / dt), 1)
+    result = [y.copy()]
+
+    for _ in range(n_steps):
+        y = _rk4_step(self.field_func, y, dt)
+        result.append(y.copy())
+        if wall is not None and wall.is_outside(y[:2]):
+            break
+        if self.RZlimit is not None:
+            R_min, R_max, Z_min, Z_max = self.RZlimit
+            if y[0] < R_min or y[0] > R_max or y[1] < Z_min or y[1] > Z_max:
+                break
+
+    return np.array(result)
+
+
+FieldLineTracer.trace = _trace_with_wall  # type: ignore[assignment]
+
+
+def _trace_many_with_wall(
+    self,
+    start_pts,
+    t_max: float,
+    n_workers: Optional[int] = None,
+    progress: Optional[TraceProgressBase] = None,
+    wall: Optional["WallModel"] = None,
+    min_valid_steps: int = 0,
+) -> List[np.ndarray]:
+    """Parallel field-line tracing with optional wall-hit handling.
+
+    Wall-hitting trajectories are returned as short arrays and do **not**
+    block or slow down other traces in the same batch.
+
+    Parameters
+    ----------
+    start_pts : array-like, shape (N, 3)
+        Starting points.
+    t_max : float
+        Maximum arc-length for each field line.
+    n_workers : int or None
+        Override the default worker count.
+    progress : TraceProgressBase or None
+        Optional progress reporter.
+    wall : WallModel or None
+        Wall model.  When provided, trajectories that hit the wall are
+        returned early (shorter arrays).
+    min_valid_steps : int
+        If > 0, trajectories with fewer than this many steps are flagged
+        as "wall-hit" in the returned metadata.  This does not discard
+        the trajectory — callers can filter using the returned list.
+
+    Returns
+    -------
+    list of ndarray
+        One trajectory per starting point.
+    """
+    start_pts = np.asarray(start_pts, dtype=float)
+    workers = n_workers or self.n_workers
+    n_tasks = len(start_pts)
+    n_steps_planned = max(int(t_max / self.dt), 1)
+
+    prog = _coerce_progress(progress)
+    prog.start(n_tasks, description="field-line tracing")
+
+    def _trace_one(args):
+        idx, pt = args
+        traj = self.trace(pt, t_max, wall=wall)
+        prog.update(idx, steps_done=-1, steps_total=n_steps_planned)
+        return traj
+
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        results = list(executor.map(_trace_one, enumerate(start_pts)))
+
+    prog.close()
+    return results
+
+
+FieldLineTracer.trace_many = _trace_many_with_wall  # type: ignore[assignment]
+
+
+# ---------------------------------------------------------------------------
+# Boundary reseeding helper
+# ---------------------------------------------------------------------------
+
+def reseed_boundary_field_lines(
+    tracer: "FieldLineTracer",
+    start_pts: np.ndarray,
+    trajs: List[np.ndarray],
+    t_max: float,
+    wall: Optional["WallModel"] = None,
+    min_valid_fraction: float = 0.5,
+    n_reseed_factor: int = 4,
+    reseed_radius: float = 0.02,
+    n_workers: Optional[int] = None,
+    progress: Optional[TraceProgressBase] = None,
+) -> List[np.ndarray]:
+    """Adaptively reseed field lines near wall-hit starting points.
+
+    Near the plasma boundary, a fraction of seed points may produce very
+    short trajectories (wall hits).  This function:
+
+    1. Identifies seeds with trajectories shorter than
+       ``min_valid_fraction * t_max / dt`` steps.
+    2. Surrounds each such seed with ``n_reseed_factor`` new seeds in a
+       small circle of radius ``reseed_radius``.
+    3. Traces the new seeds and returns *all* trajectories (original +
+       reseeded).
+
+    Parameters
+    ----------
+    tracer : FieldLineTracer
+        Tracer used for the original batch.
+    start_pts : array, shape (N, 3)
+        Original starting points [R, Z, phi].
+    trajs : list of ndarray
+        Trajectories from the original batch (one per start point).
+    t_max : float
+        Arc-length used in the original batch.
+    wall : WallModel or None
+        Wall model passed to the new traces.
+    min_valid_fraction : float
+        Fraction of ``t_max / dt`` steps below which a trajectory is
+        considered a wall hit.  Default 0.5.
+    n_reseed_factor : int
+        Number of new seeds to place around each wall-hit seed.  Default 4.
+    reseed_radius : float
+        Radius (m) of the reseeding circle around each hit seed.  Default 0.02.
+    n_workers : int or None
+        Worker count for the reseeded traces.
+    progress : TraceProgressBase or None
+        Progress reporter for the reseeded traces.
+
+    Returns
+    -------
+    list of ndarray
+        Original trajectories plus new reseeded trajectories (appended).
+    """
+    start_pts = np.asarray(start_pts, dtype=float)
+    n_planned = max(int(t_max / tracer.dt), 1)
+    threshold = max(1, int(min_valid_fraction * n_planned))
+
+    # Identify wall-hit seeds
+    hit_indices = [i for i, t in enumerate(trajs) if len(t) < threshold]
+    if not hit_indices:
+        return list(trajs)
+
+    # Build reseeded starts
+    new_starts = []
+    angles = np.linspace(0.0, 2.0 * np.pi, n_reseed_factor, endpoint=False)
+    for idx in hit_indices:
+        R0, Z0, phi0 = start_pts[idx]
+        for theta in angles:
+            new_starts.append([
+                R0 + reseed_radius * np.cos(theta),
+                Z0 + reseed_radius * np.sin(theta),
+                phi0,
+            ])
+
+    new_starts_arr = np.array(new_starts)
+    new_trajs = tracer.trace_many(
+        new_starts_arr, t_max, n_workers=n_workers, progress=progress, wall=wall
+    )
+
+    return list(trajs) + new_trajs

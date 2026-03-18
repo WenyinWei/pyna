@@ -200,3 +200,152 @@ def extract_island_width(
         half_width_r=avg_hw_R,
         half_width_psi=avg_hw_psi,
     )
+
+
+# ---------------------------------------------------------------------------
+# Residual island detection in chaotic sea
+# ---------------------------------------------------------------------------
+
+def detect_residual_islands(
+    poincare_pts: np.ndarray,
+    R_axis: float,
+    Z_axis: float,
+    n_angle_bins: int = 72,
+    min_cluster_fraction: float = 0.01,
+    radial_bandwidth: float = 0.05,
+    min_period: int = 1,
+    max_period: int = 12,
+) -> list:
+    """Detect surviving (residual) magnetic islands embedded in a chaotic sea.
+
+    In a chaotic Poincaré scatter plot, small regular islands appear as
+    distinct, tightly-clustered arc-shaped structures amid the diffuse chaotic
+    background.  This function identifies such clusters by:
+
+    1. Partitioning the Poincaré points into annular radial shells.
+    2. Within each shell, computing the angular density histogram.
+    3. Looking for ``p``-fold periodic structure (for p in [min_period,
+       max_period]) that exceeds the background by a statistically significant
+       margin.
+    4. Returning a list of candidate (period, radial_shell_index, angle_peaks)
+       tuples from which callers can seed a fixed-point finder.
+
+    Parameters
+    ----------
+    poincare_pts : ndarray, shape (N, 2) or (N, 3)
+        Poincaré section points.  Only the first two columns (R, Z) are used.
+    R_axis, Z_axis : float
+        Magnetic axis coordinates.
+    n_angle_bins : int
+        Number of angular bins for the density histogram.  Higher values
+        give finer angular resolution.  Default 72 (5° bins).
+    min_cluster_fraction : float
+        Minimum fraction of points in a radial shell that must fall in the
+        candidate island peaks for it to be reported.  Default 0.01.
+    radial_bandwidth : float
+        Fractional width of radial shells (as a fraction of the max radius
+        from axis).  Default 0.05 (5 % shells).
+    min_period, max_period : int
+        Range of periods (number of Poincaré-map iterations) to search.
+
+    Returns
+    -------
+    candidates : list of dict
+        Each dict contains:
+
+        ``'period'`` : int
+            Detected periodicity p (number of O-points expected in chain).
+        ``'r_shell'`` : float
+            Mean radial distance of the shell where the island was detected.
+        ``'angle_peaks'`` : ndarray
+            Approximate angular positions of the O-points.
+        ``'seed_RZ'`` : ndarray, shape (p, 2)
+            Rough seed points [R, Z] for fixed-point refinement.
+
+    Notes
+    -----
+    This is a *rough* detection method intended to seed a Newton-refinement
+    step (e.g. :func:`pyna.topo.fixed_points.find_periodic_orbit`).  The
+    returned seed points are approximate and may not all converge to true
+    fixed points.
+
+    Examples
+    --------
+    >>> candidates = detect_residual_islands(poincare_pts, R_axis=1.0, Z_axis=0.0)
+    >>> for c in candidates:
+    ...     print(c['period'], c['r_shell'], c['seed_RZ'])
+    """
+    pts = np.asarray(poincare_pts, dtype=float)
+    R_pts = pts[:, 0]
+    Z_pts = pts[:, 1]
+
+    r_pts = np.sqrt((R_pts - R_axis) ** 2 + (Z_pts - Z_axis) ** 2)
+    angle_pts = np.arctan2(Z_pts - Z_axis, R_pts - R_axis) % (2 * np.pi)
+
+    r_max = float(np.max(r_pts))
+    if r_max < 1e-12:
+        return []
+
+    n_shells = max(1, int(1.0 / radial_bandwidth))
+    shell_edges = np.linspace(0.0, r_max, n_shells + 1)
+
+    candidates = []
+
+    angle_bin_edges = np.linspace(0.0, 2.0 * np.pi, n_angle_bins + 1)
+
+    for s in range(n_shells):
+        r_lo, r_hi = shell_edges[s], shell_edges[s + 1]
+        mask = (r_pts >= r_lo) & (r_pts < r_hi)
+        if mask.sum() < max(10, int(len(pts) * min_cluster_fraction)):
+            continue
+
+        angles_in_shell = angle_pts[mask]
+        hist, _ = np.histogram(angles_in_shell, bins=angle_bin_edges)
+        hist = hist.astype(float)
+
+        # Background level (robust median)
+        bg = float(np.median(hist))
+        hist_normalised = hist / (bg + 1e-10)
+
+        for p in range(min_period, max_period + 1):
+            # Look for p-fold peaks by folding the histogram
+            n_per_segment = n_angle_bins // p
+            if n_per_segment < 2:
+                continue
+            folded = np.zeros(n_per_segment)
+            for k in range(p):
+                segment = hist_normalised[k * n_per_segment: (k + 1) * n_per_segment]
+                folded[:len(segment)] += segment
+            # Detect peaks in the folded histogram
+            folded_mean = float(np.mean(folded))
+            folded_std = float(np.std(folded))
+            threshold = folded_mean + 1.5 * folded_std
+            peak_idx = np.where(folded > threshold)[0]
+            if len(peak_idx) == 0:
+                continue
+
+            # The primary peak bin index in the folded array
+            primary_bin = int(peak_idx[np.argmax(folded[peak_idx])])
+            primary_angle = (primary_bin + 0.5) / n_per_segment * (2.0 * np.pi / p)
+
+            # Replicate across p copies
+            angle_peaks = np.array([
+                (primary_angle + k * 2.0 * np.pi / p) % (2.0 * np.pi)
+                for k in range(p)
+            ])
+            r_shell_mean = 0.5 * (r_lo + r_hi)
+
+            # Seed points
+            seed_RZ = np.column_stack([
+                R_axis + r_shell_mean * np.cos(angle_peaks),
+                Z_axis + r_shell_mean * np.sin(angle_peaks),
+            ])
+
+            candidates.append({
+                'period': p,
+                'r_shell': r_shell_mean,
+                'angle_peaks': angle_peaks,
+                'seed_RZ': seed_RZ,
+            })
+
+    return candidates

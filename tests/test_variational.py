@@ -74,10 +74,10 @@ def test_tangent_map_order1_consistency():
 
 
 def test_tangent_map_order_not_implemented():
-    """tangent_map with order > 2 should raise NotImplementedError."""
+    """tangent_map with order > 3 should raise NotImplementedError."""
     vq = PoincareMapVariationalEquations(_circular_field)
     with pytest.raises(NotImplementedError):
-        vq.tangent_map([1.8, 0.0], [0.0, np.pi], order=3)
+        vq.tangent_map([1.8, 0.0], [0.0, np.pi], order=4)
 
 
 def test_tangent_map_order2_shape():

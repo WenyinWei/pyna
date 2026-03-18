@@ -449,3 +449,150 @@ def monodromy_change_under_perturbation(
         dM += 0.5 * dphi[i] * (integrand[i] + integrand[i + 1])
 
     return dM
+
+
+# ---------------------------------------------------------------------------
+# Second-order orbit variation
+# ---------------------------------------------------------------------------
+
+def second_order_orbit_variation(
+    field_func: Callable,
+    delta_field_func: Callable,
+    orbit,
+    monodromy_analysis: MonodromyAnalysis,
+    first_order_shift: np.ndarray,
+) -> np.ndarray:
+    r"""Compute the second-order orbit position variation δ²X(φ).
+
+    The second-order variational equation is
+
+        d(δ²Xᵢ)/dφ = Σⱼ A_{ij} δ²Xⱼ
+                    + Σⱼ,ₖ H_{ijk} δXⱼ δXₖ
+                    + Σⱼ δA_{ij} δXⱼ
+
+    where:
+        - A = ∂f/∂X is the Jacobian of the unperturbed field direction,
+        - H_{ijk} = ∂²f_i/∂X_j∂X_k is the Hessian of f,
+        - δA_{ij} = ∂(δf_i)/∂X_j is the Jacobian of the perturbation δf,
+        - δX is the first-order orbit shift (from
+          :func:`orbit_shift_under_perturbation`).
+
+    The periodic boundary condition is handled in the same way as in
+    :func:`orbit_shift_under_perturbation`: integrate first with zero
+    initial condition to find the particular solution, then use
+    (M − I) δ²X₀ = −δ²X_particular(φ_end).
+
+    Parameters
+    ----------
+    field_func : callable
+        Unperturbed field function.
+    delta_field_func : callable
+        First-order perturbation field δB (same signature as field_func).
+    orbit : PeriodicOrbit
+        The unperturbed periodic orbit.
+    monodromy_analysis : MonodromyAnalysis
+        Monodromy analysis of the unperturbed orbit (from
+        :func:`compute_Jac`).
+    first_order_shift : ndarray, shape (N, 2)
+        First-order orbit position shift δX(φ), as returned by
+        :func:`orbit_shift_under_perturbation`.
+
+    Returns
+    -------
+    ndarray, shape (N, 2)
+        Second-order orbit displacement δ²X(φ) = (δ²R(φ), δ²Z(φ)).
+
+    Notes
+    -----
+    This function computes the *second-order* correction to the orbit
+    position under the perturbation, following the expansion
+
+        X = X₀ + ε δX + ε² δ²X / 2 + O(ε³).
+
+    The dependence on ε² makes this term important when the first-order
+    shift δX is large (e.g. near a separatrix or for strong perturbations).
+    """
+    from scipy.interpolate import interp1d as _interp1d
+
+    A_func = build_A_matrix_func(field_func)
+    # Build Jacobian of delta_field_func (δA)
+    from pyna.topo.variational import _fd_jacobian as _fd_jac
+
+    def delta_A_func(r: float, z: float, phi: float) -> np.ndarray:
+        """Finite-difference Jacobian of δf w.r.t. (R, Z)."""
+        def df(r_, z_, phi_):
+            rzphi = np.array([r_, z_, phi_])
+            f = np.asarray(field_func(rzphi), dtype=float)
+            df_ = np.asarray(delta_field_func(rzphi), dtype=float)
+            dphi_dl = f[2]
+            if abs(dphi_dl) < 1e-30:
+                return np.zeros(2)
+            dbR = df_[0] / dphi_dl - f[0] * df_[2] / dphi_dl ** 2
+            dbZ = df_[1] / dphi_dl - f[1] * df_[2] / dphi_dl ** 2
+            return np.array([dbR, dbZ])
+        return _fd_jac(df, np.array([r, z]), phi, 1e-6)
+
+    phi_arr = monodromy_analysis.phi_arr
+    phi0 = phi_arr[0]
+    phi_end = phi_arr[-1]
+
+    traj = monodromy_analysis.trajectory
+    r_interp = _interp1d(phi_arr, traj[:, 0], kind='cubic')
+    z_interp = _interp1d(phi_arr, traj[:, 1], kind='cubic')
+
+    # Interpolate δX(φ) — the first-order shift
+    dX_interp_0 = _interp1d(phi_arr, first_order_shift[:, 0], kind='cubic')
+    dX_interp_1 = _interp1d(phi_arr, first_order_shift[:, 1], kind='cubic')
+
+    # Compute Hessian of f along the orbit (expensive; evaluated on-the-fly)
+    from pyna.topo.variational import _fd_hessian as _fd_hes
+
+    def _hessian_f(r: float, z: float, phi: float) -> np.ndarray:
+        def f2(r_, z_, phi_):
+            rzphi = np.array([r_, z_, phi_])
+            fv = np.asarray(field_func(rzphi), dtype=float)
+            dphi_dl = fv[2]
+            if abs(dphi_dl) < 1e-30:
+                return np.zeros(2)
+            return np.array([fv[0] / dphi_dl, fv[1] / dphi_dl])
+        return _fd_hes(f2, np.array([r, z]), phi, 1e-5)
+
+    def rhs_second_order(phi: float, d2X: np.ndarray) -> np.ndarray:
+        r = float(r_interp(phi))
+        z = float(z_interp(phi))
+        dX = np.array([float(dX_interp_0(phi)), float(dX_interp_1(phi))])
+
+        A = A_func(r, z, phi)
+        H = _hessian_f(r, z, phi)          # shape (2, 2, 2)
+        dA = delta_A_func(r, z, phi)        # shape (2, 2)
+
+        # A @ δ²X
+        lhs1 = A @ d2X
+        # Σⱼ,ₖ H_{ijk} δXⱼ δXₖ   → shape (2,)
+        lhs2 = np.einsum('ijk,j,k->i', H, dX, dX)
+        # Σⱼ δA_{ij} δXⱼ  → shape (2,)
+        lhs3 = dA @ dX
+
+        return lhs1 + lhs2 + lhs3
+
+    # Step 1: particular solution with δ²X(φ0) = 0
+    from scipy.integrate import solve_ivp as _solve_ivp
+    sol_part = _solve_ivp(
+        rhs_second_order, (phi0, phi_end), [0.0, 0.0],
+        method="DOP853", t_eval=phi_arr, rtol=1e-8, atol=1e-9,
+    )
+    d2X_part_end = sol_part.y[:, -1]
+
+    # Step 2: periodic BC:  (M − I) d²X₀ = −d²X_part_end
+    M = monodromy_analysis.Jac
+    try:
+        d2X0 = np.linalg.solve(M - np.eye(2), -d2X_part_end)
+    except np.linalg.LinAlgError:
+        d2X0 = np.zeros(2)
+
+    # Step 3: full solution with correct IC
+    sol_full = _solve_ivp(
+        rhs_second_order, (phi0, phi_end), d2X0,
+        method="DOP853", t_eval=phi_arr, rtol=1e-8, atol=1e-9,
+    )
+    return sol_full.y.T  # shape (N, 2)
