@@ -14,6 +14,15 @@ from pyna.topo.fixed_points import (
     classify_fixed_point_higher_order,
 )
 from pyna.topo.island import Island, IslandChain
+from pyna.topo.island_extract import detect_residual_islands
+from pyna.topo.poincare import rotational_transform_from_trajectory
+from pyna.topo.monodromy import (
+    compute_Jac,
+    MonodromyAnalysis,
+    orbit_shift_under_perturbation,
+    monodromy_change_under_perturbation,
+    second_order_orbit_variation,
+)
 
 __all__ = [
     "PoincareMapVariationalEquations",
@@ -33,4 +42,13 @@ __all__ = [
     # island topology
     "Island",
     "IslandChain",
+    "detect_residual_islands",
+    # rotational transform
+    "rotational_transform_from_trajectory",
+    # monodromy / variational
+    "compute_Jac",
+    "MonodromyAnalysis",
+    "orbit_shift_under_perturbation",
+    "monodromy_change_under_perturbation",
+    "second_order_orbit_variation",
 ]

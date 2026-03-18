@@ -82,6 +82,114 @@ class Island:
         self.O_point = np.asarray(self.O_point, dtype=float)
         self.X_points = [np.asarray(x, dtype=float) for x in self.X_points]
 
+    def explore_sub_islands(
+        self,
+        field_func,
+        n_turns_range: range = None,
+        r_scan_factor: float = 0.3,
+        n_scan: int = 100,
+        tol: float = 1e-10,
+        verbose: bool = False,
+    ) -> "List[Island]":
+        """Rough exploration of sub-islands (islands-around-islands) near this island.
+
+        Searches for periodic orbits of shorter periods nested inside or around
+        this island.  This implements a coarse version of the
+        *island-around-island* (Birkhoff) hierarchy.
+
+        The search scans rings of radii ranging from a small fraction of the
+        island half-width up to ~2× the half-width, looking for fixed points
+        of Poincaré maps of various periods.
+
+        Parameters
+        ----------
+        field_func : callable
+            ``field_func(r, z, phi) → [dR/dφ, dZ/dφ]`` — 2-D field
+            direction function.
+        n_turns_range : range or None
+            Range of orbit periods (number of Poincaré map iterations) to
+            search.  If ``None``, searches periods 1 through
+            ``max(2, self.period_n - 1)``.
+        r_scan_factor : float
+            Scan ring radius as a multiple of ``self.halfwidth``.  If
+            ``halfwidth`` is ``nan``, a default of 0.05 m is used.  Rings are
+            placed at ``[0.3, 0.7, 1.2, 1.8] × r_scan_factor × halfwidth``.
+            Default 0.3.
+        n_scan : int
+            Number of test points on each ring.  Default 100.
+        tol : float
+            Newton refinement tolerance.  Default 1e-10.
+        verbose : bool
+            Print progress messages.
+
+        Returns
+        -------
+        list of Island
+            Sub-islands found.  Each has ``level = self.level + 1`` and
+            ``parent = self``.  Returns an empty list if none are found.
+        """
+        from pyna.topo.fixed_points import (
+            scan_fixed_point_seeds,
+            refine_fixed_point,
+            classify_fixed_point,
+        )
+
+        hw = self.halfwidth if np.isfinite(self.halfwidth) and self.halfwidth > 0 else 0.05
+        base_r = hw * r_scan_factor
+
+        if n_turns_range is None:
+            max_period = max(2, self.period_n - 1) if self.period_n > 1 else 3
+            n_turns_range = range(1, max_period + 1)
+
+        scan_radii = [0.3 * base_r, 0.7 * base_r, 1.2 * base_r, 1.8 * base_r]
+
+        found_fps: List[np.ndarray] = []
+        sub_islands: List[Island] = []
+
+        for n_turns in n_turns_range:
+            all_seeds: List[np.ndarray] = []
+            for r in scan_radii:
+                if r < 1e-8:
+                    continue
+                seeds = scan_fixed_point_seeds(
+                    field_func,
+                    float(self.O_point[0]),
+                    float(self.O_point[1]),
+                    r,
+                    n_turns,
+                    n_scan=n_scan,
+                )
+                all_seeds.extend(seeds[:4])  # take top 4 candidates per ring
+
+            refined: List[np.ndarray] = []
+            dedup_tol = hw * 0.05
+            for seed in all_seeds:
+                fp = refine_fixed_point(seed, field_func, n_turns, tol=tol)
+                if fp is None:
+                    continue
+                # Deduplicate
+                if all(np.linalg.norm(fp - q) > dedup_tol for q in refined + found_fps):
+                    refined.append(fp)
+
+            for fp in refined:
+                fp_type, _, _ = classify_fixed_point(fp, field_func, n_turns)
+                if fp_type == "O":
+                    isl = Island(
+                        period_n=n_turns,
+                        O_point=fp,
+                        X_points=[],
+                        halfwidth=float("nan"),
+                        level=self.level + 1,
+                        parent=self,
+                        label=f"sub[{n_turns}]@{self.label or '?'}",
+                    )
+                    sub_islands.append(isl)
+                    found_fps.append(fp)
+                    if verbose:
+                        print(f"  Sub-island period={n_turns} at R={fp[0]:.4f} Z={fp[1]:.4f}")
+
+        return sub_islands
+
 
 @dataclass
 class IslandChain:
@@ -259,6 +367,103 @@ class IslandChain:
                 level=self.level,
             )
             self.subchains.append(sub)
+
+    def scan_xo_rings_parallel(
+        self,
+        field_func,
+        r_scan: float,
+        n_scan: int = 200,
+        n_workers: Optional[int] = None,
+        tol: float = 1e-12,
+        dedup_tol: float = 1e-4,
+        verbose: bool = False,
+    ) -> None:
+        """Locate X/O rings for all (possibly disconnected) sub-chains in parallel.
+
+        For a high-mode-number chain that has been split into disconnected
+        sub-chains via :meth:`split_into_subchains`, this method scans for
+        period-``m`` fixed points around each island O-point *in parallel*,
+        populating the ``X_points`` list of each ``Island`` in-place.
+
+        For *connected* chains, the X-points of the seed island are extended
+        toroidally to locate the full ring; disconnected sub-chains are handled
+        independently.
+
+        Parameters
+        ----------
+        field_func : callable
+            ``field_func(r, z, phi) → [dR/dφ, dZ/dφ]``.
+        r_scan : float
+            Ring-scan radius (m) used for seed generation.
+        n_scan : int
+            Points on the scan ring.
+        n_workers : int or None
+            Thread-pool size.  ``None`` → ``os.cpu_count()``.
+        tol : float
+            Newton refinement tolerance.
+        dedup_tol : float
+            Deduplication threshold (m).
+        verbose : bool
+            Print progress messages.
+        """
+        import os
+        from concurrent.futures import ThreadPoolExecutor
+        from pyna.topo.fixed_points import (
+            scan_fixed_point_seeds,
+            refine_fixed_point,
+            classify_fixed_point,
+        )
+
+        workers = n_workers or (os.cpu_count() or 4)
+
+        # Collect all islands that need X-point scanning
+        if self.connected:
+            islands_to_scan = self.islands
+        else:
+            # For disconnected chains, scan one island per sub-chain
+            islands_to_scan = [sub.islands[0] for sub in self.subchains if sub.islands]
+
+        def _scan_one(isl: Island) -> List[np.ndarray]:
+            seeds = scan_fixed_point_seeds(
+                field_func,
+                float(isl.O_point[0]),
+                float(isl.O_point[1]),
+                r_scan,
+                self.m,
+                n_scan=n_scan,
+            )
+            x_pts: List[np.ndarray] = []
+            found_fps: List[np.ndarray] = []
+            for seed in seeds:
+                fp = refine_fixed_point(seed, field_func, self.m, tol=tol)
+                if fp is None:
+                    continue
+                fp_type, _, _ = classify_fixed_point(fp, field_func, self.m)
+                if fp_type == "X" and all(
+                    np.linalg.norm(fp - q) > dedup_tol for q in found_fps
+                ):
+                    x_pts.append(fp)
+                    found_fps.append(fp)
+            return x_pts
+
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            results = list(executor.map(_scan_one, islands_to_scan))
+
+        # Assign results
+        if self.connected:
+            for isl, x_pts in zip(islands_to_scan, results):
+                isl.X_points = x_pts
+                if verbose:
+                    print(f"  Island O=({isl.O_point[0]:.4f}, {isl.O_point[1]:.4f}) "
+                          f"→ {len(x_pts)} X-points")
+        else:
+            for sub, x_pts in zip(self.subchains, results):
+                if sub.islands:
+                    sub.islands[0].X_points = x_pts
+                    if verbose:
+                        op = sub.islands[0].O_point
+                        print(f"  Sub-chain O=({op[0]:.4f}, {op[1]:.4f}) "
+                              f"→ {len(x_pts)} X-points")
 
 
 # ---------------------------------------------------------------------------

@@ -122,13 +122,13 @@ class WallGeometry:
 
         return self._wall_segment_normal(best_seg)
 
-    def gap_to_lcfs(self, lcfs_R: np.ndarray, lcfs_Z: np.ndarray,
+    def gap_to_LCFS(self, LCFS_R: np.ndarray, LCFS_Z: np.ndarray,
                     monitor_idx: int) -> float:
         """Compute gap from wall monitoring point to nearest LCFS point.
 
         Parameters
         ----------
-        lcfs_R, lcfs_Z : ndarray
+        LCFS_R, LCFS_Z : ndarray
             Arrays of (R, Z) points on the LCFS.
         monitor_idx : int
             Index into gap_monitor_R / gap_monitor_Z.
@@ -140,15 +140,15 @@ class WallGeometry:
         """
         R_mon = self.gap_monitor_R[monitor_idx]
         Z_mon = self.gap_monitor_Z[monitor_idx]
-        dists = np.sqrt((lcfs_R - R_mon)**2 + (lcfs_Z - Z_mon)**2)
+        dists = np.sqrt((LCFS_R - R_mon)**2 + (LCFS_Z - Z_mon)**2)
         return float(np.min(dists))
 
-    def all_gaps(self, lcfs_R: np.ndarray, lcfs_Z: np.ndarray) -> dict:
+    def all_gaps(self, LCFS_R: np.ndarray, LCFS_Z: np.ndarray) -> dict:
         """Compute all g_i gaps dict {name: gap_m}.
 
         Parameters
         ----------
-        lcfs_R, lcfs_Z : ndarray
+        LCFS_R, LCFS_Z : ndarray
             Arrays of (R, Z) points tracing the LCFS (stable manifold).
 
         Returns
@@ -160,7 +160,7 @@ class WallGeometry:
             return {}
         gaps = {}
         for i, name in enumerate(self.gap_monitor_names):
-            gaps[name] = self.gap_to_lcfs(lcfs_R, lcfs_Z, i)
+            gaps[name] = self.gap_to_LCFS(LCFS_R, LCFS_Z, i)
         return gaps
 
 

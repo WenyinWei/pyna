@@ -425,3 +425,117 @@ def _coerce_progress(progress: Optional[TraceProgressBase]) -> TraceProgressBase
             f"got {type(progress)!r}"
         )
     return progress
+
+
+# ---------------------------------------------------------------------------
+# MPIProgress — fan-out via MPI communicator
+# ---------------------------------------------------------------------------
+
+class MPIProgress(TraceProgressBase):
+    """Send progress updates to another MPI rank via non-blocking send.
+
+    This reporter is intended for HPC runs where a *master rank* wants to
+    monitor progress on *worker ranks* without interrupting the computation.
+    Each :meth:`update` call sends a serialised JSON message to the target
+    rank using ``MPI.COMM_WORLD.isend``.
+
+    Requires ``mpi4py`` to be installed (``pip install mpi4py``).
+
+    Parameters
+    ----------
+    dest_rank : int
+        MPI rank to send progress messages to.  Default 0 (master rank).
+    tag : int
+        MPI message tag.  Default 42.
+    comm : mpi4py communicator or None
+        MPI communicator.  ``None`` → ``MPI.COMM_WORLD``.
+    flush_every : int
+        Send every ``flush_every``-th update to reduce MPI overhead.
+        Default 1.
+
+    Examples
+    --------
+    Worker rank::
+
+        from pyna.progress import MPIProgress
+        prog = MPIProgress(dest_rank=0)
+        tracer.trace_many(starts, t_max, progress=prog)
+
+    Master rank (polling loop)::
+
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+        while True:
+            status = MPI.Status()
+            if comm.Iprobe(source=MPI.ANY_SOURCE, tag=42, status=status):
+                msg = comm.recv(source=status.Get_source(), tag=42)
+                print(msg)
+            else:
+                break
+    """
+
+    def __init__(
+        self,
+        dest_rank: int = 0,
+        tag: int = 42,
+        comm=None,
+        flush_every: int = 1,
+    ) -> None:
+        try:
+            from mpi4py import MPI as _MPI  # noqa: F401
+        except ImportError as exc:
+            raise ImportError(
+                "MPIProgress requires mpi4py. "
+                "Install with: pip install mpi4py"
+            ) from exc
+
+        self.dest_rank = dest_rank
+        self.tag = tag
+        self.flush_every = max(1, flush_every)
+        self._lock = threading.Lock()
+        self._call_count = 0
+
+        if comm is None:
+            from mpi4py import MPI
+            self._comm = MPI.COMM_WORLD
+        else:
+            self._comm = comm
+
+    def _send(self, record: Dict[str, Any]) -> None:
+        """Non-blocking send of one record (caller holds lock)."""
+        record["timestamp"] = time.time()
+        try:
+            self._comm.isend(record, dest=self.dest_rank, tag=self.tag)
+        except Exception:
+            pass  # Never crash the computation because of progress reporting
+
+    def start(self, total: int, description: str = "") -> None:
+        with self._lock:
+            self._send({"event": "start", "total": total,
+                        "description": description})
+
+    def update(
+        self,
+        task_id: int,
+        *,
+        steps_done: int = 0,
+        steps_total: int = 0,
+        info: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        with self._lock:
+            self._call_count += 1
+            if self._call_count % self.flush_every != 0:
+                return
+            record: Dict[str, Any] = {
+                "event": "update",
+                "task_id": task_id,
+                "steps_done": steps_done,
+                "steps_total": steps_total,
+            }
+            if info:
+                record["info"] = info
+            self._send(record)
+
+    def close(self) -> None:
+        with self._lock:
+            self._send({"event": "close"})

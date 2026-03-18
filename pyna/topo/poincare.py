@@ -223,3 +223,105 @@ def poincare_from_fieldlines(
             pmap.record_trajectory(traj)
 
     return pmap
+
+
+# ---------------------------------------------------------------------------
+# Rotational transform estimation
+# ---------------------------------------------------------------------------
+
+def rotational_transform_from_trajectory(
+    traj: np.ndarray,
+    axis_RZ: Optional[np.ndarray] = None,
+    n_turns: Optional[int] = None,
+) -> float:
+    r"""Estimate the rotational transform ι (or safety factor q = 1/ι) from
+    a traced field-line trajectory.
+
+    The rotational transform is the average poloidal angle advance per
+    toroidal turn.  For a closed (periodic) orbit on a flux surface with
+    safety factor q = m/n, we have ι = 1/q = n/m.
+
+    Algorithm
+    ---------
+    1. Compute the cumulative *poloidal* angle Θ(s) of the trajectory
+       around the magnetic axis ``axis_RZ``.
+    2. Compute the cumulative *toroidal* angle Φ(s) from the φ column of
+       the trajectory.
+    3. Fit a linear relationship Θ ≈ ι · Φ by least squares.  The slope
+       ι is the rotational transform.
+
+    Parameters
+    ----------
+    traj : ndarray, shape (N, 3)
+        Trajectory (R, Z, φ) as returned by
+        :meth:`pyna.flt.FieldLineTracer.trace`.
+    axis_RZ : array_like of shape (2,) or None
+        Approximate position [R, Z] of the magnetic axis (or any reference
+        point inside the flux surface).  If ``None``, the centroid of the
+        trajectory projection onto the (R, Z) plane is used.
+    n_turns : int or None
+        If provided, restrict the computation to the first ``n_turns``
+        toroidal traversals.  If ``None``, use the full trajectory.
+
+    Returns
+    -------
+    iota : float
+        Estimated rotational transform ι = dΘ/dΦ.
+        The safety factor is q = 1 / ι.
+
+    Notes
+    -----
+    For a regular (KAM) flux surface, the returned value converges as
+    the trajectory length increases.  For a chaotic trajectory, the
+    "effective" rotational transform still gives a useful indicator of the
+    local winding rate, though it will not converge to a rational number.
+
+    Examples
+    --------
+    >>> iota = rotational_transform_from_trajectory(traj, axis_RZ=[1.0, 0.0])
+    >>> q = 1.0 / iota   # safety factor
+    """
+    traj = np.asarray(traj, dtype=float)
+    if traj.ndim != 2 or traj.shape[1] < 2:
+        raise ValueError("traj must be shape (N, ≥2) with columns [R, Z, ...]")
+
+    R = traj[:, 0]
+    Z = traj[:, 1]
+
+    # Determine axis reference
+    if axis_RZ is None:
+        axis_R = float(np.mean(R))
+        axis_Z = float(np.mean(Z))
+    else:
+        axis_R, axis_Z = float(axis_RZ[0]), float(axis_RZ[1])
+
+    # Poloidal angle relative to axis
+    poloidal_angle = np.arctan2(Z - axis_Z, R - axis_R)
+    # Unwrap to get a monotonic cumulative angle
+    Theta = np.unwrap(poloidal_angle)
+
+    # Toroidal angle (phi column if available, else use index as proxy)
+    if traj.shape[1] >= 3:
+        Phi = np.unwrap(traj[:, 2])
+    else:
+        # No phi column: use step index as a proxy for toroidal arc length
+        Phi = np.arange(len(traj), dtype=float)
+
+    if n_turns is not None:
+        # Estimate how many points correspond to n_turns toroidal traversals
+        Phi_per_turn = 2.0 * np.pi
+        max_Phi = n_turns * Phi_per_turn + Phi[0]
+        mask = Phi <= max_Phi
+        if np.sum(mask) < 2:
+            mask = np.ones(len(Phi), dtype=bool)
+        Theta = Theta[mask]
+        Phi = Phi[mask]
+
+    # Linear least-squares fit: Theta = iota * Phi + const
+    if len(Phi) < 2 or (np.ptp(Phi) < 1e-15):
+        return float("nan")
+
+    A = np.column_stack([Phi, np.ones(len(Phi))])
+    result, _, _, _ = np.linalg.lstsq(A, Theta, rcond=None)
+    iota = float(result[0])
+    return iota

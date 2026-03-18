@@ -107,7 +107,3 @@ def hash_eq_params(**kwargs) -> str:
 def invalidate_cache() -> None:
     """Clear all pyna.control disk caches (use after equilibrium change)."""
     memory.clear(warn=False)
-
-
-# Backwards-compatibility alias
-cached_biot_savart_grid = cached_Biot_Savart_grid
