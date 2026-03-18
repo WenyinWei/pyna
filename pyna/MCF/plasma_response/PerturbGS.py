@@ -33,9 +33,9 @@ from scipy.sparse.linalg import lsqr, lgmres, gmres, bicgstab
 import os
 from typing import Optional
 
-from pyna.fields.cylindrical import CylindricalVectorField3D, CylindricalScalarField3D
-CylindricalVectorField = CylindricalVectorField3D  # backward compat alias
-CylindricalScalarField = CylindricalScalarField3D
+from pyna.fields.cylindrical import VectorField3DCylindrical, ScalarField3DCylindrical
+CylindricalVectorField = VectorField3DCylindrical
+CylindricalScalarField = ScalarField3DCylindrical
 
 # ---------------------------------------------------------------------------
 # Joblib cache

@@ -171,13 +171,16 @@ This keeps related classes adjacent in IDE autocomplete and `dir()` output.
 | `VectorPotentialField` | `CoilFieldVectorPotential` | CoilField is the noun; vector-potential is the method |
 | `AxiSymmetricVectorField3D` | `VectorField3DAxiSymmetric` | `3D` before `AxiSymmetric`: dimensionality is prerequisite for symmetry |
 | `AxiSymmetricScalarField3D` | `ScalarField3DAxiSymmetric` | same: you must first know it's 3D, then constrain to axisymmetric |
+| `CylindricalVectorField3D` | `VectorField3DCylindrical` | VectorField is the noun; Cylindrical is the coord-system qualifier |
+| `CylindricalScalarField3D` | `ScalarField3DCylindrical` | ScalarField is the noun; Cylindrical is the coord-system qualifier |
+| `CylindricalGridVectorField3D` | `VectorField3DCylindrical` | same rule; "Grid" is implicit in "Cylindrical" (regular grid) |
 
 **Qualifier ordering principle:** Ask "does qualifier A need to exist before qualifier B makes sense?" If yes, A comes first. Examples:
 - `3D` before `AxiSymmetric` — axisymmetry is a constraint on a 3D space; without 3D there is no axisymmetry to speak of
-- `Cylindrical` before `AxiSymmetric` — `VectorFieldCylindrical3DAxiSymmetric` if fully spelled out
+- `3D` before `Cylindrical` — cylindrical coordinates describe a 3D space
 - Backend type (e.g. `CUDA`) is always last — it's the most incidental qualifier
 
-**Why:** When you type `CoilField` in your IDE, you immediately see all coil field variants together. When you type `FieldLineTracer`, you see CPU and CUDA backends side by side. Consistent qualifier ordering makes the hierarchy readable without opening the source.
+**Single canonical hierarchy.** If a class already exists in the canonical hierarchy (`pyna.fields`), do **not** create a parallel class elsewhere. Instead extend or import from the canonical source. The `pyna.MCF.coils.field` module is a thin re-export layer only.
 
 **No backward-compat aliases.** Rename and update all call sites immediately.
 

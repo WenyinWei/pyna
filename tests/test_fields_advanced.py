@@ -23,7 +23,7 @@ from pyna.fields.coords import (
     MinkowskiCoords4D,
     CylindricalCoords3D,
 )
-from pyna.fields.cylindrical import CylindricalVectorField3D
+from pyna.fields.cylindrical import VectorField3DCylindrical
 
 
 # ─── helpers ──────────────────────────────────────────────────────────────────
@@ -35,7 +35,7 @@ def make_simple_vec(nR=10, nZ=8, nPhi=6):
     VR = np.zeros((nR, nZ, nPhi))
     VZ = np.ones((nR, nZ, nPhi))
     VP = np.zeros((nR, nZ, nPhi))
-    return CylindricalVectorField3D(R_ax, Z_ax, Phi_ax, VR, VZ, VP, name="v")
+    return VectorField3DCylindrical(R_ax, Z_ax, Phi_ax, VR, VZ, VP, name="v")
 
 
 # ─── Feature 1: TensorField4D_rank2 ──────────────────────────────────────────
@@ -133,7 +133,7 @@ def test_covariant_derivative_uniform_axial_field():
     VR = np.zeros((15, 12, 8))
     VZ = np.ones((15, 12, 8)) * 2.0
     VP = np.zeros((15, 12, 8))
-    v = CylindricalVectorField3D(R_ax, Z_ax, Phi_ax, VR, VZ, VP)
+    v = VectorField3DCylindrical(R_ax, Z_ax, Phi_ax, VR, VZ, VP)
     cov = covariant_derivative_of_vector(v)
     # All derivatives of constant field should be zero (interior points)
     assert np.all(np.abs(cov.data[2:-2, 2:-2, :]) < 1e-10)

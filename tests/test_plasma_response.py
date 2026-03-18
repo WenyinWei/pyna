@@ -1,7 +1,7 @@
 """Tests for plasma response module (perturbed Grad-Shafranov solver).
 
 Tests:
-1. solve_perturbed_gs returns CylindricalVectorField tuple
+1. solve_perturbed_gs returns VectorField3DCylindrical tuple
 2. compute_plasma_response runs on Solov'ev + uniform delta_B_ext
 3. ∇ · δB_plasma ≈ 0 numerically
 4. δB_plasma + δB_ext has smaller residual in J×B = ∇p than δB_ext alone (rough)

@@ -18,22 +18,22 @@ def grid_3d():
 @pytest.fixture
 def uniform_Bz_field(grid_3d):
     """B = (0, 0, B0) in cylindrical — constant BZ=1, BR=BPhi=0."""
-    from pyna.fields.cylindrical import CylindricalVectorField3D
+    from pyna.fields.cylindrical import VectorField3DCylindrical
     R, Z, Phi = grid_3d
     shape = (len(R), len(Z), len(Phi))
     VR   = np.zeros(shape)
     VZ   = np.ones(shape)
     VPhi = np.zeros(shape)
-    return CylindricalVectorField3D(R, Z, Phi, VR, VZ, VPhi, name="uniform_Bz")
+    return VectorField3DCylindrical(R, Z, Phi, VR, VZ, VPhi, name="uniform_Bz")
 
 
 @pytest.fixture
 def linear_scalar_field(grid_3d):
     """f = R (linear in R)."""
-    from pyna.fields.cylindrical import CylindricalScalarField3D
+    from pyna.fields.cylindrical import ScalarField3DCylindrical
     R, Z, Phi = grid_3d
     value = R[:, np.newaxis, np.newaxis] * np.ones((len(R), len(Z), len(Phi)))
-    return CylindricalScalarField3D(R, Z, Phi, value, name="linear_R")
+    return ScalarField3DCylindrical(R, Z, Phi, value, name="linear_R")
 
 
 # ── Group 1: FieldProperty ────────────────────────────────────────────────────
@@ -50,7 +50,7 @@ def test_property_none():
     assert not FieldProperty.NONE
 
 
-# ── Group 2: CylindricalVectorField3D ─────────────────────────────────────────
+# ── Group 2: VectorField3DCylindrical ─────────────────────────────────────────
 
 def test_vector_field_construction(uniform_Bz_field, grid_3d):
     R, Z, Phi = grid_3d
@@ -90,13 +90,13 @@ def test_vector_field_npz_roundtrip(uniform_Bz_field):
     with tempfile.TemporaryDirectory() as tmpdir:
         path = os.path.join(tmpdir, "test_field.npz")
         uniform_Bz_field.to_npz(path)
-        from pyna.fields.cylindrical import CylindricalVectorField3D
-        loaded = CylindricalVectorField3D.from_npz(path)
+        from pyna.fields.cylindrical import VectorField3DCylindrical
+        loaded = VectorField3DCylindrical.from_npz(path)
         np.testing.assert_array_equal(loaded.VZ, uniform_Bz_field.VZ)
 
 
 def test_vector_from_callable(grid_3d):
-    from pyna.fields.cylindrical import CylindricalVectorField3D
+    from pyna.fields.cylindrical import VectorField3DCylindrical
     R, Z, Phi = grid_3d
 
     def const_field(r, z, phi):
@@ -106,12 +106,12 @@ def test_vector_from_callable(grid_3d):
         VPhi = np.zeros(shape)
         return VR, VZ, VPhi
 
-    f = CylindricalVectorField3D.from_callable(const_field, R, Z, Phi)
+    f = VectorField3DCylindrical.from_callable(const_field, R, Z, Phi)
     assert f.VZ.shape == (len(R), len(Z), len(Phi))
     np.testing.assert_allclose(f.VZ, 1.0)
 
 
-# ── Group 3: CylindricalScalarField3D ─────────────────────────────────────────
+# ── Group 3: ScalarField3DCylindrical ─────────────────────────────────────────
 
 def test_scalar_construction(linear_scalar_field, grid_3d):
     R, Z, Phi = grid_3d
@@ -130,8 +130,8 @@ def test_scalar_npz_roundtrip(linear_scalar_field):
     with tempfile.TemporaryDirectory() as tmpdir:
         path = os.path.join(tmpdir, "scalar_field.npz")
         linear_scalar_field.to_npz(path)
-        from pyna.fields.cylindrical import CylindricalScalarField3D
-        loaded = CylindricalScalarField3D.from_npz(path)
+        from pyna.fields.cylindrical import ScalarField3DCylindrical
+        loaded = ScalarField3DCylindrical.from_npz(path)
         np.testing.assert_array_equal(loaded.value, linear_scalar_field.value)
 
 
@@ -318,13 +318,13 @@ def test_cartesian_identity():
     np.testing.assert_array_equal(result, pts)
 
 
-# ── Group 8: 向后兼容 ─────────────────────────────────────────────────────────
+# ── Group 8: backward compatibility ──────────────────────────────────────────
 
 def test_compat_field_data():
-    from pyna.field_data import CylindricalVectorField, CylindricalScalarField
-    from pyna.fields.cylindrical import CylindricalVectorField3D, CylindricalScalarField3D
-    assert CylindricalVectorField is CylindricalVectorField3D
-    assert CylindricalScalarField is CylindricalScalarField3D
+    from pyna.fields.cylindrical import VectorField3DCylindrical, ScalarField3DCylindrical
+    from pyna.fields import VectorField3DCylindrical as VF, ScalarField3DCylindrical as SF
+    assert VF is VectorField3DCylindrical
+    assert SF is ScalarField3DCylindrical
 
 
 def test_compat_system(uniform_Bz_field):

@@ -3,7 +3,7 @@
 New hierarchy replacing:
   - pyna.field_data.CylindricalScalarField / CylindricalVectorField
   - pyna.system.VectorField3D / VectorField3DAxiSymmetric
-  - pyna.field.RegualrCylindricalGridField / CylindricalGridVectorField3D
+  - pyna.MCF.coils.field (eliminated redundant grid classes)
 
 All old names remain importable via backward-compat aliases in their
 original modules. New code should import from pyna.fields directly.
@@ -18,8 +18,8 @@ from pyna.fields.base import (
     VectorField1D, VectorField2D, VectorField3D, VectorField4D,
 )
 from pyna.fields.cylindrical import (
-    CylindricalScalarField3D,
-    CylindricalVectorField3D,
+    ScalarField3DCylindrical,
+    VectorField3DCylindrical,
     ScalarField3DAxiSymmetric,
     VectorField3DAxiSymmetric,
 )
@@ -55,7 +55,7 @@ __all__ = [
     "VectorField1D", "VectorField2D", "VectorField3D", "VectorField4D",
     "TensorField3D_rank2", "TensorField4D_rank2",
     "FieldProperty",
-    "CylindricalScalarField3D", "CylindricalVectorField3D",
+    "ScalarField3DCylindrical", "VectorField3DCylindrical",
     "ScalarField3DAxiSymmetric", "VectorField3DAxiSymmetric",
     "gradient", "divergence", "curl", "laplacian",
     "hessian", "jacobian_field", "field_line_curvature",

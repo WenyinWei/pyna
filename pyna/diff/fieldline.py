@@ -207,8 +207,8 @@ from ..flow import FlowCallable
 from scipy.integrate import solve_ivp
 from functools import reduce
 import operator
-from pyna.MCF.coils.field import RegualrCylindricalGridField
-def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(afield:RegualrCylindricalGridField, t_span, y0, highest_order=1, *arg, **kwarg):
+from pyna.fields.cylindrical import VectorField3DCylindrical
+def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(afield:VectorField3DCylindrical, t_span, y0, highest_order=1, *arg, **kwarg):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
     
     RBRdBPhi = R[:,None,None]*BR/BPhi
@@ -312,7 +312,7 @@ import threading
 import concurrent.futures
 # from numba import jit
 
-def partial_XRZ_partial_x0RZ_until_ordk_along_field_line(afield:RegualrCylindricalGridField, t_span, y0, highest_order=1, *arg, **kwarg): 
+def partial_XRZ_partial_x0RZ_until_ordk_along_field_line(afield:VectorField3DCylindrical, t_span, y0, highest_order=1, *arg, **kwarg): 
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
     
     RBRdBPhi = R[:,None,None]*BR/BPhi
@@ -407,7 +407,7 @@ def partial_XRZ_partial_x0RZ_until_ordk_along_field_line(afield:RegualrCylindric
     return XpRpZ_sols
 
 
-def Poincare_trace(afield:RegualrCylindricalGridField,  x0_RZPhi, Poincare_section_Phi, times):
+def Poincare_trace(afield:VectorField3DCylindrical,  x0_RZPhi, Poincare_section_Phi, times):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
     
     Phigap_from_x0_to_section = ( Poincare_section_Phi - x0_RZPhi[-1] ) % (2*np.pi) # which shall be a float falling in the range [0, 2pi)
@@ -434,7 +434,7 @@ def Poincare_trace(afield:RegualrCylindricalGridField,  x0_RZPhi, Poincare_secti
             t_eval = np.linspace(x0_RZPhi[-1] + Phigap_from_x0_to_section + 2*np.pi*times[-1], x0_RZPhi[-1] + Phigap_from_x0_to_section + 2*np.pi*times[0], abs(times[0]-times[1])+1 ) )[0].y 
         return neg_trace[:,::-1]
 
-def Poincare_plot(afield:RegualrCylindricalGridField,  init_RZPhi, Poincare_section_Phi, fig, ax):
+def Poincare_plot(afield:VectorField3DCylindrical,  init_RZPhi, Poincare_section_Phi, fig, ax):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
     
     x_trace_future_list = []

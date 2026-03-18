@@ -30,7 +30,7 @@ import numpy as np
 from scipy.sparse import lil_matrix
 from scipy.sparse.linalg import lsqr, bicgstab
 
-from pyna.MCF.coils.field import CylindricalGridAxiVectorField, CylindricalGridAxiScalarField
+from pyna.fields.cylindrical import VectorField3DAxiSymmetric, ScalarField3DAxiSymmetric
 
 
 # ---------------------------------------------------------------------------
@@ -47,14 +47,14 @@ def recover_pressure_simplest(grad_p):
 
     Parameters
     ----------
-    grad_p : CylindricalGridAxiVectorField or compatible
+    grad_p : VectorField3DAxiSymmetric or compatible
         Gradient of the pressure.  Must expose ``.R``, ``.Z``, ``.BR``
         (radial component ∂p/∂R) and ``.BZ`` (axial component ∂p/∂Z),
         each of shape (nR, nZ).
 
     Returns
     -------
-    delta_p : CylindricalGridAxiScalarField
+    delta_p : ScalarField3DAxiSymmetric
         Recovered pressure perturbation on the same (R, Z) grid.
     """
     R, Z = grad_p.R, grad_p.Z
@@ -90,7 +90,7 @@ def recover_pressure_simplest(grad_p):
                              - 0.5 * (grad_p.BZ[i, j + 1] + grad_p.BZ[i, j]) * dZ)
 
     delta_p = 0.25 * (p_R_fwd + p_Z_fwd + p_R_bwd + p_Z_bwd)
-    return CylindricalGridAxiScalarField(R, Z, B=delta_p)
+    return ScalarField3DAxiSymmetric(R, Z, delta_p)
 
 
 # ---------------------------------------------------------------------------
@@ -98,10 +98,10 @@ def recover_pressure_simplest(grad_p):
 # ---------------------------------------------------------------------------
 
 def solve_GS_perturbed(
-        B0: CylindricalGridAxiVectorField,
-        J0: CylindricalGridAxiVectorField,
-        p0: CylindricalGridAxiScalarField,
-        delta_B_ext: CylindricalGridAxiVectorField,
+        B0: VectorField3DAxiSymmetric,
+        J0: VectorField3DAxiSymmetric,
+        p0: ScalarField3DAxiSymmetric,
+        delta_B_ext: VectorField3DAxiSymmetric,
         x0):
     """Solve the linearised ideal-MHD equations for a perturbed equilibrium.
 
@@ -120,13 +120,13 @@ def solve_GS_perturbed(
 
     Parameters
     ----------
-    B0 : CylindricalGridAxiVectorField
+    B0 : VectorField3DAxiSymmetric
         Background equilibrium magnetic field.
-    J0 : CylindricalGridAxiVectorField
+    J0 : VectorField3DAxiSymmetric
         Background equilibrium current density.
-    p0 : CylindricalGridAxiScalarField
+    p0 : ScalarField3DAxiSymmetric
         Background equilibrium pressure.  Used to identify vacuum regions.
-    delta_B_ext : CylindricalGridAxiVectorField
+    delta_B_ext : VectorField3DAxiSymmetric
         External magnetic field perturbation.
     x0 : ndarray
         Initial guess for the linear solver, shape (7 * nR * nZ,).
@@ -134,11 +134,11 @@ def solve_GS_perturbed(
 
     Returns
     -------
-    delta_B_plasma : CylindricalGridAxiVectorField
+    delta_B_plasma : VectorField3DAxiSymmetric
         Plasma response magnetic field perturbation.
-    delta_J : CylindricalGridAxiVectorField
+    delta_J : VectorField3DAxiSymmetric
         Plasma response current density perturbation.
-    delta_p : CylindricalGridAxiScalarField
+    delta_p : ScalarField3DAxiSymmetric
         Plasma response pressure perturbation.
     """
     mu0 = 4e-7 * np.pi  # vacuum permeability [T·m/A]
@@ -311,18 +311,18 @@ def solve_GS_perturbed(
             delta_J_arr[i, j, :] = x[3 * n + 3 * k:3 * n + 3 * k + 3]
             delta_p_arr[i, j]    = x[6 * n + k]
 
-    delta_B_plasma = CylindricalGridAxiVectorField(
+    delta_B_plasma = VectorField3DAxiSymmetric(
         R, Z,
         BR=delta_B_arr[:, :, iR],
         BPhi=delta_B_arr[:, :, iPHI],
         BZ=delta_B_arr[:, :, iZ],
     )
-    delta_J = CylindricalGridAxiVectorField(
+    delta_J = VectorField3DAxiSymmetric(
         R, Z,
         BR=delta_J_arr[:, :, iR],
         BPhi=delta_J_arr[:, :, iPHI],
         BZ=delta_J_arr[:, :, iZ],
     )
-    delta_p = CylindricalGridAxiScalarField(R, Z, B=delta_p_arr)
+    delta_p = ScalarField3DAxiSymmetric(R, Z, B=delta_p_arr)
 
     return delta_B_plasma, delta_J, delta_p

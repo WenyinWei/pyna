@@ -1,10 +1,9 @@
-"""Tests for pyna.mag.field — VectorField3D hierarchy for cylindrical grids."""
+"""Tests for pyna.fields — VectorField3DCylindrical / VectorField3DAxiSymmetric."""
 import numpy as np
 import pytest
 from pyna.MCF.coils.field import (
-    CylindricalGridVectorField3D,
-    CylindricalGridAxiVectorField3D,
-    RegualrCylindricalGridField,
+    VectorField3DCylindrical,
+    VectorField3DAxiSymmetric,
 )
 from pyna.system import VectorField3D, VectorField3DAxiSymmetric, VectorField
 
@@ -22,7 +21,7 @@ def vf3d():
     BR = 0.1 * np.sin(PP)
     BZ = 0.05 * ZZ
     BPhi = 2.0 * R[0] / RR
-    return CylindricalGridVectorField3D(R, Z, Phi, BR, BZ, BPhi)
+    return VectorField3DCylindrical(R, Z, Phi, BR, BZ, BPhi)
 
 
 @pytest.fixture()
@@ -33,7 +32,7 @@ def axivf3d():
     BR = np.zeros_like(RR)
     BZ = 0.05 * ZZ
     BPhi = 2.0 / RR
-    return CylindricalGridAxiVectorField3D(R, Z, BR, BZ, BPhi)
+    return VectorField3DAxiSymmetric(R, Z, BR, BZ, BPhi)
 
 
 # ---------------------------------------------------------------------------
@@ -68,9 +67,7 @@ def test_axivf3d_dim(axivf3d):
 # ---------------------------------------------------------------------------
 
 def test_regualr_alias(vf3d):
-    assert type(vf3d) is CylindricalGridVectorField3D
-    # The alias should refer to the same class
-    assert RegualrCylindricalGridField is CylindricalGridVectorField3D
+    assert type(vf3d) is VectorField3DCylindrical
 
 
 # ---------------------------------------------------------------------------
@@ -87,7 +84,7 @@ def test_grid_properties(vf3d):
 def test_axi_grid_properties(axivf3d):
     assert len(axivf3d.R) == 30
     assert len(axivf3d.Z) == 30
-    assert axivf3d.BR.shape == (30, 30)
+    assert axivf3d.BR.shape == (30, 30, 1)  # stored as (nR, nZ, 1) internally
 
 
 # ---------------------------------------------------------------------------

@@ -157,13 +157,15 @@ class _LegacyVectorField3DAxiSymmetric(_LegacyVectorField3D):
     pass
 
 
-# ── Canonical names point to pyna.fields.base ─────────────────────────────────
-# CylindricalVectorField3D inherits from fields.base.VectorField3D, so
+# ── Canonical names point to pyna.fields ──────────────────────────────────────
+# VectorField3DCylindrical inherits from fields.base.VectorField3D, so
 # isinstance(field, VectorField3D) works for all cylindrical fields.
 from pyna.fields.base import (  # noqa: E402
     VectorField3D as VectorField3D,
-    VectorField3D as VectorField3DAxiSymmetric,  # compat alias
     VectorField as _FieldsVectorField,
+)
+from pyna.fields.cylindrical import (  # noqa: E402
+    VectorField3DAxiSymmetric as VectorField3DAxiSymmetric,
 )
 
 # Register fields.base classes as virtual subclasses of system.VectorField

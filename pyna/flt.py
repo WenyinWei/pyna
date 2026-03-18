@@ -45,7 +45,7 @@ from typing import Callable, List, Optional
 
 import numpy as np
 
-from pyna.MCF.coils.field import RegualrCylindricalGridField
+from pyna.fields.cylindrical import VectorField3DCylindrical
 from pyna.progress import TraceProgressBase, _coerce_progress
 from scipy.interpolate import RegularGridInterpolator
 from scipy.integrate import OdeSolution, solve_ivp
@@ -66,7 +66,7 @@ OdeSolution.mat_interp = _mat_interp
 # ---------------------------------------------------------------------------
 
 def bundle_tracing_with_t_as_DeltaPhi(
-    afield: RegualrCylindricalGridField,
+    afield: VectorField3DCylindrical,
     total_deltaPhi,
     initpts_RZPhi,
     phi_increasing: bool,

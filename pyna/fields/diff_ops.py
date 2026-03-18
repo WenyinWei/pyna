@@ -62,26 +62,26 @@ def _check_coords(field, coords_override):
         )
 
 
-def gradient(f, coords=None) -> "CylindricalVectorField3D":
+def gradient(f, coords=None) -> "VectorField3DCylindrical":
     """Gradient of a scalar field in cylindrical coordinates.
 
     ∇f = (∂f/∂R,  ∂f/∂Z,  (1/R)·∂f/∂φ)
 
     Parameters
     ----------
-    f : CylindricalScalarField3D
+    f : ScalarField3DCylindrical
 
     Returns
     -------
-    CylindricalVectorField3D
+    VectorField3DCylindrical
     """
     _check_coords(f, coords)
-    from pyna.fields.cylindrical import CylindricalVectorField3D
+    from pyna.fields.cylindrical import VectorField3DCylindrical
     R3d = f.R[:, None, None]
     df_dR   = _grad_R(f.value, f.R)
     df_dZ   = _grad_Z(f.value, f.Z)
     df_dphi = _grad_phi(f.value, f.Phi, periodic=True)
-    return CylindricalVectorField3D(
+    return VectorField3DCylindrical(
         R=f.R, Z=f.Z, Phi=f.Phi,
         VR=df_dR,
         VZ=df_dZ,
@@ -93,26 +93,26 @@ def gradient(f, coords=None) -> "CylindricalVectorField3D":
     )
 
 
-def divergence(v) -> "CylindricalScalarField3D":
+def divergence(v) -> "ScalarField3DCylindrical":
     """Divergence of a vector field in cylindrical coordinates.
 
     ∇·V = ∂V_R/∂R + ∂V_Z/∂Z + (V_R + ∂V_φ/∂φ) / R
 
     Parameters
     ----------
-    v : CylindricalVectorField3D
+    v : VectorField3DCylindrical
 
     Returns
     -------
-    CylindricalScalarField3D
+    ScalarField3DCylindrical
     """
-    from pyna.fields.cylindrical import CylindricalScalarField3D
+    from pyna.fields.cylindrical import ScalarField3DCylindrical
     R3d = v.R[:, None, None]
     dVR_dR      = _grad_R(v.VR, v.R)
     dVZ_dZ      = _grad_Z(v.VZ, v.Z)
     dVPhi_dphi  = _grad_phi(v.VPhi, v.Phi, periodic=True)
     div = dVR_dR + dVZ_dZ + (v.VR + dVPhi_dphi) / R3d
-    return CylindricalScalarField3D(
+    return ScalarField3DCylindrical(
         R=v.R, Z=v.Z, Phi=v.Phi,
         value=div,
         field_periods=v.field_periods,
@@ -122,7 +122,7 @@ def divergence(v) -> "CylindricalScalarField3D":
     )
 
 
-def curl(v) -> "CylindricalVectorField3D":
+def curl(v) -> "VectorField3DCylindrical":
     """Curl of a vector field in cylindrical coordinates.
 
     (∇×V)_R   = (1/R)·∂V_Z/∂φ  - ∂V_φ/∂Z
@@ -133,13 +133,13 @@ def curl(v) -> "CylindricalVectorField3D":
 
     Parameters
     ----------
-    v : CylindricalVectorField3D
+    v : VectorField3DCylindrical
 
     Returns
     -------
-    CylindricalVectorField3D  (with FieldProperty.DIVERGENCE_FREE)
+    VectorField3DCylindrical  (with FieldProperty.DIVERGENCE_FREE)
     """
-    from pyna.fields.cylindrical import CylindricalVectorField3D
+    from pyna.fields.cylindrical import VectorField3DCylindrical
     R3d = v.R[:, None, None]
 
     dVZ_dphi   = _grad_phi(v.VZ,   v.Phi, periodic=True)
@@ -153,7 +153,7 @@ def curl(v) -> "CylindricalVectorField3D":
     curl_Z   = dVPhi_dR + v.VPhi / R3d - dVR_dphi / R3d
     curl_Phi = dVR_dZ - dVZ_dR
 
-    return CylindricalVectorField3D(
+    return VectorField3DCylindrical(
         R=v.R, Z=v.Z, Phi=v.Phi,
         VR=curl_R, VZ=curl_Z, VPhi=curl_Phi,
         field_periods=v.field_periods,
@@ -163,7 +163,7 @@ def curl(v) -> "CylindricalVectorField3D":
     )
 
 
-def laplacian(f) -> "CylindricalScalarField3D":
+def laplacian(f) -> "ScalarField3DCylindrical":
     """Scalar Laplacian in cylindrical coordinates.
 
     ∇²f = (1/R)·∂/∂R(R·∂f/∂R) + ∂²f/∂Z² + (1/R²)·∂²f/∂φ²
@@ -172,17 +172,17 @@ def laplacian(f) -> "CylindricalScalarField3D":
 
     Parameters
     ----------
-    f : CylindricalScalarField3D
+    f : ScalarField3DCylindrical
 
     Returns
     -------
-    CylindricalScalarField3D
+    ScalarField3DCylindrical
     """
     grad_f = gradient(f)
     lap = divergence(grad_f)
     # rename
-    from pyna.fields.cylindrical import CylindricalScalarField3D
-    return CylindricalScalarField3D(
+    from pyna.fields.cylindrical import ScalarField3DCylindrical
+    return ScalarField3DCylindrical(
         R=f.R, Z=f.Z, Phi=f.Phi,
         value=lap.value,
         field_periods=f.field_periods,
@@ -207,7 +207,7 @@ def hessian(f) -> "TensorField3D_rank2":
 
     Parameters
     ----------
-    f : CylindricalScalarField3D
+    f : ScalarField3DCylindrical
 
     Returns
     -------
@@ -270,7 +270,7 @@ def jacobian_field(v) -> "TensorField3D_rank2":
 
     Parameters
     ----------
-    v : CylindricalVectorField3D
+    v : VectorField3DCylindrical
 
     Returns
     -------
@@ -297,7 +297,7 @@ def jacobian_field(v) -> "TensorField3D_rank2":
     )
 
 
-def field_line_curvature(B) -> "CylindricalVectorField3D":
+def field_line_curvature(B) -> "VectorField3DCylindrical":
     """Magnetic field-line curvature vector κ = (b̂·∇)b̂.
 
     Where b̂ = B/|B| is the unit vector along the field.
@@ -311,13 +311,13 @@ def field_line_curvature(B) -> "CylindricalVectorField3D":
 
     Parameters
     ----------
-    B : CylindricalVectorField3D
+    B : VectorField3DCylindrical
 
     Returns
     -------
-    CylindricalVectorField3D
+    VectorField3DCylindrical
     """
-    from pyna.fields.cylindrical import CylindricalVectorField3D
+    from pyna.fields.cylindrical import VectorField3DCylindrical
     R3d = B.R[:, None, None]
 
     Bmag = np.sqrt(B.VR**2 + B.VZ**2 + B.VPhi**2) + 1e-30
@@ -346,7 +346,7 @@ def field_line_curvature(B) -> "CylindricalVectorField3D":
     kappa_Phi = (bR * dbPhi_dR + bZ * dbPhi_dZ + bphi_over_R * dbPhi_dphi
                  + bPhi * bR / R3d)
 
-    return CylindricalVectorField3D(
+    return VectorField3DCylindrical(
         R=B.R, Z=B.Z, Phi=B.Phi,
         VR=kappa_R, VZ=kappa_Z, VPhi=kappa_Phi,
         field_periods=B.field_periods,
@@ -367,7 +367,7 @@ def covariant_derivative_of_vector(v, coords=None):
 
     Parameters
     ----------
-    v : CylindricalVectorField3D
+    v : VectorField3DCylindrical
     coords : CoordinateSystem, optional
         Defaults to CylindricalCoords3D().
 
@@ -499,17 +499,17 @@ def helmholtz_decomposition(v, tol=1e-6):
 
     Returns
     -------
-    (v_div_free, v_curl_free) : tuple of CylindricalVectorField3D
+    (v_div_free, v_curl_free) : tuple of VectorField3DCylindrical
         v_div_free  -- curl(v), annotated as DIVERGENCE_FREE
         v_curl_free -- v - curl(v), annotated as CURL_FREE
         v ≈ v_div_free + v_curl_free  (approximate)
     """
-    from pyna.fields.cylindrical import CylindricalVectorField3D
+    from pyna.fields.cylindrical import VectorField3DCylindrical
     from pyna.fields.properties import FieldProperty
 
     curl_v = curl(v)
 
-    v_div_free = CylindricalVectorField3D(
+    v_div_free = VectorField3DCylindrical(
         v.R, v.Z, v.Phi, curl_v.VR, curl_v.VZ, curl_v.VPhi,
         name=f"divfree({v.name})",
         properties=FieldProperty.DIVERGENCE_FREE,
@@ -518,7 +518,7 @@ def helmholtz_decomposition(v, tol=1e-6):
     VR_cf = v.VR - curl_v.VR
     VZ_cf = v.VZ - curl_v.VZ
     VP_cf = v.VPhi - curl_v.VPhi
-    v_curl_free = CylindricalVectorField3D(
+    v_curl_free = VectorField3DCylindrical(
         v.R, v.Z, v.Phi, VR_cf, VZ_cf, VP_cf,
         name=f"curlfree({v.name})",
         properties=FieldProperty.CURL_FREE,

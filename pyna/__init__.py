@@ -13,8 +13,10 @@ __version__ = "0.1.0"
 from pyna import field_data
 from pyna import vector_calc
 from pyna.fields import (
-    CylindricalScalarField3D as CylindricalScalarField,
-    CylindricalVectorField3D as CylindricalVectorField,
+    ScalarField3DCylindrical,
+    VectorField3DCylindrical,
+    VectorField3DAxiSymmetric,
+    ScalarField3DAxiSymmetric,
 )
 from pyna.topo import classical_maps
 from pyna.io import poincare_io
