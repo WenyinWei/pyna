@@ -118,7 +118,7 @@ def test_connection_length_forward_analytic():
     result = connection_length(ff, [[_R0, _z0]], _WALL,
                                direction="+", max_turns=100, dphi=0.01)
     L_analytic = _analytic_Lplus(_z0, _vZ)
-    L_numeric  = float(result["L_plus"][0])
+    L_numeric  = float(result["Lc_plus"][0])
     rel_err = abs(L_numeric - L_analytic) / L_analytic
     assert rel_err < 0.02, (
         f"L+ = {L_numeric:.4f} m, analytic = {L_analytic:.4f} m, "
@@ -132,7 +132,7 @@ def test_connection_length_backward_analytic():
     result = connection_length(ff, [[_R0, _z0]], _WALL,
                                direction="-", max_turns=100, dphi=0.01)
     L_analytic = _analytic_Lminus(_z0, _vZ)
-    L_numeric  = float(result["L_minus"][0])
+    L_numeric  = float(result["Lc_minus"][0])
     rel_err = abs(L_numeric - L_analytic) / L_analytic
     assert rel_err < 0.02, (
         f"L- = {L_numeric:.4f} m, analytic = {L_analytic:.4f} m, "
@@ -145,13 +145,13 @@ def test_connection_length_sum_symmetric():
     ff = _vert_field(_vZ)
     result = connection_length(ff, [[_R0, 0.0]], _WALL,
                                direction="both", max_turns=100, dphi=0.01)
-    L_plus  = float(result["L_plus"][0])
-    L_minus = float(result["L_minus"][0])
+    L_plus  = float(result["Lc_plus"][0])
+    L_minus = float(result["Lc_minus"][0])
     rel_diff = abs(L_plus - L_minus) / max(L_plus, L_minus)
     assert rel_diff < 0.02, (
         f"L+ = {L_plus:.4f} m, L- = {L_minus:.4f} m, rel diff = {rel_diff:.4%}"
     )
-    assert abs(result["L_sum"][0] - L_plus - L_minus) < 1e-10
+    assert abs(result["Lc_sum"][0] - L_plus - L_minus) < 1e-10
 
 
 def test_connection_length_asymmetric():
@@ -160,8 +160,8 @@ def test_connection_length_asymmetric():
     ff = _vert_field(_vZ)
     result = connection_length(ff, [[_R0, z0]], _WALL,
                                direction="both", max_turns=100, dphi=0.01)
-    L_plus  = float(result["L_plus"][0])
-    L_minus = float(result["L_minus"][0])
+    L_plus  = float(result["Lc_plus"][0])
+    L_minus = float(result["Lc_minus"][0])
     assert L_plus < L_minus, (
         f"Expected L+ < L- for z0 = {z0} m (above midplane); "
         f"L+ = {L_plus:.4f}, L- = {L_minus:.4f}"
@@ -174,7 +174,7 @@ def test_connection_length_max_min():
     ff = _vert_field(_vZ)
     result = connection_length(ff, [[_R0, z0]], _WALL,
                                direction="both", max_turns=100, dphi=0.01)
-    assert np.all(result["L_max"] >= result["L_min"])
+    assert np.all(result["Lc_max"] >= result["Lc_min"])
 
 
 def test_connection_length_outside_wall_zero():
@@ -183,7 +183,7 @@ def test_connection_length_outside_wall_zero():
     R_out = _R0 + _a + 0.1  # outside the circular wall
     result = connection_length(ff, [[R_out, 0.0]], _WALL,
                                direction="+", max_turns=50, dphi=0.05)
-    assert float(result["L_plus"][0]) == 0.0
+    assert float(result["Lc_plus"][0]) == 0.0
 
 
 def test_connection_length_no_wall_hit():
@@ -193,7 +193,7 @@ def test_connection_length_no_wall_hit():
 
     result = connection_length(pure_toroidal, [[_R0, 0.0]], _WALL,
                                direction="+", max_turns=10, dphi=0.1)
-    assert float(result["L_plus"][0]) == float("inf"), (
+    assert float(result["Lc_plus"][0]) == float("inf"), (
         "Expected inf when field line never reaches the wall"
     )
 
@@ -204,9 +204,9 @@ def test_connection_length_batch():
     starts = np.array([[_R0, -0.2], [_R0, 0.0], [_R0, 0.2]])
     result = connection_length(ff, starts, _WALL,
                                direction="both", max_turns=100, dphi=0.02)
-    assert result["L_plus"].shape  == (3,)
-    assert result["L_minus"].shape == (3,)
-    assert result["L_sum"].shape   == (3,)
+    assert result["Lc_plus"].shape  == (3,)
+    assert result["Lc_minus"].shape == (3,)
+    assert result["Lc_sum"].shape   == (3,)
     assert result["hit_plus"].shape == (3, 3)
     # All forward hit-points should be on or near the wall (within one step of _a)
     dphi_test = 0.02
@@ -229,7 +229,7 @@ def test_connection_length_wallgeometry_ducktype():
     ff = _vert_field(_vZ)
     result = connection_length(ff, [[_R0, 0.0]], _W(),
                                direction="+", max_turns=50, dphi=0.05)
-    assert np.isfinite(result["L_plus"][0])
+    assert np.isfinite(result["Lc_plus"][0])
 
 
 def test_connection_length_invalid_direction():

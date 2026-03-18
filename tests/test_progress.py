@@ -340,7 +340,7 @@ class TestConnectionLengthProgress:
         with_prog = connection_length(self._vert_field, starts, wall,
                                       direction="+", max_turns=20, dphi=0.05,
                                       progress=NullProgress())
-        np.testing.assert_array_equal(baseline["L_plus"], with_prog["L_plus"])
+        np.testing.assert_array_equal(baseline["Lc_plus"], with_prog["Lc_plus"])
 
     def test_log_progress_writes_records(self, tmp_path):
         from pyna.connection_length import connection_length

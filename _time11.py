@@ -16,7 +16,7 @@ R_ax, Z_ax = float(eq.magnetic_axis[0]), float(eq.magnetic_axis[1])
 delta_b = 5e-3
 m_rmp, n_rmp = 2, 1
 
-def rmp_BR(R, Z, phi):
+def RMP_BR(R, Z, phi):
     psi_n = float(eq.psi(np.array([R]), np.array([Z]))[0])
     envelope = psi_n * (1.0 - psi_n)
     theta = np.arctan2(Z - Z_ax, R - R_ax)
@@ -26,7 +26,7 @@ def field_func(rzphi):
     R, Z, phi = float(rzphi[0]), float(rzphi[1]), float(rzphi[2])
     BR0, BZ0 = eq.BR_BZ(np.array([R]), np.array([Z]))
     Bphi0    = eq.Bphi(np.array([R]))
-    dBR      = rmp_BR(R, Z, phi)
+    dBR      = RMP_BR(R, Z, phi)
     BR_t = float(BR0[0]) + float(dBR)
     BZ_t = float(BZ0[0])
     Bp_t = float(Bphi0[0])

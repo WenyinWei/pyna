@@ -78,12 +78,12 @@ r_res = S_res * eq.a
 delta_b = 5e-3
 m_rmp, n_rmp = m_mode, n_mode
 
-def rmp_BR(R, Z, phi):
+def RMP_BR(R, Z, phi):
     psi_n = eq.psi(np.atleast_1d(R), np.atleast_1d(Z))
     envelope = psi_n * (1 - psi_n)
     return delta_b * eq.B0 * envelope * np.cos(m_rmp * np.arctan2(Z - Z_ax, R - R_ax) - n_rmp * phi)
 
-def rmp_BZ(R, Z, phi):
+def RMP_BZ(R, Z, phi):
     psi_n = eq.psi(np.atleast_1d(R), np.atleast_1d(Z))
     envelope = psi_n * (1 - psi_n)
     return delta_b * eq.B0 * envelope * np.sin(m_rmp * np.arctan2(Z - Z_ax, R - R_ax) - n_rmp * phi)
@@ -93,8 +93,8 @@ def field_func(rzphi):
     R, Z, phi = rzphi[0], rzphi[1], rzphi[2]
     BR0, BZ0 = eq.BR_BZ(np.array([R]), np.array([Z]))
     Bphi0 = eq.Bphi(np.array([R]))
-    dBR = rmp_BR(R, Z, phi)
-    dBZ = rmp_BZ(R, Z, phi)
+    dBR = RMP_BR(R, Z, phi)
+    dBZ = RMP_BZ(R, Z, phi)
     BR_t = float(BR0[0]) + float(np.squeeze(dBR))
     BZ_t = float(BZ0[0]) + float(np.squeeze(dBZ))
     Bphi_t = float(Bphi0[0])

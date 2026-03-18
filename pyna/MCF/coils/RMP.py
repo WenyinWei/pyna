@@ -45,7 +45,7 @@ def normalize_b(
     return np.asarray(B_perturb, dtype=float) / np.asarray(B0_magnitude, dtype=float)
 
 
-def rmp_spectrum_2d(
+def RMP_spectrum_2d(
     tilde_b: np.ndarray,
     section_coord: int = 2,
 ) -> np.ndarray:
@@ -84,6 +84,8 @@ def rmp_spectrum_2d(
     return spectrum
 
 
+# Backward-compatibility alias removed — use RMP_spectrum_2d directly.
+
 def island_width_at_rational_surfaces(
     tilde_b_mn: np.ndarray,
     equilibrium,
@@ -92,7 +94,7 @@ def island_width_at_rational_surfaces(
 ) -> Dict[int, Dict[int, List[float]]]:
     r"""Estimate island widths at all q = m/n rational surfaces.
 
-    Combines :func:`rmp_spectrum_2d` output with the equilibrium's q
+    Combines :func:`RMP_spectrum_2d` output with the equilibrium's q
     profile to compute island half-widths using
     :func:`~pyna.topo.island.island_halfwidth`.
 
@@ -100,7 +102,7 @@ def island_width_at_rational_surfaces(
     ----------
     tilde_b_mn:
         Normalised RMP spectrum, shape ``(nS, nTheta, nPhi_rfft)``,
-        as returned by :func:`rmp_spectrum_2d`.
+        as returned by :func:`RMP_spectrum_2d`.
     equilibrium:
         An :class:`~pyna.mag.equilibrium.AxisymEquilibrium` instance
         providing ``.S`` and ``.q(S)``.

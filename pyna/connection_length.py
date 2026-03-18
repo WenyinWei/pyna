@@ -1,20 +1,20 @@
 """Connection-length computation for field lines in cylindrical coordinates.
 
-The **connection length** L_c of a field line is the physical arc length from
-a starting point to the first wall contact.  In divertor / SOL physics several
-conventions are used simultaneously; this module computes all of them:
+The **connection length** :math:`L_c` of a field line is the physical arc length
+from a starting point to the first wall contact.  In divertor / SOL physics
+several conventions are used simultaneously; this module computes all of them:
 
-======  =====================================================================
-Symbol  Definition
-======  =====================================================================
-L+      Forward connection length: trace along **φ-increasing** direction
-        until the wall is hit.
-L-      Backward connection length: trace along **φ-decreasing** direction
-        until the wall is hit.
-L_sum   Total connection length L+ + L-.
-L_max   max(L+, L-)
-L_min   min(L+, L-)
-======  =====================================================================
+==========  =====================================================================
+Symbol      Definition
+==========  =====================================================================
+Lc_plus     Forward connection length: trace along **φ-increasing** direction
+            until the wall is hit.
+Lc_minus    Backward connection length: trace along **φ-decreasing** direction
+            until the wall is hit.
+Lc_sum      Total connection length Lc_plus + Lc_minus.
+Lc_max      max(Lc_plus, Lc_minus)
+Lc_min      min(Lc_plus, Lc_minus)
+==========  =====================================================================
 
 Arc-length convention
 ---------------------
@@ -341,18 +341,18 @@ def connection_length(
     -------
     dict with keys depending on ``direction``:
 
-    ``'L_plus'`` (float ndarray, shape (N,))
-        Forward connection lengths L+ (m).  ``inf`` if the wall was not
+    ``'Lc_plus'`` (float ndarray, shape (N,))
+        Forward connection lengths :math:`L_c^+` (m).  ``inf`` if the wall was not
         reached.  Present when ``direction`` is ``'+'`` or ``'both'``.
-    ``'L_minus'`` (float ndarray, shape (N,))
-        Backward connection lengths L- (m).  Present when ``direction`` is
+    ``'Lc_minus'`` (float ndarray, shape (N,))
+        Backward connection lengths :math:`L_c^-` (m).  Present when ``direction`` is
         ``'-'`` or ``'both'``.
-    ``'L_sum'`` (float ndarray, shape (N,))
-        L+ + L-.  Present only for ``direction='both'``.
-    ``'L_max'`` (float ndarray, shape (N,))
-        max(L+, L-).  Present only for ``direction='both'``.
-    ``'L_min'`` (float ndarray, shape (N,))
-        min(L+, L-).  Present only for ``direction='both'``.
+    ``'Lc_sum'`` (float ndarray, shape (N,))
+        :math:`L_c^+ + L_c^-`.  Present only for ``direction='both'``.
+    ``'Lc_max'`` (float ndarray, shape (N,))
+        :math:`\max(L_c^+, L_c^-)`.  Present only for ``direction='both'``.
+    ``'Lc_min'`` (float ndarray, shape (N,))
+        :math:`\min(L_c^+, L_c^-)`.  Present only for ``direction='both'``.
     ``'hit_plus'`` (float ndarray, shape (N, 3))
         Wall-contact points ``[R, Z, phi]`` for forward traces.
     ``'hit_minus'`` (float ndarray, shape (N, 3))
@@ -377,7 +377,7 @@ def connection_length(
         starts = np.array([[1.9, 0.0], [2.0, 0.05]])
         result = connection_length(ff2d, starts, (R_wall, Z_wall),
                                    direction='both', max_turns=50, dphi=0.1)
-        print(result['L_plus'])
+        print(result['Lc_plus'])
 
     Notes
     -----
@@ -450,23 +450,23 @@ def connection_length(
     if direction in ("+", "both"):
         with ThreadPoolExecutor(max_workers=workers) as pool:
             fwd_results = list(pool.map(_fwd, range(N)))
-        L_plus   = np.array([r[0] for r in fwd_results])
+        Lc_plus  = np.array([r[0] for r in fwd_results])
         hit_plus = np.array([[r[1], r[2], r[3]] for r in fwd_results])
-        result["L_plus"]   = L_plus
+        result["Lc_plus"]  = Lc_plus
         result["hit_plus"] = hit_plus
 
     if direction in ("-", "both"):
         with ThreadPoolExecutor(max_workers=workers) as pool:
             bwd_results = list(pool.map(_bwd, range(N)))
-        L_minus   = np.array([r[0] for r in bwd_results])
+        Lc_minus  = np.array([r[0] for r in bwd_results])
         hit_minus = np.array([[r[1], r[2], r[3]] for r in bwd_results])
-        result["L_minus"]   = L_minus
+        result["Lc_minus"]  = Lc_minus
         result["hit_minus"] = hit_minus
 
     if direction == "both":
-        result["L_sum"] = L_plus + L_minus
-        result["L_max"] = np.maximum(L_plus, L_minus)
-        result["L_min"] = np.minimum(L_plus, L_minus)
+        result["Lc_sum"] = Lc_plus + Lc_minus
+        result["Lc_max"] = np.maximum(Lc_plus, Lc_minus)
+        result["Lc_min"] = np.minimum(Lc_plus, Lc_minus)
 
     prog.close()
     return result
@@ -545,12 +545,12 @@ def connection_length_map(
     )
 
     agg_map = {
-        "sum": "L_sum",
-        "max": "L_max",
-        "min": "L_min",
-        "+": "L_plus",
-        "-": "L_minus",
+        "sum": "Lc_sum",
+        "max": "Lc_max",
+        "min": "Lc_min",
+        "+": "Lc_plus",
+        "-": "Lc_minus",
     }
-    key = agg_map.get(aggregate, "L_sum")
+    key = agg_map.get(aggregate, "Lc_sum")
     flat = res[key]
     return flat.reshape(nR, nZ)

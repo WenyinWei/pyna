@@ -295,10 +295,6 @@ class StellaratorControlCoils(CoilSet):
         )
 
 
-# Backwards-compatibility alias
-biot_savart_field = Biot_Savart_field
-
-
 from pyna.MCF.coils.base import VacuumCoilField
 
 

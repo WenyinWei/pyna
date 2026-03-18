@@ -151,7 +151,7 @@ if not gpu_ok:
             n_workers=16,
         )
         # Build field function from equilibrium
-        def field_func_rmp(rzphi):
+        def field_func_RMP(rzphi):
             R, Z, phi = rzphi
             BR, BZ = eq.BR_BZ(R, Z)
             Bphi = eq.Bphi(R)
@@ -164,7 +164,7 @@ if not gpu_ok:
             Bmag = np.sqrt(BR**2 + BZ**2 + Bphi**2) + 1e-30
             return np.array([BR/Bmag, BZ/Bmag, Bphi/(R*Bmag)])
 
-        tracer_cpu.field_func = field_func_rmp
+        tracer_cpu.field_func = field_func_RMP
         print(f"CPU tracing {len(start_pts)} lines, t_max={T_MAX_CPU}...")
         t0 = time.time()
         trajs = [tracer_cpu.trace(sp, T_MAX_CPU) for sp in start_pts]
@@ -175,7 +175,7 @@ if not gpu_ok:
         # Build simple CPU tracer manually using scipy
         from scipy.integrate import solve_ivp
 
-        def field_func_rmp(t, rzphi):
+        def field_func_RMP(t, rzphi):
             R, Z, phi = rzphi
             BR, BZ = eq.BR_BZ(R, Z)
             Bphi = float(eq.Bphi(R))
@@ -192,7 +192,7 @@ if not gpu_ok:
         t0 = time.time()
         trajs = []
         for sp in start_pts[:20]:  # limit for speed
-            sol = solve_ivp(field_func_rmp, [0, T_MAX_CPU], sp,
+            sol = solve_ivp(field_func_RMP, [0, T_MAX_CPU], sp,
                             method='RK45', max_step=0.1, dense_output=False)
             traj = sol.y.T  # (n, 3)
             trajs.append(traj)

@@ -23,12 +23,12 @@ even inside `snake_case` identifiers.
 **Rule:** If it's an acronym or contains a person's name → preserve its conventional capitalization
 in both Python identifiers and prose.
 
-**Backwards compatibility:** When renaming a public function, keep an alias:
+**Backwards compatibility:** This codebase has a single owner. Do **not** add
+lowercase aliases. Rename the function and update **all** call sites immediately.
 ```python
+# ✅ Correct: rename in place, update all callers
 def Biot_Savart_field(...):
     ...
-
-biot_savart_field = Biot_Savart_field  # backwards-compat alias
 ```
 
 ---
@@ -151,7 +151,7 @@ feat(topo): add ftle_field for chaotic region detection
 fix(tutorial): rename J→DP for Poincaré map Jacobian
 fix(naming): Biot_Savart capitalization per scientific convention
 docs(api): add Grad_Shafranov module docstring
-refactor(coils): Biot_Savart_field with backwards-compat alias
+refactor(coils): rename all rmp_ functions to RMP_ (no compat aliases)
 ```
 
 ---
@@ -196,6 +196,8 @@ Stable manifold        →  W^s, GnBu colormap
 Unstable manifold      →  W^u, Oranges colormap
 Island island width    →  w_mn or island_width
 Lundquist number       →  S  (capital S, not lundquist)
+Connection length      →  Lc  (forward: Lc_plus, backward: Lc_minus, total: Lc_sum)
+No compat aliases      →  rename and update all call sites immediately (no snake_case shims)
 ```
 
 ---

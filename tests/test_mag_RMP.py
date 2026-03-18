@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 from pyna.MCF.equilibrium.axisymmetric import SyntheticCircularTokamakEquilibrium
-from pyna.MCF.coils.RMP import normalize_b, rmp_spectrum_2d, island_width_at_rational_surfaces
+from pyna.MCF.coils.RMP import normalize_b, RMP_spectrum_2d, island_width_at_rational_surfaces
 
 
 # ---------------------------------------------------------------------------
@@ -31,17 +31,17 @@ def test_normalize_b_array():
 
 
 # ---------------------------------------------------------------------------
-# rmp_spectrum_2d
+# RMP_spectrum_2d
 # ---------------------------------------------------------------------------
 
-def test_rmp_spectrum_shape():
+def test_RMP_spectrum_shape():
     nS, nT, nP = 30, 64, 128
     tilde_b = np.random.default_rng(0).random((nS, nT, nP))
-    spec = rmp_spectrum_2d(tilde_b)
+    spec = RMP_spectrum_2d(tilde_b)
     assert spec.shape == (nS, nT, nP // 2 + 1)
 
 
-def test_rmp_spectrum_single_mode():
+def test_RMP_spectrum_single_mode():
     """A pure (m=2, n=1) sinusoidal perturbation should produce a spike."""
     nS, nT, nP = 20, 64, 64
     theta = np.linspace(0, 2 * np.pi, nT, endpoint=False)
@@ -50,7 +50,7 @@ def test_rmp_spectrum_single_mode():
     amplitude = 1e-3
     mode = amplitude * np.cos(2 * TT - 1 * PP)
     tilde_b = np.tile(mode[None, :, :], (nS, 1, 1))
-    spec = rmp_spectrum_2d(tilde_b)
+    spec = RMP_spectrum_2d(tilde_b)
     # For cos(2θ - φ), the rfft2 packs negative-m at index nT-m=62,
     # positive n=1 in the rfft output.  Check that the mode is prominent.
     pos_m = np.abs(spec[:, 2, 1])       # positive m=2
@@ -67,7 +67,7 @@ def test_rmp_spectrum_single_mode():
 # Full pipeline: synthetic equilibrium + RMP perturbation → island widths
 # ---------------------------------------------------------------------------
 
-def _build_synthetic_rmp(eq, epsilon=1e-3, n_mode=1, m_mode=2, sigma=0.1):
+def _build_synthetic_RMP(eq, epsilon=1e-3, n_mode=1, m_mode=2, sigma=0.1):
     """Construct a synthetic (m, n) perturbation localized near its rational surface."""
     nS = len(eq.S)
     nT = len(eq.TET)
@@ -93,8 +93,8 @@ def _build_synthetic_rmp(eq, epsilon=1e-3, n_mode=1, m_mode=2, sigma=0.1):
 
 
 def test_full_pipeline_island_widths(eq):
-    tilde_b = _build_synthetic_rmp(eq, epsilon=1e-3, sigma=0.05)
-    spec = rmp_spectrum_2d(tilde_b)
+    tilde_b = _build_synthetic_RMP(eq, epsilon=1e-3, sigma=0.05)
+    spec = RMP_spectrum_2d(tilde_b)
     widths = island_width_at_rational_surfaces(spec, eq, m_max=4, n_max=2)
 
     # For q=2/1, there should be a rational surface
