@@ -197,3 +197,50 @@ Unstable manifold      →  W^u, Oranges colormap
 Island island width    →  w_mn or island_width
 Lundquist number       →  S  (capital S, not lundquist)
 ```
+
+---
+
+## 10. Trajectory vs. Orbit Terminology
+
+Distinguish the two types of solution curves depending on whether time is continuous or discrete.
+
+| English term | Chinese term | System type | Examples in pyna |
+|---|---|---|---|
+| **trajectory** | **轨道** | Continuous-time systems (ODEs, field-line flow) | Field-line tracer, guiding-centre orbit, `flt.py` solutions |
+| **orbit** | **踪迹** | Discrete-time systems (maps, Poincaré iterates) | Poincaré map iterates, standard map, Hénon map |
+| **orbit** | **轨迹** | Both (or unspecified) | Generic dynamical-systems contexts |
+
+**Rules:**
+
+- Use `trajectory` / `轨道` when the underlying system has **continuous time** (an ODE or flow).
+- Use `orbit` / `踪迹` when the underlying system is a **discrete map** (iterating a Poincaré section, a symplectic map, etc.).
+- When a statement applies to **both** continuous and discrete systems, or when the distinction is not relevant, use `orbit` in English and `轨迹` in Chinese.
+
+**In code:**
+
+```python
+# ✅ Correct — field-line tracing is continuous time
+def trace_trajectory(field, x0, phi_span): ...
+
+# ✅ Correct — Poincaré section iterates are discrete time
+def compute_orbit(poincare_map, x0, n_iterations): ...
+
+# ✅ Correct — generic context valid for both
+def plot_orbit(pts, ax): ...   # applies to any type of solution curve
+
+# ❌ Wrong — do not call Poincaré iterates "trajectories"
+def compute_trajectory(poincare_map, x0, n_iterations): ...
+```
+
+**Variable naming:**
+
+```python
+# Continuous-time solution
+trajectory_RZPhi = flt.trace(field, x0, phi_span)
+
+# Discrete-time Poincaré iterates
+orbit_RZ = poincare_map.iterate(x0, n=100)
+
+# Generic (both)
+orbit_pts = ...          # acceptable in mixed or unspecified contexts
+```
