@@ -32,12 +32,12 @@ plt.rcParams.update({
     'axes.facecolor': 'white',
 })
 
-from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
+from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev
 from pyna.MCF.visual.RMP_spectrum import island_fixed_points
 
 # ── 1. Equilibrium ────────────────────────────────────────────────────────
 print("[1] Building Solov'ev equilibrium (EAST-like)...", flush=True)
-eq = SolovevEquilibrium(R0=1.86, a=0.6, B0=5.3, kappa=1.7, delta=0.33, q0=3.0)
+eq = EquilibriumSolovev(R0=1.86, a=0.6, B0=5.3, kappa=1.7, delta=0.33, q0=3.0)
 R0_eq = eq.R0
 base_m, base_n = 4, 1
 B_rmp = 5e-4   # 0.5 mT

@@ -1,6 +1,6 @@
 """Publication-quality equilibrium visualization for pyna MCF equilibria.
 
-Supports SimpleStellarartor (Poincaré-based) and SolovevEquilibrium (contour-based).
+Supports StellaratorSimple (Poincaré-based) and EquilibriumSolovev (contour-based).
 """
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ def plot_nested_flux_surfaces(
 ) -> tuple:
     """Draw nested flux surfaces.
 
-    For stellarators (SimpleStellarartor): uses Poincaré map scatter.
+    For stellarators (StellaratorSimple): uses Poincaré map scatter.
     For axisymmetric equilibria with .BR/.BZ: uses streamplot + psi contours.
 
     Returns
@@ -69,7 +69,7 @@ def plot_nested_flux_surfaces(
 
 def _plot_stellarator_poincare(eq, ax, n_fieldlines=20, n_turns=200,
                                 cmap='magma', show_colorbar=True):
-    """Draw Poincaré scatter for a SimpleStellarartor."""
+    """Draw Poincaré scatter for a StellaratorSimple."""
     from pyna.topo.poincare import poincare_from_fieldlines, ToroidalSection
 
     R0 = eq.R0

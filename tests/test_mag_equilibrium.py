@@ -1,12 +1,12 @@
 """Tests for pyna.mag.equilibrium — synthetic tokamak equilibrium."""
 import numpy as np
 import pytest
-from pyna.MCF.equilibrium.axisymmetric import SyntheticCircularTokamakEquilibrium, time_linear_weighting
+from pyna.MCF.equilibrium.axisymmetric import EquilibriumTokamakCircularSynthetic, time_linear_weighting
 
 
 @pytest.fixture()
 def eq():
-    return SyntheticCircularTokamakEquilibrium()
+    return EquilibriumTokamakCircularSynthetic()
 
 
 # ---------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 
 Provides
 --------
-* :class:`SimpleStellarartor` — analytic stellarator with a helical-ripple
+* :class:`StellaratorSimple` — analytic stellarator with a helical-ripple
   perturbation and a linear safety-factor profile.
 * :func:`simple_stellarator` — convenience factory.
 """
@@ -12,7 +12,7 @@ import numpy as np
 from typing import List
 
 
-class SimpleStellarartor:
+class StellaratorSimple:
     r"""Analytic single-helicity stellarator.
 
     The unperturbed equilibrium is a set of nested circular flux surfaces
@@ -200,14 +200,14 @@ class SimpleStellarartor:
 
     def __str__(self) -> str:
         return (
-            f"SimpleStellarartor(R0={self.R0} m, r0={self.r0} m, "
+            f"StellaratorSimple(R0={self.R0} m, r0={self.r0} m, "
             f"B0={self.B0} T, q=[{self.q0}, {self.q1}], "
             f"m_h={self.m_h}, n_h={self.n_h}, ε_h={self.epsilon_h})"
         )
 
     def __repr__(self) -> str:
         return (
-            f"SimpleStellarartor(R0={self.R0!r}, r0={self.r0!r}, "
+            f"StellaratorSimple(R0={self.R0!r}, r0={self.r0!r}, "
             f"B0={self.B0!r}, q0={self.q0!r}, q1={self.q1!r}, "
             f"m_h={self.m_h!r}, n_h={self.n_h!r}, "
             f"epsilon_h={self.epsilon_h!r})"
@@ -227,9 +227,9 @@ def simple_stellarator(
     m_h: int = 4,
     n_h: int = 4,
     epsilon_h: float = 0.05,
-) -> SimpleStellarartor:
-    """Create a :class:`SimpleStellarartor` with keyword arguments."""
-    return SimpleStellarartor(
+) -> StellaratorSimple:
+    """Create a :class:`StellaratorSimple` with keyword arguments."""
+    return StellaratorSimple(
         R0=R0, r0=r0, B0=B0,
         q0=q0, q1=q1,
         m_h=m_h, n_h=n_h,

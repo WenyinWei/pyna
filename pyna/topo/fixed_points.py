@@ -321,3 +321,174 @@ def classify_fixed_point(
             fp_type = "unknown"
 
     return fp_type, J, det_J
+
+
+def classify_fixed_point_higher_order(
+    fp: np.ndarray,
+    field_func: FieldFunc2D,
+    n_turns: int,
+    *,
+    parabolic_tol: float = 1e-2,
+    fd_eps: float = 1e-6,
+    fd_eps2: float = 1e-5,
+    rtol: float = 1e-10,
+    atol: float = 1e-12,
+) -> dict:
+    """Extended fixed-point classifier handling degenerate and non-conservative cases.
+
+    This function goes beyond the standard X/O dichotomy by handling:
+
+    1. **Non-area-preserving maps** (det(DP^n) ≠ 1): classifies fixed points as
+       ``'sink'``, ``'source'``, or ``'saddle'``, covering e.g. dissipative or
+       non-divergence-free vector fields.
+    2. **Higher-order (parabolic / degenerate) fixed points** where DP^n ≈ I
+       and the first-order monodromy does not discriminate the neighbourhood.
+       In this case the order-2 tensor T = D²P^n is computed and used.
+
+    The type hierarchy (from most specific to most general):
+
+    ============  =======  ===========================================================
+    Type string   det(J)   Eigenvalue pattern
+    ============  =======  ===========================================================
+    ``'O'``       ≈ 1      complex conjugate pair on unit circle (elliptic)
+    ``'X'``       ≈ 1      real, one < 1 and one > 1 (hyperbolic)
+    ``'degenerate_O'``  ≈ 1  both eigenvalues ≈ +1; T indicates elliptic neighbourhood
+    ``'degenerate_X'``  ≈ 1  both eigenvalues ≈ +1; T indicates hyperbolic neighbourhood
+    ``'parabolic'``  ≈ 1   J ≈ I, T is zero or inconclusive
+    ``'sink'``    < 1      all |λ| < 1 (contracting; non-conservative)
+    ``'source'``  > 1      all |λ| > 1 (expanding; non-conservative)
+    ``'saddle'``  ≈ ±1     one |λ| < 1, one |λ| > 1 (non-area-preserving saddle)
+    ``'unknown'`` —        none of the above categories
+    ============  =======  ===========================================================
+
+    Parameters
+    ----------
+    fp : array-like, shape (2,)
+        Fixed point [R, Z] (should satisfy P^n(fp) = fp to good precision).
+    field_func : callable
+        2D field function ``(R, Z, phi) → [dR/dφ, dZ/dφ]``.
+    n_turns : int
+        Orbit period (number of full turns in the Poincaré map).
+    parabolic_tol : float
+        Tolerance on ``||J - I||_F`` for declaring the point parabolic
+        (J ≈ I).  Default 0.01.
+    fd_eps : float
+        Finite-difference step for the Jacobian A = ∂f/∂x (order-1).
+    fd_eps2 : float
+        Finite-difference step for the Hessian H = ∂²f/∂x² (order-2).
+    rtol, atol : float
+        ODE integration tolerances.
+
+    Returns
+    -------
+    result : dict with keys
+        ``type`` : str
+            Fixed-point type string (see table above).
+        ``J`` : ndarray, shape (2, 2)
+            Monodromy matrix DP^n.
+        ``T`` : ndarray, shape (2, 2, 2) or None
+            Second-derivative tensor D²P^n.  Computed only when J ≈ I;
+            ``None`` otherwise.
+        ``det_J`` : float
+            Determinant of J.
+        ``eigenvalues`` : ndarray, shape (2,)
+            Eigenvalues of J.
+        ``stability_index`` : float
+            Tr(J) / 2 (for 2×2 symplectic maps: |k| < 1 ↔ elliptic).
+
+    Notes
+    -----
+    The degenerate-O / degenerate-X discrimination from T uses the
+    criterion that the Hessian of the effective Hamiltonian at the fixed
+    point is positive-definite (O-type) or indefinite (X-type).  For the
+    2×2 Poincaré map, this is assessed via the sign of
+    ``T[0, 0, 0] * T[0, 1, 1] - T[0, 0, 1]²`` (a leading-order
+    discriminant of the second-order normal form).
+
+    Examples
+    --------
+    >>> info = classify_fixed_point_higher_order(fp, field_func, n_turns=3)
+    >>> info['type']
+    'O'
+    >>> info['stability_index']   # doctest: +SKIP
+    0.42
+    """
+    from pyna.topo.variational import PoincareMapVariationalEquations
+
+    fp = np.asarray(fp, dtype=float)
+    phi_span = (0.0, 2.0 * np.pi * n_turns)
+
+    vq = PoincareMapVariationalEquations(
+        field_func, fd_eps=fd_eps, fd_eps2=fd_eps2
+    )
+    ivp_kw = dict(method="DOP853", rtol=rtol, atol=atol)
+
+    # --- order-1 monodromy ---
+    J = vq.jacobian_matrix(fp, phi_span, solve_ivp_kwargs=ivp_kw)
+    det_J = float(np.linalg.det(J))
+    eigvals = np.linalg.eigvals(J)
+    lam_abs = np.abs(eigvals)
+    stability_index = float(np.trace(J) / 2.0)
+
+    result = dict(J=J, T=None, det_J=det_J,
+                  eigenvalues=eigvals, stability_index=stability_index)
+
+    # Shared tolerance for det and eigenvalue magnitude deviations from 1.
+    _det_tol = 0.05
+
+    # ── 1. Non-conservative branch (det deviates significantly from ±1) ──
+    if abs(det_J - 1.0) > _det_tol and abs(det_J + 1.0) > _det_tol:
+        all_contracting = np.all(lam_abs < 1.0 - _det_tol)
+        all_expanding   = np.all(lam_abs > 1.0 + _det_tol)
+        if all_contracting:
+            result["type"] = "sink"
+        elif all_expanding:
+            result["type"] = "source"
+        else:
+            result["type"] = "saddle"
+        return result
+
+    # ── 2. Area-preserving branch ──
+    # Check for parabolic / higher-order (J ≈ I or J ≈ -I)
+    J_minus_I  = np.linalg.norm(J - np.eye(2), "fro")
+    J_plus_I   = np.linalg.norm(J + np.eye(2), "fro")
+    is_near_I  = J_minus_I  < parabolic_tol
+    is_near_mI = J_plus_I   < parabolic_tol
+
+    if is_near_I or is_near_mI:
+        # Compute order-2 tensor to discriminate degenerate type
+        _, _, T = vq.tangent_map(fp, phi_span, order=2, solve_ivp_kwargs=ivp_kw)
+        result["T"] = T
+
+        # Discriminant: for component i=0, check if T is sign-definite in jk
+        # Effective Hessian H_jk = T[0, j, k]  (leading component)
+        H_eff = T[0]   # shape (2, 2)
+        disc = H_eff[0, 0] * H_eff[1, 1] - H_eff[0, 1] ** 2
+
+        T_norm = float(np.linalg.norm(T))
+        if T_norm < 1e-6:
+            result["type"] = "parabolic"
+        elif disc > 0:
+            result["type"] = "degenerate_O"
+        elif disc < 0:
+            result["type"] = "degenerate_X"
+        else:
+            result["type"] = "parabolic"
+        return result
+
+    # ── 3. Standard area-preserving classification ──
+    if np.all(np.isreal(eigvals)):
+        lam_real = np.sort(np.real(eigvals))
+        if lam_real[0] < 1.0 - _det_tol and lam_real[1] > 1.0 + _det_tol:
+            result["type"] = "X"
+        else:
+            result["type"] = "unknown"
+    else:
+        # Elliptic: complex conjugate pair on the unit circle.
+        # Use the same _det_tol for eigenvalue magnitude deviation from 1.
+        if (abs(lam_abs[0] - 1.0) < _det_tol and abs(lam_abs[1] - 1.0) < _det_tol):
+            result["type"] = "O"
+        else:
+            result["type"] = "unknown"
+
+    return result

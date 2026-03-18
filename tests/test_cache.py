@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 from unittest.mock import patch, MagicMock
 
-from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
+from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev
 from pyna.control._cached_fpt import CachedFPTAnalyzer
 from pyna.cache import eq_hash, array_hash, cache_info, clear_cache
 
@@ -15,7 +15,7 @@ from pyna.cache import eq_hash, array_hash, cache_info, clear_cache
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
 def make_eq():
-    return SolovevEquilibrium(R0=6.2, a=2.0, B0=5.3, kappa=1.7, delta=0.33, q0=1.5)
+    return EquilibriumSolovev(R0=6.2, a=2.0, B0=5.3, kappa=1.7, delta=0.33, q0=1.5)
 
 
 def make_field_func(eq):
@@ -250,7 +250,7 @@ def test_clear_coil_cache_only(analyzer):
     assert stats['coil_field_entries'] == 0
 
 
-# ─── Tests: SolovevEquilibrium additions ─────────────────────────────────────
+# ─── Tests: EquilibriumSolovev additions ─────────────────────────────────────
 
 def test_find_opoint_near_magnetic_axis(eq):
     R_ax, Z_ax = eq.magnetic_axis

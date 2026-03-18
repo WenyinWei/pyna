@@ -18,22 +18,22 @@ def grid_3d():
 @pytest.fixture
 def uniform_Bz_field(grid_3d):
     """B = (0, 0, B0) in cylindrical — constant BZ=1, BR=BPhi=0."""
-    from pyna.fields.cylindrical import CylindricalVectorField3D
+    from pyna.fields.cylindrical import VectorField3DCylindrical
     R, Z, Phi = grid_3d
     shape = (len(R), len(Z), len(Phi))
     VR   = np.zeros(shape)
     VZ   = np.ones(shape)
     VPhi = np.zeros(shape)
-    return CylindricalVectorField3D(R, Z, Phi, VR, VZ, VPhi, name="uniform_Bz")
+    return VectorField3DCylindrical(R, Z, Phi, VR, VZ, VPhi, name="uniform_Bz")
 
 
 @pytest.fixture
 def linear_scalar_field(grid_3d):
     """f = R (linear in R)."""
-    from pyna.fields.cylindrical import CylindricalScalarField3D
+    from pyna.fields.cylindrical import ScalarField3DCylindrical
     R, Z, Phi = grid_3d
     value = R[:, np.newaxis, np.newaxis] * np.ones((len(R), len(Z), len(Phi)))
-    return CylindricalScalarField3D(R, Z, Phi, value, name="linear_R")
+    return ScalarField3DCylindrical(R, Z, Phi, value, name="linear_R")
 
 
 # ── Group 1: FieldProperty ────────────────────────────────────────────────────
@@ -50,7 +50,7 @@ def test_property_none():
     assert not FieldProperty.NONE
 
 
-# ── Group 2: CylindricalVectorField3D ─────────────────────────────────────────
+# ── Group 2: VectorField3DCylindrical ─────────────────────────────────────────
 
 def test_vector_field_construction(uniform_Bz_field, grid_3d):
     R, Z, Phi = grid_3d
@@ -90,13 +90,13 @@ def test_vector_field_npz_roundtrip(uniform_Bz_field):
     with tempfile.TemporaryDirectory() as tmpdir:
         path = os.path.join(tmpdir, "test_field.npz")
         uniform_Bz_field.to_npz(path)
-        from pyna.fields.cylindrical import CylindricalVectorField3D
-        loaded = CylindricalVectorField3D.from_npz(path)
+        from pyna.fields.cylindrical import VectorField3DCylindrical
+        loaded = VectorField3DCylindrical.from_npz(path)
         np.testing.assert_array_equal(loaded.VZ, uniform_Bz_field.VZ)
 
 
 def test_vector_from_callable(grid_3d):
-    from pyna.fields.cylindrical import CylindricalVectorField3D
+    from pyna.fields.cylindrical import VectorField3DCylindrical
     R, Z, Phi = grid_3d
 
     def const_field(r, z, phi):
@@ -106,12 +106,12 @@ def test_vector_from_callable(grid_3d):
         VPhi = np.zeros(shape)
         return VR, VZ, VPhi
 
-    f = CylindricalVectorField3D.from_callable(const_field, R, Z, Phi)
+    f = VectorField3DCylindrical.from_callable(const_field, R, Z, Phi)
     assert f.VZ.shape == (len(R), len(Z), len(Phi))
     np.testing.assert_allclose(f.VZ, 1.0)
 
 
-# ── Group 3: CylindricalScalarField3D ─────────────────────────────────────────
+# ── Group 3: ScalarField3DCylindrical ─────────────────────────────────────────
 
 def test_scalar_construction(linear_scalar_field, grid_3d):
     R, Z, Phi = grid_3d
@@ -130,8 +130,8 @@ def test_scalar_npz_roundtrip(linear_scalar_field):
     with tempfile.TemporaryDirectory() as tmpdir:
         path = os.path.join(tmpdir, "scalar_field.npz")
         linear_scalar_field.to_npz(path)
-        from pyna.fields.cylindrical import CylindricalScalarField3D
-        loaded = CylindricalScalarField3D.from_npz(path)
+        from pyna.fields.cylindrical import ScalarField3DCylindrical
+        loaded = ScalarField3DCylindrical.from_npz(path)
         np.testing.assert_array_equal(loaded.value, linear_scalar_field.value)
 
 
@@ -200,61 +200,61 @@ def test_hessian_shape(linear_scalar_field, grid_3d):
     assert H.data.shape == (len(R), len(Z), len(Phi), 3, 3)
 
 
-# ── Group 6: TensorField3D_rank2 ──────────────────────────────────────────────
+# ── Group 6: TensorField3DRank2 ──────────────────────────────────────────────
 
 def test_tensor_construction(grid_3d):
-    from pyna.fields.tensor import TensorField3D_rank2
+    from pyna.fields.tensor import TensorField3DRank2
     R, Z, Phi = grid_3d
     nR, nZ, nPhi = len(R), len(Z), len(Phi)
     data = np.zeros((nR, nZ, nPhi, 3, 3))
-    T = TensorField3D_rank2(R, Z, Phi, data)
+    T = TensorField3DRank2(R, Z, Phi, data)
     assert T.data.shape == (nR, nZ, nPhi, 3, 3)
 
 
 def test_tensor_component(grid_3d):
-    from pyna.fields.tensor import TensorField3D_rank2
+    from pyna.fields.tensor import TensorField3DRank2
     R, Z, Phi = grid_3d
     nR, nZ, nPhi = len(R), len(Z), len(Phi)
     data = np.random.rand(nR, nZ, nPhi, 3, 3)
-    T = TensorField3D_rank2(R, Z, Phi, data)
+    T = TensorField3DRank2(R, Z, Phi, data)
     comp = T.component(0, 1)
     assert comp.shape == (nR, nZ, nPhi)
     np.testing.assert_array_equal(comp, data[:, :, :, 0, 1])
 
 
 def test_tensor_trace(grid_3d):
-    from pyna.fields.tensor import TensorField3D_rank2
+    from pyna.fields.tensor import TensorField3DRank2
     R, Z, Phi = grid_3d
     nR, nZ, nPhi = len(R), len(Z), len(Phi)
     # Identity tensor: trace = 3
     data = np.zeros((nR, nZ, nPhi, 3, 3))
     for i in range(3):
         data[:, :, :, i, i] = 1.0
-    T = TensorField3D_rank2(R, Z, Phi, data)
+    T = TensorField3DRank2(R, Z, Phi, data)
     tr = T.trace()
     assert tr.shape == (nR, nZ, nPhi)
     np.testing.assert_allclose(tr, 3.0)
 
 
 def test_tensor_symmetrize(grid_3d):
-    from pyna.fields.tensor import TensorField3D_rank2
+    from pyna.fields.tensor import TensorField3DRank2
     from pyna.fields.properties import FieldProperty
     R, Z, Phi = grid_3d
     nR, nZ, nPhi = len(R), len(Z), len(Phi)
     data = np.random.rand(nR, nZ, nPhi, 3, 3)
-    T = TensorField3D_rank2(R, Z, Phi, data)
+    T = TensorField3DRank2(R, Z, Phi, data)
     T_sym = T.symmetrize()
     assert T_sym.has_property(FieldProperty.SYMMETRIC)
 
 
 def test_tensor_call(grid_3d):
-    from pyna.fields.tensor import TensorField3D_rank2
+    from pyna.fields.tensor import TensorField3DRank2
     R, Z, Phi = grid_3d
     nR, nZ, nPhi = len(R), len(Z), len(Phi)
     data = np.zeros((nR, nZ, nPhi, 3, 3))
     for i in range(3):
         data[:, :, :, i, i] = 1.0
-    T = TensorField3D_rank2(R, Z, Phi, data)
+    T = TensorField3DRank2(R, Z, Phi, data)
     N = 5
     coords = np.column_stack([
         np.linspace(1.2, 2.8, N),
@@ -268,8 +268,8 @@ def test_tensor_call(grid_3d):
 # ── Group 7: CoordinateSystem ─────────────────────────────────────────────────
 
 def test_cylindrical_coords_metric():
-    from pyna.fields.coords import CylindricalCoords3D
-    coords = CylindricalCoords3D()
+    from pyna.fields.coords import Coords3DCylindrical
+    coords = Coords3DCylindrical()
     # At (R=2, Z=0, phi=0): g_phiphi = R^2 = 4
     pts = np.array([[2.0, 0.0, 0.0]])
     metric = coords.metric_tensor(pts)
@@ -278,8 +278,8 @@ def test_cylindrical_coords_metric():
 
 
 def test_cylindrical_to_cartesian():
-    from pyna.fields.coords import CylindricalCoords3D
-    coords = CylindricalCoords3D()
+    from pyna.fields.coords import Coords3DCylindrical
+    coords = Coords3DCylindrical()
     # (R=2, Z=1, phi=pi/2) → (x≈0, y=2, z=1)
     pts = np.array([[2.0, 1.0, np.pi / 2]])
     cart = coords.to_cartesian(pts)
@@ -289,21 +289,21 @@ def test_cylindrical_to_cartesian():
 
 
 def test_schwarzschild_radius():
-    from pyna.fields.coords import SchwarzschildCoords4D
-    coords = SchwarzschildCoords4D(M=1.0)
+    from pyna.fields.coords import Coords4DSchwarzschild
+    coords = Coords4DSchwarzschild(M=1.0)
     np.testing.assert_allclose(coords.schwarzschild_radius, 2.0)
 
 
 def test_kerr_event_horizon():
-    from pyna.fields.coords import KerrCoords4D
-    coords = KerrCoords4D(M=1.0, a=0.5)
+    from pyna.fields.coords import Coords4DKerr
+    coords = Coords4DKerr(M=1.0, a=0.5)
     expected = 1.0 + np.sqrt(0.75)
     np.testing.assert_allclose(coords.event_horizon_radius, expected, rtol=1e-10)
 
 
 def test_minkowski_flat():
-    from pyna.fields.coords import MinkowskiCoords4D
-    coords = MinkowskiCoords4D()
+    from pyna.fields.coords import Coords4DMinkowski
+    coords = Coords4DMinkowski()
     # Christoffel symbols should all be zero for flat spacetime
     pts = np.array([[0.0, 1.0, 0.0, 0.0]])
     christoffel = coords.christoffel_symbols(pts)
@@ -311,20 +311,20 @@ def test_minkowski_flat():
 
 
 def test_cartesian_identity():
-    from pyna.fields.coords import CartesianCoords
-    coords = CartesianCoords(3)
+    from pyna.fields.coords import CoordsCartesian
+    coords = CoordsCartesian(3)
     pts = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
     result = coords.to_cartesian(pts)
     np.testing.assert_array_equal(result, pts)
 
 
-# ── Group 8: 向后兼容 ─────────────────────────────────────────────────────────
+# ── Group 8: backward compatibility ──────────────────────────────────────────
 
 def test_compat_field_data():
-    from pyna.field_data import CylindricalVectorField, CylindricalScalarField
-    from pyna.fields.cylindrical import CylindricalVectorField3D, CylindricalScalarField3D
-    assert CylindricalVectorField is CylindricalVectorField3D
-    assert CylindricalScalarField is CylindricalScalarField3D
+    from pyna.fields.cylindrical import VectorField3DCylindrical, ScalarField3DCylindrical
+    from pyna.fields import VectorField3DCylindrical as VF, ScalarField3DCylindrical as SF
+    assert VF is VectorField3DCylindrical
+    assert SF is ScalarField3DCylindrical
 
 
 def test_compat_system(uniform_Bz_field):

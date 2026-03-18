@@ -1,7 +1,7 @@
 """CPU-based stellarator boundary island visualization.
 
 Uses on-the-fly crossing detection (memory-efficient).
-SimpleStellarartor: R0=3.0, r0=0.35, B0=1.0, q0=1.5, q1=5.5, m_h=5, n_h=1, epsilon_h=0.04
+StellaratorSimple: R0=3.0, r0=0.35, B0=1.0, q0=1.5, q1=5.5, m_h=5, n_h=1, epsilon_h=0.04
 """
 from __future__ import annotations
 
@@ -16,15 +16,15 @@ from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from pyna.MCF.equilibrium.stellarator import SimpleStellarartor
+from pyna.MCF.equilibrium.stellarator import StellaratorSimple
 from pyna.flt import _rk4_step
 from pyna.topo.island_extract import extract_island_width
 
 # ---------------------------------------------------------------------------
 # 1. Build stellarator
 # ---------------------------------------------------------------------------
-print("Building SimpleStellarartor...")
-st = SimpleStellarartor(
+print("Building StellaratorSimple...")
+st = StellaratorSimple(
     R0=3.0, r0=0.35, B0=1.0,
     q0=1.5, q1=5.5,
     m_h=5, n_h=1,

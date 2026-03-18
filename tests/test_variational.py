@@ -74,10 +74,59 @@ def test_tangent_map_order1_consistency():
 
 
 def test_tangent_map_order_not_implemented():
-    """tangent_map with order > 1 should raise NotImplementedError."""
+    """tangent_map with order > 2 should raise NotImplementedError."""
     vq = PoincareMapVariationalEquations(_circular_field)
     with pytest.raises(NotImplementedError):
-        vq.tangent_map([1.8, 0.0], [0.0, np.pi], order=2)
+        vq.tangent_map([1.8, 0.0], [0.0, np.pi], order=3)
+
+
+def test_tangent_map_order2_shape():
+    """tangent_map(order=2) should return (x_end, M, T) with correct shapes."""
+    vq = PoincareMapVariationalEquations(_linear_field_with_known_jacobian,
+                                         fd_eps=1e-5, fd_eps2=1e-4)
+    phi_span = (0.0, np.pi / 4)
+    result = vq.tangent_map([1.0, 0.0], phi_span, order=2)
+    assert len(result) == 3, "order=2 should return a 3-tuple (x_end, M, T)"
+    x_end, M, T = result
+    assert x_end.shape == (2,)
+    assert M.shape == (2, 2)
+    assert T.shape == (2, 2, 2)
+
+
+def test_tangent_map_order2_M_consistent_with_order1():
+    """The monodromy matrix from order=2 must equal that from order=1."""
+    vq = PoincareMapVariationalEquations(_linear_field_with_known_jacobian,
+                                         fd_eps=1e-5, fd_eps2=1e-4)
+    phi_span = (0.0, np.pi / 3)
+    x_end1, M1 = vq.tangent_map([1.0, 0.5], phi_span, order=1)
+    x_end2, M2, T = vq.tangent_map([1.0, 0.5], phi_span, order=2)
+    assert np.allclose(M1, M2, atol=1e-8), \
+        f"Order-1 and order-2 should give the same monodromy matrix M; " \
+        f"max diff = {np.abs(M1 - M2).max():.2e}"
+    assert np.allclose(x_end1, x_end2, atol=1e-10), \
+        f"x_end mismatch; max diff = {np.abs(x_end1 - x_end2).max():.2e}"
+
+
+def test_tangent_map_order2_T_symmetry():
+    """Second-derivative tensor T[i,j,k] must be symmetric in j,k."""
+    vq = PoincareMapVariationalEquations(_circular_field,
+                                         fd_eps=1e-5, fd_eps2=1e-4)
+    phi_span = (0.0, np.pi / 4)
+    _, _, T = vq.tangent_map([1.8, 0.05], phi_span, order=2)
+    # Symmetry: T[i,j,k] == T[i,k,j]  (variational equations preserve this)
+    assert np.allclose(T, T.transpose(0, 2, 1), atol=1e-6), \
+        "T[i,j,k] should be symmetric in j,k"
+
+
+def test_tangent_map_order2_linear_field_T_zero():
+    """For a purely linear field (constant Jacobian, zero Hessian) T must be zero."""
+    # f(r,z,phi) = A·x  with constant A has zero Hessian → T = 0 always
+    vq = PoincareMapVariationalEquations(_linear_field_with_known_jacobian,
+                                         fd_eps=1e-5, fd_eps2=1e-4)
+    phi_span = (0.0, np.pi / 2)
+    _, _, T = vq.tangent_map([1.0, 0.0], phi_span, order=2)
+    assert np.allclose(T, 0.0, atol=1e-6), \
+        "Linear field has zero Hessian, so second-derivative tensor must be zero"
 
 
 def test_jacobian_det_circular_field():

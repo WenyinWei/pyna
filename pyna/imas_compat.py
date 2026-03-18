@@ -105,11 +105,11 @@ class IMASEquilibriumIDS:
 
     @classmethod
     def from_stellarator(cls, stellarator, n_psi: int = 64, n_theta: int = 128):
-        """Build from a SimpleStellarartor equilibrium.
+        """Build from a StellaratorSimple equilibrium.
 
         Parameters
         ----------
-        stellarator : SimpleStellarartor
+        stellarator : StellaratorSimple
         n_psi : int
             Number of flux surfaces for 1-D profiles.
         n_theta : int

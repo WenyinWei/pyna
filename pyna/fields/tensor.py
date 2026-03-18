@@ -2,12 +2,12 @@
 from __future__ import annotations
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
-from pyna.fields.base import TensorField3D_rank2 as _TF3D_rank2_Base
+from pyna.fields.base import TensorField3DRank2 as _TF3D_rank2_Base
 from pyna.fields.base import TensorField
 from pyna.fields.properties import FieldProperty
 
 
-class TensorField3D_rank2(_TF3D_rank2_Base):
+class TensorField3DRank2(_TF3D_rank2_Base):
     """Rank-2 tensor field T_ij(R, Z, φ) on a regular cylindrical grid.
 
     Data shape: (nR, nZ, nPhi, 3, 3) — spatial axes first, tensor indices last.
@@ -53,16 +53,16 @@ class TensorField3D_rank2(_TF3D_rank2_Base):
         """Return trace T_ii, shape (nR, nZ, nPhi)."""
         return sum(self._data[:,:,:,i,i] for i in range(3))
 
-    def transpose(self) -> "TensorField3D_rank2":
+    def transpose(self) -> "TensorField3DRank2":
         """Return T^T (swap last two axes)."""
-        return TensorField3D_rank2(
+        return TensorField3DRank2(
             self._R, self._Z, self._Phi,
             np.transpose(self._data, (0,1,2,4,3)),
             name=f"({self.name})^T", units=self.units, properties=self._properties)
 
-    def symmetrize(self) -> "TensorField3D_rank2":
+    def symmetrize(self) -> "TensorField3DRank2":
         """Return (T + T^T)/2."""
-        return TensorField3D_rank2(
+        return TensorField3DRank2(
             self._R, self._Z, self._Phi,
             0.5 * (self._data + np.transpose(self._data, (0,1,2,4,3))),
             name=f"sym({self.name})", units=self.units,
@@ -91,7 +91,7 @@ class TensorField3D_rank2(_TF3D_rank2_Base):
         return out.reshape(shape + (3, 3))
 
 
-class TensorField4D_rank2(TensorField):
+class TensorField4DRank2(TensorField):
     """Rank-2 tensor field T_ij(x) on a 4-D domain (e.g. spacetime).
 
     Data shape: (n0, n1, n2, n3, 4, 4) -- spatial axes first, tensor indices last.
@@ -139,13 +139,13 @@ class TensorField4D_rank2(TensorField):
             return sum(self._data[..., i, i] for i in range(4))
         return np.einsum('...ij,...ij->...', metric, self._data)
 
-    def transpose(self) -> "TensorField4D_rank2":
-        return TensorField4D_rank2(
+    def transpose(self) -> "TensorField4DRank2":
+        return TensorField4DRank2(
             self._axes, np.swapaxes(self._data, -2, -1),
             name=f"({self.name})^T", units=self.units, properties=self._properties)
 
-    def symmetrize(self) -> "TensorField4D_rank2":
-        return TensorField4D_rank2(
+    def symmetrize(self) -> "TensorField4DRank2":
+        return TensorField4DRank2(
             self._axes, 0.5*(self._data + np.swapaxes(self._data, -2, -1)),
             name=f"sym({self.name})", units=self.units,
             properties=self._properties | FieldProperty.SYMMETRIC)
@@ -173,7 +173,7 @@ class TensorField4D_rank2(TensorField):
         return out.reshape(shape + (4, 4))
 
     @classmethod
-    def from_metric(cls, coords, axes) -> "TensorField4D_rank2":
+    def from_metric(cls, coords, axes) -> "TensorField4DRank2":
         """Build metric tensor field g_ij from a CoordinateSystem on given grid axes."""
         grids = np.meshgrid(*axes, indexing='ij')
         pts = np.stack([g.ravel() for g in grids], axis=1)

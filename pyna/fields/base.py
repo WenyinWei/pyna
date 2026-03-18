@@ -166,7 +166,7 @@ class VectorField4D(VectorField):
 
 
 # Rank-2 tensor field on 3-D domain
-class TensorField3D_rank2(TensorField):
+class TensorField3DRank2(TensorField):
     """Rank-2 tensor field T_ij(R,Z,φ).
 
     Concrete arrays stored as shape (nR, nZ, nPhi, 3, 3) — spatial axes first,

@@ -140,7 +140,7 @@ perturbed Poincaré map to get the island width in metres.
 
 - **Tutorials** — worked examples with plots:
   :doc:`/notebooks/tutorials/magnetic_coordinates_comparison`,
-  :doc:`/notebooks/tutorials/rmp_island_validation_solovev`
+  :doc:`/notebooks/tutorials/RMP_island_validation_solovev`
 
 - **API reference** — full docstrings:
   :doc:`/en/api/index`

@@ -1,14 +1,14 @@
 from random import sample
 from pyna.diff.fieldline import _FieldDifferenatiableRZ
 from pyna.diff.fieldline import RZ_partial_derivative_of_map_4_Flow_Phi_as_t
-from pyna.MCF.coils.field import RegualrCylindricalGridField
+from pyna.fields.cylindrical import VectorField3DCylindrical
 
 import numpy as np
 from numpy import linalg as LA 
 from scipy.integrate import solve_ivp
 from scipy.interpolate import interp1d
 
-def Newton_discrete(afield:RegualrCylindricalGridField, 
+def Newton_discrete(afield:VectorField3DCylindrical, 
                     x0_RZPhi, tor_turn:int=1, zone_of_interest_callback=None, h=1.0, epsilon=1e-5, ret_trace=False):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
     
@@ -59,7 +59,7 @@ def draw_Jac_direction(x0, jac, fig, ax, unit_data_len:float=0.05):
     circ_y = x0[1] + unit_data_len * np.sin( circ_theta ) 
     ax.plot(circ_x, circ_y)
     
-def Jac_evolution_along_Xcycle(afield:RegualrCylindricalGridField, Xcycle_RZdiff, Phi_span):
+def Jac_evolution_along_Xcycle(afield:VectorField3DCylindrical, Xcycle_RZdiff, Phi_span):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
     
     Phi_start, Phi_end = Phi_span[0], Phi_span[-1]

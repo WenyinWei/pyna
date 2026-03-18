@@ -15,7 +15,7 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
+from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev
 from pyna.topo.island_extract import extract_island_width
 
 
@@ -23,7 +23,7 @@ from pyna.topo.island_extract import extract_island_width
 # 1. Build equilibrium with q0=3.0 (so q=4 is accessible inside LCFS)
 # ---------------------------------------------------------------------------
 print("Building Solov'ev equilibrium (q0=3.0)...")
-eq = SolovevEquilibrium(R0=6.2, a=2.0, B0=5.3, kappa=1.7, delta=0.33, q0=3.0)
+eq = EquilibriumSolovev(R0=6.2, a=2.0, B0=5.3, kappa=1.7, delta=0.33, q0=3.0)
 R_ax, Z_ax = eq.magnetic_axis
 print(f"  Magnetic axis: R={R_ax:.3f} m, Z={Z_ax:.3f} m")
 
@@ -151,7 +151,7 @@ if not gpu_ok:
             n_workers=16,
         )
         # Build field function from equilibrium
-        def field_func_rmp(rzphi):
+        def field_func_RMP(rzphi):
             R, Z, phi = rzphi
             BR, BZ = eq.BR_BZ(R, Z)
             Bphi = eq.Bphi(R)
@@ -164,7 +164,7 @@ if not gpu_ok:
             Bmag = np.sqrt(BR**2 + BZ**2 + Bphi**2) + 1e-30
             return np.array([BR/Bmag, BZ/Bmag, Bphi/(R*Bmag)])
 
-        tracer_cpu.field_func = field_func_rmp
+        tracer_cpu.field_func = field_func_RMP
         print(f"CPU tracing {len(start_pts)} lines, t_max={T_MAX_CPU}...")
         t0 = time.time()
         trajs = [tracer_cpu.trace(sp, T_MAX_CPU) for sp in start_pts]
@@ -175,7 +175,7 @@ if not gpu_ok:
         # Build simple CPU tracer manually using scipy
         from scipy.integrate import solve_ivp
 
-        def field_func_rmp(t, rzphi):
+        def field_func_RMP(t, rzphi):
             R, Z, phi = rzphi
             BR, BZ = eq.BR_BZ(R, Z)
             Bphi = float(eq.Bphi(R))
@@ -192,7 +192,7 @@ if not gpu_ok:
         t0 = time.time()
         trajs = []
         for sp in start_pts[:20]:  # limit for speed
-            sol = solve_ivp(field_func_rmp, [0, T_MAX_CPU], sp,
+            sol = solve_ivp(field_func_RMP, [0, T_MAX_CPU], sp,
                             method='RK45', max_step=0.1, dense_output=False)
             traj = sol.y.T  # (n, 3)
             trajs.append(traj)

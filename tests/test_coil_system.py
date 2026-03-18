@@ -1,4 +1,4 @@
-"""Tests for CoilSet, biot_savart_field, StellaratorControlCoils, and IMAS compat."""
+"""Tests for CoilSet, Biot_Savart_field, StellaratorControlCoils, and IMAS compat."""
 from __future__ import annotations
 
 import numpy as np
@@ -18,7 +18,7 @@ def on_axis_Bz_circular_loop(a, I, Z):
 
 
 # ---------------------------------------------------------------------------
-# 1. biot_savart_field: circular loop Bz on axis
+# 1. Biot_Savart_field: circular loop Bz on axis
 # ---------------------------------------------------------------------------
 
 def make_circular_loop_pts(a, Z0=0.0, N=200):
@@ -33,7 +33,7 @@ def make_circular_loop_pts(a, Z0=0.0, N=200):
 class TestBiotSavart:
     def test_on_axis_Bz(self):
         """Bz on the axis of a circular loop must match analytic formula."""
-        from pyna.MCF.coils.coil_system import biot_savart_field
+        from pyna.MCF.coils.coil_system import Biot_Savart_field
 
         a = 0.5    # loop radius (m)
         I = 1000.0 # current (A)
@@ -47,7 +47,7 @@ class TestBiotSavart:
         Z_grid = np.array([[Z_eval]])
 
         # phi=0 → X=R_eval, Y=0
-        BR, BZ, BPhi = biot_savart_field(pts, I, R_grid, Z_grid)
+        BR, BZ, BPhi = Biot_Savart_field(pts, I, R_grid, Z_grid)
 
         analytic = on_axis_Bz_circular_loop(a, I, Z_eval - Z0)
         # Allow 2% tolerance (numerical integration with 500 segments)
@@ -57,24 +57,24 @@ class TestBiotSavart:
 
     def test_zero_current(self):
         """Zero current → zero field."""
-        from pyna.MCF.coils.coil_system import biot_savart_field
+        from pyna.MCF.coils.coil_system import Biot_Savart_field
 
         pts = make_circular_loop_pts(0.5, N=100)
         R = np.array([[0.5]])
         Z = np.array([[0.0]])
-        BR, BZ, BP = biot_savart_field(pts, 0.0, R, Z)
+        BR, BZ, BP = Biot_Savart_field(pts, 0.0, R, Z)
         assert np.allclose(BR, 0) and np.allclose(BZ, 0) and np.allclose(BP, 0)
 
     def test_sign_convention(self):
         """Positive current in +phi direction → positive Bz at centre (small R)."""
-        from pyna.MCF.coils.coil_system import biot_savart_field
+        from pyna.MCF.coils.coil_system import Biot_Savart_field
 
         a = 0.3
         I = 500.0
         pts = make_circular_loop_pts(a, Z0=0.0, N=300)
         R_grid = np.array([[1e-4]])
         Z_grid = np.array([[0.0]])
-        _, BZ, _ = biot_savart_field(pts, I, R_grid, Z_grid)
+        _, BZ, _ = Biot_Savart_field(pts, I, R_grid, Z_grid)
         assert float(BZ[0, 0]) > 0, "Positive current loop should give positive Bz at centre"
 
 
@@ -223,9 +223,9 @@ class TestIMASEquilibriumIDS:
 
     def test_from_stellarator(self):
         from pyna.imas_compat import IMASEquilibriumIDS
-        from pyna.MCF.equilibrium.stellarator import SimpleStellarartor
+        from pyna.MCF.equilibrium.stellarator import StellaratorSimple
 
-        st = SimpleStellarartor()
+        st = StellaratorSimple()
         ids = IMASEquilibriumIDS.from_stellarator(st, n_psi=32, n_theta=64)
         assert ids.b0 == pytest.approx(st.B0)
         assert ids.r0 == pytest.approx(st.R0)

@@ -1,12 +1,12 @@
 """Abstract base class for vacuum coil magnetic fields.
 
-All concrete coil-field classes inherit from VacuumCoilField and implement:
+All concrete coil-field classes inherit from CoilFieldVacuum and implement:
   - B_at(R, Z, phi): evaluate (BR, BZ, Bphi) at given coordinates
   - divergence_free(): whether the field is guaranteed divergence-free
 
 Concrete utility classes included here:
-  - SuperpositionField: linear superposition of multiple fields
-  - ScaledField: single field multiplied by a scalar (for current control)
+  - CoilFieldSuperposition: linear superposition of multiple fields
+  - CoilFieldScaled: single field multiplied by a scalar (for current control)
 """
 from __future__ import annotations
 from abc import ABC, abstractmethod
@@ -14,7 +14,7 @@ from typing import Sequence
 import numpy as np
 
 
-class VacuumCoilField(ABC):
+class CoilFieldVacuum(ABC):
     """Abstract base for vacuum magnetic fields from coils.
     
     Coordinate convention: cylindrical (R, Z, phi) in meters/radians.
@@ -83,13 +83,13 @@ class VacuumCoilField(ABC):
         return _compute()
 
 
-class SuperpositionField(VacuumCoilField):
-    """Linear superposition of multiple VacuumCoilField objects.
+class CoilFieldSuperposition(CoilFieldVacuum):
+    """Linear superposition of multiple CoilFieldVacuum objects.
     
     The resulting field is divergence-free iff all component fields are.
     """
 
-    def __init__(self, fields: Sequence[VacuumCoilField]) -> None:
+    def __init__(self, fields: Sequence[CoilFieldVacuum]) -> None:
         self._fields = list(fields)
 
     def B_at(self, R, Z, phi):
@@ -109,18 +109,18 @@ class SuperpositionField(VacuumCoilField):
         return all(f.divergence_free() for f in self._fields)
 
 
-class ScaledField(VacuumCoilField):
-    """A VacuumCoilField scaled by a constant factor (e.g. coil current).
+class CoilFieldScaled(CoilFieldVacuum):
+    """A CoilFieldVacuum scaled by a constant factor (e.g. coil current).
     
     Parameters
     ----------
-    field : VacuumCoilField
+    field : CoilFieldVacuum
         The base field (typically computed for unit current I=1 A).
     scale : float
         Scaling factor (e.g. actual current in amperes).
     """
 
-    def __init__(self, field: VacuumCoilField, scale: float) -> None:
+    def __init__(self, field: CoilFieldVacuum, scale: float) -> None:
         self._field = field
         self._scale = float(scale)
 

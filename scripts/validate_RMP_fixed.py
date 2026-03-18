@@ -1,7 +1,7 @@
 """CPU-based RMP island chain validation (q=4/1).
 
 Uses FieldLineTracer + ThreadPoolExecutor (n_workers=8).
-Equilibrium: SolovevEquilibrium(R0=1.86, a=0.6, B0=5.3, kappa=1.7, delta=0.33, q0=3.0)
+Equilibrium: EquilibriumSolovev(R0=1.86, a=0.6, B0=5.3, kappa=1.7, delta=0.33, q0=3.0)
 Perturbation: (4,1) RMP with epsilon_h=0.01
 """
 from __future__ import annotations
@@ -17,7 +17,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
+from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev
 from pyna.flt import _rk4_step
 from pyna.topo.island_extract import extract_island_width
 
@@ -25,7 +25,7 @@ from pyna.topo.island_extract import extract_island_width
 # 1. Build equilibrium
 # ---------------------------------------------------------------------------
 print("Building Solov'ev equilibrium (R0=1.86, q0=3.0)...")
-eq = SolovevEquilibrium(R0=1.86, a=0.6, B0=5.3, kappa=1.7, delta=0.33, q0=3.0)
+eq = EquilibriumSolovev(R0=1.86, a=0.6, B0=5.3, kappa=1.7, delta=0.33, q0=3.0)
 R_ax, Z_ax = eq.magnetic_axis
 a = eq.a
 B0 = eq._B0

@@ -1,8 +1,16 @@
-"""Island width estimation and rational surface location.
+"""Island width estimation, rational surface location, and island topology.
 
-Functions for finding q = m/n rational surfaces on a flux-surface
-coordinate S and estimating the half-width of magnetic islands driven
-by resonant magnetic perturbations (RMPs).
+This module provides:
+
+* Functions for finding q = m/n rational surfaces on a flux-surface
+  coordinate S and estimating the half-width of magnetic islands driven
+  by resonant magnetic perturbations (RMPs).
+* ``Island`` — data class representing a single magnetic island (one O-point
+  of an island chain) together with its neighbouring X-points, estimated
+  half-width, and position in the island-around-island hierarchy.
+* ``IslandChain`` — data class representing a full chain of islands
+  (m O-points + m X-points for q = m/n) with connectivity tracking and
+  support for disconnected sub-chains (common near the plasma boundary).
 
 References
 ----------
@@ -13,11 +21,244 @@ References
 """
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from math import gcd
 from typing import Dict, List, Optional
 
 import numpy as np
 from scipy.interpolate import UnivariateSpline, interp1d
+
+
+# ---------------------------------------------------------------------------
+# Island topology data classes
+# ---------------------------------------------------------------------------
+
+@dataclass
+class Island:
+    """A single magnetic island (one O-point region of an island chain).
+
+    An island is centred on an O-point (elliptic fixed point) and bounded
+    by separatrices that pass through the neighbouring X-points (hyperbolic
+    fixed points).
+
+    Attributes
+    ----------
+    period_n : int
+        Period of the Poincaré map (number of toroidal turns to close).
+        Equal to the numerator m for a q = m/n island.
+    O_point : ndarray, shape (2,)
+        Coordinates [R, Z] of the elliptic fixed point (island centre).
+    X_points : list of ndarray, shape (2,) each
+        Coordinates of the neighbouring hyperbolic fixed points.
+        May be empty when X-points have not yet been located.
+    halfwidth : float
+        Estimated island half-width (in the S flux-coordinate or in metres,
+        depending on the context).  ``nan`` when not yet estimated.
+    level : int
+        Hierarchy level in the island-around-island (Birkhoff) structure.
+        Level 1 = primary island chain; level 2 = island inside a level-1
+        island; etc.
+    parent : Island or None
+        The parent ``Island`` in the hierarchy (None for level-1 islands).
+    label : str or None
+        Optional human-readable identifier (e.g. ``"3/1"``).
+
+    Examples
+    --------
+    >>> isl = Island(period_n=3, O_point=np.array([3.07, 0.0]),
+    ...              X_points=[np.array([3.12, 0.0])], halfwidth=0.05)
+    >>> isl.level
+    1
+    """
+    period_n: int
+    O_point: np.ndarray
+    X_points: List[np.ndarray] = field(default_factory=list)
+    halfwidth: float = float("nan")
+    level: int = 1
+    parent: Optional[Island] = None
+    label: Optional[str] = None
+
+    def __post_init__(self):
+        self.O_point = np.asarray(self.O_point, dtype=float)
+        self.X_points = [np.asarray(x, dtype=float) for x in self.X_points]
+
+
+@dataclass
+class IslandChain:
+    """A chain of magnetic islands sharing the same q = m/n rational surface.
+
+    For a resonance q = m/n there are m O-points and m X-points arranged
+    symmetrically around the rational surface.  Near the plasma boundary,
+    a high-mode-number chain may be broken into several *disconnected
+    sub-chains* (e.g. by a strong stochastic layer).
+
+    Attributes
+    ----------
+    m : int
+        Poloidal mode number (numerator of q = m/n).
+    n : int
+        Toroidal mode number (denominator of q = m/n).
+    islands : list of Island
+        All ``Island`` instances in this chain (one per O-point found).
+    connected : bool
+        ``True`` when all islands form a single connected component (the
+        typical inner-region case).  ``False`` when the chain has been
+        broken into separate, non-communicating sub-chains.
+    subchains : list of IslandChain
+        If ``connected=False``, this list holds the individual disconnected
+        sub-chains.  Empty when ``connected=True``.
+    level : int
+        Hierarchy level (mirrors ``Island.level``).
+
+    Properties
+    ----------
+    period_n : int
+        Equal to ``m`` (the number of toroidal turns to close the orbit).
+    n_islands : int
+        Number of ``Island`` objects currently stored.
+    q_rational : float
+        Rational safety factor m/n of this chain.
+
+    Examples
+    --------
+    Build a chain from two O-points and two X-points:
+
+    >>> isl0 = Island(period_n=2, O_point=np.array([3.1, 0.05]))
+    >>> isl1 = Island(period_n=2, O_point=np.array([3.1, -0.05]))
+    >>> chain = IslandChain(m=2, n=1, islands=[isl0, isl1])
+    >>> chain.n_islands
+    2
+    >>> chain.q_rational
+    2.0
+    """
+    m: int
+    n: int
+    islands: List[Island] = field(default_factory=list)
+    connected: bool = True
+    subchains: List[IslandChain] = field(default_factory=list)
+    level: int = 1
+
+    @property
+    def period_n(self) -> int:
+        """Number of toroidal turns per orbit (= m)."""
+        return self.m
+
+    @property
+    def n_islands(self) -> int:
+        """Number of ``Island`` objects currently stored."""
+        return len(self.islands)
+
+    @property
+    def q_rational(self) -> float:
+        """Rational safety factor m/n of this chain."""
+        return self.m / self.n
+
+    @classmethod
+    def from_fixed_points(
+        cls,
+        O_points: List[np.ndarray],
+        X_points: List[np.ndarray],
+        m: int,
+        n: int,
+        halfwidths: Optional[List[float]] = None,
+        level: int = 1,
+        proximity_tol: float = 1.0,
+    ) -> IslandChain:
+        """Construct an ``IslandChain`` from lists of O-point and X-point arrays.
+
+        Each O-point is matched with its nearest X-point(s) within
+        ``proximity_tol`` metres.
+
+        Parameters
+        ----------
+        O_points : list of ndarray, shape (2,)
+            Elliptic fixed points [R, Z].
+        X_points : list of ndarray, shape (2,)
+            Hyperbolic fixed points [R, Z].
+        m, n : int
+            Mode numbers of the island chain (q = m/n).
+        halfwidths : list of float or None
+            Island half-widths corresponding to each O-point.
+            If ``None``, all half-widths are set to ``nan``.
+        level : int
+            Hierarchy level for all created ``Island`` objects.
+        proximity_tol : float
+            Maximum distance (m) from an O-point to a candidate X-point for
+            that X-point to be associated with the O-point.
+
+        Returns
+        -------
+        IslandChain
+        """
+        if halfwidths is None:
+            halfwidths = [float("nan")] * len(O_points)
+        if len(halfwidths) != len(O_points):
+            raise ValueError(
+                f"len(halfwidths)={len(halfwidths)} must equal "
+                f"len(O_points)={len(O_points)}"
+            )
+
+        period_n = m
+        islands: List[Island] = []
+        label_prefix = f"{m}/{n}"
+
+        # Convert all X-points to arrays once to avoid repeated conversions
+        X_points_arr = [np.asarray(xp, dtype=float) for xp in X_points]
+
+        for idx, (op, hw) in enumerate(zip(O_points, halfwidths)):
+            op = np.asarray(op, dtype=float)
+            # Associate the nearest X-points with this O-point
+            nearby_X = [
+                xp for xp in X_points_arr
+                if np.linalg.norm(xp - op) < proximity_tol
+            ]
+            isl = Island(
+                period_n=period_n,
+                O_point=op,
+                X_points=nearby_X,
+                halfwidth=float(hw),
+                level=level,
+                label=f"{label_prefix}[{idx}]",
+            )
+            islands.append(isl)
+
+        return cls(m=m, n=n, islands=islands, connected=True, level=level)
+
+    def split_into_subchains(
+        self,
+        connectivity_groups: List[List[int]],
+    ) -> None:
+        """Mark this chain as disconnected and populate ``subchains``.
+
+        Parameters
+        ----------
+        connectivity_groups : list of list of int
+            Each inner list contains the *indices* (into ``self.islands``) of
+            the islands that form one connected sub-chain.
+
+        Raises
+        ------
+        ValueError
+            If any index is out of range or indices overlap.
+        """
+        all_indices = [i for grp in connectivity_groups for i in grp]
+        if len(all_indices) != len(set(all_indices)):
+            raise ValueError("connectivity_groups contains overlapping indices.")
+        if any(i < 0 or i >= len(self.islands) for i in all_indices):
+            raise ValueError("Index out of range in connectivity_groups.")
+
+        self.connected = False
+        self.subchains = []
+        for grp in connectivity_groups:
+            sub_islands = [self.islands[i] for i in grp]
+            sub = IslandChain(
+                m=self.m,
+                n=self.n,
+                islands=sub_islands,
+                connected=True,
+                level=self.level,
+            )
+            self.subchains.append(sub)
 
 
 # ---------------------------------------------------------------------------

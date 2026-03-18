@@ -7,7 +7,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from pyna.MCF.equilibrium.stellarator import SimpleStellarartor, simple_stellarator
+from pyna.MCF.equilibrium.stellarator import StellaratorSimple, simple_stellarator
 from pyna.topo.cycle import find_cycle
 from pyna.topo.manifold_improve import StableManifold, UnstableManifold
 from pyna.MCF.visual.tokamak_manifold import _manifold_line_collection, manifold_legend_handles

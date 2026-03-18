@@ -6,7 +6,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from pyna.MCF.equilibrium.stellarator import SimpleStellarartor
+from pyna.MCF.equilibrium.stellarator import StellaratorSimple
 from pyna.MCF.coils.coil_system import StellaratorControlCoils, Biot_Savart_field
 from pyna.MCF.control.island_control import (
     compute_resonant_amplitude, _natural_perturbation_func,
@@ -18,7 +18,7 @@ N_COILS = 16
 R_COIL = 0.38
 I0_COIL = 500.0
 
-stella = SimpleStellarartor(R0=3.0, r0=0.3, B0=1.0, q0=0.75, q1=1.5, m_h=4, n_h=3, epsilon_h=0.05)
+stella = StellaratorSimple(R0=3.0, r0=0.3, B0=1.0, q0=0.75, q1=1.5, m_h=4, n_h=3, epsilon_h=0.05)
 control_coils = StellaratorControlCoils(
     R0=stella.R0, r_coil=R_COIL, N_coils=N_COILS,
     m_target=TARGET_M, n_target=TARGET_N, I0=I0_COIL,

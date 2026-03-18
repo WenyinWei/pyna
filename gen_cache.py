@@ -7,7 +7,7 @@ import numpy as np
 import json, pathlib
 
 # ---- Poincare cache ----
-from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium, solovev_iter_like
+from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev, solovev_iter_like
 from pyna.topo.poincare import PoincareMap, ToroidalSection, poincare_from_fieldlines
 from pyna.flt import FieldLineTracer, get_backend
 from pyna.topo.island import locate_rational_surface, island_halfwidth
@@ -26,12 +26,12 @@ psi_res = S_res**2
 delta_b = 5e-3
 m_rmp, n_rmp = 2, 1
 
-def rmp_BR(R, Z, phi):
+def RMP_BR(R, Z, phi):
     psi_n = eq.psi(np.atleast_1d(R), np.atleast_1d(Z))
     envelope = psi_n * (1 - psi_n)
     return delta_b * eq.B0 * envelope * np.cos(m_rmp * np.arctan2(Z - Z_ax, R - R_ax) - n_rmp * phi)
 
-def rmp_BZ(R, Z, phi):
+def RMP_BZ(R, Z, phi):
     psi_n = eq.psi(np.atleast_1d(R), np.atleast_1d(Z))
     envelope = psi_n * (1 - psi_n)
     return delta_b * eq.B0 * envelope * np.sin(m_rmp * np.arctan2(Z - Z_ax, R - R_ax) - n_rmp * phi)
@@ -40,8 +40,8 @@ def field_func(rzphi):
     R, Z, phi = float(rzphi[0]), float(rzphi[1]), float(rzphi[2])
     BR, BZ = eq.BR_BZ(np.array([R]), np.array([Z]))
     Bphi  = eq.Bphi(np.array([R]))
-    BR_t = float(BR[0]) + rmp_BR(R, Z, phi)
-    BZ_t = float(BZ[0]) + rmp_BZ(R, Z, phi)
+    BR_t = float(BR[0]) + RMP_BR(R, Z, phi)
+    BZ_t = float(BZ[0]) + RMP_BZ(R, Z, phi)
     Bp_t = float(Bphi[0])
     B_mag = np.sqrt(BR_t**2 + BZ_t**2 + Bp_t**2) + 1e-30
     return np.array([BR_t/B_mag, BZ_t/B_mag, Bp_t/(R*B_mag)])

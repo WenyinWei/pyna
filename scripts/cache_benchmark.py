@@ -16,7 +16,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
+from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev
 from pyna.control._cached_fpt import CachedFPTAnalyzer
 from pyna.control.fpt import A_matrix as raw_A_matrix, DPm_axisymmetric
 
@@ -37,7 +37,7 @@ def make_coil_field(scale=1e-4):
         return np.array([scale / R, 0.0, 0.0])
     return coil
 
-eq = SolovevEquilibrium(R0=6.2, a=2.0, B0=5.3, kappa=1.7, delta=0.33, q0=1.5)
+eq = EquilibriumSolovev(R0=6.2, a=2.0, B0=5.3, kappa=1.7, delta=0.33, q0=1.5)
 field_func = make_field_func(eq)
 
 R_test = 6.2

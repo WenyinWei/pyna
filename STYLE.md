@@ -23,12 +23,12 @@ even inside `snake_case` identifiers.
 **Rule:** If it's an acronym or contains a person's name → preserve its conventional capitalization
 in both Python identifiers and prose.
 
-**Backwards compatibility:** When renaming a public function, keep an alias:
+**Backwards compatibility:** This codebase has a single owner. Do **not** add
+lowercase aliases. Rename the function and update **all** call sites immediately.
 ```python
+# ✅ Correct: rename in place, update all callers
 def Biot_Savart_field(...):
     ...
-
-biot_savart_field = Biot_Savart_field  # backwards-compat alias
 ```
 
 ---
@@ -151,7 +151,7 @@ feat(topo): add ftle_field for chaotic region detection
 fix(tutorial): rename J→DP for Poincaré map Jacobian
 fix(naming): Biot_Savart capitalization per scientific convention
 docs(api): add Grad_Shafranov module docstring
-refactor(coils): Biot_Savart_field with backwards-compat alias
+refactor(coils): rename all rmp_ functions to RMP_ (no compat aliases)
 ```
 
 ---
@@ -171,13 +171,23 @@ This keeps related classes adjacent in IDE autocomplete and `dir()` output.
 | `VectorPotentialField` | `CoilFieldVectorPotential` | CoilField is the noun; vector-potential is the method |
 | `AxiSymmetricVectorField3D` | `VectorField3DAxiSymmetric` | `3D` before `AxiSymmetric`: dimensionality is prerequisite for symmetry |
 | `AxiSymmetricScalarField3D` | `ScalarField3DAxiSymmetric` | same: you must first know it's 3D, then constrain to axisymmetric |
+| `CylindricalVectorField3D` | `VectorField3DCylindrical` | VectorField is the noun; Cylindrical is the coord-system qualifier |
+| `CylindricalScalarField3D` | `ScalarField3DCylindrical` | ScalarField is the noun; Cylindrical is the coord-system qualifier |
+| `CylindricalGridVectorField3D` | `VectorField3DCylindrical` | same rule; "Grid" is implicit in "Cylindrical" (regular grid) |
+| `CylindricalCoords3D` | `Coords3DCylindrical` | Coords is the noun; 3D is the dimension; Cylindrical is the geometry |
+| `SphericalCoords3D` | `Coords3DSpherical` | same ordering rule |
+| `VacuumCoilField` | `CoilFieldVacuum` | CoilField is the noun; Vacuum is the physics qualifier |
+| `SuperpositionField` | `CoilFieldSuperposition` | CoilField is the noun; Superposition is the method |
+| `AxisymEquilibrium` | `EquilibriumAxisym` | Equilibrium is the noun; Axisym(metric) is the qualifier |
+| `SolovevEquilibrium` | `EquilibriumSolovev` | Equilibrium is the noun; Solov'ev is the (proper-name) qualifier |
+| `SimpleStellarartor` | `StellaratorSimple` | Stellarator is the noun; Simple is the variant qualifier (also fixes typo) |
 
 **Qualifier ordering principle:** Ask "does qualifier A need to exist before qualifier B makes sense?" If yes, A comes first. Examples:
 - `3D` before `AxiSymmetric` — axisymmetry is a constraint on a 3D space; without 3D there is no axisymmetry to speak of
-- `Cylindrical` before `AxiSymmetric` — `VectorFieldCylindrical3DAxiSymmetric` if fully spelled out
+- `3D` before `Cylindrical` — cylindrical coordinates describe a 3D space
 - Backend type (e.g. `CUDA`) is always last — it's the most incidental qualifier
 
-**Why:** When you type `CoilField` in your IDE, you immediately see all coil field variants together. When you type `FieldLineTracer`, you see CPU and CUDA backends side by side. Consistent qualifier ordering makes the hierarchy readable without opening the source.
+**Single canonical hierarchy.** If a class already exists in the canonical hierarchy (`pyna.fields`), do **not** create a parallel class elsewhere. Instead extend or import from the canonical source. The `pyna.MCF.coils.field` module is a thin re-export layer only.
 
 **No backward-compat aliases.** Rename and update all call sites immediately.
 
@@ -196,4 +206,53 @@ Stable manifold        →  W^s, GnBu colormap
 Unstable manifold      →  W^u, Oranges colormap
 Island island width    →  w_mn or island_width
 Lundquist number       →  S  (capital S, not lundquist)
+Connection length      →  Lc  (forward: Lc_plus, backward: Lc_minus, total: Lc_sum)
+No compat aliases      →  rename and update all call sites immediately (no snake_case shims)
+```
+
+---
+
+## 10. Trajectory vs. Orbit Terminology
+
+Distinguish the two types of solution curves depending on whether time is continuous or discrete.
+
+| English term | Chinese term | System type | Examples in pyna |
+|---|---|---|---|
+| **trajectory** | **轨道** | Continuous-time systems (ODEs, field-line flow) | Field-line tracer, guiding-centre orbit, `flt.py` solutions |
+| **orbit** | **踪迹** | Discrete-time systems (maps, Poincaré iterates) | Poincaré map iterates, standard map, Hénon map |
+| **orbit** | **轨迹** | Both (or unspecified) | Generic dynamical-systems contexts |
+
+**Rules:**
+
+- Use `trajectory` / `轨道` when the underlying system has **continuous time** (an ODE or flow).
+- Use `orbit` / `踪迹` when the underlying system is a **discrete map** (iterating a Poincaré section, a symplectic map, etc.).
+- When a statement applies to **both** continuous and discrete systems, or when the distinction is not relevant, use `orbit` in English and `轨迹` in Chinese.
+
+**In code:**
+
+```python
+# ✅ Correct — field-line tracing is continuous time
+def trace_trajectory(field, x0, phi_span): ...
+
+# ✅ Correct — Poincaré section iterates are discrete time
+def compute_orbit(poincare_map, x0, n_iterations): ...
+
+# ✅ Correct — generic context valid for both
+def plot_orbit(pts, ax): ...   # applies to any type of solution curve
+
+# ❌ Wrong — do not call Poincaré iterates "trajectories"
+def compute_trajectory(poincare_map, x0, n_iterations): ...
+```
+
+**Variable naming:**
+
+```python
+# Continuous-time solution
+trajectory_RZPhi = flt.trace(field, x0, phi_span)
+
+# Discrete-time Poincaré iterates
+orbit_RZ = poincare_map.iterate(x0, n=100)
+
+# Generic (both)
+orbit_pts = ...          # acceptable in mixed or unspecified contexts
 ```

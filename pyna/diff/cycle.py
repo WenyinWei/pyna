@@ -1,11 +1,11 @@
 from pyna.diff.fieldline import _FieldDifferenatiableRZ
-from pyna.MCF.coils.field import RegualrCylindricalGridField
+from pyna.fields.cylindrical import VectorField3DCylindrical
 from scipy.integrate import solve_ivp
 import numpy as np
 
 from deprecated import deprecated
 
-def Jac_evolution_along_cycle(afield:RegualrCylindricalGridField, Xcycle_RZdiff, Phi_span):
+def Jac_evolution_along_cycle(afield:VectorField3DCylindrical, Xcycle_RZdiff, Phi_span):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
     
     Phi_start, Phi_end = Phi_span[0], Phi_span[-1]
@@ -46,7 +46,7 @@ def Jac_evolution_along_cycle(afield:RegualrCylindricalGridField, Xcycle_RZdiff,
 
 
 @deprecated(reason="This function is not reliable to point out the right eigenvector directions. Test it later. Enhancement needed.")
-def Jac_theta_val_evolution_along_Xcycle(afield:RegualrCylindricalGridField, Xcycle_RZdiff, Phi_span):
+def Jac_theta_val_evolution_along_Xcycle(afield:VectorField3DCylindrical, Xcycle_RZdiff, Phi_span):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
 
     jac_sol = Jac_evolution_along_cycle(afield, Xcycle_RZdiff, Phi_span)
@@ -187,7 +187,7 @@ def eigvec_interpolator_along_Xcycle(Jac_evosol_along_Xcycle):
     
     
 @deprecated(version='0.1.0', reason="Numerical blow up, unstoppable computation. Never reach the end.")
-def Jac_theta_evolution(afield:RegualrCylindricalGridField, Xcycle_RZdiff, Phi_span ):
+def Jac_theta_evolution(afield:VectorField3DCylindrical, Xcycle_RZdiff, Phi_span ):
     """_summary_
 
     Args:

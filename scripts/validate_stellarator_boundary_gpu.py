@@ -1,6 +1,6 @@
 """GPU-accelerated stellarator boundary island visualization.
 
-Uses SimpleStellarartor with edge q-profile for island divertor topology.
+Uses StellaratorSimple with edge q-profile for island divertor topology.
 q=5/1 resonance near plasma edge.
 """
 from __future__ import annotations
@@ -15,15 +15,15 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from pyna.MCF.equilibrium.stellarator import SimpleStellarartor
+from pyna.MCF.equilibrium.stellarator import StellaratorSimple
 from pyna.topo.island_extract import extract_island_width
 
 
 # ---------------------------------------------------------------------------
 # 1. Build stellarator
 # ---------------------------------------------------------------------------
-print("Building SimpleStellarartor (q0=1.5, q1=5.5, edge q=5/1 island)...")
-st = SimpleStellarartor(
+print("Building StellaratorSimple (q0=1.5, q1=5.5, edge q=5/1 island)...")
+st = StellaratorSimple(
     R0=3.0, r0=0.35, B0=1.0,
     q0=1.5, q1=5.5,
     m_h=5, n_h=1,

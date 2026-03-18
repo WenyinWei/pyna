@@ -60,7 +60,7 @@ def compute_resonant_amplitude(
         Normalised flux coordinate of the resonant surface (ψ_norm ∈ [0,1]).
     m, n : int
         Poloidal and toroidal mode numbers.
-    equilibrium : SimpleStellarartor
+    equilibrium : StellaratorSimple
         The equilibrium object (provides R0, r0).
     n_theta, n_phi : int
         Number of integration points in each angle.
@@ -200,7 +200,7 @@ def island_suppression_current(
 
     Parameters
     ----------
-    stellarator : SimpleStellarartor
+    stellarator : StellaratorSimple
     control_coils : StellaratorControlCoils
     target_m, target_n : int
     monitor_modes : list of (m, n)
@@ -340,7 +340,7 @@ def phase_control_current(
 
     Parameters
     ----------
-    stellarator : SimpleStellarartor
+    stellarator : StellaratorSimple
     control_coils : StellaratorControlCoils
     target_m, target_n : int
     desired_phase_shift : float
@@ -420,7 +420,7 @@ def multi_mode_control(
 
     Parameters
     ----------
-    stellarator : SimpleStellarartor
+    stellarator : StellaratorSimple
     control_coils : CoilSet
     target_modes : list of (m, n)
         All modes to minimize simultaneously.

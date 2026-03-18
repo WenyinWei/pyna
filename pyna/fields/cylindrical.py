@@ -3,8 +3,8 @@
 These replace (and are backward-compatible with):
   - pyna.field_data.CylindricalScalarField
   - pyna.field_data.CylindricalVectorField
-  - pyna.MCF.coils.field.CylindricalGridVectorField3D
-  - pyna.MCF.coils.field.CylindricalGridAxiVectorField3D
+  - pyna.MCF.coils.field.VectorField3DCylindrical (eliminated, now canonical)
+  - pyna.MCF.coils.field.VectorField3DAxiSymmetric (eliminated, now canonical)
 """
 from __future__ import annotations
 from typing import Optional, Tuple
@@ -12,10 +12,10 @@ import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 from pyna.fields.base import ScalarField3D, VectorField3D
 from pyna.fields.properties import FieldProperty
-from pyna.fields.coords import CylindricalCoords3D as _CylCoords3D
+from pyna.fields.coords import Coords3DCylindrical as _CylCoords3D
 
 
-class CylindricalScalarField3D(ScalarField3D):
+class ScalarField3DCylindrical(ScalarField3D):
     """Scalar field f(R, Z, φ) on a regular cylindrical grid.
 
     Replaces pyna.field_data.CylindricalScalarField.
@@ -97,19 +97,19 @@ class CylindricalScalarField3D(ScalarField3D):
                             name=self.name, units=self.units)
 
     @classmethod
-    def from_npz(cls, path: str) -> "CylindricalScalarField3D":
+    def from_npz(cls, path: str) -> "ScalarField3DCylindrical":
         d = np.load(path, allow_pickle=True)
         return cls(R=d['R'], Z=d['Z'], Phi=d['Phi'], value=d['value'],
                    field_periods=int(d.get('field_periods', 1)),
                    name=str(d.get('name', '')), units=str(d.get('units', '')))
 
 
-class CylindricalVectorField3D(VectorField3D):
+class VectorField3DCylindrical(VectorField3D):
     """Vector field (BR, BZ, BPhi)(R, Z, φ) on a regular cylindrical grid.
 
     Replaces BOTH:
       - pyna.field_data.CylindricalVectorField  (VR/VZ/VPhi naming)
-      - pyna.MCF.coils.field.CylindricalGridVectorField3D (BR/BZ/BPhi naming)
+      - pyna.MCF.coils.field.VectorField3DCylindrical (eliminated, now canonical) (BR/BZ/BPhi naming)
 
     Both naming conventions are supported via properties.
 
@@ -262,7 +262,7 @@ class CylindricalVectorField3D(VectorField3D):
                             name=self.name, units=self.units)
 
     @classmethod
-    def from_npz(cls, path: str) -> "CylindricalVectorField3D":
+    def from_npz(cls, path: str) -> "VectorField3DCylindrical":
         d = np.load(path, allow_pickle=True)
         # Support both VR/VZ/VPhi and BR/BZ/BPhi keys
         VR = d.get('VR', d.get('BR'))
@@ -273,7 +273,7 @@ class CylindricalVectorField3D(VectorField3D):
                    name=str(d.get('name', '')), units=str(d.get('units', '')))
 
 
-class VectorField3DAxiSymmetric(CylindricalVectorField3D):
+class VectorField3DAxiSymmetric(VectorField3DCylindrical):
     """Axisymmetric vector field: components depend only on (R, Z)."""
 
     def __init__(self, R, Z, VR_2d, VZ_2d, VPhi_2d,
@@ -298,7 +298,7 @@ class VectorField3DAxiSymmetric(CylindricalVectorField3D):
         return super().interpolate_at(R, Z, Phi_zero)
 
 
-class ScalarField3DAxiSymmetric(CylindricalScalarField3D):
+class ScalarField3DAxiSymmetric(ScalarField3DCylindrical):
     """Axisymmetric scalar field: value depends only on (R, Z)."""
 
     def __init__(self, R, Z, value_2d, name="", units="", properties=FieldProperty.NONE):

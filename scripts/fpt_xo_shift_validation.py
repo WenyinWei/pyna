@@ -25,7 +25,7 @@ import joblib
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium, _eval_psi_cf, _eval_grad_cf
+from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev, _eval_psi_cf, _eval_grad_cf
 from pyna.control.fpt import A_matrix, cycle_shift, delta_g_from_delta_B
 
 # ---------------------------------------------------------------------------
@@ -40,7 +40,7 @@ memory = joblib.Memory(location=_CACHE_DIR, verbose=0)
 EQ_PARAMS = dict(R0=1.86, a=0.6, B0=5.3, kappa=1.7, delta=0.33, q0=3.0)
 
 def make_equilibrium():
-    return SolovevEquilibrium(**EQ_PARAMS)
+    return EquilibriumSolovev(**EQ_PARAMS)
 
 # ---------------------------------------------------------------------------
 # PF coil definitions: 8 coils, 4 upper + 4 lower, well outside plasma
@@ -87,7 +87,7 @@ def circular_coil_field(R_coil: float, Z_coil: float, I_coil: float,
 # ---------------------------------------------------------------------------
 # Field functions for FPT
 # ---------------------------------------------------------------------------
-def make_field_func(eq: SolovevEquilibrium):
+def make_field_func(eq: EquilibriumSolovev):
     """Return field_func(rzphi) -> [BR/|B|, BZ/|B|, Bphi/(R|B|)]."""
     def field_func(rzphi):
         R, Z, phi = rzphi
@@ -98,7 +98,7 @@ def make_field_func(eq: SolovevEquilibrium):
     return field_func
 
 
-def make_field_func_perturbed(eq: SolovevEquilibrium,
+def make_field_func_perturbed(eq: EquilibriumSolovev,
                                coil_R: float, coil_Z: float, delta_I: float):
     """Return field_func with PF coil perturbation added."""
     def field_func_pert(rzphi):
@@ -115,7 +115,7 @@ def make_field_func_perturbed(eq: SolovevEquilibrium,
 # ---------------------------------------------------------------------------
 # Critical point finder: minimize |B_pol|²
 # ---------------------------------------------------------------------------
-def find_critical_point(eq: SolovevEquilibrium, R0: float, Z0: float):
+def find_critical_point(eq: EquilibriumSolovev, R0: float, Z0: float):
     """Find critical point (B_pol = 0) starting from (R0, Z0)."""
     def obj(rz):
         R, Z = rz
@@ -128,7 +128,7 @@ def find_critical_point(eq: SolovevEquilibrium, R0: float, Z0: float):
     return result.x
 
 
-def find_critical_point_perturbed(eq: SolovevEquilibrium,
+def find_critical_point_perturbed(eq: EquilibriumSolovev,
                                    coil_R: float, coil_Z: float, delta_I: float,
                                    R0: float, Z0: float):
     """Find critical point of Bpol in perturbed field using fsolve for accuracy."""
@@ -164,7 +164,7 @@ def find_critical_point_perturbed(eq: SolovevEquilibrium,
 @memory.cache
 def _cached_find_critical_points(eq_params_tuple):
     """Find X-point and O-point of the Solov'ev equilibrium (cached)."""
-    eq = SolovevEquilibrium(**dict(zip(
+    eq = EquilibriumSolovev(**dict(zip(
         ['R0', 'a', 'B0', 'kappa', 'delta', 'q0'], eq_params_tuple
     )))
     # O-point: magnetic axis ≈ (R0, 0)
@@ -186,7 +186,7 @@ def _cached_coil_field_at_point(R_coil, Z_coil, I_coil, R_pt, Z_pt):
 @memory.cache
 def _cached_A_matrix(eq_params_tuple, R_cyc, Z_cyc):
     """Cached A-matrix at a cycle position."""
-    eq = SolovevEquilibrium(**dict(zip(
+    eq = EquilibriumSolovev(**dict(zip(
         ['R0', 'a', 'B0', 'kappa', 'delta', 'q0'], eq_params_tuple
     )))
     field_func = make_field_func(eq)
@@ -197,7 +197,7 @@ def _cached_A_matrix(eq_params_tuple, R_cyc, Z_cyc):
 def _cached_perturbed_critical_point(eq_params_tuple, coil_R, coil_Z, delta_I,
                                       R0, Z0):
     """Cached numerical finite-difference X/O-point position under perturbation."""
-    eq = SolovevEquilibrium(**dict(zip(
+    eq = EquilibriumSolovev(**dict(zip(
         ['R0', 'a', 'B0', 'kappa', 'delta', 'q0'], eq_params_tuple
     )))
     result = find_critical_point_perturbed(eq, coil_R, coil_Z, delta_I, R0, Z0)
@@ -207,7 +207,7 @@ def _cached_perturbed_critical_point(eq_params_tuple, coil_R, coil_Z, delta_I,
 # ---------------------------------------------------------------------------
 # FPT prediction
 # ---------------------------------------------------------------------------
-def fpt_shift(eq: SolovevEquilibrium, R_cyc: float, Z_cyc: float,
+def fpt_shift(eq: EquilibriumSolovev, R_cyc: float, Z_cyc: float,
               coil_R: float, coil_Z: float, delta_I: float,
               A_mat: np.ndarray) -> np.ndarray:
     """Compute FPT-predicted cycle shift for a single coil perturbation."""
@@ -226,7 +226,7 @@ def fpt_shift(eq: SolovevEquilibrium, R_cyc: float, Z_cyc: float,
 @functools.lru_cache(maxsize=4)
 def _get_lcfs_contour(eq_params_tuple):
     """Return (R, Z) arrays for the LCFS contour (cached via lru_cache)."""
-    eq = SolovevEquilibrium(**dict(zip(
+    eq = EquilibriumSolovev(**dict(zip(
         ['R0', 'a', 'B0', 'kappa', 'delta', 'q0'], eq_params_tuple
     )))
     R_arr = np.linspace(0.8, 3.0, 800)

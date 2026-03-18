@@ -382,7 +382,7 @@ def find_all_cycles_near_resonance(
     Parameters
     ----------
     field_func : callable
-    equilibrium : SimpleStellarartor or similar
+    equilibrium : StellaratorSimple or similar
         Must have ``resonant_psi(m, n)`` and ``R0``, ``r0`` attributes.
     m, n : int
         Mode numbers defining the resonance q = m/n.

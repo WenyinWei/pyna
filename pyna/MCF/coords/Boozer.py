@@ -88,7 +88,7 @@ def build_Boozer_mesh(S, TET, R_mesh, Z_mesh, q_iS,
         Magnetic field components on the PEST mesh.
         At least one of these or ``equilibrium`` must be provided.
         If None, ``equilibrium.BR_BZ`` and ``equilibrium.Bphi`` are used.
-    equilibrium : SolovevEquilibrium or compatible, optional
+    equilibrium : EquilibriumSolovev or compatible, optional
         Used to compute B fields when B_R / B_Z / B_Phi are None.
     n_theta : int
         Number of poloidal points in the output.

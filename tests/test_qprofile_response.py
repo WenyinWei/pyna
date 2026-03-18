@@ -13,7 +13,7 @@ from pyna.MCF.control.qprofile_response import (
     iota_response_matrix,
     build_qprofile_response,
 )
-from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium, solovev_iter_like
+from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev, solovev_iter_like
 
 
 # ── fixtures ──────────────────────────────────────────────────────────────
@@ -21,11 +21,11 @@ from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium, solovev_iter_like
 @pytest.fixture(scope="module")
 def eq():
     """Small EAST-like Solov'ev equilibrium for fast tests."""
-    return SolovevEquilibrium(R0=1.86, a=0.6, B0=2.5, kappa=1.7, delta=0.3, q0=2.0)
+    return EquilibriumSolovev(R0=1.86, a=0.6, B0=2.5, kappa=1.7, delta=0.3, q0=2.0)
 
 
 def make_field_func(eq):
-    """Wrap SolovevEquilibrium into a unified field callable."""
+    """Wrap EquilibriumSolovev into a unified field callable."""
     def field(x):
         R, Z = float(x[0]), float(x[1])
         BR, BZ = eq.BR_BZ(R, Z)

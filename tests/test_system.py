@@ -33,8 +33,8 @@ class _ConcreteVF3D(VectorField3D):
 
 
 class _ConcreteAxiVF3D(VectorField3DAxiSymmetric):
-    def __call__(self, rzphi, t=None):
-        return (0.0, 0.0, 1.0)
+    """Minimal concrete subclass for MRO checks; inherits __init__(R, Z, VR_2d, VZ_2d, VPhi_2d, ...)."""
+    pass
 
 
 # ---------------------------------------------------------------------------
@@ -88,7 +88,11 @@ def test_vf3d_mro():
 
 
 def test_axisym_mro():
-    vf = _ConcreteAxiVF3D()
+    import numpy as np
+    R = np.linspace(1.0, 2.0, 5)
+    Z = np.linspace(-0.5, 0.5, 5)
+    zero = np.zeros((5, 5))
+    vf = _ConcreteAxiVF3D(R, Z, zero, zero, np.ones((5, 5)))
     assert isinstance(vf, VectorField3DAxiSymmetric)
     assert isinstance(vf, VectorField3D)
     assert isinstance(vf, VectorField)

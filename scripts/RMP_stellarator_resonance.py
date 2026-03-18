@@ -26,7 +26,7 @@ plt.rcParams.update({
     'axes.facecolor': 'white',
 })
 
-from pyna.MCF.equilibrium.stellarator import SimpleStellarartor, simple_stellarator
+from pyna.MCF.equilibrium.stellarator import StellaratorSimple, simple_stellarator
 from pyna.MCF.visual.RMP_spectrum import (
     find_resonant_components_analytic, island_fixed_points, ISLAND_CMAPS
 )
@@ -67,7 +67,7 @@ print(f"  Found {len(components)} resonant components")
 # eq.field_func(rzphi) returns (dR/ds, dZ/ds, dphi/ds) unit tangent
 # We need to add the RMP perturbation to BR and BZ before normalizing
 
-def field_func_with_rmp(rzphi_1d):
+def field_func_with_RMP(rzphi_1d):
     """field_func = unit tangent dRZphi/ds, with RMP added to BR, BZ."""
     rzphi_1d = np.asarray(rzphi_1d, dtype=float)
     R, Z, phi = rzphi_1d[0], rzphi_1d[1], rzphi_1d[2]
@@ -128,7 +128,7 @@ print(f"[3] Tracing Poincar maps: {len(R_starts)} field lines × {n_turns} turns
 print(f"    t_max={t_max:.1f} m, dt={dt}, steps/line={int(t_max/dt)}")
 
 pmap = poincare_from_fieldlines(
-    field_func_with_rmp,
+    field_func_with_RMP,
     start_pts,
     sections,
     t_max=t_max,

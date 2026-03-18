@@ -71,7 +71,7 @@ def neoclassical_epsilon_eff(
     on flux surface s.
     """
     # For stellarators we can estimate from helical ripple directly
-    # epsilon_h is already stored on SimpleStellarartor
+    # epsilon_h is already stored on StellaratorSimple
     if hasattr(equilibrium, 'epsilon_h'):
         # Geometric estimate: eps_eff ≈ 0.64 * epsilon_h^(3/2) for helical devices
         # (Nemov et al. 1999 scaling)

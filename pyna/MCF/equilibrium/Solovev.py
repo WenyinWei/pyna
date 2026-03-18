@@ -2,7 +2,7 @@
 
 Provides
 --------
-* :class:`SolovevEquilibrium` — up-down symmetric Solov'ev equilibrium
+* :class:`EquilibriumSolovev` — up-down symmetric Solov'ev equilibrium
   with shaped cross-section (elongation κ, triangularity δ).
 * :func:`solovev_iter_like` — factory for a scaled ITER-like configuration.
 
@@ -271,7 +271,7 @@ def _eval_grad_cf(R_norm, Z_norm, c, A):
 # Main class
 # ---------------------------------------------------------------------------
 
-class SolovevEquilibrium:
+class EquilibriumSolovev:
     r"""Cerfon & Freidberg (2010) up-down-symmetric Solov'ev equilibrium.
 
     The poloidal flux function is
@@ -924,7 +924,7 @@ def solovev_single_null(
     kappa_x: float = 1.5,
     q0: float = 1.5,
     A: float = 0.0,
-) -> SolovevEquilibrium:
+) -> EquilibriumSolovev:
     """Create a **single-null divertor** Solov'ev equilibrium.
 
     The lower X-point is placed on the last closed flux surface by choosing
@@ -957,7 +957,7 @@ def solovev_single_null(
 
     Returns
     -------
-    SolovevEquilibrium
+    EquilibriumSolovev
         An equilibrium whose lower separatrix X-point satisfies B_pol ≈ 0
         and ψ_norm ≈ 1.
 
@@ -973,7 +973,7 @@ def solovev_single_null(
     )
 
     # Build the equilibrium using the up-down-symmetric class (same basis)
-    eq = SolovevEquilibrium(
+    eq = EquilibriumSolovev(
         R0=R0, a=a, B0=B0,
         kappa=kappa, delta=delta_u,
         q0=q0, A=A,
@@ -988,7 +988,7 @@ def solovev_single_null(
     return eq
 
 
-def solovev_iter_like(scale: float = 1.0) -> SolovevEquilibrium:
+def solovev_iter_like(scale: float = 1.0) -> EquilibriumSolovev:
     """Create a scaled ITER-like Solov'ev equilibrium.
 
     Parameters
@@ -999,9 +999,9 @@ def solovev_iter_like(scale: float = 1.0) -> SolovevEquilibrium:
 
     Returns
     -------
-    SolovevEquilibrium
+    EquilibriumSolovev
     """
-    return SolovevEquilibrium(
+    return EquilibriumSolovev(
         R0=6.2 * scale,
         a=2.0 * scale,
         B0=5.3,
