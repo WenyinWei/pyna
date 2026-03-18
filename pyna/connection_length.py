@@ -65,6 +65,8 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 import numpy as np
 from numpy import ndarray
 
+from pyna.progress import TraceProgressBase, _coerce_progress
+
 # ---------------------------------------------------------------------------
 # Module-level numerical constants
 # ---------------------------------------------------------------------------
@@ -285,6 +287,7 @@ def connection_length(
     max_turns: float = 500.0,
     dphi: float = 0.05,
     n_workers: Optional[int] = None,
+    progress: Optional[TraceProgressBase] = None,
 ) -> Dict[str, ndarray]:
     """Compute connection lengths for a set of starting points in cylindrical coords.
 
@@ -328,6 +331,11 @@ def connection_length(
         but slower.  Default 0.05 (≈ 0.8°).
     n_workers : int or None
         Thread-pool size for parallel tracing.  ``None`` → auto-detect.
+    progress : TraceProgressBase or None
+        Optional progress reporter.  ``None`` → silent.  A
+        :class:`~pyna.progress.TqdmProgress` shows an interactive bar;
+        :class:`~pyna.progress.LogFileProgress` writes heartbeat records
+        for external staleness monitoring.
 
     Returns
     -------
@@ -409,6 +417,13 @@ def connection_length(
 
     workers = n_workers or min(os.cpu_count() or 4, 16)
 
+    # ── progress setup ───────────────────────────────────────────────────────
+    # Count: forward + backward traces.
+    n_traces = N * (2 if direction == "both" else 1)
+    prog = _coerce_progress(progress)
+    prog.start(n_traces, description="connection-length tracing")
+    _prog_counter = [0]   # mutable cell for closure; incremented under GIL
+
     # ── forward traces ───────────────────────────────────────────────────────
     def _fwd(i):
         arc, Rh, Zh, phih = _trace_to_wall(
@@ -417,6 +432,7 @@ def connection_length(
             R_wall, Z_wall,
             forward=True, max_turns=max_turns, dphi=dphi,
         )
+        prog.update(i, steps_done=-1)
         return arc, Rh, Zh, phih
 
     def _bwd(i):
@@ -426,6 +442,7 @@ def connection_length(
             R_wall, Z_wall,
             forward=False, max_turns=max_turns, dphi=dphi,
         )
+        prog.update(N + i, steps_done=-1)
         return arc, Rh, Zh, phih
 
     result: Dict[str, ndarray] = {}
@@ -451,6 +468,7 @@ def connection_length(
         result["L_max"] = np.maximum(L_plus, L_minus)
         result["L_min"] = np.minimum(L_plus, L_minus)
 
+    prog.close()
     return result
 
 

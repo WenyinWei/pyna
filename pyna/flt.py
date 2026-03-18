@@ -7,6 +7,21 @@ Parallelism strategy (Windows + Python 3.13 standard GIL build):
   use only when explicitly requested and field_func is picklable
 - CUDA: CuPy backend for GPU-accelerated batch tracing
 
+Progress reporting
+------------------
+All batch methods accept an optional ``progress=`` parameter.  Pass any
+:class:`~pyna.progress.TraceProgressBase` instance to receive per-task or
+aggregate progress updates::
+
+    from pyna.progress import TqdmProgress, LogFileProgress, CompositeProgress
+
+    # tqdm bar in CLI / notebook
+    tracer.trace_many(starts, t_max, progress=TqdmProgress())
+
+    # bar + log file simultaneously
+    prog = CompositeProgress([TqdmProgress(), LogFileProgress("run.jsonl")])
+    tracer.trace_many(starts, t_max, progress=prog)
+
 Legacy API
 ----------
 bundle_tracing_with_t_as_DeltaPhi(...)
@@ -31,6 +46,7 @@ from typing import Callable, List, Optional
 import numpy as np
 
 from pyna.MCF.coils.field import RegualrCylindricalGridField
+from pyna.progress import TraceProgressBase, _coerce_progress
 from scipy.interpolate import RegularGridInterpolator
 from scipy.integrate import OdeSolution, solve_ivp
 
@@ -231,6 +247,7 @@ class FieldLineTracer:
         start_pts,
         t_max: float,
         n_workers: Optional[int] = None,
+        progress: Optional[TraceProgressBase] = None,
     ) -> List[np.ndarray]:
         """Parallel field-line tracing using ThreadPoolExecutor.
 
@@ -249,6 +266,11 @@ class FieldLineTracer:
             Maximum arc-length for each field line.
         n_workers : int or None
             Override the default worker count.
+        progress : TraceProgressBase or None
+            Optional progress reporter.  ``None`` → silent.  Pass a
+            :class:`~pyna.progress.TqdmProgress` for an interactive bar or
+            :class:`~pyna.progress.LogFileProgress` to write a heartbeat
+            file for staleness monitoring.
 
         Returns
         -------
@@ -257,12 +279,22 @@ class FieldLineTracer:
         """
         start_pts = np.asarray(start_pts, dtype=float)
         workers = n_workers or self.n_workers
+        n_tasks = len(start_pts)
+        n_steps_planned = max(int(t_max / self.dt), 1)
 
-        def _trace_one(pt):
-            return self.trace(pt, t_max)
+        prog = _coerce_progress(progress)
+        prog.start(n_tasks, description="field-line tracing")
+
+        def _trace_one(args):
+            idx, pt = args
+            traj = self.trace(pt, t_max)
+            prog.update(idx, steps_done=-1, steps_total=n_steps_planned)
+            return traj
 
         with ThreadPoolExecutor(max_workers=workers) as executor:
-            results = list(executor.map(_trace_one, start_pts))
+            results = list(executor.map(_trace_one, enumerate(start_pts)))
+
+        prog.close()
         return results
 
     # ------------------------------------------------------------------

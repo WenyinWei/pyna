@@ -27,7 +27,8 @@ dependencies = [
 
 [project.optional-dependencies]
 cuda = ["cupy-cuda12x"]
-dev = ["pytest", "jupyter", "notebook"]
+dev = ["pytest", "jupyter", "notebook", "tqdm"]
+progress = ["tqdm>=4.60"]
 docs = [
     "sphinx>=7",
     "furo",
