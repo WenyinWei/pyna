@@ -433,8 +433,10 @@ def classify_fixed_point_higher_order(
     result = dict(J=J, T=None, det_J=det_J,
                   eigenvalues=eigvals, stability_index=stability_index)
 
-    # ── 1. Non-conservative branch (det deviates significantly from ±1) ──
+    # Shared tolerance for det and eigenvalue magnitude deviations from 1.
     _det_tol = 0.05
+
+    # ── 1. Non-conservative branch (det deviates significantly from ±1) ──
     if abs(det_J - 1.0) > _det_tol and abs(det_J + 1.0) > _det_tol:
         all_contracting = np.all(lam_abs < 1.0 - _det_tol)
         all_expanding   = np.all(lam_abs > 1.0 + _det_tol)
@@ -482,7 +484,9 @@ def classify_fixed_point_higher_order(
         else:
             result["type"] = "unknown"
     else:
-        if (abs(lam_abs[0] - 1.0) < 0.05 and abs(lam_abs[1] - 1.0) < 0.05):
+        # Elliptic: complex conjugate pair on the unit circle.
+        # Use the same _det_tol for eigenvalue magnitude deviation from 1.
+        if (abs(lam_abs[0] - 1.0) < _det_tol and abs(lam_abs[1] - 1.0) < _det_tol):
             result["type"] = "O"
         else:
             result["type"] = "unknown"

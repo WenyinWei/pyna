@@ -202,12 +202,15 @@ class IslandChain:
         islands: List[Island] = []
         label_prefix = f"{m}/{n}"
 
+        # Convert all X-points to arrays once to avoid repeated conversions
+        X_points_arr = [np.asarray(xp, dtype=float) for xp in X_points]
+
         for idx, (op, hw) in enumerate(zip(O_points, halfwidths)):
             op = np.asarray(op, dtype=float)
             # Associate the nearest X-points with this O-point
             nearby_X = [
-                xp for xp in X_points
-                if np.linalg.norm(np.asarray(xp, dtype=float) - op) < proximity_tol
+                xp for xp in X_points_arr
+                if np.linalg.norm(xp - op) < proximity_tol
             ]
             isl = Island(
                 period_n=period_n,
