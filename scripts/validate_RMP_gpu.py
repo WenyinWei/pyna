@@ -15,7 +15,7 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
+from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev
 from pyna.topo.island_extract import extract_island_width
 
 
@@ -23,7 +23,7 @@ from pyna.topo.island_extract import extract_island_width
 # 1. Build equilibrium with q0=3.0 (so q=4 is accessible inside LCFS)
 # ---------------------------------------------------------------------------
 print("Building Solov'ev equilibrium (q0=3.0)...")
-eq = SolovevEquilibrium(R0=6.2, a=2.0, B0=5.3, kappa=1.7, delta=0.33, q0=3.0)
+eq = EquilibriumSolovev(R0=6.2, a=2.0, B0=5.3, kappa=1.7, delta=0.33, q0=3.0)
 R_ax, Z_ax = eq.magnetic_axis
 print(f"  Magnetic axis: R={R_ax:.3f} m, Z={Z_ax:.3f} m")
 

@@ -2,9 +2,9 @@
 
 Provides:
 
-* :class:`AxisymEquilibrium` — abstract base for axisymmetric
+* :class:`EquilibriumAxisym` — abstract base for axisymmetric
   tokamak equilibria.
-* :class:`SyntheticCircularTokamakEquilibrium` — analytic model
+* :class:`EquilibriumTokamakCircularSynthetic` — analytic model
   suitable for software testing (no real experimental data required).
 * :func:`time_linear_weighting` — linear interpolation in a
   time series of equilibrium snapshots.
@@ -22,7 +22,7 @@ from scipy.interpolate import RegularGridInterpolator, interp1d
 # Abstract base
 # ---------------------------------------------------------------------------
 
-class AxisymEquilibrium(ABC):
+class EquilibriumAxisym(ABC):
     """Abstract base class for axisymmetric tokamak equilibria.
 
     Subclasses must supply the poloidal flux surface coordinate
@@ -108,7 +108,7 @@ class AxisymEquilibrium(ABC):
 # Synthetic equilibrium
 # ---------------------------------------------------------------------------
 
-class SyntheticCircularTokamakEquilibrium(AxisymEquilibrium):
+class EquilibriumTokamakCircularSynthetic(EquilibriumAxisym):
     r"""Analytic test equilibrium for a circular cross-section tokamak.
 
     Uses a simplified Solov'ev-like ψ profile:
@@ -193,7 +193,7 @@ class SyntheticCircularTokamakEquilibrium(AxisymEquilibrium):
         )
 
     # ------------------------------------------------------------------
-    # AxisymEquilibrium interface
+    # EquilibriumAxisym interface
     # ------------------------------------------------------------------
 
     @property

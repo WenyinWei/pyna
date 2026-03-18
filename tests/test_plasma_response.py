@@ -13,7 +13,7 @@ import numpy as np
 import pytest
 
 from pyna.field_data import CylindricalVectorField, CylindricalScalarField
-from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium, solovev_iter_like
+from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev, solovev_iter_like
 from pyna.MCF.plasma_response import solve_perturbed_gs, compute_plasma_response
 from pyna.MCF.plasma_response.PerturbGS import (
     _make_axi_vector_field,
@@ -29,7 +29,7 @@ from pyna.MCF.plasma_response.PerturbGS import (
 @pytest.fixture(scope="module")
 def small_eq():
     """Small Solov'ev equilibrium (EAST-sized) for fast tests."""
-    return SolovevEquilibrium(R0=1.85, a=0.45, B0=2.0, kappa=1.6, delta=0.3, q0=1.5)
+    return EquilibriumSolovev(R0=1.85, a=0.45, B0=2.0, kappa=1.6, delta=0.3, q0=1.5)
 
 
 @pytest.fixture(scope="module")

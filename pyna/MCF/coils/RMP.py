@@ -104,7 +104,7 @@ def island_width_at_rational_surfaces(
         Normalised RMP spectrum, shape ``(nS, nTheta, nPhi_rfft)``,
         as returned by :func:`RMP_spectrum_2d`.
     equilibrium:
-        An :class:`~pyna.mag.equilibrium.AxisymEquilibrium` instance
+        An :class:`~pyna.mag.equilibrium.EquilibriumAxisym` instance
         providing ``.S`` and ``.q(S)``.
     m_max:
         Maximum poloidal mode number.

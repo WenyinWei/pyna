@@ -5,7 +5,7 @@ Run with:  py -3.13 -m pytest tests/test_fpt.py -v
 
 import numpy as np
 import pytest
-from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
+from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -14,11 +14,11 @@ from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
 
 def solovev_iter_like():
     """Return an ITER-like Solov'ev equilibrium (same as test_solovev fixture)."""
-    return SolovevEquilibrium(R0=6.2, a=2.0, kappa=1.7, delta=0.33, B0=5.3, A=1.0)
+    return EquilibriumSolovev(R0=6.2, a=2.0, kappa=1.7, delta=0.33, B0=5.3, A=1.0)
 
 
-def make_field_func(eq: SolovevEquilibrium):
-    """Wrap SolovevEquilibrium into the field_func API.
+def make_field_func(eq: EquilibriumSolovev):
+    """Wrap EquilibriumSolovev into the field_func API.
 
     field_func([R, Z, phi]) -> [BR/|B|, BZ/|B|, Bphi/(R|B|)]
     """

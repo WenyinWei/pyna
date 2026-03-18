@@ -1,11 +1,11 @@
 import matplotlib
 matplotlib.use('Agg')
 import numpy as np
-from pyna.MCF.equilibrium.stellarator import SimpleStellarartor
+from pyna.MCF.equilibrium.stellarator import StellaratorSimple
 from pyna.topo.variational import _fd_jacobian
 from scipy.integrate import solve_ivp
 
-stella = SimpleStellarartor(
+stella = StellaratorSimple(
     R0=3.0, r0=0.30, B0=1.0,
     q0=1.1, q1=5.0,
     m_h=4, n_h=3, epsilon_h=0.08,

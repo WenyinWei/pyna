@@ -6,7 +6,7 @@ from pyna.topo.fixed_points import find_periodic_orbit, classify_fixed_point
 
 
 def make_field_func_2d(st):
-    """Wrap SimpleStellarartor.field_func into (R, Z, phi) -> [dR/dphi, dZ/dphi]."""
+    """Wrap StellaratorSimple.field_func into (R, Z, phi) -> [dR/dphi, dZ/dphi]."""
     def ff2d(R: float, Z: float, phi: float) -> np.ndarray:
         tang = np.asarray(st.field_func(np.array([R, Z, phi])), dtype=float)
         dphi_ds = tang[2]

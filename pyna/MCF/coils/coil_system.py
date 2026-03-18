@@ -295,10 +295,10 @@ class StellaratorControlCoils(CoilSet):
         )
 
 
-from pyna.MCF.coils.base import VacuumCoilField
+from pyna.MCF.coils.base import CoilFieldVacuum
 
 
-class CoilFieldBiotSavart(VacuumCoilField):
+class CoilFieldBiotSavart(CoilFieldVacuum):
     """Vacuum field from a numerically-defined coil via Biot-Savart law.
 
     Parameters

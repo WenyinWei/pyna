@@ -17,9 +17,9 @@ from pyna.MCF.equilibrium.GradShafranov import (
     solve_GS_perturbed,
 )
 
-from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
-from pyna.MCF.equilibrium.axisymmetric import AxisymEquilibrium, SyntheticCircularTokamakEquilibrium
-from pyna.MCF.equilibrium.stellarator import SimpleStellarartor, simple_stellarator
+from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev
+from pyna.MCF.equilibrium.axisymmetric import EquilibriumAxisym, EquilibriumTokamakCircularSynthetic
+from pyna.MCF.equilibrium.stellarator import StellaratorSimple, simple_stellarator
 from pyna.MCF.coils.coil import BRBZ_induced_by_current_loop, BRBZ_induced_by_thick_finitelen_solenoid
 from pyna.MCF.coils.coil_system import CoilSet, Biot_Savart_field
 from pyna.MCF.coils.field import VectorField3DCylindrical, VectorField3DAxiSymmetric

@@ -174,6 +174,13 @@ This keeps related classes adjacent in IDE autocomplete and `dir()` output.
 | `CylindricalVectorField3D` | `VectorField3DCylindrical` | VectorField is the noun; Cylindrical is the coord-system qualifier |
 | `CylindricalScalarField3D` | `ScalarField3DCylindrical` | ScalarField is the noun; Cylindrical is the coord-system qualifier |
 | `CylindricalGridVectorField3D` | `VectorField3DCylindrical` | same rule; "Grid" is implicit in "Cylindrical" (regular grid) |
+| `CylindricalCoords3D` | `Coords3DCylindrical` | Coords is the noun; 3D is the dimension; Cylindrical is the geometry |
+| `SphericalCoords3D` | `Coords3DSpherical` | same ordering rule |
+| `VacuumCoilField` | `CoilFieldVacuum` | CoilField is the noun; Vacuum is the physics qualifier |
+| `SuperpositionField` | `CoilFieldSuperposition` | CoilField is the noun; Superposition is the method |
+| `AxisymEquilibrium` | `EquilibriumAxisym` | Equilibrium is the noun; Axisym(metric) is the qualifier |
+| `SolovevEquilibrium` | `EquilibriumSolovev` | Equilibrium is the noun; Solov'ev is the (proper-name) qualifier |
+| `SimpleStellarartor` | `StellaratorSimple` | Stellarator is the noun; Simple is the variant qualifier (also fixes typo) |
 
 **Qualifier ordering principle:** Ask "does qualifier A need to exist before qualifier B makes sense?" If yes, A comes first. Examples:
 - `3D` before `AxiSymmetric` — axisymmetry is a constraint on a 3D space; without 3D there is no axisymmetry to speak of

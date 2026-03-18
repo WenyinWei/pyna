@@ -200,61 +200,61 @@ def test_hessian_shape(linear_scalar_field, grid_3d):
     assert H.data.shape == (len(R), len(Z), len(Phi), 3, 3)
 
 
-# ── Group 6: TensorField3D_rank2 ──────────────────────────────────────────────
+# ── Group 6: TensorField3DRank2 ──────────────────────────────────────────────
 
 def test_tensor_construction(grid_3d):
-    from pyna.fields.tensor import TensorField3D_rank2
+    from pyna.fields.tensor import TensorField3DRank2
     R, Z, Phi = grid_3d
     nR, nZ, nPhi = len(R), len(Z), len(Phi)
     data = np.zeros((nR, nZ, nPhi, 3, 3))
-    T = TensorField3D_rank2(R, Z, Phi, data)
+    T = TensorField3DRank2(R, Z, Phi, data)
     assert T.data.shape == (nR, nZ, nPhi, 3, 3)
 
 
 def test_tensor_component(grid_3d):
-    from pyna.fields.tensor import TensorField3D_rank2
+    from pyna.fields.tensor import TensorField3DRank2
     R, Z, Phi = grid_3d
     nR, nZ, nPhi = len(R), len(Z), len(Phi)
     data = np.random.rand(nR, nZ, nPhi, 3, 3)
-    T = TensorField3D_rank2(R, Z, Phi, data)
+    T = TensorField3DRank2(R, Z, Phi, data)
     comp = T.component(0, 1)
     assert comp.shape == (nR, nZ, nPhi)
     np.testing.assert_array_equal(comp, data[:, :, :, 0, 1])
 
 
 def test_tensor_trace(grid_3d):
-    from pyna.fields.tensor import TensorField3D_rank2
+    from pyna.fields.tensor import TensorField3DRank2
     R, Z, Phi = grid_3d
     nR, nZ, nPhi = len(R), len(Z), len(Phi)
     # Identity tensor: trace = 3
     data = np.zeros((nR, nZ, nPhi, 3, 3))
     for i in range(3):
         data[:, :, :, i, i] = 1.0
-    T = TensorField3D_rank2(R, Z, Phi, data)
+    T = TensorField3DRank2(R, Z, Phi, data)
     tr = T.trace()
     assert tr.shape == (nR, nZ, nPhi)
     np.testing.assert_allclose(tr, 3.0)
 
 
 def test_tensor_symmetrize(grid_3d):
-    from pyna.fields.tensor import TensorField3D_rank2
+    from pyna.fields.tensor import TensorField3DRank2
     from pyna.fields.properties import FieldProperty
     R, Z, Phi = grid_3d
     nR, nZ, nPhi = len(R), len(Z), len(Phi)
     data = np.random.rand(nR, nZ, nPhi, 3, 3)
-    T = TensorField3D_rank2(R, Z, Phi, data)
+    T = TensorField3DRank2(R, Z, Phi, data)
     T_sym = T.symmetrize()
     assert T_sym.has_property(FieldProperty.SYMMETRIC)
 
 
 def test_tensor_call(grid_3d):
-    from pyna.fields.tensor import TensorField3D_rank2
+    from pyna.fields.tensor import TensorField3DRank2
     R, Z, Phi = grid_3d
     nR, nZ, nPhi = len(R), len(Z), len(Phi)
     data = np.zeros((nR, nZ, nPhi, 3, 3))
     for i in range(3):
         data[:, :, :, i, i] = 1.0
-    T = TensorField3D_rank2(R, Z, Phi, data)
+    T = TensorField3DRank2(R, Z, Phi, data)
     N = 5
     coords = np.column_stack([
         np.linspace(1.2, 2.8, N),
@@ -268,8 +268,8 @@ def test_tensor_call(grid_3d):
 # ── Group 7: CoordinateSystem ─────────────────────────────────────────────────
 
 def test_cylindrical_coords_metric():
-    from pyna.fields.coords import CylindricalCoords3D
-    coords = CylindricalCoords3D()
+    from pyna.fields.coords import Coords3DCylindrical
+    coords = Coords3DCylindrical()
     # At (R=2, Z=0, phi=0): g_phiphi = R^2 = 4
     pts = np.array([[2.0, 0.0, 0.0]])
     metric = coords.metric_tensor(pts)
@@ -278,8 +278,8 @@ def test_cylindrical_coords_metric():
 
 
 def test_cylindrical_to_cartesian():
-    from pyna.fields.coords import CylindricalCoords3D
-    coords = CylindricalCoords3D()
+    from pyna.fields.coords import Coords3DCylindrical
+    coords = Coords3DCylindrical()
     # (R=2, Z=1, phi=pi/2) → (x≈0, y=2, z=1)
     pts = np.array([[2.0, 1.0, np.pi / 2]])
     cart = coords.to_cartesian(pts)
@@ -289,21 +289,21 @@ def test_cylindrical_to_cartesian():
 
 
 def test_schwarzschild_radius():
-    from pyna.fields.coords import SchwarzschildCoords4D
-    coords = SchwarzschildCoords4D(M=1.0)
+    from pyna.fields.coords import Coords4DSchwarzschild
+    coords = Coords4DSchwarzschild(M=1.0)
     np.testing.assert_allclose(coords.schwarzschild_radius, 2.0)
 
 
 def test_kerr_event_horizon():
-    from pyna.fields.coords import KerrCoords4D
-    coords = KerrCoords4D(M=1.0, a=0.5)
+    from pyna.fields.coords import Coords4DKerr
+    coords = Coords4DKerr(M=1.0, a=0.5)
     expected = 1.0 + np.sqrt(0.75)
     np.testing.assert_allclose(coords.event_horizon_radius, expected, rtol=1e-10)
 
 
 def test_minkowski_flat():
-    from pyna.fields.coords import MinkowskiCoords4D
-    coords = MinkowskiCoords4D()
+    from pyna.fields.coords import Coords4DMinkowski
+    coords = Coords4DMinkowski()
     # Christoffel symbols should all be zero for flat spacetime
     pts = np.array([[0.0, 1.0, 0.0, 0.0]])
     christoffel = coords.christoffel_symbols(pts)
@@ -311,8 +311,8 @@ def test_minkowski_flat():
 
 
 def test_cartesian_identity():
-    from pyna.fields.coords import CartesianCoords
-    coords = CartesianCoords(3)
+    from pyna.fields.coords import CoordsCartesian
+    coords = CoordsCartesian(3)
     pts = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
     result = coords.to_cartesian(pts)
     np.testing.assert_array_equal(result, pts)

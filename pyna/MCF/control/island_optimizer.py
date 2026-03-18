@@ -213,7 +213,7 @@ class UnperturbedSurfaceReconstructor:
 
     Parameters
     ----------
-    stellarator : SimpleStellarartor
+    stellarator : StellaratorSimple
         Provides R0, r0, q_of_psi.
     n_fourier : int
         Poloidal mode number cutoff for the surface fit.
@@ -590,7 +590,7 @@ class IslandOptimizer:
 
     Parameters
     ----------
-    stellarator : SimpleStellarartor
+    stellarator : StellaratorSimple
         The equilibrium object.
     control_coils : object with `.coils` list and `.set_currents()` method
         External coil system.

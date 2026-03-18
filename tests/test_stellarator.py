@@ -1,7 +1,7 @@
-"""Tests for SimpleStellarartor."""
+"""Tests for StellaratorSimple."""
 import numpy as np
 import pytest
-from pyna.MCF.equilibrium.stellarator import SimpleStellarartor, simple_stellarator
+from pyna.MCF.equilibrium.stellarator import StellaratorSimple, simple_stellarator
 
 
 def make_st():
@@ -11,7 +11,7 @@ def make_st():
 
 def test_factory():
     st = make_st()
-    assert isinstance(st, SimpleStellarartor)
+    assert isinstance(st, StellaratorSimple)
 
 
 def test_magnetic_axis():
@@ -58,6 +58,6 @@ def test_start_points_shape():
 def test_str_repr():
     st = make_st()
     s = str(st)
-    assert 'SimpleStellarartor' in s
+    assert 'StellaratorSimple' in s
     r = repr(st)
-    assert 'SimpleStellarartor' in r
+    assert 'StellaratorSimple' in r

@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium, solovev_iter_like
+from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev, solovev_iter_like
 from pyna.topo.poincare import PoincareMap, ToroidalSection
 from pyna.flt import FieldLineTracer
 from pyna.topo.island import locate_rational_surface, island_halfwidth
@@ -22,7 +22,7 @@ from pyna.topo.island_extract import extract_island_width
 # ---------------------------------------------------------------------------
 # Use q0=2.0; with Solov'ev the edge q is typically ~2-3x the axis value.
 # We'll check empirically below.
-eq = SolovevEquilibrium(
+eq = EquilibriumSolovev(
     R0=6.2 * 0.3,
     a=2.0 * 0.3,
     B0=5.3,

@@ -238,10 +238,10 @@ def BRBZ_induced_by_thick_finitelen_solenoid_multiprocessing(
     return BR_o, BZ_o
 
 
-from pyna.MCF.coils.base import VacuumCoilField
+from pyna.MCF.coils.base import CoilFieldVacuum
 
 
-class CoilFieldAnalyticCircular(VacuumCoilField):
+class CoilFieldAnalyticCircular(CoilFieldVacuum):
     """Vacuum field of a circular current loop, using exact analytic formula.
 
     The loop may be translated and tilted relative to the cylindrical

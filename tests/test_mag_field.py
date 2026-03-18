@@ -84,7 +84,8 @@ def test_grid_properties(vf3d):
 def test_axi_grid_properties(axivf3d):
     assert len(axivf3d.R) == 30
     assert len(axivf3d.Z) == 30
-    assert axivf3d.BR.shape == (30, 30, 1)  # stored as (nR, nZ, 1) internally
+    # VectorField3DAxiSymmetric stores components as (nR, nZ, 1) via the parent's 3D layout
+    assert axivf3d.BR.shape == (30, 30, 1)
 
 
 # ---------------------------------------------------------------------------

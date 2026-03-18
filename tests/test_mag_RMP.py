@@ -1,7 +1,7 @@
 """Tests for pyna.mag.RMP — RMP spectrum and island width pipeline."""
 import numpy as np
 import pytest
-from pyna.MCF.equilibrium.axisymmetric import SyntheticCircularTokamakEquilibrium
+from pyna.MCF.equilibrium.axisymmetric import EquilibriumTokamakCircularSynthetic
 from pyna.MCF.coils.RMP import normalize_b, RMP_spectrum_2d, island_width_at_rational_surfaces
 
 
@@ -11,7 +11,7 @@ from pyna.MCF.coils.RMP import normalize_b, RMP_spectrum_2d, island_width_at_rat
 
 @pytest.fixture()
 def eq():
-    return SyntheticCircularTokamakEquilibrium(nS=60, nTET=64)
+    return EquilibriumTokamakCircularSynthetic(nS=60, nTET=64)
 
 
 # ---------------------------------------------------------------------------

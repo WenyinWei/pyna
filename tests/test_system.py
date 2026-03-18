@@ -33,8 +33,8 @@ class _ConcreteVF3D(VectorField3D):
 
 
 class _ConcreteAxiVF3D(VectorField3DAxiSymmetric):
-    """Minimal concrete subclass used only for MRO checks."""
-    pass  # inherits __init__(R, Z, VR_2d, VZ_2d, VPhi_2d) from VectorField3DAxiSymmetric
+    """Minimal concrete subclass for MRO checks; inherits __init__(R, Z, VR_2d, VZ_2d, VPhi_2d, ...)."""
+    pass
 
 
 # ---------------------------------------------------------------------------

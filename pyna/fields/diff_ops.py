@@ -53,12 +53,12 @@ def _grad_phi(arr, Phi, periodic=True):
 
 def _check_coords(field, coords_override):
     """Warn/raise if field's coordinate system is not cylindrical."""
-    from pyna.fields.coords import CylindricalCoords3D
+    from pyna.fields.coords import Coords3DCylindrical
     cs = coords_override or getattr(field, 'coords', None)
-    if cs is not None and not isinstance(cs, CylindricalCoords3D):
+    if cs is not None and not isinstance(cs, Coords3DCylindrical):
         raise NotImplementedError(
-            f"diff_ops currently only supports CylindricalCoords3D, got {type(cs).__name__}. "
-            "Pass coords=CylindricalCoords3D() to override, or implement the coordinate system."
+            f"diff_ops currently only supports Coords3DCylindrical, got {type(cs).__name__}. "
+            "Pass coords=Coords3DCylindrical() to override, or implement the coordinate system."
         )
 
 
@@ -192,7 +192,7 @@ def laplacian(f) -> "ScalarField3DCylindrical":
     )
 
 
-def hessian(f) -> "TensorField3D_rank2":
+def hessian(f) -> "TensorField3DRank2":
     """Hessian tensor H_ij = ∇_i ∇_j f in cylindrical coordinates.
 
     Computed by taking the gradient of each component of ∇f, including
@@ -211,9 +211,9 @@ def hessian(f) -> "TensorField3D_rank2":
 
     Returns
     -------
-    TensorField3D_rank2
+    TensorField3DRank2
     """
-    from pyna.fields.tensor import TensorField3D_rank2
+    from pyna.fields.tensor import TensorField3DRank2
     R3d = f.R[:, None, None]
     nR, nZ, nPhi = len(f.R), len(f.Z), len(f.Phi)
 
@@ -241,7 +241,7 @@ def hessian(f) -> "TensorField3D_rank2":
     data[..., 1, 2] = d2f_dZdphi / R3d
     data[..., 2, 1] = data[..., 1, 2]
 
-    return TensorField3D_rank2(
+    return TensorField3DRank2(
         R=f.R, Z=f.Z, Phi=f.Phi,
         data=data,
         name=f"hessian({f.name})",
@@ -250,7 +250,7 @@ def hessian(f) -> "TensorField3D_rank2":
     )
 
 
-def jacobian_field(v) -> "TensorField3D_rank2":
+def jacobian_field(v) -> "TensorField3DRank2":
     """Jacobian tensor J_ij = ∂V_i/∂x^j in cylindrical coordinates.
 
     Includes connection (Christoffel) corrections for curvilinear basis:
@@ -274,10 +274,10 @@ def jacobian_field(v) -> "TensorField3D_rank2":
 
     Returns
     -------
-    TensorField3D_rank2, shape (nR, nZ, nPhi, 3, 3)
+    TensorField3DRank2, shape (nR, nZ, nPhi, 3, 3)
       J[..., i, j] = ∂V_i/∂x^j  with phi-axis scaled by 1/R
     """
-    from pyna.fields.tensor import TensorField3D_rank2
+    from pyna.fields.tensor import TensorField3DRank2
     R3d = v.R[:, None, None]
     nR, nZ, nPhi = len(v.R), len(v.Z), len(v.Phi)
 
@@ -288,7 +288,7 @@ def jacobian_field(v) -> "TensorField3D_rank2":
         data[..., i_comp, 1] = _grad_Z(arr, v.Z)
         data[..., i_comp, 2] = _grad_phi(arr, v.Phi, periodic=True) / R3d
 
-    return TensorField3D_rank2(
+    return TensorField3DRank2(
         R=v.R, Z=v.Z, Phi=v.Phi,
         data=data,
         name=f"jacobian({v.name})",
@@ -369,21 +369,21 @@ def covariant_derivative_of_vector(v, coords=None):
     ----------
     v : VectorField3DCylindrical
     coords : CoordinateSystem, optional
-        Defaults to CylindricalCoords3D().
+        Defaults to Coords3DCylindrical().
 
     Returns
     -------
-    TensorField3D_rank2, shape (nR, nZ, nPhi, 3, 3)
+    TensorField3DRank2, shape (nR, nZ, nPhi, 3, 3)
         Component [i,j] = nabla_i V^j
     """
-    from pyna.fields.coords import CylindricalCoords3D
-    from pyna.fields.tensor import TensorField3D_rank2
+    from pyna.fields.coords import Coords3DCylindrical
+    from pyna.fields.tensor import TensorField3DRank2
 
     if coords is None:
-        coords = CylindricalCoords3D()
+        coords = Coords3DCylindrical()
 
     # Get ordinary Jacobian (d_i V^j)
-    J = jacobian_field(v)  # TensorField3D_rank2, [i,j] = d_i V^j
+    J = jacobian_field(v)  # TensorField3DRank2, [i,j] = d_i V^j
 
     # Add Christoffel correction: Gamma^j_{ik} V^k
     # Evaluate Christoffel at every grid point
@@ -403,7 +403,7 @@ def covariant_derivative_of_vector(v, coords=None):
 
     cov_data = J.data + correction  # (nR,nZ,nPhi,3,3)
 
-    return TensorField3D_rank2(v.R, v.Z, v.Phi, cov_data,
+    return TensorField3DRank2(v.R, v.Z, v.Phi, cov_data,
                                name=f"nabla({v.name})", units=v.units)
 
 

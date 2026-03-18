@@ -1,9 +1,9 @@
 """Tests for periodic orbit search and monodromy analysis.
 
-Tests use an analytic SimpleStellarartor (not W7-X data).
+Tests use an analytic StellaratorSimple (not W7-X data).
 
 Key physics:
-- SimpleStellarartor with m_h=2, n_h=1 creates a q=2 resonance island chain.
+- StellaratorSimple with m_h=2, n_h=1 creates a q=2 resonance island chain.
 - In this model q = m_h/n_h, and orbit period = m_h toroidal turns (not n_h).
 - So for q=2/1 we find fixed points of the 2-turn Poincaré map.
 - Both X-points (hyperbolic) and O-points (elliptic) are found near r_res.
@@ -15,7 +15,7 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from pyna.MCF.equilibrium.stellarator import SimpleStellarartor
+from pyna.MCF.equilibrium.stellarator import StellaratorSimple
 from pyna.topo.cycle import (
     poincare_map_n,
     jacobian_of_poincare_map,
@@ -31,8 +31,8 @@ from pyna.topo.monodromy import compute_Jac as compute_monodromy
 
 @pytest.fixture(scope="module")
 def stellarator():
-    """SimpleStellarartor with q=2/1 resonance (period-2 island chain)."""
-    return SimpleStellarartor(
+    """StellaratorSimple with q=2/1 resonance (period-2 island chain)."""
+    return StellaratorSimple(
         R0=3.0, r0=0.35, B0=1.0,
         q0=1.5, q1=3.5,
         m_h=2, n_h=1, epsilon_h=0.02,

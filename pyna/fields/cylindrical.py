@@ -12,7 +12,7 @@ import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 from pyna.fields.base import ScalarField3D, VectorField3D
 from pyna.fields.properties import FieldProperty
-from pyna.fields.coords import CylindricalCoords3D as _CylCoords3D
+from pyna.fields.coords import Coords3DCylindrical as _CylCoords3D
 
 
 class ScalarField3DCylindrical(ScalarField3D):

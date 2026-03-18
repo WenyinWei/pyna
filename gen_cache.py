@@ -7,7 +7,7 @@ import numpy as np
 import json, pathlib
 
 # ---- Poincare cache ----
-from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium, solovev_iter_like
+from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev, solovev_iter_like
 from pyna.topo.poincare import PoincareMap, ToroidalSection, poincare_from_fieldlines
 from pyna.flt import FieldLineTracer, get_backend
 from pyna.topo.island import locate_rational_surface, island_halfwidth

@@ -485,7 +485,7 @@ def compute_plasma_response(
         - ``eq.B_field_grid(R, Z)`` → ``CylindricalVectorField``, OR
         - ``eq.B0``, ``eq.J0``, ``eq.p0`` as ``CylindricalVectorField``/
           ``CylindricalScalarField`` already on the same grid.
-        Also accepts a :class:`~pyna.mag.Solovev.SolovevEquilibrium` directly.
+        Also accepts a :class:`~pyna.mag.Solovev.EquilibriumSolovev` directly.
     delta_B_ext : CylindricalVectorField
         External (vacuum) perturbation field on R-Z grid.
     R_grid, Z_grid : array-like or None
@@ -499,7 +499,7 @@ def compute_plasma_response(
     delta_B_total : CylindricalVectorField
         Total perturbation δB_ext + δB_plasma on the same R-Z grid.
     """
-    from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
+    from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev
 
     if R_grid is None:
         R_grid = delta_B_ext.R
@@ -510,13 +510,13 @@ def compute_plasma_response(
     Z_arr = np.asarray(Z_grid)
 
     # Build B0, J0, p0 from equilibrium
-    if isinstance(eq, SolovevEquilibrium):
+    if isinstance(eq, EquilibriumSolovev):
         B0, J0, p0 = _solovev_grid_fields(eq, R_arr, Z_arr)
     elif hasattr(eq, 'B0') and isinstance(eq.B0, CylindricalVectorField):
         B0, J0, p0 = eq.B0, eq.J0, eq.p0
     else:
         raise TypeError(
-            f"eq must be a SolovevEquilibrium or have .B0/.J0/.p0 CylindricalVectorField attributes. "
+            f"eq must be a EquilibriumSolovev or have .B0/.J0/.p0 CylindricalVectorField attributes. "
             f"Got {type(eq)}"
         )
 
@@ -532,8 +532,8 @@ def compute_plasma_response(
 
 
 def _solovev_grid_fields(eq, R_arr, Z_arr):
-    """Build B0, J0, p0 CylindricalVectorField / CylindricalScalarField from SolovevEquilibrium."""
-    from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
+    """Build B0, J0, p0 CylindricalVectorField / CylindricalScalarField from EquilibriumSolovev."""
+    from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev
 
     nR, nZ = len(R_arr), len(Z_arr)
     RR, ZZ = np.meshgrid(R_arr, Z_arr, indexing='ij')

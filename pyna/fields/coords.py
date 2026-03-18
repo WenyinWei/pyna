@@ -134,10 +134,10 @@ class CoordinateSystem(ABC):
 
 
 # ---------------------------------------------------------------------------
-# CartesianCoords
+# CoordsCartesian
 # ---------------------------------------------------------------------------
 
-class CartesianCoords(CoordinateSystem):
+class CoordsCartesian(CoordinateSystem):
     """General n-dimensional Cartesian coordinate system."""
 
     _DEFAULT_NAMES = ['x', 'y', 'z', 'w']
@@ -179,10 +179,10 @@ class CartesianCoords(CoordinateSystem):
 
 
 # ---------------------------------------------------------------------------
-# CylindricalCoords3D
+# Coords3DCylindrical
 # ---------------------------------------------------------------------------
 
-class CylindricalCoords3D(CoordinateSystem):
+class Coords3DCylindrical(CoordinateSystem):
     """Cylindrical coordinates (R, Z, phi)."""
 
     @property
@@ -230,10 +230,10 @@ class CylindricalCoords3D(CoordinateSystem):
 
 
 # ---------------------------------------------------------------------------
-# SphericalCoords3D
+# Coords3DSpherical
 # ---------------------------------------------------------------------------
 
-class SphericalCoords3D(CoordinateSystem):
+class Coords3DSpherical(CoordinateSystem):
     """Spherical coordinates (r, theta, phi)."""
 
     @property
@@ -298,10 +298,10 @@ class SphericalCoords3D(CoordinateSystem):
 
 
 # ---------------------------------------------------------------------------
-# TorCoords3D (Tokamak toroidal)
+# Coords3DToroidal (Tokamak toroidal)
 # ---------------------------------------------------------------------------
 
-class TorCoords3D(CoordinateSystem):
+class Coords3DToroidal(CoordinateSystem):
     """Tokamak toroidal coordinates (r, theta_pol, phi_tor)."""
 
     def __init__(self, R0: float = 3.0):
@@ -350,10 +350,10 @@ class TorCoords3D(CoordinateSystem):
 
 
 # ---------------------------------------------------------------------------
-# MinkowskiCoords4D
+# Coords4DMinkowski
 # ---------------------------------------------------------------------------
 
-class MinkowskiCoords4D(CoordinateSystem):
+class Coords4DMinkowski(CoordinateSystem):
     """Minkowski spacetime (t, x, y, z)."""
 
     def __init__(self, c: float = 1.0, signature: str = '-+++'):
@@ -397,10 +397,10 @@ class MinkowskiCoords4D(CoordinateSystem):
 
 
 # ---------------------------------------------------------------------------
-# SchwarzschildCoords4D
+# Coords4DSchwarzschild
 # ---------------------------------------------------------------------------
 
-class SchwarzschildCoords4D(CoordinateSystem):
+class Coords4DSchwarzschild(CoordinateSystem):
     """Schwarzschild spacetime (t, r, theta, phi)."""
 
     def __init__(self, M: float, G: float = 1.0, c: float = 1.0):
@@ -457,10 +457,10 @@ class SchwarzschildCoords4D(CoordinateSystem):
 
 
 # ---------------------------------------------------------------------------
-# KerrCoords4D (Boyer-Lindquist)
+# Coords4DKerr (Boyer-Lindquist)
 # ---------------------------------------------------------------------------
 
-class KerrCoords4D(CoordinateSystem):
+class Coords4DKerr(CoordinateSystem):
     """Kerr spacetime in Boyer-Lindquist coordinates (t, r, theta, phi)."""
 
     def __init__(self, M: float, a: float, G: float = 1.0, c: float = 1.0):
@@ -542,11 +542,11 @@ class KerrCoords4D(CoordinateSystem):
 
 if __name__ == "__main__":
     # 1. Schwarzschild r_s
-    cs = SchwarzschildCoords4D(M=1.0)
+    cs = Coords4DSchwarzschild(M=1.0)
     assert abs(cs.schwarzschild_radius - 2.0) < 1e-12, f"r_s = {cs.schwarzschild_radius}"
 
     # 2. Cylindrical metric at (R=2, Z=0, phi=0)
-    cyl = CylindricalCoords3D()
+    cyl = Coords3DCylindrical()
     g = cyl.metric_tensor(np.array([[2.0, 0.0, 0.0]]))
     assert abs(g[0, 0, 0] - 1.0) < 1e-10, f"g_RR = {g[0,0,0]}"
     assert abs(g[0, 2, 2] - 4.0) < 1e-10, f"g_phiphi = {g[0,2,2]}"
@@ -557,7 +557,7 @@ if __name__ == "__main__":
     assert abs(xyz[0, 1] - 2.0) < 1e-10, f"y = {xyz[0,1]}"
 
     # 4. Kerr event horizon  (G=c=1, M=1, a=0.5)
-    kerr = KerrCoords4D(M=1.0, a=0.5)
+    kerr = Coords4DKerr(M=1.0, a=0.5)
     r_plus = 1.0 + np.sqrt(1.0 - 0.25)
     assert abs(kerr.event_horizon_radius - r_plus) < 1e-10, f"r_+ = {kerr.event_horizon_radius}"
 

@@ -1,6 +1,6 @@
 """RMP Fourier spectrum analysis and island width visualization.
 
-For a SimpleStellarartor, compute resonant components analytically:
+For a StellaratorSimple, compute resonant components analytically:
   - Resonant surface location from q(ψ) = n/m
   - Island half-width via Rutherford formula
   - O-point phase from the RMP field structure
@@ -180,7 +180,7 @@ def find_resonant_components_analytic(
     q(ψ_res) = k*base_n / (k*base_m) = base_n/base_m, then computes
     the Fourier coefficient b_{km, kn} by sampling the RMP on that surface.
 
-    Works with SimpleStellarartor's psi_ax / q_of_psi / resonant_psi API.
+    Works with StellaratorSimple's psi_ax / q_of_psi / resonant_psi API.
     """
     components = []
 

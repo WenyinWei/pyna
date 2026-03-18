@@ -38,22 +38,22 @@ from pyna.fields.diff_ops import (
     strain_rate_tensor,
     helmholtz_decomposition,
 )
-from pyna.fields.tensor import TensorField3D_rank2, TensorField4D_rank2
+from pyna.fields.tensor import TensorField3DRank2, TensorField4DRank2
 from pyna.fields.coords import (
-    CartesianCoords,
-    CylindricalCoords3D,
-    SphericalCoords3D,
-    TorCoords3D,
-    MinkowskiCoords4D,
-    SchwarzschildCoords4D,
-    KerrCoords4D,
+    CoordsCartesian,
+    Coords3DCylindrical,
+    Coords3DSpherical,
+    Coords3DToroidal,
+    Coords4DMinkowski,
+    Coords4DSchwarzschild,
+    Coords4DKerr,
 )
 
 __all__ = [
     "Field", "ScalarField", "VectorField", "TensorField",
     "ScalarField1D", "ScalarField2D", "ScalarField3D", "ScalarField4D",
     "VectorField1D", "VectorField2D", "VectorField3D", "VectorField4D",
-    "TensorField3D_rank2", "TensorField4D_rank2",
+    "TensorField3DRank2", "TensorField4DRank2",
     "FieldProperty",
     "ScalarField3DCylindrical", "VectorField3DCylindrical",
     "ScalarField3DAxiSymmetric", "VectorField3DAxiSymmetric",
@@ -63,11 +63,11 @@ __all__ = [
     "riemann_tensor", "ricci_tensor", "ricci_scalar",
     "strain_rate_tensor", "helmholtz_decomposition",
     # coordinate systems
-    "CartesianCoords",
-    "CylindricalCoords3D",
-    "SphericalCoords3D",
-    "TorCoords3D",
-    "MinkowskiCoords4D",
-    "SchwarzschildCoords4D",
-    "KerrCoords4D",
+    "CoordsCartesian",
+    "Coords3DCylindrical",
+    "Coords3DSpherical",
+    "Coords3DToroidal",
+    "Coords4DMinkowski",
+    "Coords4DSchwarzschild",
+    "Coords4DKerr",
 ]

@@ -65,7 +65,7 @@ def build_full_response_matrix(
         Reserved for future filtering.
     eps_current : float
         Current perturbation for per-unit normalisation.
-    equilibrium : SolovevEquilibrium or compatible object, optional
+    equilibrium : EquilibriumSolovev or compatible object, optional
         If provided and ``plasma_response=True``, the plasma response
         δB_plasma is added to each coil's δB_ext before computing
         topology/gap observables.

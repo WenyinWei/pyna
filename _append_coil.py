@@ -1,8 +1,8 @@
 
-from pyna.MCF.coils.base import VacuumCoilField
+from pyna.MCF.coils.base import CoilFieldVacuum
 
 
-class CoilFieldAnalyticCircular(VacuumCoilField):
+class CoilFieldAnalyticCircular(CoilFieldVacuum):
     """Vacuum field of a circular current loop, using exact analytic formula.
 
     The loop may be translated and tilted relative to the cylindrical

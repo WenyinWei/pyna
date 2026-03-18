@@ -223,9 +223,9 @@ class TestIMASEquilibriumIDS:
 
     def test_from_stellarator(self):
         from pyna.imas_compat import IMASEquilibriumIDS
-        from pyna.MCF.equilibrium.stellarator import SimpleStellarartor
+        from pyna.MCF.equilibrium.stellarator import StellaratorSimple
 
-        st = SimpleStellarartor()
+        st = StellaratorSimple()
         ids = IMASEquilibriumIDS.from_stellarator(st, n_psi=32, n_theta=64)
         assert ids.b0 == pytest.approx(st.B0)
         assert ids.r0 == pytest.approx(st.R0)

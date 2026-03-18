@@ -8,10 +8,10 @@ from __future__ import annotations
 from typing import Optional
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
-from pyna.MCF.coils.base import VacuumCoilField
+from pyna.MCF.coils.base import CoilFieldVacuum
 
 
-class CoilFieldVectorPotential(VacuumCoilField):
+class CoilFieldVectorPotential(CoilFieldVacuum):
     """Magnetic field B = ∇×A from a numerically-specified vector potential.
 
     The curl is computed via second-order central finite differences on the
@@ -102,7 +102,7 @@ class CoilFieldVectorPotential(VacuumCoilField):
     @classmethod
     def from_coil_field(
         cls,
-        coil_field: "VacuumCoilField",
+        coil_field: "CoilFieldVacuum",
         R: np.ndarray,
         Z: np.ndarray,
         Phi: np.ndarray,
@@ -117,7 +117,7 @@ class CoilFieldVectorPotential(VacuumCoilField):
 
         Parameters
         ----------
-        coil_field : VacuumCoilField
+        coil_field : CoilFieldVacuum
         R, Z, Phi : 1D arrays
         gauge : str
             Only 'coulomb' supported currently.

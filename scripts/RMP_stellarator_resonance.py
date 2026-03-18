@@ -26,7 +26,7 @@ plt.rcParams.update({
     'axes.facecolor': 'white',
 })
 
-from pyna.MCF.equilibrium.stellarator import SimpleStellarartor, simple_stellarator
+from pyna.MCF.equilibrium.stellarator import StellaratorSimple, simple_stellarator
 from pyna.MCF.visual.RMP_spectrum import (
     find_resonant_components_analytic, island_fixed_points, ISLAND_CMAPS
 )
