@@ -137,25 +137,53 @@ def xpoint_field_parallelism(
     Algorithm sketch::
 
         seeds = uniform_ring(x_point, radius=small_delta, n=n_fieldlines)
-        endpoints = trace_field_lines(seeds, n_transits)
-        angles = pairwise_angle(endpoints - seeds)
-        return mean(cos(angles))
+        tangents = [field_tangent(seed) for seed in seeds]
+        cos_angles = pairwise_cos(tangents)
+        return mean(cos_angles)
     """
-    # TODO: trace field lines near X-points, compute angular spread
-    #
-    # from pyna.flt import FieldLineTracer
-    # tracer = FieldLineTracer.from_equilibrium(equilibrium)
-    # metrics = []
-    # for (Rx, Zx) in x_points:
-    #     seeds = _seed_ring(Rx, Zx, n_fieldlines, radius=1e-3)
-    #     tangents = tracer.tangent_vectors(seeds, n_transits)
-    #     cos_angles = [
-    #         np.dot(tangents[i], tangents[(i+1) % n_fieldlines])
-    #         for i in range(n_fieldlines)
-    #     ]
-    #     metrics.append(np.mean(cos_angles))
-    # return float(np.mean(metrics)) if metrics else 0.0
-    raise NotImplementedError("xpoint_field_parallelism: TODO")
+    if not x_points:
+        return 0.0
+
+    R0 = getattr(equilibrium, 'R0', 1.65)
+    a = getattr(equilibrium, 'r0', getattr(equilibrium, 'a', 0.5))
+
+    def _field_tangent(R: float, Z: float, phi: float) -> np.ndarray:
+        """Unit tangent vector (dR/dl, dZ/dl) from the equilibrium field."""
+        if hasattr(equilibrium, 'field_func'):
+            f = equilibrium.field_func([R, Z, phi])
+            dRdphi, dZdphi = float(f[0]), float(f[1])
+        else:
+            # Circular tokamak approximation: scale factor 0.1 sets the
+            # normalised poloidal field magnitude (B_pol/B_phi ~ ε/q ~ 0.1
+            # for a typical large-aspect-ratio tokamak with ε ≈ a/R ≈ 0.3, q ≈ 3).
+            # Only the direction matters here (result is unit-normalised), so the
+            # exact value cancels out.
+            _B_pol_scale = 0.1
+            dRdphi = -Z / (R + 1e-30) * _B_pol_scale
+            dZdphi = (R - R0) / (R + 1e-30) * _B_pol_scale
+        norm = np.sqrt(dRdphi**2 + dZdphi**2) + 1e-30
+        return np.array([dRdphi / norm, dZdphi / norm])
+
+    seed_radius = min(a * 0.02, 5e-3)
+    metrics = []
+
+    for (Rx, Zx) in x_points:
+        seed_angles = np.linspace(0, 2 * np.pi, n_fieldlines, endpoint=False)
+        R_seeds = Rx + seed_radius * np.cos(seed_angles)
+        Z_seeds = Zx + seed_radius * np.sin(seed_angles)
+
+        tangents = np.array([
+            _field_tangent(R_seeds[i], Z_seeds[i], 0.0)
+            for i in range(n_fieldlines)
+        ])  # shape (n_fieldlines, 2)
+
+        cos_angles = [
+            float(np.dot(tangents[i], tangents[(i + 1) % n_fieldlines]))
+            for i in range(n_fieldlines)
+        ]
+        metrics.append(float(np.mean(cos_angles)))
+
+    return float(np.mean(metrics)) if metrics else 0.0
 
 
 def magnetic_axis_position(equilibrium) -> Tuple[float, float]:

@@ -34,7 +34,7 @@ from scipy.integrate import cumulative_trapezoid
 from scipy.interpolate import interp1d
 
 
-def _compute_pest_jacobian(S, TET, R_mesh, Z_mesh):
+def _compute_PEST_jacobian(S, TET, R_mesh, Z_mesh):
     """Compute the PEST Jacobian sqrt(g) on the (S, TET) mesh.
 
     In PEST coordinates, the Jacobian is
@@ -121,7 +121,7 @@ def build_Boozer_mesh(S, TET, R_mesh, Z_mesh, q_iS,
     # ------------------------------------------------------------------
     # 2. Compute PEST Jacobian
     # ------------------------------------------------------------------
-    jac = _compute_pest_jacobian(S, TET, R_mesh, Z_mesh)
+    jac = _compute_PEST_jacobian(S, TET, R_mesh, Z_mesh)
 
     # ------------------------------------------------------------------
     # 3. Compute angle correction λ per flux surface

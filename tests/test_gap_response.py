@@ -140,8 +140,8 @@ class TestWallGeometryAllGaps:
         for name, gap in gaps.items():
             assert gap >= 0.0, f"Gap '{name}' = {gap:.4f} m should be non-negative"
 
-    def test_gap_to_lcfs_specific_monitor(self):
-        gap = self.wall.gap_to_lcfs(self.lcfs_R, self.lcfs_Z, 0)  # inner_mid
+    def test_gap_to_LCFS_specific_monitor(self):
+        gap = self.wall.gap_to_LCFS(self.lcfs_R, self.lcfs_Z, 0)  # inner_mid
         assert gap >= 0.0
 
     def test_outer_gap_larger_than_inner(self):

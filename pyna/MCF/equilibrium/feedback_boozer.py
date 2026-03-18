@@ -107,11 +107,84 @@ class BoozerPerturbation:
         -------
         BoozerPerturbation
         """
-        # TODO: for each flux surface, integrate δB·∇ψ in Boozer coords
-        raise NotImplementedError
+        surfaces_list = []
+        modes_dict: Dict[float, Dict[Tuple[int, int], complex]] = {}
+
+        for psi_n in psi_grid:
+            # Approximate flux-surface geometry from equilibrium
+            iota = 1.0 / float(equilibrium.q_of_psi(psi_n)) if hasattr(equilibrium, 'q_of_psi') else 1.0
+            theta_B = np.linspace(0, 2 * np.pi, 64, endpoint=False)
+            phi_B = np.linspace(0, 2 * np.pi, 32, endpoint=False)
+
+            surface = BoozerSurface(
+                psi_norm=float(psi_n),
+                iota=iota,
+                theta_B=theta_B,
+                phi_B=phi_B,
+            )
+            surfaces_list.append(surface)
+
+            # Sample the cylindrical perturbation along this flux surface.
+            # We build a simple toroidal-angle-based loop (tokamak approximation):
+            # R(θ) ≈ R0 + r*cos(θ), Z(θ) ≈ Z0 + r*sin(θ), with r ~ sqrt(psi_n)*a.
+            R0 = getattr(equilibrium, 'R0', 1.65)
+            a = getattr(equilibrium, 'r0', getattr(equilibrium, 'a', 0.5))
+            Z0 = getattr(equilibrium, 'Z0', 0.0)
+            r = np.sqrt(psi_n) * a
+
+            grid = cylindrical_pert.grid
+            surface_modes: Dict[Tuple[int, int], complex] = {}
+
+            # Sampling resolution for the flux-surface Fourier decomposition.
+            # n_phi_s and n_theta are the number of sample points; the Nyquist
+            # limits for independent Fourier modes are n_phi_s//2 and n_theta//2.
+            n_theta = 64
+            n_phi_s = 32
+            n_max_tor = n_phi_s // 2   # max resolvable toroidal mode number
+            n_max_pol = n_theta // 2   # max resolvable poloidal mode number
+
+            # Sample δBR along the flux surface at each toroidal angle
+            from scipy.interpolate import RegularGridInterpolator
+            interp_BR = RegularGridInterpolator(
+                (grid.R, grid.Z, grid.phi), cylindrical_pert.dBR,
+                bounds_error=False, fill_value=0.0,
+            )
+            interp_BZ = RegularGridInterpolator(
+                (grid.R, grid.Z, grid.phi), cylindrical_pert.dBZ,
+                bounds_error=False, fill_value=0.0,
+            )
+
+            theta_arr = np.linspace(0, 2 * np.pi, n_theta, endpoint=False)
+            phi_arr = np.linspace(0, 2 * np.pi, n_phi_s, endpoint=False)
+
+            R_surf = R0 + r * np.cos(theta_arr)
+            Z_surf = Z0 + r * np.sin(theta_arr)
+
+            # Build δB_normal = δB · ê_r on this surface
+            # ê_r ~ (cos θ, sin θ, 0) in (R, Z, phi) frame
+            B_normal = np.zeros((n_theta, n_phi_s))
+            for ip, phi_val in enumerate(phi_arr):
+                pts = np.column_stack([R_surf, Z_surf,
+                                       np.full(n_theta, phi_val % (2 * np.pi))])
+                dBR_s = interp_BR(pts)
+                dBZ_s = interp_BZ(pts)
+                B_normal[:, ip] = dBR_s * np.cos(theta_arr) + dBZ_s * np.sin(theta_arr)
+
+            # 2D FFT: axis 0 → m (poloidal), axis 1 → n (toroidal)
+            fft2 = np.fft.fft2(B_normal) / (n_theta * n_phi_s)
+
+            for n_tor in range(n_max_tor):
+                for m_pol in range(n_max_pol):
+                    amp = fft2[m_pol, n_tor]
+                    if abs(amp) > 1e-20:
+                        surface_modes[(m_pol, n_tor)] = complex(amp)
+
+            modes_dict[float(psi_n)] = surface_modes
+
+        return cls(surfaces=surfaces_list, modes=modes_dict)
 
 
-def mhd_response_operator(
+def MHD_response_operator(
     surface: BoozerSurface,
     mode: Tuple[int, int],
     beta_local: float,
@@ -161,12 +234,12 @@ def mhd_response_operator(
         if lundquist is None:
             raise ValueError("lundquist number required for resistive model")
         S = lundquist
-        C_ideal = mhd_response_operator(surface, mode, beta_local, 'ideal_mhd')
+        C_ideal = MHD_response_operator(surface, mode, beta_local, 'ideal_mhd')
         shield = 1.0 / (1.0 + 1j * S**(-1/3) / (abs(delta_iota) + 1e-6))
         return C_ideal * shield
 
     elif model == 'kinetic_screening':
-        C_ideal = mhd_response_operator(surface, mode, beta_local, 'ideal_mhd')
+        C_ideal = MHD_response_operator(surface, mode, beta_local, 'ideal_mhd')
         screening = 1.0 / (1.0 + 1j * 0.5 / (abs(delta_iota) + 1e-4))
         return C_ideal * screening
 
@@ -199,7 +272,7 @@ def compute_boozer_response(
     iota_profile : callable, optional
         iota(psi_norm) -> float. If None, uses 1/equilibrium.q_of_psi.
     model : str
-        Response model (see mhd_response_operator).
+        Response model (see MHD_response_operator).
     m_max, n_max : int
         Truncation of Fourier series.
     
@@ -235,7 +308,7 @@ def compute_boozer_response(
         )
         new_surface_modes = {}
         for (m, n), amplitude in surface_modes.items():
-            C_mn = mhd_response_operator(surface, (m, n), beta, model)
+            C_mn = MHD_response_operator(surface, (m, n), beta, model)
             new_surface_modes[(m, n)] = amplitude * C_mn
         new_modes[psi_n] = new_surface_modes
 

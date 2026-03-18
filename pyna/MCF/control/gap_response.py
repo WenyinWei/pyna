@@ -16,18 +16,15 @@ cache the unperturbed manifold and the δB_pol evaluations separately.
 from __future__ import annotations
 
 import numpy as np
-from typing import Callable, List, TYPE_CHECKING
-
-try:
-    import joblib
-    _memory = joblib.Memory(location='.cache/gap_response', verbose=0)
-except ImportError:
-    joblib = None  # type: ignore
-    _memory = None
+from typing import Callable, Dict, List, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pyna.MCF.control.wall import WallGeometry
     from pyna.control.topology_state import XPointState
+
+# Module-level dict cache: key → manifold pts array
+# Using a plain dict avoids joblib's inability to cache non-picklable callables.
+_manifold_cache: Dict[Tuple, np.ndarray] = {}
 
 
 # ---------------------------------------------------------------------------
@@ -102,52 +99,56 @@ def _grow_manifold(
     return np.array(pts)
 
 
-@_memory.cache
 def grow_stable_manifold_cached(
-    field_func_key: str,
-    R_xpt: float,
-    Z_xpt: float,
-    stable_eigvec: tuple,
-    DPm_flat: tuple,
+    field_func: Callable,
+    x_point,
+    field_func_key: str = 'default',
     s_max: float = 2.0,
     ds: float = 0.01,
 ) -> np.ndarray:
-    """Grow stable manifold from X-point, return (R, Z) array.
+    """Grow stable manifold from X-point, returning (R, Z) array.
 
-    Cached because this requires field-line integration.
-    field_func_key is a string that uniquely identifies the field
-    (e.g., eq params hash).
-
-    NOTE: Because joblib cannot cache callable arguments, the field function
-    is NOT accepted here. Use gap_response_matrix_fpt which manages the
-    field function externally and passes the key for cache invalidation.
+    Results are cached in a module-level dict keyed by
+    ``(field_func_key, x_point.R, x_point.Z, s_max, ds)`` so that repeated
+    calls with the same equilibrium avoid redundant field-line integration.
+    Call :func:`clear_manifold_cache` to invalidate the cache (e.g. when the
+    equilibrium changes).
 
     Parameters
     ----------
+    field_func : callable
+        [R, Z, phi] → [dR/dl, dZ/dl, dphi/dl].
+    x_point : XPointState
+        Contains R, Z coordinates and DPm eigenvectors.
     field_func_key : str
-        Hashable identifier for the field; used only as a cache key.
-        The actual integration is done by _grow_manifold (see
-        gap_response_matrix_fpt which wraps this).
-    R_xpt, Z_xpt : float
-        X-point coordinates (also part of cache key).
-    stable_eigvec : tuple (eR, eZ)
-        Stable eigenvector direction.
-    DPm_flat : tuple
-        Flattened DPm matrix (4 elements).
+        Hashable string identifying the equilibrium for cache invalidation.
+        Change this string whenever the equilibrium changes.
     s_max : float
+        Maximum arc length to trace (m).
     ds : float
+        Arc-length step size (m).
 
     Returns
     -------
     pts : ndarray, shape (N, 2)
+        (R, Z) points along the stable manifold.
     """
-    # This function is a cache stub — the real computation happens in
-    # _grow_manifold. We return a sentinel that gap_response_matrix_fpt
-    # replaces with the actual result on first call.
-    raise NotImplementedError(
-        "grow_stable_manifold_cached is a cache key stub; "
-        "use gap_response_matrix_fpt which manages the field function."
-    )
+    cache_key = (field_func_key, float(x_point.R), float(x_point.Z), s_max, ds)
+    if cache_key in _manifold_cache:
+        return _manifold_cache[cache_key]
+    pts = _grow_manifold(field_func, x_point, s_max=s_max, ds=ds)
+    _manifold_cache[cache_key] = pts
+    return pts
+
+
+def clear_manifold_cache() -> None:
+    """Clear the module-level stable-manifold cache.
+
+    Call this whenever the base equilibrium changes to force re-computation
+    of the manifold on the next :func:`gap_response_matrix_fpt` call.
+    """
+    _manifold_cache.clear()
+
 
 
 # ---------------------------------------------------------------------------
@@ -195,7 +196,10 @@ def gap_response_matrix_fpt(
     R_gap = np.zeros((n_gaps, n_coils))
 
     # Grow unperturbed stable manifold (expensive; cached per equilibrium)
-    manifold_pts = _grow_manifold(base_field_func, x_point, s_max, ds)
+    manifold_pts = grow_stable_manifold_cached(
+        base_field_func, x_point,
+        field_func_key=field_func_key, s_max=s_max, ds=ds,
+    )
     # shape (N_s, 2)
 
     for k, delta_field in enumerate(coil_field_funcs):

@@ -163,10 +163,81 @@ def compute_plasma_response(
     
     This avoids flux surface coordinates -> works in chaotic regions.
     """
-    # TODO: implement
-    raise NotImplementedError(
-        "compute_plasma_response not yet implemented. "
-        "See docstring for algorithmic strategy."
+    grid = perturbation.grid
+    R3d, Z3d, phi3d = grid.meshgrid()
+
+    # Resolve beta profile
+    if beta_profile is None:
+        if hasattr(equilibrium, 'beta_profile'):
+            beta_profile = equilibrium.beta_profile
+        else:
+            beta_profile = lambda psi_n: 0.0
+
+    # Toroidal mode decomposition
+    modes = perturbation.toroidal_modes(n_max=10)
+
+    delta_p = np.zeros(grid.shape)
+    delta_jR = np.zeros(grid.shape)
+    delta_jZ = np.zeros(grid.shape)
+    delta_jphi = np.zeros(grid.shape)
+
+    # Simple cylindrical approximation:
+    # δp ~ -β * (δB · B0) / μ0 evaluated on each flux surface
+    # δj ~ curl(δB_screened) / μ0
+    mu0 = 4e-7 * np.pi
+    B0 = getattr(equilibrium, 'B0', 1.0)
+
+    for n, mode_arr in modes.items():
+        # mode_arr: shape (NR, NZ, 3) complex amplitudes [dBR_n, dBZ_n, dBphi_n]
+        dBR_n = mode_arr[:, :, 0]
+        dBZ_n = mode_arr[:, :, 1]
+        dBphi_n = mode_arr[:, :, 2]
+
+        # Estimate psi_norm ~ (R - R0)^2 / a^2 (circular flux surfaces).
+        # grid.R is 1D (NR,); grid.R[:, None] broadcasts to (NR, 1) so the
+        # resulting psi_approx has shape (NR, 1) which broadcasts correctly
+        # against the (NR, NZ) mode arrays below.
+        R0 = getattr(equilibrium, 'R0', np.mean(grid.R))
+        a = getattr(equilibrium, 'r0', getattr(equilibrium, 'a', 0.5))
+
+        psi_approx = np.clip(((grid.R[:, None] - R0) ** 2) / (a**2 + 1e-30), 0, 1)
+        beta_arr = np.vectorize(beta_profile)(psi_approx)  # shape (NR, 1) → broadcasts to (NR, NZ)
+
+        # Screening factor per model
+        if model == 'ideal_mhd':
+            screen = 1.0
+        elif model == 'resistive':
+            screen = 0.5  # representative shielding
+        elif model == 'kinetic_screening':
+            screen = 0.3 + 0.3j
+        else:
+            raise ValueError(f"Unknown model: {model!r}")
+
+        # δp_n ~ -beta * |δBR_n|^2 * B0 / mu0 (scalar, summed over modes)
+        delta_p_n = -(beta_arr[:, :, None] * np.abs(dBR_n[:, :, None])**2 * B0 / mu0)
+        delta_p += np.real(
+            delta_p_n * np.exp(1j * n * phi3d) * screen
+        )
+
+        # δj ~ curl approximation in toroidal direction
+        # For mode n: δj_phi ~ i*n * δBR_n / (mu0 * R)
+        if n > 0:
+            R_arr = grid.R[:, None, None] * np.ones(grid.shape)
+            delta_jphi += np.real(
+                (1j * n * dBR_n[:, :, None] / (mu0 * R_arr + 1e-30))
+                * np.exp(1j * n * phi3d) * screen
+            )
+            delta_jR += np.real(
+                (-1j * n * dBZ_n[:, :, None] / (mu0 * R_arr + 1e-30))
+                * np.exp(1j * n * phi3d) * screen
+            )
+
+    return PlasmaResponse(
+        grid=grid,
+        delta_p=delta_p,
+        delta_jR=delta_jR,
+        delta_jZ=delta_jZ,
+        delta_jphi=delta_jphi,
     )
 
 
@@ -206,8 +277,73 @@ def feedback_correction_field(
     where G is the magnetic Green's function for a current loop in
     cylindrical coordinates (Neumann formula).
     """
-    # TODO: implement via Biot-Savart integration over response currents
-    raise NotImplementedError
+    from pyna.MCF.coils.coil import BRBZ_induced_by_current_loop
+
+    R3d, Z3d, phi3d = grid.meshgrid()
+    dBR_corr = np.zeros(grid.shape)
+    dBZ_corr = np.zeros(grid.shape)
+    dBphi_corr = np.zeros(grid.shape)
+
+    # Volume element dV = R * dR * dZ * dphi
+    resp_R3d, resp_Z3d, resp_phi3d = response.grid.meshgrid()
+    dR = (response.grid.R[-1] - response.grid.R[0]) / max(len(response.grid.R) - 1, 1)
+    dZ = (response.grid.Z[-1] - response.grid.Z[0]) / max(len(response.grid.Z) - 1, 1)
+    dphi = 2 * np.pi / response.grid.shape[2]
+
+    # Integrate Biot-Savart from response current elements
+    for ir in range(response.grid.shape[0]):
+        R_src = response.grid.R[ir]
+        for iz in range(response.grid.shape[1]):
+            Z_src = response.grid.Z[iz]
+            for ip in range(response.grid.shape[2]):
+                phi_src = response.grid.phi[ip]
+                j_R = response.delta_jR[ir, iz, ip]
+                j_Z = response.delta_jZ[ir, iz, ip]
+                j_phi = response.delta_jphi[ir, iz, ip]
+
+                if abs(j_R) + abs(j_Z) + abs(j_phi) < 1e-30:
+                    continue
+
+                dV = R_src * dR * dZ * dphi
+                mu0_over_4pi = 1e-7
+
+                # Cartesian displacement components from source current element to field point.
+                # The source is at cylindrical (R_src, Z_src, phi_src) and field point
+                # is at cylindrical (R3d, Z3d, phi3d). Converting to Cartesian:
+                #   x_src = R_src*cos(phi_src), y_src = R_src*sin(phi_src)
+                #   x_fld = R3d*cos(phi3d),     y_fld = R3d*sin(phi3d)
+                # Δx = x_fld - x_src = R3d*cos(phi3d) - R_src*cos(phi_src)
+                # However, for small (phi3d - phi_src) the dominant terms are:
+                #   Δx_R ≈ R3d*cos(phi3d) - R_src*cos(phi_src)  (radial offset contribution)
+                #   Δx_X ≈ -R_src*sin(phi3d - phi_src)          (azimuthal offset contribution)
+                dX = R3d * np.cos(phi3d) - R_src * np.cos(phi_src)   # Cartesian x displacement
+                dY = R3d * np.sin(phi3d) - R_src * np.sin(phi_src)   # Cartesian y displacement
+                dZ_cart = Z3d - Z_src                                  # z displacement
+                dist3 = (dX**2 + dY**2 + dZ_cart**2)**1.5 + 1e-20
+
+                # Biot-Savart: δB = (μ₀/4π) ∫ j × r̂/|r|² dV
+                # In Cartesian: δBx = (μ₀/4π) * dV * (jy*dZ - jz*dy) / |r|³
+                # Convert j to Cartesian: jx = jR*cos(phi_src) - jphi*sin(phi_src)
+                #                         jy = jR*sin(phi_src) + jphi*cos(phi_src)
+                j_X = j_R * np.cos(phi_src) - j_phi * np.sin(phi_src)
+                j_Y = j_R * np.sin(phi_src) + j_phi * np.cos(phi_src)
+
+                # Cartesian δB components
+                dBX = mu0_over_4pi * dV * (j_Y * dZ_cart - j_Z * dY) / dist3
+                dBY = mu0_over_4pi * dV * (j_Z * dX  - j_X * dZ_cart) / dist3
+                dBZ_bs = mu0_over_4pi * dV * (j_X * dY  - j_Y * dX) / dist3
+
+                # Convert back to cylindrical at field points
+                dBR_corr   += dBX * np.cos(phi3d) + dBY * np.sin(phi3d)
+                dBZ_corr   += dBZ_bs
+                dBphi_corr += -dBX * np.sin(phi3d) + dBY * np.cos(phi3d)
+
+    return PerturbationField(
+        grid=grid,
+        dBR=dBR_corr,
+        dBZ=dBZ_corr,
+        dBphi=dBphi_corr,
+    )
 
 
 def iterative_equilibrium_correction(
@@ -239,5 +375,54 @@ def iterative_equilibrium_correction(
     info : dict
         Keys: 'n_iter', 'residuals' (list), 'converged' (bool), 'cache'
     """
-    # TODO: implement iteration loop with convergence check and caching
-    raise NotImplementedError
+    if cache is None:
+        cache = {}
+
+    current_pert = PerturbationField(
+        grid=perturbation.grid,
+        dBR=perturbation.dBR.copy(),
+        dBZ=perturbation.dBZ.copy(),
+        dBphi=perturbation.dBphi.copy(),
+    )
+
+    residuals = []
+    converged = False
+
+    for i in range(n_iterations):
+        # 1. Compute plasma response to current total field
+        response = compute_plasma_response(equilibrium, current_pert)
+
+        # 2. Compute correction field
+        correction = feedback_correction_field(
+            equilibrium, current_pert, response, perturbation.grid
+        )
+
+        # 3. Update total perturbation
+        new_dBR = current_pert.dBR + correction.dBR
+        new_dBZ = current_pert.dBZ + correction.dBZ
+        new_dBphi = current_pert.dBphi + correction.dBphi
+
+        # 4. Check convergence (L2 norm of change)
+        delta_norm = float(np.sqrt(
+            np.mean(correction.dBR**2 + correction.dBZ**2 + correction.dBphi**2)
+        ))
+        residuals.append(delta_norm)
+
+        current_pert = PerturbationField(
+            grid=perturbation.grid,
+            dBR=new_dBR,
+            dBZ=new_dBZ,
+            dBphi=new_dBphi,
+        )
+
+        if delta_norm < convergence_tol:
+            converged = True
+            break
+
+    info = {
+        'n_iter': i + 1,
+        'residuals': residuals,
+        'converged': converged,
+        'cache': cache,
+    }
+    return current_pert, info
