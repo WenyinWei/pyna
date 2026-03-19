@@ -70,85 +70,102 @@ static inline bool point_in_toroidal_wall(double R, double Z, double phi,
 
 // ---------------------------------------------------------------------------
 // Trilinear interpolation on regular 3D grid [iR][iZ][iPhi]
-// Phi is periodic
+//
+// Phi convention — matches topoquest's scipy setup exactly:
+//   Phi_grid is Phi_ext = np.append(linspace(0, 2pi, N, endpoint=False), 2pi)
+//   so it has length N+1, Phi_grid[0]=0, Phi_grid[N]=2pi,
+//   and data[:,:,N] is a copy of data[:,:,0]  (the _ext() wrap).
+//
+// We never call mod2pi on phi before the binary search: the binary search
+// works directly on the extended grid [0, 2pi], and the caller wraps phi
+// into [0, 2pi) before calling.  The last interval [Phi_grid[N-1], 2pi]
+// is handled naturally because Phi_grid[N]=2pi is in the grid.
+//
+// Out-of-bounds R or Z → NaN  (matches scipy fill_value=np.nan)
 // ---------------------------------------------------------------------------
 inline double interp3d(
     const double* data,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
-    const double* Phi_grid, int nPhi,
+    const double* Phi_grid, int nPhi,   // nPhi = N_phi_original + 1  (extended)
     double R, double Z, double Phi)
 {
-    // Match scipy RegularGridInterpolator(bounds_error=False, fill_value=np.nan)
     if (!std::isfinite(R) || !std::isfinite(Z) || !std::isfinite(Phi))
         return std::numeric_limits<double>::quiet_NaN();
     if (R < R_grid[0] || R > R_grid[nR - 1] ||
         Z < Z_grid[0] || Z > Z_grid[nZ - 1])
         return std::numeric_limits<double>::quiet_NaN();
 
-    // Wrap Phi
-    Phi = mod2pi(Phi);
+    // Wrap phi into [0, 2pi) then handle the seam at 2pi
+    Phi = mod2pi(Phi);  // now in [0, 2pi)
 
-    // Find iR
-    int iR = (int)((R - R_grid[0]) / (R_grid[nR - 1] - R_grid[0]) * (nR - 1));
-    if (iR < 0) iR = 0;
+    // ── find iR (uniform grid assumed → O(1)) ──────────────────────────
+    double tR_raw = (R - R_grid[0]) / (R_grid[nR-1] - R_grid[0]) * (nR - 1);
+    int iR = (int)tR_raw;
+    if (iR < 0)       iR = 0;
     if (iR >= nR - 1) iR = nR - 2;
-    // Find iZ
-    int iZ = (int)((Z - Z_grid[0]) / (Z_grid[nZ - 1] - Z_grid[0]) * (nZ - 1));
-    if (iZ < 0) iZ = 0;
+    double tR = tR_raw - iR;
+
+    // ── find iZ (uniform grid assumed → O(1)) ──────────────────────────
+    double tZ_raw = (Z - Z_grid[0]) / (Z_grid[nZ-1] - Z_grid[0]) * (nZ - 1);
+    int iZ = (int)tZ_raw;
+    if (iZ < 0)       iZ = 0;
     if (iZ >= nZ - 1) iZ = nZ - 2;
-    // Find iPhi with binary search
-    int iPhi = 0;
+    double tZ = tZ_raw - iZ;
+
+    // ── find iPhi via binary search on extended grid ────────────────────
+    // Phi_grid has nPhi points: [0, ..., phi_{N-1}, 2pi]
+    // Valid cell index range: [0, nPhi-2]
+    int iPhi;
     {
-        int lo = 0, hi = nPhi - 2;
+        int lo = 0, hi = nPhi - 2;     // nPhi-2 is the last valid left index
         while (lo < hi) {
             int mid = (lo + hi) / 2;
             if (Phi >= Phi_grid[mid + 1]) lo = mid + 1;
-            else hi = mid;
+            else                          hi = mid;
         }
         iPhi = lo;
     }
-    int iPhi1 = (iPhi + 1) % nPhi;
+    // iPhi1 is the right cell index in the extended grid (never needs %wrap
+    // because the last valid iPhi = nPhi-2 and iPhi1 = nPhi-1 = the 2pi copy)
+    int iPhi1 = iPhi + 1;   // always valid: iPhi1 <= nPhi-1
 
-    double tR  = (R   - R_grid[iR])   / (R_grid[iR + 1]   - R_grid[iR]);
-    double tZ  = (Z   - Z_grid[iZ])   / (Z_grid[iZ + 1]   - Z_grid[iZ]);
-    // Phi fraction
     double phiLo = Phi_grid[iPhi];
-    double phiHi = (iPhi + 1 < nPhi) ? Phi_grid[iPhi + 1]
-                                      : Phi_grid[0] + 2.0 * M_PI;
+    double phiHi = Phi_grid[iPhi1];
     double tP = (phiHi > phiLo) ? (Phi - phiLo) / (phiHi - phiLo) : 0.0;
+    // Clamp numerical noise
+    if (tP < 0.0) tP = 0.0;
+    if (tP > 1.0) tP = 1.0;
 
-    // Flat index macro: [iR][iZ][iPhi]
-    auto idx = [&](int r, int z, int p) -> double {
+    // ── trilinear interpolation ─────────────────────────────────────────
+    // data layout: [iR][iZ][iPhi_ext],  stride = nZ * nPhi
+    auto val = [&](int r, int z, int p) -> double {
         return data[r * nZ * nPhi + z * nPhi + p];
     };
 
-    double c000 = idx(iR,     iZ,     iPhi);
-    double c001 = idx(iR,     iZ,     iPhi1);
-    double c010 = idx(iR,     iZ + 1, iPhi);
-    double c011 = idx(iR,     iZ + 1, iPhi1);
-    double c100 = idx(iR + 1, iZ,     iPhi);
-    double c101 = idx(iR + 1, iZ,     iPhi1);
-    double c110 = idx(iR + 1, iZ + 1, iPhi);
-    double c111 = idx(iR + 1, iZ + 1, iPhi1);
+    double c000 = val(iR,   iZ,   iPhi);
+    double c001 = val(iR,   iZ,   iPhi1);
+    double c010 = val(iR,   iZ+1, iPhi);
+    double c011 = val(iR,   iZ+1, iPhi1);
+    double c100 = val(iR+1, iZ,   iPhi);
+    double c101 = val(iR+1, iZ,   iPhi1);
+    double c110 = val(iR+1, iZ+1, iPhi);
+    double c111 = val(iR+1, iZ+1, iPhi1);
 
+    // Propagate NaN from field (matches scipy's nan fill behaviour)
     if (!std::isfinite(c000) || !std::isfinite(c001) ||
         !std::isfinite(c010) || !std::isfinite(c011) ||
         !std::isfinite(c100) || !std::isfinite(c101) ||
-        !std::isfinite(c110) || !std::isfinite(c111)) {
+        !std::isfinite(c110) || !std::isfinite(c111))
         return std::numeric_limits<double>::quiet_NaN();
-    }
 
     return
-        c000 * (1-tR)*(1-tZ)*(1-tP) +
-        c001 * (1-tR)*(1-tZ)* tP    +
-        c010 * (1-tR)* tZ   *(1-tP) +
-        c011 * (1-tR)* tZ   * tP    +
-        c100 *  tR   *(1-tZ)*(1-tP) +
-        c101 *  tR   *(1-tZ)* tP    +
-        c110 *  tR   * tZ   *(1-tP) +
-        c111 *  tR   * tZ   * tP;
+        c000*(1-tR)*(1-tZ)*(1-tP) + c001*(1-tR)*(1-tZ)*tP +
+        c010*(1-tR)*   tZ *(1-tP) + c011*(1-tR)*   tZ *tP +
+        c100*   tR *(1-tZ)*(1-tP) + c101*   tR *(1-tZ)*tP +
+        c110*   tR *   tZ *(1-tP) + c111*   tR *   tZ *tP;
 }
+
 
 // ---------------------------------------------------------------------------
 // RK4 step: advance (R,Z,Phi) by dPhi
