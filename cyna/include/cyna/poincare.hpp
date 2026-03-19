@@ -371,4 +371,88 @@ void trace_poincare_batch_twall(
     }).wait();
 }
 
+
+// ---------------------------------------------------------------------------
+// Connection-length trace with toroidal wall (forward + backward)
+// ---------------------------------------------------------------------------
+// Output arrays L_fwd, L_bwd: length N_seeds, pre-filled with sentinel value
+// (large positive float = did not terminate).
+// arc_length_element: dl/dphi = R * |B| / |Bphi|
+// ---------------------------------------------------------------------------
+void trace_connection_length_twall(
+    const double* R_seeds, const double* Z_seeds, int N_seeds,
+    double phi_start,
+    int max_turns, double DPhi,
+    const double* BR, const double* BPhi, const double* BZ,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi,
+    const double* wall_phi_centers, int n_phi_wall,
+    const double* wall_R, const double* wall_Z, int n_theta_wall,
+    int n_threads,
+    double* L_fwd,
+    double* L_bwd)
+{
+    if (n_threads <= 0)
+        n_threads = (int)std::thread::hardware_concurrency();
+
+    constexpr double SENTINEL = 1e30;
+    for (int i = 0; i < N_seeds; ++i) { L_fwd[i] = SENTINEL; L_bwd[i] = SENTINEL; }
+
+    // direction: +1 = forward, -1 = backward
+    for (int dir : {+1, -1}) {
+        double* L_out = (dir == 1) ? L_fwd : L_bwd;
+
+        BS::thread_pool pool((unsigned int)n_threads);
+        pool.parallelize_loop(0, N_seeds, [&](int i_start, int i_end) {
+            for (int i = i_start; i < i_end; ++i) {
+                double R = R_seeds[i], Z = Z_seeds[i];
+                double phi = mod2pi(phi_start);
+                double arc = 0.0;
+                double phi_total = 0.0;
+                double phi_limit = max_turns * 2.0 * M_PI;
+
+                while (phi_total < phi_limit - 1e-12) {
+                    double step = std::min(DPhi, phi_limit - phi_total);
+
+                    // Arc-length contribution before step (mid-point approximation)
+                    double bp_here = interp3d(BPhi, R_grid, nR, Z_grid, nZ,
+                                              Phi_grid, nPhi, R, Z, phi);
+                    if (std::isfinite(bp_here) && std::abs(bp_here) > 1e-12) {
+                        double br_here = interp3d(BR,  R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R, Z, phi);
+                        double bz_here = interp3d(BZ,  R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R, Z, phi);
+                        double Bmag = std::sqrt(br_here*br_here + bp_here*bp_here + bz_here*bz_here);
+                        if (std::isfinite(Bmag))
+                            arc += R * Bmag / std::abs(bp_here) * step;
+                    }
+
+                    double phi_step_dir = dir * step;
+                    rk4_step(R, Z, phi, phi_step_dir,
+                             BR, BPhi, BZ,
+                             R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+                    phi = mod2pi(phi + phi_step_dir);
+                    phi_total += step;
+
+                    // Terminate if out-of-grid or non-finite
+                    if (!std::isfinite(R) || !std::isfinite(Z) ||
+                        R < R_grid[0] || R > R_grid[nR - 1] ||
+                        Z < Z_grid[0] || Z > Z_grid[nZ - 1]) {
+                        L_out[i] = arc;
+                        break;
+                    }
+
+                    // Terminate if outside toroidal wall
+                    if (!point_in_toroidal_wall(R, Z, phi,
+                                                wall_phi_centers,
+                                                wall_R, wall_Z,
+                                                n_phi_wall, n_theta_wall)) {
+                        L_out[i] = arc;
+                        break;
+                    }
+                }
+            }
+        }).wait();
+    }
+}
+
 } // namespace cyna

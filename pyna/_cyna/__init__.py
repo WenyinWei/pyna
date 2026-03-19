@@ -44,6 +44,7 @@ if _available:
     trace_poincare_batch = _cyna_ext.trace_poincare_batch
     trace_poincare_multi = _cyna_ext.trace_poincare_multi
     trace_poincare_batch_twall = getattr(_cyna_ext, "trace_poincare_batch_twall", None)
+    trace_connection_length_twall = getattr(_cyna_ext, "trace_connection_length_twall", None)
 
 __all__ = [
     "is_available",
@@ -51,4 +52,5 @@ __all__ = [
     "trace_poincare_batch",
     "trace_poincare_multi",
     "trace_poincare_batch_twall",
+    "trace_connection_length_twall",
 ]
