@@ -12,6 +12,11 @@
   (all stubs with full docstrings and TODO markers ready for implementation).
 - Updated `pyna.topo.__init__` to re-export chaos diagnostics.
 
+## [0.4.1] - 2026-03-19
+### Changed
+- Added Island and IslandChain class hierarchy with parallel execution support
+- Removed development/debug temporary files from repository root and scripts/
+
 ## [0.1.0] - 2026-03-12
 
 ### Added
