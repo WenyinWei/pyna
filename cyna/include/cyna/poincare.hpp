@@ -472,4 +472,137 @@ void trace_connection_length_twall(
     }
 }
 
+// ---------------------------------------------------------------------------
+// trace_wall_hits_twall
+// Same as trace_connection_length_twall but also records the (R, Z, phi) of
+// the wall-hit point for both forward and backward directions.
+// Outputs (length N_seeds each, NaN if not terminated):
+//   L_fwd, L_bwd        — arc-length to wall [m]
+//   R_hit_fwd, Z_hit_fwd, phi_hit_fwd
+//   R_hit_bwd, Z_hit_bwd, phi_hit_bwd
+// ---------------------------------------------------------------------------
+void trace_wall_hits_twall(
+    const double* R_seeds, const double* Z_seeds, int N_seeds,
+    double phi_start,
+    int max_turns, double DPhi,
+    const double* BR, const double* BPhi, const double* BZ,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi,
+    const double* wall_phi_centers, int n_phi_wall,
+    const double* wall_R, const double* wall_Z, int n_theta_wall,
+    int n_threads,
+    double* L_fwd,     double* L_bwd,
+    double* R_hit_fwd, double* Z_hit_fwd, double* phi_hit_fwd,
+    double* R_hit_bwd, double* Z_hit_bwd, double* phi_hit_bwd)
+{
+    if (n_threads <= 0)
+        n_threads = (int)std::thread::hardware_concurrency();
+
+    constexpr double NAN_VAL = std::numeric_limits<double>::quiet_NaN();
+    constexpr double SENTINEL = 1e30;
+    for (int i = 0; i < N_seeds; ++i) {
+        L_fwd[i] = SENTINEL; L_bwd[i] = SENTINEL;
+        R_hit_fwd[i] = NAN_VAL; Z_hit_fwd[i] = NAN_VAL; phi_hit_fwd[i] = NAN_VAL;
+        R_hit_bwd[i] = NAN_VAL; Z_hit_bwd[i] = NAN_VAL; phi_hit_bwd[i] = NAN_VAL;
+    }
+
+    for (int dir : {+1, -1}) {
+        double* L_out     = (dir == 1) ? L_fwd     : L_bwd;
+        double* R_hit_out = (dir == 1) ? R_hit_fwd : R_hit_bwd;
+        double* Z_hit_out = (dir == 1) ? Z_hit_fwd : Z_hit_bwd;
+        double* phi_hit_out = (dir == 1) ? phi_hit_fwd : phi_hit_bwd;
+
+        BS::thread_pool pool((unsigned int)n_threads);
+        pool.parallelize_loop(0, N_seeds, [&](int i_start, int i_end) {
+            for (int i = i_start; i < i_end; ++i) {
+                double R = R_seeds[i], Z = Z_seeds[i];
+                double phi = mod2pi(phi_start);
+                double arc = 0.0;
+                double phi_total = 0.0;
+                double phi_limit = max_turns * 2.0 * M_PI;
+
+                while (phi_total < phi_limit - 1e-12) {
+                    double step = std::min(DPhi, phi_limit - phi_total);
+
+                    // Save pre-step position for bisection
+                    double R_prev = R, Z_prev = Z, phi_prev = phi;
+
+                    // Arc-length contribution (mid-point)
+                    double bp_here = interp3d(BPhi, R_grid, nR, Z_grid, nZ,
+                                              Phi_grid, nPhi, R, Z, phi);
+                    if (std::isfinite(bp_here) && std::abs(bp_here) > 1e-12) {
+                        double br_here = interp3d(BR,  R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R, Z, phi);
+                        double bz_here = interp3d(BZ,  R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R, Z, phi);
+                        double Bmag = std::sqrt(br_here*br_here + bp_here*bp_here + bz_here*bz_here);
+                        if (std::isfinite(Bmag))
+                            arc += R * Bmag / std::abs(bp_here) * step;
+                    }
+
+                    double phi_step_dir = dir * step;
+                    rk4_step(R, Z, phi, phi_step_dir,
+                             BR, BPhi, BZ,
+                             R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+                    phi = mod2pi(phi + phi_step_dir);
+                    phi_total += step;
+
+                    bool hit = false;
+
+                    // Terminate if out-of-grid or non-finite
+                    if (!std::isfinite(R) || !std::isfinite(Z) ||
+                        R < R_grid[0] || R > R_grid[nR - 1] ||
+                        Z < Z_grid[0] || Z > Z_grid[nZ - 1]) {
+                        hit = true;
+                    }
+
+                    // Terminate if outside toroidal wall
+                    if (!hit && !point_in_toroidal_wall(R, Z, phi,
+                                                wall_phi_centers,
+                                                wall_R, wall_Z,
+                                                n_phi_wall, n_theta_wall)) {
+                        hit = true;
+                    }
+
+                    if (hit) {
+                        L_out[i] = arc;
+                        // Bisect to refine hit location
+                        double rA = R_prev, zA = Z_prev, pA = phi_prev;
+                        double rB = R,      zB = Z,      pB = phi;
+                        for (int b = 0; b < 12; ++b) {
+                            double rM = 0.5*(rA+rB);
+                            double zM = 0.5*(zA+zB);
+                            double pM = mod2pi(0.5*(pA+pB));
+                            bool inside_M = std::isfinite(rM) && std::isfinite(zM) &&
+                                rM >= R_grid[0] && rM <= R_grid[nR-1] &&
+                                zM >= Z_grid[0] && zM <= Z_grid[nZ-1] &&
+                                point_in_toroidal_wall(rM, zM, pM,
+                                    wall_phi_centers, wall_R, wall_Z,
+                                    n_phi_wall, n_theta_wall);
+                            if (inside_M) { rA=rM; zA=zM; pA=pM; }
+                            else          { rB=rM; zB=zM; pB=pM; }
+                        }
+                        R_hit_out[i]   = 0.5*(rA+rB);
+                        Z_hit_out[i]   = 0.5*(zA+zB);
+                        phi_hit_out[i] = mod2pi(0.5*(pA+pB));
+                        break;
+                    }
+                }
+                // Replace SENTINEL with NaN for unterminated seeds
+                if (L_out[i] >= SENTINEL) L_out[i] = SENTINEL; // will be replaced in binding
+            }
+        }).wait();
+    }
+    // Sentinel → NaN
+    for (int i = 0; i < N_seeds; ++i) {
+        if (L_fwd[i] >= SENTINEL) {
+            L_fwd[i] = NAN_VAL;
+            R_hit_fwd[i] = NAN_VAL; Z_hit_fwd[i] = NAN_VAL; phi_hit_fwd[i] = NAN_VAL;
+        }
+        if (L_bwd[i] >= SENTINEL) {
+            L_bwd[i] = NAN_VAL;
+            R_hit_bwd[i] = NAN_VAL; Z_hit_bwd[i] = NAN_VAL; phi_hit_bwd[i] = NAN_VAL;
+        }
+    }
+}
+
 } // namespace cyna

@@ -301,4 +301,59 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("n_threads") = -1,
         "Compute connection length (forward + backward) for each seed against toroidal wall.\n"
         "Returns (L_fwd, L_bwd) in metres; sentinel=1e30 means no termination within max_turns.");
+
+    m.def("trace_wall_hits_twall",
+        [](py::array_t<double> R_seeds, py::array_t<double> Z_seeds,
+           double phi_start, int max_turns, double DPhi,
+           py::array_t<double> BR, py::array_t<double> BPhi, py::array_t<double> BZ,
+           py::array_t<double> R_grid, py::array_t<double> Z_grid,
+           py::array_t<double> Phi_grid,
+           py::array_t<double> wall_phi_centers,
+           py::array_t<double> wall_R, py::array_t<double> wall_Z,
+           int n_threads) -> py::tuple
+        {
+            if (n_threads <= 0) n_threads = (int)std::thread::hardware_concurrency();
+            if (wall_R.ndim() != 2 || wall_Z.ndim() != 2)
+                throw std::runtime_error("wall_R and wall_Z must be 2-D");
+            if (wall_R.shape(0) != wall_Z.shape(0) || wall_R.shape(1) != wall_Z.shape(1))
+                throw std::runtime_error("wall_R and wall_Z shapes must match");
+            if ((int)wall_phi_centers.size() != (int)wall_R.shape(0))
+                throw std::runtime_error("wall_phi_centers length must equal wall_R.shape[0]");
+
+            int N_seeds      = (int)R_seeds.size();
+            int n_phi_wall   = (int)wall_R.shape(0);
+            int n_theta_wall = (int)wall_R.shape(1);
+
+            py::array_t<double> L_fwd({N_seeds}), L_bwd({N_seeds});
+            py::array_t<double> R_hf({N_seeds}), Z_hf({N_seeds}), phi_hf({N_seeds});
+            py::array_t<double> R_hb({N_seeds}), Z_hb({N_seeds}), phi_hb({N_seeds});
+
+            cyna::trace_wall_hits_twall(
+                buf(R_seeds,"R_seeds"), buf(Z_seeds,"Z_seeds"), N_seeds,
+                phi_start, max_turns, DPhi,
+                buf(BR,"BR"), buf(BPhi,"BPhi"), buf(BZ,"BZ"),
+                buf(R_grid,"R_grid"), (int)R_grid.size(),
+                buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
+                buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size(),
+                buf(wall_phi_centers,"wall_phi_centers"), n_phi_wall,
+                buf(wall_R,"wall_R"), buf(wall_Z,"wall_Z"), n_theta_wall,
+                n_threads,
+                L_fwd.mutable_data(), L_bwd.mutable_data(),
+                R_hf.mutable_data(), Z_hf.mutable_data(), phi_hf.mutable_data(),
+                R_hb.mutable_data(), Z_hb.mutable_data(), phi_hb.mutable_data());
+
+            return py::make_tuple(L_fwd, L_bwd,
+                                  R_hf, Z_hf, phi_hf,
+                                  R_hb, Z_hb, phi_hb);
+        },
+        py::arg("R_seeds"), py::arg("Z_seeds"), py::arg("phi_start"),
+        py::arg("max_turns"), py::arg("DPhi"),
+        py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
+        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+        py::arg("wall_phi_centers"), py::arg("wall_R"), py::arg("wall_Z"),
+        py::arg("n_threads") = -1,
+        "Like trace_connection_length_twall but also returns wall-hit coordinates.\n"
+        "Returns (L_fwd, L_bwd, R_hit_fwd, Z_hit_fwd, phi_hit_fwd,\n"
+        "                       R_hit_bwd, Z_hit_bwd, phi_hit_bwd).\n"
+        "NaN where field line does not terminate within max_turns.");
 }
