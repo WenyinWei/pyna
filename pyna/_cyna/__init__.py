@@ -1,49 +1,54 @@
-"""pyna._cyna — optional C++ acceleration layer.
-
-When cyna is compiled and installed, this module provides fast C++
-implementations of performance-critical operations.
-
-If cyna is not compiled, all operations fall back to pure Python
-implementations in pyna.flt, pyna.topo, etc.
-
-Usage
------
-    from pyna._cyna import is_available, get_version
-
-    if is_available():
-        # Use C++ accelerated version
-        from pyna._cyna import trace_fieldlines_batch
-    else:
-        # Automatic fallback — you don't need to do anything
-        pass  # pyna.flt handles this transparently
-
-Building cyna
--------------
-    cd cyna/
-    xmake build cyna_python
-    xmake install -o ../pyna/_cyna/
 """
+pyna._cyna — thin Python wrapper around the _cyna_ext C++ extension.
+"""
+import importlib.util
+import pathlib
 
 _cyna_ext = None
 _available = False
 
-try:
-    from pyna._cyna import _cyna_ext  # type: ignore[attr-defined]
-    _available = True
-except ImportError:
-    pass
+# Try to load _cyna_ext.pyd from this package directory
+_p = pathlib.Path(__file__).parent
+for _f in list(_p.glob("_cyna_ext*.pyd")) + list(_p.glob("_cyna_ext*.so")):
+    try:
+        _spec = importlib.util.spec_from_file_location("_cyna_ext", _f)
+        _mod = importlib.util.module_from_spec(_spec)
+        _spec.loader.exec_module(_mod)
+        _cyna_ext = _mod
+        _available = True
+        break
+    except Exception:
+        continue
+
+if not _available:
+    # Last resort: try normal import (e.g., installed as package)
+    try:
+        import importlib
+        _cyna_ext = importlib.import_module("pyna._cyna._cyna_ext")
+        _available = True
+    except Exception:
+        pass
 
 
 def is_available() -> bool:
-    """Return True if the C++ cyna extension is compiled and available."""
+    """Return True if the C++ extension was successfully loaded."""
     return _available
 
 
 def get_version() -> str:
-    """Return cyna version string, or 'not available'."""
-    if _available and _cyna_ext is not None:
-        return _cyna_ext.__version__
-    return "not available (pure Python fallback active)"
+    """Return the extension version string."""
+    return _cyna_ext.__version__ if _available else "not available"
 
 
-__all__ = ["is_available", "get_version"]
+if _available:
+    trace_poincare_batch = _cyna_ext.trace_poincare_batch
+    trace_poincare_multi = _cyna_ext.trace_poincare_multi
+    trace_poincare_batch_twall = getattr(_cyna_ext, "trace_poincare_batch_twall", None)
+
+__all__ = [
+    "is_available",
+    "get_version",
+    "trace_poincare_batch",
+    "trace_poincare_multi",
+    "trace_poincare_batch_twall",
+]
