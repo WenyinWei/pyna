@@ -596,3 +596,125 @@ def second_order_orbit_variation(
         method="DOP853", t_eval=phi_arr, rtol=1e-8, atol=1e-9,
     )
     return sol_full.y.T  # shape (N, 2)
+
+
+def monodromy_matrix(
+    R_xpt: float,
+    Z_xpt: float,
+    phi_section: float,
+    m_turns: int,
+    cache: dict,
+    wall,
+    fd_eps: float = 1e-4,
+    DPhi: float = 0.05,
+) -> "np.ndarray":
+    """Compute the 2x2 monodromy matrix at (R_xpt, Z_xpt) using cyna C++.
+
+    Uses finite differences: evaluates P^m at (R+/-eps, Z) and (R, Z+/-eps)
+    in a single cyna batch call (5 seeds x m_turns, all in parallel).
+
+    Parameters
+    ----------
+    R_xpt, Z_xpt : float
+        X-point coordinates.
+    phi_section : float
+        Toroidal angle of the Poincare section [rad].
+    m_turns : int
+        Number of toroidal turns (m in q = m/n -- the orbit period).
+    cache : dict
+        Field cache dict with keys: 'BR', 'BPhi', 'BZ', 'R_grid', 'Z_grid', 'Phi_grid'.
+    wall : WallGeometry
+        Wall geometry object with ._phi_centers, ._R, ._Z attributes.
+    fd_eps : float
+        Finite difference step size [m].
+    DPhi : float
+        Step size for cyna RK4 integrator [rad].
+
+    Returns
+    -------
+    M : ndarray, shape (2, 2)
+        Monodromy matrix (Jacobian of P^m).
+    """
+    import numpy as np
+    try:
+        from pyna._cyna import trace_poincare_batch_twall
+        _has_twall = True
+    except ImportError:
+        _has_twall = False
+    try:
+        from pyna._cyna import trace_poincare_batch
+        _has_batch = True
+    except ImportError:
+        _has_batch = False
+
+    if not _has_twall and not _has_batch:
+        raise ImportError("pyna._cyna not available")
+
+    # Extract grid
+    BR, BPhi, BZ = cache['BR'], cache['BPhi'], cache['BZ']
+    R_grid, Z_grid, Phi_grid = cache['R_grid'], cache['Z_grid'], cache['Phi_grid']
+
+    # Extend Phi_grid for periodicity (matches FieldlineTracer convention)
+    Phi_ext = np.append(Phi_grid, 2 * np.pi)
+    BR_ext  = np.concatenate([BR,   BR[:, :, :1]],  axis=2)
+    BPhi_ext= np.concatenate([BPhi, BPhi[:, :, :1]], axis=2)
+    BZ_ext  = np.concatenate([BZ,   BZ[:, :, :1]],  axis=2)
+
+    # Flatten to 1-D (required by cyna C++ API)
+    BR_flat   = np.ascontiguousarray(BR_ext,   dtype=np.float64).ravel()
+    BPhi_flat = np.ascontiguousarray(BPhi_ext, dtype=np.float64).ravel()
+    BZ_flat   = np.ascontiguousarray(BZ_ext,   dtype=np.float64).ravel()
+    R_g = np.ascontiguousarray(R_grid, dtype=np.float64)
+    Z_g = np.ascontiguousarray(Z_grid, dtype=np.float64)
+    Phi_g = np.ascontiguousarray(Phi_ext, dtype=np.float64)
+
+    # 5 seeds: center, +-R, +-Z
+    R_seeds = np.ascontiguousarray(
+        [R_xpt, R_xpt + fd_eps, R_xpt - fd_eps, R_xpt,          R_xpt         ], dtype=np.float64)
+    Z_seeds = np.ascontiguousarray(
+        [Z_xpt, Z_xpt,          Z_xpt,          Z_xpt + fd_eps, Z_xpt - fd_eps], dtype=np.float64)
+
+    # Output layout: fixed stride — each seed gets exactly m_turns slots
+    # counts[i] = actual crossings (<= m_turns if particle hits wall)
+    if _has_twall and hasattr(wall, '_phi_centers'):
+        counts, R_flat_out, Z_flat_out = trace_poincare_batch_twall(
+            R_seeds, Z_seeds, float(phi_section), int(m_turns), float(DPhi),
+            BR_flat, BPhi_flat, BZ_flat, R_g, Z_g, Phi_g,
+            np.ascontiguousarray(wall._phi_centers, dtype=np.float64),
+            np.ascontiguousarray(wall._R,           dtype=np.float64),
+            np.ascontiguousarray(wall._Z,           dtype=np.float64),
+        )
+    elif _has_batch:
+        wR, wZ = wall.get_section(phi_section)
+        counts, R_flat_out, Z_flat_out = trace_poincare_batch(
+            R_seeds, Z_seeds, float(phi_section), int(m_turns), float(DPhi),
+            BR_flat, BPhi_flat, BZ_flat, R_g, Z_g, Phi_g,
+            np.ascontiguousarray(wR, dtype=np.float64),
+            np.ascontiguousarray(wZ, dtype=np.float64),
+        )
+    else:
+        raise RuntimeError("No suitable cyna batch function found")
+
+    # Fixed-stride output: base = i * m_turns
+    # counts[i] = how many crossings actually occurred (0..m_turns)
+    R_final = np.full(5, np.nan)
+    Z_final = np.full(5, np.nan)
+    for i in range(5):
+        n = int(counts[i])
+        if n >= m_turns:
+            idx = i * m_turns + (m_turns - 1)
+            R_final[i] = R_flat_out[idx]
+            Z_final[i] = Z_flat_out[idx]
+
+    # FD Jacobian: M = [[dR'/dR, dR'/dZ], [dZ'/dR, dZ'/dZ]]
+    M = np.array([
+        [(R_final[1] - R_final[2]) / (2 * fd_eps),
+         (R_final[3] - R_final[4]) / (2 * fd_eps)],
+        [(Z_final[1] - Z_final[2]) / (2 * fd_eps),
+         (Z_final[3] - Z_final[4]) / (2 * fd_eps)],
+    ])
+    return M
+
+
+# Backward-compat alias (old backend-explicit name)
+cyna_monodromy = monodromy_matrix

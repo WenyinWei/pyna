@@ -26,9 +26,13 @@ Core capabilities:
 | `island_extract.py` | `detect_islands()`, `island_halfwidth()` |
 | `monodromy.py` | `MonodromyAnalysis`: `DPm`, `eigenvalues`, `stability_index`, `Greene_residue` |
 | `variational.py` | `PoincareMapVariationalEquations`, `tangent_map()` |
-| `manifold_improve.py` | `StableManifold`, `UnstableManifold` (arc-length parameterised extraction) |
+| `manifold_improve.py` | `StableManifold`, `UnstableManifold` (arc-length parameterised extraction; accelerated backend by default) |
 | `manifold.py` | `grow_manifold_from_Xcycle()` |
 | `topology_analysis.py` | `analyse_topology()`, `TopologyReport` |
+
+Public API names in `pyna.topo` describe the mathematical object, not the backend.
+For example, `StableManifold` uses the accelerated cyna integrator by default when
+available; backend-explicit names are compatibility aliases, not the preferred API.
 | `cycle.py` | Cycle detection helpers |
 | `classical_maps.py` | `HenonMap`, `StandardMap` (test cases / benchmarks) |
 | `chaos.py` | `ftle_field()`, `chirikov_overlap()`, `chaotic_boundary_estimate()` |

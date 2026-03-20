@@ -1,7 +1,7 @@
 """pyna.topo — topology analysis subpackage."""
 
 from pyna.topo.variational import PoincareMapVariationalEquations
-from pyna.topo.manifold_improve import StableManifold, UnstableManifold
+from pyna.topo.manifold_improve import StableManifold, UnstableManifold, ScipyStableManifold, ScipyUnstableManifold, CynaStableManifold, CynaUnstableManifold
 from pyna.topo.chaos import (
     chirikov_overlap,
     ftle_field,
@@ -22,12 +22,18 @@ from pyna.topo.monodromy import (
     orbit_shift_under_perturbation,
     monodromy_change_under_perturbation,
     second_order_orbit_variation,
+    monodromy_matrix,
+    cyna_monodromy,
 )
 
 __all__ = [
     "PoincareMapVariationalEquations",
     "StableManifold",
     "UnstableManifold",
+    "ScipyStableManifold",
+    "ScipyUnstableManifold",
+    "CynaStableManifold",
+    "CynaUnstableManifold",
     # chaos diagnostics
     "chirikov_overlap",
     "ftle_field",
@@ -51,4 +57,6 @@ __all__ = [
     "orbit_shift_under_perturbation",
     "monodromy_change_under_perturbation",
     "second_order_orbit_variation",
+    "monodromy_matrix",
+    "cyna_monodromy",
 ]

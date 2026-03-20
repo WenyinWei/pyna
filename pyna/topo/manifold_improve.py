@@ -96,7 +96,7 @@ class _ManifoldBase:
             warnings.warn(
                 f"X-point does not appear to be hyperbolic: |λ| = {mods}. "
                 f"Manifold growth will likely produce straight lines. "
-                f"Ensure n_turns matches the orbit period (e.g. n_turns=TARGET_N for q=m/n).",
+                f"Ensure n_turns matches the orbit period (e.g. n_turns=m for q=m/n (m = toroidal period)).",
                 ManifoldWarning,
                 stacklevel=3,
             )
@@ -190,13 +190,18 @@ class _ManifoldBase:
         """Integrate a single field line from x0 over phi_span."""
         kw = dict(method="DOP853", rtol=1e-8, atol=1e-11, dense_output=False)
         kw.update(kwargs)
-        sol = solve_ivp(
-            fun=lambda phi, y: np.asarray(self.field_func(y[0], y[1], phi),
-                                          dtype=float),
-            t_span=phi_span,
-            y0=np.asarray(x0, dtype=float),
-            **kw,
-        )
+        try:
+            sol = solve_ivp(
+                fun=lambda phi, y: np.asarray(self.field_func(y[0], y[1], phi),
+                                              dtype=float),
+                t_span=phi_span,
+                y0=np.asarray(x0, dtype=float),
+                **kw,
+            )
+        except (ValueError, FloatingPointError):
+            return np.array([np.nan, np.nan])
+        if not sol.success or not np.all(np.isfinite(sol.y[:, -1])):
+            return np.array([np.nan, np.nan])
         return sol.y[:, -1]  # final position
 
     def grow(self, n_turns=20, init_length=1e-4, n_init_pts=5,
@@ -321,7 +326,123 @@ class _ManifoldBase:
 # Concrete subclasses
 # ---------------------------------------------------------------------------
 
-class StableManifold(_ManifoldBase):
+class _AcceleratedManifoldBase(_ManifoldBase):
+    """Manifold base that uses cyna C++ for single-step field-line integration."""
+
+    def __init__(self, x_point, Jac, cache, wall, phi_section=0.0, DPhi=0.05, **kw):
+        import numpy as np
+        from scipy.interpolate import RegularGridInterpolator
+
+        BR, BPhi_arr, BZ_arr = cache['BR'], cache['BPhi'], cache['BZ']
+        R_grid, Z_grid, Phi_grid = cache['R_grid'], cache['Z_grid'], cache['Phi_grid']
+        Phi_ext = np.append(Phi_grid, 2 * np.pi)
+        _ext = lambda X: np.concatenate([X, X[:, :, :1]], axis=2)
+        kwi = dict(method='linear', bounds_error=False, fill_value=np.nan)
+        itp_BR   = RegularGridInterpolator((R_grid, Z_grid, Phi_ext), _ext(BR),     **kwi)
+        itp_BPhi = RegularGridInterpolator((R_grid, Z_grid, Phi_ext), _ext(BPhi_arr), **kwi)
+        itp_BZ   = RegularGridInterpolator((R_grid, Z_grid, Phi_ext), _ext(BZ_arr),  **kwi)
+
+        def field_func_2d(R, Z, phi):
+            phi_w = phi % (2 * np.pi)
+            B_R   = float(itp_BR([[R, Z, phi_w]])[0])
+            B_Phi = float(itp_BPhi([[R, Z, phi_w]])[0])
+            B_Z   = float(itp_BZ([[R, Z, phi_w]])[0])
+            if abs(B_Phi) < 1e-15:
+                return np.array([0.0, 0.0])
+            return np.array([B_R / B_Phi * R, B_Z / B_Phi * R])
+
+        self._cache = cache
+        self._wall = wall
+        self._phi_section = phi_section
+        self._DPhi = DPhi
+        self._R_grid = np.ascontiguousarray(R_grid, dtype=np.float64)
+        self._Z_grid = np.ascontiguousarray(Z_grid, dtype=np.float64)
+
+        try:
+            from pyna._cyna import trace_poincare_batch_twall
+            self._cyna_batch_twall = trace_poincare_batch_twall
+        except ImportError:
+            self._cyna_batch_twall = None
+        try:
+            from pyna._cyna import trace_poincare_batch
+            self._cyna_batch = trace_poincare_batch
+        except ImportError:
+            self._cyna_batch = None
+
+        # Flat 1-D arrays (required by cyna C++ API)
+        Phi_ext2 = np.append(Phi_grid, 2 * np.pi)
+        self._Phi_ext  = np.ascontiguousarray(Phi_ext2, dtype=np.float64)
+        self._BR_flat   = np.ascontiguousarray(_ext(BR),     dtype=np.float64).ravel()
+        self._BPhi_flat = np.ascontiguousarray(_ext(BPhi_arr), dtype=np.float64).ravel()
+        self._BZ_flat   = np.ascontiguousarray(_ext(BZ_arr),  dtype=np.float64).ravel()
+
+        # Wall arrays
+        self._wall_phi  = np.ascontiguousarray(wall._phi_centers, dtype=np.float64) if hasattr(wall, '_phi_centers') else None
+        self._wall_R_all = np.ascontiguousarray(wall._R, dtype=np.float64) if hasattr(wall, '_R') else None
+        self._wall_Z_all = np.ascontiguousarray(wall._Z, dtype=np.float64) if hasattr(wall, '_Z') else None
+        wR, wZ = wall.get_section(phi_section)
+        self._wall_R = np.ascontiguousarray(wR, dtype=np.float64)
+        self._wall_Z = np.ascontiguousarray(wZ, dtype=np.float64)
+
+        super().__init__(x_point, Jac, field_func_2d, **kw)
+
+    def _integrate_fieldline(self, x0, phi_span, **kw):
+        """Single field-line step using cyna batch (N_turns deduced from phi_span)."""
+        import numpy as np
+        phi_s, phi_e = phi_span
+        forward = phi_e > phi_s
+        if (self._cyna_batch_twall is None and self._cyna_batch is None) or not forward:
+            return super()._integrate_fieldline(x0, phi_span, **kw)
+
+        # Deduce number of toroidal turns from phi_span length
+        N_turns = max(1, round(abs(phi_e - phi_s) / (2 * np.pi)))
+
+        R_s = np.ascontiguousarray([float(x0[0])], dtype=np.float64)
+        Z_s = np.ascontiguousarray([float(x0[1])], dtype=np.float64)
+
+        if self._cyna_batch_twall is not None and self._wall_phi is not None:
+            counts, R_flat, Z_flat = self._cyna_batch_twall(
+                R_s, Z_s,
+                float(self._phi_section), N_turns, float(self._DPhi),
+                self._BR_flat, self._BPhi_flat, self._BZ_flat,
+                self._R_grid, self._Z_grid, self._Phi_ext,
+                self._wall_phi, self._wall_R_all, self._wall_Z_all,
+            )
+        else:
+            counts, R_flat, Z_flat = self._cyna_batch(
+                R_s, Z_s,
+                float(self._phi_section), N_turns, float(self._DPhi),
+                self._BR_flat, self._BPhi_flat, self._BZ_flat,
+                self._R_grid, self._Z_grid, self._Phi_ext,
+                self._wall_R, self._wall_Z,
+            )
+        # Fixed-stride output: seed 0 occupies slot 0 (1 turn requested)
+        if int(counts[0]) < 1:
+            return np.array([np.nan, np.nan])
+        return np.array([R_flat[0], Z_flat[0]])
+
+
+class StableManifold(_AcceleratedManifoldBase):
+    """Stable manifold of a hyperbolic fixed point.
+
+    Uses the cyna backend by default for forward one-turn integration and
+    falls back to SciPy when accelerated integration is unavailable or a
+    backward step is required.
+    """
+    _branch = 'stable'
+
+
+class UnstableManifold(_AcceleratedManifoldBase):
+    """Unstable manifold of a hyperbolic fixed point.
+
+    Uses the cyna backend by default for forward one-turn integration and
+    falls back to SciPy when accelerated integration is unavailable or a
+    backward step is required.
+    """
+    _branch = 'unstable'
+
+
+class ScipyStableManifold(_ManifoldBase):
     """Stable manifold of a hyperbolic fixed point.
 
     The stable manifold consists of all trajectories that converge to the
@@ -335,7 +456,7 @@ class StableManifold(_ManifoldBase):
     _branch = 'stable'
 
 
-class UnstableManifold(_ManifoldBase):
+class ScipyUnstableManifold(_ManifoldBase):
     """Unstable manifold of a hyperbolic fixed point.
 
     The unstable manifold consists of all trajectories that diverge from the
@@ -347,3 +468,8 @@ class UnstableManifold(_ManifoldBase):
     """
 
     _branch = 'unstable'
+
+
+# Backward-compat aliases (old backend-explicit names)
+CynaStableManifold = StableManifold
+CynaUnstableManifold = UnstableManifold

@@ -156,7 +156,21 @@ refactor(coils): rename all rmp_ functions to RMP_ (no compat aliases)
 
 ---
 
-## 8. Class Naming — Noun First, Qualifier Last
+## 8. Public API vs Backend Names
+
+Public API names should describe the **mathematical object or physical operation**,
+not the implementation backend.
+
+- Prefer `StableManifold`, `UnstableManifold`, `monodromy_matrix`
+- Avoid backend-branded public names like `CynaStableManifold` in new code
+- cyna is the default accelerated backend inside pyna when available
+- If a pure-Python / SciPy fallback is needed, expose it only as an explicit
+  secondary name such as `ScipyStableManifold`
+
+This keeps the user-facing API physics-first and lets implementations evolve
+without renaming scientific concepts.
+
+## 9. Class Naming — Noun First, Qualifier Last
 
 Class names should be read as **"what it is" first, "what kind" second**.
 This keeps related classes adjacent in IDE autocomplete and `dir()` output.
