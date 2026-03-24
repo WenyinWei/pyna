@@ -326,3 +326,157 @@ def _build_rotation(normal):
                   [-axis[1], axis[0], 0]])
     R = np.eye(3) + sin_a * K + (1 - cos_a) * K @ K
     return R, R.T
+
+
+class CoilFieldAnalyticRectangularSection(CoilFieldVacuum):
+    """Vacuum field of a tokamak PF coil with rectangular cross-section.
+
+    Uses the exact Labinac (2006) formula for a thick, finite-length axisymmetric solenoid.
+    This is more accurate than the thin-wire approximation for PF coils whose
+    cross-sectional dimensions are not negligible.
+
+    Parameters
+    ----------
+    Rc : float
+        Radial center of the coil cross-section (m).
+    Zc : float
+        Axial center of the coil cross-section (m).
+    dR : float
+        Half-width of the cross-section in the R direction (m).
+        The coil spans [Rc - dR, Rc + dR].
+    dZ : float
+        Half-height of the cross-section in the Z direction (m).
+        The coil spans [Zc - dZ, Zc + dZ].
+    turns : int
+        Number of turns.
+    current : float
+        Current per turn (A). Positive current in the +phi direction
+        produces positive B_Z on axis.
+
+    Notes
+    -----
+    The underlying formula is from:
+    * V. Labinac, N. Erceg, D. Kotnik-Karuza, *Am. J. Phys.* 74, 621 (2006).
+      https://doi.org/10.1119/1.2198885
+
+    For evaluation on a 2D (R, Z) grid, use :meth:`B_at_grid` with joblib
+    parallelism, which masks grid points inside the coil body as NaN.
+    """
+
+    def __init__(
+        self,
+        Rc: float,
+        Zc: float,
+        dR: float,
+        dZ: float,
+        turns: int,
+        current: float = 1.0,
+    ) -> None:
+        self._Rc = float(Rc)
+        self._Zc = float(Zc)
+        self._dR = float(dR)
+        self._dZ = float(dZ)
+        self._turns = int(turns)
+        self._I = float(current)
+
+    @property
+    def Rc(self) -> float:
+        return self._Rc
+
+    @property
+    def Zc(self) -> float:
+        return self._Zc
+
+    @property
+    def dR(self) -> float:
+        return self._dR
+
+    @property
+    def dZ(self) -> float:
+        return self._dZ
+
+    @property
+    def turns(self) -> int:
+        return self._turns
+
+    @property
+    def current(self) -> float:
+        return self._I
+
+    @current.setter
+    def current(self, value: float) -> None:
+        self._I = float(value)
+
+    def B_at(self, R, Z, phi):
+        """Evaluate (B_R, B_Z, B_phi) at arbitrary (R, Z, phi) points.
+
+        For axisymmetric coils, B_phi = 0 and the result does not depend on phi.
+
+        Parameters
+        ----------
+        R, Z, phi : scalar or array-like, broadcast-compatible
+
+        Returns
+        -------
+        (BR, BZ, Bphi) : tuple of ndarray
+        """
+        R = np.asarray(R, dtype=float)
+        Z_arr = np.asarray(Z, dtype=float)
+        shape = np.broadcast(R, Z_arr).shape
+        R_flat = R.ravel() if R.ndim > 0 else np.array([float(R)])
+        Z_flat = Z_arr.ravel() if Z_arr.ndim > 0 else np.array([float(Z_arr)])
+
+        BR_out = np.empty(len(R_flat))
+        BZ_out = np.empty(len(R_flat))
+        for i, (Rv, Zv) in enumerate(zip(R_flat, Z_flat)):
+            br, bz = BRBZ_induced_by_thick_finitelen_solenoid(
+                self._Rc - self._dR,
+                self._Rc + self._dR,
+                self._Zc - self._dZ,
+                2 * self._dZ,
+                self._I,
+                self._turns,
+                Rv,
+                Zv,
+            )
+            BR_out[i] = br
+            BZ_out[i] = bz
+
+        Bphi = np.zeros_like(BR_out)
+        return BR_out.reshape(shape), BZ_out.reshape(shape), Bphi.reshape(shape)
+
+    def B_at_grid(
+        self,
+        R: np.ndarray,
+        Z: np.ndarray,
+        *,
+        n_jobs: int = -1,
+    ) -> tuple:
+        """Parallel evaluation on a 2D (R, Z) grid.
+
+        Grid points inside the coil body are set to NaN.
+
+        Parameters
+        ----------
+        R : 1-D array of radial grid values (m).
+        Z : 1-D array of axial grid values (m).
+        n_jobs : int
+            Number of parallel jobs (joblib). -1 uses all CPUs.
+
+        Returns
+        -------
+        (BR_grid, BZ_grid) : ndarray, shape (len(R), len(Z))
+        """
+        return BRBZ_induced_by_thick_finitelen_solenoid_multiprocessing(
+            np.asarray(R, dtype=float),
+            np.asarray(Z, dtype=float),
+            self._Rc,
+            self._Zc,
+            self._dR,
+            self._dZ,
+            self._turns,
+            self._I,
+        )
+
+    def divergence_free(self) -> bool:
+        return True

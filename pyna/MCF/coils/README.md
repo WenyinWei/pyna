@@ -16,7 +16,7 @@
 | Module | Key exports |
 |--------|-------------|
 | `base.py` | `CoilFieldVacuum` (abstract), `CoilFieldSuperposition`, `CoilFieldScaled` |
-| `coil.py` | `BRBZ_induced_by_current_loop`, `BRBZ_induced_by_thick_finitelen_solenoid` |
+| `coil.py` | `BRBZ_induced_by_current_loop`, `BRBZ_induced_by_thick_finitelen_solenoid`, `CoilFieldAnalyticCircular`, `CoilFieldAnalyticRectangularSection` |
 | `coil_system.py` | `CoilSet`, `Biot_Savart_field` |
 | `RMP.py` | `normalize_b`, `RMP_spectrum_2d`, `island_width_at_rational_surfaces` |
 | `vector_potential.py` | `vector_potential_axisymmetric` for ψ reconstruction |
