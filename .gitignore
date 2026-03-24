@@ -1,3 +1,45 @@
+# ===== BUILD ARTIFACTS & SENSITIVE DATA =====
+# C/C++ compiled outputs
+*.obj
+*.o
+*.exp
+*.lib
+*.dll
+*.pyd
+*.so
+*.pdb
+flt_bindings.*
+_cyna_ext.*
+
+# xmake cache
+.xmake/
+cyna/.xmake/
+
+# Data files (大文件，敏感，不入库)
+*.pkl
+*.h5
+*.hdf5
+*.npy
+*.npz
+*.nc
+*.mat
+data/
+
+# Secrets
+.env
+*.secret
+secrets/
+
+# Logs / temp
+*.log
+nb_dump.txt
+analytic_src.txt
+field_gpu_src.txt
+*_stderr.txt
+*_stdout.txt
+*.bak_*
+
+# ===== PYTHON STANDARD =====
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

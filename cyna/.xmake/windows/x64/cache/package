@@ -1,6 +1,0 @@
-{
-    pybind11 = {
-        __enabled = false,
-        __requirestr = "pybind11"
-    }
-}

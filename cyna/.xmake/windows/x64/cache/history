@@ -1,7 +1,0 @@
-{
-    cmdlines = {
-        "xmake build cyna_python",
-        [[xmake lua C:\Users\Legion\xmake\modules\private\utils\statistics.lua]],
-        "xmake f -p windows -a x64 -m release -y"
-    }
-}
