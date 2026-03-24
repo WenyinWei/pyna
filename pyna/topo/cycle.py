@@ -1,9 +1,9 @@
 """Periodic field-line orbits (fixed points of the Poincaré map).
 
-A period-n cycle is a field line trajectory that returns to its starting
-point after exactly n toroidal turns: X(φ + 2πn) = X(φ).
+A period-m cycle is a field line trajectory that returns to its starting
+point after exactly m toroidal turns: X(φ + 2πm) = X(φ).
 
-Finding cycles: Newton-Raphson on G(x0) = P^n(x0) - x0 = 0
+Finding cycles: Newton-Raphson on G(x0) = P^m(x0) - x0 = 0
 where P is the Poincaré map (one-turn map).
 
 Robustness: if Newton diverges (leaves domain), automatically try
@@ -26,17 +26,23 @@ class PeriodicOrbit:
     ----------
     rzphi0 : ndarray, shape (3,)
         Starting point (R, Z, phi0).
-    period_n : int
+    period_m : int
         Number of toroidal turns (period of Poincaré map).
+        Corresponds to m in q=m/n notation: P^m(x) = x.
     trajectory : ndarray, shape (N, 3)
         Full orbit trajectory (R, Z, phi).
     Jac : ndarray, shape (2, 2)
-        Jac matrix M = J(2π·n). Eigenvalues characterize stability.
+        Jac matrix M = J(2π·m). Eigenvalues characterize stability.
     """
     rzphi0: np.ndarray
-    period_n: int
+    period_m: int
     trajectory: np.ndarray
     Jac: np.ndarray
+
+    @property
+    def period_n(self) -> int:
+        """Alias for period_m (backward compatibility)."""
+        return self.period_m
 
     @property
     def is_stable(self) -> bool:
@@ -258,7 +264,7 @@ def _try_find_cycle_from_seed(
             J = jacobian_of_poincare_map(field_func, rzphi, n_turns, dt)
             return PeriodicOrbit(
                 rzphi0=rzphi.copy(),
-                period_n=n_turns,
+                period_m=n_turns,
                 trajectory=traj,
                 Jac=J,
             )

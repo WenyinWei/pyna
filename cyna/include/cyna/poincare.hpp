@@ -475,11 +475,19 @@ void trace_connection_length_twall(
 // ---------------------------------------------------------------------------
 // trace_wall_hits_twall
 // Same as trace_connection_length_twall but also records the (R, Z, phi) of
-// the wall-hit point for both forward and backward directions.
-// Outputs (length N_seeds each, NaN if not terminated):
-//   L_fwd, L_bwd        — arc-length to wall [m]
-//   R_hit_fwd, Z_hit_fwd, phi_hit_fwd
-//   R_hit_bwd, Z_hit_bwd, phi_hit_bwd
+// the termination point for both forward and backward directions, and reports
+// which termination condition was triggered.
+//
+// term_type output (per seed, per direction, packed as fwd then bwd):
+//   0 = not terminated (NaN hit coords)
+//   1 = wall polygon crossed  (hit coords = bisected wall intersection)
+//   2 = field grid exited     (hit coords = grid boundary crossing; wall location uncertain)
+//   3 = non-finite field      (hit coords = last finite position)
+//
+// Outputs (length N_seeds each):
+//   L_fwd, L_bwd, R_hit_fwd, Z_hit_fwd, phi_hit_fwd,
+//                 R_hit_bwd, Z_hit_bwd, phi_hit_bwd,
+//   term_type_fwd, term_type_bwd  (int arrays)
 // ---------------------------------------------------------------------------
 void trace_wall_hits_twall(
     const double* R_seeds, const double* Z_seeds, int N_seeds,
@@ -494,7 +502,8 @@ void trace_wall_hits_twall(
     int n_threads,
     double* L_fwd,     double* L_bwd,
     double* R_hit_fwd, double* Z_hit_fwd, double* phi_hit_fwd,
-    double* R_hit_bwd, double* Z_hit_bwd, double* phi_hit_bwd)
+    double* R_hit_bwd, double* Z_hit_bwd, double* phi_hit_bwd,
+    int*    term_type_fwd, int* term_type_bwd)
 {
     if (n_threads <= 0)
         n_threads = (int)std::thread::hardware_concurrency();
@@ -505,13 +514,15 @@ void trace_wall_hits_twall(
         L_fwd[i] = SENTINEL; L_bwd[i] = SENTINEL;
         R_hit_fwd[i] = NAN_VAL; Z_hit_fwd[i] = NAN_VAL; phi_hit_fwd[i] = NAN_VAL;
         R_hit_bwd[i] = NAN_VAL; Z_hit_bwd[i] = NAN_VAL; phi_hit_bwd[i] = NAN_VAL;
+        term_type_fwd[i] = 0; term_type_bwd[i] = 0;
     }
 
     for (int dir : {+1, -1}) {
-        double* L_out     = (dir == 1) ? L_fwd     : L_bwd;
-        double* R_hit_out = (dir == 1) ? R_hit_fwd : R_hit_bwd;
-        double* Z_hit_out = (dir == 1) ? Z_hit_fwd : Z_hit_bwd;
+        double* L_out       = (dir == 1) ? L_fwd       : L_bwd;
+        double* R_hit_out   = (dir == 1) ? R_hit_fwd   : R_hit_bwd;
+        double* Z_hit_out   = (dir == 1) ? Z_hit_fwd   : Z_hit_bwd;
         double* phi_hit_out = (dir == 1) ? phi_hit_fwd : phi_hit_bwd;
+        int*    tt_out      = (dir == 1) ? term_type_fwd : term_type_bwd;
 
         BS::thread_pool pool((unsigned int)n_threads);
         pool.parallelize_loop(0, N_seeds, [&](int i_start, int i_end) {
@@ -547,43 +558,72 @@ void trace_wall_hits_twall(
                     phi_total += step;
 
                     bool hit = false;
+                    int  hit_type = 0;  // 1=wall, 2=grid, 3=nonfinite
 
-                    // Terminate if out-of-grid or non-finite
-                    if (!std::isfinite(R) || !std::isfinite(Z) ||
-                        R < R_grid[0] || R > R_grid[nR - 1] ||
-                        Z < Z_grid[0] || Z > Z_grid[nZ - 1]) {
-                        hit = true;
+                    // Check non-finite first
+                    if (!std::isfinite(R) || !std::isfinite(Z)) {
+                        hit = true; hit_type = 3;
                     }
-
-                    // Terminate if outside toroidal wall
-                    if (!hit && !point_in_toroidal_wall(R, Z, phi,
+                    // Check field grid exit
+                    else if (R < R_grid[0] || R > R_grid[nR - 1] ||
+                             Z < Z_grid[0] || Z > Z_grid[nZ - 1]) {
+                        hit = true; hit_type = 2;
+                    }
+                    // Check wall polygon
+                    else if (!point_in_toroidal_wall(R, Z, phi,
                                                 wall_phi_centers,
                                                 wall_R, wall_Z,
                                                 n_phi_wall, n_theta_wall)) {
-                        hit = true;
+                        hit = true; hit_type = 1;
                     }
 
                     if (hit) {
-                        L_out[i] = arc;
-                        // Bisect to refine hit location
-                        double rA = R_prev, zA = Z_prev, pA = phi_prev;
-                        double rB = R,      zB = Z,      pB = phi;
-                        for (int b = 0; b < 12; ++b) {
-                            double rM = 0.5*(rA+rB);
-                            double zM = 0.5*(zA+zB);
-                            double pM = mod2pi(0.5*(pA+pB));
-                            bool inside_M = std::isfinite(rM) && std::isfinite(zM) &&
-                                rM >= R_grid[0] && rM <= R_grid[nR-1] &&
-                                zM >= Z_grid[0] && zM <= Z_grid[nZ-1] &&
-                                point_in_toroidal_wall(rM, zM, pM,
-                                    wall_phi_centers, wall_R, wall_Z,
-                                    n_phi_wall, n_theta_wall);
-                            if (inside_M) { rA=rM; zA=zM; pA=pM; }
-                            else          { rB=rM; zB=zM; pB=pM; }
+                        L_out[i]   = arc;
+                        tt_out[i]  = hit_type;
+
+                        if (hit_type == 1) {
+                            // Wall polygon crossing: bisect using wall poly as criterion
+                            double rA = R_prev, zA = Z_prev, pA = phi_prev;
+                            double rB = R,      zB = Z,      pB = phi;
+                            for (int b = 0; b < 14; ++b) {
+                                double rM = 0.5*(rA+rB);
+                                double zM = 0.5*(zA+zB);
+                                double pM = mod2pi(0.5*(pA+pB));
+                                bool inside_M = point_in_toroidal_wall(rM, zM, pM,
+                                        wall_phi_centers, wall_R, wall_Z,
+                                        n_phi_wall, n_theta_wall);
+                                if (inside_M) { rA=rM; zA=zM; pA=pM; }
+                                else          { rB=rM; zB=zM; pB=pM; }
+                            }
+                            R_hit_out[i]   = 0.5*(rA+rB);
+                            Z_hit_out[i]   = 0.5*(zA+zB);
+                            phi_hit_out[i] = mod2pi(0.5*(pA+pB));
+                        } else if (hit_type == 2) {
+                            // Grid boundary exit: bisect using grid bounds as criterion.
+                            // The field grid ends before the physical wall (common for HFS),
+                            // so extrapolate linearly to the grid edge.
+                            double rA = R_prev, zA = Z_prev, pA = phi_prev;
+                            double rB = (std::isfinite(R)) ? R : R_prev;
+                            double zB = (std::isfinite(Z)) ? Z : Z_prev;
+                            double pB = phi;
+                            for (int b = 0; b < 14; ++b) {
+                                double rM = 0.5*(rA+rB);
+                                double zM = 0.5*(zA+zB);
+                                double pM = mod2pi(0.5*(pA+pB));
+                                bool in_grid = (rM >= R_grid[0] && rM <= R_grid[nR-1] &&
+                                                zM >= Z_grid[0] && zM <= Z_grid[nZ-1]);
+                                if (in_grid) { rA=rM; zA=zM; pA=pM; }
+                                else         { rB=rM; zB=zM; pB=pM; }
+                            }
+                            R_hit_out[i]   = 0.5*(rA+rB);
+                            Z_hit_out[i]   = 0.5*(zA+zB);
+                            phi_hit_out[i] = mod2pi(0.5*(pA+pB));
+                        } else {
+                            // Non-finite: report last finite position
+                            R_hit_out[i]   = R_prev;
+                            Z_hit_out[i]   = Z_prev;
+                            phi_hit_out[i] = phi_prev;
                         }
-                        R_hit_out[i]   = 0.5*(rA+rB);
-                        Z_hit_out[i]   = 0.5*(zA+zB);
-                        phi_hit_out[i] = mod2pi(0.5*(pA+pB));
                         break;
                     }
                 }

@@ -1,10 +1,13 @@
 """Tools for locating and refining periodic orbits (X- and O-points) of
 the Poincaré map of a magnetic field in cylindrical coordinates.
 
-The Poincaré map P^n maps an initial condition (R, Z) at toroidal
-angle φ=0 to its position after n full toroidal turns. Fixed points
-of P^n satisfy P^n(x) = x and correspond to magnetic island X-points
+The Poincaré map P^m maps an initial condition (R, Z) at toroidal
+angle φ=0 to its position after m full toroidal turns. Fixed points
+of P^m satisfy P^m(x) = x and correspond to magnetic island X-points
 (hyperbolic) and O-points (elliptic).
+
+Notation: n_turns = m in q=m/n — the number of toroidal turns (the
+orbit period of the Poincaré map).
 """
 from __future__ import annotations
 
@@ -39,7 +42,7 @@ def poincare_map(
     field_func : callable
         2D field function (R, Z, phi) -> [dR/dphi, dZ/dphi].
     n_turns : int
-        Number of toroidal turns.
+        Number of toroidal turns (= m in q=m/n notation).
     phi_start : float
         Starting toroidal angle (rad).
 
@@ -89,7 +92,7 @@ def scan_fixed_point_seeds(
     r_scan : float
         Ring radius (m). Typically the minor radius of the rational surface.
     n_turns : int
-        Orbit period (n in P^n).
+        Orbit period m: number of toroidal turns (m in q=m/n, P^m(x)=x).
     n_scan : int
         Number of points on the ring.
     order : int

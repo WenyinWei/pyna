@@ -327,6 +327,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
             py::array_t<double> L_fwd({N_seeds}), L_bwd({N_seeds});
             py::array_t<double> R_hf({N_seeds}), Z_hf({N_seeds}), phi_hf({N_seeds});
             py::array_t<double> R_hb({N_seeds}), Z_hb({N_seeds}), phi_hb({N_seeds});
+            py::array_t<int>    tt_fwd({N_seeds}), tt_bwd({N_seeds});
 
             cyna::trace_wall_hits_twall(
                 buf(R_seeds,"R_seeds"), buf(Z_seeds,"Z_seeds"), N_seeds,
@@ -340,11 +341,13 @@ PYBIND11_MODULE(_cyna_ext, m) {
                 n_threads,
                 L_fwd.mutable_data(), L_bwd.mutable_data(),
                 R_hf.mutable_data(), Z_hf.mutable_data(), phi_hf.mutable_data(),
-                R_hb.mutable_data(), Z_hb.mutable_data(), phi_hb.mutable_data());
+                R_hb.mutable_data(), Z_hb.mutable_data(), phi_hb.mutable_data(),
+                tt_fwd.mutable_data(), tt_bwd.mutable_data());
 
             return py::make_tuple(L_fwd, L_bwd,
                                   R_hf, Z_hf, phi_hf,
-                                  R_hb, Z_hb, phi_hb);
+                                  R_hb, Z_hb, phi_hb,
+                                  tt_fwd, tt_bwd);
         },
         py::arg("R_seeds"), py::arg("Z_seeds"), py::arg("phi_start"),
         py::arg("max_turns"), py::arg("DPhi"),
@@ -354,6 +357,8 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("n_threads") = -1,
         "Like trace_connection_length_twall but also returns wall-hit coordinates.\n"
         "Returns (L_fwd, L_bwd, R_hit_fwd, Z_hit_fwd, phi_hit_fwd,\n"
-        "                       R_hit_bwd, Z_hit_bwd, phi_hit_bwd).\n"
-        "NaN where field line does not terminate within max_turns.");
+        "                       R_hit_bwd, Z_hit_bwd, phi_hit_bwd,\n"
+        "                       term_type_fwd, term_type_bwd).\n"
+        "term_type: 0=no hit, 1=wall polygon, 2=field grid exit, 3=non-finite.\n"
+        "NaN hit coords when term_type=0.");
 }

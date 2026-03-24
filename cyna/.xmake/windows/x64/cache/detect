@@ -1,0 +1,58 @@
+{
+    find_programver = {
+        ["D:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.37.32822\\bin\\HostX64\\x64\\cl.exe"] = "19.37.32822",
+        ["C:\\Users\\Legion\\AppData\\Local\\Programs\\Python\\Python313\\python"] = "3.13.6",
+        ["C:\\Users\\Legion\\AppData\\Local\\Programs\\Python\\Python311\\python.exe"] = "3.11.5",
+        ["D:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe"] = "3.26.4-msvc4"
+    },
+    find_program_msvc_arch_x64_plat_windows_checktoolcc = {
+        ["cl.exe"] = [[D:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\bin\HostX64\x64\cl.exe]]
+    },
+    find_program = {
+        python3 = false,
+        gzip = [[C:\texlive\2023\bin\windows\gzip.exe]],
+        ping = [[C:\Windows\System32\PING.EXE]],
+        python = [[C:\Users\Legion\AppData\Local\Programs\Python\Python311\python.exe]],
+        ["pkg-config"] = false,
+        ["cl.exe"] = [[D:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\bin\HostX64\x64\cl.exe]],
+        tar = [[C:\Windows\System32\tar.exe]],
+        git = [[C:\Program Files\Git\cmd\git.exe]],
+        cmake = [[D:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe]],
+        ["7z"] = [[C:\Users\Legion\xmake\winenv\bin\7z]],
+        pkgconf = false,
+        nim = false,
+        ninja = [[C:\Users\Legion\AppData\Local\Programs\Python\Python313\Scripts\ninja.exe]]
+    },
+    find_programver_fetch_package_system = {
+        ["C:\\Users\\Legion\\AppData\\Local\\Programs\\Python\\Python313\\Scripts\\ninja.exe"] = "1.11.1",
+        ["D:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe"] = "3.26.4-msvc4"
+    },
+    ["detect.sdks.find_vcpkgdir"] = [[D:\Program Files\Microsoft Visual Studio\2022\Community\VC\vcpkg]],
+    find_program_fetch_package_xmake = {
+        ninja = false,
+        cmake = false
+    },
+    find_program_msvc_arch_x64_plat_windows_checktoolcxx = {
+        ["cl.exe"] = [[D:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\bin\HostX64\x64\cl.exe]]
+    },
+    find_package_windows_x64_fetch_package_xmake = {
+        ["xmake::python_6faae9af9f22402ab07797869df2de6e_release_3.13.2_external"] = false,
+        ["xmake::pybind11_f12e311f28ed4938bfdd081130deb88b_release_v2.13.6_external"] = false
+    },
+    find_program_msvc_arch_x64_plat_windows_checktoolld = {
+        ["link.exe"] = [[D:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\bin\HostX64\x64\link.exe]]
+    },
+    find_package_windows_x64_fetch_package_system = {
+        pybind11_f12e311f28ed4938bfdd081130deb88b_release_external = false
+    },
+    find_program_fetch_package_system = {
+        ninja = [[C:\Users\Legion\AppData\Local\Programs\Python\Python313\Scripts\ninja.exe]],
+        cmake = [[D:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe]]
+    },
+    find_program_msvc_arch_x64_plat_windows_checktoolar = {
+        ["link.exe"] = [[D:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\bin\HostX64\x64\link.exe]]
+    },
+    find_program_msvc_arch_x64_plat_windows_checktoolsh = {
+        ["link.exe"] = [[D:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\bin\HostX64\x64\link.exe]]
+    }
+}

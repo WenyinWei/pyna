@@ -395,8 +395,9 @@ class PoincareMapVariationalEquations:
         x0 : array_like, shape (2,)
             Initial position [R₀, Z₀].
         phi_span : tuple of float
-            (φ_start, φ_end) — integration range (one toroidal turn
-            is typically 0 to 2π).
+            (φ_start, φ_end) — integration range. phi_span should span m full
+            toroidal turns: phi_span=(0, m*2*pi) for the m-turn monodromy matrix.
+            One toroidal turn is typically 0 to 2π.
         solve_ivp_kwargs : dict, optional
             Extra keyword arguments forwarded to ``scipy.integrate.solve_ivp``.
             Defaults to ``{"method": "DOP853", "rtol": 1e-9, "atol": 1e-12}``.

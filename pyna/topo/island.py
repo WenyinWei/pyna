@@ -46,6 +46,7 @@ class Island:
     period_n : int
         Period of the Poincaré map (number of toroidal turns to close).
         Equal to the numerator m for a q = m/n island.
+        Also accessible as ``period_m`` (preferred name).
     O_point : ndarray, shape (2,)
         Coordinates [R, Z] of the elliptic fixed point (island centre).
     X_points : list of ndarray, shape (2,) each
@@ -77,6 +78,11 @@ class Island:
     level: int = 1
     parent: Optional[Island] = None
     label: Optional[str] = None
+
+    @property
+    def period_m(self) -> int:
+        """Number of toroidal turns per orbit (= m in q=m/n). Preferred over period_n."""
+        return self.period_n
 
     def __post_init__(self):
         self.O_point = np.asarray(self.O_point, dtype=float)
@@ -248,7 +254,12 @@ class IslandChain:
 
     @property
     def period_n(self) -> int:
-        """Number of toroidal turns per orbit (= m)."""
+        """Number of toroidal turns per orbit (= m). Backward-compat alias for period_m."""
+        return self.m
+
+    @property
+    def period_m(self) -> int:
+        """Number of toroidal turns per orbit (= m in q=m/n). Preferred name."""
         return self.m
 
     @property
