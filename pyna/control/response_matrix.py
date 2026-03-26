@@ -23,6 +23,7 @@ from typing import Callable, List, Optional
 from pyna.control.fpt import (
     A_matrix,
     cycle_shift,
+    delta_g_from_delta_B,
     delta_A_total,
     DPm_change,
 )
@@ -123,6 +124,8 @@ def build_response_matrix(
     state: TopologyState,
     observables: Optional[List[str]] = None,
     eps_current: float = 1.0,
+    raw_coil_B_funcs: Optional[List[Callable]] = None,
+    base_raw_B_func: Optional[Callable] = None,
 ):
     """Build response matrix R[n_obs, n_coils] using FPT formulae.
 
@@ -134,10 +137,14 @@ def build_response_matrix(
     Parameters
     ----------
     base_field_func : callable
-        Base equilibrium field function: [R,Z,phi] → [dR/dl, dZ/dl, dphi/dl].
+        Base equilibrium field function: [R,Z,phi] → [BR/|B|, BZ/|B|, Bphi/(R|B|)].
     coil_field_funcs : list of callable
         Coil perturbation field functions (per unit current).
-        coil_field_funcs[k]([R,Z,phi]) = δB direction vector for 1 A on coil k.
+        **Legacy form** (only used when raw_coil_B_funcs is None):
+          coil_field_funcs[k]([R,Z,phi]) → [δBR/|B0|, δBZ/|B0|, δBphi/(R·|B0|)]
+        This form is first-order correct for |δB| << |B0| away from X-points.
+        Near the poloidal-field null (X-point), |Bpol/B| ~ 1e-5, so normalized
+        coil components are unreliable.  Use raw_coil_B_funcs instead.
     state : TopologyState
         Current topology state (must be pre-computed).
     observables : list of str or None
@@ -145,6 +152,16 @@ def build_response_matrix(
     eps_current : float
         Current perturbation amplitude used to define per-unit response.
         (The result is divided by eps_current so R is per-ampere.)
+    raw_coil_B_funcs : list of callable or None
+        If provided, preferred over coil_field_funcs for DPm eigenvalue
+        computation.  Each callable returns raw coil B components:
+          raw_coil_B_funcs[k]([R,Z,phi]) → [δBR, δBZ, δBphi]   (in Tesla)
+        The base field (B0) must then also be recoverable.  Supply
+        base_raw_B_func alongside this argument.
+    base_raw_B_func : callable or None
+        Returns raw base B components:
+          base_raw_B_func([R,Z,phi]) → [BR0, BZ0, Bphi0]   (in Tesla)
+        Required when raw_coil_B_funcs is provided.
 
     Returns
     -------
@@ -158,8 +175,11 @@ def build_response_matrix(
     R_mat = np.zeros((n_obs, n_coils))
 
     for k, delta_field in enumerate(coil_field_funcs):
+        raw_coil_B = raw_coil_B_funcs[k] if raw_coil_B_funcs is not None else None
         delta_vec = _compute_delta_state_axisymmetric(
-            base_field_func, delta_field, state, scale=eps_current
+            base_field_func, delta_field, state, scale=eps_current,
+            raw_coil_B_func=raw_coil_B,
+            base_raw_B_func=base_raw_B_func,
         )
         R_mat[:, k] = delta_vec / eps_current
 
@@ -171,18 +191,27 @@ def _compute_delta_state_axisymmetric(
     delta_field_func: Callable,
     state: TopologyState,
     scale: float = 1.0,
+    raw_coil_B_func: Optional[Callable] = None,
+    base_raw_B_func: Optional[Callable] = None,
 ) -> np.ndarray:
     """Compute δstate using closed-form FPT (axisymmetric).
 
     Parameters
     ----------
     field_func : callable
-        Base field.
+        Base field: [R,Z,phi] → [BR/|B|, BZ/|B|, Bphi/(R|B|)].
     delta_field_func : callable
-        Perturbation field (per unit amplitude).
+        Coil perturbation field (per unit amplitude, legacy normalized form).
+        Used only for δg (cycle shift) and for DPm when raw_coil_B_func is None.
     state : TopologyState
     scale : float
-        Scaling factor applied to the perturbation field.
+        Scaling factor (= coil current amplitude in Amperes).
+    raw_coil_B_func : callable or None
+        Returns raw coil B: [δBR, δBZ, δBphi] for 1 A.
+        When provided (together with base_raw_B_func), the perturbed direction
+        vector is constructed as normalize(B0 + scale*δB) for DPm computation.
+    base_raw_B_func : callable or None
+        Returns raw base B: [BR0, BZ0, Bphi0].
 
     Returns
     -------
@@ -191,34 +220,66 @@ def _compute_delta_state_axisymmetric(
     delta_vec: list = []
     phi = state.phi_ref
 
+    # Helper: build properly normalized perturbed direction-vector function.
+    # When raw B data is available, normalize(B0+scale*δB) is exact.
+    # Otherwise fall back to the first-order approximation f0 + scale*δf.
+    def make_perturbed_ff(R_eval: float, Z_eval: float):
+        """Return a scalar perturbed direction-vector function."""
+        if raw_coil_B_func is not None and base_raw_B_func is not None:
+            def ff_pert(rzphi):
+                R, Z = float(rzphi[0]), float(rzphi[1])
+                b0 = np.asarray(base_raw_B_func([R, Z, phi]), dtype=float)
+                db = np.asarray(raw_coil_B_func([R, Z, phi]), dtype=float) * scale
+                bpert = b0 + db
+                Bmod = np.sqrt(bpert[0]**2 + bpert[1]**2 + bpert[2]**2)
+                return [bpert[0]/Bmod, bpert[1]/Bmod, bpert[2]/(R*Bmod)]
+        else:
+            def ff_pert(rzphi):
+                return (np.asarray(field_func(rzphi), dtype=float) +
+                        np.asarray(delta_field_func(rzphi), dtype=float) * scale)
+        return ff_pert
+
     # ── X-points ───────────────────────────────────────────────────────────
     for xp in state.xpoints:
         R, Z = xp.R, xp.Z
 
+        # Base field at X-point: f = [BR/|B|, BZ/|B|, Bphi/(R|B|)]
         f0 = np.asarray(field_func([R, Z, phi]), dtype=float)
         fd = np.asarray(delta_field_func([R, Z, phi]), dtype=float) * scale
 
-        # g = [R·BR/Bphi, R·BZ/Bphi] = [f[0]/f[2], f[1]/f[2]]
-        g0 = np.array([f0[0] / f0[2], f0[1] / f0[2]])
-        denom = f0[2] + fd[2]
-        g1 = np.array([(f0[0] + fd[0]) / denom, (f0[1] + fd[1]) / denom])
-        delta_g = g1 - g0
+        # δg = first-order perturbation of g = [R·BR/Bphi, R·BZ/Bphi].
+        # Exact formula: δg_i = δf_i/f0[2] - f0[i]*δf[2]/f0[2]²
+        # Valid for |δf[2]| << |f0[2]|, i.e., |δBphi/Bphi| << 1 (always true).
+        # Also valid for |δf[0,1]| << |f0[0,1]| in normal operation.
+        # At the X-point |f0[0]| and |f0[1]| are near-zero, but the formula
+        # is still correct because δg represents the change in g at this point
+        # regardless of the smallness of g itself.
+        f2sq = f0[2] ** 2
+        delta_g = np.array([
+            fd[0] / f0[2] - f0[0] * fd[2] / f2sq,
+            fd[1] / f0[2] - f0[1] * fd[2] / f2sq,
+        ])
 
         # Cycle shift: δx_cyc = -A⁻¹ · δg
         dxcyc = cycle_shift(xp.A_matrix, delta_g)
         delta_vec.extend([dxcyc[0], dxcyc[1]])
 
-        # δDPm and resulting eigenvalue changes
-        scaled_delta_field = lambda rzphi, _fd=delta_field_func: \
-            np.asarray(_fd(rzphi), dtype=float) * scale
-        dA = delta_A_total(
-            field_func, scaled_delta_field,
-            R, Z, phi, xp.A_matrix, dxcyc,
-        )
-        dDPm = DPm_change(xp.A_matrix, dA)
+        # δDPm eigenvalue response at the FIXED X-point position.
+        # Use only δA_direct = A(ff_pert, x_xpt) − A(ff_base, x_xpt).
+        # The indirect term (spatial gradient correction for X-point relocation)
+        # is NOT added here — that would compute the eigenvalue at the
+        # relocated X-point, not the response ∂(λ)/∂I at fixed position.
+        ff_pert = make_perturbed_ff(R, Z)
+        A_pert = A_matrix(ff_pert, R, Z, phi)
+        dA_direct = A_pert - xp.A_matrix
+        dDPm = DPm_change(xp.A_matrix, dA_direct)
+
+        # Sort eigenvalues by magnitude for stable pairing (λ_u > 1, λ_s < 1).
         new_eigs = np.linalg.eigvals(xp.DPm + dDPm)
-        deigs = np.abs(new_eigs) - np.abs(xp.DPm_eigenvalues)
-        delta_vec.extend(deigs.real.tolist())
+        base_sorted = np.sort(np.abs(xp.DPm_eigenvalues.real))[::-1]
+        new_sorted  = np.sort(np.abs(new_eigs.real))[::-1]
+        deigs = new_sorted - base_sorted
+        delta_vec.extend(deigs.tolist())
 
     # ── O-points ───────────────────────────────────────────────────────────
     for op in state.opoints:
@@ -227,10 +288,12 @@ def _compute_delta_state_axisymmetric(
         f0 = np.asarray(field_func([R, Z, phi]), dtype=float)
         fd = np.asarray(delta_field_func([R, Z, phi]), dtype=float) * scale
 
-        g0 = np.array([f0[0] / f0[2], f0[1] / f0[2]])
-        denom = f0[2] + fd[2]
-        g1 = np.array([(f0[0] + fd[0]) / denom, (f0[1] + fd[1]) / denom])
-        delta_g = g1 - g0
+        # First-order δg (same formula as X-point)
+        f2sq = f0[2] ** 2
+        delta_g = np.array([
+            fd[0] / f0[2] - f0[0] * fd[2] / f2sq,
+            fd[1] / f0[2] - f0[1] * fd[2] / f2sq,
+        ])
 
         dxcyc = cycle_shift(op.A_matrix, delta_g)
         # iota change: placeholder (requires full DPm eigenvector tracking)

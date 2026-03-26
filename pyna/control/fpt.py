@@ -197,6 +197,7 @@ def delta_A_total(
     A: np.ndarray,
     delta_xcyc: np.ndarray,
     eps: float = 1e-4,
+    perturbed_field_func: Optional[Callable] = None,
 ) -> np.ndarray:
     """Compute total δA = δA_direct + δA_indirect at cycle position.
 
@@ -207,9 +208,13 @@ def delta_A_total(
     Parameters
     ----------
     field_func : callable
-        Base field function.
+        Base field function: [R,Z,phi] → [BR/|B|, BZ/|B|, Bphi/(R|B|)].
     delta_field_func : callable
-        Perturbation field function (same signature as field_func).
+        **Deprecated / ignored when perturbed_field_func is supplied.**
+        If perturbed_field_func is None this is still used via
+        ``combined = field_func + delta_field_func``; in that case
+        delta_field_func must return the *difference* of properly normalized
+        direction vectors (not raw δB components).
     R_cyc, Z_cyc, phi : float
         Cycle position and toroidal angle.
     A : ndarray, shape (2,2)
@@ -218,16 +223,24 @@ def delta_A_total(
         Cycle shift from cycle_shift().
     eps : float
         Finite-difference step.
+    perturbed_field_func : callable or None
+        If provided, used directly as the perturbed direction-vector function
+        (preferred).  Must have the same signature as field_func but return
+        the direction vector of the **perturbed** magnetic field:
+          normalize(B0 + δB).
+        When supplied, delta_field_func is not called.
 
     Returns
     -------
     delta_A : ndarray, shape (2,2)
     """
-    def combined(rzphi):
-        return np.asarray(field_func(rzphi), dtype=float) + \
-               np.asarray(delta_field_func(rzphi), dtype=float)
-
-    A_pert = A_matrix(combined, R_cyc, Z_cyc, phi, eps)
+    if perturbed_field_func is not None:
+        A_pert = A_matrix(perturbed_field_func, R_cyc, Z_cyc, phi, eps)
+    else:
+        def combined(rzphi):
+            return (np.asarray(field_func(rzphi), dtype=float) +
+                    np.asarray(delta_field_func(rzphi), dtype=float))
+        A_pert = A_matrix(combined, R_cyc, Z_cyc, phi, eps)
     delta_A_direct = A_pert - A
 
     # Spatial gradient of A (base field only)
