@@ -22,7 +22,7 @@ from pyna.topo.cycle import (
     find_cycle,
     PeriodicOrbit,
 )
-from pyna.topo.monodromy import compute_Jac as compute_monodromy
+from pyna.topo.monodromy import compute_DPm_on_cycle
 
 
 # ---------------------------------------------------------------------------
@@ -158,7 +158,7 @@ class TestFindCycle:
         if orbit is None:
             pytest.skip("Orbit not found")
         assert isinstance(orbit, PeriodicOrbit)
-        assert orbit.Jac.shape == (2, 2)
+        assert orbit.DPm.shape == (2, 2)
         assert orbit.trajectory.shape[1] == 3
 
     def test_find_opoint(self, field_func, opoint_rzphi, RZlimit):
@@ -184,8 +184,8 @@ class TestFindCycle:
         )
         if orbit is None:
             pytest.skip("Orbit not found")
-        det_M = np.linalg.det(orbit.Jac)
-        assert abs(det_M - 1.0) < 0.1, f"det(M) = {det_M:.6f}, expected ≈ 1"
+        det_DPm = np.linalg.det(orbit.DPm)
+        assert abs(det_DPm - 1.0) < 0.1, f"det(DPm) = {det_DPm:.6f}, expected ≈ 1"
 
 
 class TestComputeMonodromy:
@@ -199,9 +199,9 @@ class TestComputeMonodromy:
         if orbit is None:
             pytest.skip("Orbit not found for monodromy test")
 
-        analysis = compute_monodromy(field_func, orbit, dt_output=0.15, rtol=1e-7, atol=1e-8)
-        det_M = np.linalg.det(analysis.Jac)
-        assert abs(det_M - 1.0) < 0.1, f"det(M) = {det_M:.6f}, expected ≈ 1"
+        analysis = compute_DPm_on_cycle(field_func, orbit, dt_output=0.15, rtol=1e-7, atol=1e-8)
+        det_DPm = np.linalg.det(analysis.DPm)
+        assert abs(det_DPm - 1.0) < 0.1, f"det(DPm) = {det_DPm:.6f}, expected ≈ 1"
 
     def test_monodromy_has_correct_shape(self, field_func, xpoint_rzphi, RZlimit):
         orbit = find_cycle(
@@ -211,9 +211,9 @@ class TestComputeMonodromy:
         if orbit is None:
             pytest.skip("Orbit not found")
 
-        analysis = compute_monodromy(field_func, orbit, dt_output=0.15)
-        assert analysis.Jac.shape == (2, 2)
-        assert analysis.J_arr.shape[1:] == (2, 2)
+        analysis = compute_DPm_on_cycle(field_func, orbit, dt_output=0.15)
+        assert analysis.DPm.shape == (2, 2)
+        assert analysis.DX_pol_arr.shape[1:] == (2, 2)
         assert analysis.DPm_arr.shape[1:] == (2, 2)
         assert analysis.trajectory.shape[1] == 2
         assert len(analysis.phi_arr) == len(analysis.trajectory)

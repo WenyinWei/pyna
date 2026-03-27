@@ -23,6 +23,7 @@ Reference: W7-X Jacobian analysis notebook (Julia) — ported to Python.
 """
 from __future__ import annotations
 
+import warnings
 import numpy as np
 from scipy.integrate import solve_ivp
 from scipy.interpolate import interp1d
@@ -89,6 +90,35 @@ class MonodromyAnalysis:
         for k in range(4):
             out[k] = float(interp1d(self.phi_arr, DPm_flat[:, k], kind='cubic')(phi))
         return out.reshape(2, 2)
+
+    @property
+    def J_arr(self) -> np.ndarray:
+        """Deprecated alias for DX_pol_arr."""
+        warnings.warn(
+            "MonodromyAnalysis.J_arr is deprecated; use DX_pol_arr instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.DX_pol_arr
+
+    @property
+    def Jac(self) -> np.ndarray:
+        """Deprecated alias for DPm."""
+        warnings.warn(
+            "MonodromyAnalysis.Jac is deprecated; use DPm instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.DPm
+
+    def J_at(self, phi: float) -> np.ndarray:
+        """Deprecated alias for DX_pol_at(phi)."""
+        warnings.warn(
+            "MonodromyAnalysis.J_at(phi) is deprecated; use DX_pol_at(phi) instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.DX_pol_at(phi)
 
 
 # ---------------------------------------------------------------------------
@@ -187,7 +217,7 @@ def build_delta_b_pol_func(
 # Compute monodromy
 # ---------------------------------------------------------------------------
 
-def compute_monodromy(
+def compute_DPm_on_cycle(
     field_func: Callable,
     orbit,
     n_turns: Optional[int] = None,
@@ -195,7 +225,10 @@ def compute_monodromy(
     rtol: float = 1e-8,
     atol: float = 1e-9,
 ) -> MonodromyAnalysis:
-    """Compute monodromy matrix and full Jacobian evolution along an orbit.
+    """Compute DPm and full DX_pol / DPm evolution along a periodic orbit.
+
+    Here ``phi_end = phi0 + 2π * n_turns`` is the final cylindrical toroidal
+    angle (``phi_e`` in the research-notebook notation).
 
     Integrates simultaneously (φ-parameterized):
     1. The orbit trajectory (R(φ), Z(φ))
@@ -528,7 +561,7 @@ def second_order_orbit_variation(
         The unperturbed periodic orbit.
     monodromy_analysis : MonodromyAnalysis
         Monodromy analysis of the unperturbed orbit (from
-        :func:`compute_Jac`).
+        :func:`compute_DPm_on_cycle`).
     first_order_shift : ndarray, shape (N, 2)
         First-order orbit position shift δX(φ), as returned by
         :func:`orbit_shift_under_perturbation`.
@@ -756,5 +789,15 @@ def monodromy_matrix(
 cyna_monodromy = monodromy_matrix
 
 
-# Backward-compatibility alias
-compute_Jac = compute_monodromy
+# Backward-compatibility aliases
+compute_monodromy = compute_DPm_on_cycle
+
+
+def compute_Jac(*args, **kwargs):
+    """Deprecated alias for compute_DPm_on_cycle."""
+    warnings.warn(
+        "compute_Jac(...) is deprecated; use compute_DPm_on_cycle(...) instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return compute_DPm_on_cycle(*args, **kwargs)

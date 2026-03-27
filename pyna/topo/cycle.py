@@ -15,7 +15,7 @@ import warnings
 import numpy as np
 from scipy.integrate import solve_ivp
 from typing import Optional, Tuple, Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass
@@ -45,6 +45,16 @@ class PeriodicOrbit:
         return self.period_m
 
     @property
+    def Jac(self) -> np.ndarray:
+        """Deprecated alias for DPm."""
+        warnings.warn(
+            "PeriodicOrbit.Jac is deprecated; use PeriodicOrbit.DPm instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.DPm
+
+    @property
     def is_stable(self) -> bool:
         """True if |eigenvalues| ≤ 1 (elliptic, O-point type)."""
         eigvals = np.linalg.eigvals(self.DPm)
@@ -56,7 +66,7 @@ class PeriodicOrbit:
 
     @property
     def stability_index(self) -> float:
-        """Tr(M)/2 for a 2x2 symplectic map. |k|<1 → elliptic, |k|>1 → hyperbolic."""
+        """Tr(DPm)/2 for a 2x2 symplectic map. |k|<1 → elliptic, |k|>1 → hyperbolic."""
         return float(np.trace(self.DPm) / 2.0)
 
 
