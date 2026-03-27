@@ -22,7 +22,7 @@ from pyna.topo.cycle import (
     find_cycle,
     PeriodicOrbit,
 )
-from pyna.topo.monodromy import compute_DPm_on_cycle
+from pyna.topo.monodromy import evolve_DPm_along_cycle
 
 
 # ---------------------------------------------------------------------------
@@ -199,7 +199,7 @@ class TestComputeMonodromy:
         if orbit is None:
             pytest.skip("Orbit not found for monodromy test")
 
-        analysis = compute_DPm_on_cycle(field_func, orbit, dt_output=0.15, rtol=1e-7, atol=1e-8)
+        analysis = evolve_DPm_along_cycle(field_func, orbit, dt_output=0.15, rtol=1e-7, atol=1e-8)
         det_DPm = np.linalg.det(analysis.DPm)
         assert abs(det_DPm - 1.0) < 0.1, f"det(DPm) = {det_DPm:.6f}, expected ≈ 1"
 
@@ -211,7 +211,7 @@ class TestComputeMonodromy:
         if orbit is None:
             pytest.skip("Orbit not found")
 
-        analysis = compute_DPm_on_cycle(field_func, orbit, dt_output=0.15)
+        analysis = evolve_DPm_along_cycle(field_func, orbit, dt_output=0.15)
         assert analysis.DPm.shape == (2, 2)
         assert analysis.DX_pol_arr.shape[1:] == (2, 2)
         assert analysis.DPm_arr.shape[1:] == (2, 2)

@@ -23,7 +23,6 @@ Reference: W7-X Jacobian analysis notebook (Julia) — ported to Python.
 """
 from __future__ import annotations
 
-import warnings
 import numpy as np
 from scipy.integrate import solve_ivp
 from scipy.interpolate import interp1d
@@ -36,7 +35,7 @@ from dataclasses import dataclass
 # ---------------------------------------------------------------------------
 
 @dataclass
-class MonodromyAnalysis:
+class CycleVariationalData:
     """Full monodromy analysis result along a periodic orbit.
 
     Attributes
@@ -90,35 +89,6 @@ class MonodromyAnalysis:
         for k in range(4):
             out[k] = float(interp1d(self.phi_arr, DPm_flat[:, k], kind='cubic')(phi))
         return out.reshape(2, 2)
-
-    @property
-    def J_arr(self) -> np.ndarray:
-        """Deprecated alias for DX_pol_arr."""
-        warnings.warn(
-            "MonodromyAnalysis.J_arr is deprecated; use DX_pol_arr instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.DX_pol_arr
-
-    @property
-    def Jac(self) -> np.ndarray:
-        """Deprecated alias for DPm."""
-        warnings.warn(
-            "MonodromyAnalysis.Jac is deprecated; use DPm instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.DPm
-
-    def J_at(self, phi: float) -> np.ndarray:
-        """Deprecated alias for DX_pol_at(phi)."""
-        warnings.warn(
-            "MonodromyAnalysis.J_at(phi) is deprecated; use DX_pol_at(phi) instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.DX_pol_at(phi)
 
 
 # ---------------------------------------------------------------------------
@@ -217,14 +187,14 @@ def build_delta_b_pol_func(
 # Compute monodromy
 # ---------------------------------------------------------------------------
 
-def compute_DPm_on_cycle(
+def evolve_DPm_along_cycle(
     field_func: Callable,
     orbit,
     n_turns: Optional[int] = None,
     dt_output: float = 0.1,
     rtol: float = 1e-8,
     atol: float = 1e-9,
-) -> MonodromyAnalysis:
+) -> CycleVariationalData:
     """Compute DPm and full DX_pol / DPm evolution along a periodic orbit.
 
     Here ``phi_end = phi0 + 2π * n_turns`` is the final cylindrical toroidal
@@ -255,7 +225,7 @@ def compute_DPm_on_cycle(
 
     Returns
     -------
-    MonodromyAnalysis
+    CycleVariationalData
     """
     from pyna.topo.cycle import PeriodicOrbit  # avoid circular at import time
 
@@ -354,7 +324,7 @@ def compute_DPm_on_cycle(
     DPm_arr = sol.y[6:10].T.reshape(-1, 2, 2)      # (N, 2, 2)
     DPm_val = DX_pol_arr[-1]
 
-    return MonodromyAnalysis(
+    return CycleVariationalData(
         phi_arr=phi_arr,
         trajectory=traj,
         DX_pol_arr=DX_pol_arr,
@@ -371,7 +341,7 @@ def orbit_shift_under_perturbation(
     field_func: Callable,
     delta_field_func: Callable,
     orbit,
-    monodromy_analysis: MonodromyAnalysis,
+    monodromy_analysis: CycleVariationalData,
 ) -> np.ndarray:
     """Compute the orbit position shift under a perturbation δB.
 
@@ -392,7 +362,7 @@ def orbit_shift_under_perturbation(
     delta_field_func : callable
         Perturbation field δB, same signature as field_func.
     orbit : PeriodicOrbit
-    monodromy_analysis : MonodromyAnalysis
+    monodromy_analysis : CycleVariationalData
 
     Returns
     -------
@@ -460,7 +430,7 @@ def orbit_shift_under_perturbation(
 
 def monodromy_change_under_perturbation(
     orbit,
-    monodromy_analysis: MonodromyAnalysis,
+    monodromy_analysis: CycleVariationalData,
     orbit_shift: np.ndarray,
     delta_A_func: Callable,
 ) -> np.ndarray:
@@ -476,7 +446,7 @@ def monodromy_change_under_perturbation(
     Parameters
     ----------
     orbit : PeriodicOrbit
-    monodromy_analysis : MonodromyAnalysis
+    monodromy_analysis : CycleVariationalData
     orbit_shift : ndarray, shape (N, 2)
         Orbit displacement from orbit_shift_under_perturbation.
     delta_A_func : callable
@@ -528,7 +498,7 @@ def second_order_orbit_variation(
     field_func: Callable,
     delta_field_func: Callable,
     orbit,
-    monodromy_analysis: MonodromyAnalysis,
+    monodromy_analysis: CycleVariationalData,
     first_order_shift: np.ndarray,
 ) -> np.ndarray:
     r"""Compute the second-order orbit position variation δ²X(φ).
@@ -559,9 +529,9 @@ def second_order_orbit_variation(
         First-order perturbation field δB (same signature as field_func).
     orbit : PeriodicOrbit
         The unperturbed periodic orbit.
-    monodromy_analysis : MonodromyAnalysis
+    monodromy_analysis : CycleVariationalData
         Monodromy analysis of the unperturbed orbit (from
-        :func:`compute_DPm_on_cycle`).
+        :func:`evolve_DPm_along_cycle`).
     first_order_shift : ndarray, shape (N, 2)
         First-order orbit position shift δX(φ), as returned by
         :func:`orbit_shift_under_perturbation`.
@@ -783,21 +753,3 @@ def monodromy_matrix(
          (Z_final[3] - Z_final[4]) / (2 * fd_eps)],
     ])
     return DPm
-
-
-# Backward-compat alias (old backend-explicit name)
-cyna_monodromy = monodromy_matrix
-
-
-# Backward-compatibility aliases
-compute_monodromy = compute_DPm_on_cycle
-
-
-def compute_Jac(*args, **kwargs):
-    """Deprecated alias for compute_DPm_on_cycle."""
-    warnings.warn(
-        "compute_Jac(...) is deprecated; use compute_DPm_on_cycle(...) instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return compute_DPm_on_cycle(*args, **kwargs)
