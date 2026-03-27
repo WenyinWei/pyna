@@ -46,15 +46,15 @@ class _ManifoldBase:
     # Subclasses set this to 'stable' or 'unstable'
     _branch = None
 
-    def __init__(self, x_point, Jac, field_func,
+    def __init__(self, x_point, DPm, field_func,
                  phi_span=(0.0, 2 * np.pi)):
         self.x_point = np.asarray(x_point, dtype=float)
-        self.Jac = np.asarray(Jac, dtype=float)
+        self.DPm = np.asarray(DPm, dtype=float)
         self.field_func = field_func
         self.phi_span = phi_span
 
-        # Compute eigenvalues / eigenvectors of the Jacobian matrix
-        eigvals, eigvecs = np.linalg.eig(Jac)
+        # Compute eigenvalues / eigenvectors of the full-period Poincare Jacobian
+        eigvals, eigvecs = np.linalg.eig(DPm)
         self._eigvals = eigvals
         self._eigvecs = eigvecs  # columns are eigenvectors
 
@@ -66,6 +66,17 @@ class _ManifoldBase:
 
         # Storage for grown manifold points
         self.segments: list[np.ndarray] = []  # each element: ndarray shape (N, 2)
+
+    @property
+    def Jac(self):
+        """Deprecated alias for DPm."""
+        import warnings
+        warnings.warn(
+            "Stable/Unstable manifold .Jac is deprecated; use .DPm instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.DPm
 
     def _select_eigenvector(self):
         """Select the eigenvalue/eigenvector for this branch.
@@ -100,7 +111,7 @@ class _ManifoldBase:
                 ManifoldWarning,
                 stacklevel=3,
             )
-        det = np.linalg.det(self.Jac)
+        det = np.linalg.det(self.DPm)
         if abs(det - 1.0) > 0.01:
             warnings.warn(
                 f"Monodromy matrix det={det:.4f} deviates from 1 (expected for area-preserving map). "
@@ -329,7 +340,7 @@ class _ManifoldBase:
 class _AcceleratedManifoldBase(_ManifoldBase):
     """Manifold base that uses cyna C++ for single-step field-line integration."""
 
-    def __init__(self, x_point, Jac, cache, wall, phi_section=0.0, DPhi=0.05, **kw):
+    def __init__(self, x_point, DPm, cache, wall, phi_section=0.0, DPhi=0.05, **kw):
         import numpy as np
         from scipy.interpolate import RegularGridInterpolator
 
@@ -384,7 +395,7 @@ class _AcceleratedManifoldBase(_ManifoldBase):
         self._wall_R = np.ascontiguousarray(wR, dtype=np.float64)
         self._wall_Z = np.ascontiguousarray(wZ, dtype=np.float64)
 
-        super().__init__(x_point, Jac, field_func_2d, **kw)
+        super().__init__(x_point, DPm, field_func_2d, **kw)
 
     def _integrate_fieldline(self, x0, phi_span, **kw):
         """Single field-line step using cyna batch (N_turns deduced from phi_span)."""
