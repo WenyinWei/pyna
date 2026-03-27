@@ -31,13 +31,13 @@ class PeriodicOrbit:
         Corresponds to m in q=m/n notation: P^m(x) = x.
     trajectory : ndarray, shape (N, 3)
         Full orbit trajectory (R, Z, phi).
-    Jac : ndarray, shape (2, 2)
-        Jac matrix M = J(2π·m). Eigenvalues characterize stability.
+    DPm : ndarray, shape (2, 2)
+        Monodromy matrix DPm = DX_pol(phi_end), phi_end = 2π·m. Eigenvalues characterize stability.
     """
     rzphi0: np.ndarray
     period_m: int
     trajectory: np.ndarray
-    Jac: np.ndarray
+    DPm: np.ndarray
 
     @property
     def period_n(self) -> int:
@@ -47,17 +47,17 @@ class PeriodicOrbit:
     @property
     def is_stable(self) -> bool:
         """True if |eigenvalues| ≤ 1 (elliptic, O-point type)."""
-        eigvals = np.linalg.eigvals(self.Jac)
+        eigvals = np.linalg.eigvals(self.DPm)
         return bool(np.all(np.abs(eigvals) <= 1.0 + 1e-6))
 
     @property
     def eigenvalues(self) -> np.ndarray:
-        return np.linalg.eigvals(self.Jac)
+        return np.linalg.eigvals(self.DPm)
 
     @property
     def stability_index(self) -> float:
         """Tr(M)/2 for a 2x2 symplectic map. |k|<1 → elliptic, |k|>1 → hyperbolic."""
-        return float(np.trace(self.Jac) / 2.0)
+        return float(np.trace(self.DPm) / 2.0)
 
 
 # ---------------------------------------------------------------------------
@@ -214,8 +214,8 @@ def jacobian_of_poincare_map(
 
     Returns
     -------
-    J : ndarray, shape (2, 2)
-        Jacobian of the n-turn Poincaré map. det(J) ≈ 1 for area-preserving.
+    DPm : ndarray, shape (2, 2)
+        Monodromy matrix (Jacobian of the n-turn Poincaré map). det(DPm) ≈ 1 for area-preserving.
     """
     R0, Z0, phi0 = float(rzphi0[0]), float(rzphi0[1]), float(rzphi0[2])
     R_f, Z_f = poincare_map_n(field_func, rzphi0, n_turns, dt)
@@ -225,11 +225,11 @@ def jacobian_of_poincare_map(
     # Perturb Z
     R_fZ, Z_fZ = poincare_map_n(field_func, [R0, Z0 + eps, phi0], n_turns, dt)
 
-    J = np.array([
+    DPm = np.array([
         [(R_fR - R_f) / eps, (R_fZ - R_f) / eps],
         [(Z_fR - Z_f) / eps, (Z_fZ - Z_f) / eps],
     ])
-    return J
+    return DPm
 
 
 # ---------------------------------------------------------------------------
@@ -261,17 +261,17 @@ def _try_find_cycle_from_seed(
         if np.linalg.norm(G) < tol:
             # Converged — compute trajectory and monodromy
             traj = poincare_map_n_trajectory(field_func, rzphi, n_turns, dt, RZlimit)
-            J = jacobian_of_poincare_map(field_func, rzphi, n_turns, dt)
+            DPm = jacobian_of_poincare_map(field_func, rzphi, n_turns, dt)
             return PeriodicOrbit(
                 rzphi0=rzphi.copy(),
                 period_m=n_turns,
                 trajectory=traj,
-                Jac=J,
+                DPm=DPm,
             )
 
-        # Jacobian of G = P^n - I: dG/dx0 = J_poincare - I
-        J_p = jacobian_of_poincare_map(field_func, rzphi, n_turns, dt)
-        dGdx = J_p - np.eye(2)
+        # Jacobian of G = P^n - I: dG/dx0 = DPm_poincare - I
+        DPm_p = jacobian_of_poincare_map(field_func, rzphi, n_turns, dt)
+        dGdx = DPm_p - np.eye(2)
 
         try:
             delta = np.linalg.solve(dGdx, -G)

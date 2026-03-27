@@ -1,13 +1,13 @@
 """Monodromy matrix and variational equation analysis along field-line orbits.
 
 The variational equations describe how a small displacement δX evolves:
-    dJ/dφ = A(r,z,φ) · J,   J(φ0) = I
+    dDX_pol/dφ = A(r,z,φ) · DX_pol,   DX_pol(φ0) = I
 
 where A is the 2×2 Jacobian of the field direction:
     A_ij = ∂(R·B_pol_i / Bφ) / ∂x_j
 
-The monodromy matrix M = J(φ0 + 2πn) gives the linearized n-turn Poincaré map.
-Eigenvalues of M: λ₁·λ₂ = 1 (area-preserving),
+The monodromy matrix DPm = DX_pol(φ_end), φ_end = φ0 + 2m·π, gives the linearized m-turn Poincaré map.
+Eigenvalues of DPm: λ₁·λ₂ = 1 (area-preserving),
     |λ| = 1 → elliptic (O-point), λ > 1 → hyperbolic (X-point).
 
 DPm evolution (Lie algebra / commutator equation):
@@ -44,41 +44,41 @@ class MonodromyAnalysis:
         Toroidal angle array along orbit.
     trajectory : ndarray, shape (N, 2)
         (R, Z) trajectory.
-    J_arr : ndarray, shape (N, 2, 2)
-        Jacobian matrix J(φ) at each φ.
+    DX_pol_arr : ndarray, shape (N, 2, 2)
+        Variational matrix DX_pol(φ) in cylindrical (polar) coords at each φ.
     DPm_arr : ndarray, shape (N, 2, 2)
         DPm matrix (commutator evolution).
-    Jac : ndarray, shape (2, 2)
-        M = J(φ_end).
+    DPm : ndarray, shape (2, 2)
+        Monodromy matrix DPm = DX_pol(φ_end), φ_end = φ0 + 2m·π.
     """
     phi_arr: np.ndarray
     trajectory: np.ndarray
-    J_arr: np.ndarray
+    DX_pol_arr: np.ndarray
     DPm_arr: np.ndarray
-    Jac: np.ndarray
+    DPm: np.ndarray
 
     @property
     def eigenvalues(self) -> np.ndarray:
         """Eigenvalues of the monodromy matrix."""
-        return np.linalg.eigvals(self.Jac)
+        return np.linalg.eigvals(self.DPm)
 
     @property
     def stability_index(self) -> float:
-        """Tr(M)/2 for a 2×2 symplectic map."""
-        return float(np.trace(self.Jac) / 2.0)
+        """Tr(DPm)/2 for a 2×2 symplectic map."""
+        return float(np.trace(self.DPm) / 2.0)
 
     @property
     def greene_residue(self) -> float:
-        """Greene's residue R = (2 - Tr(M))/4. R<0: hyperbolic, 0<R<1: elliptic."""
-        return float((2.0 - np.trace(self.Jac)) / 4.0)
+        """Greene's residue R = (2 - Tr(DPm))/4. R<0: hyperbolic, 0<R<1: elliptic."""
+        return float((2.0 - np.trace(self.DPm)) / 4.0)
 
-    def J_at(self, phi: float) -> np.ndarray:
-        """Interpolate Jacobian matrix J at arbitrary φ."""
+    def DX_pol_at(self, phi: float) -> np.ndarray:
+        """Interpolate variational matrix DX_pol at arbitrary φ."""
         n = len(self.phi_arr)
-        J_flat = self.J_arr.reshape(n, 4)
+        DX_pol_flat = self.DX_pol_arr.reshape(n, 4)
         out = np.zeros(4)
         for k in range(4):
-            out[k] = float(interp1d(self.phi_arr, J_flat[:, k], kind='cubic')(phi))
+            out[k] = float(interp1d(self.phi_arr, DX_pol_flat[:, k], kind='cubic')(phi))
         return out.reshape(2, 2)
 
     def DPm_at(self, phi: float) -> np.ndarray:
@@ -187,7 +187,7 @@ def build_delta_b_pol_func(
 # Compute monodromy
 # ---------------------------------------------------------------------------
 
-def compute_Jac(
+def compute_monodromy(
     field_func: Callable,
     orbit,
     n_turns: Optional[int] = None,
@@ -199,12 +199,12 @@ def compute_Jac(
 
     Integrates simultaneously (φ-parameterized):
     1. The orbit trajectory (R(φ), Z(φ))
-    2. The variational equation dJ/dφ = A(r,z,φ)·J
+    2. The variational equation dDX_pol/dφ = A(r,z,φ)·DX_pol
     3. The DPm commutator equation dDPm/dφ = A·DPm - DPm·A
 
     State vector layout (10 components):
         y[0:2]  = (R, Z)
-        y[2:6]  = J flattened (row-major: J00, J01, J10, J11)
+        y[2:6]  = DX_pol flattened (row-major: 00, 01, 10, 11)
         y[6:10] = DPm flattened
 
     Parameters
@@ -243,40 +243,40 @@ def compute_Jac(
         return np.array([f[0] / dphi_dl, f[1] / dphi_dl])
 
     def rhs_J_only(phi, y):
-        """Phase 1: integrate orbit + J only (6 components)."""
+        """Phase 1: integrate orbit + DX_pol only (6 components)."""
         r, z = y[0], y[1]
-        J = y[2:6].reshape(2, 2)
+        DX_pol = y[2:6].reshape(2, 2)
         drz = _g(r, z, phi)
         A = A_func(r, z, phi)
-        dJ = A @ J
-        return np.concatenate([drz, dJ.flatten()])
+        dDX_pol = A @ DX_pol
+        return np.concatenate([drz, dDX_pol.flatten()])
 
     def rhs(phi, y):
-        """Phase 2: integrate orbit + J + DPm (10 components)."""
+        """Phase 2: integrate orbit + DX_pol + DPm (10 components)."""
         r, z = y[0], y[1]
-        J = y[2:6].reshape(2, 2)
+        DX_pol = y[2:6].reshape(2, 2)
         DPm = y[6:10].reshape(2, 2)
 
         # orbit velocity
         drz = _g(r, z, phi)
 
         A = A_func(r, z, phi)
-        dJ = A @ J
+        dDX_pol = A @ DX_pol
         dDPm = A @ DPm - DPm @ A
 
-        return np.concatenate([drz, dJ.flatten(), dDPm.flatten()])
+        return np.concatenate([drz, dDX_pol.flatten(), dDPm.flatten()])
 
     n_out = max(int((phi_end - phi0) / dt_output), 50)
     t_eval = np.linspace(phi0, phi_end, n_out)
 
-    # Phase 1: integrate orbit + J to get M = J(phi_end).
-    # DPm initial condition must be M (not I) — see reference:
+    # Phase 1: integrate orbit + DX_pol to get DPm_init = DX_pol(phi_end).
+    # DPm initial condition must be DX_pol(phi_end) (not I) — see reference:
     #   dummy_Xcycle.ipynb cell 1 / W7X_Jac_change_under_perturbation.ipynb cell 43:
-    #   DPm_ivp = solve_ivp(..., [0, 2m*pi], DXpol_ivp.sol(2*m*pi), ...)
-    #   i.e. DPm(phi0) = J(phi_end) = M.
+    #   DPm_ivp = solve_ivp(..., [0, 2m*pi], DX_pol_ivp.sol(2*m*pi), ...)
+    #   i.e. DPm(phi0) = DX_pol(phi_end).
     y0_phase1 = np.zeros(6)
     y0_phase1[0], y0_phase1[1] = R0, Z0
-    y0_phase1[2:6] = np.eye(2).flatten()  # J(phi0) = I
+    y0_phase1[2:6] = np.eye(2).flatten()  # DX_pol(phi0) = I
 
     sol_phase1 = solve_ivp(
         rhs_J_only,
@@ -292,14 +292,14 @@ def compute_Jac(
     if not sol_phase1.success:
         raise RuntimeError(f"Monodromy phase-1 integration failed: {sol_phase1.message}")
 
-    # M = J(phi_end)
-    M = sol_phase1.y[2:6, -1].reshape(2, 2)
+    # DPm_init = DX_pol(phi_end) from Phase 1
+    DPm_init = sol_phase1.y[2:6, -1].reshape(2, 2)
 
-    # Phase 2: re-integrate with DPm(phi0) = M
+    # Phase 2: re-integrate with DPm(phi0) = DPm_init = DX_pol(phi_end)
     y0 = np.zeros(10)
     y0[0], y0[1] = R0, Z0
-    y0[2:6] = np.eye(2).flatten()  # J(phi0) = I
-    y0[6:10] = M.flatten()         # DPm(phi0) = M  (NOT identity!)
+    y0[2:6] = np.eye(2).flatten()  # DX_pol(phi0) = I
+    y0[6:10] = DPm_init.flatten()  # DPm(phi0) = DX_pol(phi_end) (NOT identity!)
 
     sol = solve_ivp(
         rhs,
@@ -316,17 +316,17 @@ def compute_Jac(
         raise RuntimeError(f"Monodromy integration failed: {sol.message}")
 
     phi_arr = sol.t
-    traj = sol.y[:2].T                        # (N, 2)
-    J_arr = sol.y[2:6].T.reshape(-1, 2, 2)   # (N, 2, 2)
-    DPm_arr = sol.y[6:10].T.reshape(-1, 2, 2)  # (N, 2, 2)
-    Jac = J_arr[-1]
+    traj = sol.y[:2].T                              # (N, 2)
+    DX_pol_arr = sol.y[2:6].T.reshape(-1, 2, 2)    # (N, 2, 2)
+    DPm_arr = sol.y[6:10].T.reshape(-1, 2, 2)      # (N, 2, 2)
+    DPm_val = DX_pol_arr[-1]
 
     return MonodromyAnalysis(
         phi_arr=phi_arr,
         trajectory=traj,
-        J_arr=J_arr,
+        DX_pol_arr=DX_pol_arr,
         DPm_arr=DPm_arr,
-        Jac=Jac,
+        DPm=DPm_val,
     )
 
 
@@ -346,11 +346,11 @@ def orbit_shift_under_perturbation(
         dXcyc/dφ = A·Xcyc + δb_pol(r(φ), z(φ), φ)
 
     with periodic boundary condition. The initial condition is:
-        Xcyc(φ0) = (M - I)^{-1} · (-∫ J·J^{-1}·δb dφ)
+        Xcyc(φ0) = (DPm - I)^{-1} · (-∫ DX_pol·DX_pol^{-1}·δb dφ)
     which is found by requiring Xcyc(φ0 + 2πn) = Xcyc(φ0).
 
     In practice: first integrate with Xcyc(φ0)=0 to find the particular
-    solution Xpart(φ_end), then set Xcyc(φ0) = (M - I)^{-1} · (-Xpart(φ_end)).
+    solution Xpart(φ_end), then set Xcyc(φ0) = (DPm - I)^{-1} · (-Xpart(φ_end)).
 
     Parameters
     ----------
@@ -397,13 +397,13 @@ def orbit_shift_under_perturbation(
         atol=1e-9,
     )
 
-    M = monodromy_analysis.Jac
+    DPm = monodromy_analysis.DPm
     Xpart_end = sol_part.y[:, -1]
 
     # Step 2: periodic BC: X(phi_end) = X(phi0)
-    # M * X0 + Xpart_end = X0  → (M - I) * X0 = -Xpart_end
+    # DPm * X0 + Xpart_end = X0  → (DPm - I) * X0 = -Xpart_end
     try:
-        X0 = np.linalg.solve(M - np.eye(2), -Xpart_end)
+        X0 = np.linalg.solve(DPm - np.eye(2), -Xpart_end)
     except np.linalg.LinAlgError:
         X0 = np.zeros(2)
 
@@ -433,7 +433,7 @@ def monodromy_change_under_perturbation(
 ) -> np.ndarray:
     """Compute how the monodromy matrix changes under perturbation δB.
 
-    δM = ∫_φ0^{φ_end} J(φ_end)·J^{-1}(φ)·δA_eff(φ)·J(φ) dφ
+    δDPm = ∫_φ0^{φ_end} DX_pol(φ_end)·DX_pol^{-1}(φ)·δA_eff(φ)·DX_pol(φ) dφ
 
     where δA_eff(φ) = δA(r(φ), z(φ), φ) accounts for the change in the
     A matrix due to the perturbation (both direct δA and shift of orbit).
@@ -453,30 +453,30 @@ def monodromy_change_under_perturbation(
     Returns
     -------
     ndarray, shape (2, 2)
-        δM — the change in the monodromy matrix.
+        δDPm — the change in the monodromy matrix.
     """
     phi_arr = monodromy_analysis.phi_arr
-    J_arr = monodromy_analysis.J_arr
+    DX_pol_arr = monodromy_analysis.DX_pol_arr
     traj = monodromy_analysis.trajectory
-    M = monodromy_analysis.Jac
+    DPm = monodromy_analysis.DPm
 
     integrand = np.zeros((len(phi_arr), 2, 2))
 
     for i, phi in enumerate(phi_arr):
         r, z = traj[i, 0], traj[i, 1]
         dr, dz = orbit_shift[i, 0], orbit_shift[i, 1]
-        J_phi = J_arr[i]
+        DX_pol_phi = DX_pol_arr[i]
 
-        # J(φ_end) · J^{-1}(φ) = M · J^{-1}(φ)
+        # DX_pol(φ_end) · DX_pol^{-1}(φ) = DPm · DX_pol^{-1}(φ)
         try:
-            J_inv = np.linalg.inv(J_phi)
+            DX_pol_inv = np.linalg.inv(DX_pol_phi)
         except np.linalg.LinAlgError:
             continue
 
         dA = delta_A_func(r, z, phi)
 
-        # Contribution to δM integrand
-        integrand[i] = M @ J_inv @ dA @ J_phi
+        # Contribution to δDPm integrand
+        integrand[i] = DPm @ DX_pol_inv @ dA @ DX_pol_phi
 
     # Trapezoidal integration
     dphi = np.diff(phi_arr)
@@ -516,7 +516,7 @@ def second_order_orbit_variation(
     The periodic boundary condition is handled in the same way as in
     :func:`orbit_shift_under_perturbation`: integrate first with zero
     initial condition to find the particular solution, then use
-    (M − I) δ²X₀ = −δ²X_particular(φ_end).
+    (DPm − I) δ²X₀ = −δ²X_particular(φ_end).
 
     Parameters
     ----------
@@ -619,10 +619,10 @@ def second_order_orbit_variation(
     )
     d2X_part_end = sol_part.y[:, -1]
 
-    # Step 2: periodic BC:  (M − I) d²X₀ = −d²X_part_end
-    M = monodromy_analysis.Jac
+    # Step 2: periodic BC:  (DPm − I) d²X₀ = −d²X_part_end
+    DPm = monodromy_analysis.DPm
     try:
-        d2X0 = np.linalg.solve(M - np.eye(2), -d2X_part_end)
+        d2X0 = np.linalg.solve(DPm - np.eye(2), -d2X_part_end)
     except np.linalg.LinAlgError:
         d2X0 = np.zeros(2)
 
@@ -668,7 +668,7 @@ def monodromy_matrix(
 
     Returns
     -------
-    M : ndarray, shape (2, 2)
+    DPm : ndarray, shape (2, 2)
         Monodromy matrix (Jacobian of P^m).
     """
     import numpy as np
@@ -742,15 +742,19 @@ def monodromy_matrix(
             R_final[i] = R_flat_out[idx]
             Z_final[i] = Z_flat_out[idx]
 
-    # FD Jacobian: M = [[dR'/dR, dR'/dZ], [dZ'/dR, dZ'/dZ]]
-    M = np.array([
+    # FD Jacobian of m-turn Poincare map: DPm = [[dR'/dR, dR'/dZ], [dZ'/dR, dZ'/dZ]]
+    DPm = np.array([
         [(R_final[1] - R_final[2]) / (2 * fd_eps),
          (R_final[3] - R_final[4]) / (2 * fd_eps)],
         [(Z_final[1] - Z_final[2]) / (2 * fd_eps),
          (Z_final[3] - Z_final[4]) / (2 * fd_eps)],
     ])
-    return M
+    return DPm
 
 
 # Backward-compat alias (old backend-explicit name)
 cyna_monodromy = monodromy_matrix
+
+
+# Backward-compatibility alias
+compute_Jac = compute_monodromy
