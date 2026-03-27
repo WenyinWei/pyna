@@ -242,7 +242,17 @@ def compute_Jac(
             return np.zeros(2)
         return np.array([f[0] / dphi_dl, f[1] / dphi_dl])
 
+    def rhs_J_only(phi, y):
+        """Phase 1: integrate orbit + J only (6 components)."""
+        r, z = y[0], y[1]
+        J = y[2:6].reshape(2, 2)
+        drz = _g(r, z, phi)
+        A = A_func(r, z, phi)
+        dJ = A @ J
+        return np.concatenate([drz, dJ.flatten()])
+
     def rhs(phi, y):
+        """Phase 2: integrate orbit + J + DPm (10 components)."""
         r, z = y[0], y[1]
         J = y[2:6].reshape(2, 2)
         DPm = y[6:10].reshape(2, 2)
@@ -256,14 +266,40 @@ def compute_Jac(
 
         return np.concatenate([drz, dJ.flatten(), dDPm.flatten()])
 
-    # Initial condition: orbit start, J=I, DPm=I (initial DPm = J(phi0) = I)
-    y0 = np.zeros(10)
-    y0[0], y0[1] = R0, Z0
-    y0[2:6] = np.eye(2).flatten()   # J(phi0) = I
-    y0[6:10] = np.eye(2).flatten()  # DPm(phi0) = M(phi0) = I
-
     n_out = max(int((phi_end - phi0) / dt_output), 50)
     t_eval = np.linspace(phi0, phi_end, n_out)
+
+    # Phase 1: integrate orbit + J to get M = J(phi_end).
+    # DPm initial condition must be M (not I) — see reference:
+    #   dummy_Xcycle.ipynb cell 1 / W7X_Jac_change_under_perturbation.ipynb cell 43:
+    #   DPm_ivp = solve_ivp(..., [0, 2m*pi], DXpol_ivp.sol(2*m*pi), ...)
+    #   i.e. DPm(phi0) = J(phi_end) = M.
+    y0_phase1 = np.zeros(6)
+    y0_phase1[0], y0_phase1[1] = R0, Z0
+    y0_phase1[2:6] = np.eye(2).flatten()  # J(phi0) = I
+
+    sol_phase1 = solve_ivp(
+        rhs_J_only,
+        (phi0, phi_end),
+        y0_phase1,
+        method="DOP853",
+        t_eval=t_eval,
+        rtol=rtol,
+        atol=atol,
+        max_step=dt_output * 2,
+    )
+
+    if not sol_phase1.success:
+        raise RuntimeError(f"Monodromy phase-1 integration failed: {sol_phase1.message}")
+
+    # M = J(phi_end)
+    M = sol_phase1.y[2:6, -1].reshape(2, 2)
+
+    # Phase 2: re-integrate with DPm(phi0) = M
+    y0 = np.zeros(10)
+    y0[0], y0[1] = R0, Z0
+    y0[2:6] = np.eye(2).flatten()  # J(phi0) = I
+    y0[6:10] = M.flatten()         # DPm(phi0) = M  (NOT identity!)
 
     sol = solve_ivp(
         rhs,
@@ -280,7 +316,7 @@ def compute_Jac(
         raise RuntimeError(f"Monodromy integration failed: {sol.message}")
 
     phi_arr = sol.t
-    traj = sol.y[:2].T                   # (N, 2)
+    traj = sol.y[:2].T                        # (N, 2)
     J_arr = sol.y[2:6].T.reshape(-1, 2, 2)   # (N, 2, 2)
     DPm_arr = sol.y[6:10].T.reshape(-1, 2, 2)  # (N, 2, 2)
     Jac = J_arr[-1]
