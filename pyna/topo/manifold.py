@@ -1,8 +1,20 @@
 from mimetypes import init
 from pyna.fields.cylindrical import VectorField3DCylindrical
-from pyna.flt import bundle_tracing_with_t_as_DeltaPhi
-from pyna.diff.fieldline import _FieldDifferenatiableRZ
-from pyna.diff.cycle import eigvec_interpolator_along_Xcycle
+# bundle_tracing_with_t_as_DeltaPhi was removed in batch-1 legacy cleanup.
+# pyna.topo.manifold is a legacy module; only accumulate_s_from_RZ_arr is
+# still referenced externally (via pyna.MCF.visual.tokamak_manifold).
+try:
+    from pyna.flt import bundle_tracing_with_t_as_DeltaPhi  # legacy, may not exist
+except ImportError:
+    bundle_tracing_with_t_as_DeltaPhi = None  # graceful fallback
+try:
+    from pyna.diff.fieldline import _FieldDifferenatiableRZ
+except ImportError:
+    _FieldDifferenatiableRZ = None
+try:
+    from pyna.diff.cycle import eigvec_interpolator_along_Xcycle
+except ImportError:
+    eigvec_interpolator_along_Xcycle = None
 
 from multiprocessing.sharedctypes import Value
 from scipy.integrate import solve_ivp

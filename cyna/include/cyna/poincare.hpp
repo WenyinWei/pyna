@@ -645,4 +645,328 @@ void trace_wall_hits_twall(
     }
 }
 
+// ---------------------------------------------------------------------------
+// find_fixed_points_batch
+//
+// For each initial guess (R0, Z0), run Newton iterations on P^n(x) - x = 0
+// using finite-difference Jacobian (4 extra field-line integrations per step).
+// On convergence, also returns the full 2x2 DPm = DP^n at the fixed point,
+// eigenvalues, and a classification: 1=X-point (|Tr|>2), 0=O-point (|Tr|<2).
+//
+// Outputs (length N_seeds each):
+//   R_out, Z_out          – converged position (NaN if not converged)
+//   residual_out          – |P^n(x)-x| at final iterate
+//   converged_out         – 1 if converged, 0 otherwise
+//   DPm_out               – flattened 2x2 DPm row-major (length 4*N_seeds)
+//   eig_r_out, eig_i_out  – real/imag parts of eigenvalues (length 2*N_seeds)
+//   point_type_out        – 1=X-point, 0=O-point, -1=not converged
+// ---------------------------------------------------------------------------
+struct FixedPointResult {
+    double R, Z;
+    double residual;
+    int    converged;   // 0 or 1
+    double DPm[4];      // row-major: [00,01,10,11]
+    double eig_r[2], eig_i[2];
+    int    point_type;  // 1=X, 0=O, -1=failed
+};
+
+// Integrate n_turns starting from (R, Z, phi_start); return final (R, Z).
+// Returns false if field line exits the grid or becomes non-finite.
+static inline bool pmap_n(
+    double& R, double& Z,
+    double phi_start, int n_turns, double DPhi,
+    const double* BR, const double* BPhi, const double* BZ,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi)
+{
+    double phi = phi_start;
+    double phi_end = phi_start + n_turns * 2.0 * M_PI;
+    while (phi < phi_end - 1e-12) {
+        double step = std::min(DPhi, phi_end - phi);
+        rk4_step(R, Z, phi, step, BR, BPhi, BZ, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+        phi += step;
+        if (!std::isfinite(R) || !std::isfinite(Z) ||
+            R < R_grid[0] || R > R_grid[nR-1] ||
+            Z < Z_grid[0] || Z > Z_grid[nZ-1])
+            return false;
+    }
+    return true;
+}
+
+static inline FixedPointResult newton_fixed_point(
+    double R0, double Z0,
+    double phi_section,     // Poincare section angle [rad]
+    int    n_turns,         // P^n: n toroidal turns
+    double DPhi,
+    double fd_eps,          // finite-difference step [m]
+    int    max_iter,
+    double tol,             // convergence: |P^n(x)-x| < tol
+    const double* BR, const double* BPhi, const double* BZ,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi)
+{
+    FixedPointResult res;
+    res.R = std::numeric_limits<double>::quiet_NaN();
+    res.Z = std::numeric_limits<double>::quiet_NaN();
+    res.residual = 1e30;
+    res.converged = 0;
+    res.DPm[0]=res.DPm[1]=res.DPm[2]=res.DPm[3] = 0.0;
+    res.eig_r[0]=res.eig_r[1]=res.eig_i[0]=res.eig_i[1] = 0.0;
+    res.point_type = -1;
+
+    double phi0 = mod2pi(phi_section);
+    double R = R0, Z = Z0;
+
+    for (int iter = 0; iter < max_iter; ++iter) {
+        // Evaluate F(x) = P^n(x) - x
+        double Rf = R, Zf = Z;
+        if (!pmap_n(Rf, Zf, phi0, n_turns, DPhi, BR, BPhi, BZ,
+                    R_grid, nR, Z_grid, nZ, Phi_grid, nPhi))
+            return res;  // field line lost – give up
+        double F0 = Rf - R;
+        double F1 = Zf - Z;
+
+        res.residual = std::sqrt(F0*F0 + F1*F1);
+        if (res.residual < tol) {
+            res.converged = 1;
+            break;
+        }
+
+        // Jacobian columns via central finite differences
+        // dF/dR: perturb R by ±eps
+        double Rp = R + fd_eps, Zp = Z;
+        if (!pmap_n(Rp, Zp, phi0, n_turns, DPhi, BR, BPhi, BZ,
+                    R_grid, nR, Z_grid, nZ, Phi_grid, nPhi)) return res;
+        double Rm = R - fd_eps, Zm = Z;
+        if (!pmap_n(Rm, Zm, phi0, n_turns, DPhi, BR, BPhi, BZ,
+                    R_grid, nR, Z_grid, nZ, Phi_grid, nPhi)) return res;
+        double J00 = (Rp - Rm) / (2.0*fd_eps);  // dPR/dR - 1 → need full J then subtract I
+        double J10 = (Zp - Zm) / (2.0*fd_eps);
+
+        // dF/dZ: perturb Z by ±eps
+        double Rpz = R, Zpz = Z + fd_eps;
+        if (!pmap_n(Rpz, Zpz, phi0, n_turns, DPhi, BR, BPhi, BZ,
+                    R_grid, nR, Z_grid, nZ, Phi_grid, nPhi)) return res;
+        double Rmz = R, Zmz = Z - fd_eps;
+        if (!pmap_n(Rmz, Zmz, phi0, n_turns, DPhi, BR, BPhi, BZ,
+                    R_grid, nR, Z_grid, nZ, Phi_grid, nPhi)) return res;
+        double J01 = (Rpz - Rmz) / (2.0*fd_eps);
+        double J11 = (Zpz - Zmz) / (2.0*fd_eps);
+
+        // DF = J - I  (Jacobian of F = P^n(x) - x)
+        double DF00 = J00 - 1.0, DF01 = J01;
+        double DF10 = J10,       DF11 = J11 - 1.0;
+        double det = DF00*DF11 - DF01*DF10;
+        if (std::abs(det) < 1e-20) return res;  // singular
+
+        // Newton step: dx = -DF^{-1} * F
+        double dR = -(DF11*F0 - DF01*F1) / det;
+        double dZ = -(-DF10*F0 + DF00*F1) / det;
+
+        R += dR; Z += dZ;
+
+        // Bounds check
+        if (R < R_grid[0] || R > R_grid[nR-1] ||
+            Z < Z_grid[0] || Z > Z_grid[nZ-1])
+            return res;
+    }
+
+    if (!res.converged) return res;
+
+    // Store result
+    res.R = R; res.Z = Z;
+
+    // Recompute DPm = DP^n at converged point (central FD)
+    double phi0c = mod2pi(phi_section);
+    auto pmap = [&](double r, double z, double& ro, double& zo) -> bool {
+        ro = r; zo = z;
+        return pmap_n(ro, zo, phi0c, n_turns, DPhi, BR, BPhi, BZ,
+                      R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+    };
+    double Rpp, Zpp, Rpm, Zpm, Rpz, Zpz2, Rmz2, Zmz2;
+    if (!pmap(R+fd_eps, Z, Rpp, Zpp)) return res;
+    if (!pmap(R-fd_eps, Z, Rpm, Zpm)) return res;
+    if (!pmap(R, Z+fd_eps, Rpz, Zpz2)) return res;
+    if (!pmap(R, Z-fd_eps, Rmz2, Zmz2)) return res;
+
+    res.DPm[0] = (Rpp - Rpm) / (2.0*fd_eps);   // dR'/dR
+    res.DPm[1] = (Rpz - Rmz2) / (2.0*fd_eps);  // dR'/dZ
+    res.DPm[2] = (Zpp - Zpm) / (2.0*fd_eps);   // dZ'/dR
+    res.DPm[3] = (Zpz2 - Zmz2) / (2.0*fd_eps); // dZ'/dZ
+
+    // Eigenvalues of 2x2 matrix via characteristic polynomial
+    double a = res.DPm[0], b = res.DPm[1], c2 = res.DPm[2], d = res.DPm[3];
+    double tr = a + d, det2 = a*d - b*c2;
+    double disc = tr*tr - 4.0*det2;
+    if (disc >= 0.0) {
+        res.eig_r[0] = 0.5*(tr + std::sqrt(disc));
+        res.eig_r[1] = 0.5*(tr - std::sqrt(disc));
+        res.eig_i[0] = res.eig_i[1] = 0.0;
+    } else {
+        res.eig_r[0] = res.eig_r[1] = 0.5*tr;
+        res.eig_i[0] =  0.5*std::sqrt(-disc);
+        res.eig_i[1] = -0.5*std::sqrt(-disc);
+    }
+
+    res.point_type = (std::abs(tr) > 2.0) ? 1 : 0;
+    return res;
+}
+
+void find_fixed_points_batch(
+    const double* R_seeds, const double* Z_seeds, int N_seeds,
+    double phi_section,
+    int    n_turns,
+    double DPhi,
+    double fd_eps,
+    int    max_iter,
+    double tol,
+    const double* BR, const double* BPhi, const double* BZ,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi,
+    int n_threads,
+    double* R_out, double* Z_out,
+    double* residual_out,
+    int*    converged_out,
+    double* DPm_out,         // 4*N_seeds (row-major per seed)
+    double* eig_r_out,       // 2*N_seeds
+    double* eig_i_out,       // 2*N_seeds
+    int*    point_type_out)  // N_seeds
+{
+    if (n_threads <= 0)
+        n_threads = (int)std::thread::hardware_concurrency();
+
+    BS::thread_pool pool((unsigned int)n_threads);
+    pool.parallelize_loop(0, N_seeds, [&](int i_start, int i_end) {
+        for (int i = i_start; i < i_end; ++i) {
+            auto r = newton_fixed_point(
+                R_seeds[i], Z_seeds[i],
+                phi_section, n_turns, DPhi, fd_eps, max_iter, tol,
+                BR, BPhi, BZ,
+                R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+
+            R_out[i]          = r.R;
+            Z_out[i]          = r.Z;
+            residual_out[i]   = r.residual;
+            converged_out[i]  = r.converged;
+            DPm_out[4*i+0]    = r.DPm[0];
+            DPm_out[4*i+1]    = r.DPm[1];
+            DPm_out[4*i+2]    = r.DPm[2];
+            DPm_out[4*i+3]    = r.DPm[3];
+            eig_r_out[2*i+0]  = r.eig_r[0];
+            eig_r_out[2*i+1]  = r.eig_r[1];
+            eig_i_out[2*i+0]  = r.eig_i[0];
+            eig_i_out[2*i+1]  = r.eig_i[1];
+            point_type_out[i] = r.point_type;
+        }
+    }).wait();
+}
+
+// ---------------------------------------------------------------------------
+// trace_orbit_along_phi
+//
+// Starting from (R0, Z0) at phi0, integrate the field line and output
+// (R, Z) at evenly spaced phi values: phi0, phi0+dphi_out, ..., phi0+phi_span.
+// Also computes the 2x2 DPm (finite-difference P^n_turns Jacobian) at each
+// output point — used for ribbon eigenvector visualization.
+//
+// Output arrays (length n_out = ceil(phi_span/dphi_out)+1):
+//   R_traj, Z_traj          : orbit positions
+//   phi_traj                : toroidal angles (unwrapped)
+//   DPm_traj [n_out x 4]   : DPm at each output point (row-major 2x2)
+//   alive_out [n_out]       : 1 if integration succeeded up to that point
+// ---------------------------------------------------------------------------
+void trace_orbit_along_phi(
+    double R0, double Z0, double phi0,
+    double phi_span,    // total toroidal angle to cover [rad]
+    double dphi_out,    // output spacing [rad]
+    int    n_turns_DPm, // n for P^n Jacobian (island chain period)
+    double DPhi,        // integration step
+    double fd_eps,      // finite-difference step for DPm
+    const double* BR, const double* BPhi, const double* BZ,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi,
+    int    n_out,
+    double* R_traj, double* Z_traj, double* phi_traj,
+    double* DPm_traj,  // [n_out * 4]
+    int*    alive_out)
+{
+    constexpr double NAN_V = std::numeric_limits<double>::quiet_NaN();
+
+    // Fill outputs with NaN / 0
+    for (int i = 0; i < n_out; ++i) {
+        R_traj[i] = NAN_V; Z_traj[i] = NAN_V; phi_traj[i] = NAN_V;
+        DPm_traj[4*i+0]=NAN_V; DPm_traj[4*i+1]=NAN_V;
+        DPm_traj[4*i+2]=NAN_V; DPm_traj[4*i+3]=NAN_V;
+        alive_out[i] = 0;
+    }
+
+    double R = R0, Z = Z0;
+    double phi = phi0;          // unwrapped
+    double phi_next_out = phi0; // next output checkpoint
+    int    out_idx = 0;
+
+    // Helper: compute DPm at (R, Z, phi_sec) using central FD on P^n_turns
+    auto compute_DPm = [&](double r, double z, double phi_sec,
+                            double* dpm) -> bool {
+        auto pm = [&](double rr, double zz, double& ro, double& zo) -> bool {
+            ro = rr; zo = zz;
+            return pmap_n(ro, zo, mod2pi(phi_sec), n_turns_DPm, DPhi,
+                          BR, BPhi, BZ, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+        };
+        double Rpp,Zpp, Rpm,Zpm, Rpz,Zpz, Rmz,Zmz;
+        if (!pm(r+fd_eps, z, Rpp, Zpp)) return false;
+        if (!pm(r-fd_eps, z, Rpm, Zpm)) return false;
+        if (!pm(r, z+fd_eps, Rpz, Zpz)) return false;
+        if (!pm(r, z-fd_eps, Rmz, Zmz)) return false;
+        dpm[0] = (Rpp-Rpm)/(2*fd_eps);
+        dpm[1] = (Rpz-Rmz)/(2*fd_eps);
+        dpm[2] = (Zpp-Zpm)/(2*fd_eps);
+        dpm[3] = (Zpz-Zmz)/(2*fd_eps);
+        return true;
+    };
+
+    // Record initial point
+    if (out_idx < n_out) {
+        R_traj[out_idx] = R; Z_traj[out_idx] = Z; phi_traj[out_idx] = phi;
+        double dpm[4];
+        if (compute_DPm(R, Z, phi, dpm)) {
+            for (int k=0;k<4;k++) DPm_traj[4*out_idx+k] = dpm[k];
+        }
+        alive_out[out_idx] = 1;
+        out_idx++;
+        phi_next_out += dphi_out;
+    }
+
+    double phi_end = phi0 + phi_span;
+
+    while (phi < phi_end - 1e-12 && out_idx < n_out) {
+        double step = std::min(DPhi, phi_end - phi);
+        // Integrate one step
+        rk4_step(R, Z, phi, step, BR, BPhi, BZ,
+                 R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+        phi += step;
+
+        if (!std::isfinite(R) || !std::isfinite(Z) ||
+            R < R_grid[0] || R > R_grid[nR-1] ||
+            Z < Z_grid[0] || Z > Z_grid[nZ-1])
+            break;
+
+        // Check if we passed an output checkpoint
+        while (out_idx < n_out && phi >= phi_next_out - 1e-12) {
+            R_traj[out_idx] = R; Z_traj[out_idx] = Z; phi_traj[out_idx] = phi_next_out;
+            double dpm[4];
+            if (compute_DPm(R, Z, mod2pi(phi_next_out), dpm)) {
+                for (int k=0;k<4;k++) DPm_traj[4*out_idx+k] = dpm[k];
+            }
+            alive_out[out_idx] = 1;
+            out_idx++;
+            phi_next_out += dphi_out;
+        }
+    }
+}
+
 } // namespace cyna

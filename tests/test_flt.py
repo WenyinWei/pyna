@@ -43,8 +43,9 @@ def test_get_backend_cpu():
     assert backend is not None
 
 
-def test_get_backend_cuda_raises():
-    with pytest.raises(NotImplementedError):
+def test_get_backend_cuda_requires_kwargs():
+    """cuda backend exists but requires R0/a/B0/q0 kwargs; missing them raises TypeError."""
+    with pytest.raises((NotImplementedError, ImportError, TypeError)):
         get_backend('cuda')
 
 

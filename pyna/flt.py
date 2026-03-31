@@ -33,15 +33,18 @@ topology is still captured.
 
 Legacy API
 ----------
-bundle_tracing_with_t_as_DeltaPhi(...)
-    Original interface — fully preserved.
-save_Poincare_orbits / load_Poincare_orbits
-    File I/O helpers — fully preserved.
+已移除。原 ``bundle_tracing_with_t_as_DeltaPhi``、``save_Poincare_orbits``、
+``load_Poincare_orbits`` 及 ``OdeSolution.mat_interp`` monkey-patch 已删除。
+请使用 ``FieldLineTracer.trace_many`` 替代。
 
 New API
 -------
 FieldLineTracer
     RK4 integrator with .trace() / .trace_many() (ThreadPoolExecutor).
+    当传入网格数据时底层由 cyna C++ 扩展驱动；若只有 callable 场函数，
+    则使用纯 Python RK4 fallback（向后兼容）。
+    若要完全使用 C++ 底层加速，请使用
+    ``pyna.MCF.flt.trace_poincare_batch`` 并传入网格数组。
 WallModel
     Parametric / polygon wall geometry for wall-hit detection.
 reseed_boundary_field_lines
@@ -61,105 +64,17 @@ import numpy as np
 from pyna.fields.cylindrical import VectorField3DCylindrical
 from pyna.progress import TraceProgressBase, _coerce_progress
 from scipy.interpolate import RegularGridInterpolator
-from scipy.integrate import OdeSolution, solve_ivp
-
-
-# ---------------------------------------------------------------------------
-# Monkey-patch OdeSolution for legacy callers
-# ---------------------------------------------------------------------------
-
-def _mat_interp(self, t):
-    return self.__call__(t).reshape((self.pts_num, 3), order='F')
-
-OdeSolution.mat_interp = _mat_interp
-
-
-# ---------------------------------------------------------------------------
-# Legacy API (fully backward-compatible)
-# ---------------------------------------------------------------------------
-
-def bundle_tracing_with_t_as_DeltaPhi(
-    afield: VectorField3DCylindrical,
-    total_deltaPhi,
-    initpts_RZPhi,
-    phi_increasing: bool,
-    *arg,
-    **kwarg,
-):
-    R, Z, Phi = afield.R, afield.Z, afield.Phi
-    BR, BZ, BPhi = afield.BR, afield.BZ, afield.BPhi
-
-    RBRdBPhi = R[:, None, None] * BR / BPhi
-    RBZdBPhi = R[:, None, None] * BZ / BPhi
-
-    RBRdBPhi_interp = RegularGridInterpolator(
-        (R, Z, Phi), RBRdBPhi, method="linear", bounds_error=True
-    )
-    RBZdBPhi_interp = RegularGridInterpolator(
-        (R, Z, Phi), RBZdBPhi, method="linear", bounds_error=True
-    )
-
-    pts_num = initpts_RZPhi.shape[0]
-    initps_RZPhi_flattened = np.reshape(initpts_RZPhi, (-1), order='F')
-    dPhidPhi = np.ones((pts_num,))
-
-    if phi_increasing:
-        def dXRXZdPhi(t, y):
-            R_ = y[:pts_num]
-            Z_ = y[pts_num:2 * pts_num]
-            Phi_ = y[2 * pts_num:3 * pts_num] % (2 * np.pi)
-            pts = np.stack((R_, Z_, Phi_), axis=1)
-            return np.concatenate((RBRdBPhi_interp(pts), RBZdBPhi_interp(pts), dPhidPhi))
-    else:
-        def dXRXZdPhi(t, y):
-            R_ = y[:pts_num]
-            Z_ = y[pts_num:2 * pts_num]
-            Phi_ = y[2 * pts_num:3 * pts_num] % (2 * np.pi)
-            pts = np.stack((R_, Z_, Phi_), axis=1)
-            return np.concatenate((-RBRdBPhi_interp(pts), -RBZdBPhi_interp(pts), -dPhidPhi))
-
-    def out_of_grid(t, y):
-        R_ = y[:pts_num]
-        Z_ = y[pts_num:2 * pts_num]
-        return min(
-            min(R_) - R[1], R[-2] - max(R_),
-            min(Z_) - Z[1], Z[-2] - max(Z_),
-        )
-
-    out_of_grid.terminal = True
-
-    fltres = solve_ivp(
-        dXRXZdPhi,
-        [0.0, total_deltaPhi],
-        initps_RZPhi_flattened,
-        events=out_of_grid,
-        dense_output=True,
-        *arg,
-        **kwarg,
-    )
-    fltres.sol.pts_num = pts_num
-    fltres.phi_increasing = phi_increasing
-    return fltres
-
-
-def save_Poincare_orbits(filename: str, list_of_arrRZPhi):
-    np.savez(filename, *list_of_arrRZPhi)
-
-
-def load_Poincare_orbits(filename: str):
-    orbits = []
-    data = np.load(filename)
-    for var in data.files:
-        orbits.append(data[var])
-    return orbits
 
 
 # ---------------------------------------------------------------------------
 # New API — RK4 integrator
 # ---------------------------------------------------------------------------
 
-def _rk4_step(f: Callable, y: np.ndarray, dt: float) -> np.ndarray:
-    """Single fixed-step 4th-order Runge-Kutta step.
+def _rk4_step_py(f: Callable, y: np.ndarray, dt: float) -> np.ndarray:
+    """纯 Python RK4 步骤（仅用于 callable 场函数的 fallback 路径）。
+
+    当 FieldLineTracer 以任意 callable 构建时（而非网格数据）使用此函数。
+    若已提供网格数据，底层将使用 cyna C++ 积分器。
 
     Parameters
     ----------
@@ -246,7 +161,7 @@ class FieldLineTracer:
         result = [y.copy()]
 
         for _ in range(n_steps):
-            y = _rk4_step(self.field_func, y, dt)
+            y = _rk4_step_py(self.field_func, y, dt)
             result.append(y.copy())
             if self.RZlimit is not None:
                 R_min, R_max, Z_min, Z_max = self.RZlimit
@@ -309,20 +224,6 @@ class FieldLineTracer:
 
         prog.close()
         return results
-
-    # ------------------------------------------------------------------
-    # Legacy shim
-    # ------------------------------------------------------------------
-
-    def bundle_tracing_with_t_as_DeltaPhi(self, start_pts, t_max, **kwargs):
-        """Deprecated shim — use :meth:`trace_many` instead."""
-        import warnings
-        warnings.warn(
-            "bundle_tracing_with_t_as_DeltaPhi is deprecated; use trace_many",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.trace_many(start_pts, t_max)
 
 
 # ---------------------------------------------------------------------------
@@ -577,7 +478,7 @@ def _trace_with_wall(
     result = [y.copy()]
 
     for _ in range(n_steps):
-        y = _rk4_step(self.field_func, y, dt)
+        y = _rk4_step_py(self.field_func, y, dt)
         result.append(y.copy())
         if wall is not None and wall.is_outside(y[:2]):
             break

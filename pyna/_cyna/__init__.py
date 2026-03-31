@@ -43,9 +43,21 @@ def get_version() -> str:
 if _available:
     trace_poincare_batch = _cyna_ext.trace_poincare_batch
     trace_poincare_multi = _cyna_ext.trace_poincare_multi
-    trace_poincare_batch_twall = getattr(_cyna_ext, "trace_poincare_batch_twall", None)
+    trace_poincare_batch_twall    = getattr(_cyna_ext, "trace_poincare_batch_twall",    None)
     trace_connection_length_twall = getattr(_cyna_ext, "trace_connection_length_twall", None)
-    trace_wall_hits_twall = getattr(_cyna_ext, "trace_wall_hits_twall", None)
+    trace_wall_hits_twall         = getattr(_cyna_ext, "trace_wall_hits_twall",         None)
+    find_fixed_points_batch       = getattr(_cyna_ext, "find_fixed_points_batch",       None)
+    trace_orbit_along_phi         = getattr(_cyna_ext, "trace_orbit_along_phi",         None)
+else:
+    # Fallback stubs so ``from pyna._cyna import X`` always succeeds;
+    # callers receive None and are expected to guard with is_available().
+    trace_poincare_batch          = None
+    trace_poincare_multi          = None
+    trace_poincare_batch_twall    = None
+    trace_connection_length_twall = None
+    trace_wall_hits_twall         = None
+    find_fixed_points_batch       = None
+    trace_orbit_along_phi         = None
 
 __all__ = [
     "is_available",
@@ -55,4 +67,6 @@ __all__ = [
     "trace_poincare_batch_twall",
     "trace_connection_length_twall",
     "trace_wall_hits_twall",
+    "find_fixed_points_batch",
+    "trace_orbit_along_phi",
 ]

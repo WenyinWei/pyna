@@ -361,4 +361,84 @@ PYBIND11_MODULE(_cyna_ext, m) {
         "                       term_type_fwd, term_type_bwd).\n"
         "term_type: 0=no hit, 1=wall polygon, 2=field grid exit, 3=non-finite.\n"
         "NaN hit coords when term_type=0.");
+
+    m.def("find_fixed_points_batch",
+        [](py::array_t<double> R_seeds, py::array_t<double> Z_seeds,
+           double phi_section, int n_turns, double DPhi,
+           double fd_eps, int max_iter, double tol,
+           py::array_t<double> BR, py::array_t<double> BPhi, py::array_t<double> BZ,
+           py::array_t<double> R_grid, py::array_t<double> Z_grid,
+           py::array_t<double> Phi_grid,
+           int n_threads) -> py::tuple
+        {
+            if (n_threads <= 0) n_threads = (int)std::thread::hardware_concurrency();
+            int N = (int)R_seeds.size();
+
+            py::array_t<double> R_out({N}), Z_out({N}), res_out({N});
+            py::array_t<int>    conv_out({N}), ptype_out({N});
+            py::array_t<double> DPm_out({N, 4});
+            py::array_t<double> eigr_out({N, 2}), eigi_out({N, 2});
+
+            cyna::find_fixed_points_batch(
+                buf(R_seeds,"R_seeds"), buf(Z_seeds,"Z_seeds"), N,
+                phi_section, n_turns, DPhi, fd_eps, max_iter, tol,
+                buf(BR,"BR"), buf(BPhi,"BPhi"), buf(BZ,"BZ"),
+                buf(R_grid,"R_grid"), (int)R_grid.size(),
+                buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
+                buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size(),
+                n_threads,
+                R_out.mutable_data(), Z_out.mutable_data(),
+                res_out.mutable_data(), conv_out.mutable_data(),
+                DPm_out.mutable_data(),
+                eigr_out.mutable_data(), eigi_out.mutable_data(),
+                ptype_out.mutable_data());
+
+            return py::make_tuple(R_out, Z_out, res_out, conv_out,
+                                  DPm_out, eigr_out, eigi_out, ptype_out);
+        },
+        py::arg("R_seeds"), py::arg("Z_seeds"),
+        py::arg("phi_section"), py::arg("n_turns"), py::arg("DPhi") = 0.05,
+        py::arg("fd_eps") = 1e-4, py::arg("max_iter") = 40, py::arg("tol") = 1e-9,
+        py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
+        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+        py::arg("n_threads") = -1,
+        "Parallel Newton search for P^n fixed points (X/O points).\n"
+        "Each seed is refined independently in its own thread.\n"
+        "Returns (R_out, Z_out, residual, converged, DPm[N,4],\n"
+        "         eig_r[N,2], eig_i[N,2], point_type[N]).\n"
+        "point_type: 1=X-point (|Tr|>2), 0=O-point, -1=not converged.");
+
+    m.def("trace_orbit_along_phi",
+        [](double R0, double Z0, double phi0,
+           double phi_span, double dphi_out, int n_turns_DPm,
+           double DPhi, double fd_eps,
+           py::array_t<double> BR, py::array_t<double> BPhi, py::array_t<double> BZ,
+           py::array_t<double> R_grid, py::array_t<double> Z_grid,
+           py::array_t<double> Phi_grid) -> py::tuple
+        {
+            int n_out = (int)std::ceil(phi_span / dphi_out) + 1;
+            py::array_t<double> R_t({n_out}), Z_t({n_out}), phi_t({n_out});
+            py::array_t<double> DPm_t({n_out, 4});
+            py::array_t<int>    alive_t({n_out});
+
+            cyna::trace_orbit_along_phi(
+                R0, Z0, phi0, phi_span, dphi_out, n_turns_DPm, DPhi, fd_eps,
+                buf(BR,"BR"), buf(BPhi,"BPhi"), buf(BZ,"BZ"),
+                buf(R_grid,"R_grid"), (int)R_grid.size(),
+                buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
+                buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size(),
+                n_out,
+                R_t.mutable_data(), Z_t.mutable_data(), phi_t.mutable_data(),
+                DPm_t.mutable_data(), alive_t.mutable_data());
+
+            return py::make_tuple(R_t, Z_t, phi_t, DPm_t, alive_t);
+        },
+        py::arg("R0"), py::arg("Z0"), py::arg("phi0"),
+        py::arg("phi_span"), py::arg("dphi_out"), py::arg("n_turns_DPm"),
+        py::arg("DPhi") = 0.05, py::arg("fd_eps") = 1e-4,
+        py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
+        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+        "Integrate field line from (R0,Z0,phi0) for phi_span radians, outputting\n"
+        "(R,Z,phi,DPm[n,4],alive[n]) at evenly-spaced phi_out intervals.\n"
+        "DPm is the P^n_turns_DPm Jacobian via central FD — used for ribbon visualization.");
 }

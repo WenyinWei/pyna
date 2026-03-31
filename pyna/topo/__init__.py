@@ -24,6 +24,10 @@ from pyna.topo.monodromy import (
     second_order_orbit_variation,
     monodromy_matrix,
 )
+from pyna.topo.island_chain import (
+    IslandChainOrbit,
+    ChainFixedPoint,
+)
 
 __all__ = [
     "PoincareMapVariationalEquations",
@@ -57,4 +61,7 @@ __all__ = [
     "monodromy_change_under_perturbation",
     "second_order_orbit_variation",
     "monodromy_matrix",
+    # island chain connectivity
+    "IslandChainOrbit",
+    "ChainFixedPoint",
 ]

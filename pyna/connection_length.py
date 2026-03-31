@@ -350,9 +350,9 @@ def connection_length(
     ``'Lc_sum'`` (float ndarray, shape (N,))
         :math:`L_c^+ + L_c^-`.  Present only for ``direction='both'``.
     ``'Lc_max'`` (float ndarray, shape (N,))
-        :math:`\max(L_c^+, L_c^-)`.  Present only for ``direction='both'``.
+        :math:`\\max(L_c^+, L_c^-)`.  Present only for ``direction='both'``.
     ``'Lc_min'`` (float ndarray, shape (N,))
-        :math:`\min(L_c^+, L_c^-)`.  Present only for ``direction='both'``.
+        :math:`\\min(L_c^+, L_c^-)`.  Present only for ``direction='both'``.
     ``'hit_plus'`` (float ndarray, shape (N, 3))
         Wall-contact points ``[R, Z, phi]`` for forward traces.
     ``'hit_minus'`` (float ndarray, shape (N, 3))
@@ -389,6 +389,14 @@ def connection_length(
     **Step size in R, Z** is ``|dR/dφ| dphi`` etc., which can be large for
     large major radii or strongly tilted fields.  If the step overshoots the
     wall by more than one segment, reduce ``dphi``.
+
+    **性能说明（C++ 加速路径）**：
+    当前实现使用纯 Python 步进循环，适用于任意 callable ``field_func_2d``
+    （向后兼容）。若已有 (BR, BPhi, BZ) 网格数据，可直接调用
+    ``pyna._cyna.trace_connection_length_twall`` 或
+    ``pyna._cyna.trace_wall_hits_twall`` 获得 C++ 多线程加速，
+    性能比此函数高一到两个数量级。未来版本将通过 ``field_data=`` 参数
+    自动切换到 C++ 路径（接口预留，本版本暂未实现）。
     """
     # ── unpack wall ──────────────────────────────────────────────────────────
     try:

@@ -676,12 +676,12 @@ def monodromy_matrix(
     """
     import numpy as np
     try:
-        from pyna._cyna import trace_poincare_batch_twall
+        from pyna.MCF.flt import trace_poincare_batch_twall
         _has_twall = True
     except ImportError:
         _has_twall = False
     try:
-        from pyna._cyna import trace_poincare_batch
+        from pyna.MCF.flt import trace_poincare_batch
         _has_batch = True
     except ImportError:
         _has_batch = False
