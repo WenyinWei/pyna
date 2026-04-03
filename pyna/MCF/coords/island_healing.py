@@ -1,84 +1,74 @@
 """
 Heal PEST flux-surface coordinates at boundary island chains.
 
-When a device's boundary is defined by an m/n island chain (e.g. W7-X 5/5),
-the standard PEST construction breaks down at the LCFS because field lines
-no longer close on rational surfaces.  This module extends the PEST mesh
-through the island region by placing the X/O ring at the normalised radius
-r = S = 1.
-
-Background
-----------
+Physical background
+-------------------
 In PEST (straight-field-line) coordinates (S, θ*, φ):
 
   S   = √(ψ_norm)   radial coordinate (0 = axis, 1 = boundary)
-  θ*  is chosen so that  B · ∇θ* / B · ∇φ = q(S) on each flux surface
+  θ*  is chosen so that  B·∇θ* / B·∇φ = q(S) = const on each flux surface
 
-At a rational surface q = m/n the field lines satisfy::
+At a rational surface q = m/n, the Poincaré map P (one toroidal turn) maps
+each fixed point to another fixed point of the *same* chain.  Crucially:
 
-    θ*(φ) = (n/m) · φ + θ*_0
+  **The map shifts the PEST angle by exactly 2π·n/m per turn.**
 
-so all m O-points and m X-points on a φ = const section appear at equally
-spaced PEST angles, separated by π/m::
+So the k-th iterate P^k(x₀) has PEST angle:
 
-    O-points:  θ*_0,   θ*_0 + 2π/m,   …,  θ*_0 + 2π(m-1)/m
-    X-points:  θ*_0 + π/m,  θ*_0 + 3π/m,  …,  θ*_0 + (2m-1)π/m
+    θ*(P^k(x₀)) = θ*(x₀) + k · (2π n/m)  mod 2π
 
-This identity provides a complete geometric constraint on the r = 1 shape.
+This means the m O-points of an m/n chain, listed in **field-line traversal
+order** (not geometric order), are equally spaced in θ* by 2πn/m.
 
-Conceptual hierarchy
---------------------
-Following the island-around-island picture adopted in ``pyna.topo``:
+When n and m are coprime (which is always true for a fundamental resonance),
+the traversal order visits all m islands before returning to start.  The
+sorted-in-θ* order of the O-points therefore has a gap of 2πn/m between
+*consecutive traversal steps*, but a gap of 2π/m between *consecutive θ*
+values* (since the traversal covers all m residues mod m exactly once).
 
-* **Level-1 (primary)** – the main nested flux-surface structure treated as
-  a single-island chain (m = 1) whose O-point is the magnetic axis.  The
-  standard PEST mesh covers r ∈ [0, r_sep) for this chain.
-* **Level-2 (boundary)** – the edge island chain (e.g. 5/5) that breaks the
-  primary LCFS.  Its X/O ring is placed at r = 1 by this module.
+For the boundary curve construction we need:
+  - the m O-point positions R_k, Z_k in **ascending θ* order** (not
+    traversal order), because the spline interpolates over θ* ∈ [0, 2π).
+  - the m X-point positions interleaved, also in ascending θ* order.
 
-A chain can be connected (all flux tubes share a common separatrix, typical
-for inner-region islands) or disconnected (independent flux tubes, typical
-for W7-X 5/5 std. config.): both cases are handled because the r = 1 curve
-is constructed purely from the 2m anchor-point positions and PEST angles,
-with no assumption about field-line connectivity.
+The PEST angle of the k-th O-point in traversal order is:
 
-Algorithm
+    θ*_k = θ*_0 + k · (2π n/m)  mod 2π
+
+Sorting these gives the spatial order along the boundary.
+
+The correct procedure is therefore:
+  1. Find ONE seed X- or O-point precisely (via find_fixed_points_batch).
+  2. Propagate the orbit using IslandChainOrbit to get ALL m fixed points
+     across all Poincaré sections with their correct DPm matrices.
+  3. Assign PEST angles using the traversal-order formula.
+  4. Sort by PEST angle to get spatial order.
+  5. Build the periodic spline R(θ*), Z(θ*).
+
+Hierarchy
 ---------
-1. Estimate θ*_0 (the reference PEST angle of the first O-point) by
-   interpolating the geometric-angle ↔ θ* map from the outermost existing
-   PEST surfaces.
-2. Assign θ* to all 2m anchor points using the equally-spaced rule.
-3. Build the r = 1 boundary curve R(θ*), Z(θ*) via a periodic cubic spline
-   through the 2m anchor points.
-4. Add ``n_heal`` new flux surfaces interpolated between the last good
-   surface and r = 1.
+Level-1: primary nested flux surface structure (treated as m=1 chain).
+Level-2: boundary island chain (e.g. 10/3) placed at r=1.
 
-Public API
-----------
-.. function:: assign_island_chain_pest_angles(island_chain, R_mesh, ...)
-   Assign θ* to all X/O points; update Island.pest_theta in place.
-
-.. function:: build_r1_boundary(island_chain, theta_O, theta_X, TET)
-   Construct the r = 1 boundary curve.
-
-.. function:: heal_pest_mesh_at_island_chain(S, TET, R_mesh, Z_mesh, ...)
-   Main entry point: extend PEST mesh to r = 1.
+The boundary curve construction and PEST mesh extension work for any
+(m, n) chain, connected or disconnected.
 """
 from __future__ import annotations
 
 import warnings
-from typing import Optional, Tuple
+from math import gcd
+from typing import Optional, Tuple, List
 
 import numpy as np
 from scipy.interpolate import interp1d, CubicSpline
 
 
 # ---------------------------------------------------------------------------
-# § 1  Low-level helpers: geometric angle ↔ PEST angle
+# § 1  Geometric helpers
 # ---------------------------------------------------------------------------
 
 def _geo_angle(R: float, Z: float, Rmaxis: float, Zmaxis: float) -> float:
-    """Geometric poloidal angle of (R, Z) w.r.t. the magnetic axis [rad, (-π, π]]."""
+    """Geometric poloidal angle of (R, Z) w.r.t. the magnetic axis, in (-π, π]."""
     return float(np.arctan2(Z - Zmaxis, R - Rmaxis))
 
 
@@ -89,41 +79,16 @@ def _build_geo2pest(
     Rmaxis: float,
     Zmaxis: float,
 ) -> interp1d:
-    """Build a linear map  geometric angle → PEST angle θ*  on one surface.
-
-    The map is extended for periodicity so that the input domain covers
-    approximately (−2π, 4π).
-
-    Parameters
-    ----------
-    R_surf, Z_surf : 1-D arrays, shape (ntheta,)
-        Cylindrical coordinates along one PEST flux surface.
-    TET : 1-D array, shape (ntheta,)
-        Corresponding PEST poloidal angles [0, 2π] (duplicate endpoints OK).
-    Rmaxis, Zmaxis : float
-        Magnetic axis.
-
-    Returns
-    -------
-    interp1d
-        Callable  geo_angle [rad] → θ* [rad].
-    """
-    geo = np.arctan2(R_surf - Rmaxis, Z_surf - Zmaxis)  # not used below
+    """Build a monotone map  geometric angle → θ*  on one PEST surface."""
     geo = np.arctan2(Z_surf - Zmaxis, R_surf - Rmaxis)
-
     order = np.argsort(geo)
     geo_s = geo[order]
     tet_s = TET[order]
-
-    # Remove duplicates
     _, uidx = np.unique(geo_s, return_index=True)
     geo_s = geo_s[uidx]
     tet_s = tet_s[uidx]
-
-    # Periodic extension: three copies spanning (−2π, 4π)
     geo_ext = np.r_[geo_s - 2*np.pi, geo_s, geo_s + 2*np.pi]
     tet_ext = np.r_[tet_s - 2*np.pi, tet_s, tet_s + 2*np.pi]
-
     return interp1d(geo_ext, tet_ext, kind='linear', fill_value='extrapolate')
 
 
@@ -135,35 +100,160 @@ def _estimate_pest_angle(
     TET: np.ndarray,
     Rmaxis: float,
     Zmaxis: float,
-    n_avg: int = 3,
+    n_avg: int = 4,
 ) -> float:
-    """Estimate the PEST angle θ* of a point (R_pt, Z_pt) outside the mesh.
-
-    Averages the estimate from the ``n_avg`` outermost PEST surfaces for
-    robustness.
-
-    Returns
-    -------
-    float
-        θ* in [0, 2π).
-    """
+    """Estimate θ* of a point outside the mesh by extrapolating from outer surfaces."""
     ns = R_mesh.shape[0]
     n_use = min(n_avg, ns)
     geo_pt = _geo_angle(R_pt, Z_pt, Rmaxis, Zmaxis)
-
     estimates = []
     for i in range(ns - n_use, ns):
         f = _build_geo2pest(R_mesh[i], Z_mesh[i], TET, Rmaxis, Zmaxis)
         estimates.append(float(f(geo_pt)))
-
     arr = np.array(estimates)
-    # Circular mean
     mean_val = float(np.arctan2(np.mean(np.sin(arr)), np.mean(np.cos(arr))))
     return mean_val % (2 * np.pi)
 
 
 # ---------------------------------------------------------------------------
-# § 2  Public: assign PEST angles to island X/O points
+# § 2  Core: traversal-order PEST angle assignment
+# ---------------------------------------------------------------------------
+
+def assign_pest_angles_from_orbit(
+    island_chain_orbit,
+    m: int,
+    n: int,
+    R_mesh: np.ndarray,
+    Z_mesh: np.ndarray,
+    TET: np.ndarray,
+    Rmaxis: float,
+    Zmaxis: float,
+    phi_section: float = 0.0,
+    n_avg: int = 4,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Assign PEST angles to all fixed points of an IslandChainOrbit.
+
+    This function correctly accounts for the traversal-order shift:
+    The k-th iterate (in traversal order starting from the seed) has PEST
+    angle θ*_k = θ*_seed + k · (2π n/m) mod 2π.
+
+    The seed point's θ* is estimated from the existing PEST mesh.
+
+    Parameters
+    ----------
+    island_chain_orbit : IslandChainOrbit
+        Must have fixed_points populated (from from_cyna_cache or
+        from_single_fixedpoint).  Only fixed points at phi ≈ phi_section
+        are used.
+    m, n : int
+        Toroidal / poloidal mode numbers.
+    R_mesh, Z_mesh : ndarray, shape (ns, ntheta)
+        Existing PEST mesh.
+    TET : ndarray, shape (ntheta,)
+        PEST angle grid [0, 2π].
+    Rmaxis, Zmaxis : float
+        Magnetic axis.
+    phi_section : float
+        Which Poincaré section to use [rad].
+    n_avg : int
+        Outer surfaces used for θ* estimation.
+
+    Returns
+    -------
+    R_fps : ndarray, shape (m,)  — R positions of all m fixed points at phi_section
+    Z_fps : ndarray, shape (m,)  — Z positions
+    theta_fps : ndarray, shape (m,)  — PEST angles (unsorted, in traversal order)
+    kinds : list of str  — 'X' or 'O' for each point
+    """
+    # Gather fixed points at this section
+    fps_at_sec = island_chain_orbit.at_section(phi_section)
+    if not fps_at_sec:
+        raise ValueError(
+            f"No fixed points found at phi_section={phi_section:.4f}. "
+            "Check that section_phis includes this angle."
+        )
+
+    # Estimate θ* of the seed (first fixed point)
+    seed = fps_at_sec[0]
+    theta_seed = _estimate_pest_angle(
+        float(seed.R), float(seed.Z),
+        R_mesh, Z_mesh, TET, Rmaxis, Zmaxis, n_avg=n_avg,
+    )
+
+    # Assign PEST angles in traversal order
+    # traversal step k → θ* = θ*_seed + k * (2π n/m)
+    shift_per_step = 2.0 * np.pi * n / m
+
+    R_fps = np.array([fp.R for fp in fps_at_sec])
+    Z_fps = np.array([fp.Z for fp in fps_at_sec])
+    kinds = [fp.kind for fp in fps_at_sec]
+    n_fp = len(fps_at_sec)
+
+    # The orbit propagation in IslandChainOrbit gives us fixed points
+    # at phi_section from a single seed.  The order in fixed_points
+    # corresponds to increasing phi traversal, which equals traversal order.
+    theta_fps = np.array([
+        (theta_seed + k * shift_per_step) % (2 * np.pi)
+        for k in range(n_fp)
+    ])
+
+    return R_fps, Z_fps, theta_fps, kinds
+
+
+def assign_island_chain_pest_angles_from_orbit(
+    island_chain_orbit,
+    m: int,
+    n: int,
+    R_mesh: np.ndarray,
+    Z_mesh: np.ndarray,
+    TET: np.ndarray,
+    Rmaxis: float,
+    Zmaxis: float,
+    phi_section: float = 0.0,
+    n_avg: int = 4,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Full assignment: returns sorted O-point and X-point positions and angles.
+
+    For an m/n chain the Poincaré map P maps each island to another island
+    shifted by n positions in traversal order (i.e. shifted by 2πn/m in θ*).
+    This function:
+      1. Estimates θ* of the seed point.
+      2. Propagates θ* to all m fixed points using the traversal-order formula.
+      3. Separates X-points and O-points.
+      4. Returns them sorted by ascending θ*.
+
+    Returns
+    -------
+    R_O, Z_O, theta_O : O-point positions and PEST angles, sorted by θ*
+    R_X, Z_X, theta_X : X-point positions and PEST angles, sorted by θ*
+    """
+    R_fps, Z_fps, theta_fps, kinds = assign_pest_angles_from_orbit(
+        island_chain_orbit, m, n, R_mesh, Z_mesh, TET,
+        Rmaxis, Zmaxis, phi_section=phi_section, n_avg=n_avg,
+    )
+
+    o_mask = np.array([k == 'O' for k in kinds])
+    x_mask = np.array([k == 'X' for k in kinds])
+
+    R_O = R_fps[o_mask]; Z_O = Z_fps[o_mask]; theta_O = theta_fps[o_mask]
+    R_X = R_fps[x_mask]; Z_X = Z_fps[x_mask]; theta_X = theta_fps[x_mask]
+
+    # Sort by PEST angle
+    if len(theta_O) > 0:
+        so = np.argsort(theta_O)
+        R_O, Z_O, theta_O = R_O[so], Z_O[so], theta_O[so]
+    if len(theta_X) > 0:
+        sx = np.argsort(theta_X)
+        R_X, Z_X, theta_X = R_X[sx], Z_X[sx], theta_X[sx]
+
+    return R_O, Z_O, theta_O, R_X, Z_X, theta_X
+
+
+# ---------------------------------------------------------------------------
+# § 3  Legacy interface: assign PEST angles from IslandChain dataclass
+#       (uses geometric-angle estimation, no orbit propagation)
+#       Kept for compatibility but marked as approximate.
 # ---------------------------------------------------------------------------
 
 def assign_island_chain_pest_angles(
@@ -173,111 +263,131 @@ def assign_island_chain_pest_angles(
     TET: np.ndarray,
     Rmaxis: float,
     Zmaxis: float,
-    n_avg: int = 3,
+    n_avg: int = 4,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Assign PEST angles θ* to all X- and O-points of a boundary island chain.
+    """Assign PEST angles to X/O points using geometric-angle estimation.
 
-    Exploits the rational-surface identity  θ*(φ) = (n/m)·φ + θ*_0  which
-    ensures that all 2m anchor points are equally spaced at π/m in θ*.
+    .. note::
+        This is the **approximate** interface for use when no
+        ``IslandChainOrbit`` is available.  It does NOT account for the
+        traversal-order shift (n positions per map step).  Use
+        :func:`assign_island_chain_pest_angles_from_orbit` when possible.
 
-    The reference angle θ*_0 is determined by a circular-mean fit over the
-    individual per-O-point estimates obtained from the existing PEST mesh.
-
-    Each ``Island.pest_theta`` attribute is updated in-place.
-    The results are also stored as ``island_chain.pest_theta_O`` and
-    ``island_chain.pest_theta_X``.
-
-    Parameters
-    ----------
-    island_chain : IslandChain
-        Must have ``islands`` populated with ``O_point`` arrays.
-        ``X_points`` are optional (used in :func:`build_r1_boundary`).
-    R_mesh, Z_mesh : ndarray, shape (ns, ntheta)
-        Existing PEST mesh (valid up to some S < 1).
-    TET : ndarray, shape (ntheta,)
-        PEST poloidal angle grid [0, 2π].
-    Rmaxis, Zmaxis : float
-        Magnetic axis.
-    n_avg : int
-        Number of outer PEST surfaces used for angle estimation.
-
-    Returns
-    -------
-    theta_O : ndarray, shape (m,)
-        PEST angles of O-points in [0, 2π), ascending.
-    theta_X : ndarray, shape (m,)
-        PEST angles of X-points in [0, 2π), ascending.
-        theta_X[k] = (theta_O[k] + π/m) mod 2π.
-
-    Raises
-    ------
-    ValueError
-        If no O-points are found.
+    The reference angle θ*_0 is found by circular-mean folding of the
+    per-O-point estimates.  O-points and X-points are then placed at
+    equally-spaced θ* values starting from θ*_0.
     """
     m = island_chain.m
-    dphi = 2.0 * np.pi / m          # spacing between consecutive O-points
-    half_dphi = np.pi / m            # O-to-X spacing
+    n = island_chain.n
+    dphi_O = 2.0 * np.pi / m
+    half   = np.pi / m
 
     O_points = [isl.O_point for isl in island_chain.islands
                 if isl.O_point is not None]
     if not O_points:
-        raise ValueError(
-            "IslandChain.islands contains no O_points. "
-            "Run fixed-point finding before calling this function."
-        )
+        raise ValueError("IslandChain has no O_points.")
 
-    # -------------------------------------------------------------------
-    # Step 1: estimate θ* for each O-point individually
-    # -------------------------------------------------------------------
+    # Estimate θ* for each O-point
     raw = np.array([
-        _estimate_pest_angle(
-            float(op[0]), float(op[1]),
-            R_mesh, Z_mesh, TET, Rmaxis, Zmaxis, n_avg=n_avg,
-        )
+        _estimate_pest_angle(float(op[0]), float(op[1]),
+                             R_mesh, Z_mesh, TET, Rmaxis, Zmaxis, n_avg=n_avg)
         for op in O_points
     ])
 
-    # -------------------------------------------------------------------
-    # Step 2: fold all estimates onto [0, 2π/m) and take circular mean
-    #         to recover the reference angle θ*_0.
-    # -------------------------------------------------------------------
-    folded = raw % dphi
-    # Map [0, dphi) → [0, 2π) for circular statistics, then map back
-    phi_norm = folded * (2.0 * np.pi / dphi)
-    theta_0_norm = float(
-        np.arctan2(np.mean(np.sin(phi_norm)), np.mean(np.cos(phi_norm)))
-    ) % (2.0 * np.pi)
-    theta_0 = theta_0_norm * (dphi / (2.0 * np.pi))   # back to [0, dphi)
+    # Fold onto [0, 2π/m) and take circular mean → θ*_0
+    folded   = raw % dphi_O
+    phi_norm = folded * (2.0 * np.pi / dphi_O)
+    theta_0_norm = float(np.arctan2(np.mean(np.sin(phi_norm)),
+                                    np.mean(np.cos(phi_norm)))) % (2.0*np.pi)
+    theta_0 = theta_0_norm * dphi_O / (2.0*np.pi)
 
-    # -------------------------------------------------------------------
-    # Step 3: build the full rings
-    # -------------------------------------------------------------------
-    theta_O = np.sort(np.array([(theta_0 + k * dphi) % (2*np.pi) for k in range(m)]))
-    theta_X = np.sort(np.array([(theta_0 + half_dphi + k * dphi) % (2*np.pi)
-                                 for k in range(m)]))
+    theta_O = np.sort([(theta_0 + k*dphi_O) % (2*np.pi) for k in range(m)])
+    theta_X = np.sort([(theta_0 + half + k*dphi_O) % (2*np.pi) for k in range(m)])
 
-    # -------------------------------------------------------------------
-    # Step 4: update Island.pest_theta in place (match to nearest theta_O)
-    # -------------------------------------------------------------------
+    # Match each island's O_point to nearest theta_O slot
     for isl in island_chain.islands:
-        if isl.O_point is not None:
-            tet_est = _estimate_pest_angle(
-                float(isl.O_point[0]), float(isl.O_point[1]),
-                R_mesh, Z_mesh, TET, Rmaxis, Zmaxis, n_avg=n_avg,
-            )
-            ang_diffs = np.abs(np.angle(np.exp(1j * (theta_O - tet_est))))
-            isl.pest_theta = float(theta_O[int(np.argmin(ang_diffs))])
+        if isl.O_point is None:
+            continue
+        tet_est = _estimate_pest_angle(
+            float(isl.O_point[0]), float(isl.O_point[1]),
+            R_mesh, Z_mesh, TET, Rmaxis, Zmaxis, n_avg=n_avg)
+        diffs = np.abs(np.angle(np.exp(1j*(np.array(theta_O) - tet_est))))
+        isl.pest_theta = float(theta_O[int(np.argmin(diffs))])
 
-    # Store on chain object for convenience
-    island_chain.pest_theta_O = theta_O
-    island_chain.pest_theta_X = theta_X
-
-    return theta_O, theta_X
+    island_chain.pest_theta_O = np.array(theta_O)
+    island_chain.pest_theta_X = np.array(theta_X)
+    return np.array(theta_O), np.array(theta_X)
 
 
 # ---------------------------------------------------------------------------
-# § 3  Build the r = 1 boundary curve
+# § 4  Build r = 1 boundary curve from sorted anchor points
 # ---------------------------------------------------------------------------
+
+def build_r1_boundary_from_anchors(
+    theta_anc: np.ndarray,
+    R_anc: np.ndarray,
+    Z_anc: np.ndarray,
+    TET_out: np.ndarray,
+    spline_kind: str = 'cubic',
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Build the r=1 boundary curve from sorted (θ*, R, Z) anchor points.
+
+    Anchors must be sorted in ascending θ* order.  A periodic cubic spline
+    is fitted through the 2m (or m) points and evaluated on TET_out.
+
+    Parameters
+    ----------
+    theta_anc, R_anc, Z_anc : ndarray, shape (N,)
+        Anchor points sorted by θ* ∈ [0, 2π).
+    TET_out : ndarray, shape (ntheta,)
+        Output PEST angle grid.
+    spline_kind : str
+        'cubic' or 'linear'.
+
+    Returns
+    -------
+    R_bdy, Z_bdy : ndarray, shape (ntheta,)
+    """
+    # Deduplicate (tolerance = π / (4 * N))
+    N = len(theta_anc)
+    if N < 2:
+        raise ValueError(f"Need at least 2 anchor points, got {N}.")
+
+    dedup_tol = np.pi / (4 * max(N, 1))
+    keep = np.ones(N, dtype=bool)
+    for i in range(1, N):
+        if abs(theta_anc[i] - theta_anc[i-1]) < dedup_tol:
+            keep[i] = False
+    theta_a = theta_anc[keep]
+    R_a     = R_anc[keep]
+    Z_a     = Z_anc[keep]
+
+    if len(theta_a) < 2:
+        raise ValueError("Too few unique anchors after deduplication.")
+
+    # Periodic closure
+    theta_per = np.r_[theta_a, theta_a[0] + 2*np.pi]
+    R_per     = np.r_[R_a, R_a[0]]
+    Z_per     = np.r_[Z_a, Z_a[0]]
+
+    # Wrap TET_out into [theta_a[0], theta_a[0] + 2π)
+    t0 = theta_a[0]
+    tet_eval = t0 + (TET_out - t0) % (2*np.pi)
+
+    use_cubic = (spline_kind == 'cubic') and (len(theta_per) >= 4)
+    if use_cubic:
+        cs_R = CubicSpline(theta_per, R_per)
+        cs_Z = CubicSpline(theta_per, Z_per)
+        R_bdy = cs_R(tet_eval)
+        Z_bdy = cs_Z(tet_eval)
+    else:
+        f_R = interp1d(theta_per, R_per, kind='linear', fill_value='extrapolate')
+        f_Z = interp1d(theta_per, Z_per, kind='linear', fill_value='extrapolate')
+        R_bdy = f_R(tet_eval)
+        Z_bdy = f_Z(tet_eval)
+
+    return R_bdy.astype(float), Z_bdy.astype(float)
+
 
 def build_r1_boundary(
     island_chain,
@@ -286,171 +396,97 @@ def build_r1_boundary(
     TET_out: np.ndarray,
     spline_kind: str = 'cubic',
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Construct the r = 1 boundary curve R(θ*), Z(θ*).
+    """Build r=1 boundary from IslandChain + pre-assigned θ* arrays.
 
-    The boundary passes through:
+    Merges O-point and X-point positions (if available) into a single
+    sorted anchor list and calls :func:`build_r1_boundary_from_anchors`.
 
-    * O-points at  θ* = theta_O[k]
-    * X-points at  θ* = theta_X[k]   (used when X_points are available)
-
-    In between, a periodic spline is fitted through the 2m anchor points.
-    For disconnected island chains (e.g. W7-X 5/5) the X-points provide
-    the "saddle" shape between flux tubes; for connected chains they mark
-    the separatrix corners.
-
-    Parameters
-    ----------
-    island_chain : IslandChain
-        ``islands[k].O_point`` gives the k-th O-point position.
-        ``islands[k].X_points`` gives the neighbouring X-points.
-    theta_O, theta_X : ndarray, shape (m,)
-        PEST angles from :func:`assign_island_chain_pest_angles`.
-    TET_out : ndarray, shape (ntheta,)
-        PEST angle grid at which to evaluate the boundary.
-    spline_kind : {'cubic', 'linear'}
-        Interpolation order.  'cubic' gives a C² boundary; 'linear' is
-        faster and safer when fewer than 4 anchors are available.
-
-    Returns
-    -------
-    R_bdy, Z_bdy : ndarray, shape (ntheta,)
-        Boundary curve in cylindrical (R, Z) coordinates.
-
-    Raises
-    ------
-    ValueError
-        If fewer than 2 anchor points are found.
+    .. warning::
+        This uses the *approximate* θ* assignment (geometric angle).
+        Prefer :func:`build_r1_boundary_from_orbit` when an
+        IslandChainOrbit is available.
     """
-    m = island_chain.m
+    theta_anc, R_anc, Z_anc = [], [], []
 
-    # -------------------------------------------------------------------
-    # Collect (theta*, R, Z) anchor points
-    # -------------------------------------------------------------------
-    theta_anc: list[float] = []
-    R_anc:     list[float] = []
-    Z_anc:     list[float] = []
-
-    # --- O-points ---
-    islands_with_O = [isl for isl in island_chain.islands if isl.O_point is not None]
-    # Match each island to its theta_O slot
-    for isl in islands_with_O:
-        th = isl.pest_theta
+    for isl in island_chain.islands:
+        if isl.O_point is None:
+            continue
+        th = getattr(isl, 'pest_theta', None)
         if th is None:
-            # Fallback: use nearest theta_O
-            ang_diff = np.abs(np.angle(
-                np.exp(1j * (theta_O - _fallback_angle(isl.O_point, theta_O)))
-            ))
-            th = float(theta_O[int(np.argmin(ang_diff))])
-        theta_anc.append(th)
+            continue
+        theta_anc.append(float(th))
         R_anc.append(float(isl.O_point[0]))
         Z_anc.append(float(isl.O_point[1]))
 
-    # --- X-points ---
+    # X-points: match to theta_X slots by nearest geometry
     all_xpts = []
     for isl in island_chain.islands:
         all_xpts.extend(isl.X_points)
 
-    if all_xpts:
-        # Match X-points to theta_X slots by closest geometric proximity
+    if all_xpts and len(theta_X) > 0:
         used = set()
         for k, th_x in enumerate(theta_X):
-            best_d = np.inf
-            best_xp = None
+            best_d, best = np.inf, None
             for j, xp in enumerate(all_xpts):
                 if j in used:
                     continue
-                d = float(np.linalg.norm(xp - _xpt_ref_for_angle(th_x, theta_O, islands_with_O)))
-                # use angular distance from estimated θ* as sorting key
+                d = float(np.linalg.norm(np.array(xp) -
+                          np.array([R_anc[k % len(R_anc)], Z_anc[k % len(Z_anc)]])))
                 if d < best_d:
-                    best_d = d
-                    best_xp = (j, xp)
-            if best_xp is not None:
-                j, xp = best_xp
-                used.add(j)
+                    best_d, best = d, j
+            if best is not None:
+                used.add(best)
                 theta_anc.append(float(th_x))
-                R_anc.append(float(xp[0]))
-                Z_anc.append(float(xp[1]))
+                R_anc.append(float(all_xpts[best][0]))
+                Z_anc.append(float(all_xpts[best][1]))
 
     if len(theta_anc) < 2:
-        raise ValueError(
-            f"Only {len(theta_anc)} anchor point(s) found for the r=1 boundary. "
-            "Ensure IslandChain.islands has O_points (and ideally X_points)."
-        )
+        raise ValueError(f"Only {len(theta_anc)} anchor points found.")
 
-    # -------------------------------------------------------------------
-    # Sort anchors by θ* and deduplicate (tolerance = π/(4m))
-    # -------------------------------------------------------------------
     order = np.argsort(theta_anc)
-    theta_s = np.array(theta_anc)[order]
-    R_s     = np.array(R_anc)[order]
-    Z_s     = np.array(Z_anc)[order]
-
-    dedup_tol = np.pi / (4 * max(island_chain.m, 1))
-    keep = np.ones(len(theta_s), dtype=bool)
-    for i in range(1, len(theta_s)):
-        if theta_s[i] - theta_s[i - 1] < dedup_tol:
-            keep[i] = False
-    theta_a = theta_s[keep]
-    R_a     = R_s[keep]
-    Z_a     = Z_s[keep]
-
-    if len(theta_a) < 2:
-        raise ValueError(
-            f"After deduplication only {len(theta_a)} anchor point(s) remain. "
-            "Ensure IslandChain.islands has O_points and X_points are geometrically distinct."
-        )
-
-    # Append first point at θ + 2π for periodicity
-    theta_per = np.r_[theta_a, theta_a[0] + 2*np.pi]
-    R_per     = np.r_[R_a, R_a[0]]
-    Z_per     = np.r_[Z_a, Z_a[0]]
-
-    # -------------------------------------------------------------------
-    # Build spline and evaluate on TET_out
-    # -------------------------------------------------------------------
-    n_anchors = len(theta_per)
-    use_cubic = (spline_kind == 'cubic') and (n_anchors >= 4)
-
-    if use_cubic:
-        cs_R = CubicSpline(theta_per, R_per, bc_type='periodic' if R_per[0] == R_per[-1] else 'not-a-knot')
-        cs_Z = CubicSpline(theta_per, Z_per, bc_type='periodic' if Z_per[0] == Z_per[-1] else 'not-a-knot')
-        # Evaluate: wrap TET_out to [theta_per[0], theta_per[-1]]
-        tet_eval = theta_a[0] + (TET_out - theta_a[0]) % (2*np.pi)
-        R_bdy = cs_R(tet_eval)
-        Z_bdy = cs_Z(tet_eval)
-    else:
-        f_R = interp1d(theta_per, R_per, kind='linear', fill_value='extrapolate')
-        f_Z = interp1d(theta_per, Z_per, kind='linear', fill_value='extrapolate')
-        tet_eval = theta_a[0] + (TET_out - theta_a[0]) % (2*np.pi)
-        R_bdy = f_R(tet_eval)
-        Z_bdy = f_Z(tet_eval)
-
-    return R_bdy.astype(float), Z_bdy.astype(float)
+    return build_r1_boundary_from_anchors(
+        np.array(theta_anc)[order],
+        np.array(R_anc)[order],
+        np.array(Z_anc)[order],
+        TET_out, spline_kind=spline_kind,
+    )
 
 
-def _fallback_angle(O_point, theta_O: np.ndarray) -> float:
-    """Fallback: geometric index into theta_O (used when pest_theta is None)."""
-    return float(theta_O[0])
-
-
-def _xpt_ref_for_angle(
-    th_x: float,
+def build_r1_boundary_from_orbit(
+    R_O: np.ndarray,
+    Z_O: np.ndarray,
     theta_O: np.ndarray,
-    islands: list,
-) -> np.ndarray:
-    """Reference position for X-point matching: midpoint between two adjacent O-points."""
-    m = len(theta_O)
-    # Find O-point just below th_x
-    diffs = np.angle(np.exp(1j * (theta_O - th_x)))
-    k_lo = int(np.argmax(diffs < 0) if np.any(diffs < 0) else 0)
-    k_hi = (k_lo + 1) % m
-    op_lo = np.asarray(islands[k_lo % len(islands)].O_point, dtype=float)
-    op_hi = np.asarray(islands[k_hi % len(islands)].O_point, dtype=float)
-    return 0.5 * (op_lo + op_hi)
+    R_X: np.ndarray,
+    Z_X: np.ndarray,
+    theta_X: np.ndarray,
+    TET_out: np.ndarray,
+    spline_kind: str = 'cubic',
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Build r=1 boundary from orbit-propagated anchor points.
+
+    Merges O-points and X-points (all in ascending θ* order) into a single
+    sorted list and calls :func:`build_r1_boundary_from_anchors`.
+
+    Parameters
+    ----------
+    R_O, Z_O, theta_O : ndarray — O-point positions + angles, sorted by θ*
+    R_X, Z_X, theta_X : ndarray — X-point positions + angles, sorted by θ*
+    TET_out : ndarray — output PEST angle grid
+    spline_kind : str — 'cubic' or 'linear'
+    """
+    R_anc   = np.r_[R_O,     R_X]
+    Z_anc   = np.r_[Z_O,     Z_X]
+    theta_a = np.r_[theta_O, theta_X]
+
+    order = np.argsort(theta_a)
+    return build_r1_boundary_from_anchors(
+        theta_a[order], R_anc[order], Z_anc[order],
+        TET_out, spline_kind=spline_kind,
+    )
 
 
 # ---------------------------------------------------------------------------
-# § 4  Main entry point: extend PEST mesh to r = 1
+# § 5  Main entry point: heal_pest_mesh_at_island_chain
 # ---------------------------------------------------------------------------
 
 def heal_pest_mesh_at_island_chain(
@@ -463,131 +499,122 @@ def heal_pest_mesh_at_island_chain(
     Rmaxis: float,
     Zmaxis: float,
     *,
+    island_chain_orbit=None,
+    phi_section: float = 0.0,
     n_heal: int = 20,
     S_last_good: Optional[float] = None,
-    n_avg: int = 3,
+    n_avg: int = 4,
     spline_kind: str = 'cubic',
     interp_radial: str = 'linear',
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Extend a PEST mesh to r = 1 by healing at a boundary island chain.
+    """Extend a PEST mesh to r=1 by healing at a boundary island chain.
 
-    The existing PEST mesh covers S ∈ [0, S_last_good].  This function adds
-    ``n_heal`` new surfaces from S_last_good to S = 1, where the r = 1
-    surface is defined by the X/O ring of the island chain.
+    If ``island_chain_orbit`` is provided (recommended), uses the
+    orbit-propagated fixed-point positions and the correct traversal-order
+    PEST angle formula.  Otherwise falls back to the approximate geometric
+    estimation from the legacy ``assign_island_chain_pest_angles``.
 
     Parameters
     ----------
-    S : ndarray, shape (ns,)
-        Existing radial coordinate (S = √ψ_norm), ascending.
-    TET : ndarray, shape (ntheta,)
-        PEST poloidal angle grid [0, 2π].
-    R_mesh, Z_mesh : ndarray, shape (ns, ntheta)
-        Existing PEST mesh.
-    q_iS : ndarray, shape (ns,)
-        Safety factor on each surface.
+    S, TET, R_mesh, Z_mesh, q_iS : existing PEST mesh
     island_chain : IslandChain
-        Boundary island chain.  Must have ``islands`` with ``O_point`` set.
-        ``X_points`` are optional but strongly recommended for accuracy.
-    Rmaxis, Zmaxis : float
-        Magnetic axis.
+        Provides m, n, and (if no orbit given) O/X point positions.
+    Rmaxis, Zmaxis : float — magnetic axis
+    island_chain_orbit : IslandChainOrbit or None
+        If given, used for precise fixed-point positions and θ* assignment.
+    phi_section : float
+        Which Poincaré section to use for orbit-based assignment [rad].
     n_heal : int
-        Number of new flux surfaces added between S_last_good and r = 1.
-        Default 20.
+        Number of new flux surfaces added between S_last_good and r=1.
     S_last_good : float or None
-        Last reliable PEST surface.  Defaults to S[-1].
+        Upper boundary of the existing reliable mesh.  Defaults to S[-1].
     n_avg : int
-        Outer surfaces used for PEST angle estimation.
-    spline_kind : {'cubic', 'linear'}
-        Boundary-curve spline order (see :func:`build_r1_boundary`).
-    interp_radial : {'linear', 'cubic'}
-        Radial interpolation between S_last_good and r = 1.
+        Outer surfaces used for θ* estimation.
+    spline_kind : str — 'cubic' or 'linear' boundary spline.
+    interp_radial : str — 'linear' or 'cubic' radial interpolation.
 
     Returns
     -------
-    S_out : ndarray, shape (ns + n_heal,)
-        Extended radial grid.
-    TET : ndarray (unchanged)
-    R_out : ndarray, shape (ns + n_heal, ntheta)
-    Z_out : ndarray, shape (ns + n_heal, ntheta)
-    q_out : ndarray, shape (ns + n_heal,)
-
-    Notes
-    -----
-    The safety factor at r = 1 is set to q = m/n (exact rational value).
-    The q profile between S_last_good and 1 is linearly interpolated.
-
-    After calling this function, ``island_chain.pest_theta_O``,
-    ``island_chain.pest_theta_X``, and each ``Island.pest_theta`` are set.
+    S_out, TET, R_out, Z_out, q_out : extended mesh arrays
     """
     if S_last_good is None:
         S_last_good = float(S[-1])
-
-    # Index of last good surface (≤ S_last_good)
     idx_last = int(np.searchsorted(S, S_last_good, side='right')) - 1
     idx_last = max(0, min(idx_last, len(S) - 1))
 
-    # ------------------------------------------------------------------
-    # Step 1: assign PEST angles to island X/O points
-    # ------------------------------------------------------------------
-    theta_O, theta_X = assign_island_chain_pest_angles(
-        island_chain,
-        R_mesh[:idx_last+1],
-        Z_mesh[:idx_last+1],
-        TET,
-        Rmaxis, Zmaxis,
-        n_avg=n_avg,
-    )
+    m = island_chain.m
+    n = island_chain.n
+    q_mn = m / n
 
     # ------------------------------------------------------------------
-    # Step 2: build the r = 1 boundary curve
+    # Step 1: get anchor positions in sorted θ* order
     # ------------------------------------------------------------------
-    R_bdy, Z_bdy = build_r1_boundary(
-        island_chain, theta_O, theta_X, TET, spline_kind=spline_kind
-    )
+    if island_chain_orbit is not None:
+        R_O, Z_O, theta_O, R_X, Z_X, theta_X = \
+            assign_island_chain_pest_angles_from_orbit(
+                island_chain_orbit, m, n,
+                R_mesh[:idx_last+1], Z_mesh[:idx_last+1], TET,
+                Rmaxis, Zmaxis,
+                phi_section=phi_section, n_avg=n_avg,
+            )
+        # Store on island_chain for downstream inspection
+        island_chain.pest_theta_O = theta_O
+        island_chain.pest_theta_X = theta_X
+
+        # Build boundary curve
+        R_bdy, Z_bdy = build_r1_boundary_from_orbit(
+            R_O, Z_O, theta_O, R_X, Z_X, theta_X,
+            TET, spline_kind=spline_kind,
+        )
+    else:
+        # Legacy: approximate geometric assignment
+        theta_O, theta_X = assign_island_chain_pest_angles(
+            island_chain,
+            R_mesh[:idx_last+1], Z_mesh[:idx_last+1], TET,
+            Rmaxis, Zmaxis, n_avg=n_avg,
+        )
+        R_bdy, Z_bdy = build_r1_boundary(
+            island_chain, theta_O, theta_X, TET, spline_kind=spline_kind,
+        )
 
     # ------------------------------------------------------------------
-    # Step 3: new radial grid from S_ref to 1
+    # Step 2: new radial grid
     # ------------------------------------------------------------------
-    S_ref = float(S[idx_last])
-    S_heal = np.linspace(S_ref, 1.0, n_heal + 2)[1:-1]   # excludes S_ref and 1
+    S_ref  = float(S[idx_last])
+    S_heal = np.linspace(S_ref, 1.0, n_heal + 2)[1:-1]
     S_r1   = np.array([1.0])
-    S_new  = np.r_[S_heal, S_r1]                           # n_heal + 1 new surfaces
+    S_new  = np.r_[S_heal, S_r1]
 
-    # Reference surface (last good)
     R_ref = R_mesh[idx_last, :].copy()
     Z_ref = Z_mesh[idx_last, :].copy()
 
     # ------------------------------------------------------------------
-    # Step 4: interpolate new surfaces
+    # Step 3: interpolate new surfaces
     # ------------------------------------------------------------------
     n_new = len(S_new)
     R_new = np.empty((n_new, len(TET)))
     Z_new = np.empty((n_new, len(TET)))
 
     if interp_radial == 'cubic' and n_new >= 4:
-        # Use cubic interpolation in S for each θ* independently
-        S_ctrl   = np.array([S_ref, 1.0])
         for j in range(len(TET)):
-            cs_R = CubicSpline(S_ctrl, [R_ref[j], R_bdy[j]])
-            cs_Z = CubicSpline(S_ctrl, [Z_ref[j], Z_bdy[j]])
+            cs_R = CubicSpline([S_ref, 1.0], [R_ref[j], R_bdy[j]])
+            cs_Z = CubicSpline([S_ref, 1.0], [Z_ref[j], Z_bdy[j]])
             R_new[:, j] = cs_R(S_new)
             Z_new[:, j] = cs_Z(S_new)
     else:
-        # Linear interpolation
         for i, s in enumerate(S_new):
-            alpha = (s - S_ref) / (1.0 - S_ref)   # 0 at S_ref, 1 at r=1
+            alpha = (s - S_ref) / (1.0 - S_ref)
             R_new[i, :] = (1.0 - alpha) * R_ref + alpha * R_bdy
             Z_new[i, :] = (1.0 - alpha) * Z_ref + alpha * Z_bdy
 
     # ------------------------------------------------------------------
-    # Step 5: extend q profile linearly to q = m/n at r = 1
+    # Step 4: q profile
     # ------------------------------------------------------------------
-    q_mn  = island_chain.m / island_chain.n
     q_ref = float(q_iS[idx_last])
     q_new = q_ref + (q_mn - q_ref) * (S_new - S_ref) / (1.0 - S_ref)
 
     # ------------------------------------------------------------------
-    # Assemble output (keep original mesh up to and including idx_last)
+    # Assemble
     # ------------------------------------------------------------------
     S_out = np.r_[S[:idx_last+1], S_new]
     R_out = np.r_[R_mesh[:idx_last+1, :], R_new]
