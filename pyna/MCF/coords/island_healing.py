@@ -378,12 +378,27 @@ def build_r1_boundary(
         )
 
     # -------------------------------------------------------------------
-    # Sort anchors by θ* and make periodic
+    # Sort anchors by θ* and deduplicate (tolerance = π/(4m))
     # -------------------------------------------------------------------
     order = np.argsort(theta_anc)
-    theta_a = np.array(theta_anc)[order]
-    R_a     = np.array(R_anc)[order]
-    Z_a     = np.array(Z_anc)[order]
+    theta_s = np.array(theta_anc)[order]
+    R_s     = np.array(R_anc)[order]
+    Z_s     = np.array(Z_anc)[order]
+
+    dedup_tol = np.pi / (4 * max(island_chain.m, 1))
+    keep = np.ones(len(theta_s), dtype=bool)
+    for i in range(1, len(theta_s)):
+        if theta_s[i] - theta_s[i - 1] < dedup_tol:
+            keep[i] = False
+    theta_a = theta_s[keep]
+    R_a     = R_s[keep]
+    Z_a     = Z_s[keep]
+
+    if len(theta_a) < 2:
+        raise ValueError(
+            f"After deduplication only {len(theta_a)} anchor point(s) remain. "
+            "Ensure IslandChain.islands has O_points and X_points are geometrically distinct."
+        )
 
     # Append first point at θ + 2π for periodicity
     theta_per = np.r_[theta_a, theta_a[0] + 2*np.pi]
