@@ -74,7 +74,7 @@ def test_tube_chain_diagnostics_report_incomplete_chain():
     assert diag['section_counts'][0.0] == 1
 
 
-def test_tube_chain_section_cut_repairs_missing_point():
+def test_tube_chain_reconstruct_section_view_recovers_missing_point():
     orbit0 = _orbit([
         (0.0, 1.00, 0.00, 'O'),
         (np.pi, 1.02, 0.00, 'O'),
@@ -91,14 +91,15 @@ def test_tube_chain_section_cut_repairs_missing_point():
         raw = tube.raw_point_near_section(phi)
         return (raw[0], raw[1])
 
-    cut = chain.reconstruct_section_cut(0.0, section_reconstructor=finder)
-    assert cut.is_complete()
-    assert cut.missing_tube_indices == []
-    assert cut.reconstructed_tube_indices == [1]
-    assert len(cut.unique_points()) == 2
+    view = chain.reconstruct_section_view(0.0, kind='O', section_reconstructor=finder)
+    assert view.correspondence is not None
+    assert view.correspondence.is_complete()
+    assert len(view.correspondence.reconstructed_tube_ids) == 1
+    assert view.correspondence.reconstructed_tube_ids[0].tube_index == 1
+    assert len(view.unique_points()) == 2
 
 
-def test_tube_chain_section_cut_repairs_duplicate_point():
+def test_tube_chain_reconstruct_section_view_recovers_duplicate_point():
     orbit0 = _orbit(
         [(0.0, 1.00, 0.00, 'O'), (np.pi, 1.02, 0.00, 'O')],
         orbit_samples=[(0.0, 1.00, 0.00), (np.pi, 1.02, 0.00)],
@@ -115,14 +116,15 @@ def test_tube_chain_section_cut_repairs_duplicate_point():
             return (raw[0], raw[1])
         return None
 
-    cut = chain.reconstruct_section_cut(0.0, dedup_tol=1e-10, section_reconstructor=finder)
-    assert cut.is_complete()
-    assert cut.duplicate_groups == []
-    assert 1 in cut.reconstructed_tube_indices
-    assert len(cut.unique_points(dedup_tol=1e-10)) == 2
+    view = chain.reconstruct_section_view(0.0, kind='O', dedup_tol=1e-10, section_reconstructor=finder)
+    assert view.correspondence is not None
+    assert view.correspondence.is_complete()
+    assert view.correspondence.duplicate_tube_ids == []
+    assert any(tid.tube_index == 1 for tid in view.correspondence.reconstructed_tube_ids)
+    assert len(view.unique_points(dedup_tol=1e-10)) == 2
 
 
-def test_resonance_structure_provides_joint_section_view():
+def test_resonance_structure_provides_joint_section_views():
     o_orbits = [
         _orbit([(0.0, 1.00, 0.00, 'O'), (np.pi, 1.02, 0.00, 'O')]),
         _orbit([(0.0, 0.90, 0.00, 'O'), (np.pi, 0.92, 0.00, 'O')]),
@@ -132,10 +134,10 @@ def test_resonance_structure_provides_joint_section_view():
         _orbit([(0.0, 0.80, 0.00, 'X'), (np.pi, 0.82, 0.00, 'X')]),
     ]
     skel = ResonanceStructure.from_orbits(o_orbits=o_orbits, x_orbits=x_orbits, label='2/1')
-    cuts = skel.section_cut(0.0)
-    assert cuts['O'] is not None and cuts['X'] is not None
-    assert cuts['O'].is_complete()
-    assert cuts['X'].is_complete()
+    views = skel.section_views(0.0)
+    assert views['O'] is not None and views['X'] is not None
+    assert views['O'].correspondence is not None and views['O'].correspondence.is_complete()
+    assert views['X'].correspondence is not None and views['X'].correspondence.is_complete()
 
     chains = skel.to_island_chains(0.0, proximity_tol=0.3)
     assert chains['O'] is not None

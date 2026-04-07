@@ -54,7 +54,7 @@ from pyna.topo.island_chain import (
 )
 from pyna.topo.identity import ResonanceID, TubeID, IslandID
 from pyna.topo.section_view import SectionViewPoint, SectionCorrespondence, SectionView, SectionViewBuilder
-from pyna.topo.tube import TubeCutPoint, SectionCut, Tube, TubeChain, ResonanceStructure
+from pyna.topo.tube import TubeCutPoint, Tube, TubeChain, ResonanceStructure
 from pyna.plot.island import plot_island, island_section_points
 from pyna.plot.island_chain import plot_island_chain, island_chain_section_points
 from pyna.topo.fast_metrics import (
@@ -126,7 +126,6 @@ __all__ = [
     "SectionViewBuilder",
     # continuous-time resonance geometry
     "TubeCutPoint",
-    "SectionCut",
     "Tube",
     "TubeChain",
     "ResonanceStructure",

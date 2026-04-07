@@ -11,7 +11,7 @@ from pyna.topo.island import IslandChain
 
 if TYPE_CHECKING:
     from pyna.topo.island_chain import ChainFixedPoint
-    from pyna.topo.tube import TubeChain, SectionCut, TubeCutPoint
+    from pyna.topo.tube import TubeChain, _SectionCut, TubeCutPoint
 
 
 @dataclass
@@ -212,14 +212,14 @@ class SectionViewBuilder:
         resonance_id = ResonanceID(m=tubechain.m, n=tubechain.n, Np=tubechain.Np, label=tubechain.label)
         builder = cls(resonance_id=resonance_id)
         if reconstruct:
-            cut = tubechain.reconstruct_section_cut(
+            cut = tubechain._reconstruct_section_cut(
                 phi,
                 tol=tol,
                 dedup_tol=dedup_tol,
                 section_reconstructor=section_reconstructor,
             )
         else:
-            cut = tubechain.raw_section_cut(
+            cut = tubechain._raw_section_cut(
                 phi,
                 tol=tol,
                 dedup_tol=dedup_tol,
@@ -227,7 +227,7 @@ class SectionViewBuilder:
         view_kind = kind or tubechain.kind
         return builder.from_section_cut(cut, kind=view_kind)
 
-    def from_section_cut(self, cut: "SectionCut", *, kind: Optional[str] = None) -> SectionView:
+    def from_section_cut(self, cut: "_SectionCut", *, kind: Optional[str] = None) -> SectionView:
         points: List[SectionViewPoint] = []
         tube_map: Dict[TubeID, List[int]] = {}
         island_map: Dict[IslandID, List[int]] = {}
