@@ -1,6 +1,6 @@
 from pyna.diff.fieldline import _FieldDifferenatiableRZ
 from pyna.fields.cylindrical import VectorField3DCylindrical
-from scipy.integrate import solve_ivp
+from pyna.topo._rk4 import rk4_integrate as solve_ivp  # replaced scipy for performance
 import numpy as np
 
 from deprecated import deprecated

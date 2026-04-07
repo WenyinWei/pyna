@@ -8,44 +8,67 @@ underlying vector field.
 
 ---
 
+## ⚠️ Fundamental Principle: All Geometric Objects are 3D
+
+> **All geometric objects (LCFS, flux surfaces, X-points, O-points, manifolds) are
+> 3D objects. Their appearance at different section planes must be computed as
+> intersections of the 3D object with the section plane, using a SINGLE
+> multi-section field-line integration pass. NEVER compute geometric objects
+> independently at each section.**
+
+When tracing Poincaré maps for stellarators and non-axisymmetric configurations:
+
+1. **Find one seed** at a reference section via binary search or Poincaré-survival.
+2. **Trace once** using a multi-section recorder for N turns.
+3. **Crossings at each section** are self-consistent 2D slices of the same 3D object.
+4. **Never re-seed independently** at each section — that produces geometrically
+   inconsistent objects.
+
+---�?a framework that
+computes, analytically or semi-analytically, how geometric structures in phase space
+(fixed points, invariant manifolds, flux surfaces) respond to small perturbations of the
+underlying vector field.
+
+---
+
 ## Top-level layout
 
 ```
-pyna/                        ← pip-installable Python package
-│
-├── fields/                  ← Unified field class hierarchy  (§1)
-├── system.py                ← Dynamical-system abstract base classes  (§2)
-├── flt.py / flt_cuda.py     ← Field-line tracer (CPU / CUDA)  (§3)
-├── flow.py / map.py         ← Continuous-time flow & discrete-map wrappers  (§4)
-├── topo/                    ← Topological analysis (Poincaré, islands, manifolds)  (§5)
-├── control/                 ← FPT-based real-time topology control  (§6)
-├── MCF/                     ← Magnetic-confinement-fusion physics  (§7)
-│   ├── equilibrium/         ← Axisymmetric & stellarator equilibria
-│   ├── coils/               ← Vacuum field, Biot-Savart, RMP
-│   ├── coords/              ← Flux-surface coordinate systems
-│   ├── plasma_response/     ← Linear MHD plasma response
-│   ├── control/             ← MCF-specific control (gap response, q-profile)
-│   ├── diagnostics/         ← Connection-length, field-line endpoint diagnostics
-│   ├── optimize/            ← Stellarator optimisation objectives
-│   └── visual/              ← MCF-specific plotting helpers
-├── coord/                   ← Backward-compat shim → MCF.coords
-├── mag/                     ← Backward-compat shim → MCF.*
-├── plasma_response/         ← Backward-compat shim → MCF.plasma_response
-├── diff/                    ← Numerical differentiation helpers
-├── draw/                    ← Generic geometry drawing (manifolds, resonances)
-├── gc/                      ← Guiding-centre motion
-├── interact/                ← Interactive matplotlib utilities
-├── io/                      ← Poincaré orbit file I/O
-├── utils/symutil/           ← SymPy helper routines
-├── progress.py              ← Progress-reporting protocol
-├── cache.py                 ← Lightweight disk-cache decorator
-├── polynomial.py            ← 2-D polynomial type
-├── polymap.py               ← Polynomial Poincaré map
-├── withparam.py             ← Parametric/symbolic object mixin
-├── sysutil.py               ← Utility functions for dynamical systems
-├── vector_calc.py           ← Legacy vector calculus helpers
-├── field_data.py            ← Legacy field-data storage
-└── imas_compat.py           ← IMAS / OMAS data-dictionary adapter
+pyna/                        �?pip-installable Python package
+�?
+├── fields/                  �?Unified field class hierarchy  (§1)
+├── system.py                �?Dynamical-system abstract base classes  (§2)
+├── flt.py / flt_cuda.py     �?Field-line tracer (CPU / CUDA)  (§3)
+├── flow.py / map.py         �?Continuous-time flow & discrete-map wrappers  (§4)
+├── topo/                    �?Topological analysis (Poincaré, islands, manifolds)  (§5)
+├── control/                 �?FPT-based real-time topology control  (§6)
+├── MCF/                     �?Magnetic-confinement-fusion physics  (§7)
+�?  ├── equilibrium/         �?Axisymmetric & stellarator equilibria
+�?  ├── coils/               �?Vacuum field, Biot-Savart, RMP
+�?  ├── coords/              �?Flux-surface coordinate systems
+�?  ├── plasma_response/     �?Linear MHD plasma response
+�?  ├── control/             �?MCF-specific control (gap response, q-profile)
+�?  ├── diagnostics/         �?Connection-length, field-line endpoint diagnostics
+�?  ├── optimize/            �?Stellarator optimisation objectives
+�?  └── visual/              �?MCF-specific plotting helpers
+├── coord/                   �?Backward-compat shim �?MCF.coords
+├── mag/                     �?Backward-compat shim �?MCF.*
+├── plasma_response/         �?Backward-compat shim �?MCF.plasma_response
+├── diff/                    �?Numerical differentiation helpers
+├── draw/                    �?Generic geometry drawing (manifolds, resonances)
+├── gc/                      �?Guiding-centre motion
+├── interact/                �?Interactive matplotlib utilities
+├── io/                      �?Poincaré orbit file I/O
+├── utils/symutil/           �?SymPy helper routines
+├── progress.py              �?Progress-reporting protocol
+├── cache.py                 �?Lightweight disk-cache decorator
+├── polynomial.py            �?2-D polynomial type
+├── polymap.py               �?Polynomial Poincaré map
+├── withparam.py             �?Parametric/symbolic object mixin
+├── sysutil.py               �?Utility functions for dynamical systems
+├── vector_calc.py           �?Legacy vector calculus helpers
+├── field_data.py            �?Legacy field-data storage
+└── imas_compat.py           �?IMAS / OMAS data-dictionary adapter
 ```
 
 The companion C++ acceleration layer lives in `cyna/` (sibling directory).
@@ -53,22 +76,22 @@ See `cyna/README.md` for build and usage instructions.
 
 ---
 
-## §1  `pyna.fields` — Unified Field Hierarchy
+## §1  `pyna.fields` �?Unified Field Hierarchy
 
 All field-like objects in pyna descend from a single abstract tree.
 
 ```
 Field  (abstract)
 ├── ScalarField  (range rank = 0)
-│   ├── ScalarField1D / 2D / 3D / 4D
-│   └── ScalarField3DCylindrical   ← concrete: (R,Z,φ) grid + interpolation
-│       └── ScalarField3DAxiSymmetric  ← ∂/∂φ = 0
+�?  ├── ScalarField1D / 2D / 3D / 4D
+�?  └── ScalarField3DCylindrical   �?concrete: (R,Z,φ) grid + interpolation
+�?      └── ScalarField3DAxiSymmetric  �?�?∂�?= 0
 └── VectorField  (range rank = 1)
     ├── VectorField1D / 2D / 3D / 4D
-    │   └── VectorField3D
-    │       ├── VectorField3DCylindrical   ← concrete: (R,Z,φ) grid
-    │       └── VectorField3DAxiSymmetric  ← no φ variation
-    └── TensorField  (range rank ≥ 2)
+    �?  └── VectorField3D
+    �?      ├── VectorField3DCylindrical   �?concrete: (R,Z,φ) grid
+    �?      └── VectorField3DAxiSymmetric  �?no φ variation
+    └── TensorField  (range rank �?2)
         ├── TensorField3DRank2
         └── TensorField4DRank2
 ```
@@ -85,25 +108,25 @@ Coordinate metadata is attached via `fields/coords.py`:
 
 ---
 
-## §2  `pyna.system` — Dynamical System Abstractions
+## §2  `pyna.system` �?Dynamical System Abstractions
 
 ```
 DynamicalSystem  (abstract)
-├── NonAutonomousDynamicalSystem    ẋ = f(x, t)
-└── AutonomousDynamicalSystem       ẋ = f(x)
+├── NonAutonomousDynamicalSystem    �?= f(x, t)
+└── AutonomousDynamicalSystem       �?= f(x)
     └── VectorField                 a VectorField IS a DynamicalSystem
         ├── VectorField1D / 2D / 3D / 4D
         └── VectorField3DAxiSymmetric
 ```
 
-Key contracts: `state_dim` (int), `__call__(coords)` → velocity.
+Key contracts: `state_dim` (int), `__call__(coords)` �?velocity.
 
 `system.py` also defines the `_LegacyVectorField3D` shim for any code that
 still subclasses the old name.
 
 ---
 
-## §3  `pyna.flt` — Field-Line Tracer
+## §3  `pyna.flt` �?Field-Line Tracer
 
 `FieldLineTracer` integrates the ODE
 
@@ -121,9 +144,9 @@ trajectories = tracer.trace_many(start_pts, t_max=100.0, progress=TqdmProgress()
 ```
 
 The `get_backend(mode)` factory selects:
-- `'cpu'`   → `FieldLineTracer` (pure Python / SciPy)
-- `'cuda'`  → `FieldLineTracerCUDA` (CuPy, see `flt_cuda.py`)
-- `'opencl'`→ reserved (raises `NotImplementedError`)
+- `'cpu'`   �?`FieldLineTracer` (pure Python / SciPy)
+- `'cuda'`  �?`FieldLineTracerCUDA` (CuPy, see `flt_cuda.py`)
+- `'opencl'`�?reserved (raises `NotImplementedError`)
 
 The legacy `bundle_tracing_with_t_as_DeltaPhi(...)` function is fully preserved.
 
@@ -144,7 +167,7 @@ Both share a `WithParam` mixin (`withparam.py`) for parametric/symbolic objects.
 
 ---
 
-## §5  `pyna.topo` — Topological Analysis
+## §5  `pyna.topo` �?Topological Analysis
 
 ```
 topo/
@@ -172,31 +195,31 @@ topo/
 
 ---
 
-## §6  `pyna.control` — FPT-Based Topology Control
+## §6  `pyna.control` �?FPT-Based Topology Control
 
 `pyna.control` implements **Functional Perturbation Theory** for real-time
 multi-objective control of magnetic topology.  It is independent of fusion
-details — the same API works for any area-preserving 2-D system.
+details �?the same API works for any area-preserving 2-D system.
 
 ```
 control/
 ├── fpt.py               Core FPT: A_matrix, DPm_axisymmetric, cycle_shift,
-│                        DPm_change, delta_A_total, manifold_shift,
-│                        flux_surface_deformation
+�?                       DPm_change, delta_A_total, manifold_shift,
+�?                       flux_surface_deformation
 ├── topology_state.py    TopologyState, XPointState, OPointState, SurfaceFate,
-│                        compute_topology_state()
+�?                       compute_topology_state()
 ├── response_matrix.py   build_response_matrix(), build_full_response_matrix()
 ├── optimizer.py         ControlWeights, ControlConstraints, TopologyController
-├── surface_fate.py      greene_residue(), classify_surface_fate()
+├── surface_fate.py      Greene_residue(), classify_surface_fate()
 ├── _cache.py            Internal caching utilities
-└── _cached_fpt.py       CachedFPTAnalyzer — high-level cached FPT workflow
+└── _cached_fpt.py       CachedFPTAnalyzer �?high-level cached FPT workflow
 ```
 
 See `pyna/control/README.md` for theory background and usage examples.
 
 ---
 
-## §7  `pyna.MCF` — Magnetic Confinement Fusion
+## §7  `pyna.MCF` �?Magnetic Confinement Fusion
 
 MCF-specific physics is grouped under `pyna.MCF`.
 
@@ -205,7 +228,7 @@ MCF-specific physics is grouped under `pyna.MCF`.
 | Module | Key classes / functions |
 |--------|------------------------|
 | `axisymmetric.py` | `EquilibriumAxisym` (abstract), `EquilibriumTokamakCircularSynthetic` |
-| `Solovev.py` | `EquilibriumSolovev` — analytic Solov'ev equilibrium |
+| `Solovev.py` | `EquilibriumSolovev` �?analytic Solov'ev equilibrium |
 | `GradShafranov.py` | `recover_pressure_simplest`, `solve_GS_perturbed` |
 | `stellarator.py` | `StellaratorSimple`, `simple_stellarator` factory |
 | `feedback_boozer.py` | `BoozerSurface`, `BoozerPerturbation`, `MHD_response_operator`, `compute_boozer_response` |
@@ -320,3 +343,27 @@ Key test modules:
 | `test_coordinates.py`, `test_mag_coordinate.py` | Coordinate systems |
 | `test_classical_maps.py` | Hénon / Standard map |
 | `test_gap_response.py` | FPT gap-response matrix |
+
+---
+
+## 3D Magnetic Object Principle
+
+All geometric objects in 3D magnetic topology (field lines, flux surfaces, LCFS,
+manifolds, X/O-point orbits) are fundamentally 3D objects.
+
+Design rule: ALWAYS represent objects as 3D trajectories first, then derive
+2D cross-sections by intersection. NEVER independently compute a geometric
+object at each phi section.
+
+The canonical representation is ToroidalTrajectory3D, which stores the full
+(R, Z, phi) trajectory and provides:
+  - .intersect(phi) -> cross-section points at any toroidal angle
+  - .volume() -> enclosed volume via shoelace + toroidal integration
+  - .save(path) / .load(path) -> HDF5 persistence (never recompute)
+  - .plot3d() -> 3D visualization
+
+This principle enables:
+  1. Physical consistency: all cross-sections show the SAME 3D object
+  2. Efficiency: integrate once, query many times
+  3. 3D visualization: all data available for full 3D plots
+  4. Reproducibility: save orbits to disk, reload without reintegration

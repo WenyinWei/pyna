@@ -20,7 +20,7 @@ from __future__ import annotations
 import numpy as np
 from typing import Callable, List, Optional
 
-from pyna.control.fpt import (
+from pyna.control.FPT import (
     A_matrix,
     cycle_shift,
     delta_g_from_delta_B,

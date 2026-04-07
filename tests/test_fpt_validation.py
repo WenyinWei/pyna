@@ -17,18 +17,29 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev
-from pyna.control.fpt import A_matrix, cycle_shift, delta_g_from_delta_B
+from pyna.control.FPT import A_matrix, cycle_shift, delta_g_from_delta_B
 
-# Import from validation script
+# Import from validation script (skip entire module if script is not found)
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'scripts'))
-from fpt_xo_shift_validation import (
-    EQ_PARAMS, COIL_R, COIL_Z, COIL_NAMES, DELTA_I,
-    make_equilibrium, circular_coil_field,
-    make_field_func, fpt_shift,
-    find_critical_point, find_critical_point_perturbed,
-    _cached_find_critical_points, _cached_A_matrix, _cached_perturbed_critical_point,
-    memory,
+fpt_xo_shift_validation = pytest.importorskip(
+    "fpt_xo_shift_validation",
+    reason="scripts/fpt_xo_shift_validation.py not found; skipping validation tests",
 )
+EQ_PARAMS = fpt_xo_shift_validation.EQ_PARAMS
+COIL_R = fpt_xo_shift_validation.COIL_R
+COIL_Z = fpt_xo_shift_validation.COIL_Z
+COIL_NAMES = fpt_xo_shift_validation.COIL_NAMES
+DELTA_I = fpt_xo_shift_validation.DELTA_I
+make_equilibrium = fpt_xo_shift_validation.make_equilibrium
+circular_coil_field = fpt_xo_shift_validation.circular_coil_field
+make_field_func = fpt_xo_shift_validation.make_field_func
+fpt_shift = fpt_xo_shift_validation.fpt_shift
+find_critical_point = fpt_xo_shift_validation.find_critical_point
+find_critical_point_perturbed = fpt_xo_shift_validation.find_critical_point_perturbed
+_cached_find_critical_points = fpt_xo_shift_validation._cached_find_critical_points
+_cached_A_matrix = fpt_xo_shift_validation._cached_A_matrix
+_cached_perturbed_critical_point = fpt_xo_shift_validation._cached_perturbed_critical_point
+memory = fpt_xo_shift_validation.memory
 
 EQ_KEY = tuple(EQ_PARAMS[k] for k in ['R0', 'a', 'B0', 'kappa', 'delta', 'q0'])
 
@@ -142,12 +153,12 @@ class TestCaching:
     """Test that joblib caching provides speedup."""
 
     def test_cached_critical_points_speedup(self):
-        """Second call to _cached_find_critical_points should be ≥10× faster."""
+        """Second call to _cached_find_critical_points should be ???0× faster."""
         # Clear cache for this function only
         # Warm-up first call (might be cached already from module setup)
         # Do a fresh timing comparison
 
-        # First call timing (may be cached — that's OK, just check both fast)
+        # First call timing (may be cached ???that's OK, just check both fast)
         t0 = time.perf_counter()
         _cached_find_critical_points(EQ_KEY)
         t1 = time.perf_counter() - t0
@@ -191,3 +202,4 @@ class TestCaching:
         )
         assert os.path.exists(png_path), f"Output PNG not found: {png_path}"
         assert os.path.getsize(png_path) > 10000, "PNG seems too small"
+

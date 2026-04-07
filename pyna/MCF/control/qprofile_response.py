@@ -190,63 +190,29 @@ def q_by_fieldline_winding(
     -------
     q : float
     """
-    from scipy.integrate import solve_ivp
+    from pyna.flt import FieldLineTracer as _FieldLineTracer
 
     R0_start, Z0_start = float(R_start), float(Z_start)
 
     # We integrate in (R, Z, phi) parameterised by poloidal arc length l.
     # dR/dl = BR/Bpol,  dZ/dl = BZ/Bpol,  dphi/dl = Bphi/(R Bpol)
-    # Stop after one poloidal turn: total angle ∫ dl |∇θ| = 2π
-    # Rough poloidal circumference estimate:
+    # field_func([R, Z, phi]) -> [BR, BZ, Bphi]; build arc-length unit tangent wrapper
 
-    # Estimate circumference by tracing a few steps
-    def rhs(l, state):
-        R_, Z_, phi_ = state[0], state[1], state[2]
+    def _flt_tangent(rzphi):
+        R_, Z_, phi_ = rzphi[0], rzphi[1], rzphi[2]
         BR, BZ, Bphi = _bvec(field_func, R_, Z_)
         Bpol = np.sqrt(BR ** 2 + BZ ** 2) + 1e-15
         return [BR / Bpol, BZ / Bpol, Bphi / (R_ * Bpol)]
 
-    # Estimate the poloidal arc length of one turn from first pass
-    # Use a coarse 20-step integration and check when angle closes
-    # Simpler: integrate for l_max = large value, detect crossing
-
-    def event_complete_turn(l, state):
-        """Triggered when Z returns to Z_start from below (after leaving)."""
-        return state[1] - Z0_start
-
-    event_complete_turn.terminal = True
-    event_complete_turn.direction = 1  # rising
-
-    # First integrate a bit to get past Z_start going downward
-    # then integrate until Z crosses Z_start going upward
-    # Use a two-pass approach:
-
-    # Estimate circumference ~ pi * (r_min + r_max) for an ellipse
-    BR_s, BZ_s, _ = _bvec(field_func, R0_start, Z0_start)
-    Bpol_s = np.sqrt(BR_s ** 2 + BZ_s ** 2) + 1e-15
-    # Rough kappa ~ 1.7 (typical tokamak), a ~ 0.6 * s_norm * R0
-    # For safety factor, just integrate for long enough
-    l_max = 50.0  # large arc length
+    l_max = 50.0  # large arc length; one poloidal turn << 50 m
 
     try:
-        sol = solve_ivp(
-            rhs,
-            [0.0, l_max],
-            [R0_start, Z0_start, 0.0],
-            method="RK45",
-            max_step=l_max / n_poloidal_steps,
-            rtol=rtol,
-            atol=rtol * 1e-3,
-            dense_output=True,
-        )
+        _tracer = _FieldLineTracer(_flt_tangent, dt=l_max / n_poloidal_steps)
+        _traj = _tracer.trace(np.array([R0_start, Z0_start, 0.0]), l_max)
 
-        # Find when the trajectory returns to (R_start, Z_start) in poloidal plane
-        # by finding the first time after a minimum arc when R,Z ≈ R0,Z0
-        if not sol.success:
-            return np.nan
-
-        R_traj = sol.y[0]
-        Z_traj = sol.y[1]
+        R_traj = _traj[:, 0]
+        Z_traj = _traj[:, 1]
+        phi_traj = _traj[:, 2]
         phi_traj = sol.y[2]
 
         # Find the first closed return: ||(R,Z) - (R0,Z0)|| < threshold

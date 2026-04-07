@@ -1,0 +1,402 @@
+@dataclass
+class IslandChainOrbit:
+    """All Poincaré-section representatives of one island-chain orbit.
+
+    Attributes
+    ----------
+    m : int
+        Orbit period (toroidal turns to close the orbit).
+    n : int
+        Poloidal winding number (informational; does not affect computation).
+    Np : int
+        Field toroidal period (stellarator symmetry).
+    fixed_points : list of ChainFixedPoint
+        Fixed points at each requested Poincaré section, in order of
+        increasing φ.  Length = number of requested sections × number of
+        chain points per section.
+    seed_phi : float
+        Toroidal angle of the seed fixed point.
+    seed_RZ : tuple
+        (R, Z) of the seed fixed point.
+    """
+    m: int
+    n: int
+    Np: int
+    fixed_points: List[ChainFixedPoint]
+    seed_phi: float
+    seed_RZ: tuple
+
+    # ------------------------------------------------------------------ #
+    # Constructor                                                          #
+    # ------------------------------------------------------------------ #
+
+    @classmethod
+    def from_single_fixedpoint(
+        cls,
+        R0: float,
+        Z0: float,
+        phi0: float,
+        field_func: Callable,
+        Np: int,
+        m: int,
+        n: int = 0,
+        *,
+        section_phis: Optional[Sequence[float]] = None,
+        n_sections: int = 4,
+        dt: float = 0.05,
+        rtol: float = 1e-9,
+        atol: float = 1e-10,
+        newton_tol: float = 1e-9,
+        newton_maxiter: int = 40,
+        newton_eps: float = 1e-4,
+        refine: bool = True,
+    ) -> "IslandChainOrbit":
+        """Build the full island-chain orbit from one known fixed point.
+
+        Starting from a single converged fixed point (R0, Z0) at
+        Poincaré section φ₀, this method:
+
+        1. Integrates the field line and the variational equation
+           dDX_pol/dφ = A·DX_pol simultaneously from φ₀ to
+           φ₀ + m·2π, recording section crossings at the requested φ
+           values (``section_phis``).
+
+        2. At each section crossing φ_k, applies the conjugation formula::
+
+               DPm(x_k) = Φ_k · DPm(x*) · Φ_k⁻¹
+
+           where Φ_k = DX_pol(φ₀ → φ_k) is accumulated automatically by
+           the variational equation.
+
+        3. Optionally Newton-refines each section point so that
+           G(x_k) = P^m(x_k) - x_k = 0 is satisfied to ``newton_tol``.
+
+        Parameters
+        ----------
+        R0, Z0 : float
+            Seed fixed-point coordinates [m].
+        phi0 : float
+            Toroidal angle of the seed Poincaré section [rad].
+        field_func : callable
+            ``field_func(rzphi) → (dR/dl, dZ/dl, dphi/dl)`` (arc-length
+            parameterised; field direction, not magnitude).
+        Np : int
+            Field toroidal period of the device.
+        m : int
+            Orbit period: number of toroidal turns required to close.
+        n : int, optional
+            Poloidal winding number (informational).
+        section_phis : sequence of float, optional
+            Explicit toroidal angles at which to record section crossings.
+            Defaults to ``n_sections`` equally spaced angles in
+            [φ₀, φ₀ + 2π/Np).
+        n_sections : int
+            Number of sections if ``section_phis`` is not given.
+        dt : float
+            Maximum step size for the ODE integrator [rad].
+        rtol, atol : float
+            ODE solver tolerances.
+        newton_tol : float
+            Convergence tolerance for Newton refinement at each section.
+        newton_maxiter : int
+            Maximum Newton iterations per section point.
+        newton_eps : float
+            Finite-difference step for Newton Jacobian.
+        refine : bool
+            If True (default), Newton-refine each section crossing.
+
+        Returns
+        -------
+        IslandChainOrbit
+
+        Notes
+        -----
+        The monodromy DPm(x*) at the seed is computed by a preliminary
+        full-orbit integration (φ₀ → φ₀ + 2π·m) with DX_pol(φ₀) = I.
+        DX_pol at φ_end equals DPm. This preliminary DPm is then used as
+        the monodromy reference for conjugating all downstream section
+        points.
+        """
+        # ── Step 0: compute DPm at the seed ──────────────────────────
+        DPm_seed = _compute_DPm_at_seed(
+            R0, Z0, phi0, field_func, m, dt=dt, rtol=rtol, atol=atol
+        )
+
+        # ── Step 1: determine section angles ─────────────────────────
+        if section_phis is None:
+            dphi_period = 2.0 * np.pi / Np
+            section_phis = [phi0 + k * dphi_period
+                            for k in range(n_sections)]
+        section_phis = list(section_phis)
+
+        # ── Step 2: integrate orbit + DX_pol over m full turns ───────
+        #    Record crossings whenever φ passes through any section_phi
+        fps = _propagate_chain(
+            R0, Z0, phi0, field_func, m, DPm_seed,
+            section_phis=section_phis,
+            dt=dt, rtol=rtol, atol=atol,
+        )
+
+        # ── Step 3: Newton refinement at each section point ──────────
+        if refine:
+            fps = _refine_chain_points(
+                fps, field_func, m, phi0,
+                tol=newton_tol, maxiter=newton_maxiter, eps=newton_eps,
+                dt=dt,
+            )
+
+        return cls(
+            m=m, n=n, Np=Np,
+            fixed_points=fps,
+            seed_phi=phi0,
+            seed_RZ=(R0, Z0),
+        )
+
+    # ------------------------------------------------------------------ #
+    # Convenience accessors                                               #
+    # ------------------------------------------------------------------ #
+
+    def at_section(self, phi: float, tol: float = 1e-6) -> List[ChainFixedPoint]:
+        """Return fixed points at the section closest to ``phi``."""
+        if not self.fixed_points:
+            return []
+        phis = np.array([fp.phi for fp in self.fixed_points])
+        best = float(np.min(np.abs(phis - phi)))
+        return [fp for fp in self.fixed_points
+                if abs(fp.phi - phi) <= best + tol]
+
+    def xpoints(self, phi: Optional[float] = None) -> List[ChainFixedPoint]:
+        """All X-points, optionally filtered by section phi."""
+        fps = self.at_section(phi) if phi is not None else self.fixed_points
+        return [fp for fp in fps if fp.kind == 'X']
+
+    def opoints(self, phi: Optional[float] = None) -> List[ChainFixedPoint]:
+        """All O-points, optionally filtered by section phi."""
+        fps = self.at_section(phi) if phi is not None else self.fixed_points
+        return [fp for fp in fps if fp.kind == 'O']
+
+    def summary(self) -> str:
+        """One-line summary string."""
+        sections = sorted({fp.phi for fp in self.fixed_points})
+        lines = [f"IslandChainOrbit  m={self.m}  n={self.n}  Np={self.Np}",
+                 f"  Seed: (R={self.seed_RZ[0]:.5f}, Z={self.seed_RZ[1]:.5f})"
+                 f"  phi0={self.seed_phi:.4f}"]
+        for phi in sections:
+            fps = self.at_section(phi)
+            x = [f for f in fps if f.kind == 'X']
+            o = [f for f in fps if f.kind == 'O']
+            ev = fps[0].eigenvalues if fps else []
+            lines.append(f"  phi={phi:.4f}:  {len(x)} X  {len(o)} O"
+                         f"  (eigenvalues ≈ {[f'{v.real:.4f}' for v in ev]})")
+        return "\n".join(lines)
+
+    # ------------------------------------------------------------------ #
+    # MCF cyna fast path                                                   #
+    # ------------------------------------------------------------------ #
+
+    @classmethod
+    def from_cyna_cache(
+        cls,
+        R0: float,
+        Z0: float,
+        phi0: float,
+        field_cache: dict,
+        Np: int,
+        m: int,
+        n: int = 0,
+        *,
+        section_phis: Optional[Sequence[float]] = None,
+        n_sections: int = 4,
+        DPhi: float = 0.05,
+        fd_eps: float = 1e-4,
+        newton_maxiter: int = 80,
+        newton_tol: float = 1e-9,
+        refine: bool = True,
+        n_threads: int = 0,
+    ) -> "IslandChainOrbit":
+        """Build island-chain orbit using the cyna C++ parallel backend.
+
+        This is the MCF-optimised constructor. Instead of scipy.integrate,
+        it uses ``pyna._cyna.trace_orbit_along_phi`` to propagate (R, Z)
+        and accumulate DX_pol along the orbit in a single C++ call, then
+        ``pyna._cyna.find_fixed_points_batch`` for Newton refinement at
+        each section.
+
+        The conjugation formula is applied to the DPm matrices returned
+        by cyna (which stores DPm[k] = DX_pol(phi0 → phi_k))::
+
+            DPm(x_k) = DX_pol_k · DPm_seed · DX_pol_k⁻¹
+
+        Parameters
+        ----------
+        R0, Z0 : float
+            Seed fixed-point coordinates (must already be Newton-converged).
+        phi0 : float
+            Toroidal angle of the seed section [rad].
+        field_cache : dict
+            Dict with keys ``'BR', 'BPhi', 'BZ', 'R_grid', 'Z_grid',
+            'Phi_grid'`` (as returned by topoquest field-cache builders).
+            Phi_grid may be the original (will be extended by 2π internally).
+        Np : int
+            Field toroidal period.
+        m : int
+            Orbit period (map turns).
+        n : int, optional
+            Poloidal winding number.
+        section_phis : sequence of float, optional
+            Target Poincaré sections. Defaults to Np equally-spaced angles
+            in [phi0, phi0 + 2π/Np).
+        n_sections : int
+            Number of sections if ``section_phis`` is None.
+        DPhi : float
+            RK4 step size for cyna integrator [rad].
+        fd_eps : float
+            Finite-difference eps for Newton Jacobian [m].
+        newton_maxiter : int
+            Maximum Newton iterations per point.
+        newton_tol : float
+            Newton convergence tolerance.
+        refine : bool
+            Whether to Newton-refine each section crossing.
+        n_threads : int
+            Number of parallel threads (0 = auto).
+
+        Returns
+        -------
+        IslandChainOrbit
+        """
+        try:
+            from pyna.MCF.flt import trace_orbit_along_phi, find_fixed_points_batch
+        except ImportError as exc:
+            raise ImportError(
+                "pyna.MCF.flt (cyna C++ backend) not available; use from_single_fixedpoint instead"
+            ) from exc
+
+        # Extend Phi_grid for periodicity
+        Phi_grid = field_cache['Phi_grid']
+        if abs(Phi_grid[-1] - 2 * np.pi) > 1e-6:
+            Phi_ext = np.append(Phi_grid, 2 * np.pi)
+        else:
+            Phi_ext = np.asarray(Phi_grid, dtype=np.float64)
+
+        def _ext(a):
+            return np.concatenate([a, a[:, :, :1]], axis=2)
+
+        BR_c   = np.ascontiguousarray(_ext(field_cache['BR']),   dtype=np.float64)
+        BPhi_c = np.ascontiguousarray(_ext(field_cache['BPhi']), dtype=np.float64)
+        BZ_c   = np.ascontiguousarray(_ext(field_cache['BZ']),   dtype=np.float64)
+        Rg = np.ascontiguousarray(field_cache['R_grid'], dtype=np.float64)
+        Zg = np.ascontiguousarray(field_cache['Z_grid'], dtype=np.float64)
+        Pg = np.ascontiguousarray(Phi_ext, dtype=np.float64)
+
+        field_kw = dict(BR=BR_c, BPhi=BPhi_c, BZ=BZ_c,
+                        R_grid=Rg, Z_grid=Zg, Phi_grid=Pg)
+
+        # ── Target sections ───────────────────────────────────────────
+        if section_phis is None:
+            dphi = 2.0 * np.pi / Np
+            section_phis = [phi0 + k * dphi for k in range(n_sections)]
+        section_phis = list(section_phis)
+
+        # Span needed: from phi0 to max section + small margin
+        phi_max_target = max(
+            phi0 + ((p - phi0) % (2 * np.pi)) for p in section_phis
+        )
+        phi_span = phi_max_target - phi0 + 0.05
+
+        # dphi_out = smallest gap between consecutive targets (use pi/4 if uniform)
+        s_sorted = sorted(
+            phi0 + ((p - phi0) % (2 * np.pi)) for p in section_phis
+        )
+        dphi_out = float(min(np.diff(s_sorted))) if len(s_sorted) > 1 else float(2 * np.pi / Np)
+
+        # ── cyna orbit propagation ────────────────────────────────────
+        # Returns (R_arr, Z_arr, phi_arr, DPm_arr[N,4], alive_arr)
+        R_arr, Z_arr, phi_arr, DPm_arr, alive_arr = trace_orbit_along_phi(
+            float(R0), float(Z0), float(phi0),
+            float(phi_span), float(dphi_out),
+            int(m), float(DPhi), float(fd_eps),
+            BR_c, BPhi_c, BZ_c, Rg, Zg, Pg,
+        )
+        R_arr   = np.asarray(R_arr)
+        Z_arr   = np.asarray(Z_arr)
+        phi_arr = np.asarray(phi_arr)
+        DPm_arr = np.asarray(DPm_arr)   # shape (N, 4)
+        alive_arr = np.asarray(alive_arr, dtype=bool)
+
+        # ── DPm seed (at phi0): compute via find_fixed_points_batch FD ─
+        #    (5-point FD in batch, very fast)
+        _, _, _, conv_s, DPm_seed_fp, _, _, _ = find_fixed_points_batch(
+            np.array([R0]), np.array([Z0]),
+            phi_section=float(phi0), n_turns=int(m),
+            DPhi=float(DPhi), fd_eps=float(fd_eps),
+            max_iter=40, tol=newton_tol, n_threads=n_threads,
+            **field_kw,
+        )
+        if conv_s[0]:
+            DPm_seed = np.asarray(DPm_seed_fp[0]).reshape(2, 2)
+        else:
+            # fallback: use DPm from cyna orbit at phi0 step
+            DPm_seed = DPm_arr[0].reshape(2, 2) if len(DPm_arr) > 0 else np.eye(2)
+
+        # ── Match orbit output to requested sections ──────────────────
+        fps: List[ChainFixedPoint] = []
+
+        for phi_tgt in section_phis:
+            phi_abs = phi0 + ((phi_tgt - phi0) % (2 * np.pi))
+            # Find nearest alive output point
+            if alive_arr.sum() == 0:
+                continue
+            dists = np.where(alive_arr, np.abs(phi_arr - phi_abs), np.inf)
+            idx = int(np.argmin(dists))
+            if not alive_arr[idx] or np.isnan(R_arr[idx]):
+                warnings.warn(f"Orbit dead at phi={phi_tgt:.4f}; skipping.")
+                continue
+
+            R_k = float(R_arr[idx])
+            Z_k = float(Z_arr[idx])
+            # DPm_arr[idx] = Φ_k flattened (DX_pol from phi0 to phi_k)
+            Phi_k = DPm_arr[idx].reshape(2, 2)
+
+            # Conjugation: DPm(x_k) = Φ_k · DPm_seed · Φ_k⁻¹
+            try:
+                Phi_k_inv = np.linalg.inv(Phi_k)
+                DPm_k = Phi_k @ DPm_seed @ Phi_k_inv
+            except np.linalg.LinAlgError:
+                DPm_k = DPm_seed.copy()
+                Phi_k_inv = np.eye(2)
+
+            phi_section = float(phi_abs) % (2 * np.pi)
+
+            if refine:
+                # Newton refinement at this section
+                R_fp, Z_fp, _, conv, DPm_fp, _, _, pt_fp = find_fixed_points_batch(
+                    np.array([R_k]), np.array([Z_k]),
+                    phi_section=phi_section, n_turns=int(m),
+                    DPhi=float(DPhi), fd_eps=float(fd_eps),
+                    max_iter=newton_maxiter, tol=newton_tol,
+                    n_threads=n_threads, **field_kw,
+                )
+                if conv[0] and not np.isnan(float(R_fp[0])):
+                    R_k = float(R_fp[0])
+                    Z_k = float(Z_fp[0])
+                    DPm_k = np.asarray(DPm_fp[0]).reshape(2, 2)
+                else:
+                    warnings.warn(
+                        f"Newton refinement failed at phi={phi_section:.4f} "
+                        f"(R={R_k:.5f}, Z={Z_k:.5f}); using propagated position."
+                    )
+
+            fps.append(ChainFixedPoint(
+                phi=phi_section,
+                R=R_k, Z=Z_k,
+                DPm=DPm_k,
+                DX_pol_accum=Phi_k,
+            ))
+
+        return cls(
+            m=m, n=n, Np=Np,
+            fixed_points=fps,
+            seed_phi=phi0,
+            seed_RZ=(R0, Z0),
+        )

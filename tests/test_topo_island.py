@@ -13,6 +13,9 @@ from pyna.topo.island import (
     locate_all_rational_surfaces,
     island_halfwidth,
     all_rational_q,
+    Island,
+    IslandChain,
+    ChainRole,
 )
 
 # ---------------------------------------------------------------------------
@@ -128,3 +131,53 @@ def test_all_rational_q_grouping():
     result = all_rational_q(4, 4, q_min=0.9, q_max=1.1)
     q1_groups = [g for g in result if g[0][0] / g[0][1] == 1.0]
     assert len(q1_groups) == 1
+
+
+# ---------------------------------------------------------------------------
+# ChainRole / Island.chain / Island.connected_to / IslandChain new fields
+# ---------------------------------------------------------------------------
+
+def test_chain_role_enum_values():
+    assert ChainRole.PRIMARY.value == "primary"
+    assert ChainRole.SECONDARY.value == "secondary"
+    assert ChainRole.NESTED.value == "nested"
+
+
+def test_island_has_chain_and_connected_to_fields():
+    isl = Island(period_n=2, O_point=np.array([3.1, 0.0]))
+    assert isl.chain is None
+    assert isl.connected_to == []
+
+
+def test_island_chain_default_role():
+    chain = IslandChain(m=2, n=1)
+    assert chain.role is ChainRole.PRIMARY
+    assert chain.orbit is None
+    assert chain.parent_chain is None
+    assert chain.primary_chain_ref is None
+
+
+def test_island_chain_back_links_islands():
+    isl0 = Island(period_n=2, O_point=np.array([3.1, 0.05]))
+    isl1 = Island(period_n=2, O_point=np.array([3.1, -0.05]))
+    chain = IslandChain(m=2, n=1, islands=[isl0, isl1])
+    assert isl0.chain is chain
+    assert isl1.chain is chain
+
+
+def test_from_fixed_points_back_link():
+    O_pts = [np.array([3.1, 0.05]), np.array([3.1, -0.05])]
+    X_pts = [np.array([3.15, 0.0])]
+    chain = IslandChain.from_fixed_points(O_pts, X_pts, m=2, n=1)
+    for isl in chain.islands:
+        assert isl.chain is chain
+
+
+def test_chain_role_can_be_set():
+    chain = IslandChain(m=3, n=1, role=ChainRole.SECONDARY)
+    assert chain.role is ChainRole.SECONDARY
+
+
+def test_chain_export_from_topo():
+    from pyna.topo import ChainRole as CR
+    assert CR.PRIMARY is ChainRole.PRIMARY

@@ -7,9 +7,23 @@ import pathlib
 _cyna_ext = None
 _available = False
 
-# Try to load _cyna_ext.pyd from this package directory
+# Try to load _cyna_ext.pyd from this package directory, then from the cyna/ build dir
 _p = pathlib.Path(__file__).parent
-for _f in list(_p.glob("_cyna_ext*.pyd")) + list(_p.glob("_cyna_ext*.so")):
+_build_dir = _p.parent.parent / "cyna"  # <repo>/cyna/ — xmake build output
+_candidates = (
+    list(_p.glob("_cyna_ext*.pyd")) + list(_p.glob("_cyna_ext*.so"))
+    + list(_build_dir.glob("_cyna_ext*.pyd")) + list(_build_dir.glob("_cyna_ext*.so"))
+    + ([_build_dir / "_cyna_ext.pyd"] if (_build_dir / "_cyna_ext.pyd").exists() else [])
+)
+# Deduplicate while preserving order
+_seen = set()
+_candidates_dedup = []
+for _c in _candidates:
+    if _c not in _seen:
+        _seen.add(_c)
+        _candidates_dedup.append(_c)
+_candidates = _candidates_dedup
+for _f in _candidates:
     try:
         _spec = importlib.util.spec_from_file_location("_cyna_ext", _f)
         _mod = importlib.util.module_from_spec(_spec)
@@ -48,6 +62,10 @@ if _available:
     trace_wall_hits_twall         = getattr(_cyna_ext, "trace_wall_hits_twall",         None)
     find_fixed_points_batch       = getattr(_cyna_ext, "find_fixed_points_batch",       None)
     trace_orbit_along_phi         = getattr(_cyna_ext, "trace_orbit_along_phi",         None)
+    compute_A_matrix_batch        = getattr(_cyna_ext, "compute_A_matrix_batch",        None)
+    trace_surface_metrics_batch_twall = getattr(_cyna_ext, "trace_surface_metrics_batch_twall", None)
+    summarize_profile_objectives  = getattr(_cyna_ext, "summarize_profile_objectives",  None)
+    trace_poincare_beta_sweep     = getattr(_cyna_ext, "trace_poincare_beta_sweep",     None)
 else:
     # Fallback stubs so ``from pyna._cyna import X`` always succeeds;
     # callers receive None and are expected to guard with is_available().
@@ -58,6 +76,10 @@ else:
     trace_wall_hits_twall         = None
     find_fixed_points_batch       = None
     trace_orbit_along_phi         = None
+    compute_A_matrix_batch        = None
+    trace_surface_metrics_batch_twall = None
+    summarize_profile_objectives  = None
+    trace_poincare_beta_sweep     = None
 
 __all__ = [
     "is_available",
@@ -69,4 +91,8 @@ __all__ = [
     "trace_wall_hits_twall",
     "find_fixed_points_batch",
     "trace_orbit_along_phi",
+    "compute_A_matrix_batch",
+    "trace_surface_metrics_batch_twall",
+    "summarize_profile_objectives",
+    "trace_poincare_beta_sweep",
 ]

@@ -48,7 +48,7 @@ PoincareMapVariationalEquations
 """
 
 import numpy as np
-from scipy.integrate import solve_ivp
+from pyna.topo._rk4 import rk4_integrate
 
 
 # ---------------------------------------------------------------------------
@@ -399,7 +399,8 @@ class PoincareMapVariationalEquations:
             toroidal turns: phi_span=(0, m*2*pi) for the m-turn monodromy matrix.
             One toroidal turn is typically 0 to 2π.
         solve_ivp_kwargs : dict, optional
-            Extra keyword arguments forwarded to ``scipy.integrate.solve_ivp``.
+            Extra keyword arguments. For rk4_integrate, only rtol is used
+            to estimate max_step (smaller rtol -> smaller step).
             Defaults to ``{"method": "DOP853", "rtol": 1e-9, "atol": 1e-12}``.
 
         Returns
@@ -415,14 +416,16 @@ class PoincareMapVariationalEquations:
         # Initial condition: x₀ and M = I
         y0 = np.concatenate([x0, np.eye(2).flatten()])
 
-        sol = solve_ivp(
+        # Convert rtol to max_step (heuristic)
+        rtol = solve_ivp_kwargs.get('rtol', 1e-9)
+        max_step = 0.05 * (1e-9 / rtol) ** 0.2  # Smaller step for tighter tolerance
+
+        sol = rk4_integrate(
             fun=self._augmented_rhs_order1,
             t_span=phi_span,
             y0=y0,
-            **solve_ivp_kwargs,
+            max_step=max_step,
         )
-        if not sol.success:
-            raise RuntimeError(f"solve_ivp failed: {sol.message}")
 
         M = sol.y[2:, -1].reshape(2, 2)
         return M
@@ -450,7 +453,7 @@ class PoincareMapVariationalEquations:
 
             Default 1.
         solve_ivp_kwargs : dict, optional
-            Forwarded to ``scipy.integrate.solve_ivp``.
+            For rk4_integrate, only rtol is used to estimate max_step.
 
         Returns
         -------
@@ -480,16 +483,18 @@ class PoincareMapVariationalEquations:
 
         x0 = np.asarray(x0, dtype=float)
 
+        # Convert rtol to max_step (heuristic)
+        rtol = solve_ivp_kwargs.get('rtol', 1e-9)
+        max_step = 0.05 * (1e-9 / rtol) ** 0.2
+
         if order == 1:
             y0 = np.concatenate([x0, np.eye(2).flatten()])
-            sol = solve_ivp(
+            sol = rk4_integrate(
                 fun=self._augmented_rhs_order1,
                 t_span=phi_span,
                 y0=y0,
-                **solve_ivp_kwargs,
+                max_step=max_step,
             )
-            if not sol.success:
-                raise RuntimeError(f"solve_ivp failed: {sol.message}")
             x_end = sol.y[:2, -1]
             M = sol.y[2:, -1].reshape(2, 2)
             return x_end, M
@@ -497,14 +502,12 @@ class PoincareMapVariationalEquations:
         if order == 2:
             # State: [x(2), M(4), T(8)]  — T starts as zero tensor
             y0 = np.concatenate([x0, np.eye(2).flatten(), np.zeros(8)])
-            sol = solve_ivp(
+            sol = rk4_integrate(
                 fun=self._augmented_rhs_order2,
                 t_span=phi_span,
                 y0=y0,
-                **solve_ivp_kwargs,
+                max_step=max_step,
             )
-            if not sol.success:
-                raise RuntimeError(f"solve_ivp failed: {sol.message}")
             x_end = sol.y[:2, -1]
             M = sol.y[2:6, -1].reshape(2, 2)
             T = sol.y[6:, -1].reshape(2, 2, 2)
@@ -513,14 +516,12 @@ class PoincareMapVariationalEquations:
         # order == 3
         # State: [x(2), M(4), T(8), Q(16)]  — T and Q start as zero
         y0 = np.concatenate([x0, np.eye(2).flatten(), np.zeros(8), np.zeros(16)])
-        sol = solve_ivp(
+        sol = rk4_integrate(
             fun=self._augmented_rhs_order3,
             t_span=phi_span,
             y0=y0,
-            **solve_ivp_kwargs,
+            max_step=max_step,
         )
-        if not sol.success:
-            raise RuntimeError(f"solve_ivp failed: {sol.message}")
         x_end = sol.y[:2, -1]
         M = sol.y[2:6, -1].reshape(2, 2)
         T = sol.y[6:14, -1].reshape(2, 2, 2)

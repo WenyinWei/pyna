@@ -2,35 +2,8 @@
 import numpy as np
 import pytest
 
-
-# ---------------------------------------------------------------------------
-# Fixtures: build a Solov'ev equilibrium and PEST mesh once
-# ---------------------------------------------------------------------------
-
-@pytest.fixture(scope="module")
-def solovev_eq():
-    from pyna.MCF.equilibrium.Solovev import solovev_iter_like
-    return solovev_iter_like(scale=0.3)
-
-
-@pytest.fixture(scope="module")
-def pest_mesh(solovev_eq):
-    eq = solovev_eq
-    nR, nZ = 120, 120
-    R_grid = np.linspace(0.3 * eq.R0, 1.5 * eq.R0, nR)
-    Z_grid = np.linspace(-eq.a * eq.kappa * 1.2, eq.a * eq.kappa * 1.2, nZ)
-    Rg, Zg = np.meshgrid(R_grid, Z_grid, indexing='ij')
-    BR_grid, BZ_grid = eq.BR_BZ(Rg, Zg)
-    BPhi_grid = eq.Bphi(Rg)
-    psi_norm_grid = eq.psi(Rg, Zg)
-    Rmaxis, Zmaxis = eq.magnetic_axis
-
-    from pyna.MCF.coords.PEST import build_PEST_mesh
-    S, TET, R_mesh, Z_mesh, q_iS = build_PEST_mesh(
-        R_grid, Z_grid, BR_grid, BZ_grid, BPhi_grid, psi_norm_grid,
-        Rmaxis, Zmaxis, ns=20, ntheta=91
-    )
-    return S, TET, R_mesh, Z_mesh, q_iS, eq
+# solovev_eq and pest_mesh fixtures are provided by conftest.py (session-scoped).
+# No local fixture definitions needed here.
 
 
 # ---------------------------------------------------------------------------

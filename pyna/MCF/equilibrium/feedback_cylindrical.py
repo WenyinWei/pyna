@@ -346,6 +346,271 @@ def feedback_correction_field(
     )
 
 
+def compute_shafranov_shift(
+    B0_field_cache: dict,
+    beta_val: float,
+    R_axis: float,
+    Z_axis: float,
+    a_eff: float,
+    alpha_pressure: float = 2.0,
+) -> tuple:
+    """Estimate the Shafranov shift Δ for a stellarator at given beta.
+
+    Uses the cylindrical circular cross-section approximation::
+
+        Δ ≈ beta_p * a / (2 * q²)
+
+    where ``beta_p`` is the poloidal beta and q is estimated from the
+    background field components on the magnetic axis.
+
+    Parameters
+    ----------
+    B0_field_cache : dict
+        Vacuum field cache with keys ``BR``, ``BPhi``, ``BZ``,
+        ``R_grid``, ``Z_grid``, ``Phi_grid``.
+    beta_val : float
+        Volume-averaged (toroidal) beta.
+    R_axis, Z_axis : float
+        Magnetic axis position [m].
+    a_eff : float
+        Effective minor radius [m].
+    alpha_pressure : float
+        Pressure profile peaking exponent.
+
+    Returns
+    -------
+    Delta_R, Delta_Z : float
+        Outward Shafranov shift components [m].
+        ``Delta_Z`` is zero by symmetry in the cylindrical approximation.
+    """
+    mu0 = 4e-7 * np.pi
+
+    BR   = B0_field_cache['BR']    # shape (nR, nZ, nPhi) or (nR, nZ)
+    BZ   = B0_field_cache['BZ']
+    BPhi = B0_field_cache['BPhi']
+    R_grid   = np.asarray(B0_field_cache['R_grid'])
+    Z_grid   = np.asarray(B0_field_cache['Z_grid'])
+
+    # Axis index
+    iR_ax = int(np.argmin(np.abs(R_grid - R_axis)))
+    iZ_ax = int(np.argmin(np.abs(Z_grid - Z_axis)))
+
+    def _get2d(arr):
+        if arr.ndim == 3:
+            return arr[:, :, 0]
+        return arr
+
+    BR2d   = _get2d(BR)
+    BZ2d   = _get2d(BZ)
+    BPhi2d = _get2d(BPhi)
+
+    # Estimate q at magnetic axis:
+    # q ~ R * B_tor / (a * B_pol)  (safety factor, cylindrical approx)
+    B_pol_ax = float(np.sqrt(BR2d[iR_ax, iZ_ax]**2 + BZ2d[iR_ax, iZ_ax]**2) + 1e-30)
+    B_tor_ax = float(np.abs(BPhi2d[iR_ax, iZ_ax]) + 1e-30)
+    q_est    = R_axis * B_tor_ax / (a_eff * B_pol_ax + 1e-30)
+
+    # beta_p ~ beta_t * (B_tor/B_pol)^2  (approximate)
+    beta_p = beta_val * (B_tor_ax / B_pol_ax) ** 2
+
+    # Shafranov shift: Δ = beta_p * a / (2 * q²)
+    Delta = beta_p * a_eff / (2.0 * q_est**2 + 1e-30)
+
+    # Shift is outward (increasing R) by convention
+    Delta_R = float(Delta)
+    Delta_Z = 0.0
+
+    return Delta_R, Delta_Z
+
+
+class BetaClimbingSequence:
+    """Generate a sequence of modified field caches for beta-climbing Poincaré analysis.
+
+    As beta increases, plasma currents (diamagnetic + Pfirsch-Schlüter) modify
+    the magnetic field topology. This class computes the total field
+    ``B_total = B_vacuum + delta_B_plasma(beta)`` for a sequence of beta values.
+
+    Parameters
+    ----------
+    B0_field_cache : dict
+        Vacuum field cache with keys ``BR``, ``BPhi``, ``BZ``,
+        ``R_grid``, ``Z_grid``, ``Phi_grid``.
+        Standard pyna field cache format.
+    R_axis, Z_axis : float
+        Magnetic axis position [m].
+    a_eff : float
+        Effective minor radius [m].
+    beta_values : array-like
+        Sequence of volume-averaged beta values (e.g. ``[0.0, 0.01, 0.02, ...]``).
+    alpha_pressure : float
+        Pressure profile peaking: ``p ~ (1 - psi_norm)^alpha``.
+    solver : str
+        Sparse solver for perturbed GS: ``'lsqr'``, ``'lgmres'``, etc.
+    **gs_kwargs
+        Additional keyword arguments forwarded to :func:`solve_perturbed_gs`.
+    """
+
+    def __init__(
+        self,
+        B0_field_cache: dict,
+        R_axis: float,
+        Z_axis: float,
+        a_eff: float,
+        beta_values,
+        alpha_pressure: float = 2.0,
+        solver: str = 'lsqr',
+        **gs_kwargs,
+    ):
+        self.B0_field_cache  = B0_field_cache
+        self.R_axis          = float(R_axis)
+        self.Z_axis          = float(Z_axis)
+        self.a_eff           = float(a_eff)
+        self.beta_values     = list(beta_values)
+        self.alpha_pressure  = float(alpha_pressure)
+        self.solver          = solver
+        self.gs_kwargs       = gs_kwargs
+
+        # Import heavy dependencies lazily so the module is light to import
+        self._cache: dict[int, dict] = {}
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    def _build_pyna_field(self, cache: dict):
+        """Convert a field cache dict to a CylindricalVectorField."""
+        from pyna.fields.cylindrical import VectorField3DCylindrical
+
+        R_grid   = np.asarray(cache['R_grid'])
+        Z_grid   = np.asarray(cache['Z_grid'])
+        Phi_grid = np.asarray(cache['Phi_grid'])
+
+        BR   = np.asarray(cache['BR'])
+        BZ   = np.asarray(cache['BZ'])
+        BPhi = np.asarray(cache['BPhi'])
+
+        # Ensure 3-D (nR, nZ, nPhi)
+        if BR.ndim == 2:
+            BR   = BR[:, :, np.newaxis]
+            BZ   = BZ[:, :, np.newaxis]
+            BPhi = BPhi[:, :, np.newaxis]
+        if len(Phi_grid) == 0:
+            Phi_grid = np.array([0.0])
+
+        return VectorField3DCylindrical(
+            R=R_grid, Z=Z_grid, Phi=Phi_grid,
+            VR=BR, VZ=BZ, VPhi=BPhi,
+            name="B0",
+        )
+
+    def _zero_perturbation(self, B0_pyna):
+        """Return a zero external perturbation field on the same grid."""
+        from pyna.fields.cylindrical import VectorField3DCylindrical
+
+        zeros = np.zeros_like(B0_pyna.VR)
+        return VectorField3DCylindrical(
+            R=B0_pyna.R, Z=B0_pyna.Z, Phi=B0_pyna.Phi,
+            VR=zeros, VZ=zeros.copy(), VPhi=zeros.copy(),
+            name="delta_B_ext_zero",
+        )
+
+    def _zero_current(self, B0_pyna):
+        """Return a zero background current field on the same grid."""
+        from pyna.fields.cylindrical import VectorField3DCylindrical
+
+        zeros = np.zeros_like(B0_pyna.VR)
+        return VectorField3DCylindrical(
+            R=B0_pyna.R, Z=B0_pyna.Z, Phi=B0_pyna.Phi,
+            VR=zeros, VZ=zeros.copy(), VPhi=zeros.copy(),
+            name="J0_zero",
+        )
+
+    def _zero_pressure(self, B0_pyna):
+        """Return a zero background pressure scalar field on the same grid."""
+        from pyna.fields.cylindrical import ScalarField3DCylindrical
+
+        zeros = np.zeros_like(B0_pyna.VR)
+        return ScalarField3DCylindrical(
+            R=B0_pyna.R, Z=B0_pyna.Z, Phi=B0_pyna.Phi,
+            value=zeros, name="p0_zero", units="Pa",
+        )
+
+    def _compute_modified_cache(self, beta_val: float) -> dict:
+        """Compute and return a modified field cache for a given beta."""
+        from pyna.MCF.plasma_response.PerturbGS import solve_perturbed_gs
+
+        if beta_val == 0.0:
+            return self.B0_field_cache
+
+        B0_pyna      = self._build_pyna_field(self.B0_field_cache)
+        J0_zero      = self._zero_current(B0_pyna)
+        p0_zero      = self._zero_pressure(B0_pyna)
+        dB_ext_zero  = self._zero_perturbation(B0_pyna)
+
+        delta_B_plasma, _, _ = solve_perturbed_gs(
+            B0_pyna, J0_zero, p0_zero, dB_ext_zero,
+            solver=self.solver,
+            R_axis=self.R_axis,
+            Z_axis=self.Z_axis,
+            a_eff=self.a_eff,
+            beta_val=beta_val,
+            alpha_pressure=self.alpha_pressure,
+            **self.gs_kwargs,
+        )
+
+        # Total field = vacuum + plasma response
+        new_BR   = (B0_pyna.VR   + delta_B_plasma.VR)
+        new_BZ   = (B0_pyna.VZ   + delta_B_plasma.VZ)
+        new_BPhi = (B0_pyna.VPhi + delta_B_plasma.VPhi)
+
+        return {
+            'BR'       : new_BR,
+            'BZ'       : new_BZ,
+            'BPhi'     : new_BPhi,
+            'R_grid'   : np.asarray(self.B0_field_cache['R_grid']),
+            'Z_grid'   : np.asarray(self.B0_field_cache['Z_grid']),
+            'Phi_grid' : np.asarray(self.B0_field_cache['Phi_grid']),
+        }
+
+    # ------------------------------------------------------------------
+    # Public API
+    # ------------------------------------------------------------------
+
+    def get_field_cache_at_beta(self, beta_idx: int) -> dict:
+        """Return modified field cache dict at ``beta_values[beta_idx]``.
+
+        Parameters
+        ----------
+        beta_idx : int
+            Index into ``self.beta_values``.
+
+        Returns
+        -------
+        cache : dict
+            Same format as ``B0_field_cache`` with updated ``BR``, ``BZ``,
+            ``BPhi`` arrays that include the plasma response at the given beta.
+        """
+        if beta_idx not in self._cache:
+            beta_val = self.beta_values[beta_idx]
+            self._cache[beta_idx] = self._compute_modified_cache(beta_val)
+        return self._cache[beta_idx]
+
+    def get_all_field_caches(self) -> list:
+        """Return list of modified field caches for all beta values.
+
+        Returns
+        -------
+        caches : list of dict
+            One entry per element of ``self.beta_values``.
+        """
+        return [self.get_field_cache_at_beta(i) for i in range(len(self.beta_values))]
+
+    def iterate(self):
+        """Yield ``(beta_value, modified_field_cache)`` for each beta step."""
+        for i, beta_val in enumerate(self.beta_values):
+            yield beta_val, self.get_field_cache_at_beta(i)
+
+
 def iterative_equilibrium_correction(
     equilibrium,
     perturbation: PerturbationField,

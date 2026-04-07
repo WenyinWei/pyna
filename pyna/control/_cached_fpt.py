@@ -29,8 +29,8 @@ import numpy as np
 from functools import wraps
 
 from pyna.cache import pyna_cache
-from pyna.control.fpt import A_matrix as _A_matrix_raw
-from pyna.control.fpt import DPm_axisymmetric, cycle_shift as _cycle_shift_raw
+from pyna.control.FPT import A_matrix as _A_matrix_raw
+from pyna.control.FPT import DPm_axisymmetric, cycle_shift as _cycle_shift_raw
 
 
 # ---------------------------------------------------------------------------
@@ -46,7 +46,7 @@ def _disk_cached_A_matrix(eq_hash_str: str, R: float, Z: float,
 
     ``field_sample_vals`` encodes a fingerprint of the field function so
     that the cache key changes if the field changes even with the same
-    eq_hash_str.  Not called directly — see :class:`CachedFPTAnalyzer`.
+    eq_hash_str.  Not called directly ???see :class:`CachedFPTAnalyzer`.
     """
     # This stub is intentionally empty; the actual work is done in
     # CachedFPTAnalyzer which uses in-memory dicts for speed.
@@ -65,15 +65,15 @@ class CachedFPTAnalyzer:
 
     All expensive computations are cached per-instance:
 
-    * **A-matrix** at critical points — cached per ``(R, Z, phi)``
-    * **DPm** — derived from cached A, also cached per ``(R, Z)``
-    * **Coil vacuum field** at critical points — cached per ``(coil_id, R, Z)``
-    * **Manifold growth** — cached per ``(R_xpt, Z_xpt, s_max)``
+    * **A-matrix** at critical points ???cached per ``(R, Z, phi)``
+    * **DPm** ???derived from cached A, also cached per ``(R, Z)``
+    * **Coil vacuum field** at critical points ???cached per ``(coil_id, R, Z)``
+    * **Manifold growth** ???cached per ``(R_xpt, Z_xpt, s_max)``
 
     Parameters
     ----------
     field_func : callable
-        ``field_func([R, Z, phi]) → [f_R, f_Z, f_phi]``
+        ``field_func([R, Z, phi]) ???[f_R, f_Z, f_phi]``
         (e.g. ``eq.field_line_rhs``).
     eq_hash_str : str
         Short string identifying this equilibrium.  Used as part of the
@@ -95,10 +95,10 @@ class CachedFPTAnalyzer:
         self.eq_hash_str = eq_hash_str
         self.eps = eps
 
-        self._A_cache: dict = {}           # (R,Z,phi) → 2×2 ndarray
-        self._DPm_cache: dict = {}         # (R,Z)     → 2×2 ndarray
-        self._coil_field_cache: dict = {}  # (coil_id, R, Z, phi) → array
-        self._manifold_cache: dict = {}    # (R_xpt, Z_xpt, s_max) → (N,2)
+        self._A_cache: dict = {}           # (R,Z,phi) ???2×2 ndarray
+        self._DPm_cache: dict = {}         # (R,Z)     ???2×2 ndarray
+        self._coil_field_cache: dict = {}  # (coil_id, R, Z, phi) ???array
+        self._manifold_cache: dict = {}    # (R_xpt, Z_xpt, s_max) ???(N,2)
 
     # ------------------------------------------------------------------
     # Core cached methods
@@ -181,3 +181,5 @@ class CachedFPTAnalyzer:
             'coil_field_entries': len(self._coil_field_cache),
             'manifold_entries': len(self._manifold_cache),
         }
+
+

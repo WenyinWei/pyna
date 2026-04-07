@@ -4,12 +4,15 @@ import numpy as np
 import pytest
 from unittest.mock import patch
 
+# simple_eq_arrays fixture is provided by conftest.py (session-scoped, nR=nZ=40).
+
 
 def _make_simple_equilibrium(nR=40, nZ=40):
     """Create a simple circular-cross-section Grad-Shafranov equilibrium
     for testing purposes.
 
     Returns (R, Z, BR0, BZ0, BPhi0, psi_norm, Rmaxis, Zmaxis).
+    Prefer the ``simple_eq_arrays`` session fixture when nR/nZ=40 is fine.
     """
     R0, Z0 = 1.8, 0.0          # magnetic axis
     a = 0.4                     # minor radius
@@ -22,12 +25,9 @@ def _make_simple_equilibrium(nR=40, nZ=40):
     rho2 = ((Rg - R0) ** 2 + (Zg - Z0) ** 2) / a ** 2
     psi_norm = np.clip(rho2, 0.0, 1.0)
 
-    # Simple safety-factor approximation: q ≈ 1.5
-    q = 1.5
-    # Poloidal field components from ψ (circular geometry)
+    # Simple safety-factor approximation: q ~ 1.5
     dpsi_dR = 2.0 * (Rg - R0) / (a ** 2)
     dpsi_dZ = 2.0 * (Zg - Z0) / (a ** 2)
-    # BZ ~ -1/(R) ∂ψ/∂R * const, BR ~ 1/(R) ∂ψ/∂Z * const
     pol_scale = 0.1
     BR0   = pol_scale * dpsi_dZ / Rg
     BZ0   = -pol_scale * dpsi_dR / Rg
@@ -37,14 +37,14 @@ def _make_simple_equilibrium(nR=40, nZ=40):
 
 
 # ---------------------------------------------------------------------------
-# build_PEST_mesh — shape tests
+# build_PEST_mesh -- shape tests
 # ---------------------------------------------------------------------------
 
-def test_build_PEST_mesh_output_shapes():
+def test_build_PEST_mesh_output_shapes(simple_eq_arrays):
     """build_PEST_mesh should return arrays of the expected shapes."""
     from pyna.MCF.coords.PEST import build_PEST_mesh
 
-    R, Z, BR0, BZ0, BPhi0, psi_norm, Rmaxis, Zmaxis = _make_simple_equilibrium()
+    R, Z, BR0, BZ0, BPhi0, psi_norm, Rmaxis, Zmaxis = simple_eq_arrays
     ns, ntheta = 8, 13
 
     S, TET, R_mesh, Z_mesh, q_iS = build_PEST_mesh(
@@ -59,11 +59,11 @@ def test_build_PEST_mesh_output_shapes():
     assert q_iS.shape == (ns,)
 
 
-def test_build_PEST_mesh_S_monotone():
+def test_build_PEST_mesh_S_monotone(simple_eq_arrays):
     """S should be monotonically increasing (or at least non-negative)."""
     from pyna.MCF.coords.PEST import build_PEST_mesh
 
-    R, Z, BR0, BZ0, BPhi0, psi_norm, Rmaxis, Zmaxis = _make_simple_equilibrium()
+    R, Z, BR0, BZ0, BPhi0, psi_norm, Rmaxis, Zmaxis = simple_eq_arrays
     ns = 6
 
     S, *_ = build_PEST_mesh(
@@ -73,25 +73,25 @@ def test_build_PEST_mesh_S_monotone():
     assert np.all(S[1:] >= 0), "S values should be non-negative"
 
 
-def test_RZmesh_isoSTET_deprecated():
+def test_RZmesh_isoSTET_deprecated(simple_eq_arrays):
     """RZmesh_isoSTET should emit a DeprecationWarning."""
     from pyna.MCF.coords.PEST import RZmesh_isoSTET
 
-    R, Z, BR0, BZ0, BPhi0, psi_norm, Rmaxis, Zmaxis = _make_simple_equilibrium()
+    R, Z, BR0, BZ0, BPhi0, psi_norm, Rmaxis, Zmaxis = simple_eq_arrays
 
     with pytest.warns(DeprecationWarning):
         RZmesh_isoSTET(R, Z, BR0, BZ0, BPhi0, psi_norm, Rmaxis, Zmaxis, ns=5, ntheta=7)
 
 
 # ---------------------------------------------------------------------------
-# g_i_g__i_from_STET_mesh — metric tensor consistency
+# g_i_g__i_from_STET_mesh -- metric tensor consistency
 # ---------------------------------------------------------------------------
 
-def test_metric_tensor_biorthogonality():
-    """g^i · g_j = δᵢⱼ approximately on interior grid points."""
+def test_metric_tensor_biorthogonality(simple_eq_arrays):
+    """g^i . g_j = delta_ij approximately on interior grid points."""
     from pyna.MCF.coords.PEST import build_PEST_mesh, g_i_g__i_from_STET_mesh
 
-    R, Z, BR0, BZ0, BPhi0, psi_norm, Rmaxis, Zmaxis = _make_simple_equilibrium()
+    R, Z, BR0, BZ0, BPhi0, psi_norm, Rmaxis, Zmaxis = simple_eq_arrays
     ns, ntheta = 8, 13
 
     S, TET, R_mesh, Z_mesh, _ = build_PEST_mesh(
@@ -105,7 +105,6 @@ def test_metric_tensor_biorthogonality():
         for it in range(1, ntheta - 1):
             R_pt = R_mesh[is_, it]
 
-            # g^i · g_j  (poloidal 2-D part only; g_3 and g^3 are scalars)
             g__1_pt = g__1[is_, it, :]
             g__2_pt = g__2[is_, it, :]
             g_1_pt  = g_1[is_, it, :]
@@ -116,18 +115,18 @@ def test_metric_tensor_biorthogonality():
             g__2_dot_g1 = np.dot(g__2_pt, g_1_pt)
 
             assert abs(g__1_dot_g2) < 0.15, \
-                f"g^1·g_2 = {g__1_dot_g2:.3f} at ({is_},{it}), expected ≈0"
+                f"g^1.g_2 = {g__1_dot_g2:.3f} at ({is_},{it}), expected ~0"
             assert abs(g__2_dot_g1) < 0.15, \
-                f"g^2·g_1 = {g__2_dot_g1:.3f} at ({is_},{it}), expected ≈0"
+                f"g^2.g_1 = {g__2_dot_g1:.3f} at ({is_},{it}), expected ~0"
 
             # Diagonal should be near 1
             g__1_dot_g1 = np.dot(g__1_pt, g_1_pt)
             g__2_dot_g2 = np.dot(g__2_pt, g_2_pt)
 
             assert abs(g__1_dot_g1 - 1.0) < 0.15, \
-                f"g^1·g_1 = {g__1_dot_g1:.3f} at ({is_},{it}), expected ≈1"
+                f"g^1.g_1 = {g__1_dot_g1:.3f} at ({is_},{it}), expected ~1"
             assert abs(g__2_dot_g2 - 1.0) < 0.15, \
-                f"g^2·g_2 = {g__2_dot_g2:.3f} at ({is_},{it}), expected ≈1"
+                f"g^2.g_2 = {g__2_dot_g2:.3f} at ({is_},{it}), expected ~1"
 
-            # g^3 · g_3 = (1/R) · R = 1
+            # g^3 . g_3 = (1/R) . R = 1
             assert abs(g__3(R_pt) * g_3(R_pt) - 1.0) < 1e-12

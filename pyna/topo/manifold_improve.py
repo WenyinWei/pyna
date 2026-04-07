@@ -9,7 +9,7 @@ result.
 """
 
 import numpy as np
-from scipy.integrate import solve_ivp
+from pyna.topo._rk4 import rk4_integrate as solve_ivp
 
 
 # ---------------------------------------------------------------------------
@@ -433,7 +433,7 @@ class _AcceleratedManifoldBase(_ManifoldBase):
         return np.array([R_flat[0], Z_flat[0]])
 
 
-class StableManifold(_AcceleratedManifoldBase):
+class StableManifold(_ManifoldBase):
     """Stable manifold of a hyperbolic fixed point.
 
     Uses the cyna backend by default for forward one-turn integration and
@@ -443,7 +443,7 @@ class StableManifold(_AcceleratedManifoldBase):
     _branch = 'stable'
 
 
-class UnstableManifold(_AcceleratedManifoldBase):
+class UnstableManifold(_ManifoldBase):
     """Unstable manifold of a hyperbolic fixed point.
 
     Uses the cyna backend by default for forward one-turn integration and

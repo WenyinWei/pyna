@@ -3,7 +3,9 @@
 #include <pybind11/numpy.h>
 #include <thread>
 #include <stdexcept>
+#include <cmath>
 #include "cyna/poincare.hpp"
+#include "cyna/objectives.hpp"
 
 namespace py = pybind11;
 
@@ -12,6 +14,80 @@ static const double* buf(const py::array_t<double>& a, const char* name) {
     if (!(a.flags() & py::array::c_style))
         throw std::runtime_error(std::string(name) + " must be C-contiguous");
     return a.data();
+}
+
+// ---------------------------------------------------------------------------
+// compute_A_matrix_batch
+// ---------------------------------------------------------------------------
+static py::array_t<double> py_compute_A_matrix_batch(
+    py::array_t<double> R_arr,
+    py::array_t<double> Z_arr,
+    py::array_t<double> phi_arr,
+    py::array_t<double> BR,
+    py::array_t<double> BPhi,
+    py::array_t<double> BZ,
+    py::array_t<double> R_grid,
+    py::array_t<double> Z_grid,
+    py::array_t<double> Phi_grid,
+    double eps)
+{
+    int N    = (int)R_arr.size();
+    int nR   = (int)R_grid.size();
+    int nZ   = (int)Z_grid.size();
+    int nPhi = (int)Phi_grid.size();
+
+    const double* pR    = R_arr.data();
+    const double* pZ    = Z_arr.data();
+    const double* pPhi  = phi_arr.data();
+    const double* pBR   = buf(BR,       "BR");
+    const double* pBPhi = buf(BPhi,     "BPhi");
+    const double* pBZ   = buf(BZ,       "BZ");
+    const double* pRg   = buf(R_grid,   "R_grid");
+    const double* pZg   = buf(Z_grid,   "Z_grid");
+    const double* pPg   = buf(Phi_grid, "Phi_grid");
+
+    // Output: shape (N, 2, 2), C-order
+    py::array_t<double> out({N, 2, 2});
+    double* pOut = out.mutable_data();
+
+    // Lambda: evaluate g = [R*BR/BPhi, R*BZ/BPhi] at (R, Z, phi)
+    auto g_eval = [&](double R, double Z, double phi, double& g0, double& g1) {
+        double bp = cyna::interp3d(pBPhi, pRg, nR, pZg, nZ, pPg, nPhi, R, Z, phi);
+        if (!std::isfinite(bp) || std::abs(bp) < 1e-30) {
+            g0 = std::numeric_limits<double>::quiet_NaN();
+            g1 = std::numeric_limits<double>::quiet_NaN();
+            return;
+        }
+        double br = cyna::interp3d(pBR, pRg, nR, pZg, nZ, pPg, nPhi, R, Z, phi);
+        double bz = cyna::interp3d(pBZ, pRg, nR, pZg, nZ, pPg, nPhi, R, Z, phi);
+        g0 = R * br / bp;
+        g1 = R * bz / bp;
+    };
+
+#ifdef _OPENMP
+    #pragma omp parallel for schedule(static)
+#endif
+    for (int k = 0; k < N; ++k) {
+        double R   = pR[k];
+        double Z   = pZ[k];
+        double phi = pPhi[k];
+
+        double g0Rp, g1Rp, g0Rm, g1Rm;
+        double g0Zp, g1Zp, g0Zm, g1Zm;
+        g_eval(R + eps, Z,       phi, g0Rp, g1Rp);
+        g_eval(R - eps, Z,       phi, g0Rm, g1Rm);
+        g_eval(R,       Z + eps, phi, g0Zp, g1Zp);
+        g_eval(R,       Z - eps, phi, g0Zm, g1Zm);
+
+        double inv2eps = 1.0 / (2.0 * eps);
+        // Row-major: [k,0,0], [k,0,1], [k,1,0], [k,1,1]
+        pOut[k * 4 + 0] = (g0Rp - g0Rm) * inv2eps;  // dg0/dR
+        pOut[k * 4 + 1] = (g0Zp - g0Zm) * inv2eps;  // dg0/dZ
+        pOut[k * 4 + 2] = (g1Rp - g1Rm) * inv2eps;  // dg1/dR
+        pOut[k * 4 + 3] = (g1Zp - g1Zm) * inv2eps;  // dg1/dZ
+    }
+
+    return out;
 }
 
 static py::tuple py_trace_poincare_batch(
@@ -186,6 +262,165 @@ static py::tuple py_trace_poincare_multi(
     // Reshape poi_counts to [N_seeds, n_sec]
     poi_counts.resize({ N_seeds, n_sec });
     return py::make_tuple(poi_counts, poi_R_flat, poi_Z_flat);
+}
+
+static py::tuple py_trace_surface_metrics_batch_twall(
+    py::array_t<double> R_seeds,
+    py::array_t<double> Z_seeds,
+    double R_axis,
+    double Z_axis,
+    double phi_start,
+    int N_turns,
+    double DPhi,
+    py::array_t<double> BR,
+    py::array_t<double> BPhi,
+    py::array_t<double> BZ,
+    py::array_t<double> R_grid,
+    py::array_t<double> Z_grid,
+    py::array_t<double> Phi_grid,
+    py::array_t<double> wall_phi_centers,
+    py::array_t<double> wall_R,
+    py::array_t<double> wall_Z,
+    double fd_eps_R,
+    double fd_eps_Z,
+    double fd_eps_phi,
+    int n_threads)
+{
+    if (n_threads <= 0)
+        n_threads = (int)std::thread::hardware_concurrency();
+    if (wall_R.ndim() != 2 || wall_Z.ndim() != 2)
+        throw std::runtime_error("wall_R and wall_Z must be 2-D arrays [n_phi_wall, n_theta_wall]");
+    if (wall_R.shape(0) != wall_Z.shape(0) || wall_R.shape(1) != wall_Z.shape(1))
+        throw std::runtime_error("wall_R and wall_Z shapes must match");
+    if ((int)wall_phi_centers.size() != (int)wall_R.shape(0))
+        throw std::runtime_error("wall_phi_centers length must equal wall_R.shape[0]");
+
+    int N_seeds = (int)R_seeds.size();
+    int n_phi_wall = (int)wall_R.shape(0);
+    int n_theta_wall = (int)wall_R.shape(1);
+
+    py::array_t<double> iota({N_seeds});
+    py::array_t<double> B_mean({N_seeds});
+    py::array_t<double> B2_mean({N_seeds});
+    py::array_t<double> B_min({N_seeds});
+    py::array_t<double> B_max({N_seeds});
+    py::array_t<double> JxB_mean({N_seeds});
+    py::array_t<double> turns({N_seeds});
+    py::array_t<int> alive({N_seeds});
+
+    cyna::trace_surface_metrics_batch_twall(
+        buf(R_seeds, "R_seeds"), buf(Z_seeds, "Z_seeds"), N_seeds,
+        R_axis, Z_axis, phi_start, N_turns, DPhi,
+        buf(BR, "BR"), buf(BPhi, "BPhi"), buf(BZ, "BZ"),
+        buf(R_grid, "R_grid"), (int)R_grid.size(),
+        buf(Z_grid, "Z_grid"), (int)Z_grid.size(),
+        buf(Phi_grid, "Phi_grid"), (int)Phi_grid.size(),
+        buf(wall_phi_centers, "wall_phi_centers"), n_phi_wall,
+        buf(wall_R, "wall_R"), buf(wall_Z, "wall_Z"), n_theta_wall,
+        fd_eps_R, fd_eps_Z, fd_eps_phi, n_threads,
+        iota.mutable_data(), B_mean.mutable_data(), B2_mean.mutable_data(),
+        B_min.mutable_data(), B_max.mutable_data(), JxB_mean.mutable_data(),
+        turns.mutable_data(), alive.mutable_data());
+
+    return py::make_tuple(iota, B_mean, B2_mean, B_min, B_max, JxB_mean, turns, alive);
+}
+
+static py::tuple py_summarize_profile_objectives(
+    py::array_t<double> r_eff,
+    py::array_t<double> iota,
+    py::array_t<double> B_mean,
+    py::array_t<double> B2_mean,
+    py::array_t<double> B_min,
+    py::array_t<double> B_max,
+    py::array_t<double> JxB_mean,
+    double a_eff)
+{
+    py::ssize_t N = r_eff.size();
+    if (iota.size() != N || B_mean.size() != N || B2_mean.size() != N ||
+        B_min.size() != N || B_max.size() != N || JxB_mean.size() != N)
+        throw std::runtime_error("profile arrays must have identical length");
+
+    double mean_iota_prime = std::numeric_limits<double>::quiet_NaN();
+    double mean_abs_iota_prime = std::numeric_limits<double>::quiet_NaN();
+    double eps_eff = std::numeric_limits<double>::quiet_NaN();
+    double Bvol_avg = std::numeric_limits<double>::quiet_NaN();
+    double beta_max_fast = std::numeric_limits<double>::quiet_NaN();
+    double force_balance = std::numeric_limits<double>::quiet_NaN();
+    double magnetic_pressure = std::numeric_limits<double>::quiet_NaN();
+    double D_Merc_proxy = std::numeric_limits<double>::quiet_NaN();
+    int n_valid = 0;
+
+    cyna::summarize_profile_objectives(
+        buf(r_eff, "r_eff"), buf(iota, "iota"),
+        buf(B_mean, "B_mean"), buf(B2_mean, "B2_mean"),
+        buf(B_min, "B_min"), buf(B_max, "B_max"),
+        buf(JxB_mean, "JxB_mean"), (int)N, a_eff,
+        &mean_iota_prime, &mean_abs_iota_prime, &eps_eff, &Bvol_avg,
+        &beta_max_fast, &force_balance, &magnetic_pressure, &n_valid,
+        &D_Merc_proxy);
+
+    return py::make_tuple(mean_iota_prime, mean_abs_iota_prime, eps_eff, Bvol_avg,
+                          beta_max_fast, force_balance, magnetic_pressure, n_valid,
+                          D_Merc_proxy);
+}
+
+static py::tuple py_trace_poincare_beta_sweep(
+    py::array_t<double> R_seeds,
+    py::array_t<double> Z_seeds,
+    py::array_t<double> phi_sections,
+    int N_turns,
+    double DPhi,
+    py::array_t<double> BR,
+    py::array_t<double> BPhi,
+    py::array_t<double> BZ,
+    py::array_t<double> R_grid,
+    py::array_t<double> Z_grid,
+    py::array_t<double> Phi_grid,
+    py::array_t<double> wall_R,
+    py::array_t<double> wall_Z,
+    double beta,
+    double R_ax,
+    double Z_ax,
+    double a_eff,
+    double alpha_pressure,
+    double B_ref,
+    int n_threads)
+{
+    if (n_threads <= 0)
+        n_threads = (int)std::thread::hardware_concurrency();
+
+    int N_seeds = (int)R_seeds.size();
+    int n_sec   = (int)phi_sections.size();
+    int nR      = (int)R_grid.size();
+    int nZ      = (int)Z_grid.size();
+    int nPhi    = (int)Phi_grid.size();
+    int n_wall  = (int)wall_R.size();
+
+    py::array_t<int>    poi_counts({ N_seeds, n_sec });
+    py::array_t<double> poi_R({ N_seeds, n_sec, N_turns });
+    py::array_t<double> poi_Z({ N_seeds, n_sec, N_turns });
+
+    std::fill(poi_counts.mutable_data(), poi_counts.mutable_data() + N_seeds * n_sec, 0);
+    const double NAN_VAL = std::numeric_limits<double>::quiet_NaN();
+    std::fill(poi_R.mutable_data(), poi_R.mutable_data() + N_seeds * n_sec * N_turns, NAN_VAL);
+    std::fill(poi_Z.mutable_data(), poi_Z.mutable_data() + N_seeds * n_sec * N_turns, NAN_VAL);
+
+    cyna::trace_poincare_beta_sweep(
+        buf(R_seeds, "R_seeds"), buf(Z_seeds, "Z_seeds"), N_seeds,
+        buf(phi_sections, "phi_sections"), n_sec,
+        N_turns, DPhi,
+        buf(BR, "BR"), buf(BPhi, "BPhi"), buf(BZ, "BZ"),
+        buf(R_grid, "R_grid"), nR,
+        buf(Z_grid, "Z_grid"), nZ,
+        buf(Phi_grid, "Phi_grid"), nPhi,
+        buf(wall_R, "wall_R"), buf(wall_Z, "wall_Z"), n_wall,
+        beta, R_ax, Z_ax, a_eff, alpha_pressure, B_ref,
+        n_threads,
+        poi_counts.mutable_data(),
+        poi_R.mutable_data(),
+        poi_Z.mutable_data());
+
+    return py::make_tuple(poi_R, poi_Z, poi_counts);
 }
 
 PYBIND11_MODULE(_cyna_ext, m) {
@@ -407,6 +642,50 @@ PYBIND11_MODULE(_cyna_ext, m) {
         "Returns (R_out, Z_out, residual, converged, DPm[N,4],\n"
         "         eig_r[N,2], eig_i[N,2], point_type[N]).\n"
         "point_type: 1=X-point (|Tr|>2), 0=O-point, -1=not converged.");
+
+    m.def("compute_A_matrix_batch", &py_compute_A_matrix_batch,
+        py::arg("R_arr"), py::arg("Z_arr"), py::arg("phi_arr"),
+        py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
+        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+        py::arg("eps") = 1e-4,
+        "Compute the 2x2 A-matrix at N orbit points using C++ trilinear interpolation.\n"
+        "Returns ndarray of shape (N, 2, 2).\n"
+        "A[k] = [[dg0/dR, dg0/dZ], [dg1/dR, dg1/dZ]] where g=[R*BR/BPhi, R*BZ/BPhi].");
+
+    m.def("trace_surface_metrics_batch_twall", &py_trace_surface_metrics_batch_twall,
+        py::arg("R_seeds"), py::arg("Z_seeds"),
+        py::arg("R_axis"), py::arg("Z_axis"),
+        py::arg("phi_start"), py::arg("N_turns"), py::arg("DPhi"),
+        py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
+        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+        py::arg("wall_phi_centers"), py::arg("wall_R"), py::arg("wall_Z"),
+        py::arg("fd_eps_R") = 1e-4, py::arg("fd_eps_Z") = 1e-4, py::arg("fd_eps_phi") = 1e-4,
+        py::arg("n_threads") = -1,
+        "Trace flux-surface seeds and return per-surface iota, B statistics and JxB metrics.");
+
+    m.def("summarize_profile_objectives", &py_summarize_profile_objectives,
+        py::arg("r_eff"), py::arg("iota"), py::arg("B_mean"), py::arg("B2_mean"),
+        py::arg("B_min"), py::arg("B_max"), py::arg("JxB_mean"), py::arg("a_eff"),
+        "Reduce per-surface metrics to fast Optuna objectives.");
+
+    m.def("trace_poincare_beta_sweep", &py_trace_poincare_beta_sweep,
+        py::arg("R_seeds"), py::arg("Z_seeds"),
+        py::arg("phi_sections"),
+        py::arg("N_turns"), py::arg("DPhi"),
+        py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
+        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+        py::arg("wall_R"), py::arg("wall_Z"),
+        py::arg("beta") = 0.0,
+        py::arg("R_ax") = 0.0,
+        py::arg("Z_ax") = 0.0,
+        py::arg("a_eff") = 0.2,
+        py::arg("alpha_pressure") = 2.0,
+        py::arg("B_ref") = 1.0,
+        py::arg("n_threads") = -1,
+        "Trace Poincare sections for multiple seeds and multiple phi sections\n"
+        "with on-the-fly beta field correction (diamagnetic + Pfirsch-Schluter).\n"
+        "Returns (poi_R[N,n_sec,N_turns], poi_Z[N,n_sec,N_turns], poi_counts[N,n_sec]).\n"
+        "NaN-padded where actual crossing count < N_turns.");
 
     m.def("trace_orbit_along_phi",
         [](double R0, double Z0, double phi0,

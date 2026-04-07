@@ -16,9 +16,8 @@ References:
 
 import warnings
 import numpy as np
-from scipy.integrate import solve_ivp
 import scipy.interpolate as interp
-from scipy.interpolate import interpn
+from scipy.interpolate import interpn, RegularGridInterpolator
 
 
 # ---------------------------------------------------------------------------
@@ -28,15 +27,18 @@ from scipy.interpolate import interpn
 def build_PEST_mesh(
         R, Z, BR0, BZ0, BPhi0, psi_norm, Rmaxis, Zmaxis,
         ns=60, ntheta=181, bdry=None,
-        solve_ivp_kwarg=None):
+        solve_ivp_kwarg=None,
+        dt=0.01,
+        max_q=30):
     """Build a PEST (straight field-line) coordinate mesh (S, θ*, φ).
 
     The algorithm seeds field lines from the midplane (Z = Zmaxis), at
     uniformly spaced radial positions from the magnetic axis to the LCFS,
-    and integrates them in φ until they return to the midplane.  Each
-    field-line traces one iso-S surface.  The PEST poloidal angle θ* is then
-    proportional to the toroidal angle traversed along the field line, so
-    that q(S) = Δφ / (2π) is the safety factor.
+    and traces them with :class:`pyna.flt.FieldLineTracer` until they
+    return to the midplane.  Each field-line traces one iso-S surface.
+    The PEST poloidal angle θ* is then proportional to the toroidal angle
+    traversed along the field line, so that q(S) = Δφ / (2π) is the
+    safety factor.
 
     Parameters
     ----------
@@ -56,8 +58,17 @@ def build_PEST_mesh(
         (R, Z) boundary polygon.  If given the LCFS intersection is found
         via the *intersect* package rather than a spline root.
     solve_ivp_kwarg : dict, optional
-        Keyword arguments forwarded to ``scipy.integrate.solve_ivp``.
-        Defaults to ``{"method": "DOP853", "rtol": 1e-5, "atol": 1e-8}``.
+        .. deprecated::
+            Ignored.  :class:`pyna.flt.FieldLineTracer` is now the sole
+            entry point for field-line tracing.  Pass ``dt`` to control the
+            arc-length step size instead.
+    dt : float, optional
+        Arc-length step size for :class:`pyna.flt.FieldLineTracer`.
+        Default 0.01 (units match R, Z — typically metres).
+    max_q : float, optional
+        Expected maximum safety factor.  Sets the integration arc-length
+        upper bound to ``max_q * 2π * LCFS_R``.  Increase for devices with
+        very high edge q.  Default 30.
 
     Returns
     -------
@@ -70,8 +81,14 @@ def build_PEST_mesh(
     q_iS : ndarray, shape (ns,)
         Safety factor q(S) for each surface (q[0] = NaN for axis).
     """
-    if solve_ivp_kwarg is None:
-        solve_ivp_kwarg = {"method": "DOP853", "rtol": 1e-5, "atol": 1e-8}
+    if solve_ivp_kwarg is not None:
+        warnings.warn(
+            "solve_ivp_kwarg is deprecated and ignored; FieldLineTracer is "
+            "now the sole entry point for field-line tracing.  "
+            "Pass dt= to control the arc-length step size instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     R = np.asarray(R)
     Z = np.asarray(Z)
@@ -99,58 +116,137 @@ def build_PEST_mesh(
     seed_R = np.linspace(Rmaxis, LCFS_R, endpoint=False, num=ns)[1:]
     fcflts_seeds = [np.array([r, Zmaxis]) for r in seed_R]
 
-    # --- Build field-line RHS (integrate in φ, i.e. dR/dφ = R·BR/Bφ) ---
-    Rg, Zg = np.meshgrid(R, Z)
-    B_RZ = interp.LinearNDInterpolator(
-        np.column_stack((Rg.T.flatten(), Zg.T.flatten())),
-        np.column_stack(((R[:, None] * BR0 / BPhi0).flatten(),
-                         (R[:, None] * BZ0 / BPhi0).flatten())))
+    # --- Build FieldLineTracer field function (arc-length parameterisation) ---
+    # f([R, Z, φ]) → [dR/dl, dZ/dl, dφ/dl]  (unit tangent in arc-length).
+    # We use RegularGridInterpolators for each component so that |B| can be
+    # computed and the unit tangent normalised correctly.
+    from pyna.flt import FieldLineTracer
+    _BR_rgi   = RegularGridInterpolator((R, Z), BR0,   method='linear',
+                                        bounds_error=False, fill_value=None)
+    _BZ_rgi   = RegularGridInterpolator((R, Z), BZ0,   method='linear',
+                                        bounds_error=False, fill_value=None)
+    _BPhi_rgi = RegularGridInterpolator((R, Z), BPhi0, method='linear',
+                                        bounds_error=False, fill_value=None)
 
-    def hit_init_horizon(t, y):
-        """Event: field line returns to midplane Z = Zmaxis (from below)."""
-        if t < 0.05:
-            return 0.05
-        return y[1] - Zmaxis
+    # Determine the sign of Bφ at the LCFS midplane so that the integration
+    # always proceeds in the direction of increasing φ (ensuring q > 0).
+    _bphi_sign = 1.0 if float(_BPhi_rgi([[LCFS_R, LCFS_Z]])[0]) >= 0.0 else -1.0
 
-    hit_init_horizon.terminal = True
-    hit_init_horizon.direction = 1.0
+    def _field_func(rzphi):
+        """Unit tangent vector for arc-length field-line tracing.
 
-    # Determine direction of integration
-    if B_RZ(np.array([[LCFS_R, LCFS_Z]]))[0, 1] > 0:
-        rhs = lambda t, y: B_RZ(y)[0, :]
-        q_pos = True
-    else:
-        rhs = lambda t, y: -B_RZ(y)[0, :]
-        q_pos = False
+        Always oriented so that dφ/dl > 0 (φ is monotonically increasing
+        along the trajectory, giving q > 0 by construction).
+        """
+        r, z = rzphi[0], rzphi[1]
+        pt = [[r, z]]
+        br   = float(_BR_rgi(pt)[0])
+        bz   = float(_BZ_rgi(pt)[0])
+        bphi = float(_BPhi_rgi(pt)[0])
+        bmag = np.sqrt(br**2 + bz**2 + bphi**2) + 1e-30
+        s = _bphi_sign / bmag
+        return [s * br, s * bz, s * bphi / (r + 1e-30)]
 
-    # --- Field-line integration ---
-    fcflts_sols = []
+    tracer = FieldLineTracer(_field_func, dt=dt)
+
+    # Upper-bound arc-length: covers safety factors up to max_q.
+    # We use a step-wise trace with early exit at midplane return to avoid
+    # integrating the full upper-bound length when q is small.
+    t_max_flt = max_q * 2.0 * np.pi * LCFS_R
+
+    # Minimum number of steps to skip before looking for the midplane return
+    # (avoids re-triggering at the seed itself — mirrors the old t < 0.05 guard).
+    skip_pts = max(5, int(0.05 * LCFS_R / dt))
+
+    # Chunk size: trace in blocks of ~half-poloidal-turn; stop as soon as the
+    # midplane return is detected.  This avoids allocating max_q full orbits.
+    chunk_steps = max(50, int(np.pi * LCFS_R / dt))  # ≈ half toroidal turn
+    chunk_len   = chunk_steps * dt
+
+    # --- Field-line tracing via FieldLineTracer (with early midplane stop) ---
+    # Each trace returns ndarray (N, 3) with columns [R, Z, φ].
+    fcflts_trajs = []
     for seed in fcflts_seeds:
-        sol = solve_ivp(
-            fun=rhs,
-            t_span=[0.0, 3200 * np.pi],
-            y0=seed,
-            events=hit_init_horizon,
-            dense_output=True,
-            **solve_ivp_kwarg,
-        )
-        fcflts_sols.append(sol)
+        start = np.array([seed[0], seed[1], 0.0])  # φ₀ = 0
+        traj_chunks = []
+        total_pts = 0
+        found = False
 
-    # --- Safety factor q ---
+        while total_pts * dt < t_max_flt:
+            chunk = tracer.trace(start, chunk_len)
+            if total_pts == 0:
+                traj_chunks.append(chunk)
+            else:
+                traj_chunks.append(chunk[1:])  # avoid duplicate start point
+            total_pts += len(chunk) - 1
+
+            # Check for midplane return after skip_pts
+            so_far = np.concatenate(traj_chunks, axis=0)
+            if len(so_far) > skip_pts + 1:
+                Z_rel = so_far[skip_pts:, 1] - Zmaxis
+                cross = np.where((Z_rel[:-1] <= 0.0) & (Z_rel[1:] > 0.0))[0]
+                if len(cross) > 0:
+                    found = True
+                    break
+
+            start = chunk[-1].copy()  # continue from last point
+
+        fcflts_trajs.append(np.concatenate(traj_chunks, axis=0))
+
+    # --- Safety factor q and midplane-crossing detection ---
+    # Find the first return to Z = Zmaxis (Z_rel: ≤0 → >0) after skip_pts.
     q_iS = np.empty(ns)
     q_iS[0] = np.nan
-    for i, sol in enumerate(fcflts_sols):
-        q_iS[i + 1] = sol.t_events[0][0] / (2 * np.pi)
+
+    for i, traj in enumerate(fcflts_trajs):
+        n_pts = len(traj)
+        if n_pts <= skip_pts + 1:
+            warnings.warn(
+                f"Field-line trace for iS={i+1} terminated before returning "
+                "to the midplane — trajectory too short.  "
+                "Try increasing max_q or decreasing dt.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            q_iS[i + 1] = np.nan
+            continue
+
+        Z_rel = traj[skip_pts:, 1] - Zmaxis
+        cross = np.where((Z_rel[:-1] <= 0.0) & (Z_rel[1:] > 0.0))[0]
+        if len(cross) == 0:
+            warnings.warn(
+                f"No midplane return detected for iS={i+1}.  "
+                "Try increasing max_q or decreasing dt.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            q_iS[i + 1] = np.nan
+            continue
+
+        # Linear interpolation to find precise φ at the crossing.
+        ci = cross[0] + skip_pts          # index in full trajectory
+        dZ = traj[ci + 1, 1] - traj[ci, 1]
+        frac = (Zmaxis - traj[ci, 1]) / dZ if abs(dZ) > 1e-30 else 0.0
+        phi_cross = traj[ci, 2] + frac * (traj[ci + 1, 2] - traj[ci, 2])
+        q_iS[i + 1] = phi_cross / (2.0 * np.pi)
 
     # --- Build (R, Z) mesh on PEST grid ---
     TET = np.linspace(0.0, 2 * np.pi, endpoint=True, num=ntheta)
     R_mesh[0, :] = Rmaxis
     Z_mesh[0, :] = Zmaxis
 
-    for i, sol in enumerate(fcflts_sols):
-        RZ_temp = sol.sol(q_iS[i + 1] * TET)
-        R_mesh[i + 1, :] = RZ_temp[0, :]
-        Z_mesh[i + 1, :] = RZ_temp[1, :]
+    for i, traj in enumerate(fcflts_trajs):
+        if np.isnan(q_iS[i + 1]):
+            R_mesh[i + 1, :] = np.nan
+            Z_mesh[i + 1, :] = np.nan
+            continue
+
+        # φ-parameterised interpolation along the traced trajectory.
+        # phi is monotonically increasing (ensured by _bphi_sign).
+        phi_traj = traj[:, 2]
+        phi_targets = q_iS[i + 1] * TET  # 0 → phi_cross
+        R_mesh[i + 1, :] = np.interp(phi_targets, phi_traj, traj[:, 0])
+        Z_mesh[i + 1, :] = np.interp(phi_targets, phi_traj, traj[:, 1])
 
     # --- Compute S = sqrt(ψ_norm) ---
     from scipy.interpolate import RegularGridInterpolator as _RGI
@@ -170,9 +266,6 @@ def build_PEST_mesh(
                 RuntimeWarning,
                 stacklevel=2,
             )
-
-    if not q_pos:
-        q_iS *= -1.0
 
     return S, TET, R_mesh, Z_mesh, q_iS
 

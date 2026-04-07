@@ -13,9 +13,9 @@ from __future__ import annotations
 
 import warnings
 import numpy as np
-from scipy.integrate import solve_ivp
 from typing import Optional, Tuple, Callable
 from dataclasses import dataclass
+from pyna.topo._rk4 import rk4_integrate
 
 
 @dataclass
@@ -134,14 +134,11 @@ def poincare_map_n(
         events.append(hit_boundary)
 
     try:
-        sol = solve_ivp(
+        sol = rk4_integrate(
             rhs,
             (phi0, phi_end),
             [R0, Z0],
-            method="DOP853",
             max_step=dt,
-            rtol=1e-8,
-            atol=1e-9,
             events=events if events else None,
         )
     except Exception:
@@ -151,7 +148,7 @@ def poincare_map_n(
         return float("nan"), float("nan")
 
     # Check if boundary event triggered
-    if events and sol.t_events[0].size > 0:
+    if events and len(sol.t_events) > 0 and sol.t_events[0].size > 0:
         return float("nan"), float("nan")
 
     return float(sol.y[0, -1]), float(sol.y[1, -1])
@@ -186,14 +183,11 @@ def poincare_map_n_trajectory(
         hit_boundary.direction = -1
         events.append(hit_boundary)
 
-    sol = solve_ivp(
+    sol = rk4_integrate(
         rhs,
         (phi0, phi_end),
         [R0, Z0],
-        method="DOP853",
         max_step=dt,
-        rtol=1e-8,
-        atol=1e-9,
         t_eval=t_eval,
         events=events if events else None,
     )

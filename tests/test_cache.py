@@ -93,7 +93,7 @@ def test_A_matrix_returns_2x2(analyzer):
 
 
 def test_A_matrix_same_as_uncached(field_func, analyzer):
-    from pyna.control.fpt import A_matrix as raw_A
+    from pyna.control.FPT import A_matrix as raw_A
     R, Z = 6.2, 0.0
     A_cached = analyzer.A_matrix(R, Z)
     A_raw = raw_A(field_func, R, Z, eps=1e-4)
@@ -104,7 +104,7 @@ def test_A_matrix_is_cached_in_memory(analyzer):
     """Second call must return same object (no recomputation)."""
     A1 = analyzer.A_matrix(6.2, 0.0)
     A2 = analyzer.A_matrix(6.2, 0.0)
-    assert A1 is A2   # exact same object — no copy
+    assert A1 is A2   # exact same object ???no copy
 
 
 def test_A_matrix_call_count(field_func):
@@ -112,7 +112,7 @@ def test_A_matrix_call_count(field_func):
     call_count = [0]
     original_A = None
 
-    from pyna.control import fpt as fpt_module
+    from pyna.control import FPT as fpt_module
     original_A = fpt_module.A_matrix
 
     def counting_A(ff, R, Z, phi=0.0, eps=1e-4):
@@ -122,11 +122,11 @@ def test_A_matrix_call_count(field_func):
     analyzer = CachedFPTAnalyzer(field_func, eq_hash_str='count_test2')
 
     # Pre-populate cache using the real function
-    from pyna.control.fpt import A_matrix as _A
+    from pyna.control.FPT import A_matrix as _A
     key = (round(6.2, 8), round(0.0, 8), round(0.0, 8))
     analyzer._A_cache[key] = _A(field_func, 6.2, 0.0)
 
-    # Now patch — further calls should hit cache and NOT call counting_A
+    # Now patch ???further calls should hit cache and NOT call counting_A
     fpt_module.A_matrix = counting_A
     try:
         for _ in range(5):
@@ -144,7 +144,7 @@ def test_DPm_returns_2x2(analyzer):
 
 
 def test_DPm_same_as_uncached(field_func, analyzer):
-    from pyna.control.fpt import A_matrix as raw_A, DPm_axisymmetric
+    from pyna.control.FPT import A_matrix as raw_A, DPm_axisymmetric
     R, Z = 6.2, 0.0
     DPm_cached = analyzer.DPm(R, Z)
     A = raw_A(field_func, R, Z, eps=1e-4)
@@ -177,7 +177,7 @@ def test_coil_field_correct(analyzer):
 # ─── Tests: cycle_shift ───────────────────────────────────────────────────────
 
 def test_cycle_shift_zero_for_zero_perturbation(analyzer):
-    """Zero perturbation → zero shift."""
+    """Zero perturbation ???zero shift."""
     zero_coil = lambda rzphi: np.zeros(3)
     shift = analyzer.cycle_shift(6.2, 0.0, zero_coil)
     np.testing.assert_allclose(shift, 0.0, atol=1e-10)
@@ -278,3 +278,4 @@ def test_cache_info_returns_dict():
     assert 'total_size_mb' in info
     assert 'n_entries' in info
     assert info['total_size_mb'] >= 0
+

@@ -1,4 +1,4 @@
-# `pyna.control` — Multi-objective Magnetic Topology Control via FPT
+# `pyna.control` �?Multi-objective Magnetic Topology Control via FPT
 
 ## Overview
 
@@ -20,9 +20,9 @@ The fundamental object is the 2×2 Jacobian of the normalised poloidal-to-toroid
 field ratio:
 
 ```
-A = ∂(R·B_pol / B_phi) / ∂(R, Z)
-  = [[∂(R·BR/Bphi)/∂R,  ∂(R·BR/Bphi)/∂Z],
-     [∂(R·BZ/Bphi)/∂R,  ∂(R·BZ/Bphi)/∂Z]]
+A = �?R·B_pol / B_phi) / �?R, Z)
+  = [[�?R·BR/Bphi)/∂R,  �?R·BR/Bphi)/∂Z],
+     [�?R·BZ/Bphi)/∂R,  �?R·BZ/Bphi)/∂Z]]
 ```
 
 Evaluated at an X-point or O-point (the "cycle"), **A encodes all local
@@ -32,7 +32,7 @@ topology**.
 
 | Configuration | Formula | Cost |
 |---------------|---------|------|
-| Axisymmetric (tokamak) | `DPm = exp(2π·A)` | O(1) — exact |
+| Axisymmetric (tokamak) | `DPm = exp(2π·A)` | O(1) �?exact |
 | 3D / RMP tokamak | integrate `dDPm/dφ = [A(φ), DPm]` along orbit | O(N_φ) |
 
 `det(DPm) = 1` (area-preserving / Liouville theorem).
@@ -41,19 +41,19 @@ topology**.
 
 **Cycle shift:**
 ```
-δx_cyc = -A⁻¹ · δg(x_cyc)
+δx_cyc = -A⁻�?· δg(x_cyc)
 where δg = [R·δBR/Bphi - R·BR·δBphi/Bphi², R·δBZ/Bphi - R·BZ·δBphi/Bphi²]
 ```
 
 **DPm change:**
 ```
-δDPm = ∫₀¹ exp(α·2π·A) · δ(2π·A) · exp((1−α)·2π·A) dα
+δDPm = ∫₀¹ exp(α·2π·A) · δ(2π·A) · exp((1−�?·2π·A) dα
 ```
 where `δA = δA_direct + δA_indirect` (local field change + chain-rule via cycle shift).
 
 **Manifold shift:**  linear ODE along the arc ζ:
 ```
-d/dζ (δX^{u/s}) = ±{ δB_pol + ∂B_pol/∂(R,Z) · δX^{u/s} }
+d/dζ (δX^{u/s}) = ±{ δB_pol + ∂B_pol/�?R,Z) · δX^{u/s} }
 ```
 Initial condition: `δX^{u/s}(0) = δx_cyc`.
 
@@ -74,7 +74,7 @@ DPm = exp(2πA): O(1)            dDPm/dφ integrated: O(N_φ)
 δx_cyc: solve 2×2 system        same structure, φ-dependent
 δDPm: 20-point quadrature       same, but A varies
 Manifold shift: Euler along ζ   same
-Total: < 1 ms                   ~ 10 – 100 ms (N_φ ≈ 100–1000)
+Total: < 1 ms                   ~ 10 �?100 ms (N_φ �?100�?000)
 ```
 
 ---
@@ -82,34 +82,34 @@ Total: < 1 ms                   ~ 10 – 100 ms (N_φ ≈ 100–1000)
 ## Multi-objective Control Workflow
 
 ```
-         ┌─────────────────────────────────────────────┐
-         │           pyna.control workflow              │
-         └─────────────────────────────────────────────┘
+         ┌─────────────────────────────────────────────�?
+         �?          pyna.control workflow              �?
+         └─────────────────────────────────────────────�?
 
   Equilibrium                    Coil geometry
   (field_func)                   (coil_field_funcs[k])
-       │                                │
-       ▼                                ▼
+       �?                               �?
+       �?                               �?
   compute_topology_state()     build_response_matrix()
-  ┌───────────────────┐        ┌────────────────────────┐
-  │  TopologyState    │        │  R[n_obs, n_coils]     │
-  │  xpoints, opoints │──────►│  ∂obs_i / ∂I_k         │
-  │  gap_gi, q_samples│        └─────────────┬──────────┘
-  └──────────┬────────┘                      │
-             │  current state                │
-             ▼                               ▼
+  ┌───────────────────�?       ┌────────────────────────�?
+  �? TopologyState    �?       �? R[n_obs, n_coils]     �?
+  �? xpoints, opoints │──────►│  ∂obs_i / ∂I_k         �?
+  �? gap_gi, q_samples�?       └─────────────┬──────────�?
+  └──────────┬────────�?                     �?
+             �? current state                �?
+             �?                              �?
           TopologyController.solve(current, target, R, weights)
-          ┌────────────────────────────────────────────────────┐
-          │  min Σ_i w_i |s_i + R_ij δI_j − t_i|² + λ‖δI‖²  │
-          │  s.t.  I_min ≤ δI ≤ I_max                         │
-          └──────────────────────────────────────────────────┬─┘
-                                                              │
+          ┌────────────────────────────────────────────────────�?
+          �? min Σ_i w_i |s_i + R_ij δI_j �?t_i|² + λ‖δI‖�? �?
+          �? s.t.  I_min �?δI �?I_max                         �?
+          └──────────────────────────────────────────────────┬─�?
+                                                              �?
                                                           δI (optimal)
-                                                              │
-                                                              ▼
+                                                              �?
+                                                              �?
                                                     Apply to coil currents
-                                                    ──► Re-compute state
-                                                    ──► Iterate if needed
+                                                    ──�?Re-compute state
+                                                    ──�?Iterate if needed
 ```
 
 ---
@@ -120,9 +120,9 @@ Total: < 1 ms                   ~ 10 – 100 ms (N_φ ≈ 100–1000)
 |------|---------|
 | `fpt.py` | Core FPT formulae: `A_matrix`, `DPm_axisymmetric`, `cycle_shift`, `DPm_change`, `delta_A_total`, `manifold_shift`, `flux_surface_deformation` |
 | `topology_state.py` | `TopologyState`, `XPointState`, `OPointState`, `SurfaceFate`, `compute_topology_state` |
-| `response_matrix.py` | `build_response_matrix` — assembles ∂state/∂controls |
+| `response_matrix.py` | `build_response_matrix` �?assembles ∂state/∂controls |
 | `optimizer.py` | `TopologyController`, `ControlWeights`, `ControlConstraints` |
-| `surface_fate.py` | `greene_residue`, `classify_surface_fate`, `scan_surface_fates` |
+| `surface_fate.py` | `Greene_residue`, `classify_surface_fate`, `scan_surface_fates` |
 
 ---
 
@@ -133,9 +133,9 @@ area-preserving 2-D dynamical system with fixed points**:
 
 - Replace `field_func` with your Hamiltonian vector field.
 - Replace "coil fields" with your system's control perturbations.
-- `A_matrix` → linearisation of the return map at any fixed point.
-- `DPm_axisymmetric` → period-T linearised map when the system is autonomous.
-- `TopologyController` → generic multi-objective controller for fixed-point
+- `A_matrix` �?linearisation of the return map at any fixed point.
+- `DPm_axisymmetric` �?period-T linearised map when the system is autonomous.
+- `TopologyController` �?generic multi-objective controller for fixed-point
   positions, eigenvalues, and invariant manifold geometry.
 
 ---
@@ -152,7 +152,7 @@ from pyna.control import (
 # 1. Define equilibrium field function
 def field(rzphi):
     R, Z, phi = rzphi
-    # returns [BR/|B|, BZ/|B|, Bphi/(R|B|)]  — your equilibrium here
+    # returns [BR/|B|, BZ/|B|, Bphi/(R|B|)]  �?your equilibrium here
     ...
 
 # 2. Coil perturbation fields (one per coil, per unit current)
@@ -184,7 +184,7 @@ print("Predicted response:", ctrl.predict_response(state, delta_I, R_mat, labels
 ## Example: Stellarator (3D)
 
 ```python
-# Same API — only field_func and DPm differ.
+# Same API �?only field_func and DPm differ.
 # Set is_axisymmetric=False; DPm is computed via ODE integration internally.
 state_3d = compute_topology_state(
     field_3d,
@@ -199,9 +199,9 @@ state_3d = compute_topology_state(
 ## Greene's Residue and Surface Fate
 
 ```python
-from pyna.control import classify_surface_fate, greene_residue
+from pyna.control import classify_surface_fate, Greene_residue
 
-R0 = greene_residue(state.xpoints[0].DPm)
+R0 = Greene_residue(state.xpoints[0].DPm)
 fate = classify_surface_fate(
     iota=op.iota,
     delta_iota=0.001,

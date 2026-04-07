@@ -969,4 +969,204 @@ void trace_orbit_along_phi(
     }
 }
 
+// ---------------------------------------------------------------------------
+// trace_poincare_beta_sweep
+//
+// Like trace_one_seed / trace_poincare_batch but applies a diamagnetic +
+// Pfirsch-Schlüter field correction for finite beta on-the-fly during RK4.
+//
+// Beta correction (evaluated at each sub-step):
+//   mu0 = 4π×10⁻⁷
+//   p0  = beta * B_ref² * (alpha+1) / (2*mu0)
+//   psi_n    = min(((R-R_ax)²+(Z-Z_ax)²)/a_eff², 1)
+//   profile  = (1-psi_n)^alpha
+//   dp_dpsi  = -alpha*(1-psi_n)^(alpha-1)
+//
+//   dBR   = -(mu0*p0/BPhi) * dp_dpsi * 2*(R-R_ax)/a_eff²
+//           + 2*(mu0*p0/B²) * kappa_R * profile          [PS term]
+//   dBZ   = -(mu0*p0/BPhi) * dp_dpsi * 2*(Z-Z_ax)/a_eff²
+//   dBPhi =  (mu0*p0/BPhi) * profile
+//   kappa_R = -(Z-Z_ax) / (sqrt((R-R_ax)²+(Z-Z_ax)²)+eps * R)
+//
+// Output layout (same as trace_poincare_multi / trace_one_seed):
+//   poi_counts[seed*n_sec + s]                          = n crossings
+//   poi_R_flat[seed*N_turns*n_sec + s*N_turns + cnt]    = R
+//   poi_Z_flat[...]                                     = Z
+// ---------------------------------------------------------------------------
+
+static constexpr double BETA_MU0 = 4.0e-7 * M_PI;
+
+static inline void rk4_step_beta(
+    double& R, double& Z, double phi, double dPhi,
+    const double* BR, const double* BPhi, const double* BZ,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi,
+    double beta, double R_ax, double Z_ax, double a_eff,
+    double alpha, double p0)
+{
+    // Effective dR/dphi and dZ/dphi with beta-corrected field
+    auto deriv = [&](double r, double z, double p,
+                     double& dR_out, double& dZ_out) {
+        double bp = interp3d(BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, r, z, p);
+        double br = interp3d(BR,   R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, r, z, p);
+        double bz = interp3d(BZ,   R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, r, z, p);
+
+        if (!std::isfinite(bp) || !std::isfinite(br) || !std::isfinite(bz)
+            || std::abs(bp) < 1e-12) {
+            dR_out = 0.0; dZ_out = 0.0; return;
+        }
+
+        if (beta != 0.0 && p0 != 0.0) {
+            double rR = r - R_ax, rZ = z - Z_ax;
+            double r2 = rR*rR + rZ*rZ;
+            double r_minor = std::sqrt(r2) + 1e-10;
+            double psi_n = std::min(r2 / (a_eff*a_eff), 1.0);
+            double one_m_psi = std::max(1.0 - psi_n, 0.0);
+
+            double profile  = std::pow(one_m_psi, alpha);
+            double dp_dpsi  = (one_m_psi > 0.0)
+                              ? -alpha * std::pow(one_m_psi, alpha - 1.0)
+                              : 0.0;
+
+            double bp_safe = (std::abs(bp) < 1e-12) ? 1e-12 : bp;
+            double B2 = br*br + bp*bp + bz*bz;
+            double B2_safe = (B2 < 1e-12) ? 1e-12 : B2;
+            double inv2a2 = 1.0 / (a_eff*a_eff);
+            double mu0_p0 = BETA_MU0 * p0;
+
+            double dBR_dia = -(mu0_p0 / bp_safe) * dp_dpsi * 2.0 * rR * inv2a2;
+            double dBZ_dia = -(mu0_p0 / bp_safe) * dp_dpsi * 2.0 * rZ * inv2a2;
+            double dBPhi_d =  (mu0_p0 / bp_safe) * profile;
+
+            double kappa_R = -rZ / (r_minor * r);
+            double dBR_PS  = 2.0 * (mu0_p0 / B2_safe) * kappa_R * profile;
+
+            br += dBR_dia + dBR_PS;
+            bz += dBZ_dia;
+            bp += dBPhi_d;
+        }
+
+        if (std::abs(bp) < 1e-12) { dR_out = 0.0; dZ_out = 0.0; return; }
+        dR_out = r * br / bp;
+        dZ_out = r * bz / bp;
+    };
+
+    double k1R, k1Z, k2R, k2Z, k3R, k3Z, k4R, k4Z;
+    deriv(R,                   Z,                   phi,              k1R, k1Z);
+    deriv(R + 0.5*dPhi*k1R,   Z + 0.5*dPhi*k1Z,   phi + 0.5*dPhi,  k2R, k2Z);
+    deriv(R + 0.5*dPhi*k2R,   Z + 0.5*dPhi*k2Z,   phi + 0.5*dPhi,  k3R, k3Z);
+    deriv(R +     dPhi*k3R,   Z +     dPhi*k3Z,   phi +     dPhi,  k4R, k4Z);
+
+    R += dPhi / 6.0 * (k1R + 2*k2R + 2*k3R + k4R);
+    Z += dPhi / 6.0 * (k1Z + 2*k2Z + 2*k3Z + k4Z);
+}
+
+
+static void trace_one_seed_beta(
+    int seed_idx, int /*N_seeds*/,
+    double R0, double Z0, double phi_start,
+    const double* phi_sections, int n_sec,
+    int N_turns, double DPhi,
+    const double* BR, const double* BPhi, const double* BZ,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi,
+    const double* wall_R, const double* wall_Z, int n_wall,
+    double beta, double R_ax, double Z_ax, double a_eff,
+    double alpha, double p0,
+    int* poi_counts,
+    double* poi_R_flat,
+    double* poi_Z_flat)
+{
+    double R = R0, Z = Z0;
+    double phi = phi_start;
+    double phi_end = phi_start + N_turns * 2.0 * M_PI;
+
+    int cnt_base = seed_idx * n_sec;
+    int poi_base = seed_idx * N_turns * n_sec;
+
+    while (phi < phi_end - 1e-12) {
+        double step = std::min(DPhi, phi_end - phi);
+
+        double R_old = R, Z_old = Z, phi_old = phi;
+
+        rk4_step_beta(R, Z, phi, step,
+                      BR, BPhi, BZ,
+                      R_grid, nR, Z_grid, nZ, Phi_grid, nPhi,
+                      beta, R_ax, Z_ax, a_eff, alpha, p0);
+        phi += step;
+
+        if (n_wall > 0 && !point_in_wall(R, Z, wall_R, wall_Z, n_wall))
+            break;
+
+        for (int s = 0; s < n_sec; ++s) {
+            int cnt = poi_counts[cnt_base + s];
+            if (cnt >= N_turns) continue;
+
+            double sec = phi_sections[s];
+            double k_raw = (phi_old - sec) / (2.0 * M_PI);
+            int k = (int)std::ceil(k_raw);
+            if (k_raw == (double)k) k++;
+            double phi_cross = sec + k * 2.0 * M_PI;
+
+            if (phi_cross > phi_old && phi_cross <= phi) {
+                double t = (phi_cross - phi_old) / (phi - phi_old);
+                double R_c = R_old + t * (R - R_old);
+                double Z_c = Z_old + t * (Z - Z_old);
+                poi_R_flat[poi_base + s * N_turns + cnt] = R_c;
+                poi_Z_flat[poi_base + s * N_turns + cnt] = Z_c;
+                poi_counts[cnt_base + s]++;
+            }
+        }
+    }
+}
+
+
+void trace_poincare_beta_sweep(
+    const double* R_seeds, const double* Z_seeds, int N_seeds,
+    const double* phi_sections, int n_sec,
+    int N_turns, double DPhi,
+    const double* BR, const double* BPhi, const double* BZ,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi,
+    const double* wall_R, const double* wall_Z, int n_wall,
+    double beta, double R_ax, double Z_ax, double a_eff,
+    double alpha_pressure, double B_ref,
+    int n_threads,
+    int* poi_counts,
+    double* poi_R_flat,
+    double* poi_Z_flat)
+{
+    if (n_threads <= 0)
+        n_threads = (int)std::thread::hardware_concurrency();
+
+    // Precompute p0
+    double p0 = (beta != 0.0)
+                ? beta * B_ref * B_ref * (alpha_pressure + 1.0) / (2.0 * BETA_MU0)
+                : 0.0;
+
+    // Normalise sections to [0, 2pi)
+    std::vector<double> secs(n_sec);
+    for (int s = 0; s < n_sec; ++s)
+        secs[s] = mod2pi(phi_sections[s]);
+
+    BS::thread_pool pool((unsigned int)n_threads);
+    pool.parallelize_loop(0, N_seeds, [&](int i_start, int i_end) {
+        for (int i = i_start; i < i_end; ++i) {
+            trace_one_seed_beta(
+                i, N_seeds,
+                R_seeds[i], Z_seeds[i], secs[0],
+                secs.data(), n_sec,
+                N_turns, DPhi,
+                BR, BPhi, BZ,
+                R_grid, nR, Z_grid, nZ, Phi_grid, nPhi,
+                wall_R, wall_Z, n_wall,
+                beta, R_ax, Z_ax, a_eff, alpha_pressure, p0,
+                poi_counts, poi_R_flat, poi_Z_flat);
+        }
+    }).wait();
+}
+
 } // namespace cyna

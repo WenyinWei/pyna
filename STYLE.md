@@ -1,4 +1,4 @@
-﻿# pyna Style Guide
+# pyna Style Guide
 
 Language and naming conventions for code, docstrings, notebooks, and documentation.
 All contributors and AI agents should follow these rules.
@@ -14,6 +14,12 @@ even inside `snake_case` identifiers.
 |---|---|---|
 | `biot_savart_field` | `Biot_Savart_field` | Biot & Savart are surnames |
 | `grad_shafranov` | `Grad_Shafranov` | Grad & Shafranov are surnames |
+| `Greene_residue` | `Greene_residue` | Greene is a surname |
+| `gauss_legendre` | `Gauss_Legendre` | Gauss & Legendre are surnames |
+| `coulomb_gauge` | `Coulomb_gauge` | Coulomb is a surname |
+| `ampere_law` | `Ampere_law` | Ampere (Ampère) is a surname |
+| `fourier_transform` | `Fourier_transform` | Fourier is a surname |
+| `laplace_equation` | `Laplace_equation` | Laplace is a surname |
 | `rmp_coils` | `RMP_coils` | RMP = Resonant Magnetic Perturbation (acronym) |
 | `fpt_response` | `FPT_response` | FPT = Field Period Transform (acronym) |
 | `mhd_mode` | `MHD_mode` | MHD = MagnetoHydroDynamics (acronym) |
@@ -27,7 +33,8 @@ even inside `snake_case` identifiers.
 | `iccd_current` | `ICCD_current` | ICCD = Ion Cyclotron Current Drive (acronym) |
 
 **Rule:** If it's an acronym or contains a person's name 鈫?preserve its conventional capitalization
-in both Python identifiers and prose.
+in both Python identifiers and prose. This applies to **all** contexts: module names, function
+names, variable names, class names, docstrings, comments, and notebook prose.
 
 **Backwards compatibility:** This codebase has a single owner. Do **not** add
 lowercase aliases. Rename the function and update **all** call sites immediately.

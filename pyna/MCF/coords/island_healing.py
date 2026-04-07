@@ -133,11 +133,15 @@ def assign_pest_angles_from_orbit(
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Assign PEST angles to all fixed points of an IslandChainOrbit.
 
-    This function correctly accounts for the traversal-order shift:
-    The k-th iterate (in traversal order starting from the seed) has PEST
-    angle θ*_k = θ*_seed + k · (2π n/m) mod 2π.
-
-    The seed point's θ* is estimated from the existing PEST mesh.
+    Each fixed point's θ* is estimated independently from its geometric
+    position on the existing PEST mesh.  This avoids the traversal-order
+    shift formula (θ*_seed + k·2πn/m), which is only valid when the list
+    of fixed points is in field-line traversal order — a condition that
+    ``at_section`` does NOT guarantee (points are typically sorted by R).
+    Using the shift formula on a geometrically-ordered list causes each
+    X/O pair to be assigned mismatched angles, producing the characteristic
+    triangular kink (knot) pointing toward the magnetic axis in the
+    boundary spline.
 
     Parameters
     ----------
@@ -146,7 +150,8 @@ def assign_pest_angles_from_orbit(
         from_single_fixedpoint).  Only fixed points at phi ≈ phi_section
         are used.
     m, n : int
-        Toroidal / poloidal mode numbers.
+        Toroidal / poloidal mode numbers (informational; not used for
+        angle computation in this implementation).
     R_mesh, Z_mesh : ndarray, shape (ns, ntheta)
         Existing PEST mesh.
     TET : ndarray, shape (ntheta,)
@@ -162,7 +167,7 @@ def assign_pest_angles_from_orbit(
     -------
     R_fps : ndarray, shape (m,)  — R positions of all m fixed points at phi_section
     Z_fps : ndarray, shape (m,)  — Z positions
-    theta_fps : ndarray, shape (m,)  — PEST angles (unsorted, in traversal order)
+    theta_fps : ndarray, shape (m,)  — PEST angles (one per point, from geometry)
     kinds : list of str  — 'X' or 'O' for each point
     """
     # Gather fixed points at this section
@@ -173,28 +178,18 @@ def assign_pest_angles_from_orbit(
             "Check that section_phis includes this angle."
         )
 
-    # Estimate θ* of the seed (first fixed point)
-    seed = fps_at_sec[0]
-    theta_seed = _estimate_pest_angle(
-        float(seed.R), float(seed.Z),
-        R_mesh, Z_mesh, TET, Rmaxis, Zmaxis, n_avg=n_avg,
-    )
-
-    # Assign PEST angles in traversal order
-    # traversal step k → θ* = θ*_seed + k * (2π n/m)
-    shift_per_step = 2.0 * np.pi * n / m
-
     R_fps = np.array([fp.R for fp in fps_at_sec])
     Z_fps = np.array([fp.Z for fp in fps_at_sec])
     kinds = [fp.kind for fp in fps_at_sec]
-    n_fp = len(fps_at_sec)
 
-    # The orbit propagation in IslandChainOrbit gives us fixed points
-    # at phi_section from a single seed.  The order in fixed_points
-    # corresponds to increasing phi traversal, which equals traversal order.
+    # Estimate θ* independently for each fixed point from its geometry.
+    # This is safe regardless of the order in which at_section returns points.
     theta_fps = np.array([
-        (theta_seed + k * shift_per_step) % (2 * np.pi)
-        for k in range(n_fp)
+        _estimate_pest_angle(
+            float(R_fps[k]), float(Z_fps[k]),
+            R_mesh, Z_mesh, TET, Rmaxis, Zmaxis, n_avg=n_avg,
+        )
+        for k in range(len(fps_at_sec))
     ])
 
     return R_fps, Z_fps, theta_fps, kinds

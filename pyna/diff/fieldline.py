@@ -204,10 +204,56 @@ class _FieldDifferenatiableRZ:
             raise ValueError("nR, nZ to differentiate in the R,Z axis shall be >= 0.")
 
 from ..flow import FlowCallable
-from scipy.integrate import solve_ivp
+from pyna.topo._rk4 import rk4_integrate as solve_ivp  # retained for variational ODEs
 from functools import reduce
 import operator
 from pyna.fields.cylindrical import VectorField3DCylindrical
+from pyna._cyna import trace_orbit_along_phi as _cyna_trace_orbit
+
+
+def _trace_fieldline_as_sol(R, Z, Phi, BR, BZ, BPhi, t_span, y0):
+    """Trace fieldline using cyna C++ backend; return object with .sol(t).
+
+    Uses pyna._cyna.trace_orbit_along_phi as the sole fieldline tracing
+    entry point (FieldlineTracer policy). Wraps raw arrays in a cubic-spline
+    interpolant so downstream variational ODE code can call sol(t).
+    """
+    from scipy.interpolate import interp1d
+    dPhi = Phi[1] - Phi[0]
+    phi_start = float(t_span[0])
+    phi_span = float(t_span[-1]) - phi_start
+    R0, Z0 = float(y0[0]), float(y0[1])
+
+    BR_flat   = np.ascontiguousarray(BR.ravel(),   dtype=np.float64)
+    BPhi_flat = np.ascontiguousarray(BPhi.ravel(), dtype=np.float64)
+    BZ_flat   = np.ascontiguousarray(BZ.ravel(),   dtype=np.float64)
+    R_g   = np.ascontiguousarray(R,             dtype=np.float64)
+    Z_g   = np.ascontiguousarray(Z,             dtype=np.float64)
+    Phi_g = np.ascontiguousarray(Phi % (2*np.pi), dtype=np.float64)
+
+    R_out, Z_out, Phi_out, _mono, _flags = _cyna_trace_orbit(
+        R0, Z0, phi_start, phi_span, dPhi / 2,
+        1, dPhi / 2, 1e-4,
+        BR_flat, BPhi_flat, BZ_flat, R_g, Z_g, Phi_g,
+    )
+    # Reconstruct monotone Phi covering the full t_span
+    Phi_mono = phi_start + np.cumsum(
+        np.concatenate([[0.0], np.diff(Phi_out) % (2 * np.pi)])
+    )
+    ys = np.vstack([R_out, Z_out])  # shape (2, N)
+    sol_func = interp1d(Phi_mono, ys, axis=1, kind='cubic',
+                        bounds_error=False, fill_value='extrapolate')
+
+    class _Sol:
+        def __init__(self):
+            self.t = Phi_mono
+            self.y = ys
+        def sol(self, t):
+            return sol_func(t)
+
+    return _Sol()
+
+
 def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(afield:VectorField3DCylindrical, t_span, y0, highest_order=1, *arg, **kwarg):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
     
@@ -216,12 +262,9 @@ def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(afield:VectorField3DCylindrical
     RBRdBPhi_field = _FieldDifferenatiableRZ(RBRdBPhi, R, Z, Phi)
     RBZdBPhi_field = _FieldDifferenatiableRZ(RBZdBPhi, R, Z, Phi)
     
-    pflow = FlowCallable([
-        lambda R_, Z_, Phi_: RBRdBPhi_field.diff_RZ_interpolator(0,0)([R_, Z_, Phi_])[0],
-        lambda R_, Z_, Phi_: RBZdBPhi_field.diff_RZ_interpolator(0,0)([R_, Z_, Phi_])[0]
-    ])
     dPhi = Phi[1] - Phi[0]
-    fltsol = solve_ivp(lambda t, y: [lam(*y, t%(2*np.pi) ) for lam in pflow.diff_xi_lambdas()], t_span, y0, max_step=dPhi/2, dense_output=True, *arg, **kwarg) # in case of magneitc field, this is [R*BR/BPhi, R*BZ/BPhi] 
+    # --- FieldlineTracer (cyna C++) entry point ---
+    fltsol = _trace_fieldline_as_sol(R, Z, Phi, BR, BZ, BPhi, t_span, y0)
     XpRpZ_sols = [fltsol]
 
     # Give the lambda function according to a dataframe 
@@ -320,12 +363,9 @@ def partial_XRZ_partial_x0RZ_until_ordk_along_field_line(afield:VectorField3DCyl
     RBRdBPhi_field = _FieldDifferenatiableRZ(RBRdBPhi, R, Z, Phi)
     RBZdBPhi_field = _FieldDifferenatiableRZ(RBZdBPhi, R, Z, Phi)
     
-    pflow = FlowCallable([
-        lambda R_, Z_, Phi_: RBRdBPhi_field.diff_RZ_interpolator(0,0)([R_, Z_, Phi_])[0],
-        lambda R_, Z_, Phi_: RBZdBPhi_field.diff_RZ_interpolator(0,0)([R_, Z_, Phi_])[0]
-    ])
     dPhi = Phi[1] - Phi[0]
-    fltsol = solve_ivp(lambda t, y: [lam(*y, t%(2*np.pi) ) for lam in pflow.diff_xi_lambdas()], t_span, y0, max_step=dPhi, dense_output=True, *arg, **kwarg ) # in case of magneitc field, this is [R*BR/BPhi, R*BZ/BPhi] 
+    # --- FieldlineTracer (cyna C++) entry point ---
+    fltsol = _trace_fieldline_as_sol(R, Z, Phi, BR, BZ, BPhi, t_span, y0)
     XpRpZ_sols = [fltsol,]
     
     t_eval = np.linspace( t_span[0], t_span[1], num=int( (t_span[1]-t_span[0])/ dPhi), endpoint=True)

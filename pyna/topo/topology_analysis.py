@@ -47,7 +47,6 @@ import numpy as np
 from dataclasses import dataclass, field
 from typing import Callable, Dict, List, Optional, Tuple
 
-from scipy.integrate import solve_ivp
 from scipy.interpolate import UnivariateSpline
 
 from pyna.topo.poincare import ToroidalSection, poincare_from_fieldlines
@@ -55,6 +54,7 @@ from pyna.topo.chaos import ftle_field, chaotic_boundary_estimate, chirikov_over
 from pyna.topo.cycle import find_cycle, PeriodicOrbit
 from pyna.topo.island import locate_all_rational_surfaces, island_halfwidth
 from pyna.topo.variational import PoincareMapVariationalEquations
+from pyna.topo._rk4 import rk4_integrate
 
 
 # ---------------------------------------------------------------------------
@@ -391,14 +391,11 @@ def _winding_number(
     # Integrate for n_turns toroidal transits
     phi_end = phi0 + 2 * np.pi * n_turns
     try:
-        sol = solve_ivp(
+        sol = rk4_integrate(
             aug,
             (phi0, phi_end),
             rzphi,
-            method="DOP853",
             max_step=dt,
-            rtol=1e-8,
-            atol=1e-11,
             dense_output=True,
         )
         if not sol.success:
@@ -622,7 +619,7 @@ def analyse_topology(
              f"({ftle_turns} turns)...")
         R_1d = np.linspace(R_range[0], R_range[1], n_ftle_pts)
         Z_1d = np.linspace(Z_range[0], Z_range[1], n_ftle_pts)
-        R_grid, Z_grid = np.meshgrid(R_1d, Z_1d)
+        R_grid, Z_grid = np.meshgrid(R_1d, Z_1d, indexing='ij')
         try:
             ftle_arr = ftle_field(
                 field_func, R_grid, Z_grid,
