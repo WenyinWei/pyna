@@ -129,7 +129,7 @@ class Tube:
         idx = int(np.argmin(np.abs(phi_use - float(phi))))
         return float(R_use[idx]), float(Z_use[idx])
 
-    def section_cut_points(
+    def section_view_points(
         self,
         phi: float,
         *,
@@ -316,7 +316,7 @@ class TubeChain:
             fps.extend(tube.at_section(phi, tol=tol))
         return fps
 
-    def _cut_data(
+    def _section_view_data(
         self,
         phi: float,
         *,
@@ -330,7 +330,7 @@ class TubeChain:
         reconstructed: List[int] = []
 
         for idx, tube in enumerate(self.tubes):
-            cps = tube.section_cut_points(phi, tube_index=idx, tol=tol)
+            cps = tube.section_view_points(phi, tube_index=idx, tol=tol)
             if cps:
                 cut_points.extend(cps)
             else:
