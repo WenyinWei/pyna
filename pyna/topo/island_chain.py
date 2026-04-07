@@ -81,7 +81,7 @@ from __future__ import annotations
 
 import warnings
 from dataclasses import dataclass, field
-from typing import Callable, List, Optional, Sequence
+from typing import Any, Callable, Dict, List, Optional, Sequence
 
 import numpy as np
 from scipy.integrate import solve_ivp
@@ -164,7 +164,7 @@ class ChainFixedPoint:
 
 @dataclass
 class IslandChainOrbit:
-    """All Poincaré-section representatives of one island-chain orbit.
+    """All Poincar?-section representatives of one island-chain orbit.
 
     Attributes
     ----------
@@ -175,13 +175,21 @@ class IslandChainOrbit:
     Np : int
         Field toroidal period (stellarator symmetry).
     fixed_points : list of ChainFixedPoint
-        Fixed points at each requested Poincaré section, in order of
-        increasing φ.  Length = number of requested sections × number of
+        Fixed points at each requested Poincar? section, in order of
+        increasing ?.  Length = number of requested sections ? number of
         chain points per section.
     seed_phi : float
         Toroidal angle of the seed fixed point.
     seed_RZ : tuple
         (R, Z) of the seed fixed point.
+    section_phis : list[float] or None
+        Requested section angles used when the chain was built.
+    orbit_R, orbit_Z, orbit_phi : ndarray or None
+        Optional sampled 3-D orbit data from the cyna propagation step.
+        When present, these arrays expose the toroidal shape of the X/O ring
+        and are included in completeness/debug warnings.
+    orbit_alive : ndarray[bool] or None
+        Alive mask corresponding to ``orbit_R/Z/phi``.
     """
     m: int
     n: int
@@ -189,6 +197,11 @@ class IslandChainOrbit:
     fixed_points: List[ChainFixedPoint]
     seed_phi: float
     seed_RZ: tuple
+    section_phis: Optional[List[float]] = None
+    orbit_R: Optional[np.ndarray] = None
+    orbit_Z: Optional[np.ndarray] = None
+    orbit_phi: Optional[np.ndarray] = None
+    orbit_alive: Optional[np.ndarray] = None
 
     # ------------------------------------------------------------------ #
     # Constructor                                                          #
@@ -314,20 +327,39 @@ class IslandChainOrbit:
             fixed_points=fps,
             seed_phi=phi0,
             seed_RZ=(R0, Z0),
+            section_phis=list(section_phis),
         )
 
     # ------------------------------------------------------------------ #
     # Convenience accessors                                               #
     # ------------------------------------------------------------------ #
 
+    @staticmethod
+    def _phi_distance(phi_a: float, phi_b: float) -> float:
+        """Wrapped angular distance in [0, ?]."""
+        return abs(((float(phi_a) - float(phi_b) + np.pi) % (2 * np.pi)) - np.pi)
+
+    def fixed_points_at_section(self, phi: float, tol: float = 1e-6) -> List[ChainFixedPoint]:
+        """Return fixed points whose stored section matches ``phi`` within ``tol``."""
+        return [fp for fp in self.fixed_points
+                if self._phi_distance(fp.phi, phi) <= tol]
+
     def at_section(self, phi: float, tol: float = 1e-6) -> List[ChainFixedPoint]:
-        """Return fixed points at the section closest to ``phi``."""
+        """Return fixed points at the requested section.
+
+        First tries an exact wrapped-angle match within ``tol``. If no exact
+        match exists, falls back to the nearest stored section for backward
+        compatibility with earlier callers.
+        """
         if not self.fixed_points:
             return []
+        exact = self.fixed_points_at_section(phi, tol=tol)
+        if exact:
+            return exact
         phis = np.array([fp.phi for fp in self.fixed_points])
-        best = float(np.min(np.abs(phis - phi)))
+        best = float(np.min([self._phi_distance(p, phi) for p in phis]))
         return [fp for fp in self.fixed_points
-                if abs(fp.phi - phi) <= best + tol]
+                if self._phi_distance(fp.phi, phi) <= best + tol]
 
     def xpoints(self, phi: Optional[float] = None) -> List[ChainFixedPoint]:
         """All X-points, optionally filtered by section phi."""
@@ -340,18 +372,205 @@ class IslandChainOrbit:
         return [fp for fp in fps if fp.kind == 'O']
 
     def summary(self) -> str:
-        """One-line summary string."""
+        """Human-readable summary of the chain contents."""
         sections = sorted({fp.phi for fp in self.fixed_points})
         lines = [f"IslandChainOrbit  m={self.m}  n={self.n}  Np={self.Np}",
                  f"  Seed: (R={self.seed_RZ[0]:.5f}, Z={self.seed_RZ[1]:.5f})"
                  f"  phi0={self.seed_phi:.4f}"]
         for phi in sections:
-            fps = self.at_section(phi)
+            fps = self.fixed_points_at_section(phi)
             x = [f for f in fps if f.kind == 'X']
             o = [f for f in fps if f.kind == 'O']
             ev = fps[0].eigenvalues if fps else []
             lines.append(f"  phi={phi:.4f}:  {len(x)} X  {len(o)} O"
-                         f"  (eigenvalues ≈ {[f'{v.real:.4f}' for v in ev]})")
+                         f"  (eigenvalues ? {[f'{v.real:.4f}' for v in ev]})")
+        return "\n".join(lines)
+
+    @property
+    def orbit_debug_available(self) -> bool:
+        """Whether raw orbit samples are available for debugging."""
+        return (self.orbit_R is not None and self.orbit_Z is not None and
+                self.orbit_phi is not None)
+
+    def orbit_xyz(self) -> Optional[np.ndarray]:
+        """Return sampled 3-D orbit points as ``(N, 3) = (X, Y, Z)``."""
+        if not self.orbit_debug_available:
+            return None
+        R = np.asarray(self.orbit_R, dtype=float)
+        Z = np.asarray(self.orbit_Z, dtype=float)
+        phi = np.asarray(self.orbit_phi, dtype=float)
+        if self.orbit_alive is not None:
+            alive = np.asarray(self.orbit_alive, dtype=bool)
+            R = R[alive]
+            Z = Z[alive]
+            phi = phi[alive]
+        X = R * np.cos(phi)
+        Y = R * np.sin(phi)
+        return np.column_stack([X, Y, Z])
+
+    def section_count_map(
+        self,
+        requested_phis: Optional[Sequence[float]] = None,
+        tol: float = 1e-6,
+    ) -> Dict[float, int]:
+        """Return the number of fixed points found at each requested section."""
+        if requested_phis is None:
+            requested_phis = self.section_phis or sorted({fp.phi for fp in self.fixed_points})
+        return {
+            float(phi): len(self.fixed_points_at_section(float(phi), tol=tol))
+            for phi in requested_phis
+        }
+
+    def diagnostics(
+        self,
+        requested_phis: Optional[Sequence[float]] = None,
+        tol: float = 1e-6,
+    ) -> Dict[str, Any]:
+        """Return a structured completeness / debug report for the chain."""
+        if requested_phis is None:
+            requested_phis = self.section_phis or sorted({fp.phi for fp in self.fixed_points})
+        requested_phis = [float(phi) for phi in requested_phis]
+        counts = self.section_count_map(requested_phis, tol=tol)
+        missing = [phi for phi, cnt in counts.items() if cnt == 0]
+        multiple = {phi: cnt for phi, cnt in counts.items() if cnt > 1}
+
+        kind_totals = {'X': 0, 'O': 0}
+        section_kind_counts: Dict[float, Dict[str, int]] = {}
+        section_points: Dict[float, List[tuple]] = {}
+        for phi in requested_phis:
+            fps = self.fixed_points_at_section(phi, tol=tol)
+            section_kind_counts[float(phi)] = {
+                'X': sum(fp.kind == 'X' for fp in fps),
+                'O': sum(fp.kind == 'O' for fp in fps),
+            }
+            kind_totals['X'] += section_kind_counts[float(phi)]['X']
+            kind_totals['O'] += section_kind_counts[float(phi)]['O']
+            section_points[float(phi)] = [
+                (float(fp.R), float(fp.Z), fp.kind, float(fp.greene_residue))
+                for fp in fps
+            ]
+
+        mixed_kind = kind_totals['X'] > 0 and kind_totals['O'] > 0
+        dominant_kind = None
+        if kind_totals['X'] > kind_totals['O']:
+            dominant_kind = 'X'
+        elif kind_totals['O'] > kind_totals['X']:
+            dominant_kind = 'O'
+
+        orbit_info: Dict[str, Any] = {'available': False}
+        xyz = self.orbit_xyz()
+        if xyz is not None and len(xyz):
+            phi_raw = np.asarray(self.orbit_phi, dtype=float)
+            R_raw = np.asarray(self.orbit_R, dtype=float)
+            Z_raw = np.asarray(self.orbit_Z, dtype=float)
+            mask = np.isfinite(phi_raw) & np.isfinite(R_raw) & np.isfinite(Z_raw)
+            if self.orbit_alive is not None:
+                mask &= np.asarray(self.orbit_alive, dtype=bool)
+            phi_use = phi_raw[mask]
+            R_use = R_raw[mask]
+            Z_use = Z_raw[mask]
+            orbit_info = {
+                'available': True,
+                'n_samples': int(len(xyz)),
+                'phi_span': (
+                    float(np.min(phi_use)),
+                    float(np.max(phi_use)),
+                ),
+                'R_range': (
+                    float(np.min(R_use)),
+                    float(np.max(R_use)),
+                ),
+                'Z_range': (
+                    float(np.min(Z_use)),
+                    float(np.max(Z_use)),
+                ),
+                'xyz_bbox': (
+                    tuple(np.min(xyz, axis=0).tolist()),
+                    tuple(np.max(xyz, axis=0).tolist()),
+                ),
+            }
+
+        return {
+            'm': int(self.m),
+            'n': int(self.n),
+            'Np': int(self.Np),
+            'seed_phi': float(self.seed_phi),
+            'seed_RZ': tuple(float(v) for v in self.seed_RZ),
+            'n_fixed_points': int(len(self.fixed_points)),
+            'requested_sections': requested_phis,
+            'section_counts': counts,
+            'missing_sections': missing,
+            'multiple_points_sections': multiple,
+            'kind_totals': kind_totals,
+            'dominant_kind': dominant_kind,
+            'mixed_kind': mixed_kind,
+            'section_kind_counts': section_kind_counts,
+            'section_points': section_points,
+            'orbit_info': orbit_info,
+        }
+
+    def is_complete(
+        self,
+        requested_phis: Optional[Sequence[float]] = None,
+        *,
+        expected_kind: Optional[str] = None,
+        expected_count_per_section: int = 1,
+        tol: float = 1e-6,
+    ) -> bool:
+        """Return True if the chain is complete and kind-consistent."""
+        diag = self.diagnostics(requested_phis=requested_phis, tol=tol)
+        if diag['missing_sections']:
+            return False
+        if any(cnt != expected_count_per_section for cnt in diag['section_counts'].values()):
+            return False
+        if expected_kind is not None:
+            if diag['mixed_kind']:
+                return False
+            if diag['dominant_kind'] != expected_kind:
+                return False
+        return True
+
+    def debug_summary(
+        self,
+        requested_phis: Optional[Sequence[float]] = None,
+        *,
+        expected_kind: Optional[str] = None,
+        tol: float = 1e-6,
+    ) -> str:
+        """Return a multi-line diagnostics string for warnings / logs."""
+        diag = self.diagnostics(requested_phis=requested_phis, tol=tol)
+        lines = [
+            f"IslandChainOrbit diagnostics  m={self.m} n={self.n} Np={self.Np}",
+            f"  seed=(R={self.seed_RZ[0]:.5f}, Z={self.seed_RZ[1]:.5f}) phi0={self.seed_phi:.4f}",
+            f"  n_fixed_points={diag['n_fixed_points']}  kind_totals={diag['kind_totals']}  mixed_kind={diag['mixed_kind']}",
+            f"  requested_sections={[round(p, 6) for p in diag['requested_sections']]}",
+            f"  section_counts={{ {', '.join(f'{round(k, 6)}: {v}' for k, v in diag['section_counts'].items())} }}",
+        ]
+        if expected_kind is not None:
+            lines.append(f"  expected_kind={expected_kind}  dominant_kind={diag['dominant_kind']}")
+        if diag['missing_sections']:
+            lines.append(f"  missing_sections={[round(p, 6) for p in diag['missing_sections']]}")
+        if diag['multiple_points_sections']:
+            lines.append(
+                f"  multiple_points_sections={{ {', '.join(f'{round(k, 6)}: {v}' for k, v in diag['multiple_points_sections'].items())} }}"
+            )
+        for phi in diag['requested_sections']:
+            pts = diag['section_points'][float(phi)]
+            if not pts:
+                continue
+            lines.append(
+                f"  phi={phi:.4f}: " + "; ".join(
+                    f"{kind}(R={R:.5f}, Z={Z:.5f}, G={G:.5f})"
+                    for R, Z, kind, G in pts
+                )
+            )
+        orbit_info = diag['orbit_info']
+        if orbit_info.get('available', False):
+            lines.append(
+                f"  orbit_samples={orbit_info['n_samples']}  phi_span={orbit_info['phi_span']}  "
+                f"R_range={orbit_info['R_range']}  Z_range={orbit_info['Z_range']}"
+            )
+            lines.append(f"  xyz_bbox={orbit_info['xyz_bbox']}")
         return "\n".join(lines)
 
     # ------------------------------------------------------------------ #
@@ -563,6 +782,11 @@ class IslandChainOrbit:
             fixed_points=fps,
             seed_phi=phi0,
             seed_RZ=(R0, Z0),
+            section_phis=list(section_phis),
+            orbit_R=np.asarray(R_arr).copy(),
+            orbit_Z=np.asarray(Z_arr).copy(),
+            orbit_phi=np.asarray(phi_arr).copy(),
+            orbit_alive=np.asarray(alive_arr, dtype=bool).copy(),
         )
 
 

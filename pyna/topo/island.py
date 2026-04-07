@@ -22,6 +22,7 @@ References
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import warnings
 from math import gcd
 from typing import Dict, List, Optional
 
@@ -78,6 +79,7 @@ class Island:
     level: int = 1
     parent: Optional[Island] = None
     label: Optional[str] = None
+    debug_info: Dict[str, object] = field(default_factory=dict)
 
     @property
     def period_m(self) -> int:
@@ -271,6 +273,47 @@ class IslandChain:
     def q_rational(self) -> float:
         """Rational safety factor m/n of this chain."""
         return self.m / self.n
+
+    @property
+    def expected_n_islands(self) -> int:
+        """Expected number of O-point islands in a complete chain."""
+        return self.m // gcd(self.m, self.n)
+
+    def completeness_diagnostics(self) -> Dict[str, object]:
+        """Return a lightweight completeness report for this IslandChain."""
+        labels = [isl.label for isl in self.islands]
+        n_x_total = sum(len(isl.X_points) for isl in self.islands)
+        return {
+            'm': int(self.m),
+            'n': int(self.n),
+            'expected_n_islands': int(self.expected_n_islands),
+            'n_islands': int(self.n_islands),
+            'complete': bool(self.n_islands == self.expected_n_islands),
+            'connected': bool(self.connected),
+            'n_subchains': int(len(self.subchains)),
+            'labels': labels,
+            'n_x_total': int(n_x_total),
+        }
+
+    def summary(self) -> str:
+        """Human-readable chain summary with completeness information."""
+        diag = self.completeness_diagnostics()
+        return (
+            f"IslandChain m={self.m} n={self.n} level={self.level}  "
+            f"islands={diag['n_islands']}/{diag['expected_n_islands']}  "
+            f"connected={self.connected}  subchains={diag['n_subchains']}  "
+            f"total_X={diag['n_x_total']}"
+        )
+
+    def warn_if_incomplete(self, prefix: str = "") -> None:
+        """Emit a warning if the chain does not contain all expected islands."""
+        diag = self.completeness_diagnostics()
+        if not diag['complete']:
+            labels = ', '.join(str(x) for x in diag['labels']) if diag['labels'] else '(none)'
+            warnings.warn(
+                f"{prefix}IslandChain incomplete: expected {diag['expected_n_islands']} islands "
+                f"for m/n={self.m}/{self.n}, found {diag['n_islands']}. labels={labels}",
+            )
 
     @classmethod
     def from_fixed_points(
