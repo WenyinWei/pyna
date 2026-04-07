@@ -89,6 +89,32 @@ class SectionView:
                 out.append(pt)
         return out
 
+    def fixed_points(self, dedup_tol: float = 1e-6):
+        """Return unique fixed-point objects carried by this section view."""
+        fps = []
+        seen = []
+        for pt in self.unique_points(dedup_tol=dedup_tol):
+            if pt.fixed_point is None:
+                continue
+            fp = pt.fixed_point
+            if any(np.hypot(fp.R - R0, fp.Z - Z0) < dedup_tol for R0, Z0 in seen):
+                continue
+            seen.append((float(fp.R), float(fp.Z)))
+            fps.append(fp)
+        return fps
+
+    def to_fixed_point_dict(self, dedup_tol: float = 1e-6) -> Dict[str, List[Any]]:
+        """Return a legacy-style ``{'xpts': [...], 'opts': [...]}`` dict."""
+        pts = self.fixed_points(dedup_tol=dedup_tol)
+        kind = (self.kind or '').upper()
+        if kind == 'X':
+            return {'xpts': pts, 'opts': []}
+        if kind == 'O':
+            return {'xpts': [], 'opts': pts}
+        xpts = [fp for fp in pts if getattr(fp, 'kind', None) == 'X']
+        opts = [fp for fp in pts if getattr(fp, 'kind', None) == 'O']
+        return {'xpts': xpts, 'opts': opts}
+
     def diagnostics(self) -> Dict[str, Any]:
         return {
             'phi': float(self.phi),
