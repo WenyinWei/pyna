@@ -28,6 +28,7 @@ from pyna.topo.island_chain import (
     IslandChainOrbit,
     ChainFixedPoint,
 )
+from pyna.topo.tube import Tube, TubeChain
 
 __all__ = [
     "PoincareMapVariationalEquations",
@@ -64,4 +65,7 @@ __all__ = [
     # island chain connectivity
     "IslandChainOrbit",
     "ChainFixedPoint",
+    # continuous-time counterparts
+    "Tube",
+    "TubeChain",
 ]
