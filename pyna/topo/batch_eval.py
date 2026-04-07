@@ -1,4 +1,4 @@
-﻿"""batch_eval.py
+"""batch_eval.py
 ================
 批量并行磁拓扑位型评估框架，用于 HAO 仿星器 dipole/TF 线圈 Optuna 优化。
 
@@ -40,15 +40,12 @@ for _p in (str(TOPOQUEST), str(PYNA)):
 
 # ── default data paths ────────────────────────────────────────────────────────
 _RESP_PATHS = [
-    Path(r"D:\haodata\coilsys\vacuum_fields\dipole_response_matrix_332_fixed.npz"),  # 物理修正版
-    Path(r"C:\Users\Legion\Nutstore\1\haodata\vacuum_fields\dipole_response_matrix_332_fixed.npz"),  # 物理修正版
-    Path(r"D:\haodata\coilsys\vacuum_fields\dipole_response_matrix_332.npz"),
-    Path(r"C:\Users\Legion\Nutstore\1\haodata\vacuum_fields\dipole_response_matrix_332.npz"),
-    Path(r"D:\haodata\coil_vacuum_field_all.npz"),
-    Path(r"D:\haodata\coil_vacuum_field_batch1_dipole.npz"),
-    Path(r"D:\2026Spring\haodata\dipole_response_matrix.npz"),
-    Path(r"D:\haodata\dipole_response_matrix.npz"),
-    TOPOQUEST / "data" / "dipole_response_matrix.npz",
+    Path(r"C:\Users\Legion\Nutstore\1\haodata\vacuum_fields\vacuum_field_dipole_all_332.npz"),
+    Path(r"D:\haodata\coilsys\vacuum_fields\vacuum_field_dipole_all_332.npz"),
+]
+_TF_RESP_PATHS = [
+    Path(r"C:\Users\Legion\Nutstore\1\haodata\vacuum_fields\vacuum_field_tf_all_12.npz"),
+    Path(r"D:\haodata\coilsys\vacuum_fields\vacuum_field_tf_all_12.npz"),
 ]
 _FP_PKL_PATHS = [
     Path(r"D:\haodata\fixed_points_all_sections.pkl"),
@@ -124,11 +121,11 @@ class TopologyCache:
         self.R_axis: float | None = None
         self.Z_axis: float | None = None
 
-        # ── 1. 响应场 ──────────────────────────────────────────────────────
+        # ── 1. 真空场 ──────────────────────────────────────────────────────
         rp = Path(resp_path) if resp_path else _find_path(_RESP_PATHS)
         if rp is None or not rp.exists():
-            raise FileNotFoundError(f"响应场 .npz 未找到，尝试过: {_RESP_PATHS}")
-        self._log(f"加载响应场: {rp} ...")
+            raise FileNotFoundError(f"真空场 .npz 未找到，尝试过: {_RESP_PATHS}")
+        self._log(f"加载真空场: {rp} ...")
         resp = np.load(str(rp))
 
         self.BR_resp   = np.asarray(resp["BR_resp"],   dtype=np.float32)
@@ -285,6 +282,58 @@ class TopologyCache:
                 basis_BR.append(self.BR_resp[ia].sum(axis=0).astype(np.float64))
                 basis_BPhi.append(self.BPhi_resp[ia].sum(axis=0).astype(np.float64))
                 basis_BZ.append(self.BZ_resp[ia].sum(axis=0).astype(np.float64))
+
+        result = {"BR": basis_BR, "BPhi": basis_BPhi, "BZ": basis_BZ}
+        self._group_cache[scheme_name] = result
+        self._log(f"  完成 ({time.time()-t0:.2f}s)")
+        return result
+
+    def precompute_group_basis_design_current(
+        self,
+        groups: list,
+        coil_files: list,
+        scheme_name: str = "custom_design",
+    ) -> dict:
+        """按分组叠加各线圈的设计电流场（T），生成 basis 场。
+
+        与 precompute_group_basis 的区别：
+        - 输入是单线圈 npz 文件列表（新格式，存绝对 Tesla），不是 T/A 响应场
+        - basis['BR'][k] 单位为 T（该组在设计电流下的场之和）
+        - build_field_from_delta_I 里的 delta_I[k] 应为无量纲缩放因子 alpha_k
+          alpha=0 -> 维持设计电流（base field 已包含）
+          alpha=1 -> 该组在设计电流基础上再增加一倍
+          alpha=-1 -> 该组扣除一倍设计电流（等效关掉该组）
+
+        Parameters
+        ----------
+        groups     : K 个组，每组是线圈文件索引列表（对应 coil_files 的顺序）
+        coil_files : 所有单线圈 npz 文件路径列表（与 groups 里的索引对应）
+        scheme_name: 缓存标识符
+        """
+        if scheme_name in self._group_cache:
+            return self._group_cache[scheme_name]
+
+        self._log(f"预计算分组 design-current basis [{scheme_name}]: {len(groups)} 组 ...")
+        t0 = time.time()
+        basis_BR, basis_BPhi, basis_BZ = [], [], []
+        for idx_list in groups:
+            if len(idx_list) == 0:
+                zero = np.zeros(self._shape, dtype=np.float64)
+                basis_BR.append(zero); basis_BPhi.append(zero); basis_BZ.append(zero)
+            else:
+                g_BR   = np.zeros(self._shape, dtype=np.float64)
+                g_BPhi = np.zeros(self._shape, dtype=np.float64)
+                g_BZ   = np.zeros(self._shape, dtype=np.float64)
+                for ci in idx_list:
+                    if coil_files[ci] is None:
+                        continue
+                    d = np.load(str(coil_files[ci]))
+                    g_BR   += np.nan_to_num(d['BR'].astype(np.float64))
+                    g_BPhi += np.nan_to_num(d['BPhi'].astype(np.float64))
+                    g_BZ   += np.nan_to_num(d['BZ'].astype(np.float64))
+                basis_BR.append(g_BR)
+                basis_BPhi.append(g_BPhi)
+                basis_BZ.append(g_BZ)
 
         result = {"BR": basis_BR, "BPhi": basis_BPhi, "BZ": basis_BZ}
         self._group_cache[scheme_name] = result
