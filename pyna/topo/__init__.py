@@ -52,6 +52,8 @@ from pyna.topo.island_chain import (
     IslandChainOrbit,
     ChainFixedPoint,
 )
+from pyna.topo.identity import ResonanceID, TubeID, IslandID
+from pyna.topo.section_view import SectionViewPoint, SectionCorrespondence, SectionView, SectionViewBuilder
 from pyna.topo.tube import TubeCutPoint, SectionCut, Tube, TubeChain, ResonanceSkeleton
 from pyna.plot.island import plot_island, island_section_points
 from pyna.plot.island_chain import plot_island_chain, island_chain_section_points
@@ -114,6 +116,14 @@ __all__ = [
     # island chain connectivity
     "IslandChainOrbit",
     "ChainFixedPoint",
+    # identity / bridge layer
+    "ResonanceID",
+    "TubeID",
+    "IslandID",
+    "SectionViewPoint",
+    "SectionCorrespondence",
+    "SectionView",
+    "SectionViewBuilder",
     # continuous-time resonance geometry
     "TubeCutPoint",
     "SectionCut",

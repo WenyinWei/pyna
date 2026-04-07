@@ -467,6 +467,46 @@ class TubeChain:
             repaired_tube_indices=sorted(set(repaired)),
         )
 
+    def raw_section_view(
+        self,
+        phi: float,
+        *,
+        kind: Optional[str] = None,
+        tol: float = 1e-6,
+        dedup_tol: float = 1e-6,
+    ):
+        """Bridge-layer section view built directly from the raw section cut."""
+        from pyna.topo.section_view import SectionViewBuilder
+        return SectionViewBuilder.from_tubechain(
+            self,
+            phi,
+            kind=kind,
+            reconstruct=False,
+            tol=tol,
+            dedup_tol=dedup_tol,
+        )
+
+    def reconstruct_section_view(
+        self,
+        phi: float,
+        *,
+        kind: Optional[str] = None,
+        tol: float = 1e-6,
+        dedup_tol: float = 1e-6,
+        local_finder: Optional[RepairFinder] = None,
+    ):
+        """Bridge-layer section view reconstructed from tube identity + geometry."""
+        from pyna.topo.section_view import SectionViewBuilder
+        return SectionViewBuilder.from_tubechain(
+            self,
+            phi,
+            kind=kind,
+            reconstruct=True,
+            tol=tol,
+            dedup_tol=dedup_tol,
+            local_finder=local_finder,
+        )
+
     def diagnostics(
         self,
         requested_phis: Optional[Sequence[float]] = None,
@@ -655,6 +695,36 @@ class ResonanceSkeleton:
                 local_finder=x_local_finder,
             )
         return {'O': o_chain, 'X': x_chain}
+
+    def section_view(
+        self,
+        phi: float,
+        *,
+        kind: str = 'O',
+        reconstruct: bool = False,
+        tol: float = 1e-6,
+        dedup_tol: float = 1e-6,
+        o_local_finder: Optional[RepairFinder] = None,
+        x_local_finder: Optional[RepairFinder] = None,
+    ):
+        """Return one bridge-layer section view for the requested kind."""
+        if kind.upper() == 'O':
+            if self.o_tubechain is None:
+                return None
+            if reconstruct:
+                return self.o_tubechain.reconstruct_section_view(
+                    phi, kind='O', tol=tol, dedup_tol=dedup_tol, local_finder=o_local_finder,
+                )
+            return self.o_tubechain.raw_section_view(phi, kind='O', tol=tol, dedup_tol=dedup_tol)
+        if kind.upper() == 'X':
+            if self.x_tubechain is None:
+                return None
+            if reconstruct:
+                return self.x_tubechain.reconstruct_section_view(
+                    phi, kind='X', tol=tol, dedup_tol=dedup_tol, local_finder=x_local_finder,
+                )
+            return self.x_tubechain.raw_section_view(phi, kind='X', tol=tol, dedup_tol=dedup_tol)
+        raise ValueError(f"Unsupported kind={kind!r}; expected 'O' or 'X'")
 
     def diagnostics(self, requested_phis: Optional[Sequence[float]] = None) -> Dict[str, Any]:
         return {
