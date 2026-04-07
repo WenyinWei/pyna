@@ -9,9 +9,17 @@ import numpy as np
 from pyna.topo.identity import ResonanceID, TubeID, IslandID
 from pyna.topo.island import IslandChain
 
+
+def _unique_cut_points(cut_points, dedup_tol: float = 1e-6):
+    out = []
+    for cp in cut_points:
+        if not any(np.hypot(cp.R - keep.R, cp.Z - keep.Z) < dedup_tol for keep in out):
+            out.append(cp)
+    return out
+
 if TYPE_CHECKING:
     from pyna.topo.island_chain import ChainFixedPoint
-    from pyna.topo.tube import TubeChain, _SectionCut, TubeCutPoint
+    from pyna.topo.tube import TubeChain
 
 
 @dataclass
@@ -211,23 +219,17 @@ class SectionViewBuilder:
     ) -> SectionView:
         resonance_id = ResonanceID(m=tubechain.m, n=tubechain.n, Np=tubechain.Np, label=tubechain.label)
         builder = cls(resonance_id=resonance_id)
-        if reconstruct:
-            cut = tubechain._reconstruct_section_cut(
-                phi,
-                tol=tol,
-                dedup_tol=dedup_tol,
-                section_reconstructor=section_reconstructor,
-            )
-        else:
-            cut = tubechain._raw_section_cut(
-                phi,
-                tol=tol,
-                dedup_tol=dedup_tol,
-            )
+        cut = tubechain._cut_data(
+            phi,
+            tol=tol,
+            dedup_tol=dedup_tol,
+            reconstruct=reconstruct,
+            section_reconstructor=section_reconstructor,
+        )
         view_kind = kind or tubechain.kind
-        return builder.from_section_cut(cut, kind=view_kind)
+        return builder.from_cut_data(cut, kind=view_kind)
 
-    def from_section_cut(self, cut: "_SectionCut", *, kind: Optional[str] = None) -> SectionView:
+    def from_cut_data(self, cut: Dict[str, Any], *, kind: Optional[str] = None) -> SectionView:
         points: List[SectionViewPoint] = []
         tube_map: Dict[TubeID, List[int]] = {}
         island_map: Dict[IslandID, List[int]] = {}
@@ -235,10 +237,10 @@ class SectionViewBuilder:
         reconstructed_tube_ids: List[TubeID] = []
 
         # Build point list with stable tube IDs.
-        for idx, cp in enumerate(cut.cut_points):
+        for idx, cp in enumerate(cut['cut_points']):
             tube_id = TubeID(self.resonance_id, int(cp.tube_index), cp.kind or kind)
             pt = SectionViewPoint(
-                phi=float(cut.phi),
+                phi=float(cut['phi']),
                 R=float(cp.R),
                 Z=float(cp.Z),
                 kind=cp.kind or kind,
@@ -254,24 +256,24 @@ class SectionViewBuilder:
                 reconstructed_tube_ids.append(tube_id)
 
         # Assign island IDs by geometric ordering on the unique point set.
-        ordered_unique = sorted(cut.unique_points(), key=lambda cp: (cp.R, cp.Z))
+        ordered_unique = sorted(_unique_cut_points(cut['cut_points']), key=lambda cp: (cp.R, cp.Z))
         for island_idx, cp in enumerate(ordered_unique):
             for j, pt in enumerate(points):
                 if np.hypot(pt.R - cp.R, pt.Z - cp.Z) < 1e-12:
-                    island_id = IslandID(self.resonance_id, float(cut.phi), island_idx, pt.kind)
+                    island_id = IslandID(self.resonance_id, float(cut['phi']), island_idx, pt.kind)
                     pt.island_id = island_id
                     island_map.setdefault(island_id, []).append(j)
 
-        missing_tube_ids = [TubeID(self.resonance_id, idx, kind) for idx in cut.missing_tube_indices]
-        for grp in cut.duplicate_groups:
+        missing_tube_ids = [TubeID(self.resonance_id, idx, kind) for idx in cut['missing_tube_indices']]
+        for grp in cut['duplicate_groups']:
             if not grp:
                 continue
-            first = cut.cut_points[grp[0]]
+            first = cut['cut_points'][grp[0]]
             duplicate_tube_ids.append(TubeID(self.resonance_id, int(first.tube_index), first.kind or kind))
 
         corr = SectionCorrespondence(
             resonance_id=self.resonance_id,
-            phi=float(cut.phi),
+            phi=float(cut['phi']),
             tube_to_point_indices=tube_map,
             island_to_point_indices=island_map,
             missing_tube_ids=missing_tube_ids,
@@ -279,12 +281,12 @@ class SectionViewBuilder:
             reconstructed_tube_ids=sorted(set(reconstructed_tube_ids), key=lambda t: t.tube_index),
         )
         return SectionView(
-            phi=float(cut.phi),
+            phi=float(cut['phi']),
             resonance_id=self.resonance_id,
             points=points,
             kind=kind,
             correspondence=corr,
-            debug_info=dict(cut.debug_info),
+            debug_info=dict(cut.get('debug_info', {})),
         )
 
 

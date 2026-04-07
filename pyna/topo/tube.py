@@ -1,30 +1,19 @@
-"""Continuous-time tube and tube-chain abstractions.
+"""Continuous-time tube and resonance-structure abstractions.
 
-These classes provide the continuous-time counterparts of the discrete
-Poincaré-map objects ``Island`` / ``IslandChain``.
+This module keeps the continuous-time side of the topology model:
+- ``Tube``: one connected periodic orbit / tube
+- ``TubeChain``: one resonance-family collection of tubes
+- ``ResonanceStructure``: paired O/X tube chains for one resonance
 
-Conceptual correspondence
--------------------------
-- ``Tube`` wraps one continuous-time periodic orbit (typically represented in
-  practice by an :class:`~pyna.topo.island_chain.IslandChainOrbit`).
-  Cutting the tube by a Poincaré section produces one discrete fixed point;
-  for an O-type tube this becomes an ``Island`` centre on that section.
-- ``TubeChain`` is a collection of tubes belonging to the same m/n resonance.
-  Cutting the full chain by a Poincaré section produces a discrete
-  ``IslandChain``.
-- ``ResonanceStructure`` bundles the O-type and X-type tube chains of one
-  resonance so that section cuts, discrete chain views, and boundary anchors
-  can be queried from one continuous-time object.
-
-This layer is useful when the continuous-time connectivity is more robust than
-per-section Newton searches: if one section misses an island, the raw 3-D tube
-still exists and can be used to recover / debug the missing discrete point.
+Bridge-layer representations live in :mod:`pyna.topo.section_view`.
+The older ``SectionCut`` staging class has been removed; low-level cut data is
+kept as private dictionaries and is not exposed as a public API concept.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from math import gcd
-from typing import Any, Callable, Dict, List, Optional, Sequence
+from typing import Any, Callable, Dict, List, Optional, Sequence, TYPE_CHECKING
 import warnings
 
 import numpy as np
@@ -32,31 +21,16 @@ import numpy as np
 from pyna.topo.island import Island, IslandChain
 from pyna.topo.island_chain import ChainFixedPoint, IslandChainOrbit
 
+if TYPE_CHECKING:
+    from pyna.topo.section_view import SectionView
+
+
+SectionReconstructor = Callable[[float, "Tube", Sequence["TubeCutPoint"], str], Any]
+
 
 @dataclass
 class TubeCutPoint:
-    """One section-cut point produced by slicing a ``Tube``.
-
-    Attributes
-    ----------
-    tube_index : int
-        Index of the parent tube inside its ``TubeChain``.
-    phi : float
-        Section angle [rad].
-    R, Z : float
-        Section-cut coordinates.
-    kind : str or None
-        O / X classification when known.
-    fixed_point : ChainFixedPoint or None
-        The discrete fixed-point object if this point comes from an actual
-        section cut / refinement.  May be ``None`` for lightweight reconstructed
-        points supplied only as coordinates.
-    source : str
-        ``'exact-cut'`` | ``'reconstructed-missing'`` | ``'reconstructed-duplicate'`` | ...
-    raw_center : tuple or None
-        Nearest raw continuous-time orbit point used as the local reconstruction/debug
-        centre.
-    """
+    """One section-cut point produced by slicing a ``Tube``."""
 
     tube_index: int
     phi: float
@@ -76,70 +50,6 @@ class TubeCutPoint:
 
     def as_array(self) -> np.ndarray:
         return np.array([self.R, self.Z], dtype=float)
-
-
-@dataclass
-class _SectionCut:
-    """Structured section cut of a ``TubeChain`` at one Poincaré angle."""
-
-    phi: float
-    cut_points: List[TubeCutPoint]
-    expected_tube_count: Optional[int] = None
-    missing_tube_indices: List[int] = field(default_factory=list)
-    duplicate_groups: List[List[int]] = field(default_factory=list)
-    reconstructed_tube_indices: List[int] = field(default_factory=list)
-    debug_info: Dict[str, Any] = field(default_factory=dict)
-
-    @property
-    def n_cut_points(self) -> int:
-        return len(self.cut_points)
-
-    @property
-    def unique_tube_indices(self) -> List[int]:
-        return sorted({cp.tube_index for cp in self.cut_points})
-
-    def fixed_points(self) -> List[ChainFixedPoint]:
-        return [cp.fixed_point for cp in self.cut_points if cp.fixed_point is not None]
-
-    def unique_points(self, dedup_tol: float = 1e-6) -> List[TubeCutPoint]:
-        out: List[TubeCutPoint] = []
-        for cp in self.cut_points:
-            if not any(np.hypot(cp.R - keep.R, cp.Z - keep.Z) < dedup_tol for keep in out):
-                out.append(cp)
-        return out
-
-    def diagnostics(self) -> Dict[str, Any]:
-        return {
-            'phi': float(self.phi),
-            'n_cut_points': int(self.n_cut_points),
-            'expected_tube_count': (None if self.expected_tube_count is None
-                                    else int(self.expected_tube_count)),
-            'missing_tube_indices': list(self.missing_tube_indices),
-            'duplicate_groups': [list(g) for g in self.duplicate_groups],
-            'reconstructed_tube_indices': list(self.reconstructed_tube_indices),
-            'sources': [cp.source for cp in self.cut_points],
-            'tube_indices': [int(cp.tube_index) for cp in self.cut_points],
-        }
-
-    def is_complete(self) -> bool:
-        if self.missing_tube_indices:
-            return False
-        if self.duplicate_groups:
-            return False
-        if self.expected_tube_count is not None and len(self.unique_tube_indices) != self.expected_tube_count:
-            return False
-        return True
-
-    def summary(self) -> str:
-        diag = self.diagnostics()
-        return (
-            f"_SectionCut(phi={self.phi:.6f}) n={diag['n_cut_points']} "
-            f"expected={diag['expected_tube_count']} missing={diag['missing_tube_indices']} "
-            f"duplicates={diag['duplicate_groups']} reconstructed={diag['reconstructed_tube_indices']}"
-        )
-
-
-SectionReconstructor = Callable[[float, "Tube", Sequence[TubeCutPoint], str], Any]
 
 
 @dataclass
@@ -196,8 +106,7 @@ class Tube:
 
     def summary(self) -> str:
         kind = self.kind or 'mixed'
-        base = self.orbit.summary()
-        return f"Tube(kind={kind}, label={self.label})\n{base}"
+        return f"Tube(kind={kind}, label={self.label})\n{self.orbit.summary()}"
 
     def orbit_xyz(self) -> Optional[np.ndarray]:
         return self.orbit.orbit_xyz()
@@ -220,14 +129,13 @@ class Tube:
         idx = int(np.argmin(np.abs(phi_use - float(phi))))
         return float(R_use[idx]), float(Z_use[idx])
 
-    def section_cut_point(
+    def section_cut_points(
         self,
         phi: float,
         *,
-        tube_index: int = 0,
+        tube_index: int,
         tol: float = 1e-6,
     ) -> List[TubeCutPoint]:
-        fps = self.at_section(phi, tol=tol)
         raw_center = self.raw_point_near_section(phi)
         return [
             TubeCutPoint(
@@ -240,7 +148,7 @@ class Tube:
                 source="exact-cut",
                 raw_center=raw_center,
             )
-            for fp in fps
+            for fp in self.at_section(phi, tol=tol)
         ]
 
     def _coerce_reconstructed_candidate(
@@ -288,7 +196,7 @@ class Tube:
             )
         raise TypeError(f"Unsupported reconstruction candidate type: {type(candidate)!r}")
 
-    def _reconstruct_section_cut(
+    def _reconstruct_cut_point(
         self,
         phi: float,
         *,
@@ -314,14 +222,13 @@ class Tube:
         label: Optional[str] = None,
         tol: float = 1e-6,
     ) -> Island:
-        """Cut the tube by a section and convert it to a discrete ``Island``."""
         fps = self.at_section(phi, tol=tol)
         if len(fps) != 1:
             raise ValueError(
                 f"Tube.to_island expected exactly 1 section point at phi={phi:.6f}, got {len(fps)}"
             )
         fp = fps[0]
-        isl = Island(
+        return Island(
             period_n=self.m,
             O_point=np.array([fp.R, fp.Z], dtype=float),
             X_points=[] if x_points is None else [np.asarray(x, dtype=float) for x in x_points],
@@ -335,7 +242,6 @@ class Tube:
                 'seed_RZ': tuple(float(v) for v in self.seed_RZ),
             },
         )
-        return isl
 
 
 @dataclass
@@ -396,13 +302,21 @@ class TubeChain:
                 used.update(group)
         return groups
 
+    @staticmethod
+    def _unique_cut_points(cut_points: Sequence[TubeCutPoint], dedup_tol: float = 1e-6) -> List[TubeCutPoint]:
+        out: List[TubeCutPoint] = []
+        for cp in cut_points:
+            if not any(np.hypot(cp.R - keep.R, cp.Z - keep.Z) < dedup_tol for keep in out):
+                out.append(cp)
+        return out
+
     def section_fixed_points(self, phi: float, tol: float = 1e-6) -> List[ChainFixedPoint]:
         fps: List[ChainFixedPoint] = []
         for tube in self.tubes:
             fps.extend(tube.at_section(phi, tol=tol))
         return fps
 
-    def _section_cut(
+    def _cut_data(
         self,
         phi: float,
         *,
@@ -410,13 +324,13 @@ class TubeChain:
         dedup_tol: float = 1e-6,
         reconstruct: bool = False,
         section_reconstructor: Optional[SectionReconstructor] = None,
-    ) -> _SectionCut:
+    ) -> Dict[str, Any]:
         cut_points: List[TubeCutPoint] = []
         missing: List[int] = []
         reconstructed: List[int] = []
 
         for idx, tube in enumerate(self.tubes):
-            cps = tube.section_cut_point(phi, tube_index=idx, tol=tol)
+            cps = tube.section_cut_points(phi, tube_index=idx, tol=tol)
             if cps:
                 cut_points.extend(cps)
             else:
@@ -425,77 +339,45 @@ class TubeChain:
         duplicate_groups = self._duplicate_groups(cut_points, dedup_tol)
 
         if reconstruct and section_reconstructor is not None:
-            # Reconstruct missing tubes first.
             for idx in list(missing):
-                reconstructed_cp = self.tubes[idx]._reconstruct_section_cut(
+                cp = self.tubes[idx]._reconstruct_cut_point(
                     phi,
                     tube_index=idx,
                     section_reconstructor=section_reconstructor,
                     existing_points=cut_points,
                     reason="missing",
                 )
-                if reconstructed_cp is not None:
-                    cut_points.append(reconstructed_cp)
+                if cp is not None:
+                    cut_points.append(cp)
                     reconstructed.append(idx)
                     missing.remove(idx)
 
-            # Then reconstruct duplicate tubes (keep the first member of each duplicate group).
             duplicate_groups = self._duplicate_groups(cut_points, dedup_tol)
             for group in list(duplicate_groups):
-                keep = group[0]
                 for dup_idx in group[1:]:
                     cp_old = cut_points[dup_idx]
-                    reconstructed_cp = self.tubes[cp_old.tube_index]._reconstruct_section_cut(
+                    cp = self.tubes[cp_old.tube_index]._reconstruct_cut_point(
                         phi,
                         tube_index=cp_old.tube_index,
                         section_reconstructor=section_reconstructor,
-                        existing_points=[cp for k, cp in enumerate(cut_points) if k != dup_idx],
+                        existing_points=[c for k, c in enumerate(cut_points) if k != dup_idx],
                         reason="duplicate",
                     )
-                    if reconstructed_cp is not None:
-                        cut_points[dup_idx] = reconstructed_cp
+                    if cp is not None:
+                        cut_points[dup_idx] = cp
                         reconstructed.append(cp_old.tube_index)
 
             duplicate_groups = self._duplicate_groups(cut_points, dedup_tol)
 
-        return _SectionCut(
-            phi=float(phi),
-            cut_points=cut_points,
-            expected_tube_count=int(self.expected_n_tubes),
-            missing_tube_indices=missing,
-            duplicate_groups=duplicate_groups,
-            reconstructed_tube_indices=sorted(set(reconstructed)),
-        )
-
-    def _raw_section_cut(
-        self,
-        phi: float,
-        *,
-        tol: float = 1e-6,
-        dedup_tol: float = 1e-6,
-    ) -> _SectionCut:
-        return self._section_cut(
-            phi,
-            tol=tol,
-            dedup_tol=dedup_tol,
-            reconstruct=False,
-        )
-
-    def _reconstruct_section_cut(
-        self,
-        phi: float,
-        *,
-        tol: float = 1e-6,
-        dedup_tol: float = 1e-6,
-        section_reconstructor: Optional[SectionReconstructor] = None,
-    ) -> _SectionCut:
-        return self._section_cut(
-            phi,
-            tol=tol,
-            dedup_tol=dedup_tol,
-            reconstruct=True,
-            section_reconstructor=section_reconstructor,
-        )
+        return {
+            'phi': float(phi),
+            'cut_points': cut_points,
+            'expected_tube_count': int(self.expected_n_tubes),
+            'missing_tube_indices': missing,
+            'duplicate_groups': duplicate_groups,
+            'reconstructed_tube_indices': sorted(set(reconstructed)),
+            'debug_info': {},
+        }
 
     def raw_section_view(
         self,
@@ -504,8 +386,7 @@ class TubeChain:
         kind: Optional[str] = None,
         tol: float = 1e-6,
         dedup_tol: float = 1e-6,
-    ):
-        """Bridge-layer section view built directly from the raw section cut."""
+    ) -> "SectionView":
         from pyna.topo.section_view import SectionViewBuilder
         return SectionViewBuilder.from_tubechain(
             self,
@@ -524,8 +405,7 @@ class TubeChain:
         tol: float = 1e-6,
         dedup_tol: float = 1e-6,
         section_reconstructor: Optional[SectionReconstructor] = None,
-    ):
-        """Bridge-layer section view reconstructed from tube identity + geometry."""
+    ) -> "SectionView":
         from pyna.topo.section_view import SectionViewBuilder
         return SectionViewBuilder.from_tubechain(
             self,
@@ -537,19 +417,12 @@ class TubeChain:
             section_reconstructor=section_reconstructor,
         )
 
-    def diagnostics(
-        self,
-        requested_phis: Optional[Sequence[float]] = None,
-        tol: float = 1e-6,
-    ) -> Dict[str, Any]:
+    def diagnostics(self, requested_phis: Optional[Sequence[float]] = None, tol: float = 1e-6) -> Dict[str, Any]:
         tube_diags = [tube.diagnostics(requested_phis=requested_phis) for tube in self.tubes]
-        per_section_counts: Dict[float, int] = {}
         if requested_phis is None:
             requested_phis = self.tubes[0].section_phis if self.tubes else []
-        if requested_phis is None:
-            requested_phis = []
-        for phi in requested_phis:
-            per_section_counts[float(phi)] = len(self.section_fixed_points(float(phi), tol=tol))
+        requested_phis = [] if requested_phis is None else requested_phis
+        per_section_counts = {float(phi): len(self.section_fixed_points(float(phi), tol=tol)) for phi in requested_phis}
         return {
             'm': int(self.m),
             'n': int(self.n),
@@ -590,25 +463,41 @@ class TubeChain:
         section_reconstructor: Optional[SectionReconstructor] = None,
         x_section_reconstructor: Optional[SectionReconstructor] = None,
     ) -> IslandChain:
-        """Cut the continuous-time chain by one section and form ``IslandChain``."""
-        sec = self._section_cut(phi, tol=tol, reconstruct=reconstruct, section_reconstructor=section_reconstructor)
-        O_points = [cp.as_array() for cp in sec.unique_points()]
-        X_points: List[np.ndarray] = []
-        if x_tubechain is not None:
-            x_sec = x_tubechain._section_cut(
+        view = (
+            self.reconstruct_section_view(
                 phi,
+                kind=self.kind or 'O',
                 tol=tol,
-                reconstruct=reconstruct,
-                section_reconstructor=x_section_reconstructor,
+                dedup_tol=1e-6,
+                section_reconstructor=section_reconstructor,
             )
-            X_points = [cp.as_array() for cp in x_sec.unique_points()]
-        chain = IslandChain.from_fixed_points(
-            O_points=O_points,
-            X_points=X_points,
-            m=self.m,
-            n=self.n,
-            proximity_tol=proximity_tol,
+            if reconstruct else
+            self.raw_section_view(
+                phi,
+                kind=self.kind or 'O',
+                tol=tol,
+                dedup_tol=1e-6,
+            )
         )
+        x_view = None
+        if x_tubechain is not None:
+            x_view = (
+                x_tubechain.reconstruct_section_view(
+                    phi,
+                    kind=x_tubechain.kind or 'X',
+                    tol=tol,
+                    dedup_tol=1e-6,
+                    section_reconstructor=x_section_reconstructor,
+                )
+                if reconstruct else
+                x_tubechain.raw_section_view(
+                    phi,
+                    kind=x_tubechain.kind or 'X',
+                    tol=tol,
+                    dedup_tol=1e-6,
+                )
+            )
+        chain = view.to_island_chain(x_section_view=x_view, proximity_tol=proximity_tol, dedup_tol=1e-6)
         chain.warn_if_incomplete(prefix="TubeChain.to_island_chain: ")
         return chain
 
@@ -633,41 +522,17 @@ class ResonanceStructure:
         x_orbits: Optional[Sequence[IslandChainOrbit]] = None,
         label: Optional[str] = None,
     ) -> "ResonanceStructure":
-        first = None
-        if o_orbits:
-            first = o_orbits[0]
-        elif x_orbits:
-            first = x_orbits[0]
+        first = o_orbits[0] if o_orbits else (x_orbits[0] if x_orbits else None)
         if first is None:
             raise ValueError("ResonanceStructure.from_orbits requires o_orbits and/or x_orbits")
-        o_chain = TubeChain.from_orbits(o_orbits, expected_kind='O', label='O-tubes') if o_orbits else None
-        x_chain = TubeChain.from_orbits(x_orbits, expected_kind='X', label='X-tubes') if x_orbits else None
         return cls(
             m=first.m,
             n=first.n,
             Np=first.Np,
-            o_tubechain=o_chain,
-            x_tubechain=x_chain,
+            o_tubechain=None if not o_orbits else TubeChain.from_orbits(o_orbits, expected_kind='O', label='O-tubes'),
+            x_tubechain=None if not x_orbits else TubeChain.from_orbits(x_orbits, expected_kind='X', label='X-tubes'),
             label=label,
         )
-
-    def _section_cut(
-        self,
-        phi: float,
-        *,
-        tol: float = 1e-6,
-        reconstruct: bool = False,
-        o_section_reconstructor: Optional[SectionReconstructor] = None,
-        x_section_reconstructor: Optional[SectionReconstructor] = None,
-    ) -> Dict[str, Any]:
-        return {
-            'O': None if self.o_tubechain is None else self.o_tubechain._section_cut(
-                phi, tol=tol, reconstruct=reconstruct, section_reconstructor=o_section_reconstructor,
-            ),
-            'X': None if self.x_tubechain is None else self.x_tubechain._section_cut(
-                phi, tol=tol, reconstruct=reconstruct, section_reconstructor=x_section_reconstructor,
-            ),
-        }
 
     def boundary_anchor_points(
         self,
@@ -678,7 +543,7 @@ class ResonanceStructure:
         o_section_reconstructor: Optional[SectionReconstructor] = None,
         x_section_reconstructor: Optional[SectionReconstructor] = None,
     ) -> List[np.ndarray]:
-        cuts = self.section_views(
+        views = self.section_views(
             phi,
             tol=tol,
             reconstruct=reconstruct,
@@ -687,10 +552,10 @@ class ResonanceStructure:
         )
         anchors: List[np.ndarray] = []
         for key in ('O', 'X'):
-            sec = cuts[key]
-            if sec is None:
+            view = views[key]
+            if view is None:
                 continue
-            anchors.extend([pt.as_array() for pt in sec.unique_points()])
+            anchors.extend([pt.as_array() for pt in view.unique_points()])
         return anchors
 
     def to_island_chains(
@@ -736,7 +601,6 @@ class ResonanceStructure:
         o_section_reconstructor: Optional[SectionReconstructor] = None,
         x_section_reconstructor: Optional[SectionReconstructor] = None,
     ) -> Dict[str, Any]:
-        """Return bridge-layer section views for both O and X chains."""
         return {
             'O': None if self.o_tubechain is None else (
                 self.o_tubechain.reconstruct_section_view(
@@ -766,25 +630,19 @@ class ResonanceStructure:
         dedup_tol: float = 1e-6,
         o_section_reconstructor: Optional[SectionReconstructor] = None,
         x_section_reconstructor: Optional[SectionReconstructor] = None,
-    ):
-        """Return one bridge-layer section view for the requested kind."""
-        if kind.upper() == 'O':
-            if self.o_tubechain is None:
-                return None
-            if reconstruct:
-                return self.o_tubechain.reconstruct_section_view(
-                    phi, kind='O', tol=tol, dedup_tol=dedup_tol, section_reconstructor=o_section_reconstructor,
-                )
-            return self.o_tubechain.raw_section_view(phi, kind='O', tol=tol, dedup_tol=dedup_tol)
-        if kind.upper() == 'X':
-            if self.x_tubechain is None:
-                return None
-            if reconstruct:
-                return self.x_tubechain.reconstruct_section_view(
-                    phi, kind='X', tol=tol, dedup_tol=dedup_tol, section_reconstructor=x_section_reconstructor,
-                )
-            return self.x_tubechain.raw_section_view(phi, kind='X', tol=tol, dedup_tol=dedup_tol)
-        raise ValueError(f"Unsupported kind={kind!r}; expected 'O' or 'X'")
+    ) -> Optional["SectionView"]:
+        views = self.section_views(
+            phi,
+            reconstruct=reconstruct,
+            tol=tol,
+            dedup_tol=dedup_tol,
+            o_section_reconstructor=o_section_reconstructor,
+            x_section_reconstructor=x_section_reconstructor,
+        )
+        kind_up = kind.upper()
+        if kind_up not in ('O', 'X'):
+            raise ValueError(f"Unsupported kind={kind!r}; expected 'O' or 'X'")
+        return views[kind_up]
 
     def diagnostics(self, requested_phis: Optional[Sequence[float]] = None) -> Dict[str, Any]:
         return {
@@ -803,9 +661,4 @@ class ResonanceStructure:
         )
 
 
-__all__ = [
-    "TubeCutPoint",
-    "Tube",
-    "TubeChain",
-    "ResonanceStructure",
-]
+__all__ = ["TubeCutPoint", "Tube", "TubeChain", "ResonanceStructure"]
