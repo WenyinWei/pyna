@@ -12,6 +12,9 @@ Conceptual correspondence
 - ``TubeChain`` is a collection of tubes belonging to the same m/n resonance.
   Cutting the full chain by a Poincaré section produces a discrete
   ``IslandChain``.
+- ``ResonanceSkeleton`` bundles the O-type and X-type tube chains of one
+  resonance so that section cuts, discrete chain views, and boundary anchors
+  can be queried from one continuous-time object.
 
 This layer is useful when the continuous-time connectivity is more robust than
 per-section Newton searches: if one section misses an island, the raw 3-D tube
@@ -21,7 +24,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from math import gcd
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Callable, Dict, List, Optional, Sequence
 import warnings
 
 import numpy as np
@@ -31,19 +34,117 @@ from pyna.topo.island_chain import ChainFixedPoint, IslandChainOrbit
 
 
 @dataclass
-class Tube:
-    """Continuous-time counterpart of one discrete island / fixed-point family.
+class TubeCutPoint:
+    """One section-cut point produced by slicing a ``Tube``.
 
-    Parameters
+    Attributes
     ----------
-    orbit : IslandChainOrbit
-        Underlying continuous-time orbit object.  One tube corresponds to one
-        connected periodic orbit in the 3-D field.
-    label : str, optional
-        Human-readable label.
-    debug_info : dict
-        Additional metadata for diagnostics.
+    tube_index : int
+        Index of the parent tube inside its ``TubeChain``.
+    phi : float
+        Section angle [rad].
+    R, Z : float
+        Section-cut coordinates.
+    kind : str or None
+        O / X classification when known.
+    fixed_point : ChainFixedPoint or None
+        The discrete fixed-point object if this point comes from an actual
+        section cut / refinement.  May be ``None`` for lightweight repaired
+        points supplied only as coordinates.
+    source : str
+        ``'exact-cut'`` | ``'repaired-missing'`` | ``'repaired-duplicate'`` | ...
+    raw_center : tuple or None
+        Nearest raw continuous-time orbit point used as the local repair/debug
+        centre.
     """
+
+    tube_index: int
+    phi: float
+    R: float
+    Z: float
+    kind: Optional[str] = None
+    fixed_point: Optional[ChainFixedPoint] = None
+    source: str = "exact-cut"
+    raw_center: Optional[tuple[float, float]] = None
+    debug_info: Dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def greene_residue(self) -> float:
+        if self.fixed_point is None:
+            return float("nan")
+        return float(self.fixed_point.greene_residue)
+
+    def as_array(self) -> np.ndarray:
+        return np.array([self.R, self.Z], dtype=float)
+
+
+@dataclass
+class SectionCut:
+    """Structured section cut of a ``TubeChain`` at one Poincaré angle."""
+
+    phi: float
+    cut_points: List[TubeCutPoint]
+    expected_tube_count: Optional[int] = None
+    missing_tube_indices: List[int] = field(default_factory=list)
+    duplicate_groups: List[List[int]] = field(default_factory=list)
+    repaired_tube_indices: List[int] = field(default_factory=list)
+    debug_info: Dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def n_cut_points(self) -> int:
+        return len(self.cut_points)
+
+    @property
+    def unique_tube_indices(self) -> List[int]:
+        return sorted({cp.tube_index for cp in self.cut_points})
+
+    def fixed_points(self) -> List[ChainFixedPoint]:
+        return [cp.fixed_point for cp in self.cut_points if cp.fixed_point is not None]
+
+    def unique_points(self, dedup_tol: float = 1e-6) -> List[TubeCutPoint]:
+        out: List[TubeCutPoint] = []
+        for cp in self.cut_points:
+            if not any(np.hypot(cp.R - keep.R, cp.Z - keep.Z) < dedup_tol for keep in out):
+                out.append(cp)
+        return out
+
+    def diagnostics(self) -> Dict[str, Any]:
+        return {
+            'phi': float(self.phi),
+            'n_cut_points': int(self.n_cut_points),
+            'expected_tube_count': (None if self.expected_tube_count is None
+                                    else int(self.expected_tube_count)),
+            'missing_tube_indices': list(self.missing_tube_indices),
+            'duplicate_groups': [list(g) for g in self.duplicate_groups],
+            'repaired_tube_indices': list(self.repaired_tube_indices),
+            'sources': [cp.source for cp in self.cut_points],
+            'tube_indices': [int(cp.tube_index) for cp in self.cut_points],
+        }
+
+    def is_complete(self) -> bool:
+        if self.missing_tube_indices:
+            return False
+        if self.duplicate_groups:
+            return False
+        if self.expected_tube_count is not None and len(self.unique_tube_indices) != self.expected_tube_count:
+            return False
+        return True
+
+    def summary(self) -> str:
+        diag = self.diagnostics()
+        return (
+            f"SectionCut(phi={self.phi:.6f}) n={diag['n_cut_points']} "
+            f"expected={diag['expected_tube_count']} missing={diag['missing_tube_indices']} "
+            f"duplicates={diag['duplicate_groups']} repaired={diag['repaired_tube_indices']}"
+        )
+
+
+RepairFinder = Callable[[float, "Tube", Sequence[TubeCutPoint], str], Any]
+
+
+@dataclass
+class Tube:
+    """Continuous-time counterpart of one discrete island / fixed-point family."""
 
     orbit: IslandChainOrbit
     label: Optional[str] = None
@@ -101,6 +202,109 @@ class Tube:
     def orbit_xyz(self) -> Optional[np.ndarray]:
         return self.orbit.orbit_xyz()
 
+    def raw_point_near_section(self, phi: float) -> Optional[tuple[float, float]]:
+        """Nearest raw propagated orbit point to the requested section angle."""
+        if not self.orbit.orbit_debug_available:
+            return None
+        phi_arr = np.asarray(self.orbit.orbit_phi, dtype=float)
+        R_arr = np.asarray(self.orbit.orbit_R, dtype=float)
+        Z_arr = np.asarray(self.orbit.orbit_Z, dtype=float)
+        mask = np.isfinite(phi_arr) & np.isfinite(R_arr) & np.isfinite(Z_arr)
+        if self.orbit.orbit_alive is not None:
+            mask &= np.asarray(self.orbit.orbit_alive, dtype=bool)
+        if not np.any(mask):
+            return None
+        phi_use = phi_arr[mask]
+        R_use = R_arr[mask]
+        Z_use = Z_arr[mask]
+        idx = int(np.argmin(np.abs(phi_use - float(phi))))
+        return float(R_use[idx]), float(Z_use[idx])
+
+    def section_cut_point(
+        self,
+        phi: float,
+        *,
+        tube_index: int = 0,
+        tol: float = 1e-6,
+    ) -> List[TubeCutPoint]:
+        fps = self.at_section(phi, tol=tol)
+        raw_center = self.raw_point_near_section(phi)
+        return [
+            TubeCutPoint(
+                tube_index=int(tube_index),
+                phi=float(phi),
+                R=float(fp.R),
+                Z=float(fp.Z),
+                kind=fp.kind,
+                fixed_point=fp,
+                source="exact-cut",
+                raw_center=raw_center,
+            )
+            for fp in fps
+        ]
+
+    def _coerce_repair_candidate(
+        self,
+        candidate: Any,
+        *,
+        phi: float,
+        tube_index: int,
+        source: str,
+    ) -> Optional[TubeCutPoint]:
+        raw_center = self.raw_point_near_section(phi)
+        if candidate is None:
+            return None
+        if isinstance(candidate, TubeCutPoint):
+            cp = candidate
+            cp.tube_index = int(tube_index)
+            cp.phi = float(phi)
+            if cp.raw_center is None:
+                cp.raw_center = raw_center
+            cp.source = source
+            if cp.kind is None and cp.fixed_point is not None:
+                cp.kind = cp.fixed_point.kind
+            return cp
+        if isinstance(candidate, ChainFixedPoint):
+            return TubeCutPoint(
+                tube_index=int(tube_index),
+                phi=float(phi),
+                R=float(candidate.R),
+                Z=float(candidate.Z),
+                kind=candidate.kind,
+                fixed_point=candidate,
+                source=source,
+                raw_center=raw_center,
+            )
+        if isinstance(candidate, (tuple, list)) and len(candidate) >= 2:
+            return TubeCutPoint(
+                tube_index=int(tube_index),
+                phi=float(phi),
+                R=float(candidate[0]),
+                Z=float(candidate[1]),
+                kind=self.kind,
+                fixed_point=None,
+                source=source,
+                raw_center=raw_center,
+            )
+        raise TypeError(f"Unsupported repair candidate type: {type(candidate)!r}")
+
+    def repair_section_cut(
+        self,
+        phi: float,
+        *,
+        tube_index: int,
+        local_finder: Optional[RepairFinder],
+        existing_points: Sequence[TubeCutPoint],
+        reason: str,
+    ) -> Optional[TubeCutPoint]:
+        if local_finder is None:
+            return None
+        candidate = local_finder(float(phi), self, existing_points, reason)
+        if isinstance(candidate, list):
+            candidate = candidate[0] if candidate else None
+        source = f"repaired-{reason}"
+        return self._coerce_repair_candidate(candidate, phi=phi, tube_index=tube_index, source=source)
+
     def to_island(
         self,
         phi: float,
@@ -110,12 +314,7 @@ class Tube:
         label: Optional[str] = None,
         tol: float = 1e-6,
     ) -> Island:
-        """Cut the tube by a section and convert it to a discrete ``Island``.
-
-        This is meaningful primarily for O-type tubes.  X-type tubes can still
-        be cut, but the resulting object should usually be used as neighbour
-        information for an O-type island instead.
-        """
+        """Cut the tube by a section and convert it to a discrete ``Island``."""
         fps = self.at_section(phi, tol=tol)
         if len(fps) != 1:
             raise ValueError(
@@ -141,12 +340,7 @@ class Tube:
 
 @dataclass
 class TubeChain:
-    """Continuous-time counterpart of a discrete ``IslandChain``.
-
-    A ``TubeChain`` contains one tube per connected periodic orbit on the same
-    m/n resonance.  Cutting the chain by a Poincaré section produces the full
-    set of discrete fixed points on that section.
-    """
+    """Continuous-time counterpart of a discrete ``IslandChain``."""
 
     m: int
     n: int
@@ -185,11 +379,93 @@ class TubeChain:
     def n_tubes(self) -> int:
         return len(self.tubes)
 
+    @staticmethod
+    def _duplicate_groups(cut_points: Sequence[TubeCutPoint], dedup_tol: float) -> List[List[int]]:
+        groups: List[List[int]] = []
+        used = set()
+        for i, cp in enumerate(cut_points):
+            if i in used:
+                continue
+            group = [i]
+            for j in range(i + 1, len(cut_points)):
+                cp2 = cut_points[j]
+                if np.hypot(cp.R - cp2.R, cp.Z - cp2.Z) < dedup_tol:
+                    group.append(j)
+            if len(group) > 1:
+                groups.append(group)
+                used.update(group)
+        return groups
+
     def section_fixed_points(self, phi: float, tol: float = 1e-6) -> List[ChainFixedPoint]:
         fps: List[ChainFixedPoint] = []
         for tube in self.tubes:
             fps.extend(tube.at_section(phi, tol=tol))
         return fps
+
+    def section_cut(
+        self,
+        phi: float,
+        *,
+        tol: float = 1e-6,
+        dedup_tol: float = 1e-6,
+        repair: bool = False,
+        local_finder: Optional[RepairFinder] = None,
+    ) -> SectionCut:
+        cut_points: List[TubeCutPoint] = []
+        missing: List[int] = []
+        repaired: List[int] = []
+
+        for idx, tube in enumerate(self.tubes):
+            cps = tube.section_cut_point(phi, tube_index=idx, tol=tol)
+            if cps:
+                cut_points.extend(cps)
+            else:
+                missing.append(idx)
+
+        duplicate_groups = self._duplicate_groups(cut_points, dedup_tol)
+
+        if repair and local_finder is not None:
+            # Repair missing tubes first.
+            for idx in list(missing):
+                repaired_cp = self.tubes[idx].repair_section_cut(
+                    phi,
+                    tube_index=idx,
+                    local_finder=local_finder,
+                    existing_points=cut_points,
+                    reason="missing",
+                )
+                if repaired_cp is not None:
+                    cut_points.append(repaired_cp)
+                    repaired.append(idx)
+                    missing.remove(idx)
+
+            # Then repair duplicate tubes (keep the first member of each duplicate group).
+            duplicate_groups = self._duplicate_groups(cut_points, dedup_tol)
+            for group in list(duplicate_groups):
+                keep = group[0]
+                for dup_idx in group[1:]:
+                    cp_old = cut_points[dup_idx]
+                    repaired_cp = self.tubes[cp_old.tube_index].repair_section_cut(
+                        phi,
+                        tube_index=cp_old.tube_index,
+                        local_finder=local_finder,
+                        existing_points=[cp for k, cp in enumerate(cut_points) if k != dup_idx],
+                        reason="duplicate",
+                    )
+                    if repaired_cp is not None:
+                        cut_points[dup_idx] = repaired_cp
+                        repaired.append(cp_old.tube_index)
+
+            duplicate_groups = self._duplicate_groups(cut_points, dedup_tol)
+
+        return SectionCut(
+            phi=float(phi),
+            cut_points=cut_points,
+            expected_tube_count=int(self.expected_n_tubes),
+            missing_tube_indices=missing,
+            duplicate_groups=duplicate_groups,
+            repaired_tube_indices=sorted(set(repaired)),
+        )
 
     def diagnostics(
         self,
@@ -240,19 +516,22 @@ class TubeChain:
         x_tubechain: Optional["TubeChain"] = None,
         proximity_tol: float = 1.0,
         tol: float = 1e-6,
+        repair: bool = False,
+        local_finder: Optional[RepairFinder] = None,
+        x_local_finder: Optional[RepairFinder] = None,
     ) -> IslandChain:
-        """Cut the continuous-time chain by one section and form ``IslandChain``.
-
-        For an O-type tube chain this returns the usual discrete island chain.
-        If an X-type ``x_tubechain`` is supplied, its section cuts are used as
-        candidate X-points when attaching neighbours to each island.
-        """
-        O_points = [np.array([fp.R, fp.Z], dtype=float)
-                    for fp in self.section_fixed_points(phi, tol=tol)]
+        """Cut the continuous-time chain by one section and form ``IslandChain``."""
+        sec = self.section_cut(phi, tol=tol, repair=repair, local_finder=local_finder)
+        O_points = [cp.as_array() for cp in sec.unique_points()]
         X_points: List[np.ndarray] = []
         if x_tubechain is not None:
-            X_points = [np.array([fp.R, fp.Z], dtype=float)
-                        for fp in x_tubechain.section_fixed_points(phi, tol=tol)]
+            x_sec = x_tubechain.section_cut(
+                phi,
+                tol=tol,
+                repair=repair,
+                local_finder=x_local_finder,
+            )
+            X_points = [cp.as_array() for cp in x_sec.unique_points()]
         chain = IslandChain.from_fixed_points(
             O_points=O_points,
             X_points=X_points,
@@ -264,4 +543,140 @@ class TubeChain:
         return chain
 
 
-__all__ = ["Tube", "TubeChain"]
+@dataclass
+class ResonanceSkeleton:
+    """Continuous-time resonance object bundling O/X tube chains and cuts."""
+
+    m: int
+    n: int
+    Np: int
+    o_tubechain: Optional[TubeChain] = None
+    x_tubechain: Optional[TubeChain] = None
+    label: Optional[str] = None
+    debug_info: Dict[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def from_orbits(
+        cls,
+        *,
+        o_orbits: Optional[Sequence[IslandChainOrbit]] = None,
+        x_orbits: Optional[Sequence[IslandChainOrbit]] = None,
+        label: Optional[str] = None,
+    ) -> "ResonanceSkeleton":
+        first = None
+        if o_orbits:
+            first = o_orbits[0]
+        elif x_orbits:
+            first = x_orbits[0]
+        if first is None:
+            raise ValueError("ResonanceSkeleton.from_orbits requires o_orbits and/or x_orbits")
+        o_chain = TubeChain.from_orbits(o_orbits, expected_kind='O', label='O-tubes') if o_orbits else None
+        x_chain = TubeChain.from_orbits(x_orbits, expected_kind='X', label='X-tubes') if x_orbits else None
+        return cls(
+            m=first.m,
+            n=first.n,
+            Np=first.Np,
+            o_tubechain=o_chain,
+            x_tubechain=x_chain,
+            label=label,
+        )
+
+    def section_cut(
+        self,
+        phi: float,
+        *,
+        tol: float = 1e-6,
+        repair: bool = False,
+        o_local_finder: Optional[RepairFinder] = None,
+        x_local_finder: Optional[RepairFinder] = None,
+    ) -> Dict[str, Optional[SectionCut]]:
+        return {
+            'O': None if self.o_tubechain is None else self.o_tubechain.section_cut(
+                phi, tol=tol, repair=repair, local_finder=o_local_finder,
+            ),
+            'X': None if self.x_tubechain is None else self.x_tubechain.section_cut(
+                phi, tol=tol, repair=repair, local_finder=x_local_finder,
+            ),
+        }
+
+    def boundary_anchor_points(
+        self,
+        phi: float,
+        *,
+        tol: float = 1e-6,
+        repair: bool = False,
+        o_local_finder: Optional[RepairFinder] = None,
+        x_local_finder: Optional[RepairFinder] = None,
+    ) -> List[np.ndarray]:
+        cuts = self.section_cut(
+            phi,
+            tol=tol,
+            repair=repair,
+            o_local_finder=o_local_finder,
+            x_local_finder=x_local_finder,
+        )
+        anchors: List[np.ndarray] = []
+        for key in ('O', 'X'):
+            sec = cuts[key]
+            if sec is None:
+                continue
+            anchors.extend([cp.as_array() for cp in sec.unique_points()])
+        return anchors
+
+    def to_island_chains(
+        self,
+        phi: float,
+        *,
+        proximity_tol: float = 1.0,
+        tol: float = 1e-6,
+        repair: bool = False,
+        o_local_finder: Optional[RepairFinder] = None,
+        x_local_finder: Optional[RepairFinder] = None,
+    ) -> Dict[str, Optional[IslandChain]]:
+        o_chain = None
+        x_chain = None
+        if self.o_tubechain is not None:
+            o_chain = self.o_tubechain.to_island_chain(
+                phi,
+                x_tubechain=self.x_tubechain,
+                proximity_tol=proximity_tol,
+                tol=tol,
+                repair=repair,
+                local_finder=o_local_finder,
+                x_local_finder=x_local_finder,
+            )
+        if self.x_tubechain is not None:
+            x_chain = self.x_tubechain.to_island_chain(
+                phi,
+                x_tubechain=None,
+                proximity_tol=proximity_tol,
+                tol=tol,
+                repair=repair,
+                local_finder=x_local_finder,
+            )
+        return {'O': o_chain, 'X': x_chain}
+
+    def diagnostics(self, requested_phis: Optional[Sequence[float]] = None) -> Dict[str, Any]:
+        return {
+            'm': int(self.m),
+            'n': int(self.n),
+            'Np': int(self.Np),
+            'label': self.label,
+            'O': None if self.o_tubechain is None else self.o_tubechain.diagnostics(requested_phis=requested_phis),
+            'X': None if self.x_tubechain is None else self.x_tubechain.diagnostics(requested_phis=requested_phis),
+        }
+
+    def summary(self) -> str:
+        return (
+            f"ResonanceSkeleton(label={self.label}, m={self.m}, n={self.n}, Np={self.Np}, "
+            f"has_O={self.o_tubechain is not None}, has_X={self.x_tubechain is not None})"
+        )
+
+
+__all__ = [
+    "TubeCutPoint",
+    "SectionCut",
+    "Tube",
+    "TubeChain",
+    "ResonanceSkeleton",
+]

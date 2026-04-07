@@ -45,7 +45,7 @@ single X/O-point fully determines the stability of the entire chain.
 In practice (MCF with cached fields)
 -------------------------------------
 The continuous-time integration uses a parallel RK4 (via the cyna C++
-backend when available, or scipy.integrate.solve_ivp as fallback). The
+backend when available, or numpy RK4 as fallback). The
 DX_pol variational equation is integrated simultaneously:
 
     d(DX_pol)/dφ = A(R, Z, φ) · DX_pol,    DX_pol(φ₀) = I
@@ -84,7 +84,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Sequence
 
 import numpy as np
-from scipy.integrate import solve_ivp
+from pyna.topo._rk4 import rk4_integrate
 
 
 # ---------------------------------------------------------------------------
@@ -164,7 +164,7 @@ class ChainFixedPoint:
 
 @dataclass
 class IslandChainOrbit:
-    """All Poincar?-section representatives of one island-chain orbit.
+    """All Poincaré-section representatives of one island-chain orbit.
 
     Attributes
     ----------
@@ -175,21 +175,21 @@ class IslandChainOrbit:
     Np : int
         Field toroidal period (stellarator symmetry).
     fixed_points : list of ChainFixedPoint
-        Fixed points at each requested Poincar? section, in order of
-        increasing ?.  Length = number of requested sections ? number of
+        Fixed points at each requested Poincaré section, in order of
+        increasing φ.  Length = number of requested sections × number of
         chain points per section.
     seed_phi : float
         Toroidal angle of the seed fixed point.
     seed_RZ : tuple
         (R, Z) of the seed fixed point.
-    section_phis : list[float] or None
-        Requested section angles used when the chain was built.
-    orbit_R, orbit_Z, orbit_phi : ndarray or None
-        Optional sampled 3-D orbit data from the cyna propagation step.
-        When present, these arrays expose the toroidal shape of the X/O ring
-        and are included in completeness/debug warnings.
-    orbit_alive : ndarray[bool] or None
-        Alive mask corresponding to ``orbit_R/Z/phi``.
+    role : str or None
+        Optional semantic role label for this orbit (e.g. ``'X'``, ``'O'``,
+        ``'separatrix'``, or any user-defined tag).  Not used internally;
+        provided as a bridge point for semantic/higher-level layers.
+    island_chain : object or None
+        Optional back-reference to a higher-level semantic ``IslandChain``
+        object.  Stored as ``object`` to avoid circular imports; callers
+        may cast to ``pyna.topo.island.IslandChain`` as needed.
     """
     m: int
     n: int
@@ -197,11 +197,29 @@ class IslandChainOrbit:
     fixed_points: List[ChainFixedPoint]
     seed_phi: float
     seed_RZ: tuple
+    role: Optional[str] = None
+    island_chain: Optional[object] = None
     section_phis: Optional[List[float]] = None
     orbit_R: Optional[np.ndarray] = None
     orbit_Z: Optional[np.ndarray] = None
     orbit_phi: Optional[np.ndarray] = None
     orbit_alive: Optional[np.ndarray] = None
+
+    def attach_island_chain(self, chain: object, role: Optional[str] = None) -> None:
+        """Attach a semantic *IslandChain* back-reference to this orbit.
+
+        Parameters
+        ----------
+        chain : IslandChain (or any object)
+            The higher-level semantic chain object.  Stored without type
+            checking to prevent circular imports.
+        role : str, optional
+            Semantic role label (e.g. ``'X'``, ``'O'``).  Updates
+            ``self.role`` if provided.
+        """
+        self.island_chain = chain
+        if role is not None:
+            self.role = role
 
     # ------------------------------------------------------------------ #
     # Constructor                                                          #
@@ -370,6 +388,54 @@ class IslandChainOrbit:
         """All O-points, optionally filtered by section phi."""
         fps = self.at_section(phi) if phi is not None else self.fixed_points
         return [fp for fp in fps if fp.kind == 'O']
+
+    # ------------------------------------------------------------------ #
+    # Connectivity properties                                             #
+    # ------------------------------------------------------------------ #
+
+    @property
+    def n_independent_orbits(self) -> int:
+        """Number of independent field-line trajectories = gcd(m, n).
+
+        For HAO m=10, n=3: gcd=1 → all 10 islands are on one orbit.
+        For W7X m=5, n=5: gcd=5 → 5 disconnected flux tubes.
+        """
+        from math import gcd
+        return gcd(self.m, self.n) if self.n > 0 else 1
+
+    @property
+    def is_connected(self) -> bool:
+        """True when all islands form a single connected orbit (gcd(m,n)==1)."""
+        return self.n_independent_orbits == 1
+
+    @property
+    def n_points_per_orbit(self) -> int:
+        """Number of distinct Poincaré fixed points per independent orbit = m // gcd(m,n)."""
+        return self.m // self.n_independent_orbits
+
+    def visit_sequence(self) -> list:
+        """Return the order in which fixed points are visited by each orbit.
+
+        Returns a list of lists. Each inner list gives the island indices
+        (0-based, into the fixed_points at a single phi section) visited
+        by one independent orbit.
+
+        For a connected chain (gcd=1), returns [[0, n_step, 2*n_step, ...] mod m].
+        For disconnected chains, returns [[0], [1], ..., [gcd-1]].
+
+        Examples
+        --------
+        HAO m=10, n=3: [[0, 3, 6, 9, 2, 5, 8, 1, 4, 7]]
+        W7X m=5, n=5: [[0], [1], [2], [3], [4]]
+        6/4 chain:    [[0, 2, 4], [1, 3, 5]]
+        """
+        n_step = self.n // self.n_independent_orbits
+        m_per_orbit = self.n_points_per_orbit
+        orbits = []
+        for start in range(self.n_independent_orbits):
+            orbit = [(start + k * n_step) % self.m for k in range(m_per_orbit)]
+            orbits.append(orbit)
+        return orbits
 
     def summary(self) -> str:
         """Human-readable summary of the chain contents."""
@@ -694,18 +760,30 @@ class IslandChainOrbit:
         dphi_out = float(min(np.diff(s_sorted))) if len(s_sorted) > 1 else float(2 * np.pi / Np)
 
         # ── cyna orbit propagation ────────────────────────────────────
-        # Returns (R_arr, Z_arr, phi_arr, DPm_arr[N,4], alive_arr)
-        R_arr, Z_arr, phi_arr, DPm_arr, alive_arr = trace_orbit_along_phi(
-            float(R0), float(Z0), float(phi0),
-            float(phi_span), float(dphi_out),
-            int(m), float(DPhi), float(fd_eps),
-            BR_c, BPhi_c, BZ_c, Rg, Zg, Pg,
-        )
-        R_arr   = np.asarray(R_arr)
-        Z_arr   = np.asarray(Z_arr)
-        phi_arr = np.asarray(phi_arr)
-        DPm_arr = np.asarray(DPm_arr)   # shape (N, 4)
-        alive_arr = np.asarray(alive_arr, dtype=bool)
+        # Direct C++ binding (pyna._cyna.trace_orbit_along_phi), 14-arg signature:
+        # (R0, Z0, phi0, phi_span, dphi_out, n_turns_DPm, DPhi, fd_eps,
+        #  BR, BPhi, BZ, R_grid, Z_grid, Phi_grid) -> (R, Z, phi, DPm_flat, alive)
+        # MCF convention: BR, BZ, BPhi (polar first, toroidal last).
+        # Note: cyna ABI ordering is BR, BPhi, BZ (not BR, BZ, BPhi).
+        # Python wrapper in pyna.MCF.flt has a different (older) 11-arg signature.
+        try:
+            import pyna._cyna as _cyna_direct
+            _raw = _cyna_direct.trace_orbit_along_phi(
+                float(R0), float(Z0), float(phi0),
+                float(phi_span), float(dphi_out),
+                int(m), float(DPhi), float(fd_eps),
+                BR_c, BPhi_c, BZ_c, Rg, Zg, Pg,
+            )
+            R_arr     = np.asarray(_raw[0])
+            Z_arr     = np.asarray(_raw[1])
+            phi_arr   = np.asarray(_raw[2])
+            DPm_arr   = np.asarray(_raw[3])   # shape (N, 4)
+            alive_arr = np.asarray(_raw[4], dtype=bool)
+        except Exception as exc:
+            raise RuntimeError(
+                f"pyna._cyna.trace_orbit_along_phi failed: {exc}. "
+                "Ensure cyna is built and field_cache has correct shape."
+            ) from exc
 
         # ── DPm seed (at phi0): compute via find_fixed_points_batch FD ─
         #    (5-point FD in batch, very fast)
@@ -834,8 +912,7 @@ def _compute_DPm_at_seed(
         return np.concatenate([dRZ, dDX.ravel()])
 
     y0 = np.array([R0, Z0, 1., 0., 0., 1.])   # DX_pol = I
-    sol = solve_ivp(rhs, (phi0, phi_end), y0,
-                    method='DOP853', max_step=dt, rtol=rtol, atol=atol)
+    sol = rk4_integrate(rhs, (phi0, phi_end), y0, max_step=dt)
     if not sol.success:
         warnings.warn(f"DPm seed integration failed: {sol.message}")
     return sol.y[2:6, -1].reshape(2, 2)
@@ -884,9 +961,7 @@ def _propagate_chain(
     # Integrate with t_eval at the target sections only (much cheaper than dense_output)
     y0 = np.array([R0, Z0, 1., 0., 0., 1.])
     t_eval_arr = np.array(sorted(set([phi0] + abs_targets + [phi_end])))
-    sol = solve_ivp(rhs, (phi0, phi_end), y0,
-                    method='DOP853', max_step=dt, rtol=rtol, atol=atol,
-                    t_eval=t_eval_arr)
+    sol = rk4_integrate(rhs, (phi0, phi_end), y0, max_step=dt, t_eval=t_eval_arr)
     if not sol.success:
         warnings.warn(f"Chain propagation integration failed: {sol.message}")
 
@@ -935,8 +1010,7 @@ def _poincare_map_m(
     def rhs(phi, rz):
         return _field_direction_phi(field_func, rz[0], rz[1], phi)
 
-    sol = solve_ivp(rhs, (phi0, phi_end), [R0, Z0],
-                    method='DOP853', max_step=dt, rtol=1e-9, atol=1e-10)
+    sol = rk4_integrate(rhs, (phi0, phi_end), [R0, Z0], max_step=dt)
     if not sol.success or len(sol.y[0]) == 0:
         return float('nan'), float('nan')
     return float(sol.y[0, -1]), float(sol.y[1, -1])

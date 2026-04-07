@@ -21,13 +21,30 @@ References
 """
 from __future__ import annotations
 
+from __future__ import annotations
+
+import enum
 from dataclasses import dataclass, field
 import warnings
 from math import gcd
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 import numpy as np
 from scipy.interpolate import UnivariateSpline, interp1d
+
+if TYPE_CHECKING:
+    from pyna.topo.flux_surface import FluxSurface, FluxSurfaceMap, XPointOrbit
+
+
+# ---------------------------------------------------------------------------
+# Semantic role enum
+# ---------------------------------------------------------------------------
+
+class ChainRole(enum.Enum):
+    """Semantic role of an :class:`IslandChain` in the island hierarchy."""
+    PRIMARY = "primary"      # top-level resonant chain
+    SECONDARY = "secondary"  # secondary chain orbiting the primary
+    NESTED = "nested"        # deeply nested / island-around-island
 
 
 # ---------------------------------------------------------------------------
@@ -79,7 +96,11 @@ class Island:
     level: int = 1
     parent: Optional[Island] = None
     label: Optional[str] = None
-    debug_info: Dict[str, object] = field(default_factory=dict)
+    flux_surface_map: Optional["FluxSurfaceMap"] = field(default=None, repr=False)
+    x_orbit: Optional["XPointOrbit"] = field(default=None, repr=False)
+    chain: Optional["IslandChain"] = field(default=None, repr=False)
+    connected_to: List["Island"] = field(default_factory=list, repr=False)
+    debug_info: Dict[str, object] = field(default_factory=dict, repr=False)
 
     @property
     def period_m(self) -> int:
@@ -90,6 +111,149 @@ class Island:
         self.O_point = np.asarray(self.O_point, dtype=float)
         self.X_points = [np.asarray(x, dtype=float) for x in self.X_points]
 
+    # ------------------------------------------------------------------
+    def build_flux_surface_map(
+        self,
+        tracer,
+        phi_sections,
+        n_r: int = 18,
+        n_turns: int = 300,
+        n_fourier: int = 8,
+        r_max_fit: float = 0.85,
+    ) -> "FluxSurfaceMap":
+        """Build a FluxSurfaceMap from Poincaré tracing around this island.
+
+        Parameters
+        ----------
+        tracer : callable
+            ``tracer(R0, Z0, phi0, n_turns) → (R_arr, Z_arr)``
+            Poincaré tracer that returns intersection points at ``phi_sections[0]``.
+        phi_sections : list of float
+            Toroidal sections at which to sample (only phi_sections[0] is used
+            for building surfaces; multi-section support can be added later).
+        n_r : int
+            Number of normalised r values to trace (uniformly spaced in [0.05, r_max_fit]).
+        n_turns : int
+            Number of Poincaré turns per surface.
+        n_fourier : int
+            Number of Fourier harmonics.
+        r_max_fit : float
+            Maximum r_norm to include in the spline fit.
+
+        Returns
+        -------
+        FluxSurfaceMap
+            Also stored in ``self.flux_surface_map``.
+        """
+        from pyna.topo.flux_surface import FluxSurface, FluxSurfaceMap
+
+        O = self.O_point
+        R_ax, Z_ax = float(O[0]), float(O[1])
+        phi0 = phi_sections[0]
+
+        r_values = np.linspace(0.05, r_max_fit, n_r)
+        surfaces: List[FluxSurface] = []
+
+        for r_n in r_values:
+            # Seed point: offset along R from O-point by r_n * halfwidth
+            hw = self.halfwidth if np.isfinite(self.halfwidth) and self.halfwidth > 0 else 0.05
+            R0 = R_ax + r_n * hw
+            Z0 = Z_ax
+
+            try:
+                R_pts, Z_pts = tracer(R0, Z0, phi0, n_turns)
+                R_pts = np.asarray(R_pts)
+                Z_pts = np.asarray(Z_pts)
+                if len(R_pts) < n_fourier * 3:
+                    continue
+                surf = FluxSurface.from_poincare(
+                    R_pts, Z_pts, R_ax, Z_ax, r_n, phi0, n_fourier=n_fourier
+                )
+                surfaces.append(surf)
+            except Exception:
+                continue
+
+        if len(surfaces) < 3:
+            raise RuntimeError(
+                f"Only {len(surfaces)} surfaces traced; need ≥ 3 for FluxSurfaceMap."
+            )
+
+        fmap = FluxSurfaceMap.from_surfaces(surfaces, r_max_fit=r_max_fit)
+        self.flux_surface_map = fmap
+        return fmap
+
+    # ------------------------------------------------------------------
+    def trace_x_orbit(
+        self,
+        field_cache: dict,
+        period: int = 10,
+        dphi_out: float = 0.05,
+    ) -> "XPointOrbit":
+        """Trace the X-point orbit for ``period`` toroidal turns.
+
+        Requires at least one entry in ``self.X_points``.
+
+        Parameters
+        ----------
+        field_cache : dict
+            Field cache dict (R_grid, Z_grid, Phi_grid, BR, BPhi, BZ).
+        period : int
+            Number of toroidal turns.
+        dphi_out : float
+            φ output step [rad].
+
+        Returns
+        -------
+        XPointOrbit
+            Also stored in ``self.x_orbit``.
+        """
+        from pyna.topo.flux_surface import XPointOrbit
+
+        if not self.X_points:
+            raise RuntimeError("No X_points defined on this Island.")
+        xpt = self.X_points[0]
+        orbit = XPointOrbit.trace(
+            float(xpt[0]), float(xpt[1]),
+            phi0=0.0,
+            period=period,
+            field_cache=field_cache,
+            dphi_out=dphi_out,
+        )
+        self.x_orbit = orbit
+        return orbit
+
+    # ------------------------------------------------------------------
+    def coil_theta_projection(
+        self,
+        coil_R: np.ndarray,
+        coil_Z: np.ndarray,
+        coil_phi: np.ndarray,
+    ) -> np.ndarray:
+        """Project external coil centres to flux-surface coordinates (r, θ).
+
+        Requires ``self.flux_surface_map`` to be set (call
+        :meth:`build_flux_surface_map` first).
+
+        Parameters
+        ----------
+        coil_R, coil_Z, coil_phi : array-like
+            Coil centre positions.
+
+        Returns
+        -------
+        ndarray, shape (n_coils, 2)
+            Columns: [r, θ].
+        """
+        if self.flux_surface_map is None:
+            raise RuntimeError("flux_surface_map not built; call build_flux_surface_map() first.")
+        fmap = self.flux_surface_map
+        coil_R = np.asarray(coil_R, dtype=float)
+        coil_Z = np.asarray(coil_Z, dtype=float)
+        coil_phi = np.asarray(coil_phi, dtype=float)
+        r_arr, theta_arr = fmap.project_points(coil_R, coil_Z, coil_phi)
+        return np.column_stack([r_arr, theta_arr])
+
+    # ------------------------------------------------------------------
     def explore_sub_islands(
         self,
         field_func,
@@ -253,6 +417,16 @@ class IslandChain:
     connected: bool = True
     subchains: List[IslandChain] = field(default_factory=list)
     level: int = 1
+    role: ChainRole = field(default_factory=lambda: ChainRole.PRIMARY)
+    orbit: Optional["IslandChainOrbit"] = field(default=None, repr=False)
+    parent_chain: Optional["IslandChain"] = field(default=None, repr=False)
+    primary_chain_ref: Optional["IslandChain"] = field(default=None, repr=False)
+
+    def __post_init__(self):
+        # Back-link each owned Island to this chain
+        for isl in self.islands:
+            if isl.chain is None:
+                isl.chain = self
 
     @property
     def period_n(self) -> int:
@@ -314,6 +488,38 @@ class IslandChain:
                 f"{prefix}IslandChain incomplete: expected {diag['expected_n_islands']} islands "
                 f"for m/n={self.m}/{self.n}, found {diag['n_islands']}. labels={labels}",
             )
+
+    @property
+    def n_independent_orbits(self) -> int:
+        """Number of independent field-line trajectories = gcd(m, n).
+
+        For HAO m=10, n=3: gcd=1 → all islands on one orbit.
+        For W7X m=5, n=5: gcd=5 → 5 disconnected flux tubes.
+        """
+        return gcd(self.m, self.n) if self.n > 0 else 1
+
+    @property
+    def is_connected(self) -> bool:
+        """True when all islands belong to a single connected orbit (gcd(m,n)==1)."""
+        return self.n_independent_orbits == 1
+
+    @property
+    def orbit_groups(self) -> List[List["Island"]]:
+        """Group islands by which independent orbit they belong to.
+
+        Returns a list of ``n_independent_orbits`` sublists. Each sublist
+        contains the ``Island`` objects whose index (mod n_independent_orbits)
+        matches the orbit index.
+
+        For a connected chain this returns a single group with all islands.
+        For a disconnected chain (e.g. W7X 5/5) this returns one singleton
+        group per orbit.
+        """
+        n_orbs = self.n_independent_orbits
+        groups: List[List[Island]] = [[] for _ in range(n_orbs)]
+        for idx, isl in enumerate(self.islands):
+            groups[idx % n_orbs].append(isl)
+        return groups
 
     @classmethod
     def from_fixed_points(
@@ -384,7 +590,9 @@ class IslandChain:
             )
             islands.append(isl)
 
-        return cls(m=m, n=n, islands=islands, connected=True, level=level)
+        chain = cls(m=m, n=n, islands=islands, connected=True, level=level)
+        # Back-link is handled in __post_init__, so isl.chain is set.
+        return chain
 
     def split_into_subchains(
         self,
