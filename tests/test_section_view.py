@@ -72,11 +72,11 @@ def test_section_view_from_island_chain_preserves_discrete_first_class_route():
         ],
     )
     res = ResonanceID(m=2, n=1, Np=1, label='2/1')
-    view = SectionView.from_island_chain(chain, phi=0.0, resonance_id=res, kind='O')
+    view = chain.to_section_view(phi=0.0, resonance_id=res, kind='O')
     assert view.correspondence is not None
     assert view.correspondence.is_complete()
     assert len(view.points) == 2
-    chain2 = view.to_island_chain(proximity_tol=0.3)
+    chain2 = IslandChain.from_section_view(view, proximity_tol=0.3)
     assert chain2.n_islands == 2
 
 
@@ -93,7 +93,7 @@ def test_reconstruct_section_view_marks_reconstructed_tube_ids():
         raw = tube.raw_point_near_section(phi)
         return (raw[0], raw[1])
 
-    view = SectionViewBuilder.from_tubechain(chain, 0.0, kind='O', reconstruct=True, local_finder=finder)
+    view = SectionViewBuilder.from_tubechain(chain, 0.0, kind='O', reconstruct=True, section_reconstructor=finder)
     assert view.correspondence is not None
     assert view.correspondence.is_complete()
     assert len(view.correspondence.reconstructed_tube_ids) == 1

@@ -489,6 +489,39 @@ class IslandChain:
                 f"for m/n={self.m}/{self.n}, found {diag['n_islands']}. labels={labels}",
             )
 
+
+    def to_section_view(
+        self,
+        phi: float,
+        *,
+        resonance_id=None,
+        kind: Optional[str] = "O",
+    ):
+        """Project this discrete chain into a bridge-layer ``SectionView``."""
+        from pyna.topo.section_view import SectionView
+        return SectionView.from_island_chain(
+            self,
+            phi=float(phi),
+            resonance_id=resonance_id,
+            kind=kind,
+        )
+
+    @classmethod
+    def from_section_view(
+        cls,
+        view,
+        *,
+        x_section_view=None,
+        proximity_tol: float = 1.0,
+        dedup_tol: float = 1e-6,
+    ) -> "IslandChain":
+        """Construct a discrete chain from a bridge-layer ``SectionView``."""
+        return view.to_island_chain(
+            x_section_view=x_section_view,
+            proximity_tol=proximity_tol,
+            dedup_tol=dedup_tol,
+        )
+
     @property
     def n_independent_orbits(self) -> int:
         """Number of independent field-line trajectories = gcd(m, n).

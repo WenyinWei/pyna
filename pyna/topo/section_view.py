@@ -181,17 +181,23 @@ class SectionViewBuilder:
         reconstruct: bool = False,
         tol: float = 1e-6,
         dedup_tol: float = 1e-6,
-        local_finder=None,
+        section_reconstructor=None,
     ) -> SectionView:
         resonance_id = ResonanceID(m=tubechain.m, n=tubechain.n, Np=tubechain.Np, label=tubechain.label)
         builder = cls(resonance_id=resonance_id)
-        cut = tubechain.section_cut(
-            phi,
-            tol=tol,
-            dedup_tol=dedup_tol,
-            repair=reconstruct,
-            local_finder=local_finder,
-        )
+        if reconstruct:
+            cut = tubechain.reconstruct_section_cut(
+                phi,
+                tol=tol,
+                dedup_tol=dedup_tol,
+                section_reconstructor=section_reconstructor,
+            )
+        else:
+            cut = tubechain.raw_section_cut(
+                phi,
+                tol=tol,
+                dedup_tol=dedup_tol,
+            )
         view_kind = kind or tubechain.kind
         return builder.from_section_cut(cut, kind=view_kind)
 

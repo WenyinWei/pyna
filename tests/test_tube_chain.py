@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from pyna.topo.island_chain import ChainFixedPoint, IslandChainOrbit
-from pyna.topo.tube import ResonanceSkeleton, Tube, TubeChain, TubeCutPoint
+from pyna.topo.tube import ResonanceStructure, Tube, TubeChain, TubeCutPoint
 
 
 def _fp(phi: float, R: float, Z: float, kind: str) -> ChainFixedPoint:
@@ -91,10 +91,10 @@ def test_tube_chain_section_cut_repairs_missing_point():
         raw = tube.raw_point_near_section(phi)
         return (raw[0], raw[1])
 
-    cut = chain.section_cut(0.0, repair=True, local_finder=finder)
+    cut = chain.reconstruct_section_cut(0.0, section_reconstructor=finder)
     assert cut.is_complete()
     assert cut.missing_tube_indices == []
-    assert cut.repaired_tube_indices == [1]
+    assert cut.reconstructed_tube_indices == [1]
     assert len(cut.unique_points()) == 2
 
 
@@ -115,14 +115,14 @@ def test_tube_chain_section_cut_repairs_duplicate_point():
             return (raw[0], raw[1])
         return None
 
-    cut = chain.section_cut(0.0, dedup_tol=1e-10, repair=True, local_finder=finder)
+    cut = chain.reconstruct_section_cut(0.0, dedup_tol=1e-10, section_reconstructor=finder)
     assert cut.is_complete()
     assert cut.duplicate_groups == []
-    assert 1 in cut.repaired_tube_indices
+    assert 1 in cut.reconstructed_tube_indices
     assert len(cut.unique_points(dedup_tol=1e-10)) == 2
 
 
-def test_resonance_skeleton_provides_joint_section_view():
+def test_resonance_structure_provides_joint_section_view():
     o_orbits = [
         _orbit([(0.0, 1.00, 0.00, 'O'), (np.pi, 1.02, 0.00, 'O')]),
         _orbit([(0.0, 0.90, 0.00, 'O'), (np.pi, 0.92, 0.00, 'O')]),
@@ -131,7 +131,7 @@ def test_resonance_skeleton_provides_joint_section_view():
         _orbit([(0.0, 1.10, 0.00, 'X'), (np.pi, 1.12, 0.00, 'X')]),
         _orbit([(0.0, 0.80, 0.00, 'X'), (np.pi, 0.82, 0.00, 'X')]),
     ]
-    skel = ResonanceSkeleton.from_orbits(o_orbits=o_orbits, x_orbits=x_orbits, label='2/1')
+    skel = ResonanceStructure.from_orbits(o_orbits=o_orbits, x_orbits=x_orbits, label='2/1')
     cuts = skel.section_cut(0.0)
     assert cuts['O'] is not None and cuts['X'] is not None
     assert cuts['O'].is_complete()
