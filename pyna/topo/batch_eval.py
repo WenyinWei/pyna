@@ -40,6 +40,10 @@ for _p in (str(TOPOQUEST), str(PYNA)):
 
 # ── default data paths ────────────────────────────────────────────────────────
 _RESP_PATHS = [
+    Path(r"D:\haodata\coilsys\vacuum_fields\dipole_response_matrix_332_fixed.npz"),  # 物理修正版
+    Path(r"C:\Users\Legion\Nutstore\1\haodata\vacuum_fields\dipole_response_matrix_332_fixed.npz"),  # 物理修正版
+    Path(r"D:\haodata\coilsys\vacuum_fields\dipole_response_matrix_332.npz"),
+    Path(r"C:\Users\Legion\Nutstore\1\haodata\vacuum_fields\dipole_response_matrix_332.npz"),
     Path(r"D:\haodata\coil_vacuum_field_all.npz"),
     Path(r"D:\haodata\coil_vacuum_field_batch1_dipole.npz"),
     Path(r"D:\2026Spring\haodata\dipole_response_matrix.npz"),
@@ -137,6 +141,27 @@ class TopologyCache:
         self.R_grid  = np.asarray(resp["R_grid"],   dtype=np.float64)
         self.Z_grid  = np.asarray(resp["Z_grid"],   dtype=np.float64)
         self.Phi_grid = np.asarray(resp["Phi_grid"], dtype=np.float64)
+        
+        # ── NaN/Inf 检查和警告（线圈靠近壁面时 Biot-Savart 会产生 NaN）─────
+        nan_br = np.isnan(self.BR_resp).sum()
+        nan_bp = np.isnan(self.BPhi_resp).sum()
+        nan_bz = np.isnan(self.BZ_resp).sum()
+        total_nan = nan_br + nan_bp + nan_bz
+        if total_nan > 0:
+            self._log(f"  [警告] 响应场中有 {total_nan} 个 NaN (BR={nan_br}, BPhi={nan_bp}, BZ={nan_bz})")
+            self._log(f"  [建议] 请使用 v2 真空场 (recompute_vacuum_fields.py) 以消除 NaN")
+            self._log(f"  [临时] 将 NaN 替换为 0 以避免计算崩溃（物理上不正确！）")
+            # 临时修复：用 0 替换 NaN（比中位数更诚实）
+            self.BR_resp = np.nan_to_num(self.BR_resp, nan=0.0)
+            self.BPhi_resp = np.nan_to_num(self.BPhi_resp, nan=0.0)
+            self.BZ_resp = np.nan_to_num(self.BZ_resp, nan=0.0)
+        
+        # 检查极大值（单位安培响应场不应超过 1 T/A）
+        for name, arr in [("BR", self.BR_resp), ("BPhi", self.BPhi_resp), ("BZ", self.BZ_resp)]:
+            max_abs = np.abs(arr).max()
+            if max_abs > 0.1:  # 单位安培响应场通常 < 0.1 T/A
+                self._log(f"  [警告] {name} 最大值 {max_abs:.2e} T/A 偏大（可能靠近线圈）")
+        
         self._log(f"  dipole 响应线圈: {self.BR_resp.shape[0]} 个线圈  "
                   f"grid={self.BR_resp.shape[1:]}  "
                   f"({self.BR_resp.nbytes/1e6:.0f} MB × 3)")
