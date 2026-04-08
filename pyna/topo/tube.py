@@ -54,33 +54,62 @@ class TubeCutPoint:
 
 @dataclass
 class Tube:
-    """Continuous-time counterpart of one discrete island / fixed-point family.
+    """A magnetic island: one nested invariant-torus structure in phase space.
 
-    A Tube is a single periodic orbit (X or O type) of the flow.  It knows:
-      - Its orbit (IslandChainOrbit): position + DPm at each section
-      - Its stability type (X = hyperbolic, O = elliptic)
-      - Lazily: the O-cycle at its core (if this Tube is a separatrix/X-tube)
-                and the X-cycles bounding it (if this Tube is an O-tube)
+    Conceptual model
+    ----------------
+    A Tube is NOT "an X-orbit" or "an O-orbit".  It represents a *magnetic
+    island* — one complete nested family of invariant tori.  Its skeleton
+    consists of:
 
-    The distinction X/O is purely stability-based (|Tr DPm| > 2 vs ≤ 2).
-    A TubeChain typically contains *both* X and O Tubes; kind is a property
-    of each individual Tube, not of the chain.
+      o_cycle  (exactly 1): the elliptic periodic orbit at the island centre.
+                            All invariant tori of the island surround this orbit.
+      x_cycles (1 or more): the hyperbolic periodic orbit(s) bounding the island
+                            (forming the separatrix).  For a generic island there
+                            are exactly 2 X-cycles (before and after in toroidal
+                            angle), but higher-order resonances may have more.
+
+    Both o_cycle and x_cycles are ``Cycle`` objects (continuous-time periodic
+    orbits); they identify and characterise the Tube uniquely.
+
+    The Tube is distinct from:
+      - A *Cycle* (a single periodic orbit, either X or O type)
+      - A *TubeChain* (the full resonance family of Tubes for a given m/n)
+
+    Laziness
+    --------
+    o_cycle and x_cycles may be None / empty at construction time and are
+    filled in lazily (by the parent TubeChain after wiring, or explicitly).
+    The ``orbit`` field is kept for backward compatibility with existing code
+    that builds Tubes from IslandChainOrbit objects; it represents one known
+    periodic orbit associated with this Tube (often the O-cycle seed used to
+    construct the chain, but it may equally be an X-cycle seed).
+
+    Backward compatibility
+    ----------------------
+    The old ``kind`` property (returning 'X' or 'O' from orbit.diagnostics)
+    is preserved for legacy callers but is conceptually deprecated: kind is
+    a property of a *Cycle*, not a *Tube*.  A Tube always contains both
+    X-cycles (boundary) and an O-cycle (core).
     """
 
     orbit: IslandChainOrbit
     label: Optional[str] = None
     debug_info: Dict[str, Any] = field(default_factory=dict)
 
-    # Lazy references to related orbits (set by TubeChain or externally)
-    # _o_cycle : the O-type orbit at the centre of the island this Tube bounds
-    # _x_cycles: the X-type orbits at the separatrix of the island this Tube is inside
-    # These are back-references within a ResonanceTubeChain; None until computed.
-    _o_cycle: Optional["Tube"] = field(default=None, repr=False, init=False)
-    _x_cycles: List["Tube"] = field(default_factory=list, repr=False, init=False)
+    # ── Skeleton: the invariant-torus structure ───────────────────────────────
+    # These are Cycle objects (continuous-time periodic orbits).
+    # Set lazily by TubeChain.wire_xo_refs() or explicitly.
+    # _o_cycle  : elliptic orbit at the island centre (exactly 1)
+    # _x_cycles : hyperbolic orbit(s) at the separatrix (1 or more)
+    _o_cycle: Optional[object] = field(default=None, repr=False, init=False)   # Cycle
+    _x_cycles: List[object] = field(default_factory=list, repr=False, init=False)  # List[Cycle]
 
     @classmethod
     def from_orbit(cls, orbit: IslandChainOrbit, label: Optional[str] = None) -> "Tube":
         return cls(orbit=orbit, label=label)
+
+    # ── Resonance numbers ─────────────────────────────────────────────────────
 
     @property
     def m(self) -> int:
@@ -106,53 +135,55 @@ class Tube:
     def section_phis(self) -> Optional[List[float]]:
         return self.orbit.section_phis
 
+    # ── Skeleton access (lazy) ────────────────────────────────────────────────
+
+    @property
+    def o_cycle(self) -> Optional[object]:
+        """The elliptic (O-type) periodic orbit at this island's centre.
+
+        This is the *core* of the invariant-torus structure.
+        Returns None until wired by TubeChain or set explicitly.
+        """
+        return self._o_cycle
+
+    @property
+    def x_cycles(self) -> List[object]:
+        """The hyperbolic (X-type) periodic orbit(s) at this island's boundary.
+
+        These form the separatrix of the invariant-torus structure.
+        Returns an empty list until wired by TubeChain or set explicitly.
+        """
+        return list(self._x_cycles)
+
+    @property
+    def is_skeleton_complete(self) -> bool:
+        """True when both o_cycle and at least one x_cycle are known."""
+        return self._o_cycle is not None and len(self._x_cycles) > 0
+
+    def set_o_cycle(self, cycle: object) -> None:
+        """Set the O-cycle (island core). Called by TubeChain or externally."""
+        self._o_cycle = cycle
+
+    def add_x_cycle(self, cycle: object) -> None:
+        """Add an X-cycle (island boundary). Called by TubeChain or externally."""
+        if cycle not in self._x_cycles:
+            self._x_cycles.append(cycle)
+
+    # ── Legacy: kind from orbit stability (deprecated semantics) ─────────────
+
     @property
     def kind(self) -> Optional[str]:
-        """Stability type: 'X' (hyperbolic) or 'O' (elliptic).
+        """Stability of the *seed orbit* used to build this Tube.
 
-        Determined from the monodromy matrix DPm via |Tr(DPm)| > 2.
-        This is intrinsic to the orbit; the TubeChain does NOT have a
-        global kind — it contains both X and O Tubes.
+        Deprecated: kind belongs to a Cycle, not a Tube.  A Tube always
+        contains both an O-cycle (core) and X-cycles (boundary).
+        This property returns 'X' or 'O' based on the orbit used as the
+        seed for backwards compatibility with existing code.
         """
         diag = self.orbit.diagnostics(self.section_phis)
         if diag['mixed_kind']:
             return None
         return diag['dominant_kind']
-
-    # ── Lazy core/boundary cycle references ──────────────────────────────────
-
-    @property
-    def o_cycle(self) -> Optional["Tube"]:
-        """The O-type Tube at the core of the island this Tube is associated with.
-
-        For X-type Tubes: this is the O-cycle of the island they bound.
-        For O-type Tubes: this is self.
-        Lazily computed / set by the parent TubeChain.
-        """
-        if self.kind == 'O':
-            return self
-        return self._o_cycle
-
-    @property
-    def x_cycles(self) -> List["Tube"]:
-        """The X-type Tubes bounding the island this O-Tube is inside.
-
-        For O-type Tubes: the neighbouring X-cycles.
-        For X-type Tubes: returns [self].
-        Lazily computed / set by the parent TubeChain.
-        """
-        if self.kind == 'X':
-            return [self]
-        return list(self._x_cycles)
-
-    def _set_o_cycle(self, tube: "Tube") -> None:
-        """Set the O-cycle reference (called by TubeChain during wiring)."""
-        self._o_cycle = tube
-
-    def _add_x_cycle(self, tube: "Tube") -> None:
-        """Add an X-cycle reference (called by TubeChain during wiring)."""
-        if tube not in self._x_cycles:
-            self._x_cycles.append(tube)
 
     def at_section(self, phi: float, tol: float = 1e-6) -> List[ChainFixedPoint]:
         return self.orbit.fixed_points_at_section(phi, tol=tol)
@@ -161,6 +192,7 @@ class Tube:
         diag = self.orbit.diagnostics(requested_phis=requested_phis)
         diag['label'] = self.label
         diag['tube_kind'] = self.kind
+        diag['skeleton_complete'] = self.is_skeleton_complete
         return diag
 
     def summary(self) -> str:
@@ -365,45 +397,69 @@ class TubeChain:
 
     @property
     def x_tubes(self) -> List[Tube]:
-        """All X-type (hyperbolic) Tubes in this chain."""
+        """Tubes whose seed orbit is hyperbolic (X-type seed).
+        Note: these Tubes still have their own o_cycle/x_cycles skeleton.
+        """
         return [t for t in self.tubes if t.kind == 'X']
 
     @property
     def o_tubes(self) -> List[Tube]:
-        """All O-type (elliptic) Tubes in this chain."""
+        """Tubes whose seed orbit is elliptic (O-type seed).
+        Note: these Tubes still have their own o_cycle/x_cycles skeleton.
+        """
         return [t for t in self.tubes if t.kind == 'O']
 
-    def wire_xo_refs(self, section_phi: float = 0.0, proximity_tol: float = 0.05) -> None:
-        """Wire O-cycle / X-cycle lazy references between Tubes.
+    def wire_skeletons(self, section_phi: float = 0.0,
+                       proximity_tol: float = 0.05) -> None:
+        """Wire the o_cycle / x_cycles skeleton for each Tube in the chain.
 
-        For each O-Tube, find the closest X-Tube(s) at ``section_phi`` and
-        call ``_add_x_cycle`` on the O-Tube.  For each X-Tube, find the
-        closest O-Tube and call ``_set_o_cycle``.
+        A Tube is an invariant-torus structure with:
+          - o_cycle (1): the O-type periodic orbit at the island core
+          - x_cycles (1+): the X-type periodic orbit(s) at the separatrix
 
-        This uses section-cut proximity: the X and O cuts alternate around
-        the rational surface, so each O-cut is flanked by X-cuts.
+        This method identifies which Cycles play which role for each Tube by
+        using section-cut proximity at ``section_phi``:
+          - For each Tube with an O-seed: it IS the o_cycle of its island;
+            the neighbouring X-seeded Tubes (within proximity_tol) are its x_cycles.
+          - For each Tube with an X-seed: it is an x_cycle;
+            the nearest O-seeded Tube is its o_cycle (island core).
+
+        After this call, each Tube's skeleton is populated so that:
+          tube.o_cycle   → the island-centre Cycle object
+          tube.x_cycles  → the separatrix Cycle object(s)
 
         Parameters
         ----------
         section_phi : float
-            Poincaré section angle at which to evaluate proximity.
+            Poincaré section angle used for proximity evaluation.
         proximity_tol : float
-            Distance threshold [m] to consider X/O as neighbours.
+            Distance [m] threshold for X/O pairing at this section.
         """
-        x_fps = []
-        for tube in self.x_tubes:
-            for fp in tube.at_section(section_phi):
-                x_fps.append((tube, fp.R, fp.Z))
+        # Gather section-cut positions for each Tube
+        x_fps = []  # [(tube, R, Z), ...]
         o_fps = []
-        for tube in self.o_tubes:
+        for tube in self.tubes:
             for fp in tube.at_section(section_phi):
-                o_fps.append((tube, fp.R, fp.Z))
+                entry = (tube, fp.R, fp.Z)
+                if tube.kind == 'X':
+                    x_fps.append(entry)
+                elif tube.kind == 'O':
+                    o_fps.append(entry)
 
+        # Wire: each O-seeded Tube is its own o_cycle; nearby X-Tubes are its x_cycles
         for o_tube, oR, oZ in o_fps:
+            o_tube.set_o_cycle(o_tube)   # O-Tube is its own island core
             for x_tube, xR, xZ in x_fps:
                 if np.hypot(oR - xR, oZ - xZ) < proximity_tol:
-                    o_tube._add_x_cycle(x_tube)
-                    x_tube._set_o_cycle(o_tube)
+                    o_tube.add_x_cycle(x_tube)
+                    x_tube.set_o_cycle(o_tube)
+                    x_tube.add_x_cycle(x_tube)  # X-Tube is its own separatrix
+
+    # Keep old name as alias for backward compat
+    def wire_xo_refs(self, section_phi: float = 0.0,
+                     proximity_tol: float = 0.05) -> None:
+        """Alias for wire_skeletons (backward compatibility)."""
+        self.wire_skeletons(section_phi=section_phi, proximity_tol=proximity_tol)
 
     @property
     def expected_n_tubes(self) -> int:
