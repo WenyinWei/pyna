@@ -188,6 +188,71 @@ class Tube:
     def at_section(self, phi: float, tol: float = 1e-6) -> List[ChainFixedPoint]:
         return self.orbit.fixed_points_at_section(phi, tol=tol)
 
+    def section_cut(self, section, tol: float = 1e-6) -> List:
+        """Cut this Tube with a Section and return the resulting Islands.
+
+        Each connected component of the Tube's intersection with the Section
+        is one Island.  For a standard ToroidalSection(phi) this returns
+        the O-point Island(s) that belong to this Tube.
+
+        The returned Islands carry:
+          - island.tube = self  (back-reference to this Tube)
+          - island.section = section
+          - island.tube_chain = self's parent chain (if known)
+
+        Parameters
+        ----------
+        section : Section | float
+            The Poincaré section.  If a float is given it is wrapped in
+            ToroidalSection(phi).
+
+        Returns
+        -------
+        list of Island
+            One Island per connected O-region of this Tube at this section.
+            Empty if the orbit does not cross the section (or data not available).
+        """
+        from pyna.topo.island import Island as _Island
+        from pyna.topo.section import ToroidalSection
+
+        # Normalise: float phi → ToroidalSection
+        if isinstance(section, (int, float)):
+            section = ToroidalSection(float(section))
+
+        # Get fixed-point data at this section
+        if hasattr(section, 'phi'):
+            phi = section.phi
+        else:
+            # For non-toroidal sections we can't use at_section; raise clearly
+            raise NotImplementedError(
+                "Tube.section_cut only supports ToroidalSection (phi=const) for now. "
+                "For other Section types, implement a custom intersection method."
+            )
+
+        fps = self.at_section(phi, tol=tol)
+        if not fps:
+            return []
+
+        islands = []
+        for fp in fps:
+            O_pt = np.array([float(fp.R), float(fp.Z)])
+            isl = _Island(
+                period_n=self.m,
+                O_point=O_pt,
+                X_points=[],   # X-points come from x_cycles.section_cut(section)
+                halfwidth=float('nan'),
+                label=self.label,
+            )
+            isl.tube = self
+            isl.section = section
+            # Propagate tube_chain if available
+            # (tube_chain is set on Tube by external code, not stored here by default)
+            if hasattr(self, '_tube_chain_ref') and self._tube_chain_ref is not None:
+                isl.tube_chain = self._tube_chain_ref
+            islands.append(isl)
+
+        return islands
+
     def diagnostics(self, requested_phis: Optional[Sequence[float]] = None) -> Dict[str, Any]:
         diag = self.orbit.diagnostics(requested_phis=requested_phis)
         diag['label'] = self.label
@@ -712,12 +777,11 @@ class TubeChain:
         return chain
 
     def _attach_chain_refs(self, chain: IslandChain, phi: float) -> None:
-        """Attach tube_chain back-refs and wire next/last connectivity to Islands.
+        """Attach Tube/TubeChain back-refs and wire next/last to Islands.
 
-        Called after building an IslandChain from this TubeChain.
-        Matches each Island's O_point to the Tube it came from (by proximity),
-        then sets tube_chain, resonance_index, and wires P^1 connectivity
-        (Island from Tube[i] → Island from Tube[(i+1) % n]).
+        For each Island in chain: match to the Tube it came from (by proximity),
+        then set island.tube, island.tube_chain, island.resonance_index,
+        and wire P^1 connectivity (Island[i] → Island[(i+1) % n]).
         """
         import numpy as np
         islands = chain.O_islands if hasattr(chain, 'O_islands') else []
@@ -731,22 +795,23 @@ class TubeChain:
         for tube_idx, tube in enumerate(self.tubes):
             fps = tube.at_section(phi)
             for fp in fps:
-                tube_fps.append((tube_idx, fp.R, fp.Z))
+                tube_fps.append((tube_idx, tube, fp.R, fp.Z))
 
         for island in islands:
             if island is None:
                 continue
-            best_idx, best_dist = None, float('inf')
+            best_idx, best_tube, best_dist = None, None, float('inf')
             R0, Z0 = float(island.O_point[0]), float(island.O_point[1])
-            for tidx, R, Z in tube_fps:
+            for tidx, t, R, Z in tube_fps:
                 d = np.hypot(R - R0, Z - Z0)
                 if d < best_dist:
-                    best_dist, best_idx = d, tidx
+                    best_dist, best_idx, best_tube = d, tidx, t
             if best_idx is not None:
-                island.tube_chain = self
+                island.tube = best_tube        # direct Tube reference
+                island.tube_chain = self       # TubeChain reference
                 island.resonance_index = best_idx
 
-        # Wire P^1 connectivity: sort islands by resonance_index and link them
+        # Wire P^1 connectivity
         indexed = [(isl.resonance_index, isl)
                    for isl in islands
                    if isl is not None and isl.resonance_index is not None]
@@ -760,6 +825,32 @@ class TubeChain:
             lst  = indexed[(k - 1) % n][1]
             curr._set_next(nxt)
             curr._set_last(lst)
+
+    def section_cut(self, section, tol: float = 1e-6) -> IslandChain:
+        """Cut this TubeChain with a Section and return a connected IslandChain.
+
+        This is the primary high-level API for going from a TubeChain (3D)
+        to an IslandChain (2D, on a section).  All Islands in the returned
+        chain carry island.tube (→ their parent Tube) and island.tube_chain
+        (→ self), enabling per-Tube colour/marker coding in plots.
+
+        Parameters
+        ----------
+        section : Section | float
+            The Poincaré section.  A float is wrapped in ToroidalSection.
+
+        Returns
+        -------
+        IslandChain with connectivity wired.
+        """
+        from pyna.topo.section import ToroidalSection
+        if isinstance(section, (int, float)):
+            section = ToroidalSection(float(section))
+        if hasattr(section, 'phi'):
+            return self.to_island_chain_connected(section.phi, tol=tol)
+        raise NotImplementedError(
+            "TubeChain.section_cut supports ToroidalSection only for now."
+        )
 
     def _wire_island_connectivity(self) -> None:
         """Lazy connectivity wiring trigger (called by Island.next()/last()).

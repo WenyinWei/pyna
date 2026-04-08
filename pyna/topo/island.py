@@ -102,16 +102,28 @@ class Island:
     connected_to: List["Island"] = field(default_factory=list, repr=False)
     debug_info: Dict[str, object] = field(default_factory=dict, repr=False)
 
-    # ── Continuous-time back-references (lazy, set by TubeChain/SectionView) ──
-    # tube_chain : the TubeChain whose cut at this section produced this Island.
-    # resonance_index : index of this Island's Tube within the TubeChain
-    #   (all Islands from the same Tube share the same resonance_index across
-    #    different Poincaré sections).
-    # _next / _last : adjacent Islands in the Poincaré orbit under P^1.
-    #   The Poincaré map P maps Island i → Island i+1; after m turns (one full
-    #   orbit period) the chain closes.  next()/last() follow P^1 / P^{-1}.
-    tube_chain: Optional[object] = field(default=None, repr=False)   # TubeChain
+    # ── Continuous-time back-references ──────────────────────────────────────
+    # tube : the Tube (3D invariant-torus structure) whose section cut at a
+    #   given Poincaré plane produced this Island.
+    #   None when the Island comes purely from a discrete map (no Tube known).
+    #   This is the PRIMARY back-reference to the continuous-time world.
+    #
+    # tube_chain : the TubeChain this Tube belongs to (derived, can also be
+    #   read as tube.tube_chain if tube is set).
+    #   Kept separately for cases where only the chain-level reference is known.
+    #
+    # resonance_index : 0-based index of this Island's Tube within its TubeChain.
+    #   Islands from the same Tube share the same resonance_index across sections.
+    #   Used for colour/marker coding: same tube_idx → same visual identity.
+    #
+    # section : the Section object (ToroidalSection, HyperplaneSection, …) at
+    #   which this Island was obtained. None if not tracked.
+    #
+    # _next / _last : adjacent Islands in the orbit under P^1 / P^{-1}.
+    tube: Optional[object] = field(default=None, repr=False)           # Tube
+    tube_chain: Optional[object] = field(default=None, repr=False)     # TubeChain
     resonance_index: Optional[int] = field(default=None, repr=False)
+    section: Optional[object] = field(default=None, repr=False)        # Section
     _next: Optional["Island"] = field(default=None, repr=False, init=False)
     _last: Optional["Island"] = field(default=None, repr=False, init=False)
 
@@ -119,6 +131,11 @@ class Island:
     def period_m(self) -> int:
         """Number of toroidal turns per orbit (= m in q=m/n). Preferred over period_n."""
         return self.period_n
+
+    @property
+    def has_tube(self) -> bool:
+        """True when this Island was produced by cutting a Tube."""
+        return self.tube is not None
 
     # ── Orbit connectivity ────────────────────────────────────────────────────
 
