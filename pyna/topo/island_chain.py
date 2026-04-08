@@ -715,10 +715,14 @@ class IslandChainOrbit:
         IslandChainOrbit
         """
         try:
-            from pyna.MCF.flt import trace_orbit_along_phi, find_fixed_points_batch
-        except ImportError as exc:
+            import pyna._cyna as _cyna_mod
+            trace_orbit_along_phi = _cyna_mod.trace_orbit_along_phi
+            find_fixed_points_batch = _cyna_mod.find_fixed_points_batch
+            if trace_orbit_along_phi is None or find_fixed_points_batch is None:
+                raise ImportError("pyna._cyna functions not available")
+        except (ImportError, AttributeError) as exc:
             raise ImportError(
-                "pyna.MCF.flt (cyna C++ backend) not available; use from_single_fixedpoint instead"
+                "pyna._cyna (cyna C++ backend) not available; use from_single_fixedpoint instead"
             ) from exc
 
         # Extend Phi_grid for periodicity
