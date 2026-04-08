@@ -54,11 +54,29 @@ class TubeCutPoint:
 
 @dataclass
 class Tube:
-    """Continuous-time counterpart of one discrete island / fixed-point family."""
+    """Continuous-time counterpart of one discrete island / fixed-point family.
+
+    A Tube is a single periodic orbit (X or O type) of the flow.  It knows:
+      - Its orbit (IslandChainOrbit): position + DPm at each section
+      - Its stability type (X = hyperbolic, O = elliptic)
+      - Lazily: the O-cycle at its core (if this Tube is a separatrix/X-tube)
+                and the X-cycles bounding it (if this Tube is an O-tube)
+
+    The distinction X/O is purely stability-based (|Tr DPm| > 2 vs ≤ 2).
+    A TubeChain typically contains *both* X and O Tubes; kind is a property
+    of each individual Tube, not of the chain.
+    """
 
     orbit: IslandChainOrbit
     label: Optional[str] = None
     debug_info: Dict[str, Any] = field(default_factory=dict)
+
+    # Lazy references to related orbits (set by TubeChain or externally)
+    # _o_cycle : the O-type orbit at the centre of the island this Tube bounds
+    # _x_cycles: the X-type orbits at the separatrix of the island this Tube is inside
+    # These are back-references within a ResonanceTubeChain; None until computed.
+    _o_cycle: Optional["Tube"] = field(default=None, repr=False, init=False)
+    _x_cycles: List["Tube"] = field(default_factory=list, repr=False, init=False)
 
     @classmethod
     def from_orbit(cls, orbit: IslandChainOrbit, label: Optional[str] = None) -> "Tube":
@@ -90,10 +108,51 @@ class Tube:
 
     @property
     def kind(self) -> Optional[str]:
+        """Stability type: 'X' (hyperbolic) or 'O' (elliptic).
+
+        Determined from the monodromy matrix DPm via |Tr(DPm)| > 2.
+        This is intrinsic to the orbit; the TubeChain does NOT have a
+        global kind — it contains both X and O Tubes.
+        """
         diag = self.orbit.diagnostics(self.section_phis)
         if diag['mixed_kind']:
             return None
         return diag['dominant_kind']
+
+    # ── Lazy core/boundary cycle references ──────────────────────────────────
+
+    @property
+    def o_cycle(self) -> Optional["Tube"]:
+        """The O-type Tube at the core of the island this Tube is associated with.
+
+        For X-type Tubes: this is the O-cycle of the island they bound.
+        For O-type Tubes: this is self.
+        Lazily computed / set by the parent TubeChain.
+        """
+        if self.kind == 'O':
+            return self
+        return self._o_cycle
+
+    @property
+    def x_cycles(self) -> List["Tube"]:
+        """The X-type Tubes bounding the island this O-Tube is inside.
+
+        For O-type Tubes: the neighbouring X-cycles.
+        For X-type Tubes: returns [self].
+        Lazily computed / set by the parent TubeChain.
+        """
+        if self.kind == 'X':
+            return [self]
+        return list(self._x_cycles)
+
+    def _set_o_cycle(self, tube: "Tube") -> None:
+        """Set the O-cycle reference (called by TubeChain during wiring)."""
+        self._o_cycle = tube
+
+    def _add_x_cycle(self, tube: "Tube") -> None:
+        """Add an X-cycle reference (called by TubeChain during wiring)."""
+        if tube not in self._x_cycles:
+            self._x_cycles.append(tube)
 
     def at_section(self, phi: float, tol: float = 1e-6) -> List[ChainFixedPoint]:
         return self.orbit.fixed_points_at_section(phi, tol=tol)
@@ -246,13 +305,28 @@ class Tube:
 
 @dataclass
 class TubeChain:
-    """Continuous-time counterpart of a discrete ``IslandChain``."""
+    """Continuous-time counterpart of a discrete ``IslandChain``.
+
+    A TubeChain collects all periodic orbits (Tubes) of a given resonance
+    n = (m, n_pol, ...).  It contains BOTH X-type and O-type Tubes: kind
+    is a property of each individual Tube, not of the chain.
+
+    Design notes
+    ------------
+    - ``kind`` attribute is *deprecated*.  The chain-level kind was a
+      simplification that assumed all tubes have the same stability type,
+      which is wrong.  Use ``tube.kind`` on individual tubes.
+    - ``resonance`` is the preferred way to label the resonance; it is a
+      ``ResonanceNumber`` (arbitrary-dimensional).
+    - X/O wiring: after building the chain, call ``wire_xo_refs()`` to
+      let each O-Tube know its neighbouring X-Tubes and vice versa.
+    """
 
     m: int
     n: int
     Np: int
     tubes: List[Tube] = field(default_factory=list)
-    kind: Optional[str] = None
+    kind: Optional[str] = None          # deprecated: kind lives on each Tube
     label: Optional[str] = None
     debug_info: Dict[str, Any] = field(default_factory=dict)
 
@@ -276,6 +350,60 @@ class TubeChain:
             kinds.discard(None)
             chain_kind = next(iter(kinds)) if len(kinds) == 1 else None
         return cls(m=m, n=n, Np=Np, tubes=tubes, kind=chain_kind, label=label)
+
+    @property
+    def resonance(self):
+        """ResonanceNumber for this chain.
+
+        Lazy-imports to avoid circular deps; returns a ResonanceNumber(m, n).
+        """
+        try:
+            from pyna.topo.resonance import ResonanceNumber
+            return ResonanceNumber(self.m, self.n)
+        except ImportError:
+            return (self.m, self.n)
+
+    @property
+    def x_tubes(self) -> List[Tube]:
+        """All X-type (hyperbolic) Tubes in this chain."""
+        return [t for t in self.tubes if t.kind == 'X']
+
+    @property
+    def o_tubes(self) -> List[Tube]:
+        """All O-type (elliptic) Tubes in this chain."""
+        return [t for t in self.tubes if t.kind == 'O']
+
+    def wire_xo_refs(self, section_phi: float = 0.0, proximity_tol: float = 0.05) -> None:
+        """Wire O-cycle / X-cycle lazy references between Tubes.
+
+        For each O-Tube, find the closest X-Tube(s) at ``section_phi`` and
+        call ``_add_x_cycle`` on the O-Tube.  For each X-Tube, find the
+        closest O-Tube and call ``_set_o_cycle``.
+
+        This uses section-cut proximity: the X and O cuts alternate around
+        the rational surface, so each O-cut is flanked by X-cuts.
+
+        Parameters
+        ----------
+        section_phi : float
+            Poincaré section angle at which to evaluate proximity.
+        proximity_tol : float
+            Distance threshold [m] to consider X/O as neighbours.
+        """
+        x_fps = []
+        for tube in self.x_tubes:
+            for fp in tube.at_section(section_phi):
+                x_fps.append((tube, fp.R, fp.Z))
+        o_fps = []
+        for tube in self.o_tubes:
+            for fp in tube.at_section(section_phi):
+                o_fps.append((tube, fp.R, fp.Z))
+
+        for o_tube, oR, oZ in o_fps:
+            for x_tube, xR, xZ in x_fps:
+                if np.hypot(oR - xR, oZ - xZ) < proximity_tol:
+                    o_tube._add_x_cycle(x_tube)
+                    x_tube._set_o_cycle(o_tube)
 
     @property
     def expected_n_tubes(self) -> int:
