@@ -74,6 +74,20 @@ from pyna.topo.island_healed_coords import (
     build_from_island_chain,
 )
 
+
+# Layer 0: Phase space and dynamics
+from pyna.topo.dynamics import (
+    PhaseSpace, MCF_2D, GC_4D,
+    DynamicalSystem, ContinuousFlow, HamiltonianFlow,
+    MagneticFieldLine, DiscreteMap, StandardMap, PoincareMap,
+)
+# Layer 3: Sections
+from pyna.topo.section import (
+    Section, ToroidalSection, HyperplaneSection, ParametricSection,
+    toroidal_sections, HAO_SECTIONS,
+)
+# Layer 2: Resonance
+from pyna.topo.resonance import ResonanceNumber
 __all__ = [
     # 3D trajectories (continuous flow)
     "ToroidalTrajectory3D",
