@@ -102,10 +102,61 @@ class Island:
     connected_to: List["Island"] = field(default_factory=list, repr=False)
     debug_info: Dict[str, object] = field(default_factory=dict, repr=False)
 
+    # ── Continuous-time back-references (lazy, set by TubeChain/SectionView) ──
+    # tube_chain : the TubeChain whose cut at this section produced this Island.
+    # resonance_index : index of this Island's Tube within the TubeChain
+    #   (all Islands from the same Tube share the same resonance_index across
+    #    different Poincaré sections).
+    # _next / _last : adjacent Islands in the Poincaré orbit under P^1.
+    #   The Poincaré map P maps Island i → Island i+1; after m turns (one full
+    #   orbit period) the chain closes.  next()/last() follow P^1 / P^{-1}.
+    tube_chain: Optional[object] = field(default=None, repr=False)   # TubeChain
+    resonance_index: Optional[int] = field(default=None, repr=False)
+    _next: Optional["Island"] = field(default=None, repr=False, init=False)
+    _last: Optional["Island"] = field(default=None, repr=False, init=False)
+
     @property
     def period_m(self) -> int:
         """Number of toroidal turns per orbit (= m in q=m/n). Preferred over period_n."""
         return self.period_n
+
+    # ── Orbit connectivity ────────────────────────────────────────────────────
+
+    def next(self) -> "Island":
+        """Return the next Island visited under one application of P^1.
+
+        Within a TubeChain (= continuous-time periodic orbit family), each
+        Poincaré cut point maps to the next one under the single-turn map P^1.
+        After m applications of P^1 the orbit closes.
+
+        Connectivity is computed lazily: if not yet known, asks the parent
+        TubeChain to wire all Islands at this section.  Returns ``self`` if
+        the Island is disconnected (no TubeChain or wiring failed).
+        """
+        if self._next is not None:
+            return self._next
+        if self.tube_chain is not None and hasattr(self.tube_chain, '_wire_island_connectivity'):
+            self.tube_chain._wire_island_connectivity()
+        return self._next if self._next is not None else self
+
+    def last(self) -> "Island":
+        """Return the previous Island visited under P^{-1}.
+
+        Inverse of :meth:`next`.  Returns ``self`` when disconnected.
+        """
+        if self._last is not None:
+            return self._last
+        if self.tube_chain is not None and hasattr(self.tube_chain, '_wire_island_connectivity'):
+            self.tube_chain._wire_island_connectivity()
+        return self._last if self._last is not None else self
+
+    def _set_next(self, island: "Island") -> None:
+        """Set the next-island pointer (called by TubeChain during wiring)."""
+        self._next = island
+
+    def _set_last(self, island: "Island") -> None:
+        """Set the last-island pointer (called by TubeChain during wiring)."""
+        self._last = island
 
     def __post_init__(self):
         self.O_point = np.asarray(self.O_point, dtype=float)

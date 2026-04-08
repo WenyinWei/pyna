@@ -501,6 +501,89 @@ class TubeChain:
         chain.warn_if_incomplete(prefix="TubeChain.to_island_chain: ")
         return chain
 
+    def to_island_chain_connected(
+        self,
+        phi: float,
+        *,
+        x_tubechain: Optional["TubeChain"] = None,
+        proximity_tol: float = 1.0,
+        tol: float = 1e-6,
+    ) -> IslandChain:
+        """Build an IslandChain with full orbit connectivity wired.
+
+        Each Island in the returned chain carries:
+          - ``tube_chain`` back-reference to this TubeChain
+          - ``resonance_index``: index of its parent Tube (0-based)
+          - ``next()`` / ``last()``: adjacent Islands under P^1 / P^{-1}
+
+        The next/last connectivity follows the orbit order of the Tubes in
+        this TubeChain: Island from Tube[i] maps to Island from Tube[(i+1) % n].
+        """
+        chain = self.to_island_chain(phi, x_tubechain=x_tubechain,
+                                      proximity_tol=proximity_tol, tol=tol)
+        # Attach TubeChain reference and wire connectivity
+        self._attach_chain_refs(chain, phi=phi)
+        return chain
+
+    def _attach_chain_refs(self, chain: IslandChain, phi: float) -> None:
+        """Attach tube_chain back-refs and wire next/last connectivity to Islands.
+
+        Called after building an IslandChain from this TubeChain.
+        Matches each Island's O_point to the Tube it came from (by proximity),
+        then sets tube_chain, resonance_index, and wires P^1 connectivity
+        (Island from Tube[i] → Island from Tube[(i+1) % n]).
+        """
+        import numpy as np
+        islands = chain.O_islands if hasattr(chain, 'O_islands') else []
+        if not islands and hasattr(chain, 'islands'):
+            islands = chain.islands
+        if not islands:
+            return
+
+        # Match each Island to the Tube it came from via O_point proximity
+        tube_fps = []
+        for tube_idx, tube in enumerate(self.tubes):
+            fps = tube.at_section(phi)
+            for fp in fps:
+                tube_fps.append((tube_idx, fp.R, fp.Z))
+
+        for island in islands:
+            if island is None:
+                continue
+            best_idx, best_dist = None, float('inf')
+            R0, Z0 = float(island.O_point[0]), float(island.O_point[1])
+            for tidx, R, Z in tube_fps:
+                d = np.hypot(R - R0, Z - Z0)
+                if d < best_dist:
+                    best_dist, best_idx = d, tidx
+            if best_idx is not None:
+                island.tube_chain = self
+                island.resonance_index = best_idx
+
+        # Wire P^1 connectivity: sort islands by resonance_index and link them
+        indexed = [(isl.resonance_index, isl)
+                   for isl in islands
+                   if isl is not None and isl.resonance_index is not None]
+        if not indexed:
+            return
+        indexed.sort(key=lambda x: x[0])
+        n = len(indexed)
+        for k in range(n):
+            curr = indexed[k][1]
+            nxt  = indexed[(k + 1) % n][1]
+            lst  = indexed[(k - 1) % n][1]
+            curr._set_next(nxt)
+            curr._set_last(lst)
+
+    def _wire_island_connectivity(self) -> None:
+        """Lazy connectivity wiring trigger (called by Island.next()/last()).
+
+        No-op here: connectivity should be set at chain-build time via
+        _attach_chain_refs. This hook allows Island.next() to ask the
+        TubeChain to wire itself if it has not yet been done.
+        """
+        pass
+
 
 @dataclass
 class ResonanceStructure:
