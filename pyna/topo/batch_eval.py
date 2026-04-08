@@ -757,11 +757,13 @@ def fast_evaluate_single(
         phi_c, wall_R, wall_Z, _ = _load_wall(wall_file)
 
         # LCFS 二分搜索
-        xpts = boundary_xpts
-        if xpts:
-            R_hi = max(x["R"] for x in xpts) - 0.01
-        else:
-            R_hi = R_AX_REF + 0.30
+        # R_hi for LCFS search: use boundary_xpts R if available as a starting
+        # estimate, but do NOT constrain too tightly — the X-point position
+        # may shift between configurations. Use a generous fixed limit instead.
+        # Old code: R_hi = max(x["R"] for x in xpts) - 0.01  ← causes V_lcfs
+        # to be insensitive to field changes because boundary_xpts comes from
+        # the base field and never updates during optimization.
+        R_hi = R_AX_REF + 0.30   # fixed, generous upper bound
 
         R0_seed = _find_lcfs_seed(
             R_AX_REF, Z_AX_REF, R_hi, fc,
