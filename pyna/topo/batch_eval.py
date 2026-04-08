@@ -756,27 +756,44 @@ def fast_evaluate_single(
             wall_file = _find_wall_file()
         phi_c, wall_R, wall_Z, _ = _load_wall(wall_file)
 
-        # LCFS 二分搜索
-        # R_hi for LCFS seed search.
-        # The outermost X-point (in the base field) is ~R=1.05-1.07.
-        # We use base-field xpts as a stable estimate of where the LCFS
-        # boundary is, then refine inside _find_lcfs_seed.
-        # Note: V_lcfs sensitivity to field changes is limited when using
-        # base-field xpts for R_hi, but nan is worse than an approximate value.
+        # ── 磁轴定位（trial field 中动态精细化）──────────────────────────────
+        # The magnetic axis shifts with field changes. Using a fixed R_AX_REF
+        # leads to incorrect LCFS seeds when alpha deviates significantly from 1.
+        # We refine the axis position using a single cyna Newton call (period=1, O-pt).
+        R_ax_trial = float(R_axis)   # start from caller-provided guess
+        Z_ax_trial = float(Z_axis)
+        if _cyna_ok():
+            try:
+                from pyna._cyna import find_fixed_points_batch as _cyna_fpb
+                R_ax_out, Z_ax_out, res_ax, conv_ax, _, _, _, ptype_ax = _cyna_fpb(
+                    np.array([R_ax_trial]), np.array([Z_ax_trial]),
+                    0.0, 1,   # period=1: magnetic axis is a period-1 O-point
+                    max_iter=25, tol=1e-8,
+                    BR=fc.BR, BPhi=fc.BPhi, BZ=fc.BZ,
+                    R_grid=fc.Rg, Z_grid=fc.Zg, Phi_grid=fc.Pg_ext,
+                )
+                if conv_ax[0] and ptype_ax[0] == 0:  # O-point (elliptic, period-1)
+                    R_ax_trial = float(R_ax_out[0])
+                    Z_ax_trial = float(Z_ax_out[0])
+            except Exception:
+                pass  # keep the initial guess
+
+        # ── LCFS seed: binary search along horizontal from the axis ──────────
+        # Use base-field boundary_xpts as upper bound (conservative but safe).
         if boundary_xpts:
             R_hi = max(x["R"] for x in boundary_xpts) - 0.01
         else:
-            R_hi = R_AX_REF + 0.22
+            R_hi = R_ax_trial + 0.22
 
         R0_seed = _find_lcfs_seed(
-            R_AX_REF, Z_AX_REF, R_hi, fc,
+            R_ax_trial, Z_ax_trial, R_hi, fc,
             phi_c, wall_R, wall_Z,
             max_turns=120, n_iter=16, DPhi=DPhi,
         )
 
-        # 单截面 Poincare（快速估算面积）
+        # 单截面 Poincare（快速估算面积，以精确磁轴为中心）
         pts = _poincare_single_section(
-            np.array([R0_seed]), np.array([Z_AX_REF]),
+            np.array([R0_seed]), np.array([Z_ax_trial]),
             0.0, n_lcfs_turns, fc, phi_c, wall_R, wall_Z, DPhi,
         )
         lcfs_R, lcfs_Z = pts[0]
