@@ -171,14 +171,14 @@ class Tube:
 
     # ── Legacy: kind from orbit stability (deprecated semantics) ─────────────
 
-    @property
-    def kind(self) -> Optional[str]:
-        """Stability of the *seed orbit* used to build this Tube.
+    def _seed_kind(self) -> Optional[str]:
+        """Internal: stability of the seed orbit used to build this Tube.
 
-        Deprecated: kind belongs to a Cycle, not a Tube.  A Tube always
-        contains both an O-cycle (core) and X-cycles (boundary).
-        This property returns 'X' or 'O' based on the orbit used as the
-        seed for backwards compatibility with existing code.
+        Returns 'X' (hyperbolic), 'O' (elliptic), or None (mixed/unknown).
+
+        This is PRIVATE implementation detail — it reflects how the Tube
+        was constructed, not what the Tube conceptually IS.  The public
+        API for Tube structure is o_cycle / x_cycles / is_skeleton_complete.
         """
         diag = self.orbit.diagnostics(self.section_phis)
         if diag['mixed_kind']:
@@ -191,7 +191,6 @@ class Tube:
     def diagnostics(self, requested_phis: Optional[Sequence[float]] = None) -> Dict[str, Any]:
         diag = self.orbit.diagnostics(requested_phis=requested_phis)
         diag['label'] = self.label
-        diag['tube_kind'] = self.kind
         diag['skeleton_complete'] = self.is_skeleton_complete
         return diag
 
@@ -327,7 +326,7 @@ class Tube:
             level=level,
             label=label or self.label,
             debug_info={
-                'tube_kind': self.kind,
+                'tube_kind': self._seed_kind(),
                 'phi_section': float(phi),
                 'greene_residue': float(fp.greene_residue),
                 'seed_RZ': tuple(float(v) for v in self.seed_RZ),
@@ -376,9 +375,12 @@ class TubeChain:
         n = orbits[0].n
         Np = orbits[0].Np
         tubes = [Tube.from_orbit(orbit, label=f"tube[{i}]") for i, orbit in enumerate(orbits)]
+        # chain_kind: legacy field, kept for backward compat but no longer meaningful.
+        # kind is a property of a Cycle, not a Tube or TubeChain.
+        # We still set it from expected_kind or seed_kind for old callers.
         chain_kind = expected_kind
         if chain_kind is None:
-            kinds = {tube.kind for tube in tubes}
+            kinds = {tube._seed_kind() for tube in tubes}
             kinds.discard(None)
             chain_kind = next(iter(kinds)) if len(kinds) == 1 else None
         return cls(m=m, n=n, Np=Np, tubes=tubes, kind=chain_kind, label=label)
@@ -400,14 +402,14 @@ class TubeChain:
         """Tubes whose seed orbit is hyperbolic (X-type seed).
         Note: these Tubes still have their own o_cycle/x_cycles skeleton.
         """
-        return [t for t in self.tubes if t.kind == 'X']
+        return [t for t in self.tubes if t._seed_kind() == 'X']
 
     @property
     def o_tubes(self) -> List[Tube]:
         """Tubes whose seed orbit is elliptic (O-type seed).
         Note: these Tubes still have their own o_cycle/x_cycles skeleton.
         """
-        return [t for t in self.tubes if t.kind == 'O']
+        return [t for t in self.tubes if t._seed_kind() == 'O']
 
     def wire_skeletons(self, section_phi: float = 0.0,
                        proximity_tol: float = 0.05) -> None:
@@ -441,9 +443,9 @@ class TubeChain:
         for tube in self.tubes:
             for fp in tube.at_section(section_phi):
                 entry = (tube, fp.R, fp.Z)
-                if tube.kind == 'X':
+                if tube._seed_kind() == 'X':
                     x_fps.append(entry)
-                elif tube.kind == 'O':
+                elif tube._seed_kind() == 'O':
                     o_fps.append(entry)
 
         # Wire: each O-seeded Tube is its own o_cycle; nearby X-Tubes are its x_cycles
