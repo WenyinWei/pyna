@@ -1,459 +1,453 @@
-"""pyna.topo.cycle - Continuous-time periodic orbit (Cycle) abstraction.
+"""Periodic field-line orbits (fixed points of the Poincaré map).
 
-Design rationale
-================
+A period-m cycle is a field line trajectory that returns to its starting
+point after exactly m toroidal turns: X(φ + 2πm) = X(φ).
 
-Discrete / Poincaré-map layer:
-  FixedPoint          -- one point on a section (R, Z, phi), with DPm
-  IslandChain (topo)  -- all FixedPoints of one resonance on one section
+Finding cycles: Newton-Raphson on G(x0) = P^m(x0) - x0 = 0
+where P is the Poincaré map (one-turn map).
 
-Continuous-time / 3D layer:
-  Cycle               -- the 3D periodic orbit itself (THIS MODULE)
-  Tube                -- one connected family of Cycles (O or X type)
-  TubeChain           -- all Tubes of one resonance (m/n)
-
-Relationship:
-  A Cycle is the continuous-time counterpart of a FixedPoint.
-  Where FixedPoint lives on one Poincaré section, a Cycle is the
-  full 3D closed curve that FixedPoint belongs to.
-
-  FixedPoint  ↔  Cycle.at_section(phi)   (forward projection)
-  Cycle       ↔  IslandChainOrbit        (same object, different emphasis)
-
-The key insight Wenyin articulated:
-  Every "point" we draw on a Poincaré plot is the INTERSECTION of a 3D
-  object with a 2D plane. The 3D object is primary; the section cut is
-  derived. This means:
-
-    - All section cuts of the same Cycle share IDENTICAL eigenvalues
-      (similarity invariance of DPm under conjugation)
-    - Manifolds W^u, W^s are 3D invariant manifolds; each section plot
-      shows their 2D cross-section
-    - Computing manifolds per-section separately is redundant — one
-      msp.run_fwd_rev call covers all sections simultaneously
-
-Architecture vision:
-  The Poincaré plotting pipeline should be:
-    1. Build 3D objects: Cycle, Tube, TubeChain, ResonanceStructure
-    2. "Slice" them at each phi_section → section views (fast)
-    3. Plot the section views
-
-  Step 2 is the key: given a 3D Cycle, getting its section cut at
-  any phi is just reading off ChainFixedPoint at that phi (already
-  stored in IslandChainOrbit.fixed_points).
-
-Public API
-----------
-Cycle(orbit, kind)
-    Wraps an IslandChainOrbit with semantic kind ('X' or 'O').
-    Provides clean access to stability, manifold seeds, section cuts.
-
-    Properties:
-        .m, .n, .Np         -- resonance numbers
-        .kind               -- 'X' (hyperbolic) or 'O' (elliptic)
-        .eigenvalues        -- (λ_s, λ_u) shared across all sections
-        .stability_index    -- Tr(DPm)/2
-        .greene_residue     -- (2 - Tr)/4
-        .at_section(phi)    -- ChainFixedPoint at this section
-        .section_phis       -- list of available sections
-
-    Methods for manifold seeding:
-        .unstable_seeds(phi, n_seeds, init_length) -> (R_arr, Z_arr)
-        .stable_seeds(phi, n_seeds, init_length)   -> (R_arr, Z_arr)
-
-    Methods for section cut:
-        .to_fixed_point(phi) -> topoquest.plot.topology.FixedPoint
-        .section_cut(phi)    -> (R, Z, DPm, kind)
+Robustness: if Newton diverges (leaves domain), automatically try
+fallback seed points from a grid around the initial guess.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from math import gcd
-from typing import List, Optional, Sequence, Tuple
-
+import warnings
 import numpy as np
-
-from pyna.topo.island_chain import IslandChainOrbit, ChainFixedPoint
+from typing import Optional, Tuple, Callable
+from dataclasses import dataclass
+from pyna.topo._rk4 import rk4_integrate
 
 
 @dataclass
-class Cycle:
-    """Continuous-time periodic orbit — the 3D counterpart of FixedPoint.
+class PeriodicOrbit:
+    """A periodic field-line orbit.
 
-    Parameters
+    Attributes
     ----------
-    orbit : IslandChainOrbit
-        The underlying cyna-computed periodic orbit, with fixed points
-        at all requested Poincaré sections.
-    kind : str
-        'X' (hyperbolic) or 'O' (elliptic).  If None, inferred from
-        the first available ChainFixedPoint.
-    label : str, optional
-        Human-readable label.
+    rzphi0 : ndarray, shape (3,)
+        Starting point (R, Z, phi0).
+    period_m : int
+        Number of toroidal turns (period of Poincaré map).
+        Corresponds to m in q=m/n notation: P^m(x) = x.
+    trajectory : ndarray, shape (N, 3)
+        Full orbit trajectory (R, Z, phi).
+    DPm : ndarray, shape (2, 2)
+        Monodromy matrix DPm = DX_pol(phi_end), phi_end = 2π·m. Eigenvalues characterize stability.
     """
-    orbit: IslandChainOrbit
-    kind: Optional[str] = None
-    label: Optional[str] = None
-
-    def __post_init__(self) -> None:
-        if self.kind is None:
-            fps = self.orbit.fixed_points
-            if fps:
-                self.kind = fps[0].kind
-        if self.kind not in ('X', 'O', None):
-            raise ValueError(f"kind must be 'X', 'O' or None, got {self.kind!r}")
-
-    # ── Resonance numbers ─────────────────────────────────────────────────────
+    rzphi0: np.ndarray
+    period_m: int
+    trajectory: np.ndarray
+    DPm: np.ndarray
 
     @property
-    def m(self) -> int:
-        return self.orbit.m
+    def period_n(self) -> int:
+        """Alias for period_m (backward compatibility)."""
+        return self.period_m
 
     @property
-    def n(self) -> int:
-        return self.orbit.n
+    def Jac(self) -> np.ndarray:
+        """Deprecated alias for DPm."""
+        warnings.warn(
+            "PeriodicOrbit.Jac is deprecated; use PeriodicOrbit.DPm instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.DPm
 
     @property
-    def Np(self) -> int:
-        return self.orbit.Np
-
-    @property
-    def section_phis(self) -> List[float]:
-        return list(self.orbit.section_phis or [])
-
-    # ── Stability (section-independent — similarity invariant) ───────────────
-
-    @property
-    def DPm(self) -> np.ndarray:
-        """Monodromy matrix (2×2). Same eigenvalues at all sections."""
-        fps = self.orbit.fixed_points
-        if not fps:
-            return np.eye(2)
-        return np.asarray(fps[0].DPm, dtype=float)
+    def is_stable(self) -> bool:
+        """True if |eigenvalues| ≤ 1 (elliptic, O-point type)."""
+        eigvals = np.linalg.eigvals(self.DPm)
+        return bool(np.all(np.abs(eigvals) <= 1.0 + 1e-6))
 
     @property
     def eigenvalues(self) -> np.ndarray:
-        """Eigenvalues of DPm: (λ_s, λ_u) for X-cycle, both on unit circle for O."""
         return np.linalg.eigvals(self.DPm)
 
     @property
     def stability_index(self) -> float:
-        """Tr(DPm)/2.  |k| > 1 → hyperbolic (X), |k| ≤ 1 → elliptic (O)."""
-        return float(np.trace(self.DPm)) / 2.0
-
-    @property
-    def greene_residue(self) -> float:
-        """Greene's residue R = (2 - Tr)/4.  R < 0 → hyperbolic."""
-        return (2.0 - float(np.trace(self.DPm))) / 4.0
-
-    @property
-    def is_hyperbolic(self) -> bool:
-        return self.kind == 'X'
-
-    def _eigenvectors(self) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
-        """Return (stable_evec, unstable_evec) unit vectors, or (None, None)."""
-        if not self.is_hyperbolic:
-            return None, None
-        evals, evecs = np.linalg.eig(self.DPm)
-        mods = np.abs(evals)
-        iu = int(np.argmax(mods))
-        is_ = 1 - iu
-        evec_u = np.real(evecs[:, iu]); evec_u /= np.linalg.norm(evec_u)
-        evec_s = np.real(evecs[:, is_]); evec_s /= np.linalg.norm(evec_s)
-        # Canonical sign: Z-component >= 0
-        if evec_u[1] < 0: evec_u = -evec_u
-        if evec_s[1] < 0: evec_s = -evec_s
-        return evec_s, evec_u
-
-    @property
-    def stable_eigenvec(self) -> Optional[np.ndarray]:
-        return self._eigenvectors()[0]
-
-    @property
-    def unstable_eigenvec(self) -> Optional[np.ndarray]:
-        return self._eigenvectors()[1]
-
-    # ── Section cut ──────────────────────────────────────────────────────────
-
-    def at_section(self, phi: float, tol: float = 0.08) -> Optional[ChainFixedPoint]:
-        """Return the ChainFixedPoint at the nearest stored section."""
-        fps = self.orbit.fixed_points
-        if not fps:
-            return None
-        best = min(fps, key=lambda fp: abs(fp.phi - phi))
-        if abs(best.phi - phi) > tol:
-            return None
-        return best
-
-    def section_RZ(self, phi: float) -> Optional[Tuple[float, float]]:
-        """(R, Z) coordinates at this section, or None."""
-        fp = self.at_section(phi)
-        return (float(fp.R), float(fp.Z)) if fp else None
-
-    def to_fixed_point(self, phi: float):
-        """Convert to topoquest.plot.topology.FixedPoint for plotting."""
-        from topoquest.plot.topology import FixedPoint as PlotFP
-        fp = self.at_section(phi)
-        if fp is None:
-            return None
-        return PlotFP(R=fp.R, Z=fp.Z, phi=phi, DPm=np.asarray(fp.DPm),
-                      kind=self.kind or fp.kind)
-
-    # ── Manifold seed generation ──────────────────────────────────────────────
-
-    def unstable_seeds(
-        self,
-        phi: float,
-        n_seeds: int = 40,
-        init_length: float = 1e-6,
-        max_length: float = 1e-3,
-    ) -> Tuple[np.ndarray, np.ndarray]:
-        """Seed points along the unstable eigenvector at section phi.
-
-        Returns (R_seeds, Z_seeds) — log-spaced along ±evec_u.
-        Used to seed msp.run for W^u tracing.
-        """
-        fp = self.at_section(phi)
-        evec = self.unstable_eigenvec
-        if fp is None or evec is None:
-            return np.array([]), np.array([])
-        eps = np.logspace(np.log10(init_length), np.log10(max_length), n_seeds)
-        R_all = np.concatenate([fp.R + eps * evec[0], fp.R - eps * evec[0]])
-        Z_all = np.concatenate([fp.Z + eps * evec[1], fp.Z - eps * evec[1]])
-        return R_all, Z_all
-
-    def stable_seeds(
-        self,
-        phi: float,
-        n_seeds: int = 40,
-        init_length: float = 1e-6,
-        max_length: float = 1e-3,
-    ) -> Tuple[np.ndarray, np.ndarray]:
-        """Seed points along the stable eigenvector at section phi.
-
-        Returns (R_seeds, Z_seeds) — log-spaced along ±evec_s.
-        Used to seed msp.run_fwd_rev (reverse trace) for W^s tracing.
-        """
-        fp = self.at_section(phi)
-        evec = self.stable_eigenvec
-        if fp is None or evec is None:
-            return np.array([]), np.array([])
-        eps = np.logspace(np.log10(init_length), np.log10(max_length), n_seeds)
-        R_all = np.concatenate([fp.R + eps * evec[0], fp.R - eps * evec[0]])
-        Z_all = np.concatenate([fp.Z + eps * evec[1], fp.Z - eps * evec[1]])
-        return R_all, Z_all
-
-    # ── Summary ───────────────────────────────────────────────────────────────
-
-    def summary(self) -> str:
-        kind = self.kind or '?'
-        TR = float(np.trace(self.DPm))
-        lam = sorted(np.abs(np.linalg.eigvals(self.DPm)))
-        return (
-            f"Cycle(m={self.m}, n={self.n}, kind={kind}, "
-            f"label={self.label!r})\n"
-            f"  Tr(DPm)={TR:.4f}  eigenvalues={lam[0]:.4f},{lam[1]:.4f}  "
-            f"Greene_R={self.greene_residue:.4f}\n"
-            f"  sections: {self.section_phis}"
-        )
+        """Tr(DPm)/2 for a 2x2 symplectic map. |k|<1 → elliptic, |k|>1 → hyperbolic."""
+        return float(np.trace(self.DPm) / 2.0)
 
 
 # ---------------------------------------------------------------------------
-# CycleChain: all Cycles of one resonance family
+# Core integration helpers
 # ---------------------------------------------------------------------------
 
-class CycleChain:
-    """All periodic orbits (Cycles) of one resonance (m/n).
+def _field_func_phi_parameterized(field_func: Callable, rzphi: np.ndarray) -> np.ndarray:
+    """Convert field_func(rzphi)→(dR/dl, dZ/dl, dphi/dl) to phi-parameterized.
 
-    This is the continuous-time counterpart of IslandChain (discrete).
-    It wraps a list of Cycles (each from one IslandChainOrbit seed) and
-    provides section-view queries and manifold seed generation.
-
-    The key property: all Cycles in a CycleChain share the same DPm
-    eigenvalues (conjugation invariance), so stability is a property
-    of the resonance, not individual section points.
+    Returns (dR/dphi, dZ/dphi) = (dR/dl)/(dphi/dl).
     """
-
-    def __init__(
-        self,
-        cycles: List[Cycle],
-        m: int,
-        n: int,
-        Np: int,
-        kind: Optional[str] = None,
-        label: Optional[str] = None,
-    ):
-        self.cycles = list(cycles)
-        self.m = m
-        self.n = n
-        self.Np = Np
-        self.kind = kind or (cycles[0].kind if cycles else None)
-        self.label = label
-
-    @property
-    def expected_n_cycles(self) -> int:
-        """Expected number of distinct cycles per section: m // gcd(m, n)."""
-        return self.m // gcd(self.m, self.n)
-
-    @property
-    def n_cycles(self) -> int:
-        return len(self.cycles)
-
-    @property
-    def is_complete(self) -> bool:
-        return self.n_cycles == self.expected_n_cycles
-
-    def section_fixed_points(
-        self,
-        phi: float,
-        tol: float = 0.08,
-    ) -> List[ChainFixedPoint]:
-        """All ChainFixedPoints at section phi from all Cycles."""
-        fps = []
-        for c in self.cycles:
-            fp = c.at_section(phi, tol=tol)
-            if fp is not None:
-                fps.append(fp)
-        return fps
-
-    def section_plot_fixed_points(self, phi: float):
-        """All topoquest.plot.topology.FixedPoint objects at section phi."""
-        return [fp for c in self.cycles
-                for fp in ([c.to_fixed_point(phi)] if c.to_fixed_point(phi) else [])]
-
-    def all_manifold_seeds(
-        self,
-        phi: float,
-        n_seeds: int = 40,
-        r_min: float = 1.0,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-        """Aggregate unstable and stable seeds for all outer X-cycles at phi.
-
-        Returns (R_u, Z_u, R_s, Z_s) — combined seed arrays for one
-        msp.run / msp.run_fwd_rev call covering all cycles.
-
-        r_min : float
-            Minimum R to include (filter inner X-points, keep boundary ones).
-        """
-        R_u_all, Z_u_all, R_s_all, Z_s_all = [], [], [], []
-        for c in self.cycles:
-            if c.kind != 'X':
-                continue
-            fp = c.at_section(phi)
-            if fp is None or float(fp.R) < r_min:
-                continue
-            Ru, Zu = c.unstable_seeds(phi, n_seeds=n_seeds)
-            Rs, Zs = c.stable_seeds(phi, n_seeds=n_seeds)
-            R_u_all.append(Ru); Z_u_all.append(Zu)
-            R_s_all.append(Rs); Z_s_all.append(Zs)
-        if not R_u_all:
-            return np.array([]), np.array([]), np.array([]), np.array([])
-        return (np.concatenate(R_u_all), np.concatenate(Z_u_all),
-                np.concatenate(R_s_all), np.concatenate(Z_s_all))
-
-    @classmethod
-    def from_orbits(
-        cls,
-        orbits: List[IslandChainOrbit],
-        kind: str,
-        label: Optional[str] = None,
-    ) -> "CycleChain":
-        """Build a CycleChain from a list of IslandChainOrbit objects."""
-        if not orbits:
-            raise ValueError("CycleChain.from_orbits: empty orbit list")
-        m, n, Np = orbits[0].m, orbits[0].n, orbits[0].Np
-        cycles = [Cycle(orbit=o, kind=kind) for o in orbits]
-        return cls(cycles=cycles, m=m, n=n, Np=Np, kind=kind, label=label)
-
-    def summary(self) -> str:
-        return (
-            f"CycleChain(m={self.m}, n={self.n}, kind={self.kind}, "
-            f"cycles={self.n_cycles}/{self.expected_n_cycles}, "
-            f"complete={self.is_complete})"
-        )
+    f = np.asarray(field_func(rzphi), dtype=float)
+    # f[2] = dphi/dl; f[0]/f[2] = dR/dphi; f[1]/f[2] = dZ/dphi
+    dphi_dl = f[2]
+    if abs(dphi_dl) < 1e-30:
+        return np.array([0.0, 0.0])
+    return np.array([f[0] / dphi_dl, f[1] / dphi_dl])
 
 
-# ---------------------------------------------------------------------------
-# ResonanceCycles: X + O cycle chains for one resonance
-# ---------------------------------------------------------------------------
+def poincare_map_n(
+    field_func: Callable,
+    rzphi0,
+    n_turns: int,
+    dt: float = 0.05,
+    RZlimit: Optional[Tuple] = None,
+) -> Tuple[float, float]:
+    """Integrate field line for n toroidal turns, return final (R, Z).
 
-class ResonanceCycles:
-    """Full continuous-time resonance structure: X-CycleChain + O-CycleChain.
+    The integration uses the toroidal angle φ as the independent variable.
 
-    This is the top-level 3D object representing one resonance (m/n).
-    Section plots are derived by slicing this 3D structure.
+    Parameters
+    ----------
+    field_func : callable
+        ``field_func(rzphi) → (dR/dl, dZ/dl, dphi/dl)``.
+    rzphi0 : array-like (3,)
+        Starting point (R, Z, phi).
+    n_turns : int
+        Number of toroidal turns to integrate (φ increases by 2π·n_turns).
+    dt : float
+        Step size in φ (radians) for the integrator.
+    RZlimit : tuple or None
+        Optional ``(R_min, R_max, Z_min, Z_max)`` domain boundary.
 
-    Replaces the combination of:
-      ResonanceStructure (TubeChain-based)  ← still valid, this is a
-                                               cleaner higher-level wrapper
+    Returns
+    -------
+    (R_final, Z_final) or (nan, nan) if field left domain.
     """
+    rzphi0 = np.asarray(rzphi0, dtype=float)
+    R0, Z0, phi0 = rzphi0[0], rzphi0[1], rzphi0[2]
+    phi_end = phi0 + n_turns * 2.0 * np.pi
 
-    def __init__(
-        self,
-        x_chain: Optional[CycleChain] = None,
-        o_chain: Optional[CycleChain] = None,
-        m: Optional[int] = None,
-        n: Optional[int] = None,
-        Np: Optional[int] = None,
-        label: Optional[str] = None,
-    ):
-        self.x_chain = x_chain
-        self.o_chain = o_chain
-        first = x_chain or o_chain
-        self.m  = m  or (first.m  if first else None)
-        self.n  = n  or (first.n  if first else None)
-        self.Np = Np or (first.Np if first else None)
-        self.label = label
+    def rhs(phi, rz):
+        rzphi = np.array([rz[0], rz[1], phi])
+        return _field_func_phi_parameterized(field_func, rzphi)
 
-    def section_xpoints(self, phi: float) -> list:
-        if self.x_chain is None: return []
-        return self.x_chain.section_plot_fixed_points(phi)
+    events = []
+    if RZlimit is not None:
+        R_min, R_max, Z_min, Z_max = RZlimit
 
-    def section_opoints(self, phi: float) -> list:
-        if self.o_chain is None: return []
-        return self.o_chain.section_plot_fixed_points(phi)
+        def hit_boundary(phi, rz):
+            return min(rz[0] - R_min, R_max - rz[0], rz[1] - Z_min, Z_max - rz[1])
+        hit_boundary.terminal = True
+        hit_boundary.direction = -1
+        events.append(hit_boundary)
 
-    def fp_by_sec(self, phi_sections: List[float]) -> dict:
-        """Return {phi: {'xpts': [...], 'opts': [...]}} for plot_poincare_2x2."""
-        return {
-            float(phi): {
-                'xpts': self.section_xpoints(float(phi)),
-                'opts': self.section_opoints(float(phi)),
-            }
-            for phi in phi_sections
-        }
+    try:
+        sol = rk4_integrate(
+            rhs,
+            (phi0, phi_end),
+            [R0, Z0],
+            max_step=dt,
+            events=events if events else None,
+        )
+    except Exception:
+        return float("nan"), float("nan")
 
-    def manifold_seeds_all_sections(
-        self,
-        phi_sections: List[float],
-        n_seeds: int = 40,
-        r_min: float = 1.0,
-    ) -> dict:
-        """Return {phi: (R_u, Z_u, R_s, Z_s)} for manifold tracing.
+    if not sol.success:
+        return float("nan"), float("nan")
 
-        All seeds are derived from the 3D Cycle objects (continuous time).
-        The caller passes these to msp.run / run_fwd_rev once per section.
-        """
-        if self.x_chain is None:
-            return {float(p): (np.array([]), np.array([]),
-                               np.array([]), np.array([])) for p in phi_sections}
-        return {
-            float(phi): self.x_chain.all_manifold_seeds(float(phi), n_seeds, r_min)
-            for phi in phi_sections
-        }
+    # Check if boundary event triggered
+    if events and len(sol.t_events) > 0 and sol.t_events[0].size > 0:
+        return float("nan"), float("nan")
 
-    @classmethod
-    def from_orbits(
-        cls,
-        x_orbits: Optional[List[IslandChainOrbit]] = None,
-        o_orbits: Optional[List[IslandChainOrbit]] = None,
-        label: Optional[str] = None,
-    ) -> "ResonanceCycles":
-        x_chain = CycleChain.from_orbits(x_orbits, kind='X') if x_orbits else None
-        o_chain = CycleChain.from_orbits(o_orbits, kind='O') if o_orbits else None
-        return cls(x_chain=x_chain, o_chain=o_chain, label=label)
+    return float(sol.y[0, -1]), float(sol.y[1, -1])
 
-    def summary(self) -> str:
-        xstr = self.x_chain.summary() if self.x_chain else "X: none"
-        ostr = self.o_chain.summary() if self.o_chain else "O: none"
-        return f"ResonanceCycles(m={self.m}/n={self.n})\n  {xstr}\n  {ostr}"
+
+def poincare_map_n_trajectory(
+    field_func: Callable,
+    rzphi0,
+    n_turns: int,
+    dt: float = 0.05,
+    RZlimit: Optional[Tuple] = None,
+) -> np.ndarray:
+    """Integrate field line for n_turns, return full (R, Z, phi) trajectory."""
+    rzphi0 = np.asarray(rzphi0, dtype=float)
+    R0, Z0, phi0 = rzphi0[0], rzphi0[1], rzphi0[2]
+    phi_end = phi0 + n_turns * 2.0 * np.pi
+
+    def rhs(phi, rz):
+        rzphi = np.array([rz[0], rz[1], phi])
+        return _field_func_phi_parameterized(field_func, rzphi)
+
+    n_points = max(int((phi_end - phi0) / dt), 10)
+    t_eval = np.linspace(phi0, phi_end, n_points)
+
+    events = []
+    if RZlimit is not None:
+        R_min, R_max, Z_min, Z_max = RZlimit
+
+        def hit_boundary(phi, rz):
+            return min(rz[0] - R_min, R_max - rz[0], rz[1] - Z_min, Z_max - rz[1])
+        hit_boundary.terminal = True
+        hit_boundary.direction = -1
+        events.append(hit_boundary)
+
+    sol = rk4_integrate(
+        rhs,
+        (phi0, phi_end),
+        [R0, Z0],
+        max_step=dt,
+        t_eval=t_eval,
+        events=events if events else None,
+    )
+
+    # Build (N, 3) trajectory
+    traj = np.column_stack([sol.y[0], sol.y[1], sol.t])
+    return traj
+
+
+def jacobian_of_poincare_map(
+    field_func: Callable,
+    rzphi0,
+    n_turns: int,
+    dt: float = 0.05,
+    eps: float = 1e-5,
+) -> np.ndarray:
+    """Finite-difference Jacobian ∂(R_f, Z_f)/∂(R_0, Z_0) of n-turn Poincaré map.
+
+    Parameters
+    ----------
+    field_func : callable
+    rzphi0 : array-like (3,)
+    n_turns : int
+    dt : float
+        Integration step size.
+    eps : float
+        Finite-difference perturbation.
+
+    Returns
+    -------
+    DPm : ndarray, shape (2, 2)
+        Monodromy matrix (Jacobian of the n-turn Poincaré map). det(DPm) ≈ 1 for area-preserving.
+    """
+    R0, Z0, phi0 = float(rzphi0[0]), float(rzphi0[1]), float(rzphi0[2])
+    R_f, Z_f = poincare_map_n(field_func, rzphi0, n_turns, dt)
+
+    # Perturb R
+    R_fR, Z_fR = poincare_map_n(field_func, [R0 + eps, Z0, phi0], n_turns, dt)
+    # Perturb Z
+    R_fZ, Z_fZ = poincare_map_n(field_func, [R0, Z0 + eps, phi0], n_turns, dt)
+
+    DPm = np.array([
+        [(R_fR - R_f) / eps, (R_fZ - R_f) / eps],
+        [(Z_fR - Z_f) / eps, (Z_fZ - Z_f) / eps],
+    ])
+    return DPm
+
+
+# ---------------------------------------------------------------------------
+# Cycle finder
+# ---------------------------------------------------------------------------
+
+def _try_find_cycle_from_seed(
+    field_func: Callable,
+    seed_rzphi: np.ndarray,
+    n_turns: int,
+    dt: float,
+    RZlimit: Optional[Tuple],
+    max_iter: int,
+    tol: float,
+    damping: float = 0.5,
+) -> Optional[PeriodicOrbit]:
+    """Internal Newton-Raphson cycle finder from a single seed."""
+    x0 = np.array([seed_rzphi[0], seed_rzphi[1]], dtype=float)
+    phi0 = float(seed_rzphi[2])
+
+    for _ in range(max_iter):
+        rzphi = np.array([x0[0], x0[1], phi0])
+        R_f, Z_f = poincare_map_n(field_func, rzphi, n_turns, dt, RZlimit)
+
+        if np.isnan(R_f) or np.isnan(Z_f):
+            return None
+
+        G = np.array([R_f - x0[0], Z_f - x0[1]])
+        if np.linalg.norm(G) < tol:
+            # Converged — compute trajectory and monodromy
+            traj = poincare_map_n_trajectory(field_func, rzphi, n_turns, dt, RZlimit)
+            DPm = jacobian_of_poincare_map(field_func, rzphi, n_turns, dt)
+            return PeriodicOrbit(
+                rzphi0=rzphi.copy(),
+                period_m=n_turns,
+                trajectory=traj,
+                DPm=DPm,
+            )
+
+        # Jacobian of G = P^n - I: dG/dx0 = DPm_poincare - I
+        DPm_p = jacobian_of_poincare_map(field_func, rzphi, n_turns, dt)
+        dGdx = DPm_p - np.eye(2)
+
+        try:
+            delta = np.linalg.solve(dGdx, -G)
+        except np.linalg.LinAlgError:
+            return None
+
+        x0 = x0 + damping * delta
+
+        # Domain check
+        if RZlimit is not None:
+            R_min, R_max, Z_min, Z_max = RZlimit
+            if not (R_min < x0[0] < R_max and Z_min < x0[1] < Z_max):
+                return None
+        # Also cap step size to avoid wild Newton excursions
+        step_norm = np.linalg.norm(delta)
+        if step_norm > 0.1:
+            return None
+
+    return None
+
+
+def find_cycle(
+    field_func: Callable,
+    init_rzphi: np.ndarray,
+    n_turns: int = 1,
+    dt: float = 0.05,
+    RZlimit: Optional[Tuple] = None,
+    max_iter: int = 50,
+    tol: float = 1e-8,
+    n_fallback_seeds: int = 12,
+    fallback_radius: float = 0.05,
+) -> Optional[PeriodicOrbit]:
+    """Find a periodic orbit starting from init_rzphi using Newton-Raphson.
+
+    G(x0) = P^n(x0) - x0 = 0
+
+    If Newton diverges or leaves domain, automatically tries n_fallback_seeds
+    alternative starting points distributed on a circle of radius fallback_radius
+    around init_rzphi.
+
+    Parameters
+    ----------
+    field_func : callable
+        Field function ``f(rzphi) → (dR/dl, dZ/dl, dphi/dl)``.
+    init_rzphi : array (3,)
+        Initial guess (R0, Z0, phi0).
+    n_turns : int
+        Period (number of toroidal turns).
+    dt : float
+        Integration step size in φ.
+    RZlimit : tuple or None
+        Domain limits (R_min, R_max, Z_min, Z_max).
+    max_iter : int
+        Maximum Newton iterations.
+    tol : float
+        Convergence tolerance on |G(x0)|.
+    n_fallback_seeds : int
+        Number of fallback seeds to try if primary Newton fails.
+    fallback_radius : float
+        Radius around init_rzphi for fallback seeds.
+
+    Returns
+    -------
+    PeriodicOrbit or None if not found.
+    """
+    init_rzphi = np.asarray(init_rzphi, dtype=float)
+
+    # Primary attempt
+    orbit = _try_find_cycle_from_seed(
+        field_func, init_rzphi, n_turns, dt, RZlimit, max_iter, tol
+    )
+    if orbit is not None:
+        return orbit
+
+    # Fallback: try seeds on a circle around the initial guess
+    R0, Z0, phi0 = init_rzphi[0], init_rzphi[1], init_rzphi[2]
+    angles = np.linspace(0, 2 * np.pi, n_fallback_seeds, endpoint=False)
+    for ang in angles:
+        seed = np.array([
+            R0 + fallback_radius * np.cos(ang),
+            Z0 + fallback_radius * np.sin(ang),
+            phi0,
+        ])
+        orbit = _try_find_cycle_from_seed(
+            field_func, seed, n_turns, dt, RZlimit, max_iter, tol
+        )
+        if orbit is not None:
+            return orbit
+
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Find all cycles near a resonant surface
+# ---------------------------------------------------------------------------
+
+def find_all_cycles_near_resonance(
+    field_func: Callable,
+    equilibrium,
+    m: int,
+    n: int,
+    n_seeds: int = 8,
+    dt: float = 0.05,
+    RZlimit: Optional[Tuple] = None,
+) -> list:
+    """Find all O- and X-point cycles near the q=m/n resonant surface.
+
+    For a q = m/n resonance, there are m O-points and m X-points at
+    equally spaced angular positions around the resonant surface. This
+    function seeds the Newton-Raphson solver at 2·m·n_seeds angular
+    positions around the resonant flux surface and deduplicates the
+    resulting orbits.
+
+    Parameters
+    ----------
+    field_func : callable
+    equilibrium : StellaratorSimple or similar
+        Must have ``resonant_psi(m, n)`` and ``R0``, ``r0`` attributes.
+    m, n : int
+        Mode numbers defining the resonance q = m/n.
+    n_seeds : int
+        Number of angular seeds per expected fixed point.
+    dt : float
+        Integration step.
+    RZlimit : tuple or None
+
+    Returns
+    -------
+    list of PeriodicOrbit
+    """
+    psi_list = equilibrium.resonant_psi(m, n)
+    if not psi_list:
+        warnings.warn(f"q={m}/{n} resonance not found in equilibrium")
+        return []
+
+    psi_res = psi_list[0]
+    r_res = float(np.sqrt(psi_res)) * equilibrium.r0
+    R0 = equilibrium.R0
+
+    # Seed angles: 2*m angular positions around the resonant circle
+    total_seeds = 2 * m * n_seeds
+    seed_angles = np.linspace(0, 2 * np.pi, total_seeds, endpoint=False)
+
+    found_orbits: list[PeriodicOrbit] = []
+
+    # For this stellarator model, q = m/n (tokamak convention: q = toroidal/poloidal).
+    # The orbit period in toroidal turns equals m (the numerator), not n.
+    # dθ/dφ = 1/q = n/m → after m toroidal turns, θ advances by 2πn → closed.
+    orbit_period = m
+
+    for theta in seed_angles:
+        seed = np.array([
+            R0 + r_res * np.cos(theta),
+            r_res * np.sin(theta),
+            0.0,
+        ])
+        orbit = find_cycle(
+            field_func, seed, n_turns=orbit_period, dt=dt, RZlimit=RZlimit,
+            max_iter=50, tol=1e-8,
+            n_fallback_seeds=6, fallback_radius=0.3 * r_res,
+        )
+        if orbit is None:
+            continue
+
+        # Deduplicate: check if this orbit is already in the list
+        duplicate = False
+        for existing in found_orbits:
+            dist = np.linalg.norm(orbit.rzphi0[:2] - existing.rzphi0[:2])
+            if dist < 1e-4:
+                duplicate = True
+                break
+        if not duplicate:
+            found_orbits.append(orbit)
+
+    return found_orbits
