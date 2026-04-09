@@ -3,7 +3,7 @@
 Continuous-time perspective on discrete-map fixed points
 ---------------------------------------------------------
 Consider a field with toroidal period Np (i.e. the field is invariant under
-φ → φ + 2π/Np). A Poincaré section placed at φ = φ₀ induces a map P. An
+φ �?φ + 2π/Np). A Poincaré section placed at φ = φ₀ induces a map P. An
 m/n island chain means a family of periodic orbits that close after exactly
 m toroidal turns: P^m(x) = x. The chain contains exactly n_island = m/gcd(m,n)
 distinct Poincaré points per section (for a full m/n chain with n the
@@ -18,13 +18,13 @@ continuous-time field-line flow. Concretely:
     Δφ = 2π/Np (one field period). Because the field is Np-periodic and
     x* is a period-m fixed point of the *full* map, the image x_1 =
     Φ_{Δφ}(x*) is **another fixed point of P^m at the same section φ₀
-    after the symmetry reduction** — but evaluated at the section
-    φ₁ = φ₀ + Δφ. In other words, x_1 is the section-φ₁ representative
+    after the symmetry reduction** �?but evaluated at the section
+    φ�?= φ₀ + Δφ. In other words, x_1 is the section-φ�?representative
     of the same orbit.
 
     After Np steps of size Δφ = 2π/Np one full toroidal turn is
     completed, so after m*Np steps we return to x*. The entire chain of
-    fixed points at sections φ₀, φ₀+Δφ, φ₀+2Δφ, … is swept out by a
+    fixed points at sections φ₀, φ₀+Δφ, φ₀+2Δφ, �?is swept out by a
     single orbit integration.
 
 DPm evolution along the chain (conjugation / similarity)
@@ -33,10 +33,10 @@ Let Φ_k denote the linearised flow from φ₀ to φ₀ + k·Δφ (i.e. DX_pol
 accumulated over k field periods from the starting fixed point). Then
 the monodromy matrix at the k-th section point x_k is similar to DPm(x*):
 
-    DPm(x_k) = Φ_k · DPm(x*) · Φ_k⁻¹
+    DPm(x_k) = Φ_k · DPm(x*) · Φ_k⁻�?
 
 This follows directly from the chain rule applied to the composition
-P^m = Φ_{Np·m} = Φ_k ∘ P^m ∘ Φ_k⁻¹ (when restricted to the chain).
+P^m = Φ_{Np·m} = Φ_k �?P^m �?Φ_k⁻�?(when restricted to the chain).
 
 Consequence: eigenvalues are **invariant** across all points of a chain
 (as expected for a conjugate family), and one monodromy computation at a
@@ -50,13 +50,13 @@ DX_pol variational equation is integrated simultaneously:
 
     d(DX_pol)/dφ = A(R, Z, φ) · DX_pol,    DX_pol(φ₀) = I
 
-where A_ij = ∂(R·B_pol_i / Bφ) / ∂x_j.
+where A_ij = �?R·B_pol_i / Bφ) / ∂x_j.
 
 API summary
 -----------
 Main entry point for MCF use::
 
-    chain = IslandChainOrbit.from_single_fixedpoint(
+    chain = PeriodicOrbit.from_single_fixedpoint(
         R0, Z0, phi0,         # one known X- or O-point
         field_func,           # callable rzphi -> (dR/dl, dZ/dl, dphi/dl)
         Np,                   # field period
@@ -85,6 +85,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence
 
 import numpy as np
 from pyna.topo._rk4 import rk4_integrate
+from pyna.topo._base import InvariantObject
 
 
 # ---------------------------------------------------------------------------
@@ -92,7 +93,7 @@ from pyna.topo._rk4 import rk4_integrate
 # ---------------------------------------------------------------------------
 
 @dataclass
-class ChainFixedPoint:
+class FixedPoint:
     """A single fixed point of the m-turn Poincaré map, with monodromy.
 
     Attributes
@@ -106,9 +107,9 @@ class ChainFixedPoint:
         all points on the same chain (similarity invariant).
     DX_pol_accum : ndarray, shape (2, 2)
         Accumulated linearised flow Φ_k from the seed point to this
-        section: DPm = Φ_k · DPm_seed · Φ_k⁻¹.
+        section: DPm = Φ_k · DPm_seed · Φ_k⁻�?
     kind : str
-        ``'X'`` (hyperbolic, |Tr| > 2) or ``'O'`` (elliptic, |Tr| ≤ 2).
+        ``'X'`` (hyperbolic, |Tr| > 2) or ``'O'`` (elliptic, |Tr| �?2).
     """
     phi: float
     R: float
@@ -127,12 +128,12 @@ class ChainFixedPoint:
 
     @property
     def stability_index(self) -> float:
-        """Tr(DPm)/2.  |k| > 1 → hyperbolic (X), |k| ≤ 1 → elliptic (O)."""
+        """Tr(DPm)/2.  |k| > 1 �?hyperbolic (X), |k| �?1 �?elliptic (O)."""
         return float(np.trace(self.DPm)) / 2.0
 
     @property
     def greene_residue(self) -> float:
-        """Greene's residue R = (2 - Tr)/4.  R < 0 → hyperbolic."""
+        """Greene's residue R = (2 - Tr)/4.  R < 0 �?hyperbolic."""
         return (2.0 - float(np.trace(self.DPm))) / 4.0
 
     @property
@@ -163,8 +164,10 @@ class ChainFixedPoint:
 
 
 @dataclass
-class IslandChainOrbit:
+class PeriodicOrbit(InvariantObject):
     """All Poincaré-section representatives of one island-chain orbit.
+
+    This IS-A InvariantObject: a periodic orbit of the Poincaré map P^m(x*) = x*.
 
     Attributes
     ----------
@@ -174,7 +177,7 @@ class IslandChainOrbit:
         Poloidal winding number (informational; does not affect computation).
     Np : int
         Field toroidal period (stellarator symmetry).
-    fixed_points : list of ChainFixedPoint
+    fixed_points : list of FixedPoint
         Fixed points at each requested Poincaré section, in order of
         increasing φ.  Length = number of requested sections × number of
         chain points per section.
@@ -194,7 +197,7 @@ class IslandChainOrbit:
     m: int
     n: int
     Np: int
-    fixed_points: List[ChainFixedPoint]
+    fixed_points: List[FixedPoint]
     seed_phi: float
     seed_RZ: tuple
     role: Optional[str] = None
@@ -245,7 +248,7 @@ class IslandChainOrbit:
         newton_maxiter: int = 40,
         newton_eps: float = 1e-4,
         refine: bool = True,
-    ) -> "IslandChainOrbit":
+    ) -> "PeriodicOrbit":
         """Build the full island-chain orbit from one known fixed point.
 
         Starting from a single converged fixed point (R0, Z0) at
@@ -258,9 +261,9 @@ class IslandChainOrbit:
 
         2. At each section crossing φ_k, applies the conjugation formula::
 
-               DPm(x_k) = Φ_k · DPm(x*) · Φ_k⁻¹
+               DPm(x_k) = Φ_k · DPm(x*) · Φ_k⁻�?
 
-           where Φ_k = DX_pol(φ₀ → φ_k) is accumulated automatically by
+           where Φ_k = DX_pol(φ₀ �?φ_k) is accumulated automatically by
            the variational equation.
 
         3. Optionally Newton-refines each section point so that
@@ -273,7 +276,7 @@ class IslandChainOrbit:
         phi0 : float
             Toroidal angle of the seed Poincaré section [rad].
         field_func : callable
-            ``field_func(rzphi) → (dR/dl, dZ/dl, dphi/dl)`` (arc-length
+            ``field_func(rzphi) �?(dR/dl, dZ/dl, dphi/dl)`` (arc-length
             parameterised; field direction, not magnitude).
         Np : int
             Field toroidal period of the device.
@@ -302,12 +305,12 @@ class IslandChainOrbit:
 
         Returns
         -------
-        IslandChainOrbit
+        PeriodicOrbit
 
         Notes
         -----
         The monodromy DPm(x*) at the seed is computed by a preliminary
-        full-orbit integration (φ₀ → φ₀ + 2π·m) with DX_pol(φ₀) = I.
+        full-orbit integration (φ₀ �?φ₀ + 2π·m) with DX_pol(φ₀) = I.
         DX_pol at φ_end equals DPm. This preliminary DPm is then used as
         the monodromy reference for conjugating all downstream section
         points.
@@ -349,6 +352,113 @@ class IslandChainOrbit:
         )
 
     # ------------------------------------------------------------------ #
+    # InvariantObject interface                                            #
+    # ------------------------------------------------------------------ #
+
+    @property
+    def label(self) -> Optional[str]:
+        """Human-readable label: role if set, else 'm/n orbit'."""
+        if self.role is not None:
+            return self.role
+        if self.n:
+            return f"{self.m}/{self.n} orbit"
+        return f"{self.m}-period orbit"
+
+    def section_cut(self, section) -> list:
+        """Return the section crossing of this orbit.
+
+        Returns a list of Island objects (when pyna.topo.island is available)
+        or FixedPoints. Each Island carries a back-reference island.periodic_orbit = self.
+        """
+        if isinstance(section, (int, float)):
+            phi = float(section)
+        elif hasattr(section, 'phi'):
+            phi = float(section.phi)
+        else:
+            return []
+        fps = self.fixed_points_at_section(phi)
+        try:
+            from pyna.topo.island import Island as _Island
+            islands = []
+            for fp in fps:
+                isl = _Island(
+                    period_n=self.m,
+                    O_point=np.array([float(fp.R), float(fp.Z)], dtype=float),
+                    X_points=[],
+                    halfwidth=float('nan'),
+                    label=self.label,
+                )
+                isl.periodic_orbit = self
+                islands.append(isl)
+            return islands
+        except Exception:
+            return fps
+
+    # ── Backward compatibility: wrapper-style API ─────────────────────────────
+
+    @classmethod
+    def from_island_chain_orbit(
+        cls,
+        orbit: "PeriodicOrbit",
+        *,
+        label: Optional[str] = None,
+        poincare_map=None,
+    ) -> "PeriodicOrbit":
+        """Return orbit as-is (backward compat: previously wrapped IslandChainOrbit).
+
+        Since PeriodicOrbit IS IslandChainOrbit now, this is a no-op that
+        optionally updates the label/role for semantic purposes.
+        """
+        if label is not None:
+            orbit.role = label
+        return orbit
+
+    @property
+    def orbit(self) -> "PeriodicOrbit":
+        """Self-reference for backward compatibility (was: the wrapped IslandChainOrbit)."""
+        return self
+
+    @property
+    def resonance(self):
+        """ResonanceNumber(m, n) for this orbit."""
+        from pyna.topo.resonance import ResonanceNumber
+        return ResonanceNumber(self.m, self.n)
+
+    @property
+    def stability(self) -> str:
+        """'X' (hyperbolic), 'O' (elliptic), 'mixed', or 'unknown'."""
+        kind_totals = {'X': 0, 'O': 0}
+        for fp in self.fixed_points:
+            if fp.kind in kind_totals:
+                kind_totals[fp.kind] += 1
+        mixed = kind_totals['X'] > 0 and kind_totals['O'] > 0
+        if mixed:
+            return 'mixed'
+        if kind_totals['X'] > kind_totals['O']:
+            return 'X'
+        if kind_totals['O'] > kind_totals['X']:
+            return 'O'
+        return 'unknown'
+
+    @property
+    def greene_residue(self) -> float:
+        """Greene's residue at the first fixed point."""
+        if not self.fixed_points:
+            return float('nan')
+        return float(self.fixed_points[0].greene_residue)
+
+    @property
+    def eigenvalues(self) -> "np.ndarray":
+        """Eigenvalues of DPm at the first fixed point."""
+        if not self.fixed_points:
+            return np.array([float('nan'), float('nan')])
+        return self.fixed_points[0].eigenvalues
+
+    def _raw_diagnostics(self) -> Dict[str, Any]:
+        """Alias for diagnostics() (backward compat)."""
+        return self.diagnostics()
+
+    # ------------------------------------------------------------------ #
     # Convenience accessors                                               #
     # ------------------------------------------------------------------ #
 
@@ -357,12 +467,12 @@ class IslandChainOrbit:
         """Wrapped angular distance in [0, ?]."""
         return abs(((float(phi_a) - float(phi_b) + np.pi) % (2 * np.pi)) - np.pi)
 
-    def fixed_points_at_section(self, phi: float, tol: float = 1e-6) -> List[ChainFixedPoint]:
+    def fixed_points_at_section(self, phi: float, tol: float = 1e-6) -> List[FixedPoint]:
         """Return fixed points whose stored section matches ``phi`` within ``tol``."""
         return [fp for fp in self.fixed_points
                 if self._phi_distance(fp.phi, phi) <= tol]
 
-    def at_section(self, phi: float, tol: float = 1e-6) -> List[ChainFixedPoint]:
+    def at_section(self, phi: float, tol: float = 1e-6) -> List[FixedPoint]:
         """Return fixed points at the requested section.
 
         First tries an exact wrapped-angle match within ``tol``. If no exact
@@ -379,12 +489,12 @@ class IslandChainOrbit:
         return [fp for fp in self.fixed_points
                 if self._phi_distance(fp.phi, phi) <= best + tol]
 
-    def xpoints(self, phi: Optional[float] = None) -> List[ChainFixedPoint]:
+    def xpoints(self, phi: Optional[float] = None) -> List[FixedPoint]:
         """All X-points, optionally filtered by section phi."""
         fps = self.at_section(phi) if phi is not None else self.fixed_points
         return [fp for fp in fps if fp.kind == 'X']
 
-    def opoints(self, phi: Optional[float] = None) -> List[ChainFixedPoint]:
+    def opoints(self, phi: Optional[float] = None) -> List[FixedPoint]:
         """All O-points, optionally filtered by section phi."""
         fps = self.at_section(phi) if phi is not None else self.fixed_points
         return [fp for fp in fps if fp.kind == 'O']
@@ -397,8 +507,8 @@ class IslandChainOrbit:
     def n_independent_orbits(self) -> int:
         """Number of independent field-line trajectories = gcd(m, n).
 
-        For HAO m=10, n=3: gcd=1 → all 10 islands are on one orbit.
-        For W7X m=5, n=5: gcd=5 → 5 disconnected flux tubes.
+        For HAO m=10, n=3: gcd=1 �?all 10 islands are on one orbit.
+        For W7X m=5, n=5: gcd=5 �?5 disconnected flux tubes.
         """
         from math import gcd
         return gcd(self.m, self.n) if self.n > 0 else 1
@@ -440,7 +550,7 @@ class IslandChainOrbit:
     def summary(self) -> str:
         """Human-readable summary of the chain contents."""
         sections = sorted({fp.phi for fp in self.fixed_points})
-        lines = [f"IslandChainOrbit  m={self.m}  n={self.n}  Np={self.Np}",
+        lines = [f"PeriodicOrbit  m={self.m}  n={self.n}  Np={self.Np}",
                  f"  Seed: (R={self.seed_RZ[0]:.5f}, Z={self.seed_RZ[1]:.5f})"
                  f"  phi0={self.seed_phi:.4f}"]
         for phi in sections:
@@ -573,6 +683,11 @@ class IslandChainOrbit:
             'section_kind_counts': section_kind_counts,
             'section_points': section_points,
             'orbit_info': orbit_info,
+            # InvariantObject enrichment
+            'invariant_type': 'PeriodicOrbit',
+            'stability': 'mixed' if mixed_kind else (dominant_kind or 'unknown'),
+            'greene_residue': float(self.fixed_points[0].greene_residue) if self.fixed_points else float('nan'),
+            'resonance': f"{self.m}/{self.n}",
         }
 
     def is_complete(
@@ -606,7 +721,7 @@ class IslandChainOrbit:
         """Return a multi-line diagnostics string for warnings / logs."""
         diag = self.diagnostics(requested_phis=requested_phis, tol=tol)
         lines = [
-            f"IslandChainOrbit diagnostics  m={self.m} n={self.n} Np={self.Np}",
+            f"PeriodicOrbit diagnostics  m={self.m} n={self.n} Np={self.Np}",
             f"  seed=(R={self.seed_RZ[0]:.5f}, Z={self.seed_RZ[1]:.5f}) phi0={self.seed_phi:.4f}",
             f"  n_fixed_points={diag['n_fixed_points']}  kind_totals={diag['kind_totals']}  mixed_kind={diag['mixed_kind']}",
             f"  requested_sections={[round(p, 6) for p in diag['requested_sections']]}",
@@ -662,7 +777,7 @@ class IslandChainOrbit:
         newton_tol: float = 1e-9,
         refine: bool = True,
         n_threads: int = 0,
-    ) -> "IslandChainOrbit":
+    ) -> "PeriodicOrbit":
         """Build island-chain orbit using the cyna C++ parallel backend.
 
         This is the MCF-optimised constructor. Instead of scipy.integrate,
@@ -672,9 +787,9 @@ class IslandChainOrbit:
         each section.
 
         The conjugation formula is applied to the DPm matrices returned
-        by cyna (which stores DPm[k] = DX_pol(phi0 → phi_k))::
+        by cyna (which stores DPm[k] = DX_pol(phi0 �?phi_k))::
 
-            DPm(x_k) = DX_pol_k · DPm_seed · DX_pol_k⁻¹
+            DPm(x_k) = DX_pol_k · DPm_seed · DX_pol_k⁻�?
 
         Parameters
         ----------
@@ -712,7 +827,7 @@ class IslandChainOrbit:
 
         Returns
         -------
-        IslandChainOrbit
+        PeriodicOrbit
         """
         try:
             import pyna._cyna as _cyna_mod
@@ -805,7 +920,7 @@ class IslandChainOrbit:
             DPm_seed = DPm_arr[0].reshape(2, 2) if len(DPm_arr) > 0 else np.eye(2)
 
         # ── Match orbit output to requested sections ──────────────────
-        fps: List[ChainFixedPoint] = []
+        fps: List[FixedPoint] = []
 
         for phi_tgt in section_phis:
             phi_abs = phi0 + ((phi_tgt - phi0) % (2 * np.pi))
@@ -823,7 +938,7 @@ class IslandChainOrbit:
             # DPm_arr[idx] = Φ_k flattened (DX_pol from phi0 to phi_k)
             Phi_k = DPm_arr[idx].reshape(2, 2)
 
-            # Conjugation: DPm(x_k) = Φ_k · DPm_seed · Φ_k⁻¹
+            # Conjugation: DPm(x_k) = Φ_k · DPm_seed · Φ_k⁻�?
             try:
                 Phi_k_inv = np.linalg.inv(Phi_k)
                 DPm_k = Phi_k @ DPm_seed @ Phi_k_inv
@@ -852,7 +967,7 @@ class IslandChainOrbit:
                         f"(R={R_k:.5f}, Z={Z_k:.5f}); using propagated position."
                     )
 
-            fps.append(ChainFixedPoint(
+            fps.append(FixedPoint(
                 phi=phi_section,
                 R=R_k, Z=Z_k,
                 DPm=DPm_k,
@@ -928,13 +1043,13 @@ def _propagate_chain(
     DPm_seed: np.ndarray,
     section_phis: List[float],
     dt: float = 0.05, rtol: float = 1e-9, atol: float = 1e-10,
-) -> List[ChainFixedPoint]:
+) -> List[FixedPoint]:
     """
     Integrate orbit + DX_pol from phi0 to phi0 + 2π·m, recording
     fixed-point data at each section_phi crossing.
 
     At each recorded section phi_k with accumulated linearised flow Φ_k:
-        DPm(x_k) = Φ_k · DPm_seed · Φ_k⁻¹
+        DPm(x_k) = Φ_k · DPm_seed · Φ_k⁻�?
 
     This is the similarity/conjugation formula expressing that all points
     on the same chain are related by continuous-time flow, and the
@@ -974,15 +1089,15 @@ def _propagate_chain(
     _interp = _interp1d(sol.t, sol.y, kind='linear', axis=1,
                         bounds_error=False, fill_value='extrapolate')
 
-    fps: List[ChainFixedPoint] = []
+    fps: List[FixedPoint] = []
 
     for phi_k in abs_targets:
         phi_k_clipped = float(np.clip(phi_k, phi0, phi_end))
         y_k = _interp(phi_k_clipped)
         R_k, Z_k = float(y_k[0]), float(y_k[1])
-        Phi_k = y_k[2:6].reshape(2, 2)  # DX_pol(phi0 → phi_k) = Φ_k
+        Phi_k = y_k[2:6].reshape(2, 2)  # DX_pol(phi0 �?phi_k) = Φ_k
 
-        # Conjugation: DPm(x_k) = Φ_k · DPm_seed · Φ_k⁻¹
+        # Conjugation: DPm(x_k) = Φ_k · DPm_seed · Φ_k⁻�?
         try:
             Phi_k_inv = np.linalg.inv(Phi_k)
             DPm_k = Phi_k @ DPm_seed @ Phi_k_inv
@@ -993,7 +1108,7 @@ def _propagate_chain(
         # Normalise phi_k to [0, 2π) for the stored section label
         phi_section = float(phi_k_clipped) % (2 * np.pi)
 
-        fps.append(ChainFixedPoint(
+        fps.append(FixedPoint(
             phi=phi_section,
             R=R_k, Z=Z_k,
             DPm=DPm_k,
@@ -1021,7 +1136,7 @@ def _poincare_map_m(
 
 
 def _refine_chain_points(
-    fps: List[ChainFixedPoint],
+    fps: List[FixedPoint],
     field_func: Callable,
     m: int,
     phi0: float,
@@ -1029,19 +1144,19 @@ def _refine_chain_points(
     maxiter: int = 40,
     eps: float = 1e-4,
     dt: float = 0.05,
-) -> List[ChainFixedPoint]:
-    """Newton-refine each ChainFixedPoint so that P^m(x_k) = x_k.
+) -> List[FixedPoint]:
+    """Newton-refine each FixedPoint so that P^m(x_k) = x_k.
 
     Each section point x_k lies at Poincaré section φ_k. We run Newton on
     G(x) = P^m_{φ_k}(x) - x = 0, where P^m_{φ_k} is the m-turn map
     starting at section φ_k.
 
     The Jacobian dG/dx = DPm(x) - I is estimated by finite differences.
-    The DPm stored in each ChainFixedPoint (from conjugation) is used as
+    The DPm stored in each FixedPoint (from conjugation) is used as
     the initial Jacobian guess (analytical) and updated by FD after the
     first Newton step.
     """
-    refined: List[ChainFixedPoint] = []
+    refined: List[FixedPoint] = []
 
     for fp in fps:
         R, Z = fp.R, fp.Z
@@ -1096,10 +1211,17 @@ def _refine_chain_points(
             [(ZfR - Zf) / eps, (ZfZ - Zf) / eps],
         ])
 
-        refined.append(ChainFixedPoint(
+        refined.append(FixedPoint(
             phi=phi_k, R=R, Z=Z,
             DPm=DPm_refined,
             DX_pol_accum=fp.DX_pol_accum,
         ))
 
     return refined
+
+
+# ---------------------------------------------------------------------------
+# Backward compatibility aliases
+# ---------------------------------------------------------------------------
+IslandChainOrbit = PeriodicOrbit  # backward compat
+ChainFixedPoint = FixedPoint  # backward compat

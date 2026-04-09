@@ -7,9 +7,8 @@ DynamicalSystem) and below the application-level topology analysis.
 
 Class hierarchy
 ---------------
-InvariantObject (ABC)
-    PeriodicOrbit          -- elliptic or hyperbolic periodic orbit (replaces
-                              IslandChainOrbit as a first-class object)
+InvariantObject (ABC)           [pyna.topo._base]
+    PeriodicOrbit          -- periodic orbit (IS-A InvariantObject, was IslandChainOrbit)
     InvariantTorus         -- KAM torus (non-resonant invariant surface)
     InvariantManifold (ABC)
         StableManifold     -- W^s of a PeriodicOrbit
@@ -23,8 +22,8 @@ Notes
 -----
 * Convention: resonance is always labelled m/n (m = toroidal turns,
   n = poloidal winding number).  Never use p/q in MCF context.
-* PeriodicOrbit WRAPS IslandChainOrbit for backward compatibility; it does
-  NOT replace it in the call graph.
+* PeriodicOrbit is now the canonical class (formerly IslandChainOrbit).
+  IslandChainOrbit is kept as a backward-compat alias.
 * InvariantManifold.grow() delegates to CynaStableManifold /
   CynaUnstableManifold from pyna.topo.manifold_improve when cyna is
   available, falling back to the scipy-based version otherwise.
@@ -37,10 +36,16 @@ from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 
+# InvariantObject lives in _base to avoid circular imports
+from pyna.topo._base import InvariantObject
+
+# PeriodicOrbit is now defined in island_chain (the canonical computation class)
+from pyna.topo.island_chain import PeriodicOrbit
+
 if TYPE_CHECKING:
     from pyna.topo.section import Section
     from pyna.topo.island import Island
-    from pyna.topo.island_chain import IslandChainOrbit, ChainFixedPoint
+    from pyna.topo.island_chain import FixedPoint
     from pyna.topo.resonance import ResonanceNumber
     from pyna.topo.dynamics import PhaseSpace, PoincareMap
 
@@ -52,360 +57,7 @@ __all__ = [
     "InvariantManifold",
     "StableManifold",
     "UnstableManifold",
-]
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Abstract base
-# ─────────────────────────────────────────────────────────────────────────────
-
-class InvariantObject(ABC):
-    """Abstract mixin interface for invariant geometric objects of a dynamical system.
-
-    An invariant object O satisfies phi^t(O) <= O for all t (continuous flow)
-    or P(O) = O (discrete map).
-
-    Design: Pure interface -- no __init__, no state fields.
-    Concrete subclasses (including dataclasses) provide their own fields
-    and satisfy the interface via @property overrides.
-
-    The invariant-object hierarchy (from smallest to largest):
-      ChainFixedPoint  -- a 0-D invariant set (one fixed point of P^m)
-      Island           -- one magnetic island (O-region, nested InvariantTori)
-      IslandChain      -- a full resonance family of Islands
-      Tube             -- continuous-time Island (3D invariant torus structure)
-      TubeChain        -- continuous-time IslandChain
-      InvariantTorus   -- a KAM torus (non-resonant)
-      PeriodicOrbit    -- a periodic orbit (closed orbit, resonant)
-      InvariantManifold -- stable/unstable manifold of a PeriodicOrbit
-
-    Required interface (abstract):
-      .label           @property -> str | None
-      .section_cut(section) -> list
-      .diagnostics()   -> dict
-
-    Optional interface (with sensible defaults):
-      .poincare_map    @property -> PoincareMap | None  (default: None)
-      .phase_space     @property -> PhaseSpace | None   (default: via poincare_map)
-    """
-
-    # ── Abstract interface ────────────────────────────────────────────────────
-
-    @abstractmethod
-    def section_cut(self, section) -> list:
-        """Return the intersection of this object with a Poincare section.
-
-        Parameters
-        ----------
-        section : Section | float
-            The Poincare section (ToroidalSection or phi value).
-
-        Returns
-        -------
-        list
-            Contents depend on the subclass:
-            - PeriodicOrbit / Island -> list[Island]
-            - InvariantTorus -> list[np.ndarray] of (R,Z) crossing arrays
-            - InvariantManifold -> list[np.ndarray] of manifold branch points
-            - TubeChain / IslandChain -> list[Island]
-        """
-
-    @abstractmethod
-    def diagnostics(self) -> Dict[str, Any]:
-        """Return a structured diagnostic/debug dict."""
-
-    # ── Optional interface (concrete defaults) ────────────────────────────────
-
-    @property
-    def label(self) -> Optional[str]:
-        """Human-readable identifier. Override in subclasses."""
-        return None
-
-    @property
-    def poincare_map(self):
-        """The Poincare map this object lives in (PoincareMap | None).
-
-        Override in subclasses that carry a poincare_map field.
-        """
-        return None
-
-    @property
-    def phase_space(self):
-        """Phase space of the associated map (PhaseSpace | None)."""
-        pm = self.poincare_map
-        if pm is not None:
-            return pm.phase_space
-        return None
-
-    # ── Repr ─────────────────────────────────────────────────────────────────
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(label={self.label!r})"
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# PeriodicOrbit
-# ─────────────────────────────────────────────────────────────────────────────
-
-class PeriodicOrbit(InvariantObject):
-    """A periodic orbit of the Poincaré map: P^m(x*) = x*.
-
-    This is the formal ``InvariantObject`` wrapper around
-    :class:`~pyna.topo.island_chain.IslandChainOrbit`.  It provides:
-
-    * A stable API at the ``InvariantObject`` level (section_cut, diagnostics).
-    * Semantic properties: ``stability``, ``greene_residue``, ``resonance``.
-    * Forward compatibility for future direct construction (not via orbit).
-
-    Backward compatibility
-    ----------------------
-    The wrapped :class:`IslandChainOrbit` is accessible via ``.orbit``.
-    All existing code that uses ``IslandChainOrbit`` continues to work.
-
-    MCF convention
-    --------------
-    Resonance is labelled m/n (m = toroidal turns, n = poloidal winding).
-    ``self.m`` = toroidal period, ``self.n`` = poloidal winding number.
-    """
-
-    def __init__(
-        self,
-        orbit: "IslandChainOrbit",
-        *,
-        label: Optional[str] = None,
-        poincare_map=None,
-    ):
-        self._label = label
-        self._poincare_map = poincare_map
-        self._orbit = orbit
-
-    # ── InvariantObject interface ─────────────────────────────────────────────
-
-    @property
-    def label(self) -> Optional[str]:
-        return self._label
-
-    @property
-    def poincare_map(self):
-        return self._poincare_map
-
-    # ── Constructors ─────────────────────────────────────────────────────────
-
-    @classmethod
-    def from_island_chain_orbit(
-        cls,
-        orbit: "IslandChainOrbit",
-        *,
-        label: Optional[str] = None,
-        poincare_map=None,
-    ) -> "PeriodicOrbit":
-        """Wrap an existing IslandChainOrbit as a PeriodicOrbit.
-
-        Parameters
-        ----------
-        orbit : IslandChainOrbit
-            The orbit to wrap.
-        label : str, optional
-            Human-readable label; defaults to ``'m/n orbit'``.
-        poincare_map : MCFPoincareMap, optional
-            The Poincaré map this orbit belongs to.
-        """
-        if label is None:
-            label = f"{orbit.m}/{orbit.n} orbit"
-        return cls(orbit=orbit, label=label, poincare_map=poincare_map)
-
-    @classmethod
-    def from_fixed_point(
-        cls,
-        R0: float,
-        Z0: float,
-        phi0: float,
-        m: int,
-        n: int,
-        Np: int,
-        *,
-        field_cache: Optional[dict] = None,
-        poincare_map=None,
-        section_phis: Optional[Sequence[float]] = None,
-        n_sections: int = 4,
-        label: Optional[str] = None,
-        DPhi: float = 0.05,
-        refine: bool = True,
-    ) -> "PeriodicOrbit":
-        """Build a PeriodicOrbit from a known seed fixed point.
-
-        Requires either ``field_cache`` (cyna fast path) or ``poincare_map``
-        with a working ``field_cache`` attribute.
-
-        Parameters
-        ----------
-        R0, Z0, phi0 : float
-            Seed fixed-point (R, Z) coordinates and section angle [rad].
-        m, n : int
-            Toroidal period and poloidal winding number (MCF convention).
-        Np : int
-            Field toroidal periodicity.
-        field_cache : dict, optional
-            Cache dict with keys ``BR, BPhi, BZ, R_grid, Z_grid, Phi_grid``.
-        poincare_map : MCFPoincareMap, optional
-            If field_cache is None, uses poincare_map.field_cache.
-        section_phis : list of float, optional
-            Target Poincaré sections.
-        n_sections : int
-            Number of equally spaced sections (used when section_phis is None).
-        label : str, optional
-        DPhi : float
-            cyna RK4 step [rad].
-        refine : bool
-            Newton-refine each section crossing.
-        """
-        from pyna.topo.island_chain import IslandChainOrbit
-
-        fc = field_cache
-        if fc is None and poincare_map is not None and hasattr(poincare_map, 'field_cache'):
-            fc = poincare_map.field_cache
-
-        if fc is not None:
-            orbit = IslandChainOrbit.from_cyna_cache(
-                R0, Z0, phi0, fc, Np, m, n,
-                section_phis=section_phis,
-                n_sections=n_sections,
-                DPhi=DPhi,
-                refine=refine,
-            )
-        else:
-            raise ValueError(
-                "PeriodicOrbit.from_fixed_point requires either field_cache or "
-                "a poincare_map with a .field_cache attribute."
-            )
-
-        if label is None:
-            label = f"{m}/{n} orbit"
-        return cls(orbit=orbit, label=label, poincare_map=poincare_map)
-
-    # ── Backward-compat orbit access ─────────────────────────────────────────
-
-    @property
-    def orbit(self) -> "IslandChainOrbit":
-        """The wrapped IslandChainOrbit (backward compatibility)."""
-        return self._orbit
-
-    # ── Resonance properties ──────────────────────────────────────────────────
-
-    @property
-    def m(self) -> int:
-        """Toroidal period (MCF convention)."""
-        return self._orbit.m
-
-    @property
-    def n(self) -> int:
-        """Poloidal winding number (MCF convention)."""
-        return self._orbit.n
-
-    @property
-    def Np(self) -> int:
-        """Field toroidal periodicity."""
-        return self._orbit.Np
-
-    @property
-    def resonance(self) -> "ResonanceNumber":
-        """ResonanceNumber(m, n) for this orbit."""
-        from pyna.topo.resonance import ResonanceNumber
-        return ResonanceNumber(self.m, self.n)
-
-    # ── Stability ─────────────────────────────────────────────────────────────
-
-    @property
-    def fixed_points(self) -> list:
-        """All ChainFixedPoint objects (across all sections)."""
-        return list(self._orbit.fixed_points)
-
-    @property
-    def stability(self) -> str:
-        """'X' (hyperbolic), 'O' (elliptic), or 'mixed'."""
-        diag = self._orbit.diagnostics()
-        if diag['mixed_kind']:
-            return 'mixed'
-        return diag['dominant_kind'] or 'unknown'
-
-    @property
-    def greene_residue(self) -> float:
-        """Greene's residue R = (2 - Tr DPm) / 4 at the first available fixed point.
-
-        R < 0  →  hyperbolic (X-point, island separatrix).
-        0 < R < 1  →  elliptic (O-point, island centre).
-        R = 0 or 1  →  parabolic / bifurcation.
-        """
-        fps = self._orbit.fixed_points
-        if not fps:
-            return float('nan')
-        return float(fps[0].greene_residue)
-
-    @property
-    def eigenvalues(self) -> np.ndarray:
-        """Eigenvalues of DPm at the first available fixed point."""
-        fps = self._orbit.fixed_points
-        if not fps:
-            return np.array([float('nan'), float('nan')])
-        return fps[0].eigenvalues
-
-    # ── InvariantObject interface ─────────────────────────────────────────────
-
-    def section_cut(self, section) -> List["Island"]:
-        """Cut this orbit at a Poincaré section → list of Islands.
-
-        Delegates to the underlying IslandChainOrbit.  Each Island carries
-        a back-reference (island.periodic_orbit = self).
-
-        Parameters
-        ----------
-        section : ToroidalSection | float
-            The section to cut at.
-
-        Returns
-        -------
-        list of Island
-        """
-        from pyna.topo.section import ToroidalSection
-        from pyna.topo.island import Island as _Island
-
-        if isinstance(section, (int, float)):
-            phi = float(section)
-        elif hasattr(section, 'phi'):
-            phi = float(section.phi)
-        else:
-            raise NotImplementedError(
-                "PeriodicOrbit.section_cut only supports ToroidalSection (phi=const)."
-            )
-
-        fps = self._orbit.fixed_points_at_section(phi)
-        islands = []
-        for fp in fps:
-            isl = _Island(
-                period_n=self.m,
-                O_point=np.array([float(fp.R), float(fp.Z)], dtype=float),
-                X_points=[],
-                halfwidth=float('nan'),
-                label=self._label,
-            )
-            isl.periodic_orbit = self  # new back-reference at InvariantObject level
-            islands.append(isl)
-        return islands
-
-    def diagnostics(self) -> Dict[str, Any]:
-        d = self._orbit.diagnostics()
-        d['invariant_type'] = 'PeriodicOrbit'
-        d['stability'] = self.stability
-        d['greene_residue'] = self.greene_residue
-        d['resonance'] = str(self.resonance)
-        return d
-
-    def __repr__(self) -> str:
-        return (f"PeriodicOrbit(m={self.m}, n={self.n}, "
-                f"stability={self.stability!r}, label={self._label!r})")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
+]# ─────────────────────────────────────────────────────────────────────────────
 # InvariantTorus
 # ─────────────────────────────────────────────────────────────────────────────
 

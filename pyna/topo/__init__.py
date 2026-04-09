@@ -31,12 +31,14 @@ from pyna.topo.monodromy import (
     monodromy_matrix,
 )
 from pyna.topo.island_chain import (
-    IslandChainOrbit,
-    ChainFixedPoint,
+    PeriodicOrbit,
+    FixedPoint,
+    IslandChainOrbit,  # backward compat alias
+    ChainFixedPoint,   # backward compat alias
 )
 from pyna.topo.identity import ResonanceID, TubeID, IslandID
 from pyna.topo.section_view import SectionViewPoint, SectionCorrespondence, SectionView, SectionViewBuilder
-from pyna.topo.tube import TubeCutPoint, Tube, TubeChain, ResonanceStructure
+from pyna.topo.tube import TubeCutPoint, Tube, TubeChain, ResonanceFamily, ResonanceStructure
 from pyna.plot.island import plot_island, island_section_points
 from pyna.plot.island_chain import plot_island_chain, island_chain_section_points
 from pyna.topo.fast_metrics import (
@@ -68,7 +70,6 @@ from pyna.topo.dynamics import (
 # Layer 1: Invariant objects (PeriodicOrbit, InvariantTorus, manifolds)
 from pyna.topo.invariant import (
     InvariantObject,
-    PeriodicOrbit,
     InvariantTorus,
     InvariantManifold,
     StableManifold as InvariantStableManifold,
@@ -122,8 +123,10 @@ __all__ = [
     "second_order_orbit_variation",
     "monodromy_matrix",
     # island chain connectivity
-    "IslandChainOrbit",
-    "ChainFixedPoint",
+    "PeriodicOrbit",
+    "FixedPoint",
+    "IslandChainOrbit",  # backward compat
+    "ChainFixedPoint",   # backward compat
     # identity / bridge layer
     "ResonanceID",
     "TubeID",
@@ -136,7 +139,8 @@ __all__ = [
     "TubeCutPoint",
     "Tube",
     "TubeChain",
-    "ResonanceStructure",
+    "ResonanceFamily",
+    "ResonanceStructure",  # backward compat
     # generic island / island-chain plotting
     "plot_island",
     "island_section_points",

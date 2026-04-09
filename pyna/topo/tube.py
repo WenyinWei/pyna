@@ -3,7 +3,7 @@
 This module keeps the continuous-time side of the topology model:
 - ``Tube``: one connected periodic orbit / tube
 - ``TubeChain``: one resonance-family collection of tubes
-- ``ResonanceStructure``: paired O/X tube chains for one resonance
+- ``ResonanceFamily``: paired O/X tube chains for one resonance
 
 Bridge-layer representations live in :mod:`pyna.topo.section_view`.
 The older ``SectionCut`` staging class has been removed; low-level cut data is
@@ -65,7 +65,7 @@ class Tube(InvariantObject):
     Conceptual model
     ----------------
     A Tube is NOT "an X-orbit" or "an O-orbit".  It represents a *magnetic
-    island* — one complete nested family of invariant tori.  Its skeleton
+    island* �?one complete nested family of invariant tori.  Its skeleton
     consists of:
 
       o_cycle  (exactly 1): the elliptic periodic orbit at the island centre.
@@ -182,7 +182,7 @@ class Tube(InvariantObject):
 
         Returns 'X' (hyperbolic), 'O' (elliptic), or None (mixed/unknown).
 
-        This is PRIVATE implementation detail — it reflects how the Tube
+        This is PRIVATE implementation detail �?it reflects how the Tube
         was constructed, not what the Tube conceptually IS.  The public
         API for Tube structure is o_cycle / x_cycles / is_skeleton_complete.
         """
@@ -221,7 +221,7 @@ class Tube(InvariantObject):
         from pyna.topo.island import Island as _Island
         from pyna.topo.section import ToroidalSection
 
-        # Normalise: float phi → ToroidalSection
+        # Normalise: float phi �?ToroidalSection
         if isinstance(section, (int, float)):
             section = ToroidalSection(float(section))
 
@@ -557,8 +557,8 @@ class TubeChain(InvariantObject):
             the nearest O-seeded Tube is its o_cycle (island core).
 
         After this call, each Tube's skeleton is populated so that:
-          tube.o_cycle   → the island-centre Cycle object
-          tube.x_cycles  → the separatrix Cycle object(s)
+          tube.o_cycle   �?the island-centre Cycle object
+          tube.x_cycles  �?the separatrix Cycle object(s)
 
         Parameters
         ----------
@@ -846,7 +846,7 @@ class TubeChain(InvariantObject):
 
         For each Island in chain: match to the Tube it came from (by proximity),
         then set island.tube, island.tube_chain, island.resonance_index,
-        and wire P^1 connectivity (Island[i] → Island[(i+1) % n]).
+        and wire P^1 connectivity (Island[i] �?Island[(i+1) % n]).
         """
         import numpy as np
         islands = chain.O_islands if hasattr(chain, 'O_islands') else []
@@ -896,8 +896,8 @@ class TubeChain(InvariantObject):
 
         This is the primary high-level API for going from a TubeChain (3D)
         to an IslandChain (2D, on a section).  All Islands in the returned
-        chain carry island.tube (→ their parent Tube) and island.tube_chain
-        (→ self), enabling per-Tube colour/marker coding in plots.
+        chain carry island.tube (�?their parent Tube) and island.tube_chain
+        (�?self), enabling per-Tube colour/marker coding in plots.
 
         Parameters
         ----------
@@ -928,7 +928,7 @@ class TubeChain(InvariantObject):
 
 
 @dataclass
-class ResonanceStructure:
+class ResonanceFamily:
     """Continuous-time resonance object bundling O/X tube chains and section views."""
 
     m: int
@@ -946,10 +946,10 @@ class ResonanceStructure:
         o_orbits: Optional[Sequence[IslandChainOrbit]] = None,
         x_orbits: Optional[Sequence[IslandChainOrbit]] = None,
         label: Optional[str] = None,
-    ) -> "ResonanceStructure":
+    ) -> "ResonanceFamily":
         first = o_orbits[0] if o_orbits else (x_orbits[0] if x_orbits else None)
         if first is None:
-            raise ValueError("ResonanceStructure.from_orbits requires o_orbits and/or x_orbits")
+            raise ValueError("ResonanceFamily.from_orbits requires o_orbits and/or x_orbits")
         return cls(
             m=first.m,
             n=first.n,
@@ -1081,9 +1081,11 @@ class ResonanceStructure:
 
     def summary(self) -> str:
         return (
-            f"ResonanceStructure(label={self.label}, m={self.m}, n={self.n}, Np={self.Np}, "
+            f"ResonanceFamily(label={self.label}, m={self.m}, n={self.n}, Np={self.Np}, "
             f"has_O={self.o_tubechain is not None}, has_X={self.x_tubechain is not None})"
         )
 
 
-__all__ = ["TubeCutPoint", "Tube", "TubeChain", "ResonanceStructure"]
+__all__ = ["TubeCutPoint", "Tube", "TubeChain", "ResonanceFamily", "ResonanceStructure"]
+
+ResonanceStructure = ResonanceFamily  # backward compat
