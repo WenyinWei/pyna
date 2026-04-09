@@ -190,19 +190,6 @@ class Tube:
             return None
         return diag['dominant_kind']
 
-    @property
-    def kind(self) -> Optional[str]:
-        """Seed-orbit stability kind: 'X', 'O', or None.
-
-        .. deprecated::
-            ``Tube.kind`` reflects only the stability of the *seed orbit*
-            used to construct this Tube, not the Tube's conceptual identity.
-            A Tube always contains both X-cycles and an O-cycle.
-            Prefer ``tube._seed_kind()`` in new code, or query
-            ``tube.o_cycle`` / ``tube.x_cycles`` for the full skeleton.
-        """
-        return self._seed_kind()
-
     def at_section(self, phi: float, tol: float = 1e-6) -> List[ChainFixedPoint]:
         return self.orbit.fixed_points_at_section(phi, tol=tol)
 
@@ -338,8 +325,7 @@ class Tube:
         return diag
 
     def summary(self) -> str:
-        kind = self.kind or 'mixed'
-        return f"Tube(kind={kind}, label={self.label})\n{self.orbit.summary()}"
+        return f"Tube(label={self.label})\n{self.orbit.summary()}"
 
     def orbit_xyz(self) -> Optional[np.ndarray]:
         return self.orbit.orbit_xyz()

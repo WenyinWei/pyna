@@ -39,7 +39,9 @@ def test_tube_wraps_orbit_and_maps_to_island():
         (np.pi, 1.05, 0.02, 'O'),
     ])
     tube = Tube.from_orbit(orbit, label='o-tube')
-    assert tube.kind == 'O'
+    # Tube.kind is intentionally removed — a Tube is an invariant-torus
+    # structure containing both O-cycle and X-cycles; the seed stability
+    # is an implementation detail accessed via _seed_kind() if needed.
     isl = tube.to_island(0.0, x_points=[np.array([1.10, 0.00])])
     assert np.allclose(isl.O_point, [1.00, 0.00])
     assert len(isl.X_points) == 1
