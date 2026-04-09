@@ -39,7 +39,7 @@ except ImportError:
 from pyna.topo.island import Island, IslandChain, ChainRole
 from pyna.topo.flux_surface import FluxSurface, FluxSurfaceMap, XPointOrbit
 from pyna.topo.island_extract import detect_residual_islands
-from pyna.topo.poincare import rotational_transform_from_trajectory
+from pyna.topo.poincare import rotational_transform_from_trajectory, PoincareAccumulator
 from pyna.topo.monodromy import (
     evolve_DPm_along_cycle,
     CycleVariationalData,
@@ -131,6 +131,7 @@ __all__ = [
     "detect_residual_islands",
     # rotational transform
     "rotational_transform_from_trajectory",
+    "PoincareAccumulator",
     # monodromy / variational
     "evolve_DPm_along_cycle",
     "CycleVariationalData",

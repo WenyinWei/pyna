@@ -3,11 +3,25 @@
 Provides an extensible framework for collecting field-line crossings on
 arbitrary 2-D surfaces in (R, Z, φ) space.
 
+Rename history
+--------------
+* ``Section``         → ``_LegacySection``         (internal; conflicts with
+  ``pyna.topo.section.Section`` which is the canonical public ABC)
+* ``ToroidalSection`` → ``_LegacyToroidalSection``  (internal; conflicts with
+  ``pyna.topo.section.ToroidalSection``)
+* ``PoincareMap``     → ``PoincareAccumulator``     (conflicts with
+  ``pyna.topo.dynamics.PoincareMap``)
+
+Backward-compatible aliases at module level keep old import paths working::
+
+    from pyna.topo.poincare import PoincareMap        # still works
+    from pyna.topo.poincare import ToroidalSection    # still works
+
 Classes
 -------
-Section          — abstract base for any crossing surface
-ToroidalSection  — φ = φ₀ plane (most common case)
-PoincareMap      — accumulate crossings on multiple sections
+_LegacySection          — abstract base for any crossing surface (internal)
+_LegacyToroidalSection  — φ = φ₀ plane (most common case, internal)
+PoincareAccumulator     — accumulate crossings on multiple sections
 
 Functions
 ---------
@@ -22,10 +36,10 @@ import numpy as np
 
 
 # ---------------------------------------------------------------------------
-# Abstract section
+# Abstract section (internal legacy; use pyna.topo.section.Section instead)
 # ---------------------------------------------------------------------------
 
-class Section(ABC):
+class _LegacySection(ABC):
     """Abstract crossing surface for Poincaré maps.
 
     Concrete subclasses define any 2-D surface in 3-D (R, Z, φ) space.
@@ -63,10 +77,10 @@ class Section(ABC):
 
 
 # ---------------------------------------------------------------------------
-# Toroidal section  (φ = φ₀)
+# Toroidal section  (φ = φ₀) — internal legacy
 # ---------------------------------------------------------------------------
 
-class ToroidalSection(Section):
+class _LegacyToroidalSection(_LegacySection):
     """Toroidal section at φ = φ₀ (crossing surface perpendicular to φ).
 
     Detects when the toroidal angle φ crosses φ₀ (modulo 2π), using
@@ -121,10 +135,10 @@ class ToroidalSection(Section):
 
 
 # ---------------------------------------------------------------------------
-# Poincaré map
+# Poincaré accumulator
 # ---------------------------------------------------------------------------
 
-class PoincareMap:
+class PoincareAccumulator:
     """Collect and store trajectory crossings on multiple sections.
 
     Parameters
@@ -175,6 +189,22 @@ class PoincareMap:
 
 
 # ---------------------------------------------------------------------------
+# Backward-compatible aliases
+# ---------------------------------------------------------------------------
+
+#: Alias for ``PoincareAccumulator`` kept for backward compatibility.
+PoincareMap = PoincareAccumulator
+
+#: Alias for ``_LegacyToroidalSection`` kept for backward compatibility.
+#: Prefer ``pyna.topo.section.ToroidalSection`` for new code.
+ToroidalSection = _LegacyToroidalSection
+
+#: Alias for ``_LegacySection`` kept for backward compatibility.
+#: Prefer ``pyna.topo.section.Section`` for new code.
+Section = _LegacySection
+
+
+# ---------------------------------------------------------------------------
 # Convenience driver
 # ---------------------------------------------------------------------------
 
@@ -185,7 +215,7 @@ def poincare_from_fieldlines(
     t_max: float,
     dt: float = 0.04,
     backend=None,
-) -> PoincareMap:
+) -> PoincareAccumulator:
     """Trace field lines and collect Poincaré crossings.
 
     Parameters
@@ -205,13 +235,13 @@ def poincare_from_fieldlines(
 
     Returns
     -------
-    PoincareMap
+    PoincareAccumulator
     """
     if backend is None:
         from pyna.flt import FieldLineTracer
         backend = FieldLineTracer(field_func, dt=dt)
 
-    pmap = PoincareMap(sections)
+    pmap = PoincareAccumulator(sections)
 
     if hasattr(backend, 'trace_many'):
         trajs = backend.trace_many(start_pts, t_max)
