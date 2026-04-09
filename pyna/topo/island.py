@@ -51,50 +51,51 @@ class ChainRole(enum.Enum):
 # Island topology data classes
 # ---------------------------------------------------------------------------
 
-@dataclass
 class Island(InvariantObject):
-    """A single magnetic island (one O-point region of an island chain).
+    """A single magnetic island — one invariant region around an elliptic orbit.
 
-    An island is centred on an O-point (elliptic fixed point) and bounded
-    by separatrices that pass through the neighbouring X-points (hyperbolic
-    fixed points).
+    An Island is a geometric/topological object.  It is the region of phase
+    space bounded by a separatrix and centred on an O-type periodic orbit.
 
-    Attributes
+    Design principle
+    ----------------
+    An Island does NOT store dynamical data (DPm, eigenvalues, kind) directly.
+    Those properties belong to the PeriodicOrbit at the island's core
+    (accessible via ``island.O_orbit``).  Island stores:
+
+    - **Geometric**: O_point (or O_orbit), X_points (or X_orbits), halfwidth
+    - **Topological**: level, parent (Birkhoff hierarchy)
+    - **Back-references**: tube, tube_chain, periodic_orbit
+
+    Construction
+    ------------
+    Preferred (with full dynamical information):
+        island = Island(period_n=3, O_orbit=my_periodic_orbit)
+
+    Legacy (coordinates only, no dynamics):
+        island = Island(period_n=3, O_point=np.array([R, Z]))
+
+    Properties
     ----------
-    period_n : int
-        Period of the Poincaré map (number of toroidal turns to close).
-        Equal to the numerator m for a q = m/n island.
-        Also accessible as ``period_m`` (preferred name).
-    O_point : ndarray, shape (2,)
-        Coordinates [R, Z] of the elliptic fixed point (island centre).
-    X_points : list of ndarray, shape (2,) each
-        Coordinates of the neighbouring hyperbolic fixed points.
-        May be empty when X-points have not yet been located.
-    halfwidth : float
-        Estimated island half-width (in the S flux-coordinate or in metres,
-        depending on the context).  ``nan`` when not yet estimated.
-    level : int
-        Hierarchy level in the island-around-island (Birkhoff) structure.
-        Level 1 = primary island chain; level 2 = island inside a level-1
-        island; etc.
-    parent : Island or None
-        The parent ``Island`` in the hierarchy (None for level-1 islands).
-    label : str or None
-        Optional human-readable identifier (e.g. ``"3/1"``).
-
-    Examples
-    --------
-    >>> isl = Island(period_n=3, O_point=np.array([3.07, 0.0]),
-    ...              X_points=[np.array([3.12, 0.0])], halfwidth=0.05)
-    >>> isl.level
-    1
+    O_point : ndarray(2)
+        (R, Z) of the O-orbit centre.  Derived from O_orbit if available.
+    X_points : list of ndarray(2)
+        (R, Z) of each X-orbit.  Derived from X_orbits if available.
     """
     period_n: int
-    O_point: np.ndarray
-    X_points: List[np.ndarray] = field(default_factory=list)
+
+    # ── Core orbit references (preferred) ────────────────────────────────────
+    # When set, O_point and X_points are derived from these.
+    O_orbit: Optional[object] = field(default=None, repr=False)   # PeriodicOrbit
+    X_orbits: List[object] = field(default_factory=list, repr=False)  # List[PeriodicOrbit]
+
+    # ── Legacy coordinate storage (used when orbits not available) ───────────
+    _O_point: Optional[np.ndarray] = field(default=None, repr=False)
+    _X_points: List[np.ndarray] = field(default_factory=list, repr=False)
+
     halfwidth: float = float("nan")
     level: int = 1
-    parent: Optional[Island] = None
+    parent: Optional["Island"] = None
     label: Optional[str] = None
     flux_surface_map: Optional["FluxSurfaceMap"] = field(default=None, repr=False)
     x_orbit: Optional["XPointOrbit"] = field(default=None, repr=False)
@@ -102,28 +103,7 @@ class Island(InvariantObject):
     connected_to: List["Island"] = field(default_factory=list, repr=False)
     debug_info: Dict[str, object] = field(default_factory=dict, repr=False)
 
-    # ── Continuous-time back-references ──────────────────────────────────────
-    # tube : the Tube (3D invariant-torus structure) whose section cut at a
-    #   given Poincaré plane produced this Island.
-    #   None when the Island comes purely from a discrete map (no Tube known).
-    #   This is the PRIMARY back-reference to the continuous-time world.
-    #
-    # tube_chain : the TubeChain this Tube belongs to (derived, can also be
-    #   read as tube.tube_chain if tube is set).
-    #   Kept separately for cases where only the chain-level reference is known.
-    #
-    # resonance_index : 0-based index of this Island's Tube within its TubeChain.
-    #   Islands from the same Tube share the same resonance_index across sections.
-    #   Used for colour/marker coding: same tube_idx → same visual identity.
-    #
-    # section : the Section object (ToroidalSection, HyperplaneSection, ...) at
-    #   which this Island was obtained. None if not tracked.
-    #
-    # periodic_orbit : back-reference to the PeriodicOrbit (InvariantObject layer)
-    #   that produced this Island via PeriodicOrbit.section_cut().
-    #   Distinct from .tube (continuous-time structure layer).
-    #
-    # _next / _last : adjacent Islands in the orbit under P^1 / P^{-1}.
+    # ── Back-references ───────────────────────────────────────────────────────
     tube: Optional[object] = field(default=None, repr=False)           # Tube
     tube_chain: Optional[object] = field(default=None, repr=False)     # TubeChain
     resonance_index: Optional[int] = field(default=None, repr=False)
@@ -131,6 +111,113 @@ class Island(InvariantObject):
     periodic_orbit: Optional[object] = field(default=None, repr=False) # PeriodicOrbit
     _next: Optional["Island"] = field(default=None, repr=False, init=False)
     _last: Optional["Island"] = field(default=None, repr=False, init=False)
+
+    def __init__(
+        self,
+        period_n: int,
+        # Accept either orbit or raw coordinates (backward compat)
+        O_point: Optional[np.ndarray] = None,
+        X_points: Optional[List[np.ndarray]] = None,
+        O_orbit=None,
+        X_orbits: Optional[List[object]] = None,
+        # All other fields
+        halfwidth: float = float("nan"),
+        level: int = 1,
+        parent: Optional["Island"] = None,
+        label: Optional[str] = None,
+        flux_surface_map=None,
+        x_orbit=None,
+        chain=None,
+        connected_to: Optional[List["Island"]] = None,
+        debug_info: Optional[Dict] = None,
+        tube=None,
+        tube_chain=None,
+        resonance_index: Optional[int] = None,
+        section=None,
+        periodic_orbit=None,
+    ):
+        self.period_n = int(period_n)
+        self.O_orbit = O_orbit
+        self.X_orbits = list(X_orbits) if X_orbits is not None else []
+        self._O_point = np.asarray(O_point, dtype=float) if O_point is not None else None
+        self._X_points = [np.asarray(x, dtype=float) for x in (X_points or [])]
+        self.halfwidth = float(halfwidth)
+        self.level = int(level)
+        self.parent = parent
+        self.label = label
+        self.flux_surface_map = flux_surface_map
+        self.x_orbit = x_orbit
+        self.chain = chain
+        self.connected_to = list(connected_to) if connected_to is not None else []
+        self.debug_info = dict(debug_info) if debug_info is not None else {}
+        self.tube = tube
+        self.tube_chain = tube_chain
+        self.resonance_index = resonance_index
+        self.section = section
+        self.periodic_orbit = periodic_orbit
+        self._next = None
+        self._last = None
+
+    # ── Coordinate properties (derived from orbit when available) ─────────────
+
+    @property
+    def O_point(self) -> np.ndarray:
+        """(R, Z) of the O-orbit centre.  Derived from O_orbit when available."""
+        if self.O_orbit is not None and hasattr(self.O_orbit, 'seed_RZ'):
+            return np.asarray(self.O_orbit.seed_RZ, dtype=float)
+        if self._O_point is not None:
+            return self._O_point
+        return np.array([float('nan'), float('nan')])
+
+    @O_point.setter
+    def O_point(self, value):
+        """Set O_point directly (legacy path)."""
+        self._O_point = np.asarray(value, dtype=float) if value is not None else None
+
+    @property
+    def X_points(self) -> List[np.ndarray]:
+        """List of (R, Z) arrays for X-orbit positions.
+        Derived from X_orbits when available; falls back to _X_points."""
+        if self.X_orbits:
+            pts = []
+            for xorb in self.X_orbits:
+                if hasattr(xorb, 'seed_RZ'):
+                    pts.append(np.asarray(xorb.seed_RZ, dtype=float))
+                elif hasattr(xorb, 'R') and hasattr(xorb, 'Z'):
+                    pts.append(np.array([float(xorb.R), float(xorb.Z)]))
+            if pts:
+                return pts
+        return list(self._X_points)
+
+    @X_points.setter
+    def X_points(self, value):
+        """Set X_points directly (legacy path)."""
+        self._X_points = [np.asarray(x, dtype=float) for x in (value or [])]
+
+    # ── Dynamical properties (delegated to O_orbit) ───────────────────────────
+
+    @property
+    def DPm(self) -> Optional[np.ndarray]:
+        """Monodromy matrix — property of the O_orbit, not the Island itself.
+        Returns None when O_orbit is not set."""
+        if self.O_orbit is not None and hasattr(self.O_orbit, 'DPm'):
+            return self.O_orbit.DPm
+        # Backward compat: check debug_info
+        return self.debug_info.get('DPm', None)
+
+    @property
+    def stability(self) -> Optional[str]:
+        """'X' or 'O' stability — property of the O_orbit."""
+        if self.O_orbit is not None and hasattr(self.O_orbit, 'stability'):
+            return self.O_orbit.stability
+        return None
+
+    @property
+    def greene_residue(self) -> float:
+        """Greene's residue — property of the O_orbit."""
+        if self.O_orbit is not None and hasattr(self.O_orbit, 'greene_residue'):
+            return float(self.O_orbit.greene_residue)
+        return float('nan')
 
     @property
     def period_m(self) -> int:
@@ -195,10 +282,6 @@ class Island(InvariantObject):
     def _set_last(self, island: "Island") -> None:
         """Set the last-island pointer (called by TubeChain during wiring)."""
         self._last = island
-
-    def __post_init__(self):
-        self.O_point = np.asarray(self.O_point, dtype=float)
-        self.X_points = [np.asarray(x, dtype=float) for x in self.X_points]
 
     # ── InvariantObject interface ─────────────────────────────────────────────
 
