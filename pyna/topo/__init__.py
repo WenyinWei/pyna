@@ -1,10 +1,6 @@
 """pyna.topo �?topology analysis subpackage."""
 
-try:
-    from pyna.topo.trajectory3d import ToroidalTrajectory3D, trace_toroidal_trajectory
-except ImportError:
-    ToroidalTrajectory3D = None
-    trace_toroidal_trajectory = None
+from pyna.topo.trajectory3d import ToroidalTrajectory3D, trace_toroidal_trajectory
 
 from pyna.topo.variational import PoincareMapVariationalEquations
 from pyna.topo.manifold_improve import StableManifold, UnstableManifold, ScipyStableManifold, ScipyUnstableManifold, CynaStableManifold, CynaUnstableManifold
