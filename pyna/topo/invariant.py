@@ -91,11 +91,6 @@ class InvariantObject(ABC):
 
     # ── Abstract interface ────────────────────────────────────────────────────
 
-    @property
-    @abstractmethod
-    def label(self) -> Optional[str]:
-        """Human-readable identifier for this invariant object."""
-
     @abstractmethod
     def section_cut(self, section) -> list:
         """Return the intersection of this object with a Poincare section.
@@ -120,6 +115,11 @@ class InvariantObject(ABC):
         """Return a structured diagnostic/debug dict."""
 
     # ── Optional interface (concrete defaults) ────────────────────────────────
+
+    @property
+    def label(self) -> Optional[str]:
+        """Human-readable identifier. Override in subclasses."""
+        return None
 
     @property
     def poincare_map(self):
