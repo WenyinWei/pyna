@@ -449,7 +449,6 @@ class InvariantTorus(InvariantObject):
         label : str, optional
         poincare_map : PoincareMap, optional
         """
-        super().__init__()  # pure mixin, no state in ABC
         self._label = label
         self._poincare_map = poincare_map
         self._crossings = {float(k): np.asarray(v, dtype=float)

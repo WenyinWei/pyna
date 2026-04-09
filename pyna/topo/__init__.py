@@ -14,28 +14,14 @@ from pyna.topo.chaos import (
     chaotic_boundary_estimate,
 )
 from pyna.topo.topology_analysis import analyse_topology, TopologyReport
-try:
-    from pyna.topo.fixed_points import (
-        find_periodic_orbit,
-        classify_fixed_point,
-        classify_fixed_point_higher_order,
-    )
-except ImportError:
-    # fixed_points.py is being updated; these will be available after newton-fixedpoint-agent completes
-    find_periodic_orbit = None
-    classify_fixed_point = None
-    classify_fixed_point_higher_order = None
-# New Newton-based fixed point finders (added by newton-fixedpoint-agent)
-try:
-    from pyna.topo.fixed_points import (
-        find_magnetic_axis,
-        find_fixed_point_newton,
-        refine_fixed_points_from_pkl,
-    )
-except ImportError:
-    find_magnetic_axis = None
-    find_fixed_point_newton = None
-    refine_fixed_points_from_pkl = None
+from pyna.topo.fixed_points import (
+    find_periodic_orbit,
+    classify_fixed_point,
+    classify_fixed_point_higher_order,
+    find_magnetic_axis,
+    find_fixed_point_newton,
+    refine_fixed_points_from_pkl,
+)
 from pyna.topo.island import Island, IslandChain, ChainRole
 from pyna.topo.flux_surface import FluxSurface, FluxSurfaceMap, XPointOrbit
 from pyna.topo.island_extract import detect_residual_islands

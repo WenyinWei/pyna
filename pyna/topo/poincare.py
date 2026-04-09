@@ -5,11 +5,7 @@ arbitrary 2-D surfaces in (R, Z, φ) space.
 
 Rename history
 --------------
-* ``Section``         → ``_LegacySection``         (internal; conflicts with
-  ``pyna.topo.section.Section`` which is the canonical public ABC)
-* ``ToroidalSection`` → ``_LegacyToroidalSection``  (internal; conflicts with
-  ``pyna.topo.section.ToroidalSection``)
-* ``PoincareMap``     → ``PoincareAccumulator``     (conflicts with
+* ``PoincareMap`` → ``PoincareAccumulator`` (conflicts with
   ``pyna.topo.dynamics.PoincareMap``)
 
 Backward-compatible aliases at module level keep old import paths working::
@@ -19,8 +15,8 @@ Backward-compatible aliases at module level keep old import paths working::
 
 Classes
 -------
-_LegacySection          — abstract base for any crossing surface (internal)
-_LegacyToroidalSection  — φ = φ₀ plane (most common case, internal)
+PoincareSection         — abstract base for crossing surfaces (poincare-accumulator use)
+PoincareToroidalSection — φ = φ₀ plane, implements detect_crossing
 PoincareAccumulator     — accumulate crossings on multiple sections
 
 Functions
@@ -36,20 +32,16 @@ import numpy as np
 
 
 # ---------------------------------------------------------------------------
-# Abstract section (internal legacy; use pyna.topo.section.Section instead)
+# Section protocol for PoincareAccumulator
 # ---------------------------------------------------------------------------
 
-class _LegacySection(ABC):
-    """Abstract crossing surface for Poincaré maps.
+class PoincareSection(ABC):
+    """Abstract crossing surface for use with PoincareAccumulator.
 
     Concrete subclasses define any 2-D surface in 3-D (R, Z, φ) space.
     The :meth:`detect_crossing` method uses linear interpolation between
     consecutive trajectory points to find where the trajectory crosses
     this surface.
-
-    Design note: sections are intentionally not limited to toroidal
-    (φ=const) planes.  Subclasses can represent poloidal planes,
-    oblique planes, or arbitrary smooth surfaces.
     """
 
     @abstractmethod
@@ -76,12 +68,8 @@ class _LegacySection(ABC):
         """Human-readable label for this section."""
 
 
-# ---------------------------------------------------------------------------
-# Toroidal section  (φ = φ₀) — internal legacy
-# ---------------------------------------------------------------------------
-
-class _LegacyToroidalSection(_LegacySection):
-    """Toroidal section at φ = φ₀ (crossing surface perpendicular to φ).
+class PoincareToroidalSection(PoincareSection):
+    """Toroidal section at φ = φ₀ for use with PoincareAccumulator.
 
     Detects when the toroidal angle φ crosses φ₀ (modulo 2π), using
     linear interpolation to find the precise crossing point.
@@ -109,9 +97,7 @@ class _LegacyToroidalSection(_LegacySection):
         phi_curr = pt_curr[2] % (2 * np.pi)
         phi0 = self.phi0
 
-        # Signed phase difference
         dphi = phi_curr - phi_prev
-        # Wrap to (-π, π]
         if dphi > np.pi:
             dphi -= 2 * np.pi
         elif dphi <= -np.pi:
@@ -120,15 +106,13 @@ class _LegacyToroidalSection(_LegacySection):
         if abs(dphi) < 1e-12:
             return None
 
-        # Distance from phi_prev to phi0 in the direction of travel
         if dphi > 0:
             d_prev_to_0 = (phi0 - phi_prev) % (2 * np.pi)
         else:
             d_prev_to_0 = -(phi_prev - phi0) % (2 * np.pi)
 
-        # Check if crossing occurs in this step
         if abs(dphi) > 0 and 0 < abs(d_prev_to_0) <= abs(dphi):
-            t = d_prev_to_0 / dphi  # fractional step [0, 1]
+            t = d_prev_to_0 / dphi
             if 0.0 <= t <= 1.0:
                 return pt_prev + t * (pt_curr - pt_prev)
         return None
@@ -195,13 +179,14 @@ class PoincareAccumulator:
 #: Alias for ``PoincareAccumulator`` kept for backward compatibility.
 PoincareMap = PoincareAccumulator
 
-#: Alias for ``_LegacyToroidalSection`` kept for backward compatibility.
-#: Prefer ``pyna.topo.section.ToroidalSection`` for new code.
-ToroidalSection = _LegacyToroidalSection
+#: Backward-compatible alias: ``ToroidalSection`` from poincare module → PoincareToroidalSection
+#: (has detect_crossing for use with PoincareAccumulator)
+#: For section-based topology queries, use ``pyna.topo.section.ToroidalSection``.
+ToroidalSection = PoincareToroidalSection
 
-#: Alias for ``_LegacySection`` kept for backward compatibility.
-#: Prefer ``pyna.topo.section.Section`` for new code.
-Section = _LegacySection
+#: Backward-compatible alias: ``Section`` from poincare module → PoincareSection ABC
+#: For the canonical Section ABC, use ``pyna.topo.section.Section``.
+Section = PoincareSection
 
 
 # ---------------------------------------------------------------------------

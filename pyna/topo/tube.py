@@ -18,6 +18,7 @@ import warnings
 
 import numpy as np
 
+from pyna.topo.invariant import InvariantObject
 from pyna.topo.island import Island, IslandChain
 from pyna.topo.island_chain import ChainFixedPoint, IslandChainOrbit
 
@@ -58,7 +59,7 @@ class TubeCutPoint:
 
 
 @dataclass
-class Tube:
+class Tube(InvariantObject):
     """A magnetic island: one nested invariant-torus structure in phase space.
 
     Conceptual model
@@ -464,7 +465,7 @@ class Tube:
 
 
 @dataclass
-class TubeChain:
+class TubeChain(InvariantObject):
     """Continuous-time counterpart of a discrete ``IslandChain``.
 
     A TubeChain collects all periodic orbits (Tubes) of a given resonance
@@ -781,7 +782,7 @@ class TubeChain:
         view = (
             self.reconstruct_section_view(
                 phi,
-                kind=self.kind or 'O',
+                kind='O',
                 tol=tol,
                 dedup_tol=1e-6,
                 section_reconstructor=section_reconstructor,
@@ -789,7 +790,7 @@ class TubeChain:
             if reconstruct else
             self.raw_section_view(
                 phi,
-                kind=self.kind or 'O',
+                kind='O',
                 tol=tol,
                 dedup_tol=1e-6,
             )
@@ -799,7 +800,7 @@ class TubeChain:
             x_view = (
                 x_tubechain.reconstruct_section_view(
                     phi,
-                    kind=x_tubechain.kind or 'X',
+                    kind='X',
                     tol=tol,
                     dedup_tol=1e-6,
                     section_reconstructor=x_section_reconstructor,
@@ -807,7 +808,7 @@ class TubeChain:
                 if reconstruct else
                 x_tubechain.raw_section_view(
                     phi,
-                    kind=x_tubechain.kind or 'X',
+                    kind='X',
                     tol=tol,
                     dedup_tol=1e-6,
                 )

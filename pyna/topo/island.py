@@ -21,8 +21,6 @@ References
 """
 from __future__ import annotations
 
-from __future__ import annotations
-
 import enum
 from dataclasses import dataclass, field
 import warnings
@@ -31,6 +29,8 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 
 import numpy as np
 from scipy.interpolate import UnivariateSpline, interp1d
+
+from pyna.topo.invariant import InvariantObject
 
 if TYPE_CHECKING:
     from pyna.topo.flux_surface import FluxSurface, FluxSurfaceMap, XPointOrbit
@@ -52,7 +52,7 @@ class ChainRole(enum.Enum):
 # ---------------------------------------------------------------------------
 
 @dataclass
-class Island:
+class Island(InvariantObject):
     """A single magnetic island (one O-point region of an island chain).
 
     An island is centred on an O-point (elliptic fixed point) and bounded
@@ -199,6 +199,25 @@ class Island:
     def __post_init__(self):
         self.O_point = np.asarray(self.O_point, dtype=float)
         self.X_points = [np.asarray(x, dtype=float) for x in self.X_points]
+
+    # ── InvariantObject interface ─────────────────────────────────────────────
+
+    def section_cut(self, section) -> list:
+        """Return self in a list (an Island is already a section-level object)."""
+        return [self]
+
+    def diagnostics(self) -> Dict[str, object]:
+        """Return a diagnostic dict for this Island."""
+        return {
+            'invariant_type': 'Island',
+            'label': self.label,
+            'period_n': self.period_n,
+            'O_point': list(self.O_point),
+            'n_X_points': len(self.X_points),
+            'halfwidth': self.halfwidth,
+            'level': self.level,
+            'connected_to': len(self.connected_to),
+        }
 
     # ------------------------------------------------------------------
     def build_flux_surface_map(
@@ -453,7 +472,7 @@ class Island:
 
 
 @dataclass
-class IslandChain:
+class IslandChain(InvariantObject):
     """A chain of magnetic islands sharing the same q = m/n rational surface.
 
     For a resonance q = m/n there are m O-points and m X-points arranged
@@ -510,12 +529,25 @@ class IslandChain:
     orbit: Optional["IslandChainOrbit"] = field(default=None, repr=False)
     parent_chain: Optional["IslandChain"] = field(default=None, repr=False)
     primary_chain_ref: Optional["IslandChain"] = field(default=None, repr=False)
+    label: Optional[str] = field(default=None, repr=False)
 
     def __post_init__(self):
         # Back-link each owned Island to this chain
         for isl in self.islands:
             if isl.chain is None:
                 isl.chain = self
+
+    # ── InvariantObject interface ─────────────────────────────────────────────
+
+    def section_cut(self, section) -> list:
+        """Return the list of Islands (already a section-level collection)."""
+        return list(self.islands)
+
+    def diagnostics(self) -> Dict[str, object]:
+        """Return a diagnostic dict for this IslandChain."""
+        return self.completeness_diagnostics()
+
+    # ── Properties ────────────────────────────────────────────────────────────
 
     @property
     def period_n(self) -> int:
