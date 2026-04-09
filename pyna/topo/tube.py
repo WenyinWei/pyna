@@ -20,7 +20,8 @@ import numpy as np
 
 from pyna.topo.invariant import InvariantObject
 from pyna.topo.island import Island, IslandChain
-from pyna.topo.island_chain import ChainFixedPoint, IslandChainOrbit
+from pyna.topo.invariant import PeriodicOrbit as IslandChainOrbit
+from pyna.topo.invariants import FixedPoint as ChainFixedPoint
 
 if TYPE_CHECKING:
     from pyna.topo.section_view import SectionView
@@ -1068,6 +1069,34 @@ class ResonanceFamily:
         if kind_up not in ('O', 'X'):
             raise ValueError(f"Unsupported kind={kind!r}; expected 'O' or 'X'")
         return views[kind_up]
+
+    def section_cut(self, section) -> Dict[str, Optional[IslandChain]]:
+        """Cut this ResonanceFamily with a Section and return island chains.
+
+        This is the high-level "3D object → 2D cut" API for a full resonance
+        family (O-islands + X-points).  Internally calls
+        :meth:`TubeChain.section_cut` on each of the two sub-chains.
+
+        Parameters
+        ----------
+        section : Section | float
+            The Poincaré section.  A float is wrapped in ToroidalSection.
+
+        Returns
+        -------
+        dict with keys ``'O'`` and ``'X'``, each holding an
+        :class:`~pyna.topo.island.IslandChain` (or None when the
+        corresponding sub-chain is absent).
+        """
+        from pyna.topo.section import ToroidalSection
+        if isinstance(section, (int, float)):
+            section = ToroidalSection(float(section))
+        return {
+            'O': None if self.o_tubechain is None
+                 else self.o_tubechain.section_cut(section),
+            'X': None if self.x_tubechain is None
+                 else self.x_tubechain.section_cut(section),
+        }
 
     def diagnostics(self, requested_phis: Optional[Sequence[float]] = None) -> Dict[str, Any]:
         return {

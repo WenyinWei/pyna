@@ -69,10 +69,75 @@ class PeriodicOrbit:
         """Tr(DPm)/2 for a 2x2 symplectic map. |k|<1 → elliptic, |k|>1 → hyperbolic."""
         return float(np.trace(self.DPm) / 2.0)
 
+    @property
+    def kind(self) -> str:
+        """'O' if elliptic (stable), 'X' if hyperbolic."""
+        return 'O' if self.is_stable else 'X'
 
-# ---------------------------------------------------------------------------
-# Core integration helpers
-# ---------------------------------------------------------------------------
+    # ── InvariantObject-style interface ───────────────────────────────────────
+
+    def section_cut(self, section) -> list:
+        """Return the point(s) at which this orbit crosses a Poincaré section.
+
+        Parameters
+        ----------
+        section : float | object with .phi attribute
+            Toroidal section angle (radians) or a ToroidalSection object.
+
+        Returns
+        -------
+        list of dict, each with keys ``'R'``, ``'Z'``, ``'phi'``, ``'kind'``.
+        Returns an empty list if the trajectory is not available or no
+        crossing is found within tolerance.
+        """
+        if isinstance(section, (int, float)):
+            phi_target = float(section)
+        elif hasattr(section, 'phi'):
+            phi_target = float(section.phi)
+        else:
+            return []  # Non-toroidal sections not supported here
+
+        traj = np.asarray(self.trajectory, dtype=float)  # (N, 3): R, Z, phi
+        if traj.ndim != 2 or traj.shape[1] < 3:
+            return []
+
+        phi_arr = traj[:, 2]
+        # Normalise all phi values to [0, 2π) for comparison
+        phi_norm = phi_arr % (2.0 * np.pi)
+        phi_t_norm = phi_target % (2.0 * np.pi)
+
+        crossings = []
+        for i in range(len(phi_norm) - 1):
+            p0, p1 = phi_norm[i], phi_norm[i + 1]
+            # Detect sign change across phi_target (handle wrap-around)
+            diff0 = (p0 - phi_t_norm + np.pi) % (2 * np.pi) - np.pi
+            diff1 = (p1 - phi_t_norm + np.pi) % (2 * np.pi) - np.pi
+            if diff0 * diff1 <= 0 and not (diff0 == 0 and diff1 == 0):
+                # Linear interpolation
+                denom = abs(diff1 - diff0)
+                t = abs(diff0) / (denom + 1e-30)
+                R_cross = traj[i, 0] + t * (traj[i + 1, 0] - traj[i, 0])
+                Z_cross = traj[i, 1] + t * (traj[i + 1, 1] - traj[i, 1])
+                crossings.append({
+                    'R': float(R_cross),
+                    'Z': float(Z_cross),
+                    'phi': phi_target,
+                    'kind': self.kind,
+                    'DPm': self.DPm,
+                })
+        return crossings
+
+    def diagnostics(self) -> dict:
+        eigvals = self.eigenvalues
+        return {
+            'invariant_type': 'PeriodicOrbit',
+            'rzphi0': list(self.rzphi0),
+            'period_m': int(self.period_m),
+            'kind': self.kind,
+            'stability_index': self.stability_index,
+            'eigenvalues': list(eigvals),
+            'is_stable': bool(self.is_stable),
+        }
 
 def _field_func_phi_parameterized(field_func: Callable, rzphi: np.ndarray) -> np.ndarray:
     """Convert field_func(rzphi)→(dR/dl, dZ/dl, dphi/dl) to phi-parameterized.

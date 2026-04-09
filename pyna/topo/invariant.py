@@ -39,15 +39,73 @@ import numpy as np
 # InvariantObject lives in _base to avoid circular imports
 from pyna.topo._base import InvariantObject
 
-# PeriodicOrbit is now defined in island_chain (the canonical computation class)
-from pyna.topo.island_chain import PeriodicOrbit
+
+class PeriodicOrbit(InvariantObject):
+    """Stub periodic orbit class (island_chain.py was removed)."""
+
+    def __init__(self, label: str = "", poincare_map=None, m: int = 1, **kwargs):
+        self._label = label
+        self._poincare_map = poincare_map
+        self.m = m
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+    @property
+    def label(self) -> Optional[str]:
+        return self._label
+
+    @property
+    def poincare_map(self):
+        return self._poincare_map
+
+    def section_cut(self, section) -> list:
+        """Return fixed points at the given section.
+
+        Delegates to ``fixed_points_at_section`` if available (IslandChainOrbit
+        API), otherwise falls back to ``fixed_points`` filtered by phi.
+
+        Parameters
+        ----------
+        section : Section | float
+            A ToroidalSection or a toroidal angle (float).
+
+        Returns
+        -------
+        list of ChainFixedPoint (or empty list if no data available)
+        """
+        phi = None
+        if isinstance(section, (int, float)):
+            phi = float(section)
+        elif hasattr(section, 'phi'):
+            phi = float(section.phi)
+
+        # Preferred path: IslandChainOrbit.fixed_points_at_section
+        if phi is not None and hasattr(self, 'fixed_points_at_section'):
+            return self.fixed_points_at_section(phi)
+
+        # Fallback: filter stored fixed_points list by phi proximity
+        fps = getattr(self, 'fixed_points', None)
+        if fps is None:
+            return []
+        if phi is None:
+            return list(fps)
+        tol = 1e-5
+        return [fp for fp in fps if abs(getattr(fp, 'phi', 0.0) - phi) < tol]
+
+    def diagnostics(self) -> Dict[str, Any]:
+        return {
+            'invariant_type': 'PeriodicOrbit',
+            'label': self.label,
+            'm': self.m,
+        }
+
 
 if TYPE_CHECKING:
     from pyna.topo.section import Section
     from pyna.topo.island import Island
-    from pyna.topo.island_chain import FixedPoint
     from pyna.topo.resonance import ResonanceNumber
     from pyna.topo.dynamics import PhaseSpace, PoincareMap
+    FixedPoint = object  # removed with island_chain.py
 
 
 __all__ = [
@@ -326,7 +384,11 @@ class InvariantManifold(InvariantObject, ABC):
         self._poincare_map = pm
         self._orbit = periodic_orbit
         self._branch = branch
-        self._points: Optional[np.ndarray] = None  # cached grown manifold
+        # Multi-section cache: {phi: ndarray (N,2)}.
+        # Replaces the old single-section _points field.
+        self._section_points: Dict[float, np.ndarray] = {}
+        # Legacy alias: _points points at the most-recently grown section.
+        self._points: Optional[np.ndarray] = None
 
     # ── InvariantObject interface ─────────────────────────────────────────────
 
@@ -350,8 +412,40 @@ class InvariantManifold(InvariantObject, ABC):
 
     @property
     def points(self) -> Optional[np.ndarray]:
-        """Cached grown manifold points, shape (N, 2) or None if not yet grown."""
+        """Cached grown manifold points for the most recently grown section.
+
+        For multi-section access use :meth:`points_at` or :meth:`section_cut`.
+        """
         return self._points
+
+    def points_at(self, phi: float, tol: float = 1e-9) -> Optional[np.ndarray]:
+        """Return grown manifold points for section *phi*, or None if not grown.
+
+        Parameters
+        ----------
+        phi : float
+            Toroidal angle of the Poincaré section.
+        tol : float
+            Tolerance for phi lookup in the cache.
+
+        Returns
+        -------
+        ndarray of shape (N, 2) or None
+        """
+        for k, v in self._section_points.items():
+            if abs(k - phi) < tol:
+                return v
+        return None
+
+    @property
+    def grown_sections(self) -> List[float]:
+        """Sorted list of toroidal angles for which the manifold has been grown."""
+        return sorted(self._section_points.keys())
+
+    def _cache_points(self, phi: float, pts: np.ndarray) -> None:
+        """Store grown points for *phi* and update the legacy _points alias."""
+        self._section_points[float(phi)] = pts
+        self._points = pts  # legacy alias = most-recently grown section
 
     # ── Abstract ─────────────────────────────────────────────────────────────
 
@@ -388,15 +482,56 @@ class InvariantManifold(InvariantObject, ABC):
     def section_cut(self, section) -> List[np.ndarray]:
         """Return grown manifold points at the section.
 
-        Raises RuntimeError if manifold has not been grown yet.
+        The manifold must have been grown at (or near) the requested section.
+        Call :meth:`grow` with the desired ``phi_section`` first.
+
+        Parameters
+        ----------
+        section : Section | float
+            Poincaré section.  Accepts a float toroidal angle or any object
+            with a ``.phi`` attribute (ToroidalSection).
+
+        Returns
+        -------
+        list of one ndarray of shape (N, 2)
+
+        Raises
+        ------
+        RuntimeError
+            If the manifold has not been grown at any section yet.
+        KeyError
+            If the manifold has been grown, but not at the requested phi.
+            Includes a hint listing the available sections.
         """
-        if self._points is None:
+        # Resolve phi
+        if isinstance(section, (int, float)):
+            phi = float(section)
+        elif hasattr(section, 'phi'):
+            phi = float(section.phi)
+        else:
+            # Non-toroidal section: return last-grown points if available
+            if self._points is None:
+                raise RuntimeError(
+                    f"{self.__class__.__name__}.section_cut called before grow()."
+                )
+            return [self._points.copy()]
+
+        pts = self.points_at(phi)
+        if pts is not None:
+            return [pts.copy()]
+
+        # Not in cache
+        if not self._section_points:
             raise RuntimeError(
                 f"{self.__class__.__name__}.section_cut called before grow(). "
-                "Call grow() first."
+                "Call grow(phi_section=<phi>) first."
             )
-        # For a Poincaré section the manifold points are already 2D (R,Z)
-        return [self._points.copy()]
+        available = ", ".join(f"{p:.4f}" for p in self.grown_sections)
+        raise KeyError(
+            f"{self.__class__.__name__}.section_cut: no data for phi={phi:.4f}. "
+            f"Available sections: [{available}]. "
+            "Call grow(phi_section=<phi>) to grow at a new section."
+        )
 
     def diagnostics(self) -> Dict[str, Any]:
         return {
@@ -404,8 +539,11 @@ class InvariantManifold(InvariantObject, ABC):
             'branch': self._branch,
             'label': self._label,
             'periodic_orbit': repr(self._orbit),
-            'n_points': len(self._points) if self._points is not None else 0,
-            'grown': self._points is not None,
+            'grown_sections': self.grown_sections,
+            'n_sections_grown': len(self._section_points),
+            'n_points_per_section': {
+                phi: len(pts) for phi, pts in self._section_points.items()
+            },
         }
 
 
@@ -487,8 +625,9 @@ class StableManifold(InvariantManifold):
                     n_steps,
                     eps=eps,
                 )
-                self._points = np.asarray(pts, dtype=float).T
-                return self._points
+                result = np.asarray(pts, dtype=float).T
+                self._cache_points(phi_s, result)
+                return result
             except Exception:
                 pass  # fallback to scipy
 
@@ -500,8 +639,9 @@ class StableManifold(InvariantManifold):
                 phi_span=phi_span,
             )
             pts = mf.grow(n_steps, eps=eps)
-            self._points = np.asarray(pts, dtype=float)
-            return self._points
+            result = np.asarray(pts, dtype=float)
+            self._cache_points(phi_s, result)
+            return result
 
         raise ValueError(
             "StableManifold.grow requires field_cache or a field_func. "
@@ -607,8 +747,9 @@ class UnstableManifold(InvariantManifold):
                     n_steps,
                     eps=eps,
                 )
-                self._points = np.asarray(pts, dtype=float).T
-                return self._points
+                result = np.asarray(pts, dtype=float).T
+                self._cache_points(phi_s, result)
+                return result
             except Exception:
                 pass  # fallback
 
@@ -620,8 +761,9 @@ class UnstableManifold(InvariantManifold):
                 phi_span=phi_span,
             )
             pts = mf.grow(n_steps, eps=eps)
-            self._points = np.asarray(pts, dtype=float)
-            return self._points
+            result = np.asarray(pts, dtype=float)
+            self._cache_points(phi_s, result)
+            return result
 
         raise ValueError(
             "UnstableManifold.grow requires field_cache or a field_func."
