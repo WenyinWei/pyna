@@ -3,7 +3,6 @@
 This module keeps the continuous-time side of the topology model:
 - ``Tube``: one connected periodic orbit / tube
 - ``TubeChain``: one resonance-family collection of tubes
-- ``ResonanceFamily``: paired O/X tube chains for one resonance
 
 Bridge-layer representations live in :mod:`pyna.topo.section_view`.
 The older ``SectionCut`` staging class has been removed; low-level cut data is
@@ -20,7 +19,6 @@ import numpy as np
 
 from pyna.topo.invariant import InvariantObject
 from pyna.topo.island import Island, IslandChain
-from pyna.topo.invariant import PeriodicOrbit as IslandChainOrbit
 from pyna.topo.invariants import FixedPoint as ChainFixedPoint
 
 if TYPE_CHECKING:
@@ -100,7 +98,7 @@ class Tube(InvariantObject):
     X-cycles (boundary) and an O-cycle (core).
     """
 
-    orbit: IslandChainOrbit
+    orbit: Any
     label: Optional[str] = None
     debug_info: Dict[str, Any] = field(default_factory=dict)
 
@@ -113,7 +111,7 @@ class Tube(InvariantObject):
     _x_cycles: List[object] = field(default_factory=list, repr=False, init=False)  # List[Cycle]
 
     @classmethod
-    def from_orbit(cls, orbit: IslandChainOrbit, label: Optional[str] = None) -> "Tube":
+    def from_orbit(cls, orbit: Any, label: Optional[str] = None) -> "Tube":
         return cls(orbit=orbit, label=label)
 
     # ── Resonance numbers ─────────────────────────────────────────────────────
@@ -495,7 +493,7 @@ class TubeChain(InvariantObject):
     @classmethod
     def from_orbits(
         cls,
-        orbits: Sequence[IslandChainOrbit],
+        orbits: Sequence[Any],
         *,
         expected_kind: Optional[str] = None,
         label: Optional[str] = None,
@@ -773,13 +771,14 @@ class TubeChain(InvariantObject):
         self,
         phi: float,
         *,
-        x_tubechain: Optional["TubeChain"] = None,
         proximity_tol: float = 1.0,
         tol: float = 1e-6,
         reconstruct: bool = False,
         section_reconstructor: Optional[SectionReconstructor] = None,
         x_section_reconstructor: Optional[SectionReconstructor] = None,
     ) -> IslandChain:
+        # x_tubechain is part of the old split design; always None here.
+        x_tubechain = None
         view = (
             self.reconstruct_section_view(
                 phi,
@@ -822,7 +821,6 @@ class TubeChain(InvariantObject):
         self,
         phi: float,
         *,
-        x_tubechain: Optional["TubeChain"] = None,
         proximity_tol: float = 1.0,
         tol: float = 1e-6,
     ) -> IslandChain:
@@ -836,7 +834,8 @@ class TubeChain(InvariantObject):
         The next/last connectivity follows the orbit order of the Tubes in
         this TubeChain: Island from Tube[i] maps to Island from Tube[(i+1) % n].
         """
-        chain = self.to_island_chain(phi, x_tubechain=x_tubechain,
+        # x_tubechain is part of the old split design; always None here.
+        chain = self.to_island_chain(phi,
                                       proximity_tol=proximity_tol, tol=tol)
         # Attach TubeChain reference and wire connectivity
         self._attach_chain_refs(chain, phi=phi)
@@ -928,193 +927,4 @@ class TubeChain(InvariantObject):
         pass
 
 
-@dataclass
-class ResonanceFamily:
-    """Continuous-time resonance object bundling O/X tube chains and section views."""
-
-    m: int
-    n: int
-    Np: int
-    o_tubechain: Optional[TubeChain] = None
-    x_tubechain: Optional[TubeChain] = None
-    label: Optional[str] = None
-    debug_info: Dict[str, Any] = field(default_factory=dict)
-
-    @classmethod
-    def from_orbits(
-        cls,
-        *,
-        o_orbits: Optional[Sequence[IslandChainOrbit]] = None,
-        x_orbits: Optional[Sequence[IslandChainOrbit]] = None,
-        label: Optional[str] = None,
-    ) -> "ResonanceFamily":
-        first = o_orbits[0] if o_orbits else (x_orbits[0] if x_orbits else None)
-        if first is None:
-            raise ValueError("ResonanceFamily.from_orbits requires o_orbits and/or x_orbits")
-        return cls(
-            m=first.m,
-            n=first.n,
-            Np=first.Np,
-            o_tubechain=None if not o_orbits else TubeChain.from_orbits(o_orbits, expected_kind='O', label='O-tubes'),
-            x_tubechain=None if not x_orbits else TubeChain.from_orbits(x_orbits, expected_kind='X', label='X-tubes'),
-            label=label,
-        )
-
-    def boundary_anchor_points(
-        self,
-        phi: float,
-        *,
-        tol: float = 1e-6,
-        reconstruct: bool = False,
-        o_section_reconstructor: Optional[SectionReconstructor] = None,
-        x_section_reconstructor: Optional[SectionReconstructor] = None,
-    ) -> List[np.ndarray]:
-        views = self.section_views(
-            phi,
-            tol=tol,
-            reconstruct=reconstruct,
-            o_section_reconstructor=o_section_reconstructor,
-            x_section_reconstructor=x_section_reconstructor,
-        )
-        anchors: List[np.ndarray] = []
-        for key in ('O', 'X'):
-            view = views[key]
-            if view is None:
-                continue
-            anchors.extend([pt.as_array() for pt in view.unique_points()])
-        return anchors
-
-    def to_island_chains(
-        self,
-        phi: float,
-        *,
-        proximity_tol: float = 1.0,
-        tol: float = 1e-6,
-        reconstruct: bool = False,
-        o_section_reconstructor: Optional[SectionReconstructor] = None,
-        x_section_reconstructor: Optional[SectionReconstructor] = None,
-    ) -> Dict[str, Optional[IslandChain]]:
-        o_chain = None
-        x_chain = None
-        if self.o_tubechain is not None:
-            o_chain = self.o_tubechain.to_island_chain(
-                phi,
-                x_tubechain=self.x_tubechain,
-                proximity_tol=proximity_tol,
-                tol=tol,
-                reconstruct=reconstruct,
-                section_reconstructor=o_section_reconstructor,
-                x_section_reconstructor=x_section_reconstructor,
-            )
-        if self.x_tubechain is not None:
-            x_chain = self.x_tubechain.to_island_chain(
-                phi,
-                x_tubechain=None,
-                proximity_tol=proximity_tol,
-                tol=tol,
-                reconstruct=reconstruct,
-                section_reconstructor=x_section_reconstructor,
-            )
-        return {'O': o_chain, 'X': x_chain}
-
-    def section_views(
-        self,
-        phi: float,
-        *,
-        reconstruct: bool = False,
-        tol: float = 1e-6,
-        dedup_tol: float = 1e-6,
-        o_section_reconstructor: Optional[SectionReconstructor] = None,
-        x_section_reconstructor: Optional[SectionReconstructor] = None,
-    ) -> Dict[str, Any]:
-        return {
-            'O': None if self.o_tubechain is None else (
-                self.o_tubechain.reconstruct_section_view(
-                    phi, kind='O', tol=tol, dedup_tol=dedup_tol,
-                    section_reconstructor=o_section_reconstructor,
-                ) if reconstruct else self.o_tubechain.raw_section_view(
-                    phi, kind='O', tol=tol, dedup_tol=dedup_tol,
-                )
-            ),
-            'X': None if self.x_tubechain is None else (
-                self.x_tubechain.reconstruct_section_view(
-                    phi, kind='X', tol=tol, dedup_tol=dedup_tol,
-                    section_reconstructor=x_section_reconstructor,
-                ) if reconstruct else self.x_tubechain.raw_section_view(
-                    phi, kind='X', tol=tol, dedup_tol=dedup_tol,
-                )
-            ),
-        }
-
-    def section_view(
-        self,
-        phi: float,
-        *,
-        kind: str = 'O',
-        reconstruct: bool = False,
-        tol: float = 1e-6,
-        dedup_tol: float = 1e-6,
-        o_section_reconstructor: Optional[SectionReconstructor] = None,
-        x_section_reconstructor: Optional[SectionReconstructor] = None,
-    ) -> Optional["SectionView"]:
-        views = self.section_views(
-            phi,
-            reconstruct=reconstruct,
-            tol=tol,
-            dedup_tol=dedup_tol,
-            o_section_reconstructor=o_section_reconstructor,
-            x_section_reconstructor=x_section_reconstructor,
-        )
-        kind_up = kind.upper()
-        if kind_up not in ('O', 'X'):
-            raise ValueError(f"Unsupported kind={kind!r}; expected 'O' or 'X'")
-        return views[kind_up]
-
-    def section_cut(self, section) -> Dict[str, Optional[IslandChain]]:
-        """Cut this ResonanceFamily with a Section and return island chains.
-
-        This is the high-level "3D object → 2D cut" API for a full resonance
-        family (O-islands + X-points).  Internally calls
-        :meth:`TubeChain.section_cut` on each of the two sub-chains.
-
-        Parameters
-        ----------
-        section : Section | float
-            The Poincaré section.  A float is wrapped in ToroidalSection.
-
-        Returns
-        -------
-        dict with keys ``'O'`` and ``'X'``, each holding an
-        :class:`~pyna.topo.island.IslandChain` (or None when the
-        corresponding sub-chain is absent).
-        """
-        from pyna.topo.section import ToroidalSection
-        if isinstance(section, (int, float)):
-            section = ToroidalSection(float(section))
-        return {
-            'O': None if self.o_tubechain is None
-                 else self.o_tubechain.section_cut(section),
-            'X': None if self.x_tubechain is None
-                 else self.x_tubechain.section_cut(section),
-        }
-
-    def diagnostics(self, requested_phis: Optional[Sequence[float]] = None) -> Dict[str, Any]:
-        return {
-            'm': int(self.m),
-            'n': int(self.n),
-            'Np': int(self.Np),
-            'label': self.label,
-            'O': None if self.o_tubechain is None else self.o_tubechain.diagnostics(requested_phis=requested_phis),
-            'X': None if self.x_tubechain is None else self.x_tubechain.diagnostics(requested_phis=requested_phis),
-        }
-
-    def summary(self) -> str:
-        return (
-            f"ResonanceFamily(label={self.label}, m={self.m}, n={self.n}, Np={self.Np}, "
-            f"has_O={self.o_tubechain is not None}, has_X={self.x_tubechain is not None})"
-        )
-
-
-__all__ = ["TubeCutPoint", "Tube", "TubeChain", "ResonanceFamily", "ResonanceStructure"]
-
-ResonanceStructure = ResonanceFamily  # backward compat
+__all__ = ["TubeCutPoint", "Tube", "TubeChain"]

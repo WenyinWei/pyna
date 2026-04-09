@@ -30,15 +30,9 @@ from pyna.topo.monodromy import (
     second_order_orbit_variation,
     monodromy_matrix,
 )
-from pyna.topo.island_chain import (
-    PeriodicOrbit,
-    FixedPoint,
-    IslandChainOrbit,  # backward compat alias
-    ChainFixedPoint,   # backward compat alias
-)
 from pyna.topo.identity import ResonanceID, TubeID, IslandID
 from pyna.topo.section_view import SectionViewPoint, SectionCorrespondence, SectionView, SectionViewBuilder
-from pyna.topo.tube import TubeCutPoint, Tube, TubeChain, ResonanceFamily, ResonanceStructure
+from pyna.topo.tube import TubeCutPoint, Tube, TubeChain
 from pyna.plot.island import plot_island, island_section_points
 from pyna.plot.island_chain import plot_island_chain, island_chain_section_points
 from pyna.topo.fast_metrics import (
@@ -67,13 +61,10 @@ from pyna.topo.dynamics import (
     MCFPoincareMap,
     GeneralPoincareMap,
 )
-# Layer 1: Invariant objects (PeriodicOrbit, InvariantTorus, manifolds)
+# Layer 1: Invariant objects (InvariantTorus; manifolds in manifold_improve.py)
 from pyna.topo.invariant import (
     InvariantObject,
     InvariantTorus,
-    InvariantManifold,
-    StableManifold as InvariantStableManifold,
-    UnstableManifold as InvariantUnstableManifold,
 )
 # Layer 3: Sections
 from pyna.topo.section import (
@@ -123,10 +114,7 @@ __all__ = [
     "second_order_orbit_variation",
     "monodromy_matrix",
     # island chain connectivity
-    "PeriodicOrbit",
     "FixedPoint",
-    "IslandChainOrbit",  # backward compat
-    "ChainFixedPoint",   # backward compat
     # identity / bridge layer
     "ResonanceID",
     "TubeID",
@@ -139,8 +127,7 @@ __all__ = [
     "TubeCutPoint",
     "Tube",
     "TubeChain",
-    "ResonanceFamily",
-    "ResonanceStructure",  # backward compat
+    "Cycle",
     # generic island / island-chain plotting
     "plot_island",
     "island_section_points",
@@ -174,11 +161,7 @@ __all__ = [
     "GeneralPoincareMap",
     # InvariantObject layer
     "InvariantObject",
-    "PeriodicOrbit",
     "InvariantTorus",
-    "InvariantManifold",
-    "InvariantStableManifold",
-    "InvariantUnstableManifold",
     # Sections
     "Section",
     "ToroidalSection",
@@ -189,3 +172,22 @@ __all__ = [
     # Resonance
     "ResonanceNumber",
 ]
+
+# --- New invariant-object skeleton (backward-compatible) ---
+try:
+    from pyna.topo.invariants import (
+        Stability,
+        MonodromyData,
+        InvariantObject,
+        FixedPoint,
+        Cycle,
+        InvariantTorus,
+        StableManifold,
+        UnstableManifold,
+        Island,
+        IslandChain,
+        Tube,
+        TubeChain,
+    )
+except ImportError:
+    pass

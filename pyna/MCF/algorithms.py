@@ -193,3 +193,174 @@ def build_tube_chain_from_cyna(
             tube.parent_chain = tc
 
     return tc, axis_tube
+
+
+# ---------------------------------------------------------------------------
+# High-level factory: grid-scan → Newton → TubeChain
+# ---------------------------------------------------------------------------
+
+class _CynaTracerAdapter:
+    """Minimal tracer adapter wrapping a field_cache for fixed-point search.
+
+    Provides the interface expected by ``_extract_field_cache`` in
+    ``pyna.topo.fixed_points`` so that ``find_island_chain_fixed_points``
+    can operate on a raw field-cache dict without a full FieldlineTracer.
+    """
+
+    def __init__(self, field_cache: dict) -> None:
+        self._fc = field_cache
+        self.R_grid = np.ascontiguousarray(field_cache['R_grid'], dtype=np.float64)
+        self.Z_grid = np.ascontiguousarray(field_cache['Z_grid'], dtype=np.float64)
+        self.Phi_grid = np.ascontiguousarray(field_cache['Phi_grid'], dtype=np.float64)
+        # Dummy interpolator objects — _grid_values just returns the stored array.
+        self.itp_BR = object()
+        self.itp_BPhi = object()
+        self.itp_BZ = object()
+        self._grid_BR = np.asarray(field_cache['BR'], dtype=np.float64)
+        self._grid_BPhi = np.asarray(field_cache['BPhi'], dtype=np.float64)
+        self._grid_BZ = np.asarray(field_cache['BZ'], dtype=np.float64)
+
+    def _grid_values(self, itp) -> np.ndarray:
+        """Return the grid array for the given interpolator placeholder."""
+        if itp is self.itp_BR:
+            return self._grid_BR
+        if itp is self.itp_BPhi:
+            return self._grid_BPhi
+        if itp is self.itp_BZ:
+            return self._grid_BZ
+        raise ValueError(f"Unknown interpolator: {itp!r}")
+
+
+def find_and_build_tube_chain(
+    field_cache: dict,
+    period: int,
+    known_n: int,
+    R_axis: float,
+    Z_axis: float,
+    phi0: float = 0.0,
+    section_phis: list | None = None,
+    Np: int = 1,
+    *,
+    r_min: float = 0.02,
+    r_max: float = 0.25,
+    n_r: int = 8,
+    n_ang: int = 48,
+    DPhi: float = 0.05,
+    fd_eps: float = 1e-4,
+    max_iter: int = 40,
+    tol: float = 1e-9,
+    n_threads: int = -1,
+) -> tuple:
+    """Find island-chain fixed points and build a TubeChain.
+
+    High-level factory that combines:
+    1. Grid-scan + Newton to find all period-m fixed points
+    2. cyna batch Newton to refine and build Cycle/TubeChain objects
+
+    Parameters
+    ----------
+    field_cache : dict
+        Field cache with keys 'BR', 'BPhi', 'BZ', 'R_grid', 'Z_grid', 'Phi_grid'.
+    period : int
+        Island chain period m (number of toroidal turns).
+    known_n : int
+        Poloidal winding number n.
+    R_axis, Z_axis : float
+        Approximate magnetic axis coordinates [m].
+    phi0 : float
+        Seed section angle [rad]. Default 0.
+    section_phis : list[float] | None
+        Sections to compute fixed points at. Defaults to [phi0].
+    Np : int
+        Field toroidal periodicity.
+    r_min, r_max : float
+        Radial search range relative to magnetic axis [m].
+    n_r : int
+        Number of radial grid points for coarse scan.
+    n_ang : int
+        Number of angular grid points for coarse scan.
+    DPhi, fd_eps, max_iter, tol, n_threads :
+        Passed through to cyna Newton solver.
+
+    Returns
+    -------
+    tube_chain : TubeChain
+    axis_tube : Tube | None
+    """
+    from pyna.topo.fixed_points import find_island_chain_fixed_points
+
+    # Build a minimal tracer adapter for the fixed-point search
+    tracer = _CynaTracerAdapter(field_cache)
+
+    # Grid-scan + Newton to find all period-m X/O fixed points
+    fp_list = find_island_chain_fixed_points(
+        tracer,
+        R_axis,
+        Z_axis,
+        period,
+        phi0,
+        r_min=r_min,
+        r_max=r_max,
+        n_r=n_r,
+        n_ang=n_ang,
+        max_iter=max_iter,
+        tol=tol,
+        verbose=False,
+    )
+
+    if not fp_list:
+        # No fixed points found — return empty chain
+        tc = TubeChain(O_cycles=[], X_cycles=[], tubes=[])
+        axis_tube = None
+        if R_axis is not None and Z_axis is not None:
+            axis_sections = {}
+            for phi in (section_phis or [phi0]):
+                fp_ax = FixedPoint(phi=phi, R=R_axis, Z=Z_axis, DPm=np.eye(2))
+                axis_sections[phi] = [fp_ax]
+            axis_cycle = Cycle(winding=(1, 0), sections=axis_sections)
+            axis_tube = Tube(O_cycle=axis_cycle, X_cycles=[])
+        return tc, axis_tube
+
+    # Extract converged seeds by kind
+    x_seeds_rz, o_seeds_rz = [], []
+    x_DPms, o_DPms = [], []
+    for fp in fp_list:
+        R = float(fp['R'])
+        Z = float(fp['Z'])
+        DPm = np.asarray(fp['DPm'], dtype=float)
+        kind = fp['kind']
+        if kind == 'X':
+            x_seeds_rz.append((R, Z))
+            x_DPms.append(DPm)
+        else:
+            o_seeds_rz.append((R, Z))
+            o_DPms.append(DPm)
+
+    # Use O-seeds as initial guesses for the full TubeChain build
+    # (X-seeds are included via the Tube/O-cycle → X-cycle wiring)
+    all_seeds = o_seeds_rz + x_seeds_rz
+    if not all_seeds:
+        tc = TubeChain(O_cycles=[], X_cycles=[], tubes=[])
+        axis_tube = None
+        return tc, axis_tube
+
+    seeds_R = np.array([s[0] for s in all_seeds], dtype=np.float64)
+    seeds_Z = np.array([s[1] for s in all_seeds], dtype=np.float64)
+
+    return build_tube_chain_from_cyna(
+        field_cache=field_cache,
+        period=period,
+        known_n=known_n,
+        phi0=phi0,
+        section_phis=section_phis,
+        Np=Np,
+        R_axis=R_axis,
+        Z_axis=Z_axis,
+        seeds_R=seeds_R,
+        seeds_Z=seeds_Z,
+        DPhi=DPhi,
+        fd_eps=fd_eps,
+        max_iter=max_iter,
+        tol=tol,
+        n_threads=n_threads,
+    )
