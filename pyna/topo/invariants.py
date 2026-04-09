@@ -315,11 +315,13 @@ class IslandChain(InvariantObject):
         island.parent_chain = self
         self.islands.append(island)
 
-    def section_xpoints(self, phi: float) -> List[FixedPoint]:
-        return [fp for fp in self.X_points if fp.phi == phi]
+    def section_xpoints(self, phi: float, tol: float = 1e-6) -> List[FixedPoint]:
+        """X-points 在截面 phi 处（tol 容忍匹配）。"""
+        return [fp for fp in self.X_points if abs(fp.phi - phi) < tol]
 
-    def section_opoints(self, phi: float) -> List[FixedPoint]:
-        return [fp for fp in self.O_points if fp.phi == phi]
+    def section_opoints(self, phi: float, tol: float = 1e-6) -> List[FixedPoint]:
+        """O-points 在截面 phi 处（tol 容忍匹配）。"""
+        return [fp for fp in self.O_points if abs(fp.phi - phi) < tol]
 
 
 # ---------------------------------------------------------------------------
@@ -471,17 +473,17 @@ class TubeChain(InvariantObject):
         return chain
 
     def section_xpoints(self, phi: float) -> List[FixedPoint]:
+        """所有 X-cycles 在截面 phi 的 FixedPoint 列表（tol 容忍匹配）。"""
         result: List[FixedPoint] = []
         for xc in self.X_cycles:
-            if phi in xc.sections:
-                result.append(xc.sections[phi])
+            result.extend(xc.section_points(phi))
         return result
 
     def section_opoints(self, phi: float) -> List[FixedPoint]:
+        """所有 O-cycles 在截面 phi 的 FixedPoint 列表（tol 容忍匹配）。"""
         result: List[FixedPoint] = []
         for oc in self.O_cycles:
-            if phi in oc.sections:
-                result.append(oc.sections[phi])
+            result.extend(oc.section_points(phi))
         return result
 
     def summary(self) -> str:
