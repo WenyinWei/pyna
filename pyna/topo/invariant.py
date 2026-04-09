@@ -60,79 +60,87 @@ __all__ = [
 # ─────────────────────────────────────────────────────────────────────────────
 
 class InvariantObject(ABC):
-    """Abstract base for invariant geometric objects of a dynamical system.
+    """Abstract mixin interface for invariant geometric objects of a dynamical system.
 
-    An invariant object O satisfies φ^t(O) ⊆ O for all t (continuous flow)
+    An invariant object O satisfies phi^t(O) <= O for all t (continuous flow)
     or P(O) = O (discrete map).
 
-    Concrete subclasses:
-      PeriodicOrbit   -- closed orbit of period m
-      InvariantTorus  -- KAM torus (non-resonant)
-      InvariantManifold -- stable/unstable manifold of a hyperbolic orbit
+    Design: Pure interface -- no __init__, no state fields.
+    Concrete subclasses (including dataclasses) provide their own fields
+    and satisfy the interface via @property overrides.
 
-    Parameters
-    ----------
-    label : str, optional
-        Human-readable identifier.
-    poincare_map : PoincareMap, optional
-        The Poincaré map this object lives in.  May be None when the
-        object was computed via direct field-line integration.
+    The invariant-object hierarchy (from smallest to largest):
+      ChainFixedPoint  -- a 0-D invariant set (one fixed point of P^m)
+      Island           -- one magnetic island (O-region, nested InvariantTori)
+      IslandChain      -- a full resonance family of Islands
+      Tube             -- continuous-time Island (3D invariant torus structure)
+      TubeChain        -- continuous-time IslandChain
+      InvariantTorus   -- a KAM torus (non-resonant)
+      PeriodicOrbit    -- a periodic orbit (closed orbit, resonant)
+      InvariantManifold -- stable/unstable manifold of a PeriodicOrbit
+
+    Required interface (abstract):
+      .label           @property -> str | None
+      .section_cut(section) -> list
+      .diagnostics()   -> dict
+
+    Optional interface (with sensible defaults):
+      .poincare_map    @property -> PoincareMap | None  (default: None)
+      .phase_space     @property -> PhaseSpace | None   (default: via poincare_map)
     """
-
-    def __init__(
-        self,
-        label: Optional[str] = None,
-        poincare_map=None,         # PoincareMap | None
-    ):
-        self._label = label
-        self._poincare_map = poincare_map
-
-    # ── Identity ─────────────────────────────────────────────────────────────
-
-    @property
-    def label(self) -> Optional[str]:
-        return self._label
-
-    @property
-    def poincare_map(self):
-        """The associated Poincaré map (PoincareMap | None)."""
-        return self._poincare_map
-
-    @property
-    def phase_space(self):
-        """Phase space of the associated map (PhaseSpace | None)."""
-        if self._poincare_map is not None:
-            return self._poincare_map.phase_space
-        return None
 
     # ── Abstract interface ────────────────────────────────────────────────────
 
+    @property
+    @abstractmethod
+    def label(self) -> Optional[str]:
+        """Human-readable identifier for this invariant object."""
+
     @abstractmethod
     def section_cut(self, section) -> list:
-        """Return the intersection of this object with a Poincaré section.
+        """Return the intersection of this object with a Poincare section.
 
         Parameters
         ----------
         section : Section | float
-            The Poincaré section (ToroidalSection or phi value).
+            The Poincare section (ToroidalSection or phi value).
 
         Returns
         -------
         list
             Contents depend on the subclass:
-            - PeriodicOrbit → list[Island]
-            - InvariantTorus → list[np.ndarray] of (R,Z) crossing arrays
-            - InvariantManifold → list[np.ndarray] of manifold branch points
+            - PeriodicOrbit / Island -> list[Island]
+            - InvariantTorus -> list[np.ndarray] of (R,Z) crossing arrays
+            - InvariantManifold -> list[np.ndarray] of manifold branch points
+            - TubeChain / IslandChain -> list[Island]
         """
 
     @abstractmethod
     def diagnostics(self) -> Dict[str, Any]:
         """Return a structured diagnostic/debug dict."""
 
+    # ── Optional interface (concrete defaults) ────────────────────────────────
+
+    @property
+    def poincare_map(self):
+        """The Poincare map this object lives in (PoincareMap | None).
+
+        Override in subclasses that carry a poincare_map field.
+        """
+        return None
+
+    @property
+    def phase_space(self):
+        """Phase space of the associated map (PhaseSpace | None)."""
+        pm = self.poincare_map
+        if pm is not None:
+            return pm.phase_space
+        return None
+
     # ── Repr ─────────────────────────────────────────────────────────────────
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(label={self._label!r})"
+        return f"{self.__class__.__name__}(label={self.label!r})"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -167,8 +175,19 @@ class PeriodicOrbit(InvariantObject):
         label: Optional[str] = None,
         poincare_map=None,
     ):
-        super().__init__(label=label, poincare_map=poincare_map)
+        self._label = label
+        self._poincare_map = poincare_map
         self._orbit = orbit
+
+    # ── InvariantObject interface ─────────────────────────────────────────────
+
+    @property
+    def label(self) -> Optional[str]:
+        return self._label
+
+    @property
+    def poincare_map(self):
+        return self._poincare_map
 
     # ── Constructors ─────────────────────────────────────────────────────────
 
@@ -430,10 +449,22 @@ class InvariantTorus(InvariantObject):
         label : str, optional
         poincare_map : PoincareMap, optional
         """
-        super().__init__(label=label, poincare_map=poincare_map)
+        super().__init__()  # pure mixin, no state in ABC
+        self._label = label
+        self._poincare_map = poincare_map
         self._crossings = {float(k): np.asarray(v, dtype=float)
                            for k, v in crossings.items()}
         self._iota = rotational_transform
+
+    # ── InvariantObject interface ─────────────────────────────────────────────
+
+    @property
+    def label(self) -> Optional[str]:
+        return self._label
+
+    @property
+    def poincare_map(self):
+        return self._poincare_map
 
     # ── Constructors ─────────────────────────────────────────────────────────
 
@@ -640,10 +671,21 @@ class InvariantManifold(InvariantObject, ABC):
         if branch not in self._VALID_BRANCHES:
             raise ValueError(f"branch must be 'stable' or 'unstable', got {branch!r}")
         pm = poincare_map or periodic_orbit.poincare_map
-        super().__init__(label=label, poincare_map=pm)
+        self._label = label
+        self._poincare_map = pm
         self._orbit = periodic_orbit
         self._branch = branch
         self._points: Optional[np.ndarray] = None  # cached grown manifold
+
+    # ── InvariantObject interface ─────────────────────────────────────────────
+
+    @property
+    def label(self) -> Optional[str]:
+        return self._label
+
+    @property
+    def poincare_map(self):
+        return self._poincare_map
 
     @property
     def periodic_orbit(self) -> PeriodicOrbit:

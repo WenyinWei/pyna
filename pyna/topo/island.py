@@ -116,14 +116,19 @@ class Island:
     #   Islands from the same Tube share the same resonance_index across sections.
     #   Used for colour/marker coding: same tube_idx → same visual identity.
     #
-    # section : the Section object (ToroidalSection, HyperplaneSection, …) at
+    # section : the Section object (ToroidalSection, HyperplaneSection, ...) at
     #   which this Island was obtained. None if not tracked.
+    #
+    # periodic_orbit : back-reference to the PeriodicOrbit (InvariantObject layer)
+    #   that produced this Island via PeriodicOrbit.section_cut().
+    #   Distinct from .tube (continuous-time structure layer).
     #
     # _next / _last : adjacent Islands in the orbit under P^1 / P^{-1}.
     tube: Optional[object] = field(default=None, repr=False)           # Tube
     tube_chain: Optional[object] = field(default=None, repr=False)     # TubeChain
     resonance_index: Optional[int] = field(default=None, repr=False)
     section: Optional[object] = field(default=None, repr=False)        # Section
+    periodic_orbit: Optional[object] = field(default=None, repr=False) # PeriodicOrbit
     _next: Optional["Island"] = field(default=None, repr=False, init=False)
     _last: Optional["Island"] = field(default=None, repr=False, init=False)
 
@@ -136,6 +141,22 @@ class Island:
     def has_tube(self) -> bool:
         """True when this Island was produced by cutting a Tube."""
         return self.tube is not None
+
+    @property
+    def invariant_source(self):
+        """The InvariantObject that produced this Island, or None.
+
+        Priority: PeriodicOrbit > Tube > None.
+        - If set via PeriodicOrbit.section_cut(): returns self.periodic_orbit
+        - If set via TubeChain._attach_chain_refs(): returns self.tube
+        - Otherwise: None
+
+        This is the canonical single-entry-point for 'who produced this Island'
+        at the InvariantObject level.
+        """
+        if self.periodic_orbit is not None:
+            return self.periodic_orbit
+        return self.tube  # may be None
 
     # ── Orbit connectivity ────────────────────────────────────────────────────
 
