@@ -15,8 +15,18 @@ plot_tube_chain_section(tube_chain, section, ax, **style)
     Tubes get different colours/markers automatically.
 
 plot_tube_chain_poincare(tube_chain, sections, msp, n_turns, figsize, ...)
-    Full 2×2 (or n-panel) Poincaré figure: each panel is one section,
+    Full (2 by 2) or n-panel Poincare figure: each panel is one section,
     showing the TubeChain's Islands with per-Tube visual identity.
+
+plot_island_chain_by_tube(chain, ax, **style)
+    Plot a pyna.topo.island.IslandChain with per-Tube colour coding based
+    on island.resonance_index.
+
+plot_resonance_structure_section(resonance_structure, section, ax, **kw)
+    Plot a ResonanceStructure (O-chain + X-chain) at a given section.
+
+tube_chain_legend(tube_chain, ax, kind, loc)
+    Add a per-Tube legend to an existing axes.
 """
 from __future__ import annotations
 
@@ -34,6 +44,8 @@ TUBE_COLORS = [
 ]
 TUBE_MARKERS_O = ['o', 's', '^', 'D', 'v', 'P', '*', 'X', 'h', '+']
 TUBE_MARKERS_X = ['x', '+', '*', 'd', 'v', 'P', 'o', 'X', 'h', 's']
+
+_FALLBACK_COLOR = '#aaaaaa'   # used when resonance_index is None
 
 
 def _tube_style(tube_idx: int, kind: str = 'O') -> dict:
@@ -76,7 +88,11 @@ def plot_tube_section(
     style : dict, optional
         Override default style.
     """
-    import matplotlib.pyplot as plt
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError as e:
+        raise ImportError("matplotlib is required for plotting.") from e
+
     from pyna.topo.section import ToroidalSection
 
     if isinstance(section, (int, float)):
@@ -130,6 +146,7 @@ def plot_tube_chain_section(
     show_x: bool = True,
     show_arrows: bool = True,
     per_tube_style: bool = True,
+    show_connectivity: bool = False,
     style: Optional[Dict[str, Any]] = None,
 ):
     """Plot the section cut of an entire TubeChain.
@@ -145,8 +162,16 @@ def plot_tube_chain_section(
     ax : matplotlib.axes.Axes, optional
     per_tube_style : bool
         If True, colour/marker varies per Tube.  If False, uniform style.
+    show_connectivity : bool
+        If True and connectivity is wired (Island._next is set), draw thin
+        lines connecting island → island.next() to visualise orbit order.
+        Line colour matches the tube colour, alpha=0.3.
     """
-    import matplotlib.pyplot as plt
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError as e:
+        raise ImportError("matplotlib is required for plotting.") from e
+
     from pyna.topo.section import ToroidalSection
 
     if isinstance(section, (int, float)):
@@ -165,10 +190,183 @@ def plot_tube_chain_section(
             show_arrows=show_arrows,
             style=style,
         )
+
+    # Draw connectivity lines between sequentially-connected Islands
+    if show_connectivity:
+        chain = tube_chain.to_island_chain_connected(section.phi)
+        islands = chain.O_islands if hasattr(chain, 'O_islands') else []
+        if not islands and hasattr(chain, 'islands'):
+            islands = chain.islands
+        for isl in islands:
+            if isl is None:
+                continue
+            nxt = isl.next()
+            if nxt is isl:
+                continue  # disconnected, skip
+            tidx = isl.resonance_index if isl.resonance_index is not None else 0
+            color = TUBE_COLORS[tidx % len(TUBE_COLORS)] if per_tube_style else _FALLBACK_COLOR
+            R0, Z0 = float(isl.O_point[0]), float(isl.O_point[1])
+            R1, Z1 = float(nxt.O_point[0]), float(nxt.O_point[1])
+            ax.plot([R0, R1], [Z0, Z1], '-', color=color, alpha=0.3, lw=0.8, zorder=5)
+
     return ax
 
 
-# ── Multi-section Poincaré figure ─────────────────────────────────────────────
+# ── IslandChain plot with per-Tube colour coding ──────────────────────────────
+
+def plot_island_chain_by_tube(
+    chain,
+    ax=None,
+    *,
+    show_o: bool = True,
+    show_x: bool = True,
+    show_arrows: bool = False,
+    per_tube_style: bool = True,
+    style: Optional[Dict[str, Any]] = None,
+):
+    """Plot a pyna.topo.island.IslandChain with per-Tube colour coding.
+
+    Each Island is coloured by its ``resonance_index`` attribute (set by
+    :meth:`TubeChain._attach_chain_refs`).  Islands without a resonance_index
+    are drawn in a neutral grey.
+
+    Parameters
+    ----------
+    chain : IslandChain
+        The island chain to plot (from pyna.topo.island).
+    ax : matplotlib.axes.Axes, optional
+    show_o : bool
+        Plot O-point markers.
+    show_x : bool
+        Plot X-point markers (from island.X_points).
+    show_arrows : bool
+        Draw eigenvector arrows (requires island.x_orbit data).
+    per_tube_style : bool
+        Use resonance_index-based colours.  False → uniform grey.
+    style : dict, optional
+        Override per-Tube style.
+    """
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError as e:
+        raise ImportError("matplotlib is required for plotting.") from e
+
+    if ax is None:
+        _, ax = plt.subplots()
+
+    # Gather islands from chain
+    islands = []
+    if hasattr(chain, 'O_islands') and chain.O_islands:
+        islands = chain.O_islands
+    elif hasattr(chain, 'islands') and chain.islands:
+        islands = chain.islands
+    elif hasattr(chain, 'fixed_points'):
+        # Fallback: iterable of Island-like objects
+        islands = list(chain.fixed_points)
+
+    for isl in islands:
+        if isl is None:
+            continue
+        ridx = getattr(isl, 'resonance_index', None)
+        if per_tube_style and ridx is not None:
+            color = TUBE_COLORS[int(ridx) % len(TUBE_COLORS)]
+            marker_o = TUBE_MARKERS_O[int(ridx) % 10]
+            marker_x = TUBE_MARKERS_X[int(ridx) % 10]
+        else:
+            color = _FALLBACK_COLOR
+            marker_o = 'o'
+            marker_x = 'x'
+
+        s = style or {}
+
+        if show_o:
+            R, Z = float(isl.O_point[0]), float(isl.O_point[1])
+            ax.plot(R, Z, marker=marker_o, color=color,
+                    ms=s.get('ms', 7), mew=0, ls='None', zorder=20)
+
+        if show_x:
+            for xpt in isl.X_points:
+                xpt = np.asarray(xpt, dtype=float)
+                ax.plot(float(xpt[0]), float(xpt[1]),
+                        marker=marker_x, color=color,
+                        ms=s.get('ms', 7), mew=s.get('mew', 1.8), ls='None', zorder=20)
+
+    return ax
+
+
+# ── ResonanceStructure section plot ───────────────────────────────────────────
+
+def plot_resonance_structure_section(
+    resonance_structure,
+    section,
+    ax=None,
+    *,
+    show_o: bool = True,
+    show_x: bool = True,
+    show_arrows: bool = True,
+    per_tube_style: bool = True,
+    style: Optional[Dict[str, Any]] = None,
+):
+    """Plot a ResonanceStructure at a given section.
+
+    Draws O-chain (filled circles, per-tube colour) and X-chain (crosses,
+    matching colour) separately, so the full island topology is visible.
+
+    Parameters
+    ----------
+    resonance_structure : ResonanceStructure
+    section : Section | float
+    ax : matplotlib.axes.Axes, optional
+    show_o, show_x : bool
+        Whether to draw the O-chain and X-chain respectively.
+    show_arrows : bool
+        Draw eigenvector arrows at X-points.
+    per_tube_style : bool
+        Use per-Tube colours.  False → uniform style.
+    style : dict, optional
+    """
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError as e:
+        raise ImportError("matplotlib is required for plotting.") from e
+
+    from pyna.topo.section import ToroidalSection
+
+    if isinstance(section, (int, float)):
+        section = ToroidalSection(float(section))
+
+    if ax is None:
+        _, ax = plt.subplots()
+
+    if show_o and resonance_structure.o_tubechain is not None:
+        plot_tube_chain_section(
+            resonance_structure.o_tubechain,
+            section,
+            ax=ax,
+            show_o=True,
+            show_x=False,
+            show_arrows=False,
+            per_tube_style=per_tube_style,
+            style=style,
+        )
+
+    if show_x and resonance_structure.x_tubechain is not None:
+        # X-chain: use same tube indices as O-chain for colour consistency
+        for idx, tube in enumerate(resonance_structure.x_tubechain.tubes):
+            tidx = idx if per_tube_style else 0
+            plot_tube_section(
+                tube, section, ax=ax,
+                tube_idx=tidx,
+                show_o=False,
+                show_x=True,
+                show_arrows=show_arrows,
+                style=style,
+            )
+
+    return ax
+
+
+# ── Multi-section Poincare figure ─────────────────────────────────────────────
 
 def plot_tube_chain_poincare(
     tube_chain,
@@ -185,7 +383,7 @@ def plot_tube_chain_poincare(
     title: str = '',
     out_path=None,
 ):
-    """Draw a multi-panel Poincaré figure for a TubeChain.
+    """Draw a multi-panel Poincare figure for a TubeChain.
 
     Each panel corresponds to one section in ``sections``.  The same
     per-Tube colour/marker scheme is used across all panels, so Islands
@@ -210,9 +408,14 @@ def plot_tube_chain_poincare(
     -------
     matplotlib.figure.Figure
     """
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
+    try:
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        import matplotlib.lines as ml
+    except ImportError as e:
+        raise ImportError("matplotlib is required for plotting.") from e
+
     from pyna.topo.section import ToroidalSection
 
     n_panels = len(sections)
@@ -243,14 +446,7 @@ def plot_tube_chain_poincare(
         ax.tick_params(labelsize=7)
 
     # Legend: one entry per Tube
-    handles = []
-    for idx, tube in enumerate(tube_chain.tubes):
-        import matplotlib.lines as ml
-        s = _tube_style(idx, 'O')
-        lbl = tube.label or f'Tube {idx}'
-        handles.append(ml.Line2D([], [], marker=s['marker'], color=s['color'],
-                                  ls='None', ms=6, label=lbl))
-
+    handles = tube_legend_handles(tube_chain)
     if handles:
         fig.legend(handles=handles, loc='lower center',
                    ncol=min(len(handles), 5), fontsize=8,
@@ -268,8 +464,19 @@ def plot_tube_chain_poincare(
 # ── Legend helpers ────────────────────────────────────────────────────────────
 
 def tube_legend_handles(tube_chain, kind: str = 'O'):
-    """Return matplotlib legend handles for each Tube in a TubeChain."""
-    import matplotlib.lines as ml
+    """Return matplotlib legend handles for each Tube in a TubeChain.
+
+    Parameters
+    ----------
+    tube_chain : TubeChain
+    kind : 'O' or 'X'
+        Which marker style to use in the legend.
+    """
+    try:
+        import matplotlib.lines as ml
+    except ImportError as e:
+        raise ImportError("matplotlib is required for tube_legend_handles.") from e
+
     handles = []
     for idx, tube in enumerate(tube_chain.tubes):
         s = _tube_style(idx, kind)
@@ -277,3 +484,30 @@ def tube_legend_handles(tube_chain, kind: str = 'O'):
         handles.append(ml.Line2D([], [], marker=s['marker'], color=s['color'],
                                   ls='None', ms=6, label=lbl))
     return handles
+
+
+def tube_chain_legend(
+    tube_chain,
+    ax,
+    kind: str = 'O',
+    loc: str = 'upper right',
+    **legend_kw,
+):
+    """Add a per-Tube legend to an existing axes.
+
+    Parameters
+    ----------
+    tube_chain : TubeChain
+    ax : matplotlib.axes.Axes
+    kind : 'O' or 'X'
+        Marker style shown in the legend.
+    loc : str
+        Legend location string (passed to ax.legend).
+    **legend_kw
+        Additional keyword arguments forwarded to ax.legend.
+    """
+    handles = tube_legend_handles(tube_chain, kind=kind)
+    if handles:
+        ax.legend(handles=handles, loc=loc, fontsize=8, **legend_kw)
+    return ax
+

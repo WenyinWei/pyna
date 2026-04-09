@@ -80,6 +80,16 @@ from pyna.topo.dynamics import (
     PhaseSpace, MCF_2D, GC_4D,
     DynamicalSystem, ContinuousFlow, HamiltonianFlow,
     MagneticFieldLine, DiscreteMap, StandardMap, PoincareMap,
+    MCFPoincareMap,
+)
+# Layer 1: Invariant objects (PeriodicOrbit, InvariantTorus, manifolds)
+from pyna.topo.invariant import (
+    InvariantObject,
+    PeriodicOrbit,
+    InvariantTorus,
+    InvariantManifold,
+    StableManifold as InvariantStableManifold,
+    UnstableManifold as InvariantUnstableManifold,
 )
 # Layer 3: Sections
 from pyna.topo.section import (
@@ -161,4 +171,32 @@ __all__ = [
     "make_reff_profile_grid",
     "compute_profile_objectives_fast",
     "compute_beta_max_fast",
+    # dynamics / Poincaré map
+    "PhaseSpace",
+    "MCF_2D",
+    "GC_4D",
+    "DynamicalSystem",
+    "ContinuousFlow",
+    "HamiltonianFlow",
+    "MagneticFieldLine",
+    "DiscreteMap",
+    "StandardMap",
+    "PoincareMap",
+    "MCFPoincareMap",
+    # InvariantObject layer
+    "InvariantObject",
+    "PeriodicOrbit",
+    "InvariantTorus",
+    "InvariantManifold",
+    "InvariantStableManifold",
+    "InvariantUnstableManifold",
+    # Sections
+    "Section",
+    "ToroidalSection",
+    "HyperplaneSection",
+    "ParametricSection",
+    "toroidal_sections",
+    "HAO_SECTIONS",
+    # Resonance
+    "ResonanceNumber",
 ]
