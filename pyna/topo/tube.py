@@ -25,6 +25,11 @@ if TYPE_CHECKING:
     from pyna.topo.section_view import SectionView
 
 
+# Lightweight crossing result for non-ToroidalSection paths
+from dataclasses import make_dataclass as _make_dataclass
+_SimplePoint = _make_dataclass('_SimplePoint', ['R', 'Z'])
+
+
 SectionReconstructor = Callable[[float, "Tube", Sequence["TubeCutPoint"], str], Any]
 
 
@@ -234,37 +239,97 @@ class Tube:
 
         # Get fixed-point data at this section
         if hasattr(section, 'phi'):
+            # ToroidalSection: fast exact path using stored fixed points
             phi = section.phi
+            fps = self.at_section(phi, tol=tol)
         else:
-            # For non-toroidal sections we can't use at_section; raise clearly
-            raise NotImplementedError(
-                "Tube.section_cut only supports ToroidalSection (phi=const) for now. "
-                "For other Section types, implement a custom intersection method."
-            )
+            # General Section (hyperplane, parametric, ...):
+            # Approximate intersection by scanning the stored orbit trajectory.
+            # This gives (R, Z) crossings but not DPm (monodromy is unknown
+            # for non-standard sections without additional integration).
+            fps = self._general_section_fps(section)
 
-        fps = self.at_section(phi, tol=tol)
         if not fps:
             return []
 
         islands = []
         for fp in fps:
-            O_pt = np.array([float(fp.R), float(fp.Z)])
+            if hasattr(fp, 'R'):
+                O_pt = np.array([float(fp.R), float(fp.Z)])
+            else:
+                O_pt = np.asarray(fp, dtype=float)[:2]
             isl = _Island(
                 period_n=self.m,
                 O_point=O_pt,
-                X_points=[],   # X-points come from x_cycles.section_cut(section)
+                X_points=[],
                 halfwidth=float('nan'),
                 label=self.label,
             )
             isl.tube = self
             isl.section = section
-            # Propagate tube_chain if available
-            # (tube_chain is set on Tube by external code, not stored here by default)
             if hasattr(self, '_tube_chain_ref') and self._tube_chain_ref is not None:
                 isl.tube_chain = self._tube_chain_ref
             islands.append(isl)
 
         return islands
+
+    def _general_section_fps(self, section) -> list:
+        """Find approximate section crossings for non-ToroidalSection.
+
+        Uses the stored orbit trajectory (orbit_R, orbit_Z, orbit_phi) from the
+        underlying IslandChainOrbit to find where the orbit crosses the section.
+        Returns a list of simple (R, Z) namedtuple-like objects.
+
+        This is a best-effort approximation: positions are interpolated but
+        monodromy (DPm) is not available.  For accurate monodromy at a
+        general section, full variational integration is required.
+        """
+        from pyna.topo.poincare import ToroidalSection as _TorSec
+
+        orbit = self.orbit
+        if not orbit.orbit_debug_available:
+            return []
+
+        R_arr = np.asarray(orbit.orbit_R, dtype=float)
+        Z_arr = np.asarray(orbit.orbit_Z, dtype=float)
+        phi_arr = np.asarray(orbit.orbit_phi, dtype=float)
+        if orbit.orbit_alive is not None:
+            alive = np.asarray(orbit.orbit_alive, dtype=bool)
+        else:
+            alive = np.ones(len(R_arr), dtype=bool)
+
+        mask = alive & np.isfinite(R_arr) & np.isfinite(Z_arr)
+        R_use = R_arr[mask]
+        Z_use = Z_arr[mask]
+        phi_use = phi_arr[mask]
+
+        if len(R_use) < 2:
+            return []
+
+        crossings = []
+        for i in range(len(R_use) - 1):
+            # Build 3-component points for detect_crossing
+            pt_prev = np.array([R_use[i],   Z_use[i],   phi_use[i]])
+            pt_curr = np.array([R_use[i+1], Z_use[i+1], phi_use[i+1]])
+            # Try Section.detect_crossing (poincare-module style)
+            if hasattr(section, 'detect_crossing'):
+                hit = section.detect_crossing(pt_prev, pt_curr)
+                if hit is not None:
+                    crossings.append(_SimplePoint(R=float(hit[0]), Z=float(hit[1])))
+            elif hasattr(section, 'f'):
+                # Generic Section via sign-change of f(x)
+                try:
+                    # For 2D (R,Z) sections, evaluate at the poloidal coords
+                    f_prev = section.f(np.array([R_use[i],   Z_use[i]]))
+                    f_curr = section.f(np.array([R_use[i+1], Z_use[i+1]]))
+                    if f_prev * f_curr < 0:
+                        t = abs(f_prev) / (abs(f_prev) + abs(f_curr) + 1e-30)
+                        R_cross = R_use[i] + t * (R_use[i+1] - R_use[i])
+                        Z_cross = Z_use[i] + t * (Z_use[i+1] - Z_use[i])
+                        crossings.append(_SimplePoint(R=float(R_cross), Z=float(Z_cross)))
+                except (NotImplementedError, Exception):
+                    pass
+        return crossings
 
     def diagnostics(self, requested_phis: Optional[Sequence[float]] = None) -> Dict[str, Any]:
         diag = self.orbit.diagnostics(requested_phis=requested_phis)

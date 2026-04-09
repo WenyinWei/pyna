@@ -542,3 +542,240 @@ class MCFPoincareMap(DiscreteMap):
     def __repr__(self) -> str:
         return (f"MCFPoincareMap(Np={self._Np}, phi_section={self._phi_section:.4f}, "
                 f"n_turns={self._n_turns})")
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# GeneralPoincareMap  (arbitrary Section, trajectory-scanning)
+# ────────────────────────────────────────────────────────────────────────────
+
+class GeneralPoincareMap(DiscreteMap):
+    """Poincaré return map for an arbitrary ContinuousFlow and Section.
+
+    This is the generic (dimension-independent) implementation of
+    :class:`PoincareMap`.  Unlike :class:`MCFPoincareMap` (which uses cyna
+    and is restricted to ToroidalSection), this class works with any
+    :class:`~pyna.topo.section.Section` (hyperplane, parametric, etc.) by
+    integrating the continuous flow and scanning for crossings via
+    :meth:`Section.detect_crossing`.
+
+    For MCF with ToroidalSection: prefer :class:`MCFPoincareMap` (much faster).
+    Use :class:`GeneralPoincareMap` when:
+    - The section is not a toroidal phi=const plane.
+    - The system is not MCF (double pendulum, guiding-centre, etc.).
+    - You need a portable, dependency-free Poincaré map.
+
+    Parameters
+    ----------
+    flow : ContinuousFlow
+        The underlying continuous-time system.  Must implement
+        :meth:`ContinuousFlow.vector_field`.
+    section : Section
+        The Poincaré section (arbitrary codim-1 surface).
+    dt : float
+        Maximum ODE integration step (arc-length or time parameter).
+    t_max : float
+        Maximum integration length per step (to prevent infinite loops).
+    direction : int or None
+        Crossing direction filter: +1 (positive normal), -1 (negative),
+        or None (both directions accepted).  Default None.
+
+    Examples
+    --------
+    >>> from pyna.topo.dynamics import StandardMap, GeneralPoincareMap
+    >>> from pyna.topo.section import HyperplaneSection
+    >>> import numpy as np
+    >>> # Poincaré map of a standard map on the theta=0 plane
+    >>> sm = StandardMap(K=0.9)
+    >>> sec = HyperplaneSection(np.array([1., 0.]), 0.0, phase_dim=2)
+    >>> pm = GeneralPoincareMap(sm, sec)
+    >>> x0 = np.array([0.1, 0.5])
+    >>> x1 = pm.step(x0)
+    """
+
+    def __init__(
+        self,
+        flow: "ContinuousFlow",
+        section: "Section",
+        *,
+        dt: float = 0.05,
+        t_max: float = 200.0,
+        direction: Optional[int] = None,
+    ):
+        self._flow = flow
+        self._section = section
+        self._dt = float(dt)
+        self._t_max = float(t_max)
+        self._direction = direction
+
+    # ── Properties ────────────────────────────────────────────────────────────
+
+    @property
+    def flow(self) -> "ContinuousFlow":
+        return self._flow
+
+    @property
+    def section(self) -> "Section":
+        return self._section
+
+    @property
+    def phase_space(self) -> "PhaseSpace":
+        ps = self._flow.phase_space
+        return PhaseSpace(
+            dim=ps.dim - 1,
+            coordinate_names=ps.coordinate_names[:-1] if ps.coordinate_names else (),
+            symplectic=ps.symplectic,
+            label=f"Section of {ps.label}",
+        )
+
+    # ── Core step ─────────────────────────────────────────────────────────────
+
+    def step(self, x: np.ndarray) -> np.ndarray:
+        """Integrate the flow from x and return the next section crossing.
+
+        The flow is integrated in steps of ``dt`` up to ``t_max``.  At each
+        step, :meth:`Section.detect_crossing` is called on consecutive
+        trajectory points.  The first valid crossing (matching ``direction``
+        if set) is returned.
+
+        Parameters
+        ----------
+        x : ndarray of shape (dim_phase,)
+            Starting point on or near the section.
+        
+        Returns
+        -------
+        ndarray of shape (dim_phase,)
+            The crossing point (in phase-space coordinates), or ``x`` with
+            NaN values if no crossing was found within ``t_max``.
+        """
+        from pyna.topo._rk4 import rk4_integrate
+
+        dim = self._flow.phase_space.dim
+        x0 = np.asarray(x, dtype=float).copy()
+
+        # Use the flow's vector_field as ODE rhs
+        def rhs(t, y):
+            return self._flow.vector_field(np.asarray(y), float(t))
+
+        t = 0.0
+        y_prev = x0.copy()
+        pt_prev = np.append(y_prev, [t])  # extended with parameter t
+
+        while t < self._t_max:
+            t_next = min(t + self._dt, self._t_max)
+            # Single RK4 step
+            sol = rk4_integrate(rhs, (t, t_next), y_prev, max_step=self._dt)
+            if not sol.success or sol.y.shape[1] == 0:
+                break
+            y_curr = sol.y[:, -1].copy()
+            t = float(sol.t[-1])
+
+            # Build 3-component points for detect_crossing: (coord..., param)
+            # For 2D flows: (x0, x1, t)
+            # Section.detect_crossing expects (3,) for MCF or (dim+1,) in general
+            # We use the project() method to map to section coords
+            pt_curr_full = np.append(y_curr, [t])
+
+            # detect_crossing for the section
+            crossing = self._detect(y_prev, y_curr, t - self._dt, t)
+            if crossing is not None:
+                return crossing
+
+            y_prev = y_curr
+
+        # No crossing found within t_max
+        result = np.full(dim, float('nan'))
+        return result
+
+    def _detect(
+        self,
+        y_prev: np.ndarray,
+        y_curr: np.ndarray,
+        t_prev: float,
+        t_curr: float,
+    ) -> Optional[np.ndarray]:
+        """Detect crossing between y_prev and y_curr; return crossing or None.
+
+        Handles:
+        1. Generic Section via Section.f(x) sign change.
+        2. ToroidalSection (legacy) via detect_crossing with (R, Z, phi) tuples.
+        """
+        from pyna.topo.section import Section as _Section
+
+        sec = self._section
+
+        # Path 1: Section with a defining function f(x)=0 (generic)
+        if hasattr(sec, 'f'):
+            try:
+                f_prev = sec.f(y_prev)
+                f_curr = sec.f(y_curr)
+                if f_prev * f_curr >= 0:
+                    return None  # no sign change
+                # Direction filter
+                if self._direction is not None:
+                    # Estimate normal direction at midpoint
+                    mid = 0.5 * (y_prev + y_curr)
+                    n = sec.normal(mid)
+                    v = y_curr - y_prev
+                    dot = float(np.dot(n, v))
+                    if self._direction > 0 and dot <= 0:
+                        return None
+                    if self._direction < 0 and dot >= 0:
+                        return None
+                # Linear interpolation to find crossing
+                t_frac = abs(f_prev) / (abs(f_prev) + abs(f_curr) + 1e-30)
+                crossing = y_prev + t_frac * (y_curr - y_prev)
+                return crossing
+            except NotImplementedError:
+                pass  # Section.f not implemented (e.g. ToroidalSection)
+
+        # Path 2: Sections with detect_crossing (3-component format for MCF)
+        if hasattr(sec, 'detect_crossing'):
+            try:
+                # Reconstruct (R, Z, phi) tuples if dim=2 MCF flow
+                # Append a fake phi parameter estimated from t
+                phi_prev = t_prev % (2 * np.pi)
+                phi_curr = t_curr % (2 * np.pi)
+                pt_prev_3 = np.append(y_prev[:2], [phi_prev])
+                pt_curr_3 = np.append(y_curr[:2], [phi_curr])
+                hit = sec.detect_crossing(pt_prev_3, pt_curr_3)
+                if hit is not None:
+                    return hit[:2]  # return (R, Z) only
+            except Exception:
+                pass
+
+        return None
+
+    def trajectory(
+        self,
+        x0: np.ndarray,
+        n_crossings: int,
+    ) -> np.ndarray:
+        """Collect n_crossings successive Poincaré crossings starting from x0.
+
+        Parameters
+        ----------
+        x0 : ndarray of shape (dim_phase,)
+            Starting point.
+        n_crossings : int
+            Number of crossings to collect.
+
+        Returns
+        -------
+        ndarray of shape (n_crossings, dim_phase)
+            The Poincaré crossing points.
+        """
+        pts = []
+        x = np.asarray(x0, dtype=float).copy()
+        for _ in range(n_crossings):
+            x = self.step(x)
+            if np.any(np.isnan(x)):
+                break
+            pts.append(x.copy())
+        if not pts:
+            return np.empty((0, self._flow.phase_space.dim), dtype=float)
+        return np.array(pts)
+
+    def __repr__(self) -> str:
+        return (f"GeneralPoincareMap(flow={self._flow.__class__.__name__}, "
+                f"section={self._section!r}, dt={self._dt})")

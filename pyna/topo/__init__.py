@@ -81,6 +81,7 @@ from pyna.topo.dynamics import (
     DynamicalSystem, ContinuousFlow, HamiltonianFlow,
     MagneticFieldLine, DiscreteMap, StandardMap, PoincareMap,
     MCFPoincareMap,
+    GeneralPoincareMap,
 )
 # Layer 1: Invariant objects (PeriodicOrbit, InvariantTorus, manifolds)
 from pyna.topo.invariant import (
@@ -183,6 +184,7 @@ __all__ = [
     "StandardMap",
     "PoincareMap",
     "MCFPoincareMap",
+    "GeneralPoincareMap",
     # InvariantObject layer
     "InvariantObject",
     "PeriodicOrbit",
