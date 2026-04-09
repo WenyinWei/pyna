@@ -185,6 +185,19 @@ class Tube:
             return None
         return diag['dominant_kind']
 
+    @property
+    def kind(self) -> Optional[str]:
+        """Seed-orbit stability kind: 'X', 'O', or None.
+
+        .. deprecated::
+            ``Tube.kind`` reflects only the stability of the *seed orbit*
+            used to construct this Tube, not the Tube's conceptual identity.
+            A Tube always contains both X-cycles and an O-cycle.
+            Prefer ``tube._seed_kind()`` in new code, or query
+            ``tube.o_cycle`` / ``tube.x_cycles`` for the full skeleton.
+        """
+        return self._seed_kind()
+
     def at_section(self, phi: float, tol: float = 1e-6) -> List[ChainFixedPoint]:
         return self.orbit.fixed_points_at_section(phi, tol=tol)
 
@@ -344,7 +357,7 @@ class Tube:
                 phi=float(phi),
                 R=float(candidate[0]),
                 Z=float(candidate[1]),
-                kind=self.kind,
+                kind=self._seed_kind(),
                 fixed_point=None,
                 source=source,
                 raw_center=raw_center,
@@ -684,7 +697,7 @@ class TubeChain:
             'n_tubes': int(self.n_tubes),
             'complete': bool(self.n_tubes == self.expected_n_tubes),
             'section_counts': per_section_counts,
-            'tube_kinds': [tube.kind for tube in self.tubes],
+            'tube_kinds': [tube._seed_kind() for tube in self.tubes],
             'tube_diagnostics': tube_diags,
         }
 
