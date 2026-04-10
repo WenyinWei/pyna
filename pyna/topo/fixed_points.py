@@ -1,10 +1,10 @@
-"""
-fixed_points.py — Newton-method fixed-point locator for Poincaré maps.
+﻿"""
+fixed_points.py 鈥?Newton-method fixed-point locator for Poincar茅 maps.
 
-For a field-line Poincaré map P: (R,Z) → (R,Z) and its m-th iterate P^m,
+For a field-line Poincar茅 map P: (R,Z) 鈫?(R,Z) and its m-th iterate P^m,
 Newton's method finds fixed points x* satisfying P^m(x*) = x* by iterating:
 
-    x_{k+1} = x_k − (DP^m(x_k) − I)^{-1} · (P^m(x_k) − x_k)
+    x_{k+1} = x_k 鈭?(DP^m(x_k) 鈭?I)^{-1} 路 (P^m(x_k) 鈭?x_k)
 
 The monodromy matrix DP^m is computed via variational equations integrated
 alongside the field-line ODE.
@@ -38,6 +38,7 @@ import numpy as np
 
 from pyna.topo.variational import PoincareMapVariationalEquations
 
+from pyna.topo.fixed_point import FixedPoint
 try:
     from pyna._cyna import find_fixed_points_batch as _cyna_find_fixed_points_batch
     _CYNA_AVAILABLE = True
@@ -73,7 +74,7 @@ _Z_ABS_MAX = 0.5
 def _make_field_func(tracer):
     """Extract a phi-parameterised field-line RHS from a FieldlineTracer.
 
-    Returns a callable  f(r, z, phi) → (dR/dphi, dZ/dphi).
+    Returns a callable  f(r, z, phi) 鈫?(dR/dphi, dZ/dphi).
     """
     def _f(r, z, phi):
         RZ = np.array([[r, z]])
@@ -112,11 +113,11 @@ def _trace_one(tracer, R0: float, Z0: float, phi_sec: float, m: int):
 
 
 def _compute_DPm(tracer, R0: float, Z0: float, phi_sec: float, m: int):
-    """Compute the m-turn Poincaré-map Jacobian DP^m at (R0, Z0).
+    """Compute the m-turn Poincar茅-map Jacobian DP^m at (R0, Z0).
 
     Strategy:
     1. Try PoincareMapVariationalEquations (always available).
-       Integrates from phi_sec to phi_sec + m * 2π.
+       Integrates from phi_sec to phi_sec + m * 2蟺.
 
     Returns DP^m as ndarray shape (2, 2), or None on failure.
     """
@@ -158,7 +159,7 @@ def _extract_field_cache(tracer) -> Optional[dict]:
         Phi_grid = np.ascontiguousarray(tracer.Phi_grid, dtype=np.float64)
         # Reshape flat arrays to (nPhi, nR, nZ) matching cyna convention
         # RegularGridInterpolator values shape: (len(R_grid), len(Z_grid), len(Phi_grid)) or similar
-        # cyna expects BR[nPhi, nR, nZ] — check actual shape
+        # cyna expects BR[nPhi, nR, nZ] 鈥?check actual shape
         nR, nZ, nPhi = len(R_grid), len(Z_grid), len(Phi_grid)
         BR   = BR.reshape(nR, nZ, nPhi)
         BPhi = BPhi.reshape(nR, nZ, nPhi)
@@ -230,7 +231,7 @@ def _newton_iterate(
                 print(f"  Converged in {k} iterations, |F|={res:.3e}")
             return R, Z, DPm
 
-        # --- Newton step: δx = -(DP^m - I)^{-1} F ---
+        # --- Newton step: 未x = -(DP^m - I)^{-1} F ---
         J = DPm - np.eye(2)
         try:
             delta = -np.linalg.solve(J, F)
@@ -305,7 +306,7 @@ def find_magnetic_axis(
     R_guess, Z_guess : float
         Initial guess close to the magnetic axis.
     phi_sec : float
-        Toroidal angle of the Poincaré section (radians). Default 0.
+        Toroidal angle of the Poincar茅 section (radians). Default 0.
     max_iter : int
         Maximum Newton iterations. Default 40.
     tol : float
@@ -387,9 +388,9 @@ def find_fixed_point_newton(
     R_guess, Z_guess : float
         Initial guess near the target fixed point.
     phi_sec : float
-        Toroidal angle of the Poincaré section (radians).
+        Toroidal angle of the Poincar茅 section (radians).
     period : int
-        Period m of the fixed point (number of Poincaré turns per cycle).
+        Period m of the fixed point (number of Poincar茅 turns per cycle).
     max_iter : int
         Maximum Newton iterations. Default 40.
     tol : float
@@ -486,7 +487,7 @@ def refine_fixed_points_from_pkl(
     tol : float
         Newton convergence tolerance. Default 1e-8.
     period_map : dict, optional
-        Maps phi_sec → island period m for island-chain fixed points.
+        Maps phi_sec 鈫?island period m for island-chain fixed points.
         If None, period=1 is assumed for all points.
     verbose : bool
         Print progress. Default False.
@@ -557,7 +558,7 @@ def refine_fixed_points_from_pkl(
 
 
 # ===========================================================================
-# Legacy API — field_func-based fixed-point tools (used by old tests and
+# Legacy API 鈥?field_func-based fixed-point tools (used by old tests and
 # topology analysis code that passes field_func directly rather than a tracer)
 # ===========================================================================
 
@@ -819,7 +820,7 @@ def classify_fixed_point_higher_order(
 
 
 # ===========================================================================
-# Island-chain fixed-point search — integrated from island_xo_v3 & island_fast
+# Island-chain fixed-point search 鈥?integrated from island_xo_v3 & island_fast
 # ===========================================================================
 
 def find_island_chain_fixed_points(
@@ -849,8 +850,8 @@ def find_island_chain_fixed_points(
 
     Algorithm
     ---------
-    1. Build an (R, θ) polar grid centred on (R_ax, Z_ax) in the range
-       r/a ∈ [r_min, r_max] × [0, 2π).
+    1. Build an (R, 胃) polar grid centred on (R_ax, Z_ax) in the range
+       r/a 鈭?[r_min, r_max] 脳 [0, 2蟺).
     2. For each grid point x0, evaluate ``|P^m(x0) - x0|``.  Keep only
        those with residual < ``coarse_tol`` *and* ``|P^1(x0) - x0| > period1_tol``
        (to exclude the magnetic axis / period-1 points).
@@ -867,9 +868,9 @@ def find_island_chain_fixed_points(
     R_ax, Z_ax : float
         Approximate magnetic axis position used to centre the search grid.
     period : int
-        Island chain period m (number of Poincaré turns per cycle).
+        Island chain period m (number of Poincar茅 turns per cycle).
     phi_sec : float
-        Poincaré section angle [rad]. Default 0.
+        Poincar茅 section angle [rad]. Default 0.
     r_min, r_max : float
         Radial range [m] relative to the magnetic axis. Default [0.02, 0.25].
     n_r : int
@@ -906,7 +907,7 @@ def find_island_chain_fixed_points(
     total = n_r * n_ang
     if verbose:
         print(f"[find_island_chain_fixed_points] m={period}, phi={phi_sec:.4f}")
-        print(f"  Grid: {n_r}×{n_ang}={total} pts  r=[{r_min:.3f},{r_max:.3f}]")
+        print(f"  Grid: {n_r}脳{n_ang}={total} pts  r=[{r_min:.3f},{r_max:.3f}]")
         print(f"  Coarse criterion: |P^m-x|<{coarse_tol*1000:.1f}mm AND "
               f"|P^1-x|>{period1_tol*1000:.1f}mm")
 
@@ -989,7 +990,7 @@ def find_island_chain_fixed_points(
     top_cands = candidates[:top_n_candidates]
 
     if _CYNA_AVAILABLE and fc is not None and top_cands:
-        # Batch Newton with cyna — one call for all candidates
+        # Batch Newton with cyna 鈥?one call for all candidates
         R_seeds = np.array([c[2][0] for c in top_cands], dtype=np.float64)
         Z_seeds = np.array([c[2][1] for c in top_cands], dtype=np.float64)
         if verbose:
@@ -1033,7 +1034,7 @@ def find_island_chain_fixed_points(
             fixed_points.append(fp_dict)
             if verbose:
                 print(f"  [{kind}] R={R_fp:.6f} Z={Z_fp:.6f} "
-                      f"tr={tr:.4f} λ={evals[0]:.4f},{evals[1]:.4f}")
+                      f"tr={tr:.4f} 位={evals[0]:.4f},{evals[1]:.4f}")
     else:
         # Python fallback: sequential Newton
         for res_m, res_1, x0 in top_cands:
@@ -1074,7 +1075,7 @@ def find_island_chain_fixed_points(
             fixed_points.append(fp_dict)
             if verbose:
                 print(f"  [{kind}] R={R_fp:.6f} Z={Z_fp:.6f} "
-                      f"tr={tr:.4f} λ={evals[0]:.4f},{evals[1]:.4f}")
+                      f"tr={tr:.4f} 位={evals[0]:.4f},{evals[1]:.4f}")
 
     # sort by R
     fixed_points.sort(key=lambda d: d['R'])
@@ -1086,7 +1087,7 @@ def find_island_chain_fixed_points(
 
 
 # ===========================================================================
-# P^1 propagation strategy — from island_p1_propagate
+# P^1 propagation strategy 鈥?from island_p1_propagate
 # ===========================================================================
 
 def propagate_island_chain(
@@ -1167,7 +1168,7 @@ def propagate_island_chain(
     # --- Step 1: iterate P^1 from seed to get all period-m points at phi0 ---
     if verbose:
         print(f"[propagate_island_chain] m={period}, seed=(R={R0:.5f}, Z={Z0:.5f}), phi0={phi0:.4f}")
-        print(f"  Iterating P^1 × {period} to collect chain points at phi={phi0:.4f}")
+        print(f"  Iterating P^1 脳 {period} to collect chain points at phi={phi0:.4f}")
 
     chain_at_phi0: List[np.ndarray] = [np.array([R0, Z0])]
     xc = np.array([R0, Z0], dtype=float)

@@ -10,12 +10,10 @@ from pyna.topo import (
 
 
 def test_island_section_points_basic():
-    isl = Island(
-        period_n=10,
-        O_point=np.array([1.0, 0.0]),
-        X_points=[np.array([1.1, 0.1]), np.array([0.9, -0.1])],
-        label='10/3',
-    )
+    fp_O = FixedPoint(phi=0.0, R=1.0, Z=0.0, DPm=np.eye(2), kind='O')
+    fp_X1 = FixedPoint(phi=0.0, R=1.1, Z=0.1, DPm=np.array([[2.,0],[0,.5]]), kind='X')
+    fp_X2 = FixedPoint(phi=0.0, R=0.9, Z=-0.1, DPm=np.array([[2.,0],[0,.5]]), kind='X')
+    isl = Island(O_point=fp_O, X_points=[fp_X1, fp_X2], label='10/3')
     sec = island_section_points(isl)
     assert len(sec['O_points']) == 1
     assert len(sec['X_points']) == 2

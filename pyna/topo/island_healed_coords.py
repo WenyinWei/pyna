@@ -1,5 +1,6 @@
 """island_healed_coords.py
 ==========================
+# NOTE: IslandChainOrbit references in this file are duck-typed; no hard import needed.
 Island-constrained healed flux-surface coordinate system.
 
 Motivation

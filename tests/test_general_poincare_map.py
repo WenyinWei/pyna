@@ -177,7 +177,8 @@ def test_tube_section_cut_general_section_with_orbit():
     islands = tube.section_cut(sec)
     assert isinstance(islands, list)
     for isl in islands:
-        assert isl.O_point.shape == (2,)
+        # O_point is a FixedPoint; verify it has R, Z coordinates
+        assert hasattr(isl.O_point, 'R') and hasattr(isl.O_point, 'Z')
         assert isl.tube is tube
 
 

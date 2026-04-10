@@ -205,7 +205,14 @@ class Tube(InvariantObject):
             phi = section.phi
             fps = self.at_section(phi, tol=tol)
         else:
-            fps = self._general_section_fps(section)
+            # General section: _SimplePoint objects, wrap in FixedPoint
+            raw_fps = self._general_section_fps(section)
+            fps = [
+                fp if isinstance(fp, FixedPoint) else
+                FixedPoint(phi=self.seed_phi, R=float(fp.R), Z=float(fp.Z),
+                           DPm=np.eye(2), kind='O')
+                for fp in raw_fps
+            ]
 
         if not fps:
             return []
@@ -214,15 +221,12 @@ class Tube(InvariantObject):
 
         islands = []
         for fp in fps:
-            O_pt = np.array([float(fp.R), float(fp.Z)])
-            X_pts = [np.array([float(xfp.R), float(xfp.Z)]) for xfp in x_fps]
-            isl = _Island(
-                period_n=self.m,
-                O_point=O_pt,
-                X_points=X_pts,
-                halfwidth=float('nan'),
-                label=self.label,
-            )
+            x_fp_list = [xfp if isinstance(xfp, FixedPoint) else
+                         FixedPoint(phi=fp.phi, R=float(np.asarray(xfp)[0]),
+                                    Z=float(np.asarray(xfp)[1]),
+                                    DPm=np.array([[2.,0.],[0.,.5]]), kind='X')
+                         for xfp in x_fps]
+            isl = _Island(O_point=fp, X_points=x_fp_list, label=self.label)
             isl.tube = self
             isl.section = section
             if self._tube_chain_ref is not None:
@@ -281,18 +285,18 @@ class Tube(InvariantObject):
             )
         fp = fps[0]
         from pyna.topo.island import Island as _Island
+
+        def _to_xfp(x):
+            if isinstance(x, FixedPoint):
+                return x
+            arr = np.asarray(x, dtype=float).ravel()
+            return FixedPoint(phi=fp.phi, R=float(arr[0]), Z=float(arr[1]),
+                              DPm=np.array([[2.,0.],[0.,.5]]), kind='X')
+
         return _Island(
-            period_n=self.m,
-            O_point=np.array([float(fp.R), float(fp.Z)]),
-            X_points=[] if x_points is None else [np.asarray(x, dtype=float) for x in x_points],
-            halfwidth=float('nan'),
-            level=level,
+            O_point=fp,
+            X_points=[] if x_points is None else [_to_xfp(x) for x in x_points],
             label=label or self.label,
-            debug_info={
-                'phi_section': float(phi),
-                'greene_residue': float(fp.greene_residue),
-                'seed_RZ': self.seed_RZ,
-            },
         )
 
     def section_view_points(

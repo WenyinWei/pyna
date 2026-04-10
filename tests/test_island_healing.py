@@ -14,6 +14,7 @@ import numpy as np
 import pytest
 
 from pyna.topo.island import Island, IslandChain
+from pyna.topo.invariants import FixedPoint
 from pyna.MCF.coords.island_healing import (
     assign_island_chain_pest_angles,
     build_r1_boundary,
@@ -68,11 +69,16 @@ def _make_island_chain_3_1(
     O_pts = [np.array([R0 + a_bdy * np.cos(t), a_bdy * np.sin(t)]) for t in theta_O_geo]
     X_pts = [np.array([R0 + a_bdy * np.cos(t), a_bdy * np.sin(t)]) for t in theta_X_geo]
 
+    def _fp(arr, kind):
+        return FixedPoint(phi=0.0, R=float(arr[0]), Z=float(arr[1]),
+                          DPm=np.eye(2) if kind == 'O' else np.array([[2.,0],[0.,.5]]),
+                          kind=kind)
+
     islands = [
-        Island(period_n=m, O_point=op, X_points=[X_pts[k]])
+        Island(O_point=_fp(op, 'O'), X_points=[_fp(X_pts[k], 'X')])
         for k, op in enumerate(O_pts)
     ]
-    return IslandChain(m=m, n=n, islands=islands, connected=True)
+    return IslandChain(m=m, n=n, islands=islands)
 
 
 # ---------------------------------------------------------------------------

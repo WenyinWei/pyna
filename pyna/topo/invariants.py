@@ -123,6 +123,26 @@ class FixedPoint(InvariantObject):
         """Greene's residue = (2 - Tr(DPm)) / 4."""
         return float((2.0 - np.trace(self.DPm)) / 4.0)
 
+    # ── Array-like interface (backward compat with ndarray O_point) ───────────
+
+    def __getitem__(self, idx: int) -> float:
+        """fp[0] → R,  fp[1] → Z  (supports code that treats fp as a 2-vector)."""
+        if idx == 0:
+            return float(self.R)
+        if idx == 1:
+            return float(self.Z)
+        raise IndexError(f"FixedPoint index {idx} out of range (0=R, 1=Z)")
+
+    def __len__(self) -> int:
+        return 2
+
+    def __array__(self, dtype=None, copy=None) -> np.ndarray:
+        """np.asarray(fp) → array([R, Z])."""
+        arr = np.array([self.R, self.Z])
+        if dtype is not None:
+            arr = arr.astype(dtype, copy=False)
+        return arr
+
 
 # ---------------------------------------------------------------------------
 # Cycle

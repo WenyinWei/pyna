@@ -17,8 +17,9 @@ def _unique_cut_points(cut_points, dedup_tol: float = 1e-6):
             out.append(cp)
     return out
 
+from pyna.topo.fixed_point import FixedPoint
+
 if TYPE_CHECKING:
-    from pyna.topo.island_chain import ChainFixedPoint
     from pyna.topo.tube import TubeChain
 
 
@@ -32,7 +33,7 @@ class SectionViewPoint:
     kind: Optional[str] = None
     tube_id: Optional[TubeID] = None
     island_id: Optional[IslandID] = None
-    fixed_point: Optional["ChainFixedPoint"] = None
+    fixed_point: Optional[FixedPoint] = None
     source: str = "raw"
     raw_center: Optional[tuple[float, float]] = None
     debug_info: Dict[str, Any] = field(default_factory=dict)

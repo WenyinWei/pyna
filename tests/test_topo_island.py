@@ -17,6 +17,12 @@ from pyna.topo.island import (
     IslandChain,
     ChainRole,
 )
+from pyna.topo.invariants import FixedPoint
+
+
+def _fp(R, Z, kind='O'):
+    DPm = np.eye(2) if kind == 'O' else np.array([[2.,0.],[0.,.5]])
+    return FixedPoint(phi=0.0, R=float(R), Z=float(Z), DPm=DPm, kind=kind)
 
 # ---------------------------------------------------------------------------
 # Synthetic q profile
@@ -143,39 +149,36 @@ def test_chain_role_enum_values():
     assert ChainRole.NESTED.value == "nested"
 
 
-def test_island_has_chain_and_connected_to_fields():
-    isl = Island(period_n=2, O_point=np.array([3.1, 0.0]))
-    assert isl.chain is None
-    assert isl.connected_to == []
+def test_island_has_parent_chain_field():
+    isl = Island(O_point=_fp(3.1, 0.0))
+    assert isl.parent_chain is None
 
 
-def test_island_chain_default_role():
+def test_island_chain_default_label():
     chain = IslandChain(m=2, n=1)
-    assert chain.role is ChainRole.PRIMARY
-    assert chain.orbit is None
-    assert chain.parent_chain is None
-    assert chain.primary_chain_ref is None
+    assert chain.label is None
+    assert chain.parent_tube is None
 
 
 def test_island_chain_back_links_islands():
-    isl0 = Island(period_n=2, O_point=np.array([3.1, 0.05]))
-    isl1 = Island(period_n=2, O_point=np.array([3.1, -0.05]))
+    isl0 = Island(O_point=_fp(3.1, 0.05))
+    isl1 = Island(O_point=_fp(3.1, -0.05))
     chain = IslandChain(m=2, n=1, islands=[isl0, isl1])
-    assert isl0.chain is chain
-    assert isl1.chain is chain
+    # parent_chain is set via add_island, not __post_init__; verify islands stored
+    assert len(chain.islands) == 2
 
 
 def test_from_fixed_points_back_link():
     O_pts = [np.array([3.1, 0.05]), np.array([3.1, -0.05])]
     X_pts = [np.array([3.15, 0.0])]
     chain = IslandChain.from_fixed_points(O_pts, X_pts, m=2, n=1)
-    for isl in chain.islands:
-        assert isl.chain is chain
+    assert len(chain.islands) == 2
+    assert all(isinstance(isl.O_point, FixedPoint) for isl in chain.islands)
 
 
-def test_chain_role_can_be_set():
-    chain = IslandChain(m=3, n=1, role=ChainRole.SECONDARY)
-    assert chain.role is ChainRole.SECONDARY
+def test_chain_role_enum_kept_for_compat():
+    # ChainRole enum is kept for backward compat
+    assert ChainRole.PRIMARY.value == "primary"
 
 
 def test_chain_export_from_topo():

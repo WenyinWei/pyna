@@ -175,21 +175,19 @@ __all__ = [
     "ResonanceNumber",
 ]
 
-# --- New invariant-object skeleton (backward-compatible) ---
+# --- New invariant-object skeleton (backward-compatible re-exports) ---
+# Note: Island and IslandChain are intentionally NOT re-exported here to
+# avoid overriding the full implementations in island.py.
 try:
     from pyna.topo.invariants import (
         Stability,
         MonodromyData,
-        InvariantObject,
         FixedPoint,
         Cycle,
         InvariantTorus,
         StableManifold,
         UnstableManifold,
-        Island,
-        IslandChain,
-        Tube,
-        TubeChain,
+        # Tube and TubeChain come from tube.py (which uses invariants.Cycle)
     )
 except ImportError:
     pass

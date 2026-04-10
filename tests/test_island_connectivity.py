@@ -9,6 +9,7 @@ sys.path.insert(0, r'C:\Users\Legion\Nutstore\1\Repo\pyna')
 import numpy as np
 import pytest
 
+from pyna.topo.invariants import FixedPoint
 from pyna.topo.island import Island, IslandChain
 
 
@@ -17,7 +18,7 @@ def make_chain(m: int, n: int, n_islands: int = None) -> IslandChain:
     if n_islands is None:
         n_islands = m
     islands = [
-        Island(period_n=m, O_point=np.array([3.0 + i * 0.01, 0.0]))
+        Island(O_point=FixedPoint(phi=0.0, R=3.0 + i * 0.01, Z=0.0, DPm=np.eye(2), kind='O'))
         for i in range(n_islands)
     ]
     return IslandChain(m=m, n=n, islands=islands)
