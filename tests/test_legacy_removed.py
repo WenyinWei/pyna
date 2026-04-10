@@ -187,12 +187,13 @@ def _grep_direct_cyna(filename):
 
 
 def test_topo_island_chain_no_direct_cyna():
-    """topo/island_chain.py 不再直接 from pyna._cyna import。"""
+    """topo/island_chain.py has been removed (along with IslandChainOrbit/ChainFixedPoint).
+    Verify the file no longer exists."""
     import pathlib
     f = pathlib.Path(__file__).parent.parent / "pyna" / "topo" / "island_chain.py"
-    assert _grep_direct_cyna(f) == [], (
-        f"island_chain.py still has direct 'from pyna._cyna import' at lines: "
-        f"{_grep_direct_cyna(f)}"
+    assert not f.exists(), (
+        "island_chain.py still exists but should have been removed. "
+        "IslandChainOrbit and ChainFixedPoint are no longer supported."
     )
 
 

@@ -1,7 +1,8 @@
 import numpy as np
+import pytest
 
 from pyna.topo.island import Island
-from pyna.topo.island_chain import ChainFixedPoint, IslandChainOrbit
+from pyna.topo.invariants import Cycle, FixedPoint
 from pyna.topo import (
     island_section_points,
     island_chain_section_points,
@@ -21,10 +22,11 @@ def test_island_section_points_basic():
     assert np.allclose(sec['O_points'][0], [1.0, 0.0])
 
 
-def test_island_chain_section_points_from_orbit():
-    fp1 = ChainFixedPoint(phi=0.0, R=1.1, Z=0.2, DPm=np.diag([2.0, 0.5]), DX_pol_accum=np.eye(2))
-    fp2 = ChainFixedPoint(phi=0.0, R=1.0, Z=0.1, DPm=np.diag([0.8, 0.8]), DX_pol_accum=np.eye(2))
-    chain = IslandChainOrbit(m=10, n=3, Np=2, fixed_points=[fp1, fp2], seed_phi=0.0, seed_RZ=(1.1, 0.2))
-    sec = island_chain_section_points(chain, phi=0.0)
+def test_island_chain_section_points_from_cycle():
+    fp1 = FixedPoint(phi=0.0, R=1.1, Z=0.2, DPm=np.diag([2.0, 0.5]), kind='X')
+    fp2 = FixedPoint(phi=0.0, R=1.0, Z=0.1, DPm=np.diag([0.8, 0.8]), kind='O')
+    cycle = Cycle(winding=(10, 3), sections={0.0: [fp1, fp2]},
+                  monodromy=fp1.monodromy, ambient_dim=2)
+    sec = island_chain_section_points(cycle, phi=0.0)
     assert len(sec['X_points']) == 1
     assert len(sec['O_points']) == 1

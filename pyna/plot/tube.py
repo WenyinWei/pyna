@@ -113,8 +113,14 @@ def plot_tube_section(
 
     # X-point markers from x_cycles
     if show_x and phi is not None:
-        for x_tube in tube.x_cycles:
-            fps = x_tube.at_section(phi) if hasattr(x_tube, 'at_section') else []
+        for xc in tube.x_cycles:
+            # x_cycles are Cycle objects; use section_points(phi)
+            if hasattr(xc, 'section_points'):
+                fps = xc.section_points(phi)
+            elif hasattr(xc, 'at_section'):
+                fps = xc.at_section(phi)
+            else:
+                fps = []
             s_x = {**_tube_style(tube_idx, 'X'), **(style or {})}
             for fp in fps:
                 ax.plot(float(fp.R), float(fp.Z),
@@ -294,10 +300,10 @@ def plot_island_chain_by_tube(
     return ax
 
 
-# ── ResonanceStructure section plot ───────────────────────────────────────────
+# ── TubeChain/resonance section plot ─────────────────────────────────────────
 
-def plot_resonance_structure_section(
-    resonance_structure,
+def plot_resonance_section(
+    tubechain,
     section,
     ax=None,
     *,
@@ -307,22 +313,19 @@ def plot_resonance_structure_section(
     per_tube_style: bool = True,
     style: Optional[Dict[str, Any]] = None,
 ):
-    """Plot a ResonanceStructure at a given section.
-
-    Draws O-chain (filled circles, per-tube colour) and X-chain (crosses,
-    matching colour) separately, so the full island topology is visible.
+    """Plot O-points and X-points of a TubeChain at a given Poincare section.
 
     Parameters
     ----------
-    resonance_structure : ResonanceStructure
+    tubechain : TubeChain
+        Contains both O-cycles (in each Tube.o_cycle) and X-cycles
+        (in each Tube.x_cycles).
     section : Section | float
     ax : matplotlib.axes.Axes, optional
     show_o, show_x : bool
-        Whether to draw the O-chain and X-chain respectively.
     show_arrows : bool
         Draw eigenvector arrows at X-points.
     per_tube_style : bool
-        Use per-Tube colours.  False → uniform style.
     style : dict, optional
     """
     try:
@@ -334,36 +337,61 @@ def plot_resonance_structure_section(
 
     if isinstance(section, (int, float)):
         section = ToroidalSection(float(section))
+    phi = section.phi if hasattr(section, 'phi') else 0.0
 
     if ax is None:
         _, ax = plt.subplots()
 
-    if show_o and resonance_structure.o_tubechain is not None:
+    if show_o:
         plot_tube_chain_section(
-            resonance_structure.o_tubechain,
-            section,
-            ax=ax,
-            show_o=True,
-            show_x=False,
-            show_arrows=False,
-            per_tube_style=per_tube_style,
-            style=style,
+            tubechain, section, ax=ax,
+            show_o=True, show_x=False, show_arrows=False,
+            per_tube_style=per_tube_style, style=style,
         )
 
-    if show_x and resonance_structure.x_tubechain is not None:
-        # X-chain: use same tube indices as O-chain for colour consistency
-        for idx, tube in enumerate(resonance_structure.x_tubechain.tubes):
+    if show_x:
+        for idx, tube in enumerate(tubechain.tubes):
             tidx = idx if per_tube_style else 0
-            plot_tube_section(
-                tube, section, ax=ax,
-                tube_idx=tidx,
-                show_o=False,
-                show_x=True,
-                show_arrows=show_arrows,
-                style=style,
-            )
-
+            color = f'C{tidx % 10}'
+            if style and 'x' in style:
+                s = style['x']
+                color = s.get('color', color)
+            for xc in tube.x_cycles:
+                x_fps = xc.section_points(phi)
+                for fp in x_fps:
+                    ax.plot(fp.R, fp.Z, marker='x', color=color,
+                            ms=7, mew=1.8, ls='None', zorder=20)
+                    if show_arrows and fp.monodromy.stability.name == 'HYPERBOLIC':
+                        evals, evecs = np.linalg.eig(fp.DPm)
+                        for evec in evecs.T:
+                            evec = evec.real
+                            norm = np.linalg.norm(evec)
+                            if norm > 1e-10:
+                                evec /= norm
+                                ax.annotate('', xy=(fp.R + 0.02*evec[0], fp.Z + 0.02*evec[1]),
+                                            xytext=(fp.R, fp.Z),
+                                            arrowprops=dict(arrowstyle='->', color=color))
     return ax
+
+
+def plot_resonance_structure_section(
+    resonance_structure,
+    section,
+    ax=None,
+    **kwargs,
+):
+    """Deprecated: use plot_resonance_section(tubechain, section) instead.
+
+    This function used to accept a ResonanceStructure object.  Since
+    ResonanceStructure has been removed, pass a TubeChain directly.
+    """
+    import warnings
+    warnings.warn(
+        "plot_resonance_structure_section is deprecated.  "
+        "Pass a TubeChain to plot_resonance_section() instead.",
+        DeprecationWarning, stacklevel=2,
+    )
+    return plot_resonance_section(resonance_structure, section, ax=ax, **kwargs)
 
 
 # ── Multi-section Poincare figure ─────────────────────────────────────────────

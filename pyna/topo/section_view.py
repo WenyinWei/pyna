@@ -217,7 +217,11 @@ class SectionViewBuilder:
         dedup_tol: float = 1e-6,
         section_reconstructor=None,
     ) -> SectionView:
-        resonance_id = ResonanceID(m=tubechain.m, n=tubechain.n, Np=tubechain.Np, label=tubechain.label)
+        resonance_id = ResonanceID(
+            m=tubechain.m, n=tubechain.n,
+            Np=getattr(tubechain, 'Np', 1),
+            label=tubechain.label,
+        )
         builder = cls(resonance_id=resonance_id)
         section_data = tubechain._section_view_data(
             phi,
@@ -226,7 +230,7 @@ class SectionViewBuilder:
             reconstruct=reconstruct,
             section_reconstructor=section_reconstructor,
         )
-        view_kind = kind or tubechain.kind
+        view_kind = kind or getattr(tubechain, 'kind', None)
         return builder.from_section_data(section_data, kind=view_kind)
 
     def from_section_data(self, section_data: Dict[str, Any], *, kind: Optional[str] = None) -> SectionView:

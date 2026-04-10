@@ -44,6 +44,18 @@ def island_chain_section_points(chain, phi: float | None = None) -> dict:
                 O_points.append((float(fp.R), float(fp.Z)))
             else:
                 X_points.append((float(fp.R), float(fp.Z)))
+    elif hasattr(chain, "sections") and chain.sections:
+        # Cycle style: sections is {phi: List[FixedPoint]}
+        for sec_phi, fps in chain.sections.items():
+            if phi is not None:
+                dphi = np.angle(np.exp(1j * (float(sec_phi) - float(phi))))
+                if abs(dphi) > 1e-3:
+                    continue
+            for fp in (fps if isinstance(fps, list) else [fps]):
+                if getattr(fp, "kind", None) == "O":
+                    O_points.append((float(fp.R), float(fp.Z)))
+                else:
+                    X_points.append((float(fp.R), float(fp.Z)))
 
     return {
         "phi": phi,

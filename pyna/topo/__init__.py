@@ -33,7 +33,7 @@ from pyna.topo.monodromy import (
 )
 from pyna.topo.identity import ResonanceID, TubeID, IslandID
 from pyna.topo.section_view import SectionViewPoint, SectionCorrespondence, SectionView, SectionViewBuilder
-from pyna.topo.tube import TubeCutPoint, Tube, TubeChain, ResonanceStructure
+from pyna.topo.tube import TubeCutPoint, Tube, TubeChain
 from pyna.plot.island import plot_island, island_section_points
 from pyna.plot.island_chain import plot_island_chain, island_chain_section_points
 from pyna.topo.fast_metrics import (
@@ -129,7 +129,6 @@ __all__ = [
     "TubeCutPoint",
     "Tube",
     "TubeChain",
-    "ResonanceStructure",
     "Cycle",
     # generic island / island-chain plotting
     "plot_island",

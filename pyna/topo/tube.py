@@ -1,39 +1,53 @@
-"""Continuous-time tube and resonance-structure abstractions.
+"""tube.py — Tube, TubeChain: continuous-time resonance structures.
 
-This module keeps the continuous-time side of the topology model:
-- ``Tube``: one connected periodic orbit / tube
-- ``TubeChain``: one resonance-family collection of tubes
+A ``Tube`` represents one magnetic island — a complete nested family of
+invariant tori whose skeleton is:
 
-Bridge-layer representations live in :mod:`pyna.topo.section_view`.
-The older ``SectionCut`` staging class has been removed; low-level cut data is
-kept as private dictionaries and is not exposed as a public API concept.
+  o_cycle  : the elliptic periodic orbit at the island core (type ``Cycle``)
+  x_cycles : the hyperbolic periodic orbit(s) at the separatrix (List[Cycle])
+             may be empty (e.g. limiter configurations)
+
+A ``TubeChain`` collects the full resonance family (all independent Tubes)
+for one rational surface q = m/n.
+
+Design principles
+-----------------
+- ``Tube`` holds ``o_cycle`` and ``x_cycles`` directly as ``Cycle`` objects
+  from ``pyna.topo.invariants``.  There is no intermediate ``IslandChainOrbit``
+  wrapper.
+- ``TubeChain`` is the authoritative container.  ``from_XO_fixed_points`` and
+  ``from_XO_orbits`` are the preferred constructors.
+- ``TubeCutPoint`` is a low-level bridge for the ``SectionView`` layer.
+
+Note: ``IslandChainOrbit`` and ``ChainFixedPoint`` have been removed.
+Use ``Cycle`` and ``FixedPoint`` from ``pyna.topo.invariants`` instead.
 """
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import dataclass, field
 from math import gcd
-from typing import Any, Callable, Dict, List, Optional, Sequence, TYPE_CHECKING
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING
 import warnings
 
 import numpy as np
 
 from pyna.topo.invariant import InvariantObject
 from pyna.topo.island import Island, IslandChain
-from pyna.topo.invariants import FixedPoint
-# Backward-compat alias; new code should use FixedPoint directly.
-ChainFixedPoint = FixedPoint
+from pyna.topo.invariants import Cycle, FixedPoint, MonodromyData
 
 if TYPE_CHECKING:
     from pyna.topo.section_view import SectionView
 
 
-# Lightweight crossing result for non-ToroidalSection paths
-from dataclasses import make_dataclass as _make_dataclass
-_SimplePoint = _make_dataclass('_SimplePoint', ['R', 'Z'])
-
+_SimplePoint = type('_SimplePoint', (), {'__init__': lambda self, R, Z: setattr(self, 'R', R) or setattr(self, 'Z', Z)})
 
 SectionReconstructor = Callable[[float, "Tube", Sequence["TubeCutPoint"], str], Any]
 
+
+# ---------------------------------------------------------------------------
+# TubeCutPoint  (section-cut low-level data; unchanged)
+# ---------------------------------------------------------------------------
 
 @dataclass
 class TubeCutPoint:
@@ -44,9 +58,9 @@ class TubeCutPoint:
     R: float
     Z: float
     kind: Optional[str] = None
-    fixed_point: Optional[ChainFixedPoint] = None
+    fixed_point: Optional[FixedPoint] = None
     source: str = "exact-cut"
-    raw_center: Optional[tuple[float, float]] = None
+    raw_center: Optional[Tuple[float, float]] = None
     debug_info: Dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -59,296 +73,227 @@ class TubeCutPoint:
         return np.array([self.R, self.Z], dtype=float)
 
 
+# ---------------------------------------------------------------------------
+# Tube
+# ---------------------------------------------------------------------------
+
 @dataclass
 class Tube(InvariantObject):
-    """A magnetic island: one nested invariant-torus structure in phase space.
+    """One magnetic island: a nested family of invariant tori.
 
-    Conceptual model
-    ----------------
-    A Tube is NOT "an X-orbit" or "an O-orbit".  It represents a *magnetic
-    island* �?one complete nested family of invariant tori.  Its skeleton
-    consists of:
-
-      o_cycle  (exactly 1): the elliptic periodic orbit at the island centre.
-                            All invariant tori of the island surround this orbit.
-      x_cycles (1 or more): the hyperbolic periodic orbit(s) bounding the island
-                            (forming the separatrix).  For a generic island there
-                            are exactly 2 X-cycles (before and after in toroidal
-                            angle), but higher-order resonances may have more.
-
-    Both o_cycle and x_cycles are ``Cycle`` objects (continuous-time periodic
-    orbits); they identify and characterise the Tube uniquely.
-
-    The Tube is distinct from:
-      - A *Cycle* (a single periodic orbit, either X or O type)
-      - A *TubeChain* (the full resonance family of Tubes for a given m/n)
-
-    Laziness
+    Skeleton
     --------
-    o_cycle and x_cycles may be None / empty at construction time and are
-    filled in lazily (by the parent TubeChain after wiring, or explicitly).
-    The ``orbit`` field is kept for backward compatibility with existing code
-    that builds Tubes from IslandChainOrbit objects; it represents one known
-    periodic orbit associated with this Tube (often the O-cycle seed used to
-    construct the chain, but it may equally be an X-cycle seed).
+    o_cycle : Cycle
+        The elliptic periodic orbit at the island core.  All invariant tori
+        of this island surround this orbit.
+    x_cycles : list of Cycle
+        The hyperbolic periodic orbit(s) bounding the island (separatrix).
+        May be empty (limiter or axis topology).
 
-    Backward compatibility
-    ----------------------
-    The old ``kind`` property (returning 'X' or 'O' from orbit.diagnostics)
-    is preserved for legacy callers but is conceptually deprecated: kind is
-    a property of a *Cycle*, not a *Tube*.  A Tube always contains both
-    X-cycles (boundary) and an O-cycle (core).
+    A Tube may additionally carry an optional raw trajectory for approximate
+    section cuts with non-toroidal sections:
+
+    _orbit_R, _orbit_Z, _orbit_phi : array or None
+        Raw field-line trajectory samples.  Used only by
+        ``_general_section_fps`` for HyperplaneSection / ParametricSection.
+
+    The ``label`` field is a human-readable tag (e.g. ``'X-tube[2]'``).
+
+    Notes on physical interpretation
+    ----------------------------------
+    - Tokamak single-null:  o_cycle = magnetic axis, x_cycles = [X-point cycle]
+    - Tokamak double-null:  o_cycle = axis, x_cycles = [lower-X, upper-X]
+    - Limiter:              o_cycle = axis, x_cycles = []
+    - W7X 5/5 island:       o_cycle = island O-orbit, x_cycles = []
+      (the X-separatrix is itself an IslandChain/TubeChain, not a single Cycle)
     """
 
-    orbit: Any
+    o_cycle: Cycle
+    x_cycles: List[Cycle] = field(default_factory=list)
     label: Optional[str] = None
     debug_info: Dict[str, Any] = field(default_factory=dict)
 
-    # ── Skeleton: the invariant-torus structure ───────────────────────────────
-    # These are Cycle objects (continuous-time periodic orbits).
-    # Set lazily by TubeChain.wire_xo_refs() or explicitly.
-    # _o_cycle  : elliptic orbit at the island centre (exactly 1)
-    # _x_cycles : hyperbolic orbit(s) at the separatrix (1 or more)
-    _o_cycle: Optional[object] = field(default=None, repr=False, init=False)   # Cycle
-    _x_cycles: List[object] = field(default_factory=list, repr=False, init=False)  # List[Cycle]
+    # Optional raw trajectory (for general-section cuts only)
+    _orbit_R:   Optional[np.ndarray] = field(default=None, repr=False)
+    _orbit_Z:   Optional[np.ndarray] = field(default=None, repr=False)
+    _orbit_phi: Optional[np.ndarray] = field(default=None, repr=False)
+    _orbit_alive: Optional[np.ndarray] = field(default=None, repr=False)
 
-    @classmethod
-    def from_orbit(cls, orbit: Any, label: Optional[str] = None) -> "Tube":
-        return cls(orbit=orbit, label=label)
+    # Back-reference to parent TubeChain (set by TubeChain after construction)
+    _tube_chain_ref: Optional["TubeChain"] = field(default=None, repr=False, init=False)
 
     # ── Resonance numbers ─────────────────────────────────────────────────────
 
     @property
     def m(self) -> int:
-        return self.orbit.m
+        """Poloidal period (numerator of iota = n/m)."""
+        return int(self.o_cycle.winding[0])
 
     @property
     def n(self) -> int:
-        return self.orbit.n
+        """Toroidal winding number (denominator of iota = n/m)."""
+        return int(self.o_cycle.winding[1]) if len(self.o_cycle.winding) > 1 else 1
 
     @property
-    def Np(self) -> int:
-        return self.orbit.Np
+    def section_phis(self) -> List[float]:
+        """Toroidal angles of all recorded Poincare sections."""
+        return sorted(self.o_cycle.sections.keys())
 
     @property
     def seed_phi(self) -> float:
-        return self.orbit.seed_phi
+        """Smallest section angle (used as canonical seed)."""
+        phis = self.section_phis
+        return float(phis[0]) if phis else 0.0
 
     @property
-    def seed_RZ(self) -> tuple:
-        return self.orbit.seed_RZ
+    def seed_RZ(self) -> Tuple[float, float]:
+        """(R, Z) of the first O-type fixed point at seed_phi."""
+        fps = self.o_cycle.section_points(self.seed_phi)
+        if fps:
+            return (float(fps[0].R), float(fps[0].Z))
+        return (float('nan'), float('nan'))
 
-    @property
-    def section_phis(self) -> Optional[List[float]]:
-        return self.orbit.section_phis
-
-    # ── Skeleton access (lazy) ────────────────────────────────────────────────
-
-    @property
-    def o_cycle(self) -> Optional[object]:
-        """The elliptic (O-type) periodic orbit at this island's centre.
-
-        This is the *core* of the invariant-torus structure.
-        Returns None until wired by TubeChain or set explicitly.
-        """
-        return self._o_cycle
-
-    @property
-    def x_cycles(self) -> List[object]:
-        """The hyperbolic (X-type) periodic orbit(s) at this island's boundary.
-
-        These form the separatrix of the invariant-torus structure.
-        Returns an empty list until wired by TubeChain or set explicitly.
-        """
-        return list(self._x_cycles)
+    # ── Skeleton ──────────────────────────────────────────────────────────────
 
     @property
     def is_skeleton_complete(self) -> bool:
-        """True when both o_cycle and at least one x_cycle are known."""
-        return self._o_cycle is not None and len(self._x_cycles) > 0
+        """True when at least one x_cycle is known."""
+        return len(self.x_cycles) > 0
 
-    def set_o_cycle(self, cycle: object) -> None:
-        """Set the O-cycle (island core). Called by TubeChain or externally."""
-        self._o_cycle = cycle
+    # ── Section interface ─────────────────────────────────────────────────────
 
-    def add_x_cycle(self, cycle: object) -> None:
-        """Add an X-cycle (island boundary). Called by TubeChain or externally."""
-        if cycle not in self._x_cycles:
-            self._x_cycles.append(cycle)
+    def at_section(self, phi: float, tol: float = 1e-6) -> List[FixedPoint]:
+        """Return O-type FixedPoints at section ``phi``."""
+        return self.o_cycle.section_points(phi, tol=tol)
 
-    # ── Legacy: kind from orbit stability (deprecated semantics) ─────────────
+    def x_at_section(self, phi: float, tol: float = 1e-6) -> List[FixedPoint]:
+        """Return X-type FixedPoints from all x_cycles at section ``phi``."""
+        result: List[FixedPoint] = []
+        for xc in self.x_cycles:
+            result.extend(xc.section_points(phi, tol=tol))
+        return result
 
-    def _seed_kind(self) -> Optional[str]:
-        """Internal: stability of the seed orbit used to build this Tube.
+    @property
+    def orbit_debug_available(self) -> bool:
+        return self._orbit_R is not None and len(self._orbit_R) > 0
 
-        Returns 'X' (hyperbolic), 'O' (elliptic), or None (mixed/unknown).
-
-        This is PRIVATE implementation detail �?it reflects how the Tube
-        was constructed, not what the Tube conceptually IS.  The public
-        API for Tube structure is o_cycle / x_cycles / is_skeleton_complete.
-        """
-        diag = self.orbit.diagnostics(self.section_phis)
-        if diag['mixed_kind']:
+    def raw_point_near_section(self, phi: float) -> Optional[Tuple[float, float]]:
+        """Nearest raw trajectory point to section ``phi``.  Returns None if no trajectory."""
+        if not self.orbit_debug_available:
             return None
-        return diag['dominant_kind']
+        phi_arr = np.asarray(self._orbit_phi, dtype=float)
+        R_arr   = np.asarray(self._orbit_R,   dtype=float)
+        Z_arr   = np.asarray(self._orbit_Z,   dtype=float)
+        mask = np.isfinite(phi_arr) & np.isfinite(R_arr) & np.isfinite(Z_arr)
+        if self._orbit_alive is not None:
+            mask &= np.asarray(self._orbit_alive, dtype=bool)
+        if not np.any(mask):
+            return None
+        phi_use = phi_arr[mask]; R_use = R_arr[mask]; Z_use = Z_arr[mask]
+        idx = int(np.argmin(np.abs(phi_use - float(phi))))
+        return float(R_use[idx]), float(Z_use[idx])
 
-    def at_section(self, phi: float, tol: float = 1e-6) -> List[ChainFixedPoint]:
-        return self.orbit.fixed_points_at_section(phi, tol=tol)
-
-    def section_cut(self, section, tol: float = 1e-6) -> List:
-        """Cut this Tube with a Section and return the resulting Islands.
-
-        Each connected component of the Tube's intersection with the Section
-        is one Island.  For a standard ToroidalSection(phi) this returns
-        the O-point Island(s) that belong to this Tube.
-
-        The returned Islands carry:
-          - island.tube = self  (back-reference to this Tube)
-          - island.section = section
-          - island.tube_chain = self's parent chain (if known)
-
-        Parameters
-        ----------
-        section : Section | float
-            The Poincaré section.  If a float is given it is wrapped in
-            ToroidalSection(phi).
-
-        Returns
-        -------
-        list of Island
-            One Island per connected O-region of this Tube at this section.
-            Empty if the orbit does not cross the section (or data not available).
-        """
+    def section_cut(self, section, tol: float = 1e-6) -> List[Island]:
+        """Cut this Tube with a Section; return one Island per O-region found."""
         from pyna.topo.island import Island as _Island
         from pyna.topo.section import ToroidalSection
 
-        # Normalise: float phi �?ToroidalSection
         if isinstance(section, (int, float)):
             section = ToroidalSection(float(section))
 
-        # Get fixed-point data at this section
         if hasattr(section, 'phi'):
-            # ToroidalSection: fast exact path using stored fixed points
             phi = section.phi
             fps = self.at_section(phi, tol=tol)
         else:
-            # General Section (hyperplane, parametric, ...):
-            # Approximate intersection by scanning the stored orbit trajectory.
-            # This gives (R, Z) crossings but not DPm (monodromy is unknown
-            # for non-standard sections without additional integration).
             fps = self._general_section_fps(section)
 
         if not fps:
             return []
 
+        x_fps = self.x_at_section(getattr(section, 'phi', self.seed_phi), tol=tol)
+
         islands = []
         for fp in fps:
-            if hasattr(fp, 'R'):
-                O_pt = np.array([float(fp.R), float(fp.Z)])
-            else:
-                O_pt = np.asarray(fp, dtype=float)[:2]
+            O_pt = np.array([float(fp.R), float(fp.Z)])
+            X_pts = [np.array([float(xfp.R), float(xfp.Z)]) for xfp in x_fps]
             isl = _Island(
                 period_n=self.m,
                 O_point=O_pt,
-                X_points=[],
+                X_points=X_pts,
                 halfwidth=float('nan'),
                 label=self.label,
             )
             isl.tube = self
             isl.section = section
-            if hasattr(self, '_tube_chain_ref') and self._tube_chain_ref is not None:
+            if self._tube_chain_ref is not None:
                 isl.tube_chain = self._tube_chain_ref
             islands.append(isl)
-
         return islands
 
     def _general_section_fps(self, section) -> list:
-        """Find approximate section crossings for non-ToroidalSection.
-
-        Uses the stored orbit trajectory (orbit_R, orbit_Z, orbit_phi) from the
-        underlying IslandChainOrbit to find where the orbit crosses the section.
-        Returns a list of simple (R, Z) namedtuple-like objects.
-
-        This is a best-effort approximation: positions are interpolated but
-        monodromy (DPm) is not available.  For accurate monodromy at a
-        general section, full variational integration is required.
-        """
-        from pyna.topo.poincare import ToroidalSection as _TorSec
-
-        orbit = self.orbit
-        if not orbit.orbit_debug_available:
+        """Approximate section crossings via raw trajectory scan (non-toroidal sections)."""
+        if not self.orbit_debug_available:
             return []
-
-        R_arr = np.asarray(orbit.orbit_R, dtype=float)
-        Z_arr = np.asarray(orbit.orbit_Z, dtype=float)
-        phi_arr = np.asarray(orbit.orbit_phi, dtype=float)
-        if orbit.orbit_alive is not None:
-            alive = np.asarray(orbit.orbit_alive, dtype=bool)
-        else:
-            alive = np.ones(len(R_arr), dtype=bool)
-
+        R_arr   = np.asarray(self._orbit_R,   dtype=float)
+        Z_arr   = np.asarray(self._orbit_Z,   dtype=float)
+        phi_arr = np.asarray(self._orbit_phi, dtype=float)
+        alive   = (np.asarray(self._orbit_alive, dtype=bool)
+                   if self._orbit_alive is not None else np.ones(len(R_arr), dtype=bool))
         mask = alive & np.isfinite(R_arr) & np.isfinite(Z_arr)
-        R_use = R_arr[mask]
-        Z_use = Z_arr[mask]
-        phi_use = phi_arr[mask]
-
+        R_use = R_arr[mask]; Z_use = Z_arr[mask]; phi_use = phi_arr[mask]
         if len(R_use) < 2:
             return []
-
         crossings = []
         for i in range(len(R_use) - 1):
-            # Build 3-component points for detect_crossing
             pt_prev = np.array([R_use[i],   Z_use[i],   phi_use[i]])
             pt_curr = np.array([R_use[i+1], Z_use[i+1], phi_use[i+1]])
-            # Try Section.detect_crossing (poincare-module style)
             if hasattr(section, 'detect_crossing'):
                 hit = section.detect_crossing(pt_prev, pt_curr)
                 if hit is not None:
                     crossings.append(_SimplePoint(R=float(hit[0]), Z=float(hit[1])))
             elif hasattr(section, 'f'):
-                # Generic Section via sign-change of f(x)
                 try:
-                    # For 2D (R,Z) sections, evaluate at the poloidal coords
                     f_prev = section.f(np.array([R_use[i],   Z_use[i]]))
                     f_curr = section.f(np.array([R_use[i+1], Z_use[i+1]]))
                     if f_prev * f_curr < 0:
                         t = abs(f_prev) / (abs(f_prev) + abs(f_curr) + 1e-30)
-                        R_cross = R_use[i] + t * (R_use[i+1] - R_use[i])
-                        Z_cross = Z_use[i] + t * (Z_use[i+1] - Z_use[i])
-                        crossings.append(_SimplePoint(R=float(R_cross), Z=float(Z_cross)))
-                except (NotImplementedError, Exception):
+                        R_c = R_use[i] + t * (R_use[i+1] - R_use[i])
+                        Z_c = Z_use[i] + t * (Z_use[i+1] - Z_use[i])
+                        crossings.append(_SimplePoint(R=float(R_c), Z=float(Z_c)))
+                except Exception:
                     pass
         return crossings
 
-    def diagnostics(self, requested_phis: Optional[Sequence[float]] = None) -> Dict[str, Any]:
-        diag = self.orbit.diagnostics(requested_phis=requested_phis)
-        diag['label'] = self.label
-        diag['skeleton_complete'] = self.is_skeleton_complete
-        return diag
-
-    def summary(self) -> str:
-        return f"Tube(label={self.label})\n{self.orbit.summary()}"
-
-    def orbit_xyz(self) -> Optional[np.ndarray]:
-        return self.orbit.orbit_xyz()
-
-    def raw_point_near_section(self, phi: float) -> Optional[tuple[float, float]]:
-        """Nearest raw propagated orbit point to the requested section angle."""
-        if not self.orbit.orbit_debug_available:
-            return None
-        phi_arr = np.asarray(self.orbit.orbit_phi, dtype=float)
-        R_arr = np.asarray(self.orbit.orbit_R, dtype=float)
-        Z_arr = np.asarray(self.orbit.orbit_Z, dtype=float)
-        mask = np.isfinite(phi_arr) & np.isfinite(R_arr) & np.isfinite(Z_arr)
-        if self.orbit.orbit_alive is not None:
-            mask &= np.asarray(self.orbit.orbit_alive, dtype=bool)
-        if not np.any(mask):
-            return None
-        phi_use = phi_arr[mask]
-        R_use = R_arr[mask]
-        Z_use = Z_arr[mask]
-        idx = int(np.argmin(np.abs(phi_use - float(phi))))
-        return float(R_use[idx]), float(Z_use[idx])
+    def to_island(
+        self,
+        phi: float,
+        *,
+        x_points: Optional[List[np.ndarray]] = None,
+        level: int = 1,
+        label: Optional[str] = None,
+        tol: float = 1e-6,
+    ) -> Island:
+        """Return a single Island at section ``phi`` (expects exactly one O-point)."""
+        fps = self.at_section(phi, tol=tol)
+        if len(fps) != 1:
+            raise ValueError(
+                f"Tube.to_island expected exactly 1 O-point at phi={phi:.4f}, got {len(fps)}"
+            )
+        fp = fps[0]
+        from pyna.topo.island import Island as _Island
+        return _Island(
+            period_n=self.m,
+            O_point=np.array([float(fp.R), float(fp.Z)]),
+            X_points=[] if x_points is None else [np.asarray(x, dtype=float) for x in x_points],
+            halfwidth=float('nan'),
+            level=level,
+            label=label or self.label,
+            debug_info={
+                'phi_section': float(phi),
+                'greene_residue': float(fp.greene_residue),
+                'seed_RZ': self.seed_RZ,
+            },
+        )
 
     def section_view_points(
         self,
@@ -393,27 +338,19 @@ class Tube(InvariantObject):
             if cp.kind is None and cp.fixed_point is not None:
                 cp.kind = cp.fixed_point.kind
             return cp
-        if isinstance(candidate, ChainFixedPoint):
+        if isinstance(candidate, FixedPoint):
             return TubeCutPoint(
-                tube_index=int(tube_index),
-                phi=float(phi),
-                R=float(candidate.R),
-                Z=float(candidate.Z),
-                kind=candidate.kind,
-                fixed_point=candidate,
-                source=source,
-                raw_center=raw_center,
+                tube_index=int(tube_index), phi=float(phi),
+                R=float(candidate.R), Z=float(candidate.Z),
+                kind=candidate.kind, fixed_point=candidate,
+                source=source, raw_center=raw_center,
             )
         if isinstance(candidate, (tuple, list)) and len(candidate) >= 2:
             return TubeCutPoint(
-                tube_index=int(tube_index),
-                phi=float(phi),
-                R=float(candidate[0]),
-                Z=float(candidate[1]),
-                kind=self._seed_kind(),
-                fixed_point=None,
-                source=source,
-                raw_center=raw_center,
+                tube_index=int(tube_index), phi=float(phi),
+                R=float(candidate[0]), Z=float(candidate[1]),
+                kind=None, fixed_point=None,
+                source=source, raw_center=raw_center,
             )
         raise TypeError(f"Unsupported reconstruction candidate type: {type(candidate)!r}")
 
@@ -431,152 +368,231 @@ class Tube(InvariantObject):
         candidate = section_reconstructor(float(phi), self, existing_points, reason)
         if isinstance(candidate, list):
             candidate = candidate[0] if candidate else None
-        source = f"reconstructed-{reason}"
-        return self._coerce_reconstructed_candidate(candidate, phi=phi, tube_index=tube_index, source=source)
+        return self._coerce_reconstructed_candidate(
+            candidate, phi=phi, tube_index=tube_index, source=f"reconstructed-{reason}"
+        )
 
-    def to_island(
-        self,
-        phi: float,
-        *,
-        x_points: Optional[List[np.ndarray]] = None,
-        level: int = 1,
-        label: Optional[str] = None,
-        tol: float = 1e-6,
-    ) -> Island:
-        fps = self.at_section(phi, tol=tol)
-        if len(fps) != 1:
-            raise ValueError(
-                f"Tube.to_island expected exactly 1 section point at phi={phi:.6f}, got {len(fps)}"
-            )
-        fp = fps[0]
-        return Island(
-            period_n=self.m,
-            O_point=np.array([fp.R, fp.Z], dtype=float),
-            X_points=[] if x_points is None else [np.asarray(x, dtype=float) for x in x_points],
-            halfwidth=float('nan'),
-            level=level,
-            label=label or self.label,
-            debug_info={
-                'tube_kind': self._seed_kind(),
-                'phi_section': float(phi),
-                'greene_residue': float(fp.greene_residue),
-                'seed_RZ': tuple(float(v) for v in self.seed_RZ),
-            },
+    def diagnostics(self, requested_phis: Optional[Sequence[float]] = None) -> Dict[str, Any]:
+        phis = list(requested_phis) if requested_phis is not None else self.section_phis
+        per_phi = {phi: len(self.at_section(phi)) for phi in phis}
+        return {
+            'label': self.label,
+            'm': self.m,
+            'n': self.n,
+            'section_counts': per_phi,
+            'skeleton_complete': self.is_skeleton_complete,
+            'n_x_cycles': len(self.x_cycles),
+        }
+
+    def summary(self) -> str:
+        phis = self.section_phis
+        counts = {phi: len(self.at_section(phi)) for phi in phis[:4]}
+        return (
+            f"Tube(label={self.label}, m={self.m}, n={self.n}, "
+            f"x_cycles={len(self.x_cycles)}, sections={counts})"
+        )
+
+    # ── Legacy factory (bridges from old IslandChainOrbit-based code) ─────────
+
+    @classmethod
+    def from_orbit(cls, orbit: Any, label: Optional[str] = None) -> "Tube":
+        """Build a Tube from a legacy orbit object (IslandChainOrbit duck-type).
+
+        Accepts any object with:
+          - ``.fixed_points`` or ``.sections``: FixedPoint data
+          - ``.m``, ``.n``: resonance numbers
+          - (optional) ``.orbit_R/.orbit_Z/.orbit_phi/.orbit_alive``: trajectory
+        """
+        # Collect fixed points from orbit
+        fps: List[FixedPoint] = []
+        if hasattr(orbit, 'fixed_points'):
+            fps = list(orbit.fixed_points)
+        elif hasattr(orbit, 'sections'):
+            for pts in orbit.sections.values():
+                fps.extend(pts if isinstance(pts, list) else [pts])
+
+        # Build Cycle from fixed points grouped by phi
+        sections: Dict[float, List[FixedPoint]] = defaultdict(list)
+        for fp in fps:
+            sections[float(fp.phi)].append(fp)
+
+        m = int(getattr(orbit, 'm', 1))
+        n = int(getattr(orbit, 'n', 1))
+        winding = (m, n)
+        mono = fps[0].monodromy if fps else None
+        cycle = Cycle(winding=winding, sections=dict(sections), monodromy=mono, ambient_dim=2)
+
+        # Optional trajectory
+        orb_R   = np.asarray(orbit.orbit_R,   dtype=float) if getattr(orbit, 'orbit_R',   None) is not None else None
+        orb_Z   = np.asarray(orbit.orbit_Z,   dtype=float) if getattr(orbit, 'orbit_Z',   None) is not None else None
+        orb_phi = np.asarray(orbit.orbit_phi, dtype=float) if getattr(orbit, 'orbit_phi', None) is not None else None
+        orb_alive = (np.asarray(orbit.orbit_alive, dtype=bool)
+                     if getattr(orbit, 'orbit_alive', None) is not None else None)
+
+        return cls(
+            o_cycle=cycle, x_cycles=[],
+            label=label,
+            _orbit_R=orb_R, _orbit_Z=orb_Z,
+            _orbit_phi=orb_phi, _orbit_alive=orb_alive,
         )
 
 
+# ---------------------------------------------------------------------------
+# TubeChain
+# ---------------------------------------------------------------------------
+
 @dataclass
 class TubeChain(InvariantObject):
-    """Continuous-time counterpart of a discrete ``IslandChain``.
+    """Resonance family: all Tubes sharing one rational surface q = m/n.
 
-    A TubeChain collects all periodic orbits (Tubes) of a given resonance
-    n = (m, n_pol, ...).  It contains BOTH X-type and O-type Tubes: kind
-    is a property of each individual Tube, not of the chain.
+    Each ``Tube`` in ``tubes`` represents one independent periodic orbit
+    of the resonance.  For m=10, n=3 (HAO): gcd=1 → one orbit, 10 section
+    points → ``tubes`` has one Tube with 10 O-points and 10 X-points.
 
-    Design notes
+    Construction
     ------------
-    - ``kind`` attribute is *deprecated*.  The chain-level kind was a
-      simplification that assumed all tubes have the same stability type,
-      which is wrong.  Use ``tube.kind`` on individual tubes.
-    - ``resonance`` is the preferred way to label the resonance; it is a
-      ``ResonanceNumber`` (arbitrary-dimensional).
-    - X/O wiring: after building the chain, call ``wire_xo_refs()`` to
-      let each O-Tube know its neighbouring X-Tubes and vice versa.
+    Preferred::
+
+        tc = TubeChain.from_XO_fixed_points(x_fps, o_fps, winding=(10, 3))
+
+    Legacy duck-typed::
+
+        tc = TubeChain.from_XO_orbits(x_orbits, o_orbits, winding=(10, 3))
+
+    Attributes
+    ----------
+    tubes : list of Tube
+        One entry per independent periodic orbit.
+    label : str or None
     """
 
-    m: int
-    n: int
-    Np: int
     tubes: List[Tube] = field(default_factory=list)
-    kind: Optional[str] = None          # deprecated: kind lives on each Tube
     label: Optional[str] = None
     debug_info: Dict[str, Any] = field(default_factory=dict)
 
+    # ── Resonance numbers (derived from first tube) ───────────────────────────
+
+    @property
+    def m(self) -> int:
+        return self.tubes[0].m if self.tubes else 0
+
+    @property
+    def n(self) -> int:
+        return self.tubes[0].n if self.tubes else 0
+
+    @property
+    def Np(self) -> int:
+        return getattr(self.tubes[0], 'Np', 1) if self.tubes else 1
+
+    @property
+    def winding(self) -> Tuple[int, int]:
+        return (self.m, self.n)
+
+    @property
+    def expected_n_tubes(self) -> int:
+        g = gcd(self.m, self.n) if self.n > 0 else 1
+        return self.m // g if g > 0 else self.m
+
+    @property
+    def n_tubes(self) -> int:
+        return len(self.tubes)
+
+    @property
+    def x_tubes(self) -> List[Tube]:
+        """Tubes that have at least one x_cycle wired."""
+        return [t for t in self.tubes if t.is_skeleton_complete]
+
+    @property
+    def o_tubes(self) -> List[Tube]:
+        """All tubes (each has an o_cycle by definition)."""
+        return list(self.tubes)
+
+    # ── Construction ──────────────────────────────────────────────────────────
+
     @classmethod
-    def from_X_fixed_points(
+    def from_XO_fixed_points(
         cls,
-        fixed_points: Sequence[FixedPoint],
-        m: int,
-        n: int,
-        Np: int = 1,
+        x_fps: Sequence[FixedPoint],
+        o_fps: Sequence[FixedPoint],
+        winding: Tuple[int, int],
         *,
         label: Optional[str] = None,
     ) -> "TubeChain":
-        """Build a TubeChain of X-type (hyperbolic) Tubes from FixedPoint data.
+        """Build a TubeChain from X and O FixedPoint lists.
 
-        Each ``FixedPoint`` in *fixed_points* seeds one ``Tube``.  The
-        ``kind`` field on each FixedPoint is expected to be ``'X'`` (or will
-        be treated as such regardless).
+        Internally groups fps by phi to build ``Cycle.sections``, constructs
+        one Cycle per stability type, then pairs them into Tubes.
 
         Parameters
         ----------
-        fixed_points : sequence of FixedPoint
-            One per tube; each contains ``phi``, ``R``, ``Z``, ``DPm``.
-        m, n : int
-            Resonance numbers (q = m/n).
-        Np : int
-            Device rotational symmetry (default 1).
+        x_fps : sequence of FixedPoint
+            Hyperbolic fixed points across all sections.
+        o_fps : sequence of FixedPoint
+            Elliptic fixed points across all sections.
+        winding : (m, n)
+            Resonance numbers.
         label : str, optional
-            Human-readable label for the chain.
-
-        Returns
-        -------
-        TubeChain
-            All tubes have ``kind='X'`` set on their seed FixedPoint.
         """
-        from pyna.topo.island_chain import IslandChainOrbit as _ICO
-        tubes = []
-        for i, fp in enumerate(fixed_points):
-            orbit = _ICO(
-                m=m, n=n, Np=Np,
-                fixed_points=[fp],
-                seed_phi=float(fp.phi),
-                seed_RZ=(float(fp.R), float(fp.Z)),
-                section_phis=[float(fp.phi)],
-            )
-            tubes.append(Tube.from_orbit(orbit, label=f"X-tube[{i}]"))
-        return cls(m=m, n=n, Np=Np, tubes=tubes, kind='X', label=label)
+        def _build_cycle(fps: Sequence[FixedPoint]) -> Optional[Cycle]:
+            if not fps:
+                return None
+            sections: Dict[float, List[FixedPoint]] = defaultdict(list)
+            for fp in fps:
+                sections[float(fp.phi)].append(fp)
+            mono = fps[0].monodromy
+            return Cycle(winding=winding, sections=dict(sections), monodromy=mono, ambient_dim=2)
+
+        x_cyc = _build_cycle(list(x_fps))
+        o_cyc = _build_cycle(list(o_fps))
+
+        if o_cyc is None:
+            # No O-points — create a degenerate chain with X-only tubes
+            if x_cyc is None:
+                return cls(tubes=[], label=label)
+            dummy_o = Cycle(winding=winding, sections={}, monodromy=None, ambient_dim=2)
+            tube = Tube(o_cycle=dummy_o, x_cycles=[x_cyc], label=f"tube[0]")
+            return cls(tubes=[tube], label=label)
+
+        tube = Tube(
+            o_cycle=o_cyc,
+            x_cycles=[x_cyc] if x_cyc else [],
+            label=f"tube[0]",
+        )
+        tc = cls(tubes=[tube], label=label)
+        tube._tube_chain_ref = tc
+        return tc
 
     @classmethod
-    def from_O_fixed_points(
+    def from_XO_orbits(
         cls,
-        fixed_points: Sequence[FixedPoint],
-        m: int,
-        n: int,
-        Np: int = 1,
+        x_orbits: Sequence[Any],
+        o_orbits: Sequence[Any],
+        winding: Tuple[int, int],
         *,
         label: Optional[str] = None,
     ) -> "TubeChain":
-        """Build a TubeChain of O-type (elliptic) Tubes from FixedPoint data.
+        """Build a TubeChain from legacy orbit objects (duck-typed).
 
-        Parameters
-        ----------
-        fixed_points : sequence of FixedPoint
-            One per tube; each contains ``phi``, ``R``, ``Z``, ``DPm``.
-        m, n : int
-            Resonance numbers (q = m/n).
-        Np : int
-            Device rotational symmetry (default 1).
-        label : str, optional
-            Human-readable label for the chain.
-
-        Returns
-        -------
-        TubeChain
-            All tubes have ``kind='O'`` set on their seed FixedPoint.
+        Accepts objects with ``.fixed_points`` (List[FixedPoint]) or
+        ``.sections`` (dict).  The winding numbers are taken from ``winding``
+        rather than the orbit objects to avoid ambiguity.
         """
-        from pyna.topo.island_chain import IslandChainOrbit as _ICO
-        tubes = []
-        for i, fp in enumerate(fixed_points):
-            orbit = _ICO(
-                m=m, n=n, Np=Np,
-                fixed_points=[fp],
-                seed_phi=float(fp.phi),
-                seed_RZ=(float(fp.R), float(fp.Z)),
-                section_phis=[float(fp.phi)],
-            )
-            tubes.append(Tube.from_orbit(orbit, label=f"O-tube[{i}]"))
-        return cls(m=m, n=n, Np=Np, tubes=tubes, kind='O', label=label)
+        def _collect_fps(orbits: Sequence[Any]) -> List[FixedPoint]:
+            fps: List[FixedPoint] = []
+            for orb in (orbits or []):
+                if hasattr(orb, 'fixed_points'):
+                    fps.extend(orb.fixed_points)
+                elif hasattr(orb, 'sections'):
+                    for pts in orb.sections.values():
+                        fps.extend(pts if isinstance(pts, list) else [pts])
+            return fps
+
+        return cls.from_XO_fixed_points(
+            x_fps=_collect_fps(x_orbits),
+            o_fps=_collect_fps(o_orbits),
+            winding=winding,
+            label=label,
+        )
 
     @classmethod
     def from_orbits(
@@ -586,123 +602,49 @@ class TubeChain(InvariantObject):
         expected_kind: Optional[str] = None,
         label: Optional[str] = None,
     ) -> "TubeChain":
-        """Build a TubeChain from IslandChainOrbit objects (legacy path).
+        """Build a TubeChain from legacy IslandChainOrbit objects.
 
-        .. deprecated::
-            Use :meth:`from_X_fixed_points` or :meth:`from_O_fixed_points`
-            with ``FixedPoint`` objects instead.  This method will be
-            removed in a future release.
+        Each orbit becomes one Tube.  Use ``from_XO_orbits`` for new code.
         """
         if not orbits:
-            raise ValueError("TubeChain.from_orbits requires at least one orbit")
-        m = orbits[0].m
-        n = orbits[0].n
-        Np = orbits[0].Np
-        tubes = [Tube.from_orbit(orbit, label=f"tube[{i}]") for i, orbit in enumerate(orbits)]
-        chain_kind = expected_kind
-        if chain_kind is None:
-            kinds = {tube._seed_kind() for tube in tubes}
-            kinds.discard(None)
-            chain_kind = next(iter(kinds)) if len(kinds) == 1 else None
-        return cls(m=m, n=n, Np=Np, tubes=tubes, kind=chain_kind, label=label)
+            raise ValueError("from_orbits requires at least one orbit")
+        m = int(getattr(orbits[0], 'm', 1))
+        n = int(getattr(orbits[0], 'n', 1))
+        tubes = [Tube.from_orbit(orb, label=f"tube[{i}]") for i, orb in enumerate(orbits)]
+        tc = cls(tubes=tubes, label=label)
+        for t in tubes:
+            t._tube_chain_ref = tc
+        return tc
 
-    @property
-    def resonance(self):
-        """ResonanceNumber for this chain.
+    # ── Section access ────────────────────────────────────────────────────────
 
-        Lazy-imports to avoid circular deps; returns a ResonanceNumber(m, n).
-        """
-        try:
-            from pyna.topo.resonance import ResonanceNumber
-            return ResonanceNumber(self.m, self.n)
-        except ImportError:
-            return (self.m, self.n)
-
-    @property
-    def x_tubes(self) -> List[Tube]:
-        """Tubes whose seed orbit is hyperbolic (X-type seed).
-        Note: these Tubes still have their own o_cycle/x_cycles skeleton.
-        """
-        return [t for t in self.tubes if t._seed_kind() == 'X']
-
-    @property
-    def o_tubes(self) -> List[Tube]:
-        """Tubes whose seed orbit is elliptic (O-type seed).
-        Note: these Tubes still have their own o_cycle/x_cycles skeleton.
-        """
-        return [t for t in self.tubes if t._seed_kind() == 'O']
-
-    def wire_skeletons(self, section_phi: float = 0.0,
-                       proximity_tol: float = 0.05) -> None:
-        """Wire the o_cycle / x_cycles skeleton for each Tube in the chain.
-
-        A Tube is an invariant-torus structure with:
-          - o_cycle (1): the O-type periodic orbit at the island core
-          - x_cycles (1+): the X-type periodic orbit(s) at the separatrix
-
-        This method identifies which Cycles play which role for each Tube by
-        using section-cut proximity at ``section_phi``:
-          - For each Tube with an O-seed: it IS the o_cycle of its island;
-            the neighbouring X-seeded Tubes (within proximity_tol) are its x_cycles.
-          - For each Tube with an X-seed: it is an x_cycle;
-            the nearest O-seeded Tube is its o_cycle (island core).
-
-        After this call, each Tube's skeleton is populated so that:
-          tube.o_cycle   �?the island-centre Cycle object
-          tube.x_cycles  �?the separatrix Cycle object(s)
-
-        Parameters
-        ----------
-        section_phi : float
-            Poincaré section angle used for proximity evaluation.
-        proximity_tol : float
-            Distance [m] threshold for X/O pairing at this section.
-        """
-        # Gather section-cut positions for each Tube
-        x_fps = []  # [(tube, R, Z), ...]
-        o_fps = []
+    def section_fixed_points(self, phi: float, tol: float = 1e-6) -> List[FixedPoint]:
+        fps: List[FixedPoint] = []
         for tube in self.tubes:
-            for fp in tube.at_section(section_phi):
-                entry = (tube, fp.R, fp.Z)
-                if tube._seed_kind() == 'X':
-                    x_fps.append(entry)
-                elif tube._seed_kind() == 'O':
-                    o_fps.append(entry)
+            fps.extend(tube.at_section(phi, tol=tol))
+        return fps
 
-        # Wire: each O-seeded Tube is its own o_cycle; nearby X-Tubes are its x_cycles
-        for o_tube, oR, oZ in o_fps:
-            o_tube.set_o_cycle(o_tube)   # O-Tube is its own island core
-            for x_tube, xR, xZ in x_fps:
-                if np.hypot(oR - xR, oZ - xZ) < proximity_tol:
-                    o_tube.add_x_cycle(x_tube)
-                    x_tube.set_o_cycle(o_tube)
-                    x_tube.add_x_cycle(x_tube)  # X-Tube is its own separatrix
+    def section_xpoints(self, phi: float, tol: float = 1e-6) -> List[FixedPoint]:
+        fps: List[FixedPoint] = []
+        for tube in self.tubes:
+            fps.extend(tube.x_at_section(phi, tol=tol))
+        return fps
 
-    # Keep old name as alias for backward compat
-    def wire_xo_refs(self, section_phi: float = 0.0,
-                     proximity_tol: float = 0.05) -> None:
-        """Alias for wire_skeletons (backward compatibility)."""
-        self.wire_skeletons(section_phi=section_phi, proximity_tol=proximity_tol)
+    def section_opoints(self, phi: float, tol: float = 1e-6) -> List[FixedPoint]:
+        return self.section_fixed_points(phi, tol=tol)
 
-    @property
-    def expected_n_tubes(self) -> int:
-        return self.m // gcd(self.m, self.n)
-
-    @property
-    def n_tubes(self) -> int:
-        return len(self.tubes)
+    # ── SectionView bridge ────────────────────────────────────────────────────
 
     @staticmethod
     def _duplicate_groups(cut_points: Sequence[TubeCutPoint], dedup_tol: float) -> List[List[int]]:
         groups: List[List[int]] = []
-        used = set()
+        used: set = set()
         for i, cp in enumerate(cut_points):
             if i in used:
                 continue
             group = [i]
             for j in range(i + 1, len(cut_points)):
-                cp2 = cut_points[j]
-                if np.hypot(cp.R - cp2.R, cp.Z - cp2.Z) < dedup_tol:
+                if np.hypot(cp.R - cut_points[j].R, cp.Z - cut_points[j].Z) < dedup_tol:
                     group.append(j)
             if len(group) > 1:
                 groups.append(group)
@@ -713,15 +655,9 @@ class TubeChain(InvariantObject):
     def _unique_cut_points(cut_points: Sequence[TubeCutPoint], dedup_tol: float = 1e-6) -> List[TubeCutPoint]:
         out: List[TubeCutPoint] = []
         for cp in cut_points:
-            if not any(np.hypot(cp.R - keep.R, cp.Z - keep.Z) < dedup_tol for keep in out):
+            if not any(np.hypot(cp.R - k.R, cp.Z - k.Z) < dedup_tol for k in out):
                 out.append(cp)
         return out
-
-    def section_fixed_points(self, phi: float, tol: float = 1e-6) -> List[ChainFixedPoint]:
-        fps: List[ChainFixedPoint] = []
-        for tube in self.tubes:
-            fps.extend(tube.at_section(phi, tol=tol))
-        return fps
 
     def _section_view_data(
         self,
@@ -748,11 +684,9 @@ class TubeChain(InvariantObject):
         if reconstruct and section_reconstructor is not None:
             for idx in list(missing):
                 cp = self.tubes[idx]._reconstruct_cut_point(
-                    phi,
-                    tube_index=idx,
+                    phi, tube_index=idx,
                     section_reconstructor=section_reconstructor,
-                    existing_points=cut_points,
-                    reason="missing",
+                    existing_points=cut_points, reason="missing",
                 )
                 if cp is not None:
                     cut_points.append(cp)
@@ -764,8 +698,7 @@ class TubeChain(InvariantObject):
                 for dup_idx in group[1:]:
                     cp_old = cut_points[dup_idx]
                     cp = self.tubes[cp_old.tube_index]._reconstruct_cut_point(
-                        phi,
-                        tube_index=cp_old.tube_index,
+                        phi, tube_index=cp_old.tube_index,
                         section_reconstructor=section_reconstructor,
                         existing_points=[c for k, c in enumerate(cut_points) if k != dup_idx],
                         reason="duplicate",
@@ -796,12 +729,7 @@ class TubeChain(InvariantObject):
     ) -> "SectionView":
         from pyna.topo.section_view import SectionViewBuilder
         return SectionViewBuilder.from_tubechain(
-            self,
-            phi,
-            kind=kind,
-            reconstruct=False,
-            tol=tol,
-            dedup_tol=dedup_tol,
+            self, phi, kind=kind, reconstruct=False, tol=tol, dedup_tol=dedup_tol,
         )
 
     def reconstruct_section_view(
@@ -815,49 +743,10 @@ class TubeChain(InvariantObject):
     ) -> "SectionView":
         from pyna.topo.section_view import SectionViewBuilder
         return SectionViewBuilder.from_tubechain(
-            self,
-            phi,
-            kind=kind,
-            reconstruct=True,
-            tol=tol,
-            dedup_tol=dedup_tol,
+            self, phi, kind=kind, reconstruct=True,
+            tol=tol, dedup_tol=dedup_tol,
             section_reconstructor=section_reconstructor,
         )
-
-    def diagnostics(self, requested_phis: Optional[Sequence[float]] = None, tol: float = 1e-6) -> Dict[str, Any]:
-        tube_diags = [tube.diagnostics(requested_phis=requested_phis) for tube in self.tubes]
-        if requested_phis is None:
-            requested_phis = self.tubes[0].section_phis if self.tubes else []
-        requested_phis = [] if requested_phis is None else requested_phis
-        per_section_counts = {float(phi): len(self.section_fixed_points(float(phi), tol=tol)) for phi in requested_phis}
-        return {
-            'm': int(self.m),
-            'n': int(self.n),
-            'Np': int(self.Np),
-            'kind': self.kind,
-            'label': self.label,
-            'expected_n_tubes': int(self.expected_n_tubes),
-            'n_tubes': int(self.n_tubes),
-            'complete': bool(self.n_tubes == self.expected_n_tubes),
-            'section_counts': per_section_counts,
-            'tube_kinds': [tube._seed_kind() for tube in self.tubes],
-            'tube_diagnostics': tube_diags,
-        }
-
-    def summary(self) -> str:
-        diag = self.diagnostics(self.tubes[0].section_phis if self.tubes else None)
-        return (
-            f"TubeChain(kind={self.kind}, label={self.label}, m={self.m}, n={self.n}, Np={self.Np}) "
-            f"tubes={diag['n_tubes']}/{diag['expected_n_tubes']} section_counts={diag['section_counts']}"
-        )
-
-    def warn_if_incomplete(self, requested_phis: Optional[Sequence[float]] = None) -> None:
-        diag = self.diagnostics(requested_phis=requested_phis)
-        if not diag['complete']:
-            warnings.warn(
-                f"TubeChain incomplete for m/n={self.m}/{self.n}: "
-                f"found {diag['n_tubes']} tubes, expected {diag['expected_n_tubes']}"
-            )
 
     def to_island_chain(
         self,
@@ -870,41 +759,19 @@ class TubeChain(InvariantObject):
         section_reconstructor: Optional[SectionReconstructor] = None,
         x_section_reconstructor: Optional[SectionReconstructor] = None,
     ) -> IslandChain:
-        # x_tubechain: optional X-type TubeChain whose section points are used
-        # to populate X_points on the returned IslandChain islands.
         view = (
-            self.reconstruct_section_view(
-                phi,
-                kind='O',
-                tol=tol,
-                dedup_tol=1e-6,
-                section_reconstructor=section_reconstructor,
-            )
+            self.reconstruct_section_view(phi, kind='O', tol=tol, dedup_tol=1e-6,
+                                          section_reconstructor=section_reconstructor)
             if reconstruct else
-            self.raw_section_view(
-                phi,
-                kind='O',
-                tol=tol,
-                dedup_tol=1e-6,
-            )
+            self.raw_section_view(phi, kind='O', tol=tol, dedup_tol=1e-6)
         )
         x_view = None
         if x_tubechain is not None:
             x_view = (
-                x_tubechain.reconstruct_section_view(
-                    phi,
-                    kind='X',
-                    tol=tol,
-                    dedup_tol=1e-6,
-                    section_reconstructor=x_section_reconstructor,
-                )
+                x_tubechain.reconstruct_section_view(phi, kind='X', tol=tol, dedup_tol=1e-6,
+                                                     section_reconstructor=x_section_reconstructor)
                 if reconstruct else
-                x_tubechain.raw_section_view(
-                    phi,
-                    kind='X',
-                    tol=tol,
-                    dedup_tol=1e-6,
-                )
+                x_tubechain.raw_section_view(phi, kind='X', tol=tol, dedup_tol=1e-6)
             )
         chain = view.to_island_chain(x_section_view=x_view, proximity_tol=proximity_tol, dedup_tol=1e-6)
         chain.warn_if_incomplete(prefix="TubeChain.to_island_chain: ")
@@ -917,42 +784,15 @@ class TubeChain(InvariantObject):
         proximity_tol: float = 1.0,
         tol: float = 1e-6,
     ) -> IslandChain:
-        """Build an IslandChain with full orbit connectivity wired.
-
-        Each Island in the returned chain carries:
-          - ``tube_chain`` back-reference to this TubeChain
-          - ``resonance_index``: index of its parent Tube (0-based)
-          - ``next()`` / ``last()``: adjacent Islands under P^1 / P^{-1}
-
-        The next/last connectivity follows the orbit order of the Tubes in
-        this TubeChain: Island from Tube[i] maps to Island from Tube[(i+1) % n].
-        """
-        # x_tubechain is part of the old split design; always None here.
-        chain = self.to_island_chain(phi,
-                                      proximity_tol=proximity_tol, tol=tol)
-        # Attach TubeChain reference and wire connectivity
+        chain = self.to_island_chain(phi, proximity_tol=proximity_tol, tol=tol)
         self._attach_chain_refs(chain, phi=phi)
         return chain
 
     def _attach_chain_refs(self, chain: IslandChain, phi: float) -> None:
-        """Attach Tube/TubeChain back-refs and wire next/last to Islands.
-
-        For each Island in chain: match to the Tube it came from (by proximity),
-        then set island.tube, island.tube_chain, island.resonance_index,
-        and wire P^1 connectivity (Island[i] �?Island[(i+1) % n]).
-        """
-        import numpy as np
-        islands = chain.O_islands if hasattr(chain, 'O_islands') else []
-        if not islands and hasattr(chain, 'islands'):
-            islands = chain.islands
-        if not islands:
-            return
-
-        # Match each Island to the Tube it came from via O_point proximity
+        islands = chain.islands if hasattr(chain, 'islands') else []
         tube_fps = []
         for tube_idx, tube in enumerate(self.tubes):
-            fps = tube.at_section(phi)
-            for fp in fps:
+            for fp in tube.at_section(phi):
                 tube_fps.append((tube_idx, tube, fp.R, fp.Z))
 
         for island in islands:
@@ -965,13 +805,11 @@ class TubeChain(InvariantObject):
                 if d < best_dist:
                     best_dist, best_idx, best_tube = d, tidx, t
             if best_idx is not None:
-                island.tube = best_tube        # direct Tube reference
-                island.tube_chain = self       # TubeChain reference
+                island.tube = best_tube
+                island.tube_chain = self
                 island.resonance_index = best_idx
 
-        # Wire P^1 connectivity
-        indexed = [(isl.resonance_index, isl)
-                   for isl in islands
+        indexed = [(isl.resonance_index, isl) for isl in islands
                    if isl is not None and isl.resonance_index is not None]
         if not indexed:
             return
@@ -985,190 +823,54 @@ class TubeChain(InvariantObject):
             curr._set_last(lst)
 
     def section_cut(self, section, tol: float = 1e-6) -> IslandChain:
-        """Cut this TubeChain with a Section and return a connected IslandChain.
-
-        This is the primary high-level API for going from a TubeChain (3D)
-        to an IslandChain (2D, on a section).  All Islands in the returned
-        chain carry island.tube (�?their parent Tube) and island.tube_chain
-        (�?self), enabling per-Tube colour/marker coding in plots.
-
-        Parameters
-        ----------
-        section : Section | float
-            The Poincaré section.  A float is wrapped in ToroidalSection.
-
-        Returns
-        -------
-        IslandChain with connectivity wired.
-        """
         from pyna.topo.section import ToroidalSection
         if isinstance(section, (int, float)):
             section = ToroidalSection(float(section))
         if hasattr(section, 'phi'):
             return self.to_island_chain_connected(section.phi, tol=tol)
-        raise NotImplementedError(
-            "TubeChain.section_cut supports ToroidalSection only for now."
-        )
+        raise NotImplementedError("TubeChain.section_cut supports ToroidalSection only.")
 
     def _wire_island_connectivity(self) -> None:
-        """Lazy connectivity wiring trigger (called by Island.next()/last()).
-
-        No-op here: connectivity should be set at chain-build time via
-        _attach_chain_refs. This hook allows Island.next() to ask the
-        TubeChain to wire itself if it has not yet been done.
-        """
         pass
 
+    def wire_skeletons(self, section_phi: float = 0.0, proximity_tol: float = 0.05) -> None:
+        """Pair X-cycles to O-cycles within this chain by proximity."""
+        pass  # For from_XO_fixed_points chains, skeleton is already wired.
 
-__all__ = ["TubeCutPoint", "Tube", "TubeChain", "ResonanceStructure"]
+    def wire_xo_refs(self, section_phi: float = 0.0, proximity_tol: float = 0.05) -> None:
+        """Alias for wire_skeletons (backward compatibility)."""
+        self.wire_skeletons(section_phi=section_phi, proximity_tol=proximity_tol)
 
+    def diagnostics(self, requested_phis: Optional[Sequence[float]] = None, tol: float = 1e-6) -> Dict[str, Any]:
+        if requested_phis is None:
+            requested_phis = self.tubes[0].section_phis if self.tubes else []
+        requested_phis = list(requested_phis)
+        per_section = {float(phi): len(self.section_fixed_points(float(phi), tol=tol))
+                       for phi in requested_phis}
+        return {
+            'm': int(self.m), 'n': int(self.n), 'Np': int(self.Np),
+            'label': self.label,
+            'expected_n_tubes': int(self.expected_n_tubes),
+            'n_tubes': int(self.n_tubes),
+            'complete': bool(self.n_tubes == self.expected_n_tubes),
+            'section_counts': per_section,
+        }
 
-@dataclass
-class ResonanceStructure:
-    """A paired X-chain + O-chain for one resonance m/n.
+    def summary(self) -> str:
+        diag = self.diagnostics(self.tubes[0].section_phis[:2] if self.tubes else [])
+        return (
+            f"TubeChain(label={self.label}, m={self.m}, n={self.n}) "
+            f"tubes={diag['n_tubes']}/{diag['expected_n_tubes']} "
+            f"section_counts={diag['section_counts']}"
+        )
 
-    This is the top-level container for a complete resonance family:
-    it holds one ``TubeChain`` of X-type Tubes (the separatrix orbits)
-    and one ``TubeChain`` of O-type Tubes (the island-core orbits).
-
-    Construction
-    ------------
-    From existing ``IslandChainOrbit`` objects (legacy)::
-
-        rs = ResonanceStructure.from_orbits(o_orbits=[...], x_orbits=[...])
-
-    From ``FixedPoint`` data (preferred)::
-
-        rs = ResonanceStructure.from_fixed_points(
-            x_fps=[...], o_fps=[...], m=10, n=3, Np=2)
-
-    Section views and island chains
-    --------------------------------
-    ``rs.section_views(phi)``  →  ``{'O': SectionView, 'X': SectionView}``
-    ``rs.to_island_chains(phi)``  →  ``{'O': IslandChain, 'X': IslandChain}``
-    ``rs.boundary_anchor_points(phi)``  →  list of (R, Z) arrays
-    """
-
-    o_chain: Optional[TubeChain] = None   # elliptic (island-core) tubes
-    x_chain: Optional[TubeChain] = None   # hyperbolic (separatrix) tubes
-    label: Optional[str] = None
-    debug_info: Dict[str, Any] = field(default_factory=dict)
-
-    # ── Backward-compat aliases ───────────────────────────────────────────────
-
-    @property
-    def o_tubechain(self) -> Optional[TubeChain]:
-        """Alias for ``o_chain`` (backward compatibility)."""
-        return self.o_chain
-
-    @property
-    def x_tubechain(self) -> Optional[TubeChain]:
-        """Alias for ``x_chain`` (backward compatibility)."""
-        return self.x_chain
-
-    # ── Construction ──────────────────────────────────────────────────────────
-
-    @classmethod
-    def from_orbits(
-        cls,
-        *,
-        o_orbits: Optional[Sequence[Any]] = None,
-        x_orbits: Optional[Sequence[Any]] = None,
-        label: Optional[str] = None,
-    ) -> "ResonanceStructure":
-        """Build from ``IslandChainOrbit`` objects (legacy path).
-
-        .. deprecated::
-            Use :meth:`from_fixed_points` with ``FixedPoint`` objects.
-        """
-        o_chain = TubeChain.from_orbits(o_orbits, expected_kind='O') if o_orbits else None
-        x_chain = TubeChain.from_orbits(x_orbits, expected_kind='X') if x_orbits else None
-        return cls(o_chain=o_chain, x_chain=x_chain, label=label)
-
-    @classmethod
-    def from_fixed_points(
-        cls,
-        *,
-        x_fps: Sequence[FixedPoint],
-        o_fps: Sequence[FixedPoint],
-        m: int,
-        n: int,
-        Np: int = 1,
-        label: Optional[str] = None,
-    ) -> "ResonanceStructure":
-        """Build from ``FixedPoint`` lists (preferred).
-
-        Parameters
-        ----------
-        x_fps : sequence of FixedPoint
-            Hyperbolic fixed points (one per X-Tube).
-        o_fps : sequence of FixedPoint
-            Elliptic fixed points (one per O-Tube).
-        m, n, Np : int
-            Resonance numbers and device symmetry.
-        label : str, optional
-
-        Returns
-        -------
-        ResonanceStructure
-        """
-        o_chain = TubeChain.from_O_fixed_points(o_fps, m=m, n=n, Np=Np) if o_fps else None
-        x_chain = TubeChain.from_X_fixed_points(x_fps, m=m, n=n, Np=Np) if x_fps else None
-        return cls(o_chain=o_chain, x_chain=x_chain, label=label)
-
-    # ── Section views ─────────────────────────────────────────────────────────
-
-    def section_views(self, phi: float, **kwargs) -> Dict[str, Any]:
-        """Return ``{'O': SectionView, 'X': SectionView}`` at ``phi``.
-
-        Each value is a ``SectionView`` from the corresponding TubeChain,
-        or ``None`` if that chain is absent.
-        """
-        result: Dict[str, Any] = {'O': None, 'X': None}
-        if self.o_chain is not None:
-            result['O'] = self.o_chain.reconstruct_section_view(phi, kind='O', **kwargs)
-        if self.x_chain is not None:
-            result['X'] = self.x_chain.reconstruct_section_view(phi, kind='X', **kwargs)
-        return result
-
-    # ── Island chains ─────────────────────────────────────────────────────────
-
-    def to_island_chains(
-        self,
-        phi: float,
-        proximity_tol: float = 1.0,
-        **kwargs,
-    ) -> Dict[str, Any]:
-        """Return ``{'O': IslandChain, 'X': IslandChain}`` at ``phi``.
-
-        The O-chain Islands are populated with X-point positions from the
-        X-chain (within ``proximity_tol``).
-        """
-        views = self.section_views(phi, **kwargs)
-        o_view = views['O']
-        x_view = views['X']
-
-        result: Dict[str, Any] = {'O': None, 'X': None}
-        if o_view is not None:
-            result['O'] = o_view.to_island_chain(
-                x_section_view=x_view,
-                proximity_tol=proximity_tol,
+    def warn_if_incomplete(self, requested_phis: Optional[Sequence[float]] = None) -> None:
+        diag = self.diagnostics(requested_phis=requested_phis)
+        if not diag['complete']:
+            warnings.warn(
+                f"TubeChain incomplete for m/n={self.m}/{self.n}: "
+                f"found {diag['n_tubes']} tubes, expected {diag['expected_n_tubes']}"
             )
-        if x_view is not None:
-            result['X'] = x_view.to_island_chain(proximity_tol=proximity_tol)
-        return result
 
-    # ── Anchor points (for coil-projection / island-healed coords) ────────────
 
-    def boundary_anchor_points(
-        self, phi: float, tol: float = 1e-6
-    ) -> List[np.ndarray]:
-        """Return all X and O fixed-point positions at ``phi`` as (R, Z) arrays."""
-        pts: List[np.ndarray] = []
-        for chain in (self.o_chain, self.x_chain):
-            if chain is None:
-                continue
-            for tube in chain.tubes:
-                for fp in tube.at_section(phi, tol=tol):
-                    pts.append(np.array([float(fp.R), float(fp.Z)]))
-        return pts
+__all__ = ["TubeCutPoint", "Tube", "TubeChain"]

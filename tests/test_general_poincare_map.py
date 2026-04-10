@@ -148,44 +148,34 @@ def test_general_poincare_map_no_crossing_same_sign():
 
 def test_tube_section_cut_general_section_with_orbit():
     """Tube.section_cut(HyperplaneSection) returns Islands via orbit scan."""
-    from pyna.topo.island_chain import IslandChainOrbit, ChainFixedPoint
+    from pyna.topo.invariants import Cycle, FixedPoint
     from pyna.topo.tube import Tube
 
-    # Build a Tube with orbit_debug data (synthetic circular orbit in R,Z)
     th = 0.4
     DPm_O = np.array([[np.cos(th), -np.sin(th)], [np.sin(th), np.cos(th)]])
-    fp = ChainFixedPoint(phi=0.0, R=1.5, Z=0.0, DPm=DPm_O, DX_pol_accum=np.eye(2))
+    fp = FixedPoint(phi=0.0, R=1.5, Z=0.0, DPm=DPm_O, kind='O')
+    cycle = Cycle(winding=(3, 1), sections={0.0: [fp]},
+                  monodromy=fp.monodromy, ambient_dim=2)
 
-    # Synthetic orbit: circular trajectory in R around 1.5
     n_pts = 100
     angle = np.linspace(0, 2 * np.pi, n_pts, endpoint=False)
     R_orbit = 1.5 + 0.05 * np.cos(angle)
     Z_orbit = 0.05 * np.sin(angle)
-    phi_orbit = angle  # phi increases with angle
+    phi_orbit = angle
 
-    orbit = IslandChainOrbit(
-        m=3, n=1, Np=2,
-        fixed_points=[fp],
-        seed_phi=0.0,
-        seed_RZ=(1.5, 0.0),
-        section_phis=[0.0],
-        orbit_R=R_orbit,
-        orbit_Z=Z_orbit,
-        orbit_phi=phi_orbit,
-        orbit_alive=np.ones(n_pts, dtype=bool),
+    tube = Tube(
+        o_cycle=cycle, x_cycles=[], label='test-tube',
+        _orbit_R=R_orbit, _orbit_Z=Z_orbit,
+        _orbit_phi=phi_orbit, _orbit_alive=np.ones(n_pts, dtype=bool),
     )
-    tube = Tube.from_orbit(orbit, label='test-tube')
 
-    # Section: Z = 0 plane (horizontal cut)
     sec = HyperplaneSection(
-        normal_vec=np.array([0.0, 1.0]),  # normal in Z direction
+        normal_vec=np.array([0.0, 1.0]),
         offset=0.0,
         phase_dim=2,
     )
     islands = tube.section_cut(sec)
-    # The orbit crosses Z=0 multiple times → should find some crossings
     assert isinstance(islands, list)
-    # All islands have O_point as a 2-element array
     for isl in islands:
         assert isl.O_point.shape == (2,)
         assert isl.tube is tube
@@ -193,22 +183,17 @@ def test_tube_section_cut_general_section_with_orbit():
 
 def test_tube_section_cut_toroidal_still_works():
     """Tube.section_cut with ToroidalSection still uses the fast path."""
-    from pyna.topo.island_chain import IslandChainOrbit, ChainFixedPoint
+    from pyna.topo.invariants import Cycle, FixedPoint
     from pyna.topo.tube import Tube
     from pyna.topo.section import ToroidalSection
     from pyna.topo.island import Island
 
     th = 0.4
     DPm_O = np.array([[np.cos(th), -np.sin(th)], [np.sin(th), np.cos(th)]])
-    fp = ChainFixedPoint(phi=0.0, R=1.5, Z=0.0, DPm=DPm_O, DX_pol_accum=np.eye(2))
-    orbit = IslandChainOrbit(
-        m=3, n=1, Np=2,
-        fixed_points=[fp],
-        seed_phi=0.0,
-        seed_RZ=(1.5, 0.0),
-        section_phis=[0.0],
-    )
-    tube = Tube.from_orbit(orbit)
+    fp = FixedPoint(phi=0.0, R=1.5, Z=0.0, DPm=DPm_O, kind='O')
+    cycle = Cycle(winding=(3, 1), sections={0.0: [fp]},
+                  monodromy=fp.monodromy, ambient_dim=2)
+    tube = Tube(o_cycle=cycle, x_cycles=[])
     sec = ToroidalSection(0.0)
     islands = tube.section_cut(sec)
     assert len(islands) == 1
