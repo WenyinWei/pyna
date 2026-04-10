@@ -34,7 +34,7 @@ import numpy as np
 
 from pyna.topo.invariant import InvariantObject
 from pyna.topo.island import Island, IslandChain
-from pyna.topo.invariants import Cycle, FixedPoint, MonodromyData
+from pyna.topo.invariants import Cycle, FixedPoint, MonodromyData, PeriodicOrbit
 
 if TYPE_CHECKING:
     from pyna.topo.section_view import SectionView
@@ -226,7 +226,11 @@ class Tube(InvariantObject):
                                     Z=float(np.asarray(xfp)[1]),
                                     DPm=np.array([[2.,0.],[0.,.5]]), kind='X')
                          for xfp in x_fps]
-            isl = _Island(O_point=fp, X_points=x_fp_list, label=self.label)
+            isl = _Island(
+                O_orbit=PeriodicOrbit(points=[fp]),
+                X_orbits=[PeriodicOrbit(points=[xfp]) for xfp in x_fp_list],
+                label=self.label,
+            )
             isl.tube = self
             isl.section = section
             if self._tube_chain_ref is not None:
@@ -293,9 +297,10 @@ class Tube(InvariantObject):
             return FixedPoint(phi=fp.phi, R=float(arr[0]), Z=float(arr[1]),
                               DPm=np.array([[2.,0.],[0.,.5]]), kind='X')
 
+        x_fp_list = [] if x_points is None else [_to_xfp(x) for x in x_points]
         return _Island(
-            O_point=fp,
-            X_points=[] if x_points is None else [_to_xfp(x) for x in x_points],
+            O_orbit=PeriodicOrbit(points=[fp]),
+            X_orbits=[PeriodicOrbit(points=[xfp]) for xfp in x_fp_list],
             label=label or self.label,
         )
 

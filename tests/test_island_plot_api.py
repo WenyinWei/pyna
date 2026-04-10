@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from pyna.topo.island import Island
-from pyna.topo.invariants import Cycle, FixedPoint
+from pyna.topo.invariants import Cycle, FixedPoint, PeriodicOrbit
 from pyna.topo import (
     island_section_points,
     island_chain_section_points,
@@ -13,7 +13,11 @@ def test_island_section_points_basic():
     fp_O = FixedPoint(phi=0.0, R=1.0, Z=0.0, DPm=np.eye(2), kind='O')
     fp_X1 = FixedPoint(phi=0.0, R=1.1, Z=0.1, DPm=np.array([[2.,0],[0,.5]]), kind='X')
     fp_X2 = FixedPoint(phi=0.0, R=0.9, Z=-0.1, DPm=np.array([[2.,0],[0,.5]]), kind='X')
-    isl = Island(O_point=fp_O, X_points=[fp_X1, fp_X2], label='10/3')
+    isl = Island(
+        O_orbit=PeriodicOrbit(points=[fp_O]),
+        X_orbits=[PeriodicOrbit(points=[fp_X1]), PeriodicOrbit(points=[fp_X2])],
+        label='10/3',
+    )
     sec = island_section_points(isl)
     assert len(sec['O_points']) == 1
     assert len(sec['X_points']) == 2

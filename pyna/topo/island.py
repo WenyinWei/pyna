@@ -29,7 +29,7 @@ import numpy as np
 from scipy.interpolate import UnivariateSpline, interp1d
 
 from pyna.topo.invariant import InvariantObject
-from pyna.topo.invariants import FixedPoint
+from pyna.topo.invariants import FixedPoint, PeriodicOrbit
 from pyna.topo.invariant_torus import InvariantTorus, _ToriMixin
 
 if TYPE_CHECKING:
@@ -53,14 +53,16 @@ class ChainRole(enum.Enum):
 
 @dataclass(eq=False)
 class Island(_ToriMixin, InvariantObject):
-    """A single magnetic island centred on one elliptic fixed point.
+    """A single magnetic island centred on one elliptic periodic orbit.
+
+    An Island is a first-class invariant structure of a discrete map.
 
     Parameters
     ----------
-    O_point : FixedPoint
-        Elliptic fixed point (contains DPm monodromy matrix).
-    X_points : list of FixedPoint
-        Hyperbolic fixed point(s) bounding the island.
+    O_orbit : PeriodicOrbit
+        Elliptic periodic orbit at the island centre.
+    X_orbits : list of PeriodicOrbit
+        Hyperbolic periodic orbit(s) bounding the island.
     child_chains : list of IslandChain
         Sub-chains nested inside this island.
     parent_chain : IslandChain or None
@@ -68,8 +70,8 @@ class Island(_ToriMixin, InvariantObject):
     label : str or None
         Human-readable tag.
     """
-    O_point: FixedPoint
-    X_points: List[FixedPoint] = field(default_factory=list)
+    O_orbit: PeriodicOrbit = field(default_factory=lambda: PeriodicOrbit())
+    X_orbits: List[PeriodicOrbit] = field(default_factory=list)
     child_chains: List["IslandChain"] = field(default_factory=list)
     parent_chain: Optional["IslandChain"] = None
     label: Optional[str] = None
@@ -83,6 +85,18 @@ class Island(_ToriMixin, InvariantObject):
 
     def __post_init__(self):
         _ToriMixin.__init__(self)
+
+    # ── Convenience: first orbit point ────────────────────────────────────────
+
+    @property
+    def O_point(self) -> FixedPoint:
+        """First point of the elliptic orbit (convenience accessor)."""
+        return self.O_orbit[0]
+
+    @property
+    def X_points(self) -> List[FixedPoint]:
+        """First point from each hyperbolic orbit (convenience accessor)."""
+        return [orb[0] for orb in self.X_orbits if len(orb) > 0]
 
     # ── Ring navigation ───────────────────────────────────────────────────────
 
@@ -104,10 +118,15 @@ class Island(_ToriMixin, InvariantObject):
     def _set_prev(self, island: "Island") -> None:
         self._prev = island
 
+    def _set_last(self, island: "Island") -> None:
+        self._prev = island
+
     # ── Tori mixin ────────────────────────────────────────────────────────────
 
     def _central_rotation_vector(self) -> Tuple[float, ...]:
-        mono = self.O_point.monodromy
+        mono = self.O_orbit.monodromy
+        if mono is None:
+            return (0.0,)
         eigs = mono.eigenvalues
         for eig in eigs:
             if abs(eig.imag) > 1e-10:
@@ -149,7 +168,7 @@ class Island(_ToriMixin, InvariantObject):
     # ── InvariantObject interface ─────────────────────────────────────────────
 
     def section_cut(self, section) -> list:
-        """Return [self] — an Island is already a section-level object."""
+        """Return [self] — an Island is already a map-level object."""
         return [self]
 
     def diagnostics(self) -> Dict[str, Any]:
@@ -160,7 +179,7 @@ class Island(_ToriMixin, InvariantObject):
             'Z': self.O_point.Z,
             'phi': self.O_point.phi,
             'kind': self.O_point.kind,
-            'n_X_points': len(self.X_points),
+            'n_X_orbits': len(self.X_orbits),
             'n_child_chains': len(self.child_chains),
         }
 
@@ -340,7 +359,10 @@ class IslandChain(InvariantObject):
                 x_fp for x_fp in x_fps
                 if np.hypot(x_fp.R - o_fp.R, x_fp.Z - o_fp.Z) < proximity_tol
             ]
-            islands.append(Island(O_point=o_fp, X_points=nearby_x))
+            islands.append(Island(
+                O_orbit=PeriodicOrbit(points=[o_fp]),
+                X_orbits=[PeriodicOrbit(points=[xfp]) for xfp in nearby_x],
+            ))
 
         return cls(m=m, n=n, islands=islands)
 

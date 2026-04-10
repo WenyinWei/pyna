@@ -3,11 +3,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from pyna.topo.invariant import InvariantObject
+from pyna.topo._base import InvariantObject
 
 
 @dataclass(eq=False)
@@ -19,6 +19,13 @@ class InvariantTorus(InvariantObject):
         rv = self.rotation_vector[:-1] if len(self.rotation_vector) > 1 else self.rotation_vector
         adim = self.ambient_dim - 1 if self.ambient_dim else None
         return InvariantTorus(rotation_vector=rv, ambient_dim=adim)
+
+    def diagnostics(self) -> Dict[str, Any]:
+        return {
+            'invariant_type': 'InvariantTorus',
+            'rotation_vector': self.rotation_vector,
+            'ambient_dim': self.ambient_dim,
+        }
 
 
 class _ToriMixin:

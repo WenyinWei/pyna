@@ -10,6 +10,7 @@ from pyna.topo.invariants import (
     Island,
     IslandChain,
     MonodromyData,
+    PeriodicOrbit,
     Stability,
     Tube,
     TubeChain,
@@ -45,7 +46,7 @@ def test_island_hierarchy():
     O_fp = FixedPoint(phi=0.0, R=1.05, Z=0.0, DPm=DPm_O)
     X_fp = FixedPoint(phi=0.0, R=1.10, Z=0.0, DPm=DPm_X)
 
-    island = Island(O_point=O_fp, X_points=[X_fp])
+    island = Island(O_orbit=PeriodicOrbit(points=[O_fp]), X_orbits=[PeriodicOrbit(points=[X_fp])])
     t1 = InvariantTorus(rotation_vector=(0.31,), ambient_dim=2)
     t2 = InvariantTorus(rotation_vector=(0.305,), ambient_dim=2)
     island.add_torus(t1, r=0.5)
@@ -57,7 +58,7 @@ def test_island_hierarchy():
     # central rotation_vector = 0.35 > 0.305
     assert prof(0.0)[0] > prof(0.8)[0]
 
-    sub_chain = IslandChain(O_points=[O_fp], X_points=[X_fp])
+    sub_chain = IslandChain(islands=[], winding=(1, 1))
     island.add_child_chain(sub_chain)
     assert sub_chain.parent_island is island
     assert sub_chain.depth == 1

@@ -42,6 +42,13 @@ from pyna.topo.fast_metrics import (
     compute_profile_objectives_fast,
     compute_beta_max_fast,
 )
+from pyna.topo.regularity import (
+    spectral_regularity,
+    spectral_regularity_single,
+    classify_orbit,
+    hessian_regularity,
+    eigenvalue_evolution_from_sequence,
+)
 from pyna.topo.island_healed_coords import (
     IslandHealedCoordMap,
     InnerFourierSection,
@@ -62,9 +69,14 @@ from pyna.topo.dynamics import (
     MCFPoincareMap,
     GeneralPoincareMap,
 )
-# Layer 1: Invariant objects (InvariantTorus; manifolds in manifold_improve.py)
+# Layer 1: Invariant objects
+from pyna.topo._base import (
+    InvariantSet,
+    InvariantManifold,
+    SectionCuttable,
+    InvariantObject,       # backward-compatible alias for InvariantSet
+)
 from pyna.topo.invariant import (
-    InvariantObject,
     InvariantTorus,
 )
 # Layer 3: Sections
@@ -89,6 +101,12 @@ __all__ = [
     "chirikov_overlap",
     "ftle_field",
     "chaotic_boundary_estimate",
+    # spectral regularity diagnostics
+    "spectral_regularity",
+    "spectral_regularity_single",
+    "classify_orbit",
+    "hessian_regularity",
+    "eigenvalue_evolution_from_sequence",
     # high-level facade
     "analyse_topology",
     "TopologyReport",
@@ -117,6 +135,7 @@ __all__ = [
     "monodromy_matrix",
     # island chain connectivity
     "FixedPoint",
+    "PeriodicOrbit",
     # identity / bridge layer
     "ResonanceID",
     "TubeID",
@@ -162,6 +181,9 @@ __all__ = [
     "MCFPoincareMap",
     "GeneralPoincareMap",
     # InvariantObject layer
+    "InvariantSet",
+    "InvariantManifold",
+    "SectionCuttable",
     "InvariantObject",
     "InvariantTorus",
     # Sections
@@ -183,6 +205,7 @@ try:
         Stability,
         MonodromyData,
         FixedPoint,
+        PeriodicOrbit,
         Cycle,
         InvariantTorus,
         StableManifold,

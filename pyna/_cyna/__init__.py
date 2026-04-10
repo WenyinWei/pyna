@@ -95,4 +95,17 @@ __all__ = [
     "trace_surface_metrics_batch_twall",
     "summarize_profile_objectives",
     "trace_poincare_beta_sweep",
+    # Utility helpers (pure Python, always available)
+    "ensure_c_double",
+    "prepare_field_cache",
+    "build_fixed_points_from_batch",
+    "build_cycles_from_batch",
 ]
+
+# Pure-Python utilities are always available (no C++ extension required)
+from pyna._cyna.utils import (
+    ensure_c_double,
+    prepare_field_cache,
+    build_fixed_points_from_batch,
+    build_cycles_from_batch,
+)

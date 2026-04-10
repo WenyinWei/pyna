@@ -10,6 +10,7 @@ from pyna.topo.invariants import (
     Island,
     IslandChain,
     MonodromyData,
+    PeriodicOrbit,
     StableManifold,
     Tube,
     TubeChain,
@@ -52,9 +53,10 @@ class DynamicsContext:
         )
 
     def island(self, O_point: FixedPoint, X_points: Optional[List[FixedPoint]] = None) -> Island:
+        x_fps = X_points or []
         return Island(
-            O_point=O_point,
-            X_points=X_points or [],
+            O_orbit=PeriodicOrbit(points=[O_point]),
+            X_orbits=[PeriodicOrbit(points=[xfp]) for xfp in x_fps],
             ambient_dim=self.section_dim,
         )
 
@@ -64,8 +66,7 @@ class DynamicsContext:
         X_points: Optional[List[FixedPoint]] = None,
     ) -> IslandChain:
         return IslandChain(
-            O_points=O_points or [],
-            X_points=X_points or [],
+            islands=[],
             ambient_dim=self.section_dim,
         )
 

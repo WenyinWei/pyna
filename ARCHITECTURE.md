@@ -167,13 +167,17 @@ Both share a `WithParam` mixin (`withparam.py`) for parametric/symbolic objects.
 
 ---
 
-## §5  `pyna.topo` �?Topological Analysis
+## §5  `pyna.topo` — Topological Analysis
 
 ```
 topo/
+├── _base.py               InvariantSet (root ABC), InvariantManifold, SectionCuttable
+├── invariants.py           FixedPoint, PeriodicOrbit, Cycle, Island, IslandChain,
+│                           Tube, TubeChain, StableManifold, UnstableManifold
+├── island.py              Island, IslandChain (MCF-enriched versions)
+├── tube.py                Tube, TubeChain (MCF-enriched: trajectory, section-view bridge)
 ├── poincare.py            Section (abstract), ToroidalSection, PoincareMap
 ├── fixed_points.py        poincare_map(), find_periodic_orbit(), classify_fixed_point()
-├── island.py              Island, IslandChain dataclasses
 ├── monodromy.py           MonodromyAnalysis: eigenvalues, stability_index, Greene_residue
 ├── variational.py         PoincareMapVariationalEquations, tangent_map()
 ├── manifold_improve.py    StableManifold, UnstableManifold extraction
@@ -184,6 +188,61 @@ topo/
 ├── classical_maps.py      HenonMap, StandardMap (test cases / benchmarks)
 └── chaos.py               ftle_field(), chirikov_overlap(), chaotic_boundary_estimate()
 ```
+
+### Invariant-object hierarchy
+
+```
+InvariantSet (root ABC)                     [_base.py]
+├── InvariantManifold (adds intrinsic_dim)  [_base.py]
+│   ├── FixedPoint          — one point of a map periodic orbit (intrinsic_dim=0)
+│   ├── PeriodicOrbit       — period-m orbit of a discrete map (intrinsic_dim=0)
+│   ├── Cycle               — closed orbit of a continuous flow (intrinsic_dim=1)
+│   ├── InvariantTorus      — KAM torus (intrinsic_dim=2)
+│   ├── StableManifold      — stable manifold of a hyperbolic cycle
+│   └── UnstableManifold    — unstable manifold of a hyperbolic cycle
+│
+├── Island                  — region around an elliptic PeriodicOrbit
+│     O_orbit: PeriodicOrbit        (elliptic orbit at centre)
+│     X_orbits: List[PeriodicOrbit] (hyperbolic orbits at separatrix)
+│     O_point, X_points             (convenience properties: first orbit point)
+│
+├── IslandChain             — all islands of one resonance m:n
+│     islands: List[Island]
+│     winding: Tuple[int, ...]
+│     is_connected, orbit_groups    (W7X 5/5: gcd=5 → 5 disconnected sub-groups)
+│
+├── Tube                    — continuous-time resonance (holds Cycles)
+│     O_cycle: Cycle, X_cycles: List[Cycle]
+│     section_cut(phi) → List[Island]
+│
+└── TubeChain               — all Tubes of one resonance
+      tubes: List[Tube]
+      section_cut(phi) → IslandChain
+```
+
+### Design principle: Maps are first-class dynamical systems
+
+**A discrete map is an autonomous dynamical system**, not a subordinate
+"section object" of a flow.  `Island` and `IslandChain` are invariant
+structures of a map — whether that map is a standalone discrete system
+(e.g. standard map, Hénon map) or a Poincaré return map of a continuous
+flow.  There is no `SectionObject` base class; map-level objects inherit
+directly from `InvariantSet`.
+
+**Continuous-time ↔ discrete-time bridge:**
+- `Tube` holds Cycles (continuous flow orbits).
+- `Tube.section_cut(phi)` produces Islands (discrete map structures).
+- This is a projection operation, not a class hierarchy relationship.
+
+**FixedPoint is a single-point convenience**, not a fundamental concept.
+A fixed point is one point of a periodic orbit where P^m(x₀) = x₀.  Use
+`PeriodicOrbit` to represent the full period-m orbit.  `FixedPoint.as_orbit()`
+wraps a single FixedPoint into a period-1 PeriodicOrbit.
+
+**IslandChain connectivity:**
+Not all islands in a chain are connected by single map iterations.
+`gcd(m, n)` gives the number of independent orbits.  Example:
+W7X 5/5 → `gcd(5,5) = 5` independent orbits, each island disconnected.
 
 ### Poincaré map Jacobian naming (STYLE.md §2)
 
