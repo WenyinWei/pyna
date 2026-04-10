@@ -14,7 +14,7 @@ import numpy as np
 import pytest
 
 from pyna.topo.island import Island, IslandChain
-from pyna.topo.invariants import FixedPoint
+from pyna.topo.invariants import FixedPoint, PeriodicOrbit
 from pyna.MCF.coords.island_healing import (
     assign_island_chain_pest_angles,
     build_r1_boundary,
@@ -75,7 +75,8 @@ def _make_island_chain_3_1(
                           kind=kind)
 
     islands = [
-        Island(O_point=_fp(op, 'O'), X_points=[_fp(X_pts[k], 'X')])
+        Island(O_orbit=PeriodicOrbit(points=[_fp(op, 'O')]),
+               X_orbits=[PeriodicOrbit(points=[_fp(X_pts[k], 'X')])])
         for k, op in enumerate(O_pts)
     ]
     return IslandChain(m=m, n=n, islands=islands)

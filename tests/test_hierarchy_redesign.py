@@ -23,6 +23,7 @@ from pyna.topo.invariants import (
     FixedPoint,
     Cycle,
     MonodromyData,
+    PeriodicOrbit,
     Stability,
     InvariantTorus,
     Island,
@@ -321,7 +322,7 @@ class TestBackwardCompat:
     def test_island_is_invariant_object(self):
         """Island is still an InvariantObject (= InvariantSet)."""
         fp = FixedPoint(phi=0.0, R=1.0, Z=0.0, DPm=_rotation_matrix(0.4))
-        isl = Island(O_point=fp)
+        isl = Island(O_orbit=PeriodicOrbit(points=[fp]))
         assert isinstance(isl, InvariantObject)
         assert isinstance(isl, InvariantSet)
 

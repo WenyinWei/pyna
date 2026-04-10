@@ -135,6 +135,7 @@ __all__ = [
     "monodromy_matrix",
     # island chain connectivity
     "FixedPoint",
+    "PeriodicOrbit",
     # identity / bridge layer
     "ResonanceID",
     "TubeID",
@@ -204,6 +205,7 @@ try:
         Stability,
         MonodromyData,
         FixedPoint,
+        PeriodicOrbit,
         Cycle,
         InvariantTorus,
         StableManifold,

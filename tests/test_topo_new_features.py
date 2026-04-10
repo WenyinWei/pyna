@@ -128,11 +128,11 @@ class TestDetectResidualIslands:
 class TestIslandChainScanXORings:
 
     def _make_chain(self):
-        from pyna.topo.invariants import FixedPoint
+        from pyna.topo.invariants import FixedPoint, PeriodicOrbit
         def _fp(R, Z):
             return FixedPoint(phi=0.0, R=R, Z=Z, DPm=np.eye(2), kind='O')
-        isl0 = Island(O_point=_fp(1.5, 0.05))
-        isl1 = Island(O_point=_fp(1.5, -0.05))
+        isl0 = Island(O_orbit=PeriodicOrbit(points=[_fp(1.5, 0.05)]))
+        isl1 = Island(O_orbit=PeriodicOrbit(points=[_fp(1.5, -0.05)]))
         return IslandChain(m=2, n=1, islands=[isl0, isl1])
 
     @pytest.mark.skip(reason="scan_xo_rings_parallel not yet ported to new Island API")

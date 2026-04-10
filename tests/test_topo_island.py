@@ -17,7 +17,7 @@ from pyna.topo.island import (
     IslandChain,
     ChainRole,
 )
-from pyna.topo.invariants import FixedPoint
+from pyna.topo.invariants import FixedPoint, PeriodicOrbit
 
 
 def _fp(R, Z, kind='O'):
@@ -150,7 +150,7 @@ def test_chain_role_enum_values():
 
 
 def test_island_has_parent_chain_field():
-    isl = Island(O_point=_fp(3.1, 0.0))
+    isl = Island(O_orbit=PeriodicOrbit(points=[_fp(3.1, 0.0)]))
     assert isl.parent_chain is None
 
 
@@ -161,8 +161,8 @@ def test_island_chain_default_label():
 
 
 def test_island_chain_back_links_islands():
-    isl0 = Island(O_point=_fp(3.1, 0.05))
-    isl1 = Island(O_point=_fp(3.1, -0.05))
+    isl0 = Island(O_orbit=PeriodicOrbit(points=[_fp(3.1, 0.05)]))
+    isl1 = Island(O_orbit=PeriodicOrbit(points=[_fp(3.1, -0.05)]))
     chain = IslandChain(m=2, n=1, islands=[isl0, isl1])
     # parent_chain is set via add_island, not __post_init__; verify islands stored
     assert len(chain.islands) == 2

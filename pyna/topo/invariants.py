@@ -8,7 +8,13 @@ The canonical base classes live in ``pyna.topo._base``:
   - ``SectionCuttable``   — mixin protocol for section-cut support
   - ``InvariantObject``   — backward-compatible alias for ``InvariantSet``
 
-All skeleton classes in this module provide concrete ``section_cut()`` and
+Key design principle: **discrete maps are first-class dynamical systems**,
+not subordinate "section objects" of continuous flows.  An ``Island`` and
+``IslandChain`` are invariant structures of a map, whether that map is a
+standalone discrete system (e.g. standard map) or a Poincaré return map of
+a flow.
+
+All skeleton classes provide concrete ``section_cut()`` and
 ``diagnostics()`` implementations for convenience.
 """
 
@@ -156,7 +162,20 @@ def _spectral_regularity_from_sequence(DPk_sequence: List[np.ndarray]) -> float:
 
 @dataclass(eq=False)
 class FixedPoint(InvariantManifold):
-    """A fixed point of a Poincaré map (period-m orbit intersection).
+    """One point of a periodic orbit of a discrete map, with monodromy data.
+
+    Mathematically, a ``FixedPoint`` is a single point x₀ where P^m(x₀) = x₀
+    for a discrete map P and period m ≥ 1.  It carries the monodromy matrix
+    DP^m evaluated at x₀.
+
+    A **period-1** orbit contains exactly one FixedPoint; a **period-m** orbit
+    contains m FixedPoints linked by the map (x₁ → x₂ → … → xₘ → x₁).  Use
+    :class:`PeriodicOrbit` to represent the complete orbit.
+
+    .. note::
+       A FixedPoint is a *special case* of a single-point periodic orbit.
+       For a period-1 orbit, ``PeriodicOrbit(points=[fp])`` and ``fp`` itself
+       are interchangeable.
 
     ``FixedPoint`` is an :class:`InvariantManifold` with ``intrinsic_dim = 0``.
     It generalises to arbitrary phase-space dimension via the ``coords`` field.
@@ -280,6 +299,124 @@ class FixedPoint(InvariantManifold):
         if len(self.coords) >= 2:
             d['R'] = float(self.coords[0])
             d['Z'] = float(self.coords[1])
+        return d
+
+    # ── Orbit construction ───────────────────────────────────────────────────
+
+    def as_orbit(self) -> "PeriodicOrbit":
+        """Wrap this single FixedPoint into a period-1 :class:`PeriodicOrbit`."""
+        return PeriodicOrbit(points=[self])
+
+
+# ---------------------------------------------------------------------------
+# PeriodicOrbit  (discrete-map periodic orbit)
+# ---------------------------------------------------------------------------
+
+@dataclass(eq=False)
+class PeriodicOrbit(InvariantManifold):
+    """A periodic orbit of a discrete map.
+
+    A period-*m* orbit consists of *m* points {x₁, x₂, …, xₘ} satisfying
+    P(xₖ) = xₖ₊₁ (indices mod m) and P^m(xₖ) = xₖ.  The monodromy matrix
+    DP^m is the same at every orbit point and is inherited from the first
+    :class:`FixedPoint`.
+
+    For a map obtained as a Poincaré return map of a continuous flow, the
+    orbit points are all on the **same** Poincaré section.  For a standalone
+    map (e.g. standard map, Hénon map), no section concept is required.
+
+    ``PeriodicOrbit`` is a first-class invariant object of a discrete map,
+    **not** a subordinate "section object" of a flow.
+
+    Parameters
+    ----------
+    points : list of FixedPoint
+        The *m* orbit points, **ordered by map iteration**: P(points[k]) =
+        points[(k+1) % m].
+    ambient_dim : int or None
+        Ambient phase-space dimension.
+
+    Relationship to other classes
+    -----------------------------
+    - **FixedPoint** is a period-1 PeriodicOrbit (convenience special case).
+    - **Cycle** is the continuous-time counterpart: a closed orbit of a flow
+      that intersects multiple Poincaré sections.  ``Cycle.section_cut(phi)``
+      produces the ``PeriodicOrbit`` at that section.
+    - **Island** is the region around an elliptic PeriodicOrbit.
+    """
+    points: List[FixedPoint] = field(default_factory=list)
+    ambient_dim: Optional[int] = None
+
+    @property
+    def period(self) -> int:
+        """Period *m*: number of points in the orbit."""
+        return len(self.points)
+
+    @property
+    def intrinsic_dim(self) -> int:
+        """A discrete-map periodic orbit is a finite set → intrinsic_dim = 0."""
+        return 0
+
+    @property
+    def DPm(self) -> np.ndarray:
+        """Monodromy matrix (DP^m), inherited from the first orbit point."""
+        if self.points:
+            return self.points[0].DPm
+        return np.eye(2)
+
+    @property
+    def monodromy(self) -> Optional[MonodromyData]:
+        """MonodromyData from the first orbit point (None if no points)."""
+        return self.points[0].monodromy if self.points else None
+
+    @property
+    def stability(self) -> Stability:
+        m = self.monodromy
+        return m.stability if m is not None else Stability.UNKNOWN
+
+    @property
+    def kind(self) -> str:
+        """'X' (hyperbolic) or 'O' (elliptic), from the first orbit point."""
+        return self.points[0].kind if self.points else ''
+
+    @property
+    def coords(self) -> np.ndarray:
+        """Coordinates of the first orbit point (convenience)."""
+        return self.points[0].coords if self.points else np.array([])
+
+    # ── Iteration ────────────────────────────────────────────────────────────
+
+    def __getitem__(self, idx: int) -> FixedPoint:
+        """orbit[k] → the k-th orbit point (0-indexed)."""
+        return self.points[idx]
+
+    def __len__(self) -> int:
+        return len(self.points)
+
+    def __iter__(self):
+        return iter(self.points)
+
+    # ── Convenience constructors ─────────────────────────────────────────────
+
+    @classmethod
+    def from_fixed_point(cls, fp: FixedPoint) -> "PeriodicOrbit":
+        """Create a period-1 orbit from a single FixedPoint."""
+        return cls(points=[fp], ambient_dim=fp.ambient_dim)
+
+    # ── InvariantSet interface ───────────────────────────────────────────────
+
+    def section_cut(self, section=None) -> list:
+        """Return the orbit points as a list."""
+        return list(self.points)
+
+    def diagnostics(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {
+            'invariant_type': 'PeriodicOrbit',
+            'period': self.period,
+            'kind': self.kind,
+        }
+        if self.points:
+            d['coords_first'] = self.points[0].coords.tolist()
         return d
 
 
@@ -456,8 +593,27 @@ class _ToriMixin:
 
 @dataclass(eq=False)
 class Island(_ToriMixin, InvariantObject):
-    O_point: FixedPoint
-    X_points: List[FixedPoint] = field(default_factory=list)
+    """A magnetic island: a region around an elliptic periodic orbit of a map.
+
+    An Island is an invariant structure of a **discrete map** (either a
+    standalone map or a Poincaré return map of a flow).  It is a first-class
+    dynamical object, not a subordinate "section object".
+
+    The core data are:
+
+    - ``O_orbit`` — the elliptic :class:`PeriodicOrbit` at the centre.
+    - ``X_orbits`` — the hyperbolic :class:`PeriodicOrbit`\\ (s) at the
+      separatrix boundary.
+
+    Parameters
+    ----------
+    O_orbit : PeriodicOrbit
+        Elliptic periodic orbit at the island centre.
+    X_orbits : list of PeriodicOrbit
+        Hyperbolic periodic orbit(s) bounding the island (may be empty).
+    """
+    O_orbit: PeriodicOrbit = field(default_factory=lambda: PeriodicOrbit())
+    X_orbits: List[PeriodicOrbit] = field(default_factory=list)
     ambient_dim: Optional[int] = None
     child_chains: List["IslandChain"] = field(default_factory=list)
     parent_chain: Optional["IslandChain"] = field(default=None, repr=False)
@@ -466,6 +622,20 @@ class Island(_ToriMixin, InvariantObject):
 
     def __post_init__(self):
         _ToriMixin.__init__(self)
+
+    # ── Convenience: first orbit point ────────────────────────────────────────
+
+    @property
+    def O_point(self) -> FixedPoint:
+        """First point of the elliptic orbit (convenience accessor)."""
+        return self.O_orbit[0]
+
+    @property
+    def X_points(self) -> List[FixedPoint]:
+        """First point from each hyperbolic orbit (convenience accessor)."""
+        return [orb[0] for orb in self.X_orbits if len(orb) > 0]
+
+    # ── Ring navigation ──────────────────────────────────────────────────────
 
     def step(self) -> "Island":
         """Return the next Island in the period-m ring."""
@@ -480,7 +650,9 @@ class Island(_ToriMixin, InvariantObject):
         return self._prev
 
     def _central_rotation_vector(self) -> Tuple[float, ...]:
-        mono = self.O_point.monodromy
+        mono = self.O_orbit.monodromy
+        if mono is None:
+            return (0.0,)
         eigs = mono.eigenvalues
         import cmath
         for eig in eigs:
@@ -528,11 +700,68 @@ class Island(_ToriMixin, InvariantObject):
 
 @dataclass(eq=False)
 class IslandChain(InvariantObject):
-    O_points: List[FixedPoint] = field(default_factory=list)
-    X_points: List[FixedPoint] = field(default_factory=list)
-    ambient_dim: Optional[int] = None
+    """A chain of islands of a discrete map sharing the same resonance.
+
+    An ``IslandChain`` is a first-class invariant structure of a discrete
+    map — it represents all the islands of one rational resonance m:n.
+
+    Connectivity
+    ------------
+    Not all islands in a chain are connected by single map iterations.
+    For example, W7X's 5/5 island chain has ``gcd(5, 5) = 5`` independent
+    orbits, so each island is disconnected from the others.  Use
+    :attr:`is_connected` and :attr:`orbit_groups` to inspect connectivity.
+    """
     islands: List[Island] = field(default_factory=list)
+    winding: Tuple[int, ...] = (1,)
+    ambient_dim: Optional[int] = None
     parent_island: Optional[Island] = field(default=None, repr=False)
+
+    # ── Convenience: aggregate O/X points ────────────────────────────────────
+
+    @property
+    def O_points(self) -> List[FixedPoint]:
+        """All O-type FixedPoints (first point of each island's O_orbit)."""
+        return [isl.O_point for isl in self.islands]
+
+    @property
+    def X_points(self) -> List[FixedPoint]:
+        """All X-type FixedPoints (first point of each island's X_orbits, flattened)."""
+        return [fp for isl in self.islands for fp in isl.X_points]
+
+    # ── Connectivity (W7X 5/5 example: gcd(5,5) = 5 independent orbits) ─────
+
+    @property
+    def n_independent_orbits(self) -> int:
+        """Number of independent map orbits within this chain.
+
+        Equal to gcd(m, n) for winding = (m, n).  A chain is connected
+        iff ``n_independent_orbits == 1``.
+        """
+        from math import gcd
+        if len(self.winding) >= 2 and self.winding[1] > 0:
+            return gcd(int(self.winding[0]), int(self.winding[1]))
+        return 1
+
+    @property
+    def is_connected(self) -> bool:
+        """True when all islands belong to one orbit (gcd(m,n) == 1)."""
+        return self.n_independent_orbits == 1
+
+    @property
+    def orbit_groups(self) -> List[List[Island]]:
+        """Group islands by which independent orbit they belong to.
+
+        Returns a list of ``n_independent_orbits`` sub-lists.  Within
+        each sub-list, consecutive islands are linked by map iteration.
+        """
+        n_orbs = self.n_independent_orbits
+        groups: List[List[Island]] = [[] for _ in range(n_orbs)]
+        for idx, isl in enumerate(self.islands):
+            groups[idx % n_orbs].append(isl)
+        return groups
+
+    # ── Hierarchy ────────────────────────────────────────────────────────────
 
     @property
     def depth(self) -> int:
@@ -556,7 +785,7 @@ class IslandChain(InvariantObject):
         self.islands.append(island)
 
     def section_xpoints(self, phi: float, tol: float = 1e-6) -> List[FixedPoint]:
-        """X-points 在截面 phi 处（tol 容忍匹配）。"""
+        """X-points at section phi."""
         return [fp for fp in self.X_points if abs(fp.phi - phi) < tol]
 
     def section_opoints(self, phi: float, tol: float = 1e-6) -> List[FixedPoint]:
@@ -566,7 +795,7 @@ class IslandChain(InvariantObject):
     # ── InvariantObject interface ─────────────────────────────────────────────
 
     def section_cut(self, section=None) -> list:
-        """Return the list of Islands (already section-level objects)."""
+        """Return the list of Islands."""
         return list(self.islands)
 
     def diagnostics(self) -> Dict[str, Any]:
@@ -575,6 +804,9 @@ class IslandChain(InvariantObject):
             'n_islands': len(self.islands),
             'n_O_points': len(self.O_points),
             'n_X_points': len(self.X_points),
+            'winding': self.winding,
+            'is_connected': self.is_connected,
+            'n_independent_orbits': self.n_independent_orbits,
             'depth': self.depth,
         }
 
@@ -713,8 +945,8 @@ class Tube(_ToriMixin, InvariantObject):
                 if k < len(xpts):
                     x_fps.append(xpts[k])
             islands.append(Island(
-                O_point=o_fp,
-                X_points=x_fps,
+                O_orbit=PeriodicOrbit(points=[o_fp]),
+                X_orbits=[PeriodicOrbit(points=[xfp]) for xfp in x_fps],
                 ambient_dim=(self.ambient_dim - 1) if self.ambient_dim else None,
             ))
 
@@ -770,11 +1002,9 @@ class TubeChain(InvariantObject):
         all_islands = []
         for tube in self.tubes:
             all_islands.extend(tube.section_cut(phi))
-        o_points = [isl.O_point for isl in all_islands]
-        x_points = [fp for isl in all_islands for fp in isl.X_points]
         chain = IslandChain(
-            O_points=o_points,
-            X_points=x_points,
+            islands=[],
+            winding=self.tubes[0].O_cycle.winding if self.tubes else (1,),
             ambient_dim=(self.ambient_dim - 1) if self.ambient_dim else None,
         )
         for isl in all_islands:
