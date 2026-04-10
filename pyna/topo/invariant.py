@@ -15,9 +15,9 @@ Note
 * InvariantManifold (StableManifold / UnstableManifold) previously lived
   here as dead stub subclasses.  The real implementations are in
   ``pyna.topo.manifold_improve`` and are exported from ``pyna.topo.__init__``.
-* PeriodicOrbit was a stub that has been removed.  The cycle-based
-  hierarchy in ``pyna.topo.invariants`` (Cycle, Tube, TubeChain) is the
-  new design for representing periodic orbits.
+* ``PeriodicOrbit`` is now a first-class invariant-manifold class in
+  ``pyna.topo.invariants``.  It represents a period-m orbit of a discrete
+  map.  ``FixedPoint`` is a single-point convenience (period-1 case).
 """
 from __future__ import annotations
 
