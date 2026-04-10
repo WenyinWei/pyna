@@ -1,29 +1,36 @@
 """Tests for pyna.topo.invariant -- InvariantObject class hierarchy.
 
 All tests use synthetic/analytic data only (no real HAO data files).
+Updated to use the new class hierarchy:
+  - FixedPoint (replaces ChainFixedPoint)
+  - Cycle (replaces IslandChainOrbit)
+  - Island/IslandChain from island.py
+  - InvariantTorus from invariant.py
 """
 from __future__ import annotations
 
 import numpy as np
 import pytest
 
-from pyna.topo.island_chain import IslandChainOrbit, ChainFixedPoint
+from pyna.topo.invariants import (
+    FixedPoint,
+    Cycle,
+    MonodromyData,
+    Stability,
+)
 from pyna.topo.invariant import (
     InvariantObject,
-    PeriodicOrbit,
     InvariantTorus,
-    InvariantManifold,
-    StableManifold,
-    UnstableManifold,
 )
+from pyna.topo.island import Island, IslandChain
 from pyna.topo.resonance import ResonanceNumber
 from pyna.topo.dynamics import MCFPoincareMap, MCF_2D
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _make_chain_fp(phi=0.0, R=1.5, Z=0.0, kind='X'):
-    """Make a ChainFixedPoint with synthetic DPm."""
+def _make_fp(phi=0.0, R=1.5, Z=0.0, kind='X'):
+    """Make a FixedPoint with synthetic DPm."""
     if kind == 'X':
         # Hyperbolic: eigenvalues 3 and 1/3, Tr=3.333 > 2
         DPm = np.array([[3.0, 0.0], [0.0, 1.0 / 3.0]])
@@ -31,19 +38,14 @@ def _make_chain_fp(phi=0.0, R=1.5, Z=0.0, kind='X'):
         # Elliptic: DPm = rotation by small angle, Tr < 2
         th = 0.4
         DPm = np.array([[np.cos(th), -np.sin(th)], [np.sin(th), np.cos(th)]])
-    return ChainFixedPoint(phi=phi, R=R, Z=Z, DPm=DPm, DX_pol_accum=np.eye(2))
+    return FixedPoint(phi=phi, R=R, Z=Z, DPm=DPm)
 
 
-def _make_orbit(m=10, n=3, Np=2, kind='X'):
-    """Make a minimal IslandChainOrbit with one section."""
-    fp = _make_chain_fp(phi=0.0, kind=kind)
-    return IslandChainOrbit(
-        m=m, n=n, Np=Np,
-        fixed_points=[fp],
-        seed_phi=0.0,
-        seed_RZ=(1.5, 0.0),
-        section_phis=[0.0],
-    )
+def _make_cycle(m=10, n=3, kind='X'):
+    """Make a minimal Cycle with one section."""
+    fp = _make_fp(phi=0.0, kind=kind)
+    mono = MonodromyData(DPm=fp.DPm, eigenvalues=np.linalg.eigvals(fp.DPm))
+    return Cycle(winding=(m, n), sections={0.0: [fp]}, monodromy=mono)
 
 
 # ── Tests ─────────────────────────────────────────────────────────────────────
@@ -54,67 +56,74 @@ def test_invariant_object_is_abstract():
         InvariantObject()
 
 
-def test_resonance_number_in_periodic_orbit():
-    """PeriodicOrbit.resonance returns correct ResonanceNumber."""
-    orbit = _make_orbit(m=10, n=3)
-    po = PeriodicOrbit.from_island_chain_orbit(orbit)
-    r = po.resonance
-    assert isinstance(r, ResonanceNumber)
-    assert r.m == 10
-    assert r.n_pol == 3
-    assert str(r) == '10/3'
+def test_fixed_point_auto_kind():
+    """FixedPoint auto-derives kind from DPm."""
+    fp_x = _make_fp(kind='X')
+    assert fp_x.kind == 'X'
+    fp_o = _make_fp(kind='O')
+    assert fp_o.kind == 'O'
 
 
-def test_periodic_orbit_from_island_chain_orbit():
-    """Wrapping IslandChainOrbit preserves fixed_points and backward compat."""
-    orbit = _make_orbit(m=10, n=3, kind='X')
-    po = PeriodicOrbit.from_island_chain_orbit(orbit, label='test X orbit')
-    assert po.orbit is orbit
-    assert po.m == 10
-    assert po.n == 3
-    assert po.Np == 2
-    assert len(po.fixed_points) == 1
-    assert po.label == 'test X orbit'
+def test_fixed_point_greene_residue():
+    """FixedPoint computes Greene's residue correctly."""
+    fp_x = _make_fp(kind='X')
+    assert fp_x.greene_residue < 0  # hyperbolic
+    fp_o = _make_fp(kind='O')
+    assert 0 < fp_o.greene_residue < 1  # elliptic
 
 
-def test_periodic_orbit_stability_x():
-    """X-orbit has stability == 'X' and negative Greene residue."""
-    orbit = _make_orbit(m=3, n=1, kind='X')
-    po = PeriodicOrbit.from_island_chain_orbit(orbit)
-    assert po.stability == 'X'
-    assert po.greene_residue < 0
+def test_fixed_point_array_interface():
+    """FixedPoint supports array-like indexing."""
+    fp = _make_fp(R=1.5, Z=0.3)
+    assert fp[0] == pytest.approx(1.5)
+    assert fp[1] == pytest.approx(0.3)
+    assert len(fp) == 2
+    arr = np.asarray(fp)
+    assert arr.shape == (2,)
 
 
-def test_periodic_orbit_stability_o():
-    """O-orbit has stability == 'O' and Greene residue in (0, 1)."""
-    orbit = _make_orbit(m=3, n=1, kind='O')
-    po = PeriodicOrbit.from_island_chain_orbit(orbit)
-    assert po.stability == 'O'
-    assert 0 < po.greene_residue < 1
-
-
-def test_periodic_orbit_section_cut():
-    """section_cut returns Island objects with period_n == m."""
-    from pyna.topo.island import Island
-    orbit = _make_orbit(m=5, n=2, kind='O')
-    po = PeriodicOrbit.from_island_chain_orbit(orbit)
-    islands = po.section_cut(0.0)
-    assert len(islands) == 1
-    assert isinstance(islands[0], Island)
-    assert islands[0].period_n == 5
-    # Back-reference to PeriodicOrbit
-    assert islands[0].periodic_orbit is po
-
-
-def test_periodic_orbit_diagnostics():
-    """diagnostics() returns expected keys."""
-    orbit = _make_orbit(m=10, n=3, kind='X')
-    po = PeriodicOrbit.from_island_chain_orbit(orbit)
-    d = po.diagnostics()
-    assert d['invariant_type'] == 'PeriodicOrbit'
-    assert d['stability'] == 'X'
+def test_fixed_point_diagnostics():
+    """FixedPoint.diagnostics() returns expected keys."""
+    fp = _make_fp(kind='X')
+    d = fp.diagnostics()
+    assert d['invariant_type'] == 'FixedPoint'
+    assert d['kind'] == 'X'
     assert 'greene_residue' in d
-    assert d['resonance'] == '10/3'
+
+
+def test_cycle_stability():
+    """Cycle stability classification works."""
+    cycle_x = _make_cycle(m=3, n=1, kind='X')
+    assert cycle_x.stability == Stability.HYPERBOLIC
+
+    cycle_o = _make_cycle(m=3, n=1, kind='O')
+    assert cycle_o.stability == Stability.ELLIPTIC
+
+
+def test_cycle_section_cut():
+    """Cycle.section_cut returns FixedPoints at section."""
+    cycle = _make_cycle(m=5, n=2, kind='O')
+    fps = cycle.section_cut(0.0)
+    assert len(fps) == 1
+    assert isinstance(fps[0], FixedPoint)
+
+
+def test_cycle_diagnostics():
+    """Cycle.diagnostics() returns expected keys."""
+    cycle = _make_cycle(m=10, n=3, kind='X')
+    d = cycle.diagnostics()
+    assert d['invariant_type'] == 'Cycle'
+    assert d['winding'] == (10, 3)
+
+
+def test_island_chain_from_fixed_points():
+    """IslandChain.from_fixed_points creates islands from O/X points."""
+    o_pts = [np.array([1.5, 0.0]), np.array([1.6, 0.1])]
+    x_pts = [np.array([1.55, 0.05])]
+    chain = IslandChain.from_fixed_points(o_pts, x_pts, m=2, n=1, proximity_tol=0.2)
+    assert chain.n_islands == 2
+    assert chain.m == 2
+    assert chain.n == 1
 
 
 def test_invariant_torus_construction():
@@ -148,48 +157,8 @@ def test_invariant_torus_diagnostics():
     assert 0.0 in d['crossing_counts']
 
 
-def test_stable_manifold_init():
-    """StableManifold can be constructed from a PeriodicOrbit."""
-    orbit = _make_orbit(m=3, n=1, kind='X')
-    po = PeriodicOrbit.from_island_chain_orbit(orbit)
-    mf = StableManifold(po)
-    assert mf.branch == 'stable'
-    assert mf.periodic_orbit is po
-    assert mf.points is None  # not grown yet
-
-
-def test_unstable_manifold_init():
-    """UnstableManifold can be constructed from a PeriodicOrbit."""
-    orbit = _make_orbit(m=3, n=1, kind='X')
-    po = PeriodicOrbit.from_island_chain_orbit(orbit)
-    mf = UnstableManifold(po)
-    assert mf.branch == 'unstable'
-    assert mf.points is None
-
-
-def test_manifold_section_cut_raises_before_grow():
-    """InvariantManifold.section_cut raises before grow() is called."""
-    orbit = _make_orbit(m=3, n=1, kind='X')
-    po = PeriodicOrbit.from_island_chain_orbit(orbit)
-    mf = StableManifold(po)
-    with pytest.raises(RuntimeError, match='grow'):
-        mf.section_cut(0.0)
-
-
-def test_manifold_invalid_branch():
-    """InvariantManifold raises ValueError for invalid branch."""
-    orbit = _make_orbit(m=3, n=1, kind='X')
-    po = PeriodicOrbit.from_island_chain_orbit(orbit)
-    with pytest.raises(ValueError, match='branch'):
-        # Directly call ABC init via StableManifold with wrong branch
-        StableManifold.__bases__[0].__init__(
-            StableManifold.__new__(StableManifold), po, 'diagonal'
-        )
-
-
 def test_mcf_poincare_map_phase_space():
     """MCFPoincareMap.phase_space == MCF_2D."""
-    # Build a minimal dummy field cache
     NR, NZ, NPhi = 5, 5, 4
     fc = {
         'R_grid': np.linspace(0.5, 2.0, NR),
@@ -204,14 +173,6 @@ def test_mcf_poincare_map_phase_space():
     assert pm.Np == 2
     assert pm.phi_section == pytest.approx(0.0)
     assert pm.n_turns == 1
-
-
-def test_periodic_orbit_repr():
-    """PeriodicOrbit repr contains m, n, stability."""
-    orbit = _make_orbit(m=10, n=3, kind='X')
-    po = PeriodicOrbit.from_island_chain_orbit(orbit)
-    r = repr(po)
-    assert '10' in r and '3' in r and 'X' in r
 
 
 def test_invariant_torus_repr():

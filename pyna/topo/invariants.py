@@ -1,21 +1,28 @@
 """Skeleton of the new invariant-object class hierarchy.
 
 Pure Python dataclasses — no cyna dependency.
+
+The canonical ``InvariantObject`` ABC lives in ``pyna.topo._base`` and requires
+subclasses to implement ``section_cut`` and ``diagnostics``.  All skeleton
+classes in this module provide concrete implementations of those two methods.
 """
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from functools import cached_property
-from typing import TYPE_CHECKING, Any, Dict, Generic, List, Optional, Tuple, TypeVar
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, TypeVar
 
 import numpy as np
+
+# Use the single canonical InvariantObject from _base
+from pyna.topo._base import InvariantObject
 
 if TYPE_CHECKING:
     pass
 
+CoordT = TypeVar("CoordT")
 
 # ---------------------------------------------------------------------------
 # Stability data
@@ -54,20 +61,6 @@ class MonodromyData:
     @cached_property
     def stability_index(self) -> float:
         return self.trace / 2.0
-
-
-# ---------------------------------------------------------------------------
-# Abstract base
-# ---------------------------------------------------------------------------
-
-CoordT = TypeVar("CoordT")
-
-
-class InvariantObject(ABC):
-    """Abstract base for all invariant objects."""
-
-    def __init__(self, ambient_dim: Optional[int] = None):
-        self.ambient_dim = ambient_dim
 
 
 # ---------------------------------------------------------------------------
@@ -143,6 +136,22 @@ class FixedPoint(InvariantObject):
             arr = arr.astype(dtype, copy=False)
         return arr
 
+    # ── InvariantObject interface ─────────────────────────────────────────────
+
+    def section_cut(self, section=None) -> list:
+        """A FixedPoint is already a section-level object; return [self]."""
+        return [self]
+
+    def diagnostics(self) -> Dict[str, Any]:
+        return {
+            'invariant_type': 'FixedPoint',
+            'phi': self.phi,
+            'R': self.R,
+            'Z': self.Z,
+            'kind': self.kind,
+            'greene_residue': self.greene_residue,
+        }
+
 
 # ---------------------------------------------------------------------------
 # Cycle
@@ -171,15 +180,37 @@ class Cycle(InvariantObject):
                 return fps if isinstance(fps, list) else [fps]
         return []
 
-    def section_cut(self, phi: float) -> "FixedPoint":
-        """Backward-compat: return first FixedPoint at phi."""
+    def section_cut(self, section=None) -> list:
+        """Return FixedPoints at the given section.
+
+        Parameters
+        ----------
+        section : float or object with .phi attribute, optional
+            If float, treated as phi angle.  If omitted, return all points
+            from the first section.
+        """
+        if section is None:
+            # Return all points from first section
+            for fps in self.sections.values():
+                return fps if isinstance(fps, list) else [fps]
+            return []
+        phi = float(section) if isinstance(section, (int, float)) else float(getattr(section, 'phi', section))
         pts = self.section_points(phi)
         if not pts:
             raise KeyError(phi)
-        return pts[0]
+        return pts
+
+    def diagnostics(self) -> Dict[str, Any]:
+        return {
+            'invariant_type': 'Cycle',
+            'winding': self.winding,
+            'n_sections': len(self.sections),
+            'stability': self.stability.name if self.stability else 'UNKNOWN',
+        }
 
     def unstable_seeds(self, phi: float, n_seeds: int, init_length: float):
-        fp = self.section_cut(phi)
+        fps = self.section_cut(phi)
+        fp = fps[0]
         mono = self.monodromy or fp.monodromy
         eigs = mono.eigenvalues
         idx = int(np.argmax(np.abs(eigs)))
@@ -191,7 +222,8 @@ class Cycle(InvariantObject):
         return R_arr, Z_arr
 
     def stable_seeds(self, phi: float, n_seeds: int, init_length: float):
-        fp = self.section_cut(phi)
+        fps = self.section_cut(phi)
+        fp = fps[0]
         mono = self.monodromy or fp.monodromy
         eigs = mono.eigenvalues
         idx = int(np.argmin(np.abs(eigs)))
@@ -216,6 +248,13 @@ class InvariantTorus(InvariantObject):
         rv = self.rotation_vector[:-1] if len(self.rotation_vector) > 1 else self.rotation_vector
         adim = self.ambient_dim - 1 if self.ambient_dim else None
         return InvariantTorus(rotation_vector=rv, ambient_dim=adim)
+
+    def diagnostics(self) -> Dict[str, Any]:
+        return {
+            'invariant_type': 'InvariantTorus',
+            'rotation_vector': self.rotation_vector,
+            'ambient_dim': self.ambient_dim,
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -273,11 +312,6 @@ class _ToriMixin:
 # Island
 # ---------------------------------------------------------------------------
 
-if TYPE_CHECKING:
-    _IslandBase = InvariantObject  # type hint only
-else:
-    _IslandBase = object
-
 
 @dataclass(eq=False)
 class Island(_ToriMixin, InvariantObject):
@@ -329,6 +363,23 @@ class Island(_ToriMixin, InvariantObject):
         """Root Island's O_point is the magnetic axis point on the section."""
         return self.root_island().O_point
 
+    # ── InvariantObject interface ─────────────────────────────────────────────
+
+    def section_cut(self, section=None) -> list:
+        """An Island is already a section-level object; return [self]."""
+        return [self]
+
+    def diagnostics(self) -> Dict[str, Any]:
+        return {
+            'invariant_type': 'Island',
+            'R': self.O_point.R,
+            'Z': self.O_point.Z,
+            'phi': self.O_point.phi,
+            'kind': self.O_point.kind,
+            'n_X_points': len(self.X_points),
+            'n_child_chains': len(self.child_chains),
+        }
+
 
 # ---------------------------------------------------------------------------
 # IslandChain
@@ -368,8 +419,23 @@ class IslandChain(InvariantObject):
         return [fp for fp in self.X_points if abs(fp.phi - phi) < tol]
 
     def section_opoints(self, phi: float, tol: float = 1e-6) -> List[FixedPoint]:
-        """O-points 在截面 phi 处（tol 容忍匹配）。"""
+        """O-points at section phi."""
         return [fp for fp in self.O_points if abs(fp.phi - phi) < tol]
+
+    # ── InvariantObject interface ─────────────────────────────────────────────
+
+    def section_cut(self, section=None) -> list:
+        """Return the list of Islands (already section-level objects)."""
+        return list(self.islands)
+
+    def diagnostics(self) -> Dict[str, Any]:
+        return {
+            'invariant_type': 'IslandChain',
+            'n_islands': len(self.islands),
+            'n_O_points': len(self.O_points),
+            'n_X_points': len(self.X_points),
+            'depth': self.depth,
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -382,12 +448,30 @@ class StableManifold(InvariantObject):
     branches: List[Any] = field(default_factory=list)
     ambient_dim: Optional[int] = None
 
+    def section_cut(self, section=None) -> list:
+        return list(self.branches)
+
+    def diagnostics(self) -> Dict[str, Any]:
+        return {
+            'invariant_type': 'StableManifold',
+            'n_branches': len(self.branches),
+        }
+
 
 @dataclass(eq=False)
 class UnstableManifold(InvariantObject):
     cycle: Cycle
     branches: List[Any] = field(default_factory=list)
     ambient_dim: Optional[int] = None
+
+    def section_cut(self, section=None) -> list:
+        return list(self.branches)
+
+    def diagnostics(self) -> Dict[str, Any]:
+        return {
+            'invariant_type': 'UnstableManifold',
+            'n_branches': len(self.branches),
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -471,6 +555,14 @@ class Tube(_ToriMixin, InvariantObject):
 
         return islands
 
+    def diagnostics(self) -> Dict[str, Any]:
+        return {
+            'invariant_type': 'Tube',
+            'n_X_cycles': len(self.X_cycles),
+            'n_child_chains': len(self.child_chains),
+            'ambient_dim': self.ambient_dim,
+        }
+
 
 # ---------------------------------------------------------------------------
 # TubeChain
@@ -539,3 +631,12 @@ class TubeChain(InvariantObject):
             f"TubeChain(O_cycles={len(self.O_cycles)}, X_cycles={len(self.X_cycles)}, "
             f"tubes={len(self.tubes)}, depth={self.depth})"
         )
+
+    def diagnostics(self) -> Dict[str, Any]:
+        return {
+            'invariant_type': 'TubeChain',
+            'n_O_cycles': len(self.O_cycles),
+            'n_X_cycles': len(self.X_cycles),
+            'n_tubes': len(self.tubes),
+            'depth': self.depth,
+        }
