@@ -75,26 +75,14 @@ def build_tube_chain_from_cyna(
         raise RuntimeError("cyna extension not available; cannot run build_tube_chain_from_cyna")
 
     # ── 准备 cyna 场数据 ───────────────────────────────────────────────────────
-    Rg = np.ascontiguousarray(field_cache['R_grid'],   dtype=np.float64)
-    Zg = np.ascontiguousarray(field_cache['Z_grid'],   dtype=np.float64)
-    Pg = np.ascontiguousarray(field_cache['Phi_grid'], dtype=np.float64)
-    if abs(float(Pg[-1]) - 2 * np.pi) > 1e-6:
-        Pg = np.append(Pg, Pg[-1] + float(Pg[1] - Pg[0]))
+    from pyna._cyna.utils import ensure_c_double, prepare_field_cache
 
-    def _ext(a):
-        return np.ascontiguousarray(
-            np.concatenate([np.asarray(a), np.asarray(a)[:, :, :1]], axis=2),
-            dtype=np.float64)
-
-    fc_cyna = dict(
-        BR=_ext(field_cache['BR']), BPhi=_ext(field_cache['BPhi']),
-        BZ=_ext(field_cache['BZ']), R_grid=Rg, Z_grid=Zg, Phi_grid=Pg
-    )
+    fc_cyna = prepare_field_cache(field_cache)
 
     # ── cyna batch Newton（phi0 截面）─────────────────────────────────────────
     R_o, Z_o, _, conv, DPm_flat, _, _, ptype = _ffpb(
-        np.asarray(seeds_R, dtype=np.float64),
-        np.asarray(seeds_Z, dtype=np.float64),
+        ensure_c_double(np.asarray(seeds_R).ravel()),
+        ensure_c_double(np.asarray(seeds_Z).ravel()),
         phi0, period,
         DPhi=DPhi, fd_eps=fd_eps, max_iter=max_iter, tol=tol,
         n_threads=n_threads, **fc_cyna,
