@@ -206,7 +206,9 @@ class FixedPoint(InvariantManifold):
             self.coords = np.array([self.R, self.Z], dtype=float)
         else:
             self.coords = np.asarray(self.coords, dtype=float)
-            # Back-fill R, Z from coords when they are at defaults
+            # Back-fill R, Z from coords when they were left at their
+            # dataclass defaults (exactly 0.0).  This is an intentional
+            # exact float comparison against the default sentinel value.
             if len(self.coords) >= 2 and self.R == 0.0 and self.Z == 0.0:
                 self.R = float(self.coords[0])
                 self.Z = float(self.coords[1])
@@ -214,7 +216,7 @@ class FixedPoint(InvariantManifold):
         # --- Sync section_angle ↔ phi ------------------------------------
         if self.section_angle is None:
             self.section_angle = self.phi
-        elif self.phi == 0.0:
+        elif self.phi == 0.0:  # phi at dataclass default → take section_angle
             self.phi = self.section_angle
 
         # --- Auto-derive kind from DPm -----------------------------------
