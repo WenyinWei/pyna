@@ -9,6 +9,9 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
+# Tolerance for checking whether Phi_grid already reaches 2π
+_PHI_WRAP_TOL = 1e-6
+
 
 # ---------------------------------------------------------------------------
 # Zero-copy buffer preparation
@@ -61,7 +64,7 @@ def prepare_field_cache(
     BZ   = np.asarray(field_cache['BZ'])
 
     if extend_phi:
-        if abs(float(Pg[-1]) - 2 * np.pi) > 1e-6:
+        if abs(float(Pg[-1]) - 2 * np.pi) > _PHI_WRAP_TOL:
             Pg = np.append(Pg, 2 * np.pi)
         # Extend field arrays along the last (phi) axis
         BR   = np.concatenate([BR,   BR[:, :, :1]],   axis=2)

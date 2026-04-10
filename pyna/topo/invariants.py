@@ -449,6 +449,7 @@ class StableManifold(InvariantObject):
     ambient_dim: Optional[int] = None
 
     def section_cut(self, section=None) -> list:
+        """Return manifold branches (*section* is ignored; branches are pre-computed)."""
         return list(self.branches)
 
     def diagnostics(self) -> Dict[str, Any]:
@@ -465,6 +466,7 @@ class UnstableManifold(InvariantObject):
     ambient_dim: Optional[int] = None
 
     def section_cut(self, section=None) -> list:
+        """Return manifold branches (*section* is ignored; branches are pre-computed)."""
         return list(self.branches)
 
     def diagnostics(self) -> Dict[str, Any]:
