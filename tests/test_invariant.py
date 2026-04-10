@@ -51,9 +51,15 @@ def _make_cycle(m=10, n=3, kind='X'):
 # ── Tests ─────────────────────────────────────────────────────────────────────
 
 def test_invariant_object_is_abstract():
-    """InvariantObject cannot be instantiated directly."""
-    with pytest.raises(TypeError):
-        InvariantObject()
+    """InvariantSet is an ABC but no longer requires subclassing to instantiate.
+
+    It has no abstract methods — section_cut() raises NotImplementedError,
+    diagnostics() returns a default dict.  Verify the default behaviour.
+    """
+    obj = InvariantObject()
+    assert obj.diagnostics()['invariant_type'] == 'InvariantSet'
+    with pytest.raises(NotImplementedError):
+        obj.section_cut()
 
 
 def test_fixed_point_auto_kind():

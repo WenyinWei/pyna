@@ -1,54 +1,67 @@
-"""pyna.topo._base -- Abstract base class for invariant objects.
+"""pyna.topo._base -- Base classes for invariant objects of dynamical systems.
 
 Extracted to a separate module to avoid circular imports between
 island_chain.py and invariant.py.
+
+Hierarchy
+---------
+InvariantSet           — root ABC for any invariant geometric object
+  InvariantManifold    — invariant set with a well-defined intrinsic dimension
+SectionCuttable        — mixin protocol for objects that can be sliced by a
+                         Poincaré section
+
+``InvariantObject`` is retained as a backward-compatible alias for
+``InvariantSet`` so that existing subclass declarations keep working.
 """
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from abc import ABC
+from typing import Any, Dict, Optional, Protocol, runtime_checkable
 
 
-class InvariantObject(ABC):
-    """Abstract mixin interface for invariant geometric objects of a dynamical system.
+# ─────────────────────────────────────────────────────────────────────────────
+# InvariantSet — root of the hierarchy
+# ─────────────────────────────────────────────────────────────────────────────
 
-    An invariant object O satisfies phi^t(O) <= O for all t (continuous flow)
-    or P(O) = O (discrete map).
+class InvariantSet(ABC):
+    """Abstract base for any invariant geometric object of a dynamical system.
 
-    Design: Pure interface -- no __init__, no state fields.
+    An invariant set *S* satisfies φ^t(S) ⊆ S for all t (continuous flow) or
+    P(S) = S (discrete map).
+
+    Design: Pure interface — no ``__init__``, no state fields.
     Concrete subclasses (including dataclasses) provide their own fields
-    and satisfy the interface via @property overrides.
+    and satisfy the interface via ``@property`` overrides.
 
-    Required interface (abstract):
-      .section_cut(section) -> list
-      .diagnostics()   -> dict
+    ``section_cut`` and ``diagnostics`` are **no longer abstract**.  Not every
+    invariant set can be meaningfully cut by a section (e.g. a KAM torus in a
+    6N-dim N-body phase space may have no natural Poincaré section).  Use the
+    :class:`SectionCuttable` mixin to mark objects that *can* be sectioned.
 
-    Optional interface (with sensible defaults):
+    Optional interface (all have sensible defaults):
       .label           @property -> str | None
-      .poincare_map    @property -> PoincareMap | None  (default: None)
-      .phase_space     @property -> PhaseSpace | None   (default: via poincare_map)
+      .ambient_dim     @property -> int | None
+      .poincare_map    @property -> PoincareMap | None
+      .phase_space     @property -> PhaseSpace | None
+      .diagnostics()   -> dict
+      .section_cut(s)  -> list     (raises NotImplementedError by default)
     """
 
-    # ── Abstract interface ────────────────────────────────────────────────────
-
-    @abstractmethod
-    def section_cut(self, section) -> list:
-        """Return the intersection of this object with a Poincare section."""
-
-    @abstractmethod
-    def diagnostics(self) -> Dict[str, Any]:
-        """Return a structured diagnostic/debug dict."""
-
-    # ── Optional interface (concrete defaults) ────────────────────────────────
+    # ── Optional concrete interface ───────────────────────────────────────────
 
     @property
     def label(self) -> Optional[str]:
-        """Human-readable identifier. Override in subclasses."""
+        """Human-readable identifier.  Override in subclasses."""
+        return None
+
+    @property
+    def ambient_dim(self) -> Optional[int]:
+        """Dimension of the ambient phase space (None if unknown)."""
         return None
 
     @property
     def poincare_map(self):
-        """The Poincare map this object lives in (PoincareMap | None)."""
+        """The Poincaré map this object lives in (PoincareMap | None)."""
         return None
 
     @property
@@ -59,5 +72,92 @@ class InvariantObject(ABC):
             return pm.phase_space
         return None
 
+    def diagnostics(self) -> Dict[str, Any]:
+        """Return a structured diagnostic / debug dict.
+
+        The default implementation returns a minimal dict with just the class
+        name.  Subclasses are encouraged to override and add domain-specific
+        information.
+        """
+        return {"invariant_type": self.__class__.__name__}
+
+    def section_cut(self, section=None) -> list:
+        """Return the intersection of this invariant with a Poincaré section.
+
+        Raises ``NotImplementedError`` by default.  Subclasses that support
+        sectioning should override (and ideally also derive from
+        :class:`SectionCuttable`).
+        """
+        raise NotImplementedError(
+            f"{self.__class__.__name__} does not support section_cut(). "
+            "Derive from SectionCuttable and override."
+        )
+
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(label={self.label!r})"
+
+
+# ── Backward-compatible alias ─────────────────────────────────────────────────
+InvariantObject = InvariantSet
+"""Backward-compatible alias.  Prefer ``InvariantSet`` in new code."""
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SectionCuttable — mixin protocol
+# ─────────────────────────────────────────────────────────────────────────────
+
+@runtime_checkable
+class SectionCuttable(Protocol):
+    """Protocol / mixin marking objects that can be sliced by a Poincaré section.
+
+    Any class that implements ``section_cut(section) -> list`` satisfies this
+    protocol.  It is deliberately **not** a subclass of InvariantSet so that
+    it can be mixed in freely (e.g. ``class Tube(InvariantSet, SectionCuttable)``).
+
+    Usage::
+
+        if isinstance(obj, SectionCuttable):
+            pts = obj.section_cut(my_section)
+    """
+
+    def section_cut(self, section=None) -> list: ...
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# InvariantManifold — intermediate layer with intrinsic dimension
+# ─────────────────────────────────────────────────────────────────────────────
+
+class InvariantManifold(InvariantSet):
+    """An invariant set with a well-defined intrinsic dimension.
+
+    ``InvariantManifold`` sits between the abstract :class:`InvariantSet` and
+    the concrete geometry types (``FixedPoint``, ``PeriodicOrbit``,
+    ``InvariantTorus``, ``StableManifold``, …).
+
+    The key additional concept is *intrinsic dimension*:
+
+    - ``FixedPoint``  →  intrinsic_dim = 0
+    - ``PeriodicOrbit`` / ``Cycle``  →  intrinsic_dim = 1
+    - ``InvariantTorus`` of order *k*  →  intrinsic_dim = k
+    - ``StableManifold`` of a hyperbolic orbit  →  intrinsic_dim = dim(E^s)
+
+    The codimension is ``ambient_dim - intrinsic_dim`` when ``ambient_dim`` is
+    known.
+
+    Subclasses must set *intrinsic_dim* (as a class attribute, ``__init__``
+    argument, or ``@property``).  The default is ``None`` (unknown).
+    """
+
+    @property
+    def intrinsic_dim(self) -> Optional[int]:
+        """Intrinsic dimension of the invariant manifold (None if unknown)."""
+        return None
+
+    @property
+    def codim(self) -> Optional[int]:
+        """Codimension = ambient_dim − intrinsic_dim (None if either is unknown)."""
+        a = self.ambient_dim
+        i = self.intrinsic_dim
+        if a is not None and i is not None:
+            return a - i
+        return None

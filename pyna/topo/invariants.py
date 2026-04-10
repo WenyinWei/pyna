@@ -1,10 +1,15 @@
-"""Skeleton of the new invariant-object class hierarchy.
+"""Skeleton of the invariant-object class hierarchy.
 
 Pure Python dataclasses — no cyna dependency.
 
-The canonical ``InvariantObject`` ABC lives in ``pyna.topo._base`` and requires
-subclasses to implement ``section_cut`` and ``diagnostics``.  All skeleton
-classes in this module provide concrete implementations of those two methods.
+The canonical base classes live in ``pyna.topo._base``:
+  - ``InvariantSet``      — root ABC (no abstract methods)
+  - ``InvariantManifold`` — intermediate, adds ``intrinsic_dim``
+  - ``SectionCuttable``   — mixin protocol for section-cut support
+  - ``InvariantObject``   — backward-compatible alias for ``InvariantSet``
+
+All skeleton classes in this module provide concrete ``section_cut()`` and
+``diagnostics()`` implementations for convenience.
 """
 
 from __future__ import annotations
@@ -16,8 +21,8 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, TypeVar
 
 import numpy as np
 
-# Use the single canonical InvariantObject from _base
-from pyna.topo._base import InvariantObject
+# Use the single canonical hierarchy from _base
+from pyna.topo._base import InvariantObject, InvariantSet, InvariantManifold, SectionCuttable
 
 if TYPE_CHECKING:
     pass
@@ -37,7 +42,7 @@ class Stability(Enum):
 
 @dataclass(eq=False)
 class MonodromyData:
-    DPm: np.ndarray          # 2×2 matrix
+    DPm: np.ndarray          # (d, d) monodromy matrix
     eigenvalues: np.ndarray  # eigenvalues of DPm
 
     @cached_property
@@ -62,45 +67,168 @@ class MonodromyData:
     def stability_index(self) -> float:
         return self.trace / 2.0
 
+    # ── Spectral regularity diagnostic ────────────────────────────────────────
+
+    def spectral_regularity(
+        self,
+        DPk_sequence: Optional[List[np.ndarray]] = None,
+        *,
+        k_max: Optional[int] = None,
+    ) -> float:
+        """Spectral regularity index: how close eigenvalues approach 1.
+
+        In a **regular** (KAM) region the eigenvalues of DP^k for k=1,…,m
+        approach 1 as k → m in a smooth, quasi-linear manner.  In a
+        **chaotic** region the eigenvalue moduli fluctuate erratically.
+
+        Parameters
+        ----------
+        DPk_sequence : list of ndarray, optional
+            [DP^1, DP^2, …, DP^m].  If provided, uses the full sequence.
+            If omitted, falls back to a single-matrix estimate from ``self.DPm``
+            (the full period-m matrix).
+        k_max : int, optional
+            Used when computing the single-matrix fallback: the number of
+            intermediate steps (default 1).
+
+        Returns
+        -------
+        float
+            The regularity index ∈ [0, ∞).  A value near 0 indicates a
+            regular orbit; larger values indicate chaos.
+
+            Defined as::
+
+                regularity = (1/m) Σ_{k=1}^{m} max_i |log|λ_i(DP^k)|| / (k/m)
+
+            When only ``DPm`` is available (no intermediate sequence), it
+            reduces to ``max_i |log|λ_i(DPm)||``, which is the largest
+            Lyapunov exponent over one full period.
+        """
+        if DPk_sequence is not None and len(DPk_sequence) > 0:
+            return _spectral_regularity_from_sequence(DPk_sequence)
+
+        # Fallback: single-matrix estimate from DPm
+        return _spectral_regularity_single(self.eigenvalues)
+
+
+# ---------------------------------------------------------------------------
+# Spectral regularity helper functions
+# ---------------------------------------------------------------------------
+
+def _spectral_regularity_single(eigenvalues: np.ndarray) -> float:
+    """Single-matrix regularity estimate: max |log|λ||.
+
+    For a perfectly regular orbit at the full period, all eigenvalues
+    lie on the unit circle (|λ|=1), giving regularity ≈ 0.
+    """
+    mods = np.abs(eigenvalues)
+    mods = np.where(mods < 1e-30, 1e-30, mods)  # protect log(0)
+    return float(np.max(np.abs(np.log(mods))))
+
+
+def _spectral_regularity_from_sequence(DPk_sequence: List[np.ndarray]) -> float:
+    r"""Regularity index from a sequence [DP^1, DP^2, …, DP^m].
+
+    Measures how smoothly eigenvalue moduli approach 1 as k → m.
+
+    Definition::
+
+        R = (1/m) Σ_{k=1}^{m} max_i |log|λ_i(DP^k)||
+
+    In a regular region each |λ_i| stays near 1 for all intermediate k,
+    so R ≈ 0.  In a chaotic region |λ_i| grows exponentially with k,
+    giving R ≫ 0.
+    """
+    m = len(DPk_sequence)
+    if m == 0:
+        return 0.0
+    total = 0.0
+    for DPk in DPk_sequence:
+        eigs = np.linalg.eigvals(DPk)
+        total += _spectral_regularity_single(eigs)
+    return total / m
+
 
 # ---------------------------------------------------------------------------
 # FixedPoint
 # ---------------------------------------------------------------------------
 
 @dataclass(eq=False)
-class FixedPoint(InvariantObject):
-    """A single Poincaré fixed point with full monodromy data.
+class FixedPoint(InvariantManifold):
+    """A fixed point of a Poincaré map (period-m orbit intersection).
+
+    ``FixedPoint`` is an :class:`InvariantManifold` with ``intrinsic_dim = 0``.
+    It generalises to arbitrary phase-space dimension via the ``coords`` field.
 
     Parameters
     ----------
     phi : float
-        Toroidal angle of the Poincaré section [rad].
+        Section angle (e.g. toroidal angle φ for MCF).  Stored also as
+        ``section_angle`` for domain-agnostic code.
     R, Z : float
-        Poloidal position [m].
-    DPm : ndarray (2, 2)
+        **MCF backward-compat** — poloidal position.  For a generic
+        dynamical system, use ``coords`` directly and leave ``R``/``Z`` at
+        their defaults (they are auto-filled from ``coords`` when possible).
+    DPm : ndarray (d, d)
         Monodromy matrix (period-m Jacobian of the Poincaré map).
     kind : str
         Stability type: ``'X'`` (hyperbolic) or ``'O'`` (elliptic).
-        Derived from ``DPm`` when not supplied.
-    DX_pol_accum : ndarray (2, 2) or None
-        Accumulated 2-D variational matrix along the orbit up to this
-        section.  Optional; used for monodromy-evolution diagnostics.
+        Auto-derived from ``DPm`` when empty.
+    DX_pol_accum : ndarray or None
+        Accumulated variational matrix up to this section.
     ambient_dim : int or None
-        Ambient phase-space dimension (optional metadata).
+        Ambient phase-space dimension.
+    coords : ndarray or None
+        Generic phase-space coordinates.  When ``None`` (default) it is
+        auto-constructed from ``(R, Z)`` for backward compatibility.
+    coordinate_names : tuple of str or None
+        Human-readable names for each coordinate axis, e.g.
+        ``('R', 'Z')`` or ``('q1', 'q2', 'q3', 'p1', 'p2', 'p3')``.
+    section_angle : float or None
+        Domain-agnostic alias for ``phi`` (the section parameter).
     """
-    phi: float
-    R: float
-    Z: float
-    DPm: np.ndarray
+    phi: float = 0.0
+    R: float = 0.0
+    Z: float = 0.0
+    DPm: np.ndarray = field(default_factory=lambda: np.eye(2))
     kind: str = ''                          # 'X' or 'O'; auto-derived when empty
     DX_pol_accum: Optional[np.ndarray] = None
     ambient_dim: Optional[int] = None
+    coords: Optional[np.ndarray] = field(default=None, repr=False)
+    coordinate_names: Optional[Tuple[str, ...]] = field(default=None, repr=False)
+    section_angle: Optional[float] = field(default=None, repr=False)
 
     def __post_init__(self):
-        # Auto-derive kind from DPm when not explicitly set
+        # --- Sync coords ↔ (R, Z) -----------------------------------------
+        if self.coords is None:
+            # Build coords from R, Z (MCF backward compat)
+            self.coords = np.array([self.R, self.Z], dtype=float)
+        else:
+            self.coords = np.asarray(self.coords, dtype=float)
+            # Back-fill R, Z from coords when they are at defaults
+            if len(self.coords) >= 2 and self.R == 0.0 and self.Z == 0.0:
+                self.R = float(self.coords[0])
+                self.Z = float(self.coords[1])
+
+        # --- Sync section_angle ↔ phi ------------------------------------
+        if self.section_angle is None:
+            self.section_angle = self.phi
+        elif self.phi == 0.0:
+            self.phi = self.section_angle
+
+        # --- Auto-derive kind from DPm -----------------------------------
         if not self.kind:
             tr = float(np.trace(self.DPm))
             self.kind = 'O' if abs(tr) < 2.0 - 1e-10 else 'X'
+
+    # ── InvariantManifold properties ──────────────────────────────────────────
+
+    @property
+    def intrinsic_dim(self) -> int:
+        return 0
+
+    # ── Monodromy helpers ────────────────────────────────────────────────────
 
     @cached_property
     def monodromy(self) -> MonodromyData:
@@ -119,38 +247,38 @@ class FixedPoint(InvariantObject):
     # ── Array-like interface (backward compat with ndarray O_point) ───────────
 
     def __getitem__(self, idx: int) -> float:
-        """fp[0] → R,  fp[1] → Z  (supports code that treats fp as a 2-vector)."""
-        if idx == 0:
-            return float(self.R)
-        if idx == 1:
-            return float(self.Z)
-        raise IndexError(f"FixedPoint index {idx} out of range (0=R, 1=Z)")
+        """fp[0] → coords[0],  fp[1] → coords[1], …  (treats fp as a vector)."""
+        return float(self.coords[idx])
 
     def __len__(self) -> int:
-        return 2
+        return len(self.coords)
 
     def __array__(self, dtype=None, copy=None) -> np.ndarray:
-        """np.asarray(fp) → array([R, Z])."""
-        arr = np.array([self.R, self.Z])
+        """np.asarray(fp) → coords array."""
+        arr = self.coords.copy()
         if dtype is not None:
             arr = arr.astype(dtype, copy=False)
         return arr
 
-    # ── InvariantObject interface ─────────────────────────────────────────────
+    # ── InvariantSet interface ────────────────────────────────────────────────
 
     def section_cut(self, section=None) -> list:
         """A FixedPoint is already a section-level object; return [self]."""
         return [self]
 
     def diagnostics(self) -> Dict[str, Any]:
-        return {
+        d: Dict[str, Any] = {
             'invariant_type': 'FixedPoint',
             'phi': self.phi,
-            'R': self.R,
-            'Z': self.Z,
             'kind': self.kind,
             'greene_residue': self.greene_residue,
+            'coords': self.coords.tolist(),
         }
+        # MCF convenience keys
+        if len(self.coords) >= 2:
+            d['R'] = float(self.coords[0])
+            d['Z'] = float(self.coords[1])
+        return d
 
 
 # ---------------------------------------------------------------------------
@@ -158,11 +286,16 @@ class FixedPoint(InvariantObject):
 # ---------------------------------------------------------------------------
 
 @dataclass(eq=False)
-class Cycle(InvariantObject):
+class Cycle(InvariantManifold):
     winding: Tuple[int, ...]
     sections: Dict = field(default_factory=dict)  # phi -> List[FixedPoint], ordered by flow
     monodromy: Optional[MonodromyData] = None
     ambient_dim: Optional[int] = None
+
+    @property
+    def intrinsic_dim(self) -> int:
+        """A cycle (periodic orbit) has intrinsic dimension 1."""
+        return 1
 
     @property
     def stability(self) -> Stability:
@@ -240,9 +373,14 @@ class Cycle(InvariantObject):
 # ---------------------------------------------------------------------------
 
 @dataclass(eq=False)
-class InvariantTorus(InvariantObject):
+class InvariantTorus(InvariantManifold):
     rotation_vector: Tuple[float, ...]
     ambient_dim: Optional[int] = None
+
+    @property
+    def intrinsic_dim(self) -> int:
+        """Torus dimension = number of independent rotation angles."""
+        return len(self.rotation_vector)
 
     def section_cut(self, section: Any = None) -> "InvariantTorus":
         rv = self.rotation_vector[:-1] if len(self.rotation_vector) > 1 else self.rotation_vector
@@ -254,6 +392,7 @@ class InvariantTorus(InvariantObject):
             'invariant_type': 'InvariantTorus',
             'rotation_vector': self.rotation_vector,
             'ambient_dim': self.ambient_dim,
+            'intrinsic_dim': self.intrinsic_dim,
         }
 
 
@@ -443,10 +582,22 @@ class IslandChain(InvariantObject):
 # ---------------------------------------------------------------------------
 
 @dataclass(eq=False)
-class StableManifold(InvariantObject):
+class StableManifold(InvariantManifold):
+    """Stable manifold of a hyperbolic cycle.
+
+    ``intrinsic_dim`` equals the number of stable eigenvalue directions.
+    """
     cycle: Cycle
     branches: List[Any] = field(default_factory=list)
     ambient_dim: Optional[int] = None
+
+    @property
+    def intrinsic_dim(self) -> Optional[int]:
+        """Number of stable eigenvalue directions (None if unknown)."""
+        if self.cycle.monodromy is None:
+            return None
+        eigs = self.cycle.monodromy.eigenvalues
+        return int(np.sum(np.abs(eigs) < 1.0 - 1e-10))
 
     def section_cut(self, section=None) -> list:
         """Return manifold branches (*section* is ignored; branches are pre-computed)."""
@@ -456,14 +607,27 @@ class StableManifold(InvariantObject):
         return {
             'invariant_type': 'StableManifold',
             'n_branches': len(self.branches),
+            'intrinsic_dim': self.intrinsic_dim,
         }
 
 
 @dataclass(eq=False)
-class UnstableManifold(InvariantObject):
+class UnstableManifold(InvariantManifold):
+    """Unstable manifold of a hyperbolic cycle.
+
+    ``intrinsic_dim`` equals the number of unstable eigenvalue directions.
+    """
     cycle: Cycle
     branches: List[Any] = field(default_factory=list)
     ambient_dim: Optional[int] = None
+
+    @property
+    def intrinsic_dim(self) -> Optional[int]:
+        """Number of unstable eigenvalue directions (None if unknown)."""
+        if self.cycle.monodromy is None:
+            return None
+        eigs = self.cycle.monodromy.eigenvalues
+        return int(np.sum(np.abs(eigs) > 1.0 + 1e-10))
 
     def section_cut(self, section=None) -> list:
         """Return manifold branches (*section* is ignored; branches are pre-computed)."""
@@ -473,6 +637,7 @@ class UnstableManifold(InvariantObject):
         return {
             'invariant_type': 'UnstableManifold',
             'n_branches': len(self.branches),
+            'intrinsic_dim': self.intrinsic_dim,
         }
 
 

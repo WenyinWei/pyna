@@ -26,7 +26,7 @@ from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 import numpy as np
 
 # InvariantObject lives in _base to avoid circular imports
-from pyna.topo._base import InvariantObject
+from pyna.topo._base import InvariantObject, InvariantSet, InvariantManifold, SectionCuttable
 
 
 if TYPE_CHECKING:
@@ -34,6 +34,9 @@ if TYPE_CHECKING:
 
 
 __all__ = [
+    "InvariantSet",
+    "InvariantManifold",
+    "SectionCuttable",
     "InvariantObject",
     "InvariantTorus",
 ]
