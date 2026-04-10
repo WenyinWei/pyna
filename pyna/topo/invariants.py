@@ -76,15 +76,38 @@ class InvariantObject(ABC):
 
 @dataclass(eq=False)
 class FixedPoint(InvariantObject):
+    """A single Poincaré fixed point with full monodromy data.
+
+    Parameters
+    ----------
+    phi : float
+        Toroidal angle of the Poincaré section [rad].
+    R, Z : float
+        Poloidal position [m].
+    DPm : ndarray (2, 2)
+        Monodromy matrix (period-m Jacobian of the Poincaré map).
+    kind : str
+        Stability type: ``'X'`` (hyperbolic) or ``'O'`` (elliptic).
+        Derived from ``DPm`` when not supplied.
+    DX_pol_accum : ndarray (2, 2) or None
+        Accumulated 2-D variational matrix along the orbit up to this
+        section.  Optional; used for monodromy-evolution diagnostics.
+    ambient_dim : int or None
+        Ambient phase-space dimension (optional metadata).
+    """
     phi: float
     R: float
     Z: float
     DPm: np.ndarray
+    kind: str = ''                          # 'X' or 'O'; auto-derived when empty
+    DX_pol_accum: Optional[np.ndarray] = None
     ambient_dim: Optional[int] = None
 
     def __post_init__(self):
-        # monodromy is lazily computed from DPm via the cached_property
-        pass
+        # Auto-derive kind from DPm when not explicitly set
+        if not self.kind:
+            tr = float(np.trace(self.DPm))
+            self.kind = 'O' if abs(tr) < 2.0 - 1e-10 else 'X'
 
     @cached_property
     def monodromy(self) -> MonodromyData:
@@ -94,6 +117,11 @@ class FixedPoint(InvariantObject):
     @property
     def stability(self) -> Stability:
         return self.monodromy.stability
+
+    @property
+    def greene_residue(self) -> float:
+        """Greene's residue = (2 - Tr(DPm)) / 4."""
+        return float((2.0 - np.trace(self.DPm)) / 4.0)
 
 
 # ---------------------------------------------------------------------------

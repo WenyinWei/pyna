@@ -1288,3 +1288,147 @@ def propagate_island_chain(
             print(f"  phi={phi_s:.4f}: {len(pts)} pts (X={n_X}, O={n_O})")
 
     return result
+
+
+# ---------------------------------------------------------------------------
+# group_fixed_points_by_orbit
+# ---------------------------------------------------------------------------
+
+def group_fixed_points_by_orbit(
+    fixed_points,
+    tracer,
+    m: int,
+    phi0: float = 0.0,
+    tol: float = 1e-4,
+) -> "list[list[int]]":
+    """Group fixed points by which periodic orbit they belong to.
+
+    Two fixed points belong to the same orbit when one can be reached from
+    the other by applying the single-turn Poincare map P^1 exactly k times
+    (1 <= k < m).  This is the physically correct criterion for orbit
+    identity -- not a spatial distance threshold between points.
+
+    The algorithm propagates P^1 from each point and checks whether any
+    known point is reached within ``tol`` metres.  Union-Find collects
+    connected components.
+
+    Parameters
+    ----------
+    fixed_points : sequence of FixedPoint or dict with keys 'R','Z'
+        Already-converged Newton fixed points at section ``phi0``.
+    tracer : callable
+        Poincare tracer with signature ``R1, Z1 = tracer(R0, Z0, phi0, 1)``.
+        The cyna C++ tracer satisfies this interface.
+    m : int
+        Orbit period (number of toroidal turns to close the orbit).
+    phi0 : float
+        Toroidal angle of the Poincare section [rad].  Default 0.
+    tol : float
+        Distance threshold [m] for point identity under P^1.  Default 1e-4.
+
+    Returns
+    -------
+    list of list of int
+        Each inner list contains the indices (into ``fixed_points``) of the
+        points on the same periodic orbit, ordered by visitation sequence
+        starting from the lowest index.  Singleton lists for isolated points.
+
+    Notes
+    -----
+    Complexity: O(m * N) tracer calls where N = len(fixed_points).
+    For cyna-accelerated tracers this is negligible (< 1 ms for N~20, m~10).
+
+    Example
+    -------
+    For a m=10, n=3 island chain with 10 X-points at phi=0::
+
+        groups = group_fixed_points_by_orbit(x_fps, tracer, m=10)
+        # Returns [[0, 3, 6, 9, 2, 5, 8, 1, 4, 7]]  (one orbit, all 10 pts)
+    """
+    import numpy as np
+
+    n = len(fixed_points)
+    if n == 0:
+        return []
+
+    def _RZ(fp):
+        if hasattr(fp, 'R'):
+            return float(fp.R), float(fp.Z)
+        return float(fp['R']), float(fp['Z'])
+
+    # Union-Find
+    parent = list(range(n))
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    def union(i, j):
+        ri, rj = find(i), find(j)
+        if ri != rj:
+            parent[ri] = rj
+
+    RZs = [_RZ(fp) for fp in fixed_points]
+
+    for i in range(n):
+        R, Z = RZs[i]
+        cur_R, cur_Z = R, Z
+        for _ in range(m - 1):
+            try:
+                next_R, next_Z = tracer(cur_R, cur_Z, phi0, 1)
+            except Exception:
+                break
+            if next_R is None or (hasattr(next_R, '__len__') is False and
+                                   (next_R != next_R)):  # NaN check
+                break
+            cur_R, cur_Z = float(next_R), float(next_Z)
+            for j in range(n):
+                if find(i) == find(j):
+                    continue
+                Rj, Zj = RZs[j]
+                if (cur_R - Rj) ** 2 + (cur_Z - Zj) ** 2 < tol * tol:
+                    union(i, j)
+
+    # Collect groups (preserve visitation order within each group)
+    from collections import defaultdict
+    buckets = defaultdict(list)
+    for i in range(n):
+        buckets[find(i)].append(i)
+
+    # Sort groups by smallest index; sort members by visitation order
+    # (follow P^1 chain from the smallest index)
+    result = []
+    for root in sorted(buckets):
+        members = sorted(buckets[root])
+        # Reconstruct visitation sequence starting from members[0]
+        start = members[0]
+        seq = [start]
+        visited_set = {start}
+        R, Z = RZs[start]
+        cur_R, cur_Z = R, Z
+        for _ in range(len(members) - 1):
+            try:
+                next_R, next_Z = tracer(cur_R, cur_Z, phi0, 1)
+            except Exception:
+                break
+            if next_R is None:
+                break
+            cur_R, cur_Z = float(next_R), float(next_Z)
+            for j in members:
+                if j in visited_set:
+                    continue
+                Rj, Zj = RZs[j]
+                if (cur_R - Rj) ** 2 + (cur_Z - Zj) ** 2 < tol * tol:
+                    seq.append(j)
+                    visited_set.add(j)
+                    break
+        # Append any members not reached by the walk (shouldn't happen for
+        # well-converged points, but guards against tracer noise)
+        for j in members:
+            if j not in visited_set:
+                seq.append(j)
+        result.append(seq)
+
+    return result

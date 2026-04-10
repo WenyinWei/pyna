@@ -16,6 +16,7 @@ def _fp(phi: float, kind: str) -> ChainFixedPoint:
         R=1.0 + 0.1 * np.cos(phi),
         Z=0.1 * np.sin(phi),
         DPm=dpm,
+        kind=kind,
         DX_pol_accum=np.eye(2),
     )
 

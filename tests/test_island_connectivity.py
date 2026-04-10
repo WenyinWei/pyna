@@ -90,7 +90,8 @@ class TestIslandChainOrbitConnectivity:
     def test_generic_6_4_visit_sequence(self):
         orbit = make_orbit(m=6, n=4)
         seq = orbit.visit_sequence()
-        assert seq == [[0, 2, 4], [1, 3, 5]]
+        # step = n%m = 4; orbit 0: 0→4→2, orbit 1: 1→5→3
+        assert seq == [[0, 4, 2], [1, 5, 3]]
 
     def test_generic_6_4_is_connected(self):
         orbit = make_orbit(m=6, n=4)

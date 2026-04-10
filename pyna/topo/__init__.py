@@ -17,6 +17,7 @@ from pyna.topo.fixed_points import (
     find_magnetic_axis,
     find_fixed_point_newton,
     refine_fixed_points_from_pkl,
+    group_fixed_points_by_orbit,
 )
 from pyna.topo.island import Island, IslandChain, ChainRole
 from pyna.topo.flux_surface import FluxSurface, FluxSurfaceMap, XPointOrbit
@@ -32,7 +33,7 @@ from pyna.topo.monodromy import (
 )
 from pyna.topo.identity import ResonanceID, TubeID, IslandID
 from pyna.topo.section_view import SectionViewPoint, SectionCorrespondence, SectionView, SectionViewBuilder
-from pyna.topo.tube import TubeCutPoint, Tube, TubeChain
+from pyna.topo.tube import TubeCutPoint, Tube, TubeChain, ResonanceStructure
 from pyna.plot.island import plot_island, island_section_points
 from pyna.plot.island_chain import plot_island_chain, island_chain_section_points
 from pyna.topo.fast_metrics import (
@@ -95,6 +96,7 @@ __all__ = [
     "find_periodic_orbit",
     "classify_fixed_point",
     "classify_fixed_point_higher_order",
+    "group_fixed_points_by_orbit",
     # island topology
     "Island",
     "IslandChain",
@@ -127,6 +129,7 @@ __all__ = [
     "TubeCutPoint",
     "Tube",
     "TubeChain",
+    "ResonanceStructure",
     "Cycle",
     # generic island / island-chain plotting
     "plot_island",

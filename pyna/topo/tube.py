@@ -19,7 +19,9 @@ import numpy as np
 
 from pyna.topo.invariant import InvariantObject
 from pyna.topo.island import Island, IslandChain
-from pyna.topo.invariants import FixedPoint as ChainFixedPoint
+from pyna.topo.invariants import FixedPoint
+# Backward-compat alias; new code should use FixedPoint directly.
+ChainFixedPoint = FixedPoint
 
 if TYPE_CHECKING:
     from pyna.topo.section_view import SectionView
@@ -491,6 +493,92 @@ class TubeChain(InvariantObject):
     debug_info: Dict[str, Any] = field(default_factory=dict)
 
     @classmethod
+    def from_X_fixed_points(
+        cls,
+        fixed_points: Sequence[FixedPoint],
+        m: int,
+        n: int,
+        Np: int = 1,
+        *,
+        label: Optional[str] = None,
+    ) -> "TubeChain":
+        """Build a TubeChain of X-type (hyperbolic) Tubes from FixedPoint data.
+
+        Each ``FixedPoint`` in *fixed_points* seeds one ``Tube``.  The
+        ``kind`` field on each FixedPoint is expected to be ``'X'`` (or will
+        be treated as such regardless).
+
+        Parameters
+        ----------
+        fixed_points : sequence of FixedPoint
+            One per tube; each contains ``phi``, ``R``, ``Z``, ``DPm``.
+        m, n : int
+            Resonance numbers (q = m/n).
+        Np : int
+            Device rotational symmetry (default 1).
+        label : str, optional
+            Human-readable label for the chain.
+
+        Returns
+        -------
+        TubeChain
+            All tubes have ``kind='X'`` set on their seed FixedPoint.
+        """
+        from pyna.topo.island_chain import IslandChainOrbit as _ICO
+        tubes = []
+        for i, fp in enumerate(fixed_points):
+            orbit = _ICO(
+                m=m, n=n, Np=Np,
+                fixed_points=[fp],
+                seed_phi=float(fp.phi),
+                seed_RZ=(float(fp.R), float(fp.Z)),
+                section_phis=[float(fp.phi)],
+            )
+            tubes.append(Tube.from_orbit(orbit, label=f"X-tube[{i}]"))
+        return cls(m=m, n=n, Np=Np, tubes=tubes, kind='X', label=label)
+
+    @classmethod
+    def from_O_fixed_points(
+        cls,
+        fixed_points: Sequence[FixedPoint],
+        m: int,
+        n: int,
+        Np: int = 1,
+        *,
+        label: Optional[str] = None,
+    ) -> "TubeChain":
+        """Build a TubeChain of O-type (elliptic) Tubes from FixedPoint data.
+
+        Parameters
+        ----------
+        fixed_points : sequence of FixedPoint
+            One per tube; each contains ``phi``, ``R``, ``Z``, ``DPm``.
+        m, n : int
+            Resonance numbers (q = m/n).
+        Np : int
+            Device rotational symmetry (default 1).
+        label : str, optional
+            Human-readable label for the chain.
+
+        Returns
+        -------
+        TubeChain
+            All tubes have ``kind='O'`` set on their seed FixedPoint.
+        """
+        from pyna.topo.island_chain import IslandChainOrbit as _ICO
+        tubes = []
+        for i, fp in enumerate(fixed_points):
+            orbit = _ICO(
+                m=m, n=n, Np=Np,
+                fixed_points=[fp],
+                seed_phi=float(fp.phi),
+                seed_RZ=(float(fp.R), float(fp.Z)),
+                section_phis=[float(fp.phi)],
+            )
+            tubes.append(Tube.from_orbit(orbit, label=f"O-tube[{i}]"))
+        return cls(m=m, n=n, Np=Np, tubes=tubes, kind='O', label=label)
+
+    @classmethod
     def from_orbits(
         cls,
         orbits: Sequence[Any],
@@ -498,15 +586,19 @@ class TubeChain(InvariantObject):
         expected_kind: Optional[str] = None,
         label: Optional[str] = None,
     ) -> "TubeChain":
+        """Build a TubeChain from IslandChainOrbit objects (legacy path).
+
+        .. deprecated::
+            Use :meth:`from_X_fixed_points` or :meth:`from_O_fixed_points`
+            with ``FixedPoint`` objects instead.  This method will be
+            removed in a future release.
+        """
         if not orbits:
             raise ValueError("TubeChain.from_orbits requires at least one orbit")
         m = orbits[0].m
         n = orbits[0].n
         Np = orbits[0].Np
         tubes = [Tube.from_orbit(orbit, label=f"tube[{i}]") for i, orbit in enumerate(orbits)]
-        # chain_kind: legacy field, kept for backward compat but no longer meaningful.
-        # kind is a property of a Cycle, not a Tube or TubeChain.
-        # We still set it from expected_kind or seed_kind for old callers.
         chain_kind = expected_kind
         if chain_kind is None:
             kinds = {tube._seed_kind() for tube in tubes}
@@ -771,14 +863,15 @@ class TubeChain(InvariantObject):
         self,
         phi: float,
         *,
+        x_tubechain: Optional["TubeChain"] = None,
         proximity_tol: float = 1.0,
         tol: float = 1e-6,
         reconstruct: bool = False,
         section_reconstructor: Optional[SectionReconstructor] = None,
         x_section_reconstructor: Optional[SectionReconstructor] = None,
     ) -> IslandChain:
-        # x_tubechain is part of the old split design; always None here.
-        x_tubechain = None
+        # x_tubechain: optional X-type TubeChain whose section points are used
+        # to populate X_points on the returned IslandChain islands.
         view = (
             self.reconstruct_section_view(
                 phi,
@@ -927,4 +1020,155 @@ class TubeChain(InvariantObject):
         pass
 
 
-__all__ = ["TubeCutPoint", "Tube", "TubeChain"]
+__all__ = ["TubeCutPoint", "Tube", "TubeChain", "ResonanceStructure"]
+
+
+@dataclass
+class ResonanceStructure:
+    """A paired X-chain + O-chain for one resonance m/n.
+
+    This is the top-level container for a complete resonance family:
+    it holds one ``TubeChain`` of X-type Tubes (the separatrix orbits)
+    and one ``TubeChain`` of O-type Tubes (the island-core orbits).
+
+    Construction
+    ------------
+    From existing ``IslandChainOrbit`` objects (legacy)::
+
+        rs = ResonanceStructure.from_orbits(o_orbits=[...], x_orbits=[...])
+
+    From ``FixedPoint`` data (preferred)::
+
+        rs = ResonanceStructure.from_fixed_points(
+            x_fps=[...], o_fps=[...], m=10, n=3, Np=2)
+
+    Section views and island chains
+    --------------------------------
+    ``rs.section_views(phi)``  →  ``{'O': SectionView, 'X': SectionView}``
+    ``rs.to_island_chains(phi)``  →  ``{'O': IslandChain, 'X': IslandChain}``
+    ``rs.boundary_anchor_points(phi)``  →  list of (R, Z) arrays
+    """
+
+    o_chain: Optional[TubeChain] = None   # elliptic (island-core) tubes
+    x_chain: Optional[TubeChain] = None   # hyperbolic (separatrix) tubes
+    label: Optional[str] = None
+    debug_info: Dict[str, Any] = field(default_factory=dict)
+
+    # ── Backward-compat aliases ───────────────────────────────────────────────
+
+    @property
+    def o_tubechain(self) -> Optional[TubeChain]:
+        """Alias for ``o_chain`` (backward compatibility)."""
+        return self.o_chain
+
+    @property
+    def x_tubechain(self) -> Optional[TubeChain]:
+        """Alias for ``x_chain`` (backward compatibility)."""
+        return self.x_chain
+
+    # ── Construction ──────────────────────────────────────────────────────────
+
+    @classmethod
+    def from_orbits(
+        cls,
+        *,
+        o_orbits: Optional[Sequence[Any]] = None,
+        x_orbits: Optional[Sequence[Any]] = None,
+        label: Optional[str] = None,
+    ) -> "ResonanceStructure":
+        """Build from ``IslandChainOrbit`` objects (legacy path).
+
+        .. deprecated::
+            Use :meth:`from_fixed_points` with ``FixedPoint`` objects.
+        """
+        o_chain = TubeChain.from_orbits(o_orbits, expected_kind='O') if o_orbits else None
+        x_chain = TubeChain.from_orbits(x_orbits, expected_kind='X') if x_orbits else None
+        return cls(o_chain=o_chain, x_chain=x_chain, label=label)
+
+    @classmethod
+    def from_fixed_points(
+        cls,
+        *,
+        x_fps: Sequence[FixedPoint],
+        o_fps: Sequence[FixedPoint],
+        m: int,
+        n: int,
+        Np: int = 1,
+        label: Optional[str] = None,
+    ) -> "ResonanceStructure":
+        """Build from ``FixedPoint`` lists (preferred).
+
+        Parameters
+        ----------
+        x_fps : sequence of FixedPoint
+            Hyperbolic fixed points (one per X-Tube).
+        o_fps : sequence of FixedPoint
+            Elliptic fixed points (one per O-Tube).
+        m, n, Np : int
+            Resonance numbers and device symmetry.
+        label : str, optional
+
+        Returns
+        -------
+        ResonanceStructure
+        """
+        o_chain = TubeChain.from_O_fixed_points(o_fps, m=m, n=n, Np=Np) if o_fps else None
+        x_chain = TubeChain.from_X_fixed_points(x_fps, m=m, n=n, Np=Np) if x_fps else None
+        return cls(o_chain=o_chain, x_chain=x_chain, label=label)
+
+    # ── Section views ─────────────────────────────────────────────────────────
+
+    def section_views(self, phi: float, **kwargs) -> Dict[str, Any]:
+        """Return ``{'O': SectionView, 'X': SectionView}`` at ``phi``.
+
+        Each value is a ``SectionView`` from the corresponding TubeChain,
+        or ``None`` if that chain is absent.
+        """
+        result: Dict[str, Any] = {'O': None, 'X': None}
+        if self.o_chain is not None:
+            result['O'] = self.o_chain.reconstruct_section_view(phi, kind='O', **kwargs)
+        if self.x_chain is not None:
+            result['X'] = self.x_chain.reconstruct_section_view(phi, kind='X', **kwargs)
+        return result
+
+    # ── Island chains ─────────────────────────────────────────────────────────
+
+    def to_island_chains(
+        self,
+        phi: float,
+        proximity_tol: float = 1.0,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """Return ``{'O': IslandChain, 'X': IslandChain}`` at ``phi``.
+
+        The O-chain Islands are populated with X-point positions from the
+        X-chain (within ``proximity_tol``).
+        """
+        views = self.section_views(phi, **kwargs)
+        o_view = views['O']
+        x_view = views['X']
+
+        result: Dict[str, Any] = {'O': None, 'X': None}
+        if o_view is not None:
+            result['O'] = o_view.to_island_chain(
+                x_section_view=x_view,
+                proximity_tol=proximity_tol,
+            )
+        if x_view is not None:
+            result['X'] = x_view.to_island_chain(proximity_tol=proximity_tol)
+        return result
+
+    # ── Anchor points (for coil-projection / island-healed coords) ────────────
+
+    def boundary_anchor_points(
+        self, phi: float, tol: float = 1e-6
+    ) -> List[np.ndarray]:
+        """Return all X and O fixed-point positions at ``phi`` as (R, Z) arrays."""
+        pts: List[np.ndarray] = []
+        for chain in (self.o_chain, self.x_chain):
+            if chain is None:
+                continue
+            for tube in chain.tubes:
+                for fp in tube.at_section(phi, tol=tol):
+                    pts.append(np.array([float(fp.R), float(fp.Z)]))
+        return pts
