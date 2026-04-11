@@ -20,11 +20,11 @@ py -3 -c "
 import sys, importlib; sys.path.insert(0, '.')
 mods = [
     'pyna', 'pyna.topo.manifold', 'pyna.diff.cycle',
-    'pyna.MCF.visual.tokamak_manifold', 'pyna.MCF.control.island_control',
+    'pyna.toroidal.visual.tokamak_manifold', 'pyna.toroidal.control.island_control',
     'pyna.topo.poincare', 'pyna.toroidal.equilibrium.stellarator',
-    'pyna.MCF.coils.coil_system', 'pyna.topo.toroidal_cycle',
+    'pyna.toroidal.coils.coil_system', 'pyna.topo.toroidal_cycle',
     'pyna.topo.variational', 'pyna.topo.manifold_improve',
-    'pyna.MCF.control.gap_response', 'pyna.topo.chaos',
+    'pyna.toroidal.control.gap_response', 'pyna.topo.chaos',
 ]
 ok = True
 for m in mods:

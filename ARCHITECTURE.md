@@ -278,11 +278,13 @@ See `pyna/control/README.md` for theory background and usage examples.
 
 ---
 
-## §7  `pyna.MCF` �?Magnetic Confinement Fusion
+## §7  `pyna.toroidal` / legacy `pyna.MCF`
 
-MCF-specific physics is grouped under `pyna.MCF`.
+Toroidal / magnetic-geometry physics now lives canonically under
+`pyna.toroidal`. The historical `pyna.MCF` tree remains as a compatibility
+facade for older scripts and notebooks.
 
-### `MCF/equilibrium/`
+### `toroidal/equilibrium/` (legacy `MCF/equilibrium/`)
 
 | Module | Key classes / functions |
 |--------|------------------------|
@@ -293,7 +295,7 @@ MCF-specific physics is grouped under `pyna.MCF`.
 | `feedback_boozer.py` | `BoozerSurface`, `BoozerPerturbation`, `MHD_response_operator`, `compute_boozer_response` |
 | `feedback_cylindrical.py` | `CylindricalGrid`, `PerturbationField`, `PlasmaResponse`, `compute_plasma_response`, `feedback_correction_field`, `iterative_equilibrium_correction` |
 
-### `MCF/coils/`
+### `toroidal/coils/` (legacy `MCF/coils/`)
 
 | Module | Contents |
 |--------|----------|
@@ -304,33 +306,33 @@ MCF-specific physics is grouped under `pyna.MCF`.
 | `vector_potential.py` | Vector potential computation for coil fields |
 | `field.py` | Thin canonical re-export layer |
 
-### `MCF/coords/`
+### `toroidal/coords/` (legacy `MCF/coords/`)
 
 Flux-surface coordinate systems (PEST, Boozer, Hamada, EqualArc).
-See `MCF/coords/` for details.
+See `toroidal/coords/` for details.
 
-### `MCF/plasma_response/`
+### `toroidal/plasma_response/` (legacy `MCF/plasma_response/`)
 
 Linear MHD plasma response via perturbed Grad-Shafranov equation
 (`PerturbGS.py`).
 
-### `MCF/control/`
+### `toroidal/control/` (legacy `MCF/control/`)
 
-MCF-specific control modules (gap response, island control, q-profile response).
+Toroidal control modules (gap response, island control, q-profile response).
 
-### `MCF/diagnostics/`
+### `toroidal/diagnostics/` (legacy `MCF/diagnostics/`)
 
 `field_line_length`, `field_line_endpoints`, `field_line_min_psi`.
 
-### `MCF/optimize/`
+### `toroidal/optimize/` (legacy `MCF/optimize/`)
 
 Stellarator optimisation objectives:
 `neoclassical_epsilon_eff`, `xpoint_field_parallelism`, `magnetic_axis_position`,
 `wall_clearance`, `compute_all_objectives`.
 
-### `MCF/visual/`
+### `toroidal/visual/` (legacy `MCF/visual/`)
 
-MCF-specific plotting: RMP spectrum, equilibrium cross-sections, tokamak manifolds.
+Toroidal plotting: RMP spectrum, equilibrium cross-sections, tokamak manifolds.
 
 ---
 
@@ -343,7 +345,7 @@ Three top-level packages are thin re-export layers for legacy code.
 |------|-----------|
 | `pyna.mag` | `pyna.toroidal.*` |
 | `pyna.coord` | `pyna.toroidal.coords` |
-| `pyna.plasma_response` | `pyna.MCF.plasma_response` |
+| `pyna.plasma_response` | `pyna.toroidal.plasma_response` |
 
 ---
 

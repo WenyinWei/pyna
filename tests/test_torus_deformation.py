@@ -1,4 +1,4 @@
-"""Tests for pyna.MCF.torus_deformation — non-resonant torus deformation theory.
+"""Tests for pyna.toroidal.torus_deformation — non-resonant torus deformation theory.
 
 Tests cover every public function and verify known analytic limits:
 

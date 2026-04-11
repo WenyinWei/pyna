@@ -48,10 +48,12 @@ discrete section points.
 .. code-block:: python
 
    from pyna.flt import FieldLineTracer, get_backend
-   from pyna.topo.poincare import PoincareAccumulator, PoincareToroidalSection, poincare_from_fieldlines
+   from pyna.topo.poincare import PoincareAccumulator, poincare_from_fieldlines
+   from pyna.topo.section import ToroidalSection
 
-   # Crossing accumulation uses explicit toroidal sections.
-   section = PoincareToroidalSection(0.0)
+   # Use the canonical topology section type; ``pyna.topo.poincare`` keeps
+   # backward-compatible aliases for accumulator-only workflows.
+   section = ToroidalSection(0.0)
 
    # --- define the ODE right-hand side: dR/dφ, dZ/dφ ---
    def field_rhs(phi, RZ):

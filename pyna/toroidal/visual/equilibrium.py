@@ -70,7 +70,8 @@ def plot_nested_flux_surfaces(
 def _plot_stellarator_poincare(eq, ax, n_fieldlines=20, n_turns=200,
                                 cmap='magma', show_colorbar=True):
     """Draw Poincaré scatter for a StellaratorSimple."""
-    from pyna.topo.poincare import poincare_from_fieldlines, ToroidalSection
+    from pyna.topo.poincare import poincare_from_fieldlines
+    from pyna.topo.section import ToroidalSection
 
     R0 = eq.R0
     r0 = eq.r0
