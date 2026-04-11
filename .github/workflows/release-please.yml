@@ -1,0 +1,28 @@
+name: Release Please
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          release-type: python
+          # release-please reads version from pyproject.toml [project].version
+          # and updates it automatically based on conventional commits:
+          #   feat:           → minor bump  (0.4.x → 0.5.0)
+          #   fix/refactor/
+          #   perf/build/ci/
+          #   chore/docs:     → patch bump  (0.4.1 → 0.4.2)
+          #   feat!: or
+          #   BREAKING CHANGE → major bump  (0.4.x → 1.0.0)
+          # On merge of the Release PR, it creates a vX.Y.Z tag which
+          # triggers wheels.yml to build and publish to PyPI.

@@ -8,7 +8,7 @@ mag      : Magnetic equilibrium, RMP analysis (tokamak/stellarator)
 topo     : Topological analysis (Poincaré maps, island chains)
 coord    : Magnetic coordinate systems (PEST, Boozer)
 """
-__version__ = "0.1.0"
+__version__ = "0.4.1"
 
 from pyna import field_data
 from pyna import vector_calc
