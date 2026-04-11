@@ -10,7 +10,7 @@ InvariantSet           — root ABC for any invariant geometric object
 SectionCuttable        — mixin protocol for objects that can be sliced by a
                          Poincaré section
 
-``InvariantObject`` is retained as a backward-compatible alias for
+``InvariantSet`` is retained as a backward-compatible alias for
 ``InvariantSet`` so that existing subclass declarations keep working.
 """
 from __future__ import annotations
@@ -98,7 +98,7 @@ class InvariantSet(ABC):
 
 
 # ── Backward-compatible alias ─────────────────────────────────────────────────
-InvariantObject = InvariantSet
+InvariantSet = InvariantSet
 """Backward-compatible alias.  Prefer ``InvariantSet`` in new code."""
 
 
@@ -137,7 +137,8 @@ class InvariantManifold(InvariantSet):
     The key additional concept is *intrinsic dimension*:
 
     - ``FixedPoint``  →  intrinsic_dim = 0
-    - ``PeriodicOrbit`` / ``Cycle``  →  intrinsic_dim = 1
+    - ``Orbit`` / ``PeriodicOrbit``  →  intrinsic_dim = 0  (finite set of map points)
+    - ``Trajectory`` / ``Cycle``  →  intrinsic_dim = 1  (continuous curve)
     - ``InvariantTorus`` of order *k*  →  intrinsic_dim = k
     - ``StableManifold`` of a hyperbolic orbit  →  intrinsic_dim = dim(E^s)
 
@@ -161,3 +162,62 @@ class InvariantManifold(InvariantSet):
         if a is not None and i is not None:
             return a - i
         return None
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Trajectory — continuous-time solution curve
+# ─────────────────────────────────────────────────────────────────────────────
+
+class Trajectory(InvariantManifold):
+    """A continuous-time trajectory: a 1-D solution curve in phase space.
+
+    A ``Trajectory`` is the image of a time-parametrised solution
+    ``t ↦ φ^t(x₀)`` of a continuous-flow ODE.  It can be:
+
+    - **Open** (finite-time integration, e.g. a field line between walls)
+    - **Closed** (periodic orbit of the flow, a.k.a. :class:`Cycle`)
+
+    Concrete subtypes
+    -----------------
+    - :class:`~pyna.topo.trajectory3d.Trajectory3D`
+      — Generic 3-D trajectory stored as (param, coords) arrays.
+      - :class:`~pyna.topo.trajectory3d.Trajectory3DToroidal`
+        — Toroidal variant stored as (R, Z, phi) arrays.
+    - :class:`~pyna.topo.invariants.Cycle`
+      — Closed periodic orbit of a continuous flow, stored as a dict of
+      Poincaré-section crossing lists plus an optional 3-D trajectory.
+
+    ``intrinsic_dim = 1`` (a curve).
+    """
+
+    @property
+    def intrinsic_dim(self) -> int:
+        return 1
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Orbit — periodic orbit of a discrete map
+# ─────────────────────────────────────────────────────────────────────────────
+
+class Orbit(InvariantManifold):
+    """A periodic orbit of a **discrete map**: a finite set of phase-space points.
+
+    Mathematically, an *m*-periodic orbit is a set ``{x₁, …, xₘ}`` satisfying
+    ``P(xₖ) = xₖ₊₁`` (indices mod m) and ``P^m(xₖ) = xₖ`` for the map *P*.
+
+    An ``Orbit`` is fundamentally different from a :class:`Trajectory`:
+
+    - ``Trajectory`` — solution of a *continuous* ODE (a curve, dim=1)
+    - ``Orbit``      — fixed-point set of a *discrete* map (finite points, dim=0)
+
+    Concrete subtype
+    ----------------
+    - :class:`~pyna.topo.invariants.PeriodicOrbit`
+      — Stores ``m`` :class:`FixedPoint` objects, one per map iteration.
+
+    ``intrinsic_dim = 0`` (a finite set of isolated points in the section).
+    """
+
+    @property
+    def intrinsic_dim(self) -> int:
+        return 0

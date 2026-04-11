@@ -1,6 +1,13 @@
 """pyna.topo �?topology analysis subpackage."""
 
-from pyna.topo.trajectory3d import ToroidalTrajectory3D, trace_toroidal_trajectory
+from pyna.topo._base import (
+    InvariantSet, InvariantSet, InvariantManifold, SectionCuttable,
+    Trajectory, Orbit,
+)
+from pyna.topo.trajectory3d import (
+    Trajectory3D, Trajectory3DToroidal, Trajectory3DToroidal,
+    trace_toroidal_trajectory,
+)
 
 from pyna.topo.variational import PoincareMapVariationalEquations
 from pyna.topo.manifold_improve import StableManifold, UnstableManifold, ScipyStableManifold, ScipyUnstableManifold, CynaStableManifold, CynaUnstableManifold
@@ -74,7 +81,7 @@ from pyna.topo._base import (
     InvariantSet,
     InvariantManifold,
     SectionCuttable,
-    InvariantObject,       # backward-compatible alias for InvariantSet
+    InvariantSet,       # backward-compatible alias for InvariantSet
 )
 from pyna.topo.invariant import (
     InvariantTorus,
@@ -87,8 +94,17 @@ from pyna.topo.section import (
 # Layer 2: Resonance
 from pyna.topo.resonance import ResonanceNumber
 __all__ = [
+    # Base hierarchy
+    "InvariantSet",
+    "InvariantSet",       # backward-compat alias
+    "InvariantManifold",
+    "SectionCuttable",
+    "Trajectory",            # continuous-flow curve (intrinsic_dim=1)
+    "Orbit",                 # discrete-map periodic orbit (intrinsic_dim=0)
     # 3D trajectories (continuous flow)
-    "ToroidalTrajectory3D",
+    "Trajectory3D",
+    "Trajectory3DToroidal",
+    "Trajectory3DToroidal",  # backward-compat alias
     "trace_toroidal_trajectory",
     "PoincareMapVariationalEquations",
     "StableManifold",
@@ -180,11 +196,11 @@ __all__ = [
     "PoincareMap",
     "MCFPoincareMap",
     "GeneralPoincareMap",
-    # InvariantObject layer
+    # InvariantSet layer
     "InvariantSet",
     "InvariantManifold",
     "SectionCuttable",
-    "InvariantObject",
+    "InvariantSet",
     "InvariantTorus",
     # Sections
     "Section",

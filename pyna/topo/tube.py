@@ -32,7 +32,7 @@ import warnings
 
 import numpy as np
 
-from pyna.topo.invariant import InvariantObject
+from pyna.topo.invariant import InvariantSet
 from pyna.topo.island import Island, IslandChain
 from pyna.topo.invariants import Cycle, FixedPoint, MonodromyData, PeriodicOrbit
 
@@ -78,7 +78,7 @@ class TubeCutPoint:
 # ---------------------------------------------------------------------------
 
 @dataclass
-class Tube(InvariantObject):
+class Tube(InvariantSet):
     """One magnetic island: a nested family of invariant tori.
 
     Skeleton
@@ -451,7 +451,7 @@ class Tube(InvariantObject):
 # ---------------------------------------------------------------------------
 
 @dataclass
-class TubeChain(InvariantObject):
+class TubeChain(InvariantSet):
     """Resonance family: all Tubes sharing one rational surface q = m/n.
 
     Each ``Tube`` in ``tubes`` represents one independent periodic orbit

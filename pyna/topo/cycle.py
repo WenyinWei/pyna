@@ -74,7 +74,7 @@ class PeriodicOrbit:
         """'O' if elliptic (stable), 'X' if hyperbolic."""
         return 'O' if self.is_stable else 'X'
 
-    # ── InvariantObject-style interface ───────────────────────────────────────
+    # ── InvariantSet-style interface ───────────────────────────────────────
 
     def section_cut(self, section) -> list:
         """Return the point(s) at which this orbit crosses a Poincaré section.

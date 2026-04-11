@@ -28,7 +28,7 @@ from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 import numpy as np
 from scipy.interpolate import UnivariateSpline, interp1d
 
-from pyna.topo.invariant import InvariantObject
+from pyna.topo.invariant import InvariantSet
 from pyna.topo.invariants import FixedPoint, PeriodicOrbit
 from pyna.topo.invariant_torus import InvariantTorus, _ToriMixin
 
@@ -52,7 +52,7 @@ class ChainRole(enum.Enum):
 # ---------------------------------------------------------------------------
 
 @dataclass(eq=False)
-class Island(_ToriMixin, InvariantObject):
+class Island(_ToriMixin, InvariantSet):
     """A single magnetic island centred on one elliptic periodic orbit.
 
     An Island is a first-class invariant structure of a discrete map.
@@ -165,7 +165,7 @@ class Island(_ToriMixin, InvariantObject):
     def phi(self) -> float:
         return self.O_point.phi
 
-    # ── InvariantObject interface ─────────────────────────────────────────────
+    # ── InvariantSet interface ─────────────────────────────────────────────
 
     def section_cut(self, section) -> list:
         """Return [self] — an Island is already a map-level object."""
@@ -189,7 +189,7 @@ class Island(_ToriMixin, InvariantObject):
 # ---------------------------------------------------------------------------
 
 @dataclass(eq=False)
-class IslandChain(InvariantObject):
+class IslandChain(InvariantSet):
     """A chain of magnetic islands sharing the same q = m/n rational surface.
 
     Parameters
@@ -328,7 +328,7 @@ class IslandChain(InvariantObject):
                 f"islands for m/n={self.m}/{self.n}, found {self.n_islands}."
             )
 
-    # ── InvariantObject interface ─────────────────────────────────────────────
+    # ── InvariantSet interface ─────────────────────────────────────────────
 
     def section_cut(self, section) -> list:
         """Return the list of Islands (already section-level objects)."""

@@ -1,4 +1,4 @@
-"""pyna.topo.invariant -- InvariantObject class hierarchy.
+"""pyna.topo.invariant -- InvariantSet class hierarchy.
 
 Defines the formal abstract layer for invariant geometric objects of a
 dynamical system (continuous or discrete).  This is Layer 1 in the pyna
@@ -7,7 +7,7 @@ DynamicalSystem) and below the application-level topology analysis.
 
 Class hierarchy
 ---------------
-InvariantObject (ABC)           [pyna.topo._base]
+InvariantSet (ABC)           [pyna.topo._base]
     InvariantTorus         -- KAM torus (non-resonant invariant surface)
 
 Note
@@ -25,8 +25,8 @@ from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 
-# InvariantObject lives in _base to avoid circular imports
-from pyna.topo._base import InvariantObject, InvariantSet, InvariantManifold, SectionCuttable
+# InvariantSet lives in _base to avoid circular imports
+from pyna.topo._base import InvariantSet, InvariantSet, InvariantManifold, SectionCuttable
 
 
 if TYPE_CHECKING:
@@ -37,7 +37,7 @@ __all__ = [
     "InvariantSet",
     "InvariantManifold",
     "SectionCuttable",
-    "InvariantObject",
+    "InvariantSet",
     "InvariantTorus",
 ]
 
@@ -46,7 +46,7 @@ __all__ = [
 # InvariantTorus
 # ─────────────────────────────────────────────────────────────────────────────
 
-class InvariantTorus(InvariantObject):
+class InvariantTorus(InvariantSet):
     """A KAM (Kolmogorov–Arnold–Moser) invariant torus.
 
     A KAM torus is a non-resonant invariant surface in phase space.
@@ -92,7 +92,7 @@ class InvariantTorus(InvariantObject):
                            for k, v in crossings.items()}
         self._iota = rotational_transform
 
-    # ── InvariantObject interface ─────────────────────────────────────────────
+    # ── InvariantSet interface ─────────────────────────────────────────────
 
     @property
     def label(self) -> Optional[str]:
@@ -239,7 +239,7 @@ class InvariantTorus(InvariantObject):
                 return v
         return np.empty((0, 2), dtype=float)
 
-    # ── InvariantObject interface ─────────────────────────────────────────────
+    # ── InvariantSet interface ─────────────────────────────────────────────
 
     def section_cut(self, section) -> List[np.ndarray]:
         """Return crossing array(s) at the section.

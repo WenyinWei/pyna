@@ -6,7 +6,7 @@ The canonical base classes live in ``pyna.topo._base``:
   - ``InvariantSet``      — root ABC (no abstract methods)
   - ``InvariantManifold`` — intermediate, adds ``intrinsic_dim``
   - ``SectionCuttable``   — mixin protocol for section-cut support
-  - ``InvariantObject``   — backward-compatible alias for ``InvariantSet``
+  - ``InvariantSet``   — backward-compatible alias for ``InvariantSet``
 
 Key design principle: **discrete maps are first-class dynamical systems**,
 not subordinate "section objects" of continuous flows.  An ``Island`` and
@@ -28,10 +28,13 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, TypeVar
 import numpy as np
 
 # Use the single canonical hierarchy from _base
-from pyna.topo._base import InvariantObject, InvariantSet, InvariantManifold, SectionCuttable
+from pyna.topo._base import (
+    InvariantSet, InvariantSet, InvariantManifold, SectionCuttable,
+    Trajectory, Orbit,
+)
 
 if TYPE_CHECKING:
-    from pyna.topo.trajectory3d import ToroidalTrajectory3D
+    from pyna.topo.trajectory3d import Trajectory3DToroidal, Trajectory3DToroidal
 
 CoordT = TypeVar("CoordT")
 
@@ -313,7 +316,7 @@ class FixedPoint(InvariantManifold):
 # ---------------------------------------------------------------------------
 
 @dataclass(eq=False)
-class PeriodicOrbit(InvariantManifold):
+class PeriodicOrbit(Orbit):
     """A periodic orbit of a discrete map.
 
     A period-*m* orbit consists of *m* points {x₁, x₂, …, xₘ} satisfying
@@ -346,7 +349,7 @@ class PeriodicOrbit(InvariantManifold):
 
     Parameters (continued)
     ----------------------
-    trajectory : ToroidalTrajectory3D or None
+    trajectory : Trajectory3DToroidal or None
         Full 3-D continuous-flow trajectory of this orbit (optional).  When
         present, :meth:`section_at` uses ``trajectory.intersect(phi)`` to
         derive all crossing points at any toroidal section, covering the
@@ -354,13 +357,13 @@ class PeriodicOrbit(InvariantManifold):
     """
     points: List[FixedPoint] = field(default_factory=list)
     ambient_dim: Optional[int] = None
-    trajectory: Optional["ToroidalTrajectory3D"] = field(default=None, repr=False)
+    trajectory: Optional["Trajectory3DToroidal"] = field(default=None, repr=False)
 
     def section_at(self, phi: float, kind: str = '') -> List[FixedPoint]:
         """Return all FixedPoints on the section at *phi* by trajectory intersection.
 
         If a 3-D :attr:`trajectory` is attached, uses
-        :meth:`~pyna.topo.trajectory3d.ToroidalTrajectory3D.intersect` to find
+        :meth:`~pyna.topo.trajectory3d.Trajectory3DToroidal.intersect` to find
         every crossing with the toroidal plane at *phi*, which correctly returns
         all m points of a period-m orbit at that section.
 
@@ -471,12 +474,12 @@ class PeriodicOrbit(InvariantManifold):
 # ---------------------------------------------------------------------------
 
 @dataclass(eq=False)
-class Cycle(InvariantManifold):
+class Cycle(Trajectory):
     winding: Tuple[int, ...]
     sections: Dict = field(default_factory=dict)  # phi -> List[FixedPoint], ordered by flow
     monodromy: Optional[MonodromyData] = None
     ambient_dim: Optional[int] = None
-    trajectory: Optional["ToroidalTrajectory3D"] = field(default=None, repr=False)
+    trajectory: Optional["Trajectory3DToroidal"] = field(default=None, repr=False)
     """Optional full 3-D orbit trajectory.  When present, section_points(phi)
     uses trajectory.intersect(phi) as a fallback to find ALL periodic-orbit
     intersection points at any requested phi — not just those pre-stored in
@@ -682,7 +685,7 @@ class _ToriMixin:
 
 
 @dataclass(eq=False)
-class Island(_ToriMixin, InvariantObject):
+class Island(_ToriMixin, InvariantSet):
     """A magnetic island: a region around an elliptic periodic orbit of a map.
 
     An Island is an invariant structure of a **discrete map** (either a
@@ -766,7 +769,7 @@ class Island(_ToriMixin, InvariantObject):
         """Root Island's O_point is the magnetic axis point on the section."""
         return self.root_island().O_point
 
-    # ── InvariantObject interface ─────────────────────────────────────────────
+    # ── InvariantSet interface ─────────────────────────────────────────────
 
     def section_cut(self, section=None) -> list:
         """An Island is already a section-level object; return [self]."""
@@ -789,7 +792,7 @@ class Island(_ToriMixin, InvariantObject):
 # ---------------------------------------------------------------------------
 
 @dataclass(eq=False)
-class IslandChain(InvariantObject):
+class IslandChain(InvariantSet):
     """A chain of islands of a discrete map sharing the same resonance.
 
     An ``IslandChain`` is a first-class invariant structure of a discrete
@@ -882,7 +885,7 @@ class IslandChain(InvariantObject):
         """O-points at section phi."""
         return [fp for fp in self.O_points if abs(fp.phi - phi) < tol]
 
-    # ── InvariantObject interface ─────────────────────────────────────────────
+    # ── InvariantSet interface ─────────────────────────────────────────────
 
     def section_cut(self, section=None) -> list:
         """Return the list of Islands."""
@@ -970,7 +973,7 @@ class UnstableManifold(InvariantManifold):
 # ---------------------------------------------------------------------------
 
 @dataclass(eq=False)
-class Tube(_ToriMixin, InvariantObject):
+class Tube(_ToriMixin, InvariantSet):
     O_cycle: Cycle
     X_cycles: List[Cycle] = field(default_factory=list)
     ambient_dim: Optional[int] = None
@@ -1060,7 +1063,7 @@ class Tube(_ToriMixin, InvariantObject):
 # ---------------------------------------------------------------------------
 
 @dataclass(eq=False)
-class TubeChain(InvariantObject):
+class TubeChain(InvariantSet):
     O_cycles: List[Cycle] = field(default_factory=list)
     X_cycles: List[Cycle] = field(default_factory=list)
     tubes: List[Tube] = field(default_factory=list)

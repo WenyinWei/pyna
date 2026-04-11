@@ -8,6 +8,11 @@ Design principle
 ----------------
 ALWAYS represent objects as 3D trajectories first, then derive 2D cross-sections
 by intersection.  NEVER independently compute a geometric object at each phi section.
+
+Naming
+------
+``Trajectory3DToroidal`` is the canonical class name (pyna ≥ 0.5).
+``Trajectory3DToroidal`` is kept as a backward-compatible alias.
 """
 
 import numpy as np
@@ -15,14 +20,31 @@ import h5py
 from dataclasses import dataclass, field
 from typing import Callable, Optional, Tuple
 
+from pyna.topo._base import Trajectory
+
+
+# ---------------------------------------------------------------------------
+# Generic 3-D trajectory base
+# ---------------------------------------------------------------------------
 
 @dataclass
-class ToroidalTrajectory3D:
+class Trajectory3D(Trajectory):
+    """Generic 3-D parametric trajectory: arrays of coordinates and parameter.
+
+    Subclass this for any 3-D coordinate system.  The canonical toroidal
+    specialisation is :class:`Trajectory3DToroidal`.
+    """
+    pass
+
+
+@dataclass
+class Trajectory3DToroidal(Trajectory3D):
     """A 3D trajectory in a toroidal vector field, stored as (R, Z, phi) arrays.
 
-    Generic for any toroidal dynamical system (magnetic field lines, guiding-centre
-    drift orbits, etc.).  All cross-sections are derived by intersection of this
-    single 3D object — never recomputed independently per section.
+    Inherits from :class:`Trajectory3D`.  Generic for any toroidal dynamical
+    system (magnetic field lines, guiding-centre drift orbits, etc.).  All
+    cross-sections are derived by intersection of this single 3D object —
+    never recomputed independently per section.
 
     Attributes
     ----------
@@ -196,7 +218,7 @@ class ToroidalTrajectory3D:
                     grp.attrs[k] = str(v)
 
     @classmethod
-    def load(cls, path: str) -> 'ToroidalTrajectory3D':
+    def load(cls, path: str) -> 'Trajectory3DToroidal':
         """Load trajectory from an HDF5 file."""
         with h5py.File(path, 'r') as f:
             R   = f['R'][:]
@@ -244,10 +266,10 @@ def trace_toroidal_trajectory(
     n_turns: int = 300,
     DPhi: float = 0.05,
     metadata: Optional[dict] = None,
-) -> ToroidalTrajectory3D:
+) -> Trajectory3DToroidal:
     """Trace a 3-D trajectory in a toroidal vector field using RK4.
 
-    This is the generic factory for ``ToroidalTrajectory3D``.  Pass a
+    This is the generic factory for :class:`Trajectory3DToroidal`.  Pass a
     ``field_func(R, Z, phi) -> (dR/dphi, dZ/dphi)`` that encodes the
     right-hand side of the field-line (or any toroidal flow) ODE.
 
@@ -270,7 +292,7 @@ def trace_toroidal_trajectory(
 
     Returns
     -------
-    ToroidalTrajectory3D
+    Trajectory3DToroidal
     """
     phi_end = phi_seed + n_turns * 2.0 * np.pi
     n_steps = int(round((phi_end - phi_seed) / DPhi))
@@ -314,4 +336,12 @@ def trace_toroidal_trajectory(
         'R_seed': R_seed, 'Z_seed': Z_seed, 'phi_seed': phi_seed,
         'n_turns': n_turns, 'DPhi': DPhi,
     })
-    return ToroidalTrajectory3D(R=Rs, Z=Zs, phi=phis, metadata=meta)
+    return Trajectory3DToroidal(R=Rs, Z=Zs, phi=phis, metadata=meta)
+
+
+# ---------------------------------------------------------------------------
+# Backward-compatible alias
+# ---------------------------------------------------------------------------
+#: ``Trajectory3DToroidal`` is kept as an alias for :class:`Trajectory3DToroidal`
+#: for code written before pyna 0.5.  New code should use ``Trajectory3DToroidal``.
+Trajectory3DToroidal = Trajectory3DToroidal

@@ -7,11 +7,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from pyna.topo._base import InvariantObject
+from pyna.topo._base import InvariantSet
 
 
 @dataclass(eq=False)
-class InvariantTorus(InvariantObject):
+class InvariantTorus(InvariantSet):
     rotation_vector: Tuple[float, ...]
     ambient_dim: Optional[int] = None
 

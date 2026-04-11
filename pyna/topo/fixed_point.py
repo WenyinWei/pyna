@@ -8,11 +8,11 @@ from typing import Any, Dict, Optional
 import numpy as np
 
 from pyna.topo._stability import MonodromyData, Stability
-from pyna.topo._base import InvariantObject
+from pyna.topo._base import InvariantSet
 
 
 @dataclass(eq=False)
-class FixedPoint(InvariantObject):
+class FixedPoint(InvariantSet):
     """A single Poincaré fixed point with full monodromy data."""
     phi: float
     R: float
@@ -61,7 +61,7 @@ class FixedPoint(InvariantObject):
             arr = arr.astype(dtype, copy=False)
         return arr
 
-    # ── InvariantObject interface ─────────────────────────────────────────────
+    # ── InvariantSet interface ─────────────────────────────────────────────
 
     def section_cut(self, section=None) -> list:
         """A FixedPoint is already a section-level object; return [self]."""
