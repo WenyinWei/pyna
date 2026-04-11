@@ -26,7 +26,17 @@ import sys
 import sysconfig
 from pathlib import Path
 
-from setuptools import setup
+from setuptools import setup, Extension
+
+# Declare a stub Extension so cibuildwheel / pip recognise pyna as a
+# binary package and trigger our custom build_ext command.
+# The actual compilation is done entirely inside BuildCynaExt.run() via
+# xmake; setuptools never sees (and never compiles) this stub.
+_CYNA_STUB = Extension(
+    name="pyna._cyna._cyna_ext",
+    sources=[],          # xmake handles sources; setuptools touches nothing
+    optional=True,       # build failure is non-fatal
+)
 from setuptools.command.build_ext import build_ext as _build_ext
 from setuptools.command.develop import develop as _develop
 from setuptools.command.install import install as _install
@@ -430,6 +440,7 @@ class InstallWithCyna(_install):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 setup(
+    ext_modules=[_CYNA_STUB],
     cmdclass={
         "build_ext": BuildCynaExt,
         "develop":   DevelopWithCyna,

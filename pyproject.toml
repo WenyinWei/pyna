@@ -57,5 +57,13 @@ Issues = "https://github.com/WenyinWei/pyna/issues"
 include = ["pyna*", "cyna*"]
 exclude = ["notebooks*"]
 
+# Tell pip/wheel this package contains compiled extensions
+# so it builds a platform-specific wheel (not a universal py3-none-any).
+[tool.cibuildwheel]
+build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
+skip = ["*-win32", "*-musllinux_i686"]
+before-build = "pip install pybind11"
+test-command = "python -c \"import pyna._cyna as c; assert c.is_available()\""
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
