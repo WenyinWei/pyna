@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61", "wheel"]
+requires = ["setuptools>=61", "wheel", "pybind11>=2.11"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,7 +7,7 @@ name = "pyna-chaos"
 version = "0.4.1"
 description = "Python library for dynamical systems and magnetic confinement fusion analysis"
 readme = "README.md"
-license = "GPL-3.0-or-later"
+license = {text = "GPL-3.0-or-later"}
 authors = [{name = "Wenyin Wei", email = "wenyin.wei.ww@gmail.com"}]
 requires-python = ">=3.9"
 keywords = ["dynamical systems", "chaos", "plasma physics", "MHD", "Poincaré map", "magnetic confinement"]
