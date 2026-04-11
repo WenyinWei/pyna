@@ -7,15 +7,13 @@ from typing import Any, Dict, List, Optional
 from pyna.topo.toroidal_invariants import (
     Cycle,
     FixedPoint,
-    Island,
-    IslandChain,
     MonodromyData,
     PeriodicOrbit,
     StableManifold,
-    Tube,
-    TubeChain,
     UnstableManifold,
 )
+from pyna.topo.toroidal_island import Island, IslandChain
+from pyna.topo.toroidal_tube import Tube, TubeChain
 
 
 class DynamicsContext:

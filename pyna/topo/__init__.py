@@ -39,7 +39,7 @@ from pyna.topo.fixed_points import (
     refine_fixed_points_from_pkl,
     group_fixed_points_by_orbit,
 )
-from pyna.topo.island import Island, IslandChain, ChainRole
+from pyna.topo.toroidal_island import Island as ToroidalIsland, IslandChain as ToroidalIslandChain, ChainRole
 from pyna.topo.flux_surface import FluxSurface, FluxSurfaceMap, XPointOrbit
 from pyna.topo.island_extract import detect_residual_islands
 from pyna.topo.poincare import rotational_transform_from_trajectory, PoincareAccumulator
@@ -53,7 +53,7 @@ from pyna.topo.monodromy import (
 )
 from pyna.topo.identity import ResonanceID, TubeID, IslandID
 from pyna.topo.section_view import SectionViewPoint, SectionCorrespondence, SectionView, SectionViewBuilder
-from pyna.topo.tube import TubeCutPoint, Tube, TubeChain
+from pyna.topo.toroidal_tube import TubeCutPoint, Tube as ToroidalTube, TubeChain as ToroidalTubeChain
 from pyna.plot.island import plot_island, island_section_points
 from pyna.plot.island_chain import plot_island_chain, island_chain_section_points
 from pyna.topo.fast_metrics import (
@@ -150,9 +150,9 @@ __all__ = [
     "classify_fixed_point",
     "classify_fixed_point_higher_order",
     "group_fixed_points_by_orbit",
-    # island topology
-    "Island",
-    "IslandChain",
+    # toroidal island topology
+    "ToroidalIsland",
+    "ToroidalIslandChain",
     "ChainRole",
     "FluxSurface",
     "FluxSurfaceMap",
@@ -179,10 +179,10 @@ __all__ = [
     "SectionCorrespondence",
     "SectionView",
     "SectionViewBuilder",
-    # continuous-time resonance geometry
+    # toroidal continuous-time resonance geometry
     "TubeCutPoint",
-    "Tube",
-    "TubeChain",
+    "ToroidalTube",
+    "ToroidalTubeChain",
     "Cycle",
     # generic island / island-chain plotting
     "plot_island",

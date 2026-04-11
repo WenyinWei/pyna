@@ -11,7 +11,7 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 from scipy.interpolate import interp1d
 
-from pyna.topo.island import (
+from pyna.topo.toroidal_island import (
     locate_all_rational_surfaces,
     island_halfwidth,
 )

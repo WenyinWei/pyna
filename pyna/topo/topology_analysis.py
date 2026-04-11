@@ -52,7 +52,7 @@ from scipy.interpolate import UnivariateSpline
 from pyna.topo.poincare import ToroidalSection, poincare_from_fieldlines
 from pyna.topo.chaos import ftle_field, chaotic_boundary_estimate, chirikov_overlap
 from pyna.topo.toroidal_cycle import find_cycle, ToroidalPeriodicOrbitTrace
-from pyna.topo.island import locate_all_rational_surfaces, island_halfwidth
+from pyna.topo.toroidal_island import locate_all_rational_surfaces, island_halfwidth
 from pyna.topo.variational import PoincareMapVariationalEquations
 from pyna.topo._rk4 import rk4_integrate
 
