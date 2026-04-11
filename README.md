@@ -64,9 +64,10 @@ trajectory = tracer.trace(R0=2.0, Z0=0.0, phi_end=200 * 2 * 3.14159)
 ```python
 import numpy as np
 from pyna.flt import FieldLineTracer
-from pyna.topo.poincare import PoincareAccumulator, PoincareToroidalSection, poincare_from_fieldlines
+from pyna.topo.poincare import PoincareAccumulator, poincare_from_fieldlines
+from pyna.topo.section import ToroidalSection
 
-section = PoincareToroidalSection(0.0)
+section = ToroidalSection(0.0)
 acc = PoincareAccumulator([section])
 
 # or trace directly from field lines

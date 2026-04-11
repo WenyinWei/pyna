@@ -65,17 +65,17 @@ Magnetic Coordinates
 Coils & Fields
 --------------
 
-.. automodule:: pyna.MCF.coils.coil
+.. automodule:: pyna.toroidal.coils.coil
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: pyna.MCF.coils.RMP
+.. automodule:: pyna.toroidal.coils.RMP
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: pyna.MCF.coils.coil_system
+.. automodule:: pyna.toroidal.coils.coil_system
    :members:
    :undoc-members:
    :show-inheritance:
@@ -115,7 +115,7 @@ Plasma Response
 Diagnostics
 -----------
 
-.. automodule:: pyna.MCF.diagnostics
+.. automodule:: pyna.toroidal.diagnostics
    :members:
    :undoc-members:
    :show-inheritance:
@@ -157,3 +157,4 @@ the Fourier convention :math:`f(\theta,\varphi)=\sum_{mn} f_{mn}\,e^{i(m\theta+n
    :members:
    :undoc-members:
    :show-inheritance:
+

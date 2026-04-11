@@ -1,10 +1,13 @@
-# `pyna.MCF` — Magnetic Confinement Fusion
+# `pyna.MCF` — Legacy compatibility namespace
 
 ## Overview
 
-`pyna.MCF` contains all physics modules specific to magnetic-confinement-fusion
-devices (tokamaks and stellarators).  It is layered on top of the generic
-`pyna.fields` and `pyna.topo` modules.
+`pyna.MCF` is retained as a **legacy compatibility layer** for older toroidal /
+magnetic-confinement-fusion code. New user code should prefer the
+`pyna.toroidal` namespace.
+
+Use `pyna.MCF` only when maintaining historical notebooks or scripts that have
+not yet been migrated.
 
 ---
 
@@ -73,7 +76,7 @@ For the generic FPT-based topology controller see `pyna.control`.
 ## §6  `MCF/diagnostics/`
 
 ```python
-from pyna.MCF.diagnostics.measure import field_line_length, field_line_endpoints
+from pyna.toroidal.diagnostics import field_line_length, field_line_endpoints
 
 Lc = field_line_length(field_func, start_pts, phi_max=200.0)
 ```
@@ -97,6 +100,11 @@ Scalar physics objectives for stellarator optimisation (lower = better):
 - `tokamak_manifold.py` — stable/unstable manifold overlaid on Poincaré section
 
 ---
+
+## Preferred imports
+
+For user-facing examples and new development, prefer `pyna.toroidal.*` imports.
+`pyna.MCF.*` remains valid only as a compatibility facade.
 
 ## Naming conventions (STYLE.md §1)
 
