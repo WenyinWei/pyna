@@ -34,7 +34,7 @@ from pyna.topo._base import (
 )
 
 if TYPE_CHECKING:
-    from pyna.topo.trajectory3d import Trajectory3DToroidal, Trajectory3DToroidal
+    from pyna.topo.toroidal_trajectory import ToroidalTrajectory
 
 CoordT = TypeVar("CoordT")
 
@@ -349,7 +349,7 @@ class PeriodicOrbit(Orbit):
 
     Parameters (continued)
     ----------------------
-    trajectory : Trajectory3DToroidal or None
+    trajectory : ToroidalTrajectory or None
         Full 3-D continuous-flow trajectory of this orbit (optional).  When
         present, :meth:`section_at` uses ``trajectory.intersect(phi)`` to
         derive all crossing points at any toroidal section, covering the
@@ -357,13 +357,13 @@ class PeriodicOrbit(Orbit):
     """
     points: List[FixedPoint] = field(default_factory=list)
     ambient_dim: Optional[int] = None
-    trajectory: Optional["Trajectory3DToroidal"] = field(default=None, repr=False)
+    trajectory: Optional["ToroidalTrajectory"] = field(default=None, repr=False)
 
     def section_at(self, phi: float, kind: str = '') -> List[FixedPoint]:
         """Return all FixedPoints on the section at *phi* by trajectory intersection.
 
         If a 3-D :attr:`trajectory` is attached, uses
-        :meth:`~pyna.topo.trajectory3d.Trajectory3DToroidal.intersect` to find
+        :meth:`~pyna.topo.toroidal_trajectory.ToroidalTrajectory.intersect` to find
         every crossing with the toroidal plane at *phi*, which correctly returns
         all m points of a period-m orbit at that section.
 
@@ -479,7 +479,7 @@ class Cycle(InvariantManifold):
     sections: Dict = field(default_factory=dict)  # phi -> List[FixedPoint], ordered by flow
     monodromy: Optional[MonodromyData] = None
     ambient_dim: Optional[int] = None
-    trajectory: Optional["Trajectory3DToroidal"] = field(default=None, repr=False)
+    trajectory: Optional["ToroidalTrajectory"] = field(default=None, repr=False)
     """Optional full 3-D orbit trajectory.  When present, section_points(phi)
     uses trajectory.intersect(phi) as a fallback to find ALL periodic-orbit
     intersection points at any requested phi — not just those pre-stored in

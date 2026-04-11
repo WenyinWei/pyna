@@ -515,7 +515,7 @@ def _compute_DPm_cyna(R_xpt, Z_xpt, fc: _FC,
 def _compute_DPm_py(R_xpt, Z_xpt, fc: _FC, island_period=3, DPhi=0.05):
     """Python fallback for DPm using pyna.topo.monodromy."""
     from pyna.topo.monodromy import evolve_DPm_along_cycle
-    from pyna.topo.cycle import PeriodicOrbit
+    from pyna.topo.toroidal_cycle import ToroidalPeriodicOrbitTrace
     fc.build_scipy_itps()
 
     phi_span = island_period * 2.0 * np.pi
@@ -543,8 +543,8 @@ def _compute_DPm_py(R_xpt, Z_xpt, fc: _FC, island_period=3, DPhi=0.05):
 
     traj = np.array(pts)
     rzphi0 = np.array([R_xpt, Z_xpt, 0.0])
-    orbit = PeriodicOrbit(rzphi0=rzphi0, period_m=island_period,
-                          trajectory=traj, DPm=np.eye(2))
+    orbit = ToroidalPeriodicOrbitTrace(rzphi0=rzphi0, period_m=island_period,
+                                       trajectory=traj, DPm=np.eye(2))
     cvd = evolve_DPm_along_cycle(fc.field_func_py, orbit, n_turns=island_period)
     return cvd.DPm
 

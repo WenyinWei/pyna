@@ -51,7 +51,7 @@ from scipy.interpolate import UnivariateSpline
 
 from pyna.topo.poincare import ToroidalSection, poincare_from_fieldlines
 from pyna.topo.chaos import ftle_field, chaotic_boundary_estimate, chirikov_overlap
-from pyna.topo.cycle import find_cycle, PeriodicOrbit
+from pyna.topo.toroidal_cycle import find_cycle, ToroidalPeriodicOrbitTrace
 from pyna.topo.island import locate_all_rational_surfaces, island_halfwidth
 from pyna.topo.variational import PoincareMapVariationalEquations
 from pyna.topo._rk4 import rk4_integrate
@@ -730,7 +730,7 @@ def analyse_topology(
 
             proxy = _Proxy()
             try:
-                from pyna.topo.cycle import find_all_cycles_near_resonance
+                from pyna.topo.toroidal_cycle import find_all_cycles_near_resonance
                 orbits = find_all_cycles_near_resonance(
                     field_func, proxy, m, n,
                     n_seeds=n_island_seeds,

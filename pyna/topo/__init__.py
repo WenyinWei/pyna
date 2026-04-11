@@ -3,9 +3,8 @@
 from pyna.topo._base import (
     InvariantSet, InvariantSet, InvariantManifold, SectionCuttable,
 )
-from pyna.topo.trajectory3d import (
-    Trajectory3D,
-    Trajectory3DToroidal,
+from pyna.topo.toroidal_trajectory import (
+    ToroidalTrajectory,
     trace_toroidal_trajectory,
 )
 from pyna.topo.core import (
@@ -18,8 +17,6 @@ from pyna.topo.core import (
     Cycle,
 )
 from pyna.topo.toroidal import (
-    ToroidalTrajectory,
-    ToroidalTrajectoryAlias,
     ToroidalSectionPoint,
     ToroidalPeriodicOrbit,
     ToroidalCycle,
@@ -122,12 +119,8 @@ __all__ = [
     "LinearStabilityData",
     "PeriodicOrbit",         # generic invariant periodic orbit of a map
     "Cycle",                 # generic invariant periodic orbit of a flow
-    # 3D trajectories (continuous flow)
-    "Trajectory3D",
-    "Trajectory3D",          # compatibility alias to Trajectory3DToroidal
-    "Trajectory3DToroidal",
+    # toroidal sampled trajectories / specializations
     "ToroidalTrajectory",
-    "ToroidalTrajectoryAlias",
     "ToroidalSectionPoint",
     "ToroidalPeriodicOrbit",
     "ToroidalCycle",
@@ -177,6 +170,7 @@ __all__ = [
     "monodromy_matrix",
     # toroidal / legacy island-chain connectivity
     "FixedPoint",
+    "ToroidalPeriodicOrbitTrace",
     # identity / bridge layer
     "ResonanceID",
     "TubeID",
@@ -250,5 +244,6 @@ try:
         UnstableManifold,
         # Tube and TubeChain come from tube.py (which uses toroidal invariants.Cycle)
     )
+    from pyna.topo.toroidal_cycle import ToroidalPeriodicOrbitTrace
 except ImportError:
     pass
