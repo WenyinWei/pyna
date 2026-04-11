@@ -3,8 +3,8 @@
 Canonical toroidal implementation of field-line observables computed from
 traced streamlines in cylindrical ``(R, Z, \\phi)`` coordinates.
 
-This module owns functionality historically provided by
-``pyna.MCF.diagnostics.measure``; the MCF path is now a compatibility wrapper.
+This module provides toroidal field-line observables in cylindrical
+coordinates.
 """
 from __future__ import annotations
 

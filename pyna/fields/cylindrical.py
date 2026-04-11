@@ -3,8 +3,6 @@
 These replace (and are backward-compatible with):
   - pyna.field_data.CylindricalScalarField
   - pyna.field_data.CylindricalVectorField
-  - pyna.MCF.coils.field.VectorField3DCylindrical (eliminated, now canonical)
-  - pyna.MCF.coils.field.VectorField3DAxiSymmetric (eliminated, now canonical)
 """
 from __future__ import annotations
 from typing import Optional, Tuple
@@ -109,7 +107,7 @@ class VectorField3DCylindrical(VectorField3D):
 
     Replaces BOTH:
       - pyna.field_data.CylindricalVectorField  (VR/VZ/VPhi naming)
-      - pyna.MCF.coils.field.VectorField3DCylindrical (eliminated, now canonical) (BR/BZ/BPhi naming)
+      - legacy toroidal coil-field wrappers (eliminated) (BR/BZ/BPhi naming)
 
     Both naming conventions are supported via properties.
 

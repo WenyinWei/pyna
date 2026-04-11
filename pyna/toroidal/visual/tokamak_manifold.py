@@ -93,8 +93,7 @@ def plot_equilibrium_cross_section(
         Object exposing ``BR(R,Z)``, ``BZ(R,Z)``, ``Bphi(R)`` or
         ``BR_BZ(R,Z)``, ``psi(R,Z)``, ``R0``, ``a``, ``kappa``.
         Compatible with :class:`~pyna.toroidal.equilibrium.Solovev.EquilibriumSolovev`
-        and with package-root ``pyna.MCF.equilibrium`` compatibility exports,
-        as well as EFIT-based :class:`EquilibriumAxisym` subclasses.
+        and with EFIT-based :class:`EquilibriumAxisym` subclasses.
     ax:
         Target axes.  Created if *None*.
     n_surfaces, psi_min, psi_max:

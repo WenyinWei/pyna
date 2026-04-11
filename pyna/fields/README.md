@@ -74,7 +74,6 @@ field_vals = B(pts)  # shape (N, 3)
 
 1. **Single canonical hierarchy** — do not create parallel field classes
    elsewhere.  Extend `VectorField3DCylindrical` or add a new concrete subclass.
-2. **`pyna.MCF.coils.field` is a re-export layer only** — it imports from here.
 3. **No backward-compat aliases** — rename and update all call sites immediately.
 4. **Differential operators propagate `FieldProperty`** — e.g. `curl` of a
    `CURL_FREE` field raises `ValueError` before computing.

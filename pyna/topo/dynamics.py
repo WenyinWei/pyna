@@ -5,7 +5,8 @@ This module defines the abstract foundations of the class hierarchy:
 
 These are intentionally abstract / thin — the mathematics says "there exists
 a flow φ^t", not "the flow is computed by this specific ODE solver".
-Concrete subclasses live in pyna.toroidal / pyna.MCF (magnetic field line systems),
+Concrete subclasses live in pyna.toroidal and other domain packages
+(magnetic field line systems, Hamiltonian flows, etc.),
 pyna.Hamiltonian, etc.
 
 Layer 0 in the pyna.topo architecture (see ARCHITECTURE.md).
@@ -328,9 +329,9 @@ class PoincareMap(DiscreteMap):
 # ────────────────────────────────────────────────────────────────────────────
 
 class MCFPoincareMap(DiscreteMap):
-    """Poincaré return map for MCF field-line tracing, backed by cyna C++.
+    """Poincaré return map for toroidal field-line tracing, backed by cyna C++.
 
-    This is the concrete implementation of :class:`PoincareMap` for MCF.
+    This is the concrete toroidal implementation of :class:`PoincareMap`.
     Instead of ODE integration via scipy.solve_ivp, it uses the cyna C++
     extension (``pyna._cyna``) for fast parallel field-line tracing.
 

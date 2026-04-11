@@ -1,8 +1,7 @@
 """pyna.toroidal.optimize.objectives — toroidal / stellarator optimisation objectives.
 
-Canonical toroidal ownership for scalar objective functions used in
-multi-objective stellarator optimisation. The legacy
-``pyna.MCF.optimize.objectives`` module now re-exports from here.
+Toroidal ownership for scalar objective functions used in
+multi-objective stellarator optimisation.
 """
 
 from __future__ import annotations

@@ -14,7 +14,7 @@ _fake_fields.VectorField3DCylindrical = _CVF
 _fake_fields.ScalarField3DCylindrical = _CSF
 sys.modules['pyna.fields.cylindrical'] = _fake_fields
 
-_pg_path = _repo / 'pyna' / 'pyna' / 'MCF' / 'plasma_response' / 'PerturbGS.py'
+_pg_path = _repo / 'pyna' / 'pyna' / 'toroidal' / 'plasma_response' / 'PerturbGS.py'
 _pg_spec = _ilu.spec_from_file_location('PerturbGS_standalone', _pg_path)
 _pg_mod  = _ilu.module_from_spec(_pg_spec)
 _pg_spec.loader.exec_module(_pg_mod)

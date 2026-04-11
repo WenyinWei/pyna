@@ -73,7 +73,7 @@ for _pkg in ['pyna.toroidal', 'pyna.toroidal.plasma_response', 'pyna.toroidal.eq
         sys.modules[_pkg] = _m
 
 # 5. Load toroidal PerturbGS and fenicsx_corrector directly
-# Keep this script toroidal-first; do not revive the legacy pyna.MCF facade here.
+# Keep this script self-contained; do not revive removed legacy facades here.
 PerturbGS_mod = _load_mod(
     'pyna.toroidal.plasma_response.PerturbGS',
     os.path.join(PYNA_PKG, 'toroidal', 'plasma_response', 'PerturbGS.py'),

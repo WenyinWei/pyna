@@ -246,7 +246,6 @@ Implemented:
 Future (Phase 2+):
   ⬜ Absorb diffeq C++ integrators into cyna/include/cyna/integrators/
   ⬜ SDE solvers (Euler-Maruyama, Milstein, SRI)
-  ⬜ MCF-specific adapter layer (pyna.MCF.topo)
   ⬜ Bifurcation analysis, parameter continuation
   ⬜ Center manifold reduction
 """

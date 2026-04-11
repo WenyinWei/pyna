@@ -22,7 +22,7 @@
 | 🔀 **Field-line tracing** | RK4 integrator, parallel CPU, optional CUDA (118× speedup) |
 | 🌀 **Poincaré sections & island chains** | Multi-section crossing accumulation, island-chain extraction, X/O-point analysis |
 | 🗺️ **Manifold visualization** | Publication-quality stable/unstable manifold plots for tokamaks |
-| 🧲 **MCF equilibria** | Solov'ev, Grad-Shafranov, stellarator analytic solutions |
+| 🧲 **Toroidal geometry** | Coordinates, coils, diagnostics, and field-line tooling |
 | 📐 **Magnetic coordinates** | PEST, Boozer, Hamada, Equal-arc transformations |
 | 📡 **Torus deformation** | Non-resonant BNF-derived analytic spectral theory (Wei 2025) |
 | ⚡ **C++ acceleration** | Optional `cyna` backend for performance-critical ops |
@@ -152,18 +152,16 @@ print(f"Mean radial displacement: {mean_dr:.4f} m")
 
 ### Toroidal plasma physics (`pyna.toroidal`)
 
-`pyna.toroidal` is the preferred public namespace for toroidal / magnetic-
-geometry work. `pyna.MCF` remains in the tree only as a legacy compatibility
-facade; torus-deformation code now lives directly in `pyna.toroidal`.
+`pyna.toroidal` is the toroidal-geometry namespace for coordinates, coils,
+diagnostics, control helpers, and visualisation.
 
 | Submodule | Description |
 |-----------|-------------|
-| `toroidal.equilibrium` | Solov'ev, Grad-Shafranov, stellarator analytic/numeric equilibria |
+| `toroidal.equilibrium` | Toroidal equilibrium helpers still present in-repo pending extraction |
 | `toroidal.coords` | PEST, Boozer, Hamada, Equal-arc magnetic coordinate systems |
 | `toroidal.coils` | Coil geometry, Biot-Savart, RMP coil-set models |
 | `toroidal.control` | Topology control: gap response, q-profile response |
 | `toroidal.diagnostics` | Plasma diagnostic observables |
-| `toroidal.plasma_response` | Perturbed GS solver for plasma response |
 | `toroidal.visual` | Publication-quality tokamak figures (`tokamak_manifold`) |
 | `toroidal.torus_deformation` | Non-resonant torus deformation (BNF spectral theory, Wei 2025) |
 

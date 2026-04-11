@@ -53,9 +53,6 @@ pyna/                        �?pip-installable Python package
 �?  ├── diagnostics/         �?Connection-length, field-line endpoint diagnostics
 �?  ├── optimize/            �?Stellarator optimisation objectives
 �?  └── visual/              �?MCF-specific plotting helpers
-├── coord/                   �?Backward-compat shim �?MCF.coords
-├── mag/                     �?Backward-compat shim �?MCF.*
-├── plasma_response/         �?Backward-compat shim �?MCF.plasma_response
 ├── diff/                    �?Numerical differentiation helpers
 ├── draw/                    �?Generic geometry drawing (manifolds, resonances)
 ├── gc/                      �?Guiding-centre motion
@@ -106,7 +103,6 @@ Coordinate metadata is attached via `fields/coords.py`:
 `Coords3DCylindrical`, `Coords3DSpherical`, `Coords3DToroidal`, `Coords4D*`.
 
 **Design rule:** `pyna.fields` is the sole canonical field hierarchy.
-`pyna.MCF.coils.field` is a thin re-export layer only.
 
 ---
 
@@ -280,13 +276,12 @@ See `pyna/control/README.md` for theory background and usage examples.
 
 ---
 
-## §7  `pyna.toroidal` / legacy `pyna.MCF`
+## §7  `pyna.toroidal`
 
-Toroidal / magnetic-geometry physics now lives canonically under
-`pyna.toroidal`. The historical `pyna.MCF` tree remains as a compatibility
-facade for older scripts and notebooks.
+Toroidal / magnetic-geometry helpers now live under `pyna.toroidal`. The
+legacy `pyna.MCF` compatibility tree has been removed.
 
-### `toroidal/equilibrium/` (legacy `MCF/equilibrium/`)
+### `toroidal/equilibrium/`
 
 | Module | Key classes / functions |
 |--------|------------------------|
@@ -297,7 +292,7 @@ facade for older scripts and notebooks.
 | `feedback_boozer.py` | `BoozerSurface`, `BoozerPerturbation`, `MHD_response_operator`, `compute_boozer_response` |
 | `feedback_cylindrical.py` | `CylindricalGrid`, `PerturbationField`, `PlasmaResponse`, `compute_plasma_response`, `feedback_correction_field`, `iterative_equilibrium_correction` |
 
-### `toroidal/coils/` (legacy `MCF/coils/`)
+### `toroidal/coils/`
 
 | Module | Contents |
 |--------|----------|
@@ -308,7 +303,7 @@ facade for older scripts and notebooks.
 | `vector_potential.py` | Vector potential computation for coil fields |
 | `field.py` | Thin canonical re-export layer |
 
-### `toroidal/coords/` (legacy `MCF/coords/`)
+### `toroidal/coords/`
 
 Flux-surface coordinate systems (PEST, Boozer, Hamada, EqualArc).
 See `toroidal/coords/` for details.
@@ -316,9 +311,8 @@ See `toroidal/coords/` for details.
 ### `toroidal/perturbation/`
 
 Canonical architectural landing zone for **toroidal perturbative theory**.
-Use this namespace when adding new MHD-specific functional-perturbation APIs,
-while keeping mature solver implementations in their current modules until a
-real consolidation becomes worthwhile.
+Use this namespace sparingly for toroidal perturbative helpers that remain in
+repo for now; plasma-behaviour analysis should ultimately move out to topoquest.
 
 Current sub-buckets:
 - `perturbation.equilibrium` → finite-β continuation, perturbed
@@ -329,14 +323,12 @@ Current sub-buckets:
 **Boundary rule:**
 - `pyna.control` = generic, dynamical-systems FPT and control
 - `pyna.toroidal.perturbation` = toroidal / MHD perturbative theory
-- `pyna.MCF.*` and top-level shims = compatibility only
 
-### `toroidal/plasma_response/` (legacy `MCF/plasma_response/`)
+### `toroidal/plasma_response/`
 
-Linear MHD plasma response via perturbed Grad-Shafranov equation
-(`PerturbGS.py`). This remains an implementation-owner package; prefer
-`pyna.toroidal.perturbation.response` as the architectural discovery point for
-new theory code.
+Legacy in-repo plasma-response implementation kept only until the planned
+move of plasma-behaviour workflows to topoquest. Do not treat this as a
+long-term public pyna namespace.
 
 ### `toroidal/control/` (legacy `MCF/control/`)
 
@@ -367,7 +359,6 @@ Three top-level packages are thin re-export layers for legacy code.
 |------|-----------|
 | `pyna.mag` | `pyna.toroidal.*` |
 | `pyna.coord` | `pyna.toroidal.coords` |
-| `pyna.plasma_response` | `pyna.toroidal.plasma_response` |
 
 ---
 

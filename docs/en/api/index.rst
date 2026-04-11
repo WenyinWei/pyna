@@ -3,9 +3,8 @@ API Reference
 
 .. note::
 
-   ``pyna.toroidal`` is the preferred toroidal / magnetic-geometry namespace.
-   The ``MCF`` page remains for compatibility documentation because
-   ``pyna.MCF`` is still shipped as a legacy facade.
+   ``pyna.toroidal`` is the toroidal / magnetic-geometry namespace documented
+   in pyna. Historical ``pyna.MCF`` compatibility layers have been removed.
 
 .. toctree::
    :maxdepth: 2
@@ -13,4 +12,3 @@ API Reference
    flt
    topo
    control
-   MCF

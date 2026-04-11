@@ -7,7 +7,7 @@ flt       : Field line tracer
 topo      : Topological analysis (generic + toroidal specializations)
 coord     : Magnetic coordinate systems (legacy re-export)
 mag       : Magnetic equilibrium and analysis (legacy re-export)
-toroidal  : Preferred toroidal physics namespace (successor to ``pyna.MCF``)
+toroidal  : Toroidal geometry and field-line utilities
 """
 __version__ = "0.4.1"
 

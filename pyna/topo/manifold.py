@@ -2,7 +2,7 @@ from mimetypes import init
 from pyna.fields.cylindrical import VectorField3DCylindrical
 # bundle_tracing_with_t_as_DeltaPhi was removed in batch-1 legacy cleanup.
 # pyna.topo.manifold is a legacy module; only accumulate_s_from_RZ_arr is
-# still referenced externally (via pyna.MCF.visual.tokamak_manifold).
+# still referenced externally by legacy toroidal visualisation helpers.
 try:
     from pyna.flt import bundle_tracing_with_t_as_DeltaPhi  # legacy, may not exist
 except ImportError:

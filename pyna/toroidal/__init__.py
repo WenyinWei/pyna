@@ -1,7 +1,7 @@
-"""pyna.toroidal — preferred toroidal magnetic-geometry namespace.
+"""pyna.toroidal — toroidal magnetic-geometry utilities.
 
-This package is the canonical user-facing home for toroidal / magnetic-geometry
-functionality that historically lived under :mod:`pyna.MCF`.
+This package groups toroidal coordinate, coil, control, diagnostic, and
+visualisation helpers used by pyna.
 """
 
 from importlib import import_module
@@ -15,7 +15,6 @@ _SUBMODULES = {
     "flt",
     "optimize",
     "perturbation",
-    "plasma_response",
     "torus_deformation",
     "visual",
 }

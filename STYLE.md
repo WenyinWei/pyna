@@ -214,7 +214,7 @@ This keeps related classes adjacent in IDE autocomplete and `dir()` output.
 - `3D` before `Cylindrical` 鈥?cylindrical coordinates describe a 3D space
 - Backend type (e.g. `CUDA`) is always last 鈥?it's the most incidental qualifier
 
-**Single canonical hierarchy.** If a class already exists in the canonical hierarchy (`pyna.fields`), do **not** create a parallel class elsewhere. Instead extend or import from the canonical source. The `pyna.MCF.coils.field` module is a thin re-export layer only.
+**Single canonical hierarchy.** If a class already exists in the canonical hierarchy (`pyna.fields`), do **not** create a parallel class elsewhere. Instead extend or import from the canonical source.
 
 **No backward-compat aliases.** Rename and update all call sites immediately.
 

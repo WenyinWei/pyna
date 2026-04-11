@@ -266,10 +266,10 @@ class IslandChainOrbit:
         IslandChainOrbit
         """
         try:
-            from pyna.MCF.flt import trace_orbit_along_phi, find_fixed_points_batch
+            from pyna.toroidal.flt import trace_orbit_along_phi, find_fixed_points_batch
         except ImportError as exc:
             raise ImportError(
-                "pyna.MCF.flt (cyna C++ backend) not available; use from_single_fixedpoint instead"
+                "pyna.toroidal.flt (cyna C++ backend) not available; use from_single_fixedpoint instead"
             ) from exc
 
         # Extend Phi_grid for periodicity

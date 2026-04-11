@@ -40,5 +40,4 @@ that landing zone without overbuilding or moving stable implementations.
 Avoid placing toroidal perturbative-equilibrium code in:
 
 - `pyna.topo` — topology objects/algorithms only
-- top-level `pyna.plasma_response` — compatibility shim only
-- `pyna.MCF.*` — legacy facade only
+- compatibility facade namespaces

@@ -33,14 +33,14 @@ for _p in [str(_repo / 'pyna'), _topoquest]:
 
 # Direct import of StellaratorSimple without triggering pyna's __init__.py
 import importlib.util as _ilu
-_stell_path = _repo / 'pyna' / 'pyna' / 'MCF' / 'equilibrium' / 'stellarator.py'
+_stell_path = _repo / 'pyna' / 'pyna' / 'toroidal' / 'equilibrium' / 'stellarator.py'
 _stell_spec = _ilu.spec_from_file_location('pyna_stellarator', _stell_path)
 _stell_mod  = _ilu.module_from_spec(_stell_spec)
 _stell_spec.loader.exec_module(_stell_mod)
 StellaratorSimple = _stell_mod.StellaratorSimple
 
 # Direct imports for corrector (avoid pyna.__init__ heavy deps)
-_corr_path = _repo / 'pyna' / 'pyna' / 'MCF' / 'equilibrium' / 'fenicsx_corrector.py'
+_corr_path = _repo / 'pyna' / 'pyna' / 'toroidal' / 'equilibrium' / 'fenicsx_corrector.py'
 _corr_spec = _ilu.spec_from_file_location('fenicsx_corrector', _corr_path)
 _corr_mod  = _ilu.module_from_spec(_corr_spec)
 _corr_spec.loader.exec_module(_corr_mod)
@@ -236,7 +236,7 @@ def test_coupled_solver_ampere_residual():
     _fake_fields.ScalarField3DCylindrical = _CSF
     sys.modules['pyna.fields.cylindrical'] = _fake_fields
 
-    _pg_path = _repo / 'pyna' / 'pyna' / 'MCF' / 'plasma_response' / 'PerturbGS.py'
+    _pg_path = _repo / 'pyna' / 'pyna' / 'toroidal' / 'plasma_response' / 'PerturbGS.py'
     _pg_spec = _ilu.spec_from_file_location('PerturbGS_standalone', _pg_path)
     _pg_mod  = _ilu.module_from_spec(_pg_spec)
 

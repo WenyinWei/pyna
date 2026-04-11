@@ -1,8 +1,7 @@
 """Magnetic island-chain control primitives in the preferred toroidal namespace.
 
-This module owns the toroidal / stellarator-facing island-response utilities.
-Legacy ``pyna.MCF`` wrappers re-export from here, but the implementation and
-all internal imports stay in ``pyna.toroidal``.
+This module owns the toroidal / stellarator-facing island-response utilities,
+with all implementation and internal imports living in ``pyna.toroidal``.
 """
 from __future__ import annotations
 

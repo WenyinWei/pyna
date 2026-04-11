@@ -1,8 +1,6 @@
 """Toroidal Poincaré tracing helpers backed by the cyna C++ extension.
 
-Canonical toroidal ownership for the grid-backed batch tracing helpers that
-historically lived under ``pyna.MCF.flt``. The MCF path is now a thin
-compatibility wrapper.
+Canonical toroidal ownership for the grid-backed batch tracing helpers.
 """
 from __future__ import annotations
 

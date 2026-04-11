@@ -3,7 +3,6 @@
 New hierarchy replacing:
   - pyna.field_data.CylindricalScalarField / CylindricalVectorField
   - pyna.system.VectorField3D / VectorField3DAxiSymmetric
-  - pyna.MCF.coils.field (eliminated redundant grid classes)
 
 All old names remain importable via backward-compat aliases in their
 original modules. New code should import from pyna.fields directly.
