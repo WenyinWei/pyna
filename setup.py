@@ -322,6 +322,10 @@ def _build_cyna() -> bool:
     env["XMAKE_PYTHON"]       = sys.executable
     env["CYNA_PY_INC"]         = _sc.get_path("include") or ""
     env["CYNA_PY_LIBDIR"]      = _sc.get_config_var("LIBDIR") or ""
+    # EXT_SUFFIX: the correct Python binary extension suffix for this interpreter,
+    # e.g. ".pyd" on Windows, ".cpython-310-x86_64-linux-gnu.so" on Linux.
+    # xmake uses this to name the output file so Python's import system finds it.
+    env["CYNA_EXT_SUFFIX"]     = _sc.get_config_var("EXT_SUFFIX") or (".pyd" if _is_windows() else ".so")
     # pybind11 headers from pip (avoids xmake's CMake-based package download)
     try:
         import pybind11 as _pb11

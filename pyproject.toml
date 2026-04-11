@@ -57,6 +57,11 @@ Issues = "https://github.com/WenyinWei/pyna/issues"
 include = ["pyna*", "cyna*"]
 exclude = ["notebooks*"]
 
+# Include compiled extension binaries in the wheel.
+# Without this, setuptools only packs .py files and the .pyd/.so would be missing.
+[tool.setuptools.package-data]
+"pyna._cyna" = ["*.pyd", "*.so", "*.so.*"]
+
 # Tell pip/wheel this package contains compiled extensions
 # so it builds a platform-specific wheel (not a universal py3-none-any).
 [tool.cibuildwheel]

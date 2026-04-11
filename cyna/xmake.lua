@@ -28,9 +28,18 @@ end
 local PY_INC     = os.getenv("CYNA_PY_INC")     or ""
 local PY_LIBDIR  = os.getenv("CYNA_PY_LIBDIR")  or ""
 local PY_LIB_WIN = os.getenv("CYNA_PY_LIB_WIN") or ""
+-- EXT_SUFFIX: the correct Python extension suffix, e.g.
+--   Windows:  .pyd  (or .cp310-win_amd64.pyd for limited API builds)
+--   Linux:    .cpython-310-x86_64-linux-gnu.so
+--   macOS:    .cpython-310-darwin.so
+-- setup.py exports this so xmake can name the output file correctly.
+local EXT_SUFFIX = os.getenv("CYNA_EXT_SUFFIX") or ""
 
 if PY_INC ~= "" then
     print("cyna: Python include  : " .. PY_INC)
+end
+if EXT_SUFFIX ~= "" then
+    print("cyna: EXT_SUFFIX      : " .. EXT_SUFFIX)
 end
 if is_plat("windows") and PY_LIB_WIN ~= "" then
     print("cyna: Python lib (win): " .. PY_LIB_WIN)
@@ -42,7 +51,9 @@ target("cyna")
     add_includedirs("include", {public = true})
     add_headerfiles("include/(cyna/*.hpp)")
 
--- pybind11 Python extension (_cyna_ext.pyd / _cyna_ext.so)
+-- pybind11 Python extension
+-- The output filename must match Python's expected import name exactly:
+--   _cyna_ext<EXT_SUFFIX>   e.g. _cyna_ext.pyd  or  _cyna_ext.cpython-310-....so
 target("cyna_python")
     set_kind("shared")
     add_files("bindings/flt_bindings.cpp")
@@ -54,16 +65,23 @@ target("cyna_python")
         add_includedirs(PY_INC)
     end
     if PYBIND11_INC ~= "" then
-        -- Use pip pybind11 headers directly
         add_includedirs(PYBIND11_INC)
     else
-        -- Fall back to xmake-managed pybind11 package
         add_packages("pybind11")
     end
 
-    -- python.module rule (xmake v3) / python.library (v2) sets correct ext suffix
-    set_filename("_cyna_ext")
-    add_rules("python.module")
+    -- Set the output filename to exactly what Python expects.
+    -- EXT_SUFFIX includes the leading dot, e.g. ".pyd" or ".cpython-310-...so"
+    -- We strip the leading dot for set_extension(), or use set_suffixes() if available.
+    if EXT_SUFFIX ~= "" then
+        -- xmake's set_extension sets the file extension (including the dot)
+        set_extension(EXT_SUFFIX)
+        set_basename("_cyna_ext")
+    else
+        -- Fallback: use python.module rule which handles this automatically
+        set_filename("_cyna_ext")
+        add_rules("python.module")
+    end
 
     -- Compiler flags
     set_languages("c++17")
@@ -71,10 +89,14 @@ target("cyna_python")
     add_cxxflags("-O3", "-fopenmp", {tools = {"gcc"}})
     add_cxxflags("-O3",             {tools = {"clang"}})
 
+    -- Disable default lib/exp/pdb generation on Windows (keeps output clean)
+    if is_plat("windows") then
+        add_ldflags("/NOEXP", {force = true, tools = {"link"}})
+    end
+
     -- Link Python runtime
     if is_plat("windows") then
         if PY_LIB_WIN ~= "" then
-            -- path.basename returns a string in xmake; tostring() for safety
             local libdir  = path.directory(PY_LIB_WIN)
             local libfile = tostring(path.basename(PY_LIB_WIN))
             local libname = libfile:gsub("%.lib$", "")
@@ -86,12 +108,12 @@ target("cyna_python")
         add_rpathdirs(PY_LIBDIR)
     end
 
-    -- CUDA (optional, enabled via --with-cuda=y)
+    -- CUDA (optional)
     if has_config("with-cuda") then
         add_defines("CYNA_CUDA_ENABLED")
     end
 
-    -- After build: copy into pyna/_cyna/ so Python can import it
+    -- After build: copy the correctly-named .pyd/.so into pyna/_cyna/
     after_build(function(target)
         local dest = path.join(os.scriptdir(), "..", "pyna", "_cyna")
         os.mkdir(dest)
