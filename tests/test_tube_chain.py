@@ -4,7 +4,7 @@ import numpy as np
 
 from pyna.topo.toroidal_invariants import Cycle, FixedPoint, MonodromyData
 from pyna.topo.toroidal_tube import Tube, TubeChain, TubeCutPoint
-from pyna.topo.section import HyperplaneSection
+from pyna.topo.section import HyperplaneSection, ToroidalSection
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -54,6 +54,44 @@ def test_tube_wraps_cycle_and_maps_to_island():
     assert np.allclose(isl.O_point, [1.00, 0.00])
     assert len(isl.X_points) == 1
     assert 'o-tube' in tube.summary()
+
+
+def test_tube_rejects_phi_duck_type_section_objects():
+    tube = _tube([
+        (0.0, 1.00, 0.00, 'O'),
+        (np.pi, 1.05, 0.02, 'O'),
+    ])
+
+    class FakeToroidalSection:
+        phi = 0.0
+
+    try:
+        tube.section_cut(FakeToroidalSection())
+    except TypeError as exc:
+        assert "Section instance" in str(exc)
+    else:
+        raise AssertionError("expected TypeError for phi duck-typed section")
+
+
+
+def test_cycle_requires_explicit_toroidal_section_boundary():
+    cycle = _cycle([
+        (0.0, 1.00, 0.00, 'O'),
+        (np.pi, 1.05, 0.02, 'O'),
+    ])
+
+    assert len(cycle.section_cut(ToroidalSection(0.0))) == 1
+
+    class FakeToroidalSection:
+        phi = 0.0
+
+    try:
+        cycle.section_cut(FakeToroidalSection())
+    except TypeError as exc:
+        assert "ToroidalSection" in str(exc)
+    else:
+        raise AssertionError("expected TypeError for phi duck-typed toroidal section")
+
 
 
 def test_tube_chain_maps_to_discrete_island_chain():

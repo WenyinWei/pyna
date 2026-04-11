@@ -93,11 +93,10 @@ def plot_tube_section(
     except ImportError as e:
         raise ImportError("matplotlib is required for plotting.") from e
 
-    from pyna.topo.section import ToroidalSection
+    from pyna.topo.section import ToroidalSection, coerce_section
 
-    if isinstance(section, (int, float)):
-        section = ToroidalSection(float(section))
-    phi = section.phi if hasattr(section, 'phi') else None
+    section = coerce_section(section)
+    phi = section.phi if isinstance(section, ToroidalSection) else None
 
     if ax is None:
         _, ax = plt.subplots()
@@ -178,10 +177,9 @@ def plot_tube_chain_section(
     except ImportError as e:
         raise ImportError("matplotlib is required for plotting.") from e
 
-    from pyna.topo.section import ToroidalSection
+    from pyna.topo.section import ToroidalSection, coerce_section
 
-    if isinstance(section, (int, float)):
-        section = ToroidalSection(float(section))
+    section = coerce_section(section)
 
     if ax is None:
         _, ax = plt.subplots()
@@ -333,11 +331,10 @@ def plot_resonance_section(
     except ImportError as e:
         raise ImportError("matplotlib is required for plotting.") from e
 
-    from pyna.topo.section import ToroidalSection
+    from pyna.topo.section import ToroidalSection, coerce_section
 
-    if isinstance(section, (int, float)):
-        section = ToroidalSection(float(section))
-    phi = section.phi if hasattr(section, 'phi') else 0.0
+    section = coerce_section(section)
+    phi = section.phi if isinstance(section, ToroidalSection) else 0.0
 
     if ax is None:
         _, ax = plt.subplots()

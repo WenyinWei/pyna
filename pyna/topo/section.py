@@ -19,6 +19,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, Sequence
+from numbers import Real
 
 import numpy as np
 
@@ -215,6 +216,45 @@ class ParametricSection(Section):
         if self.accept_func is None:
             return True
         return bool(self.accept_func(np.asarray(x, dtype=float)))
+
+
+def coerce_section(section: Any) -> Section:
+    """Normalize user input into a first-class :class:`Section`.
+
+    Rules
+    -----
+    - ``float`` / ``int`` → :class:`ToroidalSection`
+    - existing :class:`Section` instance → returned unchanged
+    - anything else → ``TypeError``
+
+    This intentionally rejects legacy duck-typed objects carrying a ``phi``
+    attribute but not implementing the Section protocol.
+    """
+    if isinstance(section, Section):
+        return section
+    if isinstance(section, Real):
+        return ToroidalSection(float(section))
+    raise TypeError(
+        "section must be a Section instance or numeric toroidal angle; "
+        f"got {type(section)!r}"
+    )
+
+
+
+def coerce_toroidal_section(section: Any) -> ToroidalSection:
+    """Normalize input into a concrete :class:`ToroidalSection`.
+
+    Use this at toroidal-only boundaries where generic sections are not
+    semantically meaningful.
+    """
+    section_obj = coerce_section(section)
+    if isinstance(section_obj, ToroidalSection):
+        return section_obj
+    raise TypeError(
+        "expected a ToroidalSection or numeric toroidal angle; "
+        f"got {type(section_obj)!r}"
+    )
+
 
 
 def toroidal_sections(phi_list: Sequence[float]) -> list[ToroidalSection]:

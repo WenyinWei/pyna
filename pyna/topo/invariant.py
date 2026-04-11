@@ -246,14 +246,8 @@ class InvariantTorus(InvariantSet):
 
         Returns a list containing one (N, 2) ndarray of (R, Z) crossings.
         """
-        if isinstance(section, (int, float)):
-            phi = float(section)
-        elif hasattr(section, 'phi'):
-            phi = float(section.phi)
-        else:
-            raise NotImplementedError(
-                "InvariantTorus.section_cut only supports ToroidalSection."
-            )
+        from pyna.topo.section import coerce_toroidal_section
+        phi = float(coerce_toroidal_section(section).phi)
         return [self.crossing_array(phi)]
 
     def diagnostics(self) -> Dict[str, Any]:

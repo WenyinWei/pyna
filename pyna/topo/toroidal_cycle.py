@@ -72,12 +72,12 @@ class ToroidalPeriodicOrbitTrace:
     # ── InvariantSet-style interface ───────────────────────────────────────
 
     def section_cut(self, section) -> list:
-        """Return the point(s) at which this orbit crosses a Poincaré section.
+        """Return the point(s) at which this orbit crosses a toroidal section.
 
         Parameters
         ----------
-        section : float | object with .phi attribute
-            Toroidal section angle (radians) or a ToroidalSection object.
+        section : float | ToroidalSection
+            Toroidal section angle (radians) or a concrete ``ToroidalSection``.
 
         Returns
         -------
@@ -85,12 +85,9 @@ class ToroidalPeriodicOrbitTrace:
         Returns an empty list if the trajectory is not available or no
         crossing is found within tolerance.
         """
-        if isinstance(section, (int, float)):
-            phi_target = float(section)
-        elif hasattr(section, 'phi'):
-            phi_target = float(section.phi)
-        else:
-            return []  # Non-toroidal sections not supported here
+        from pyna.topo.section import coerce_toroidal_section
+
+        phi_target = float(coerce_toroidal_section(section).phi)
 
         traj = np.asarray(self.trajectory, dtype=float)  # (N, 3): R, Z, phi
         if traj.ndim != 2 or traj.shape[1] < 3:

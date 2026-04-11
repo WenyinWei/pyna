@@ -50,6 +50,10 @@ appear as closed curves; a magnetic island shows up as a chain of dots.
    from pyna.topo.poincare import PoincareMap, poincare_from_fieldlines
    from pyna.topo.section import ToroidalSection
 
+   # Section inputs are explicit: pass a numeric toroidal angle or a real
+   # ToroidalSection object. Generic Section subclasses are reserved for
+   # geometry-aware section_cut paths that support non-toroidal cuts.
+
    # --- define the ODE right-hand side: dR/dφ, dZ/dφ ---
    def field_rhs(phi, RZ):
        R, Z = RZ

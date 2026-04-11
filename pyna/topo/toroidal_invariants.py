@@ -530,7 +530,8 @@ class Cycle(InvariantManifold):
                 pts = self.section_points(phi0)
                 return PeriodicOrbit(points=pts, ambient_dim=self.ambient_dim, trajectory=self.trajectory)
             return PeriodicOrbit(points=[], ambient_dim=self.ambient_dim, trajectory=self.trajectory)
-        phi = float(section) if isinstance(section, (int, float)) else float(getattr(section, 'phi', section))
+        from pyna.topo.section import coerce_toroidal_section
+        phi = float(coerce_toroidal_section(section).phi)
         pts = self.section_points(phi)
         if not pts:
             raise KeyError(phi)

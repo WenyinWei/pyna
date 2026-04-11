@@ -196,14 +196,14 @@ class Tube(InvariantSet):
     def section_islands(self, section, tol: float = 1e-6) -> List[Island]:
         """Cut this Tube with a Section and return the resulting Island objects."""
         from pyna.topo.toroidal_island import Island as _Island
-        from pyna.topo.section import ToroidalSection
+        from pyna.topo.section import ToroidalSection, coerce_section
 
-        if isinstance(section, (int, float)):
-            section = ToroidalSection(float(section))
+        section = coerce_section(section)
 
-        if hasattr(section, 'phi'):
-            phi = section.phi
+        if isinstance(section, ToroidalSection):
+            phi = float(section.phi)
             fps = self.at_section(phi, tol=tol)
+            x_phi = phi
         else:
             raw_fps = self._general_section_fps(section)
             fps = [
@@ -212,11 +212,12 @@ class Tube(InvariantSet):
                            DPm=np.eye(2), kind='O')
                 for fp in raw_fps
             ]
+            x_phi = self.seed_phi
 
         if not fps:
             return []
 
-        x_fps = self.x_at_section(getattr(section, 'phi', self.seed_phi), tol=tol)
+        x_fps = self.x_at_section(x_phi, tol=tol)
         x_groups: List[List[FixedPoint]] = [[] for _ in fps]
         for xfp in x_fps:
             dists = [np.hypot(xfp.R - ofp.R, xfp.Z - ofp.Z) for ofp in fps]
@@ -239,8 +240,9 @@ class Tube(InvariantSet):
 
     def section_cut(self, section, tol: float = 1e-6) -> IslandChain:
         """Cut this Tube and return the induced toroidal IslandChain."""
+        from pyna.topo.section import coerce_section
         from pyna.topo.toroidal_island import IslandChain as _IslandChain
-        islands = self.section_islands(section, tol=tol)
+        islands = self.section_islands(coerce_section(section), tol=tol)
         chain = _IslandChain(m=self.m, n=self.n, parent_tube=self, label=self.label,
                              metadata={'n_tubes_included': 1})
         for isl in islands:
@@ -847,11 +849,10 @@ class TubeChain(InvariantSet):
             curr._set_last(lst)
 
     def section_cut(self, section, tol: float = 1e-6) -> IslandChain:
-        from pyna.topo.section import ToroidalSection
+        from pyna.topo.section import ToroidalSection, coerce_section
         from pyna.topo.toroidal_island import IslandChain as _IslandChain
-        if isinstance(section, (int, float)):
-            section = ToroidalSection(float(section))
-        if hasattr(section, 'phi'):
+        section = coerce_section(section)
+        if isinstance(section, ToroidalSection):
             return self.to_island_chain_connected(section.phi, tol=tol)
 
         chain = _IslandChain(
