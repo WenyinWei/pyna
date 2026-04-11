@@ -37,7 +37,7 @@ import numpy as np
 # ---------------------------------------------------------------------------
 # Import corrector (no FEniCSx needed for the pure-numpy path)
 # ---------------------------------------------------------------------------
-from pyna.MCF.equilibrium.fenicsx_corrector import (
+from pyna.toroidal.equilibrium.fenicsx_corrector import (
     compute_curl_cylindrical,
     compute_force_residual,
     _residual_norm,
@@ -95,7 +95,7 @@ def solve_correction_numpy(B_init, p_2d, R_arr, Z_arr, max_iter=20, tol=1e-10,
     The "correction" is not a proper Newton step, but sufficient to test
     convergence acceleration and line search logic.
     """
-    from pyna.MCF.equilibrium.fenicsx_corrector import (
+    from pyna.toroidal.equilibrium.fenicsx_corrector import (
         _line_search_damp, AndersonMixer
     )
 

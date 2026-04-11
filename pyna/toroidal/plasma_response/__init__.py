@@ -7,6 +7,7 @@ from pyna.toroidal.plasma_response.PerturbGS import (
     compute_diamagnetic_current,
     compute_pfirsch_schlueter_current,
 )
+from pyna.toroidal.plasma_response.coupled_gs import solve_coupled_mhd
 
 __all__ = [
     "solve_perturbed_gs",
@@ -15,4 +16,5 @@ __all__ = [
     "compute_equilibrium_currents",
     "compute_diamagnetic_current",
     "compute_pfirsch_schlueter_current",
+    "solve_coupled_mhd",
 ]

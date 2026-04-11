@@ -65,21 +65,21 @@ _load_mod('pyna.fields.base',       os.path.join(PYNA_PKG, 'fields', 'base.py'))
 _load_mod('pyna.fields.cylindrical',os.path.join(PYNA_PKG, 'fields', 'cylindrical.py'))
 
 # 4. Stub intermediate packages
-for _pkg in ['pyna.MCF', 'pyna.MCF.plasma_response', 'pyna.MCF.equilibrium']:
+for _pkg in ['pyna.MCF', 'pyna.MCF.plasma_response', 'pyna.MCF.equilibrium', 'pyna.toroidal', 'pyna.toroidal.plasma_response', 'pyna.toroidal.equilibrium']:
     if _pkg not in sys.modules:
         _m = types.ModuleType(_pkg)
         _m.__path__ = [os.path.join(PYNA_PKG, *_pkg.split('.')[1:])]
         _m.__package__ = _pkg
         sys.modules[_pkg] = _m
 
-# 5. Load PerturbGS and fenicsx_corrector directly
+# 5. Load toroidal PerturbGS and fenicsx_corrector directly
 PerturbGS_mod = _load_mod(
-    'pyna.MCF.plasma_response.PerturbGS',
-    os.path.join(PYNA_PKG, 'MCF', 'plasma_response', 'PerturbGS.py'),
+    'pyna.toroidal.plasma_response.PerturbGS',
+    os.path.join(PYNA_PKG, 'toroidal', 'plasma_response', 'PerturbGS.py'),
 )
 fenicsx_mod = _load_mod(
-    'pyna.MCF.equilibrium.fenicsx_corrector',
-    os.path.join(PYNA_PKG, 'MCF', 'equilibrium', 'fenicsx_corrector.py'),
+    'pyna.toroidal.equilibrium.fenicsx_corrector',
+    os.path.join(PYNA_PKG, 'toroidal', 'equilibrium', 'fenicsx_corrector.py'),
 )
 
 solve_perturbed_gs_coupled  = PerturbGS_mod.solve_perturbed_gs_coupled
