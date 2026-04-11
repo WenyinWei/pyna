@@ -37,7 +37,7 @@ from pyna.topo.toroidal_island import Island, IslandChain
 from pyna.topo.toroidal_invariants import Cycle, FixedPoint, MonodromyData, PeriodicOrbit
 
 if TYPE_CHECKING:
-    from pyna.topo.section_view import SectionView
+    from pyna.topo.toroidal_section_view import SectionView
 
 
 _SimplePoint = type('_SimplePoint', (), {'__init__': lambda self, R, Z: setattr(self, 'R', R) or setattr(self, 'Z', Z)})
@@ -736,7 +736,7 @@ class TubeChain(InvariantSet):
         tol: float = 1e-6,
         dedup_tol: float = 1e-6,
     ) -> "SectionView":
-        from pyna.topo.section_view import SectionViewBuilder
+        from pyna.topo.toroidal_section_view import SectionViewBuilder
         return SectionViewBuilder.from_tubechain(
             self, phi, kind=kind, reconstruct=False, tol=tol, dedup_tol=dedup_tol,
         )
@@ -750,7 +750,7 @@ class TubeChain(InvariantSet):
         dedup_tol: float = 1e-6,
         section_reconstructor: Optional[SectionReconstructor] = None,
     ) -> "SectionView":
-        from pyna.topo.section_view import SectionViewBuilder
+        from pyna.topo.toroidal_section_view import SectionViewBuilder
         return SectionViewBuilder.from_tubechain(
             self, phi, kind=kind, reconstruct=True,
             tol=tol, dedup_tol=dedup_tol,

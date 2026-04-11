@@ -52,7 +52,12 @@ from pyna.topo.monodromy import (
     monodromy_matrix,
 )
 from pyna.topo.identity import ResonanceID, TubeID, IslandID
-from pyna.topo.section_view import SectionViewPoint, SectionCorrespondence, SectionView, SectionViewBuilder
+from pyna.topo.toroidal_section_view import (
+    SectionViewPoint as ToroidalSectionViewPoint,
+    SectionCorrespondence as ToroidalSectionCorrespondence,
+    SectionView as ToroidalSectionView,
+    SectionViewBuilder as ToroidalSectionViewBuilder,
+)
 from pyna.topo.toroidal_tube import TubeCutPoint, Tube as ToroidalTube, TubeChain as ToroidalTubeChain
 from pyna.plot.island import plot_island, island_section_points
 from pyna.plot.island_chain import plot_island_chain, island_chain_section_points
@@ -175,10 +180,10 @@ __all__ = [
     "ResonanceID",
     "TubeID",
     "IslandID",
-    "SectionViewPoint",
-    "SectionCorrespondence",
-    "SectionView",
-    "SectionViewBuilder",
+    "ToroidalSectionViewPoint",
+    "ToroidalSectionCorrespondence",
+    "ToroidalSectionView",
+    "ToroidalSectionViewBuilder",
     # toroidal continuous-time resonance geometry
     "TubeCutPoint",
     "ToroidalTube",
