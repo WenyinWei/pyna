@@ -1,18 +1,19 @@
-"""pyna.topo.trajectory3d - 3D toroidal trajectory representation.
+"""pyna.topo.trajectory3d - sampled toroidal trajectory representation.
 
-The canonical representation for any geometric object in a toroidal vector field:
-field lines, flux surfaces, LCFS, manifolds, periodic orbits of the *continuous*
-flow (as opposed to discrete Poincaré map fixed points).
+This module stores finite sampled geometry in a toroidal coordinate system.
+These objects are *not* assumed to be invariant sets just because they were
+numerically traced.  Exact periodicity / invariance belongs to higher-level
+objects such as :class:`pyna.topo.invariants.Cycle`.
 
 Design principle
 ----------------
-ALWAYS represent objects as 3D trajectories first, then derive 2D cross-sections
-by intersection.  NEVER independently compute a geometric object at each phi section.
+Represent a toroidal curve once in 3D, then derive 2D section cuts by
+intersection.  Do not recompute unrelated copies at each phi section.
 
 Naming
 ------
-``Trajectory3DToroidal`` is the canonical class name (pyna ≥ 0.5).
-``Trajectory3DToroidal`` is kept as a backward-compatible alias.
+``Trajectory3DToroidal`` remains the concrete toroidal sampled-trajectory
+container.  ``Trajectory3D`` is now only a compatibility alias.
 """
 
 import numpy as np
@@ -24,25 +25,15 @@ from pyna.topo._base import Trajectory
 
 
 # ---------------------------------------------------------------------------
-# Generic 3-D trajectory base
+# Concrete toroidal sampled trajectory
 # ---------------------------------------------------------------------------
 
 @dataclass
-class Trajectory3D(Trajectory):
-    """Generic 3-D parametric trajectory: arrays of coordinates and parameter.
-
-    Subclass this for any 3-D coordinate system.  The canonical toroidal
-    specialisation is :class:`Trajectory3DToroidal`.
-    """
-    pass
-
-
-@dataclass
-class Trajectory3DToroidal(Trajectory3D):
+class Trajectory3DToroidal(Trajectory):
     """A 3D trajectory in a toroidal vector field, stored as (R, Z, phi) arrays.
 
-    Inherits from :class:`Trajectory3D`.  Generic for any toroidal dynamical
-    system (magnetic field lines, guiding-centre drift orbits, etc.).  All
+    Generic for any toroidal dynamical system (magnetic field lines,
+    guiding-centre drift orbits, etc.).  All
     cross-sections are derived by intersection of this single 3D object —
     never recomputed independently per section.
 
@@ -342,6 +333,7 @@ def trace_toroidal_trajectory(
 # ---------------------------------------------------------------------------
 # Backward-compatible alias
 # ---------------------------------------------------------------------------
-#: ``Trajectory3DToroidal`` is kept as an alias for :class:`Trajectory3DToroidal`
-#: for code written before pyna 0.5.  New code should use ``Trajectory3DToroidal``.
-Trajectory3DToroidal = Trajectory3DToroidal
+#: ``Trajectory3D`` is retained as a compatibility alias.  The intermediate
+#: generic 3-D subclass layer has been removed; use ``Trajectory3DToroidal``
+#: directly for toroidal sampled curves.
+Trajectory3D = Trajectory3DToroidal

@@ -5,7 +5,8 @@ from pyna.topo._base import (
     Trajectory, Orbit,
 )
 from pyna.topo.trajectory3d import (
-    Trajectory3D, Trajectory3DToroidal, Trajectory3DToroidal,
+    Trajectory3D,
+    Trajectory3DToroidal,
     trace_toroidal_trajectory,
 )
 
@@ -78,10 +79,10 @@ from pyna.topo.dynamics import (
 )
 # Layer 1: Invariant objects
 from pyna.topo._base import (
+    GeometricObject,
     InvariantSet,
     InvariantManifold,
     SectionCuttable,
-    InvariantSet,       # backward-compatible alias for InvariantSet
 )
 from pyna.topo.invariant import (
     InvariantTorus,
@@ -95,16 +96,16 @@ from pyna.topo.section import (
 from pyna.topo.resonance import ResonanceNumber
 __all__ = [
     # Base hierarchy
+    "GeometricObject",
     "InvariantSet",
-    "InvariantSet",       # backward-compat alias
     "InvariantManifold",
     "SectionCuttable",
-    "Trajectory",            # continuous-flow curve (intrinsic_dim=1)
+    "Trajectory",            # sampled continuous curve (not assumed invariant)
     "Orbit",                 # discrete-map periodic orbit (intrinsic_dim=0)
     # 3D trajectories (continuous flow)
     "Trajectory3D",
+    "Trajectory3D",          # compatibility alias to Trajectory3DToroidal
     "Trajectory3DToroidal",
-    "Trajectory3DToroidal",  # backward-compat alias
     "trace_toroidal_trajectory",
     "PoincareMapVariationalEquations",
     "StableManifold",
@@ -196,11 +197,11 @@ __all__ = [
     "PoincareMap",
     "MCFPoincareMap",
     "GeneralPoincareMap",
-    # InvariantSet layer
+    # invariant / geometry layer
+    "GeometricObject",
     "InvariantSet",
     "InvariantManifold",
     "SectionCuttable",
-    "InvariantSet",
     "InvariantTorus",
     # Sections
     "Section",

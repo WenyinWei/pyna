@@ -474,7 +474,7 @@ class PeriodicOrbit(Orbit):
 # ---------------------------------------------------------------------------
 
 @dataclass(eq=False)
-class Cycle(Trajectory):
+class Cycle(InvariantManifold):
     winding: Tuple[int, ...]
     sections: Dict = field(default_factory=dict)  # phi -> List[FixedPoint], ordered by flow
     monodromy: Optional[MonodromyData] = None

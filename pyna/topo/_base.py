@@ -1,14 +1,26 @@
-"""pyna.topo._base -- Base classes for invariant objects of dynamical systems.
+"""pyna.topo._base -- Base classes for topology / geometry objects.
 
 Extracted to a separate module to avoid circular imports between
 island_chain.py and invariant.py.
 
 Hierarchy
 ---------
-InvariantSet           — root ABC for any invariant geometric object
-  InvariantManifold    — invariant set with a well-defined intrinsic dimension
+GeometricObject        — root ABC for sampled or exact geometric objects
+  InvariantSet         — root ABC for mathematically invariant objects
+    InvariantManifold  — invariant set with a well-defined intrinsic dimension
+  Trajectory           — sampled continuous curve (not assumed invariant)
+  Orbit                — periodic orbit of a discrete map (invariant)
+
 SectionCuttable        — mixin protocol for objects that can be sliced by a
                          Poincaré section
+
+Design principle
+----------------
+Finite sampled geometry should not automatically be promoted to an invariant
+object.  In particular, a numerically traced open trajectory is useful
+geometry, but it is not an ``InvariantSet`` merely because it came from a
+flow integration.  Established periodic objects such as ``Cycle`` and
+``PeriodicOrbit`` remain in the invariant hierarchy.
 
 ``InvariantSet`` is retained as a backward-compatible alias for
 ``InvariantSet`` so that existing subclass declarations keep working.
@@ -20,10 +32,40 @@ from typing import Any, Dict, Optional, Protocol, runtime_checkable
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# InvariantSet — root of the hierarchy
+# GeometricObject — root of the hierarchy
 # ─────────────────────────────────────────────────────────────────────────────
 
-class InvariantSet(ABC):
+class GeometricObject(ABC):
+    """Abstract base for sampled or exact geometric/topological objects.
+
+    This is intentionally broader than :class:`InvariantSet`: it covers both
+    mathematically invariant objects and finite numerical representations such
+    as sampled trajectories.
+    """
+
+    @property
+    def label(self) -> Optional[str]:
+        """Human-readable identifier.  Override in subclasses."""
+        return None
+
+    @property
+    def ambient_dim(self) -> Optional[int]:
+        """Dimension of the ambient phase space (None if unknown)."""
+        return None
+
+    def diagnostics(self) -> Dict[str, Any]:
+        """Return a structured diagnostic / debug dict."""
+        return {"object_type": self.__class__.__name__}
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(label={self.label!r})"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# InvariantSet — root of the invariant hierarchy
+# ─────────────────────────────────────────────────────────────────────────────
+
+class InvariantSet(GeometricObject):
     """Abstract base for any invariant geometric object of a dynamical system.
 
     An invariant set *S* satisfies φ^t(S) ⊆ S for all t (continuous flow) or
@@ -48,16 +90,6 @@ class InvariantSet(ABC):
     """
 
     # ── Optional concrete interface ───────────────────────────────────────────
-
-    @property
-    def label(self) -> Optional[str]:
-        """Human-readable identifier.  Override in subclasses."""
-        return None
-
-    @property
-    def ambient_dim(self) -> Optional[int]:
-        """Dimension of the ambient phase space (None if unknown)."""
-        return None
 
     @property
     def poincare_map(self):
@@ -93,8 +125,6 @@ class InvariantSet(ABC):
             "Derive from SectionCuttable and override."
         )
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(label={self.label!r})"
 
 
 # ── Backward-compatible alias ─────────────────────────────────────────────────
@@ -165,34 +195,28 @@ class InvariantManifold(InvariantSet):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Trajectory — continuous-time solution curve
+# Trajectory — sampled continuous curve (not assumed invariant)
 # ─────────────────────────────────────────────────────────────────────────────
 
-class Trajectory(InvariantManifold):
-    """A continuous-time trajectory: a 1-D solution curve in phase space.
+class Trajectory(GeometricObject):
+    """A finite sampled trajectory: a 1-D curve representation in phase space.
 
-    A ``Trajectory`` is the image of a time-parametrised solution
-    ``t ↦ φ^t(x₀)`` of a continuous-flow ODE.  It can be:
-
-    - **Open** (finite-time integration, e.g. a field line between walls)
-    - **Closed** (periodic orbit of the flow, a.k.a. :class:`Cycle`)
-
-    Concrete subtypes
-    -----------------
-    - :class:`~pyna.topo.trajectory3d.Trajectory3D`
-      — Generic 3-D trajectory stored as (param, coords) arrays.
-      - :class:`~pyna.topo.trajectory3d.Trajectory3DToroidal`
-        — Toroidal variant stored as (R, Z, phi) arrays.
-    - :class:`~pyna.topo.invariants.Cycle`
-      — Closed periodic orbit of a continuous flow, stored as a dict of
-      Poincaré-section crossing lists plus an optional 3-D trajectory.
-
-    ``intrinsic_dim = 1`` (a curve).
+    A ``Trajectory`` is numerical geometry, not a proof of invariance.  It may
+    be an open finite-time integration, an approximate trace, or a sampled
+    representation of a genuinely invariant object.  Established periodic flow
+    orbits should be represented by :class:`~pyna.topo.invariants.Cycle`, which
+    may *own* a ``Trajectory`` as one representation.
     """
 
     @property
     def intrinsic_dim(self) -> int:
+        """Geometric curve dimension of the sampled trajectory."""
         return 1
+
+    def section_cut(self, section=None) -> list:
+        raise NotImplementedError(
+            f"{self.__class__.__name__} does not support section_cut() by default."
+        )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
