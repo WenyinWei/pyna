@@ -1,18 +1,13 @@
-"""
-pyna.MCF.flt — Field-line tracing utilities.
+"""Legacy compatibility wrapper for :mod:`pyna.toroidal.flt`."""
 
-Public API wrapping the pyna._cyna C++ extension.  All callers (including
-pyna.topo.*) should import from here instead of touching pyna._cyna directly.
-"""
-
-from .numba_poincare import (
-    precompile_tracer,
-    trace_poincare_batch,
-    trace_poincare_multi_batch,
-    trace_poincare_batch_twall,
-    find_fixed_points_batch,
-    trace_orbit_along_phi,
+from pyna.toroidal.flt import (
     field_arrays_from_interpolators,
+    find_fixed_points_batch,
+    precompile_tracer,
+    trace_orbit_along_phi,
+    trace_poincare_batch,
+    trace_poincare_batch_twall,
+    trace_poincare_multi_batch,
 )
 
 __all__ = [

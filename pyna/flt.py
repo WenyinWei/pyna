@@ -44,7 +44,8 @@ FieldLineTracer
     当传入网格数据时底层由 cyna C++ 扩展驱动；若只有 callable 场函数，
     则使用纯 Python RK4 fallback（向后兼容）。
     若要完全使用 C++ 底层加速，请使用
-    ``pyna.MCF.flt.trace_poincare_batch`` 并传入网格数组。
+    ``pyna.toroidal.flt.trace_poincare_batch`` 并传入网格数组。
+    ``pyna.MCF.flt.trace_poincare_batch`` 仅保留为兼容包装层。
 WallModel
     Parametric / polygon wall geometry for wall-hit detection.
 reseed_boundary_field_lines

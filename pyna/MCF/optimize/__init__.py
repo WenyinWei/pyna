@@ -14,7 +14,7 @@ Typical usage
 >>> objs = compute_all_objectives(equilibrium, wall_R=R_w, wall_Z=Z_w)
 """
 
-from .objectives import (
+from pyna.toroidal.optimize import (
     neoclassical_epsilon_eff,
     xpoint_field_parallelism,
     magnetic_axis_position,

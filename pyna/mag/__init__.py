@@ -24,7 +24,11 @@ from pyna.toroidal.coils.coil import BRBZ_induced_by_current_loop, BRBZ_induced_
 from pyna.toroidal.coils.coil_system import CoilSet, Biot_Savart_field
 from pyna.toroidal.coils.field import VectorField3DCylindrical, VectorField3DAxiSymmetric
 from pyna.toroidal.coils.RMP import normalize_b, RMP_spectrum_2d, island_width_at_rational_surfaces
-from pyna.MCF.diagnostics.measure import field_line_length, field_line_endpoints, field_line_min_psi
+from pyna.toroidal.diagnostics import (
+    field_line_length,
+    field_line_endpoints,
+    field_line_min_psi,
+)
 from pyna.toroidal.control import (
     compute_resonant_amplitude,
     island_suppression_current,
