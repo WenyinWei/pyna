@@ -2,8 +2,7 @@
 
 ## Overview
 
-`pyna.MCF.control` now forwards to `pyna.toroidal.control`, which is the preferred implementation home for the toroidal control slice. The package provides magnetic-confinement-fusion specific control
-modules that sit on top of the generic `pyna.control` (FPT) framework.
+`pyna.MCF.control` now forwards to `pyna.toroidal.control`, which owns the toroidal control slice. The package provides magnetic-confinement-fusion specific compatibility exports on top of the generic `pyna.control` (FPT) framework.
 
 For the generic FPT topology controller and theory background,
 see `pyna/control/README.md`.
@@ -16,7 +15,8 @@ see `pyna/control/README.md`.
 |--------|-------------|
 | `wall.py` | `WallGeometry` — first-wall polygon with gap-monitoring points and inward-normal queries |
 | `gap_response.py` | `gap_response_matrix_fpt` — compute ∂(gap_i)/∂(I_coil_k) via FPT manifold shift; `grow_stable_manifold_cached` — cached stable-manifold integration; `clear_manifold_cache` |
-| `island_control.py` | Island-width control primitives |
+| `island_control.py` | Legacy wrapper over `pyna.toroidal.control.island_control` |
+| `island_optimizer.py` | Legacy wrapper over `pyna.toroidal.control.island_optimizer` |
 | `qprofile_response.py` | `q_response_matrix_analytic`, `q_response_matrix_fd` — safety-factor response to coil currents |
 
 ---

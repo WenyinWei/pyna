@@ -1,8 +1,19 @@
 """pyna.MCF.control — legacy compatibility wrappers over ``pyna.toroidal.control``."""
-from pyna.toroidal.control.wall import WallGeometry, make_east_like_wall
-from pyna.toroidal.control.gap_response import gap_response_matrix_fpt
-from pyna.toroidal.control.qprofile_response import q_response_matrix_analytic, q_response_matrix_fd
-from pyna.MCF.control.island_optimizer import (
+from pyna.toroidal.control import (
+    WallGeometry,
+    make_east_like_wall,
+    gap_response_matrix_fpt,
+    q_from_flux_surface_integral,
+    q_by_fieldline_tracing,
+    q_by_fieldline_winding,
+    q_response_matrix_analytic,
+    q_response_matrix_fd,
+    iota_response_matrix,
+    build_qprofile_response,
+    compute_resonant_amplitude,
+    island_suppression_current,
+    phase_control_current,
+    multi_mode_control,
     IslandOptimizer,
     OptimisationResult,
     UnperturbedSurfaceReconstructor,

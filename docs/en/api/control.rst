@@ -3,8 +3,10 @@ FPT Topology Control (``pyna.control``)
 
 .. note::
    ``pyna.control`` contains the **generic** FPT topology control framework,
-   applicable to any area-preserving dynamical system. For MCF plasma-specific
-   control (gap response, q-profile), see :mod:`pyna.MCF.control`.
+   applicable to any area-preserving dynamical system. For toroidal / MCF
+   plasma-specific control (gap response, island control, q-profile), prefer
+   :mod:`pyna.toroidal.control`; :mod:`pyna.MCF.control` remains as a legacy
+   compatibility layer.
 
 .. automodule:: pyna.control.fpt
    :members:

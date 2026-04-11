@@ -10,6 +10,19 @@ from pyna.toroidal.control.qprofile_response import (
     iota_response_matrix,
     build_qprofile_response,
 )
+from pyna.toroidal.control.island_control import (
+    compute_resonant_amplitude,
+    island_suppression_current,
+    phase_control_current,
+    multi_mode_control,
+)
+from pyna.toroidal.control.island_optimizer import (
+    IslandOptimizer,
+    OptimisationResult,
+    UnperturbedSurfaceReconstructor,
+    compute_surface_deformation,
+    epsilon_eff_proxy,
+)
 
 __all__ = [
     "WallGeometry",
@@ -22,4 +35,13 @@ __all__ = [
     "q_response_matrix_fd",
     "iota_response_matrix",
     "build_qprofile_response",
+    "compute_resonant_amplitude",
+    "island_suppression_current",
+    "phase_control_current",
+    "multi_mode_control",
+    "IslandOptimizer",
+    "OptimisationResult",
+    "UnperturbedSurfaceReconstructor",
+    "compute_surface_deformation",
+    "epsilon_eff_proxy",
 ]

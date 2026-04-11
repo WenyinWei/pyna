@@ -65,13 +65,14 @@ Primary module: `PerturbGS.py`.
 
 ## §5  `MCF/control/`
 
-MCF-specific control modules:
+MCF-specific control compatibility modules:
 - `wall.py` — `WallGeometry` with gap monitoring points
 - `gap_response.py` — `gap_response_matrix_fpt`, `grow_stable_manifold_cached`
-- `island_control.py` — island width control primitives
+- `island_control.py` — legacy wrapper over `pyna.toroidal.control.island_control`
+- `island_optimizer.py` — legacy wrapper over `pyna.toroidal.control.island_optimizer`
 - `qprofile_response.py` — q-profile response matrix
 
-For the generic FPT-based topology controller see `pyna.control`.
+For the generic FPT-based topology controller see `pyna.control`. For the preferred toroidal import path, see `pyna.toroidal.control`.
 
 ## §6  `MCF/diagnostics/`
 
