@@ -6,7 +6,7 @@
 - `pyna.topo.chaos`: skeleton module for chaotic region diagnostics — Chirikov
   overlap criterion (`chirikov_overlap`), finite-time Lyapunov exponent field
   (`ftle_field`), and chaotic boundary estimation (`chaotic_boundary_estimate`).
-- `pyna.MCF.optimize`: new subpackage for multi-objective stellarator
+- `pyna.toroidal.optimize`: new subpackage for multi-objective stellarator
   optimisation; includes `neoclassical_epsilon_eff`, `xpoint_field_parallelism`,
   `magnetic_axis_position`, `wall_clearance`, and `compute_all_objectives`
   (all stubs with full docstrings and TODO markers ready for implementation).

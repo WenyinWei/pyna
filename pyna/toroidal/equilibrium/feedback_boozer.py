@@ -1,13 +1,13 @@
 """
-pyna.MCF.equilibrium.feedback_boozer
-======================================
+pyna.toroidal.equilibrium.feedback_boozer
+=========================================
 Linear plasma response (β-feedback) to magnetic perturbations
 in Boozer coordinates (ψ, θ_B, φ_B).
 
 Valid only where flux surfaces exist (non-chaotic regions).
 For chaotic/divertor regions use feedback_cylindrical.py instead.
 
-Companion module: pyna/MCF/equilibrium/feedback_cylindrical.py
+Companion module: pyna/toroidal/equilibrium/feedback_cylindrical.py
 (cylindrical formulation, valid also in chaotic/divertor regions)
 
 Advantages over cylindrical formulation:

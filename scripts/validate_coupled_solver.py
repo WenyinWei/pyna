@@ -64,8 +64,8 @@ _load_mod('pyna.fields.coords',     os.path.join(PYNA_PKG, 'fields', 'coords.py'
 _load_mod('pyna.fields.base',       os.path.join(PYNA_PKG, 'fields', 'base.py'))
 _load_mod('pyna.fields.cylindrical',os.path.join(PYNA_PKG, 'fields', 'cylindrical.py'))
 
-# 4. Stub intermediate packages
-for _pkg in ['pyna.MCF', 'pyna.MCF.plasma_response', 'pyna.MCF.equilibrium', 'pyna.toroidal', 'pyna.toroidal.plasma_response', 'pyna.toroidal.equilibrium']:
+# 4. Stub intermediate toroidal packages
+for _pkg in ['pyna.toroidal', 'pyna.toroidal.plasma_response', 'pyna.toroidal.equilibrium']:
     if _pkg not in sys.modules:
         _m = types.ModuleType(_pkg)
         _m.__path__ = [os.path.join(PYNA_PKG, *_pkg.split('.')[1:])]
@@ -73,6 +73,7 @@ for _pkg in ['pyna.MCF', 'pyna.MCF.plasma_response', 'pyna.MCF.equilibrium', 'py
         sys.modules[_pkg] = _m
 
 # 5. Load toroidal PerturbGS and fenicsx_corrector directly
+# Keep this script toroidal-first; do not revive the legacy pyna.MCF facade here.
 PerturbGS_mod = _load_mod(
     'pyna.toroidal.plasma_response.PerturbGS',
     os.path.join(PYNA_PKG, 'toroidal', 'plasma_response', 'PerturbGS.py'),

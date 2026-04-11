@@ -1,8 +1,8 @@
 """Magnetic island-chain control primitives in the preferred toroidal namespace.
 
 This module owns the toroidal / stellarator-facing island-response utilities.
-The legacy :mod:`pyna.MCF.control.island_control` path is now only a thin
-compatibility wrapper over this implementation.
+Legacy ``pyna.MCF`` wrappers re-export from here, but the implementation and
+all internal imports stay in ``pyna.toroidal``.
 """
 from __future__ import annotations
 
@@ -52,7 +52,7 @@ def compute_resonant_amplitude(
 
 def _make_coil_field_func(coil_set):
     """Wrap a CoilSet into a (R, Z, phi) -> (BR, BZ, BPhi) scalar callable."""
-    from pyna.MCF.coils.coil_system import Biot_Savart_field
+    from pyna.toroidal.coils.coil_system import Biot_Savart_field
 
     def field_func(R, Z, phi):
         br_tot = 0.0
