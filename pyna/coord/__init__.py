@@ -1,5 +1,5 @@
 """pyna.coord — backward-compatibility shim.
-Files have moved to pyna.MCF.coords; this module re-exports everything.
+Files have moved to pyna.toroidal.coords; this module re-exports everything.
 """
 import numpy as np
 
@@ -17,16 +17,16 @@ def RZPhi_mesh_2_XYZ_mesh(Rv, Zv, Phiv):
     return Xv, Yv, Zv
 
 
-from pyna.MCF.coords.PEST import (
+from pyna.toroidal.coords.PEST import (
     build_PEST_mesh,
     RZmesh_isoSTET,
     g_i_g__i_from_STET_mesh,
     counter_comp_of_a_field,
     co_comp_of_a_field,
 )
-from pyna.MCF.coords.EqualArc import build_equal_arc_mesh
-from pyna.MCF.coords.Hamada import build_Hamada_mesh
-from pyna.MCF.coords.Boozer import build_Boozer_mesh
+from pyna.toroidal.coords.EqualArc import build_equal_arc_mesh
+from pyna.toroidal.coords.Hamada import build_Hamada_mesh
+from pyna.toroidal.coords.Boozer import build_Boozer_mesh
 
 __all__ = [
     "RZPhi_range_2_XYZ_mesh",

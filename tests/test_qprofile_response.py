@@ -7,13 +7,13 @@ Run with:
 import numpy as np
 import pytest
 
-from pyna.MCF.control.qprofile_response import (
+from pyna.toroidal.control.qprofile_response import (
     q_from_flux_surface_integral,
     q_response_matrix_analytic,
     iota_response_matrix,
     build_qprofile_response,
 )
-from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev, solovev_iter_like
+from pyna.toroidal.equilibrium.Solovev import EquilibriumSolovev, solovev_iter_like
 
 
 # ── fixtures ──────────────────────────────────────────────────────────────

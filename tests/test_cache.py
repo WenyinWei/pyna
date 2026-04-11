@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 from unittest.mock import patch, MagicMock
 
-from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev
+from pyna.toroidal.equilibrium.Solovev import EquilibriumSolovev
 from pyna.control._cached_fpt import CachedFPTAnalyzer
 from pyna.cache import eq_hash, array_hash, cache_info, clear_cache
 

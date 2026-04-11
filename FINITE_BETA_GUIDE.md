@@ -57,7 +57,7 @@ python scripts/hao_beta_climb.py --full --output ./results/hao_beta_scan
 ### Basic usage
 
 ```python
-from pyna.MCF.equilibrium.finite_beta_perturbation import (
+from pyna.toroidal.equilibrium.finite_beta_perturbation import (
     FiniteBetaPerturbation,
     load_hao_coils,
 )
@@ -100,7 +100,7 @@ for state in history:
 ### Individual current components
 
 ```python
-from pyna.MCF.equilibrium.finite_beta_perturbation import (
+from pyna.toroidal.equilibrium.finite_beta_perturbation import (
     compute_diamagnetic_current,
     compute_pfirsch_schlueter_current,
     compute_bootstrap_current,
@@ -121,7 +121,7 @@ J_total = J_dia + J_PS + J_BS
 ### Using individual coil data
 
 ```python
-from pyna.MCF.equilibrium.finite_beta_perturbation import CoilVacuumField
+from pyna.toroidal.equilibrium.finite_beta_perturbation import CoilVacuumField
 
 # Load a single coil
 coil = CoilVacuumField.from_npz(

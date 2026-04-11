@@ -42,7 +42,7 @@ def _make_simple_equilibrium(nR=40, nZ=40):
 
 def test_build_PEST_mesh_output_shapes(simple_eq_arrays):
     """build_PEST_mesh should return arrays of the expected shapes."""
-    from pyna.MCF.coords.PEST import build_PEST_mesh
+    from pyna.toroidal.coords.PEST import build_PEST_mesh
 
     R, Z, BR0, BZ0, BPhi0, psi_norm, Rmaxis, Zmaxis = simple_eq_arrays
     ns, ntheta = 8, 13
@@ -61,7 +61,7 @@ def test_build_PEST_mesh_output_shapes(simple_eq_arrays):
 
 def test_build_PEST_mesh_S_monotone(simple_eq_arrays):
     """S should be monotonically increasing (or at least non-negative)."""
-    from pyna.MCF.coords.PEST import build_PEST_mesh
+    from pyna.toroidal.coords.PEST import build_PEST_mesh
 
     R, Z, BR0, BZ0, BPhi0, psi_norm, Rmaxis, Zmaxis = simple_eq_arrays
     ns = 6
@@ -75,7 +75,7 @@ def test_build_PEST_mesh_S_monotone(simple_eq_arrays):
 
 def test_RZmesh_isoSTET_deprecated(simple_eq_arrays):
     """RZmesh_isoSTET should emit a DeprecationWarning."""
-    from pyna.MCF.coords.PEST import RZmesh_isoSTET
+    from pyna.toroidal.coords.PEST import RZmesh_isoSTET
 
     R, Z, BR0, BZ0, BPhi0, psi_norm, Rmaxis, Zmaxis = simple_eq_arrays
 
@@ -89,7 +89,7 @@ def test_RZmesh_isoSTET_deprecated(simple_eq_arrays):
 
 def test_metric_tensor_biorthogonality(simple_eq_arrays):
     """g^i . g_j = delta_ij approximately on interior grid points."""
-    from pyna.MCF.coords.PEST import build_PEST_mesh, g_i_g__i_from_STET_mesh
+    from pyna.toroidal.coords.PEST import build_PEST_mesh, g_i_g__i_from_STET_mesh
 
     R, Z, BR0, BZ0, BPhi0, psi_norm, Rmaxis, Zmaxis = simple_eq_arrays
     ns, ntheta = 8, 13

@@ -13,9 +13,9 @@ import numpy as np
 import pytest
 
 from pyna.field_data import CylindricalVectorField, CylindricalScalarField
-from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev, solovev_iter_like
-from pyna.MCF.plasma_response import solve_perturbed_gs, compute_plasma_response
-from pyna.MCF.plasma_response.PerturbGS import (
+from pyna.toroidal.equilibrium.Solovev import EquilibriumSolovev, solovev_iter_like
+from pyna.toroidal.plasma_response import solve_perturbed_gs, compute_plasma_response
+from pyna.toroidal.plasma_response.PerturbGS import (
     _make_axi_vector_field,
     _make_axi_scalar_field,
     _solovev_grid_fields,

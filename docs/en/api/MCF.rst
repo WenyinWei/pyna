@@ -1,7 +1,7 @@
-MCF Plasma Extensions (``pyna.MCF``)
-======================================
+Toroidal Plasma Extensions (``pyna.toroidal``)
+==============================================
 
-The ``pyna.MCF`` package provides tools for magnetic confinement fusion
+The ``pyna.toroidal`` package provides tools for magnetic confinement fusion
 research: equilibria, magnetic coordinates, coil modelling, topology control,
 plasma response, diagnostics, publication-quality visualization, and
 non-resonant torus-deformation theory.
@@ -15,22 +15,22 @@ non-resonant torus-deformation theory.
 Equilibria
 ----------
 
-.. automodule:: pyna.MCF.equilibrium.Solovev
+.. automodule:: pyna.toroidal.equilibrium.Solovev
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: pyna.MCF.equilibrium.axisymmetric
+.. automodule:: pyna.toroidal.equilibrium.axisymmetric
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: pyna.MCF.equilibrium.GradShafranov
+.. automodule:: pyna.toroidal.equilibrium.GradShafranov
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: pyna.MCF.equilibrium.stellarator
+.. automodule:: pyna.toroidal.equilibrium.stellarator
    :members:
    :undoc-members:
    :show-inheritance:
@@ -40,22 +40,22 @@ Equilibria
 Magnetic Coordinates
 --------------------
 
-.. automodule:: pyna.MCF.coords.PEST
+.. automodule:: pyna.toroidal.coords.PEST
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: pyna.MCF.coords.Boozer
+.. automodule:: pyna.toroidal.coords.Boozer
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: pyna.MCF.coords.Hamada
+.. automodule:: pyna.toroidal.coords.Hamada
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: pyna.MCF.coords.EqualArc
+.. automodule:: pyna.toroidal.coords.EqualArc
    :members:
    :undoc-members:
    :show-inheritance:
@@ -85,17 +85,17 @@ Coils & Fields
 MCF Topology Control
 --------------------
 
-.. automodule:: pyna.MCF.control.gap_response
+.. automodule:: pyna.toroidal.control.gap_response
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: pyna.MCF.control.qprofile_response
+.. automodule:: pyna.toroidal.control.qprofile_response
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: pyna.MCF.control.wall
+.. automodule:: pyna.toroidal.control.wall
    :members:
    :undoc-members:
    :show-inheritance:
@@ -105,7 +105,7 @@ MCF Topology Control
 Plasma Response
 ---------------
 
-.. automodule:: pyna.MCF.plasma_response.PerturbGS
+.. automodule:: pyna.toroidal.plasma_response.PerturbGS
    :members:
    :undoc-members:
    :show-inheritance:
@@ -122,22 +122,22 @@ Diagnostics
 
 ----
 
-Visualization (``pyna.MCF.visual``)
+Visualization (``pyna.toroidal.visual``)
 ------------------------------------
 
 Publication-quality plotting for tokamak research figures.
 All functions follow a composable, axes-based API suitable for
 single-column PRL/Nuclear Fusion figures.
 
-.. automodule:: pyna.MCF.visual.tokamak_manifold
+.. automodule:: pyna.toroidal.visual.tokamak_manifold
    :members:
    :undoc-members:
    :show-inheritance:
 
 ----
 
-Non-resonant Torus Deformation (``pyna.MCF.torus_deformation``)
-----------------------------------------------------------------
+Non-resonant Torus Deformation (``pyna.toroidal.torus_deformation``)
+---------------------------------------------------------------------
 
 Implements the analytic spectral theory of Wei (2025) for the deformation
 of invariant tori (flux surfaces) under external magnetic perturbations.
@@ -153,7 +153,7 @@ the Fourier convention :math:`f(\theta,\varphi)=\sum_{mn} f_{mn}\,e^{i(m\theta+n
 - **Eq. (4.3)** -- DC (m=n=0) simplification
 - **Eq. (5.1)** -- second-order non-axisymmetric formula
 
-.. automodule:: pyna.MCF.torus_deformation
+.. automodule:: pyna.toroidal.torus_deformation
    :members:
    :undoc-members:
    :show-inheritance:

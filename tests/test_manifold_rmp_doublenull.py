@@ -97,7 +97,7 @@ def nonlinear_hyperbolic_system():
 @pytest.fixture(scope='module')
 def solovev_eq():
     """Solovev equilibrium for O-point warning test."""
-    from pyna.MCF.equilibrium.Solovev import solovev_iter_like
+    from pyna.toroidal.equilibrium.Solovev import solovev_iter_like
     return solovev_iter_like(scale=0.3)
 
 

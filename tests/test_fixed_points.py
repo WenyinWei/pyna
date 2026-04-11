@@ -1,7 +1,7 @@
 """Tests for pyna.topo.fixed_points -- find_periodic_orbit and classify_fixed_point."""
 import numpy as np
 import pytest
-from pyna.MCF.equilibrium.stellarator import simple_stellarator
+from pyna.toroidal.equilibrium.stellarator import simple_stellarator
 from pyna.topo.fixed_points import find_periodic_orbit, classify_fixed_point
 
 

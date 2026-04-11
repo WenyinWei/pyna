@@ -15,7 +15,7 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from pyna.MCF.equilibrium.stellarator import StellaratorSimple
+from pyna.toroidal.equilibrium.stellarator import StellaratorSimple
 from pyna.topo.toroidal_cycle import (
     poincare_map_n,
     jacobian_of_poincare_map,

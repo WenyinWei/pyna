@@ -1,4 +1,4 @@
-"""Tests for pyna.MCF.coords.island_healing.
+"""Tests for pyna.toroidal.coords.island_healing.
 
 Tests use a synthetic Solov'ev-like axisymmetric equilibrium with a known
 m/n = 3/1 island chain planted at the boundary.  The field is analytic so
@@ -15,7 +15,7 @@ import pytest
 
 from pyna.topo.toroidal_island import Island, IslandChain
 from pyna.topo.toroidal_invariants import FixedPoint, PeriodicOrbit
-from pyna.MCF.coords.island_healing import (
+from pyna.toroidal.coords.island_healing import (
     assign_island_chain_pest_angles,
     build_r1_boundary,
     heal_pest_mesh_at_island_chain,

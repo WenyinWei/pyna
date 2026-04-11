@@ -72,7 +72,7 @@ pmap.plot(orbits)
 ### EAST tokamak manifold visualization
 
 ```python
-from pyna.MCF.visual.tokamak_manifold import (
+from pyna.toroidal.visual.tokamak_manifold import (
     plot_equilibrium_cross_section,
     plot_poincare_orbits,
     plot_manifold_bundle,
@@ -131,18 +131,18 @@ print(f"Mean radial displacement: {mean_dr:.4f} m")
 | `pyna.interact` | Interactive widgets (Jupyter) |
 | `pyna.utils` | Miscellaneous helpers |
 
-### Magnetic Confinement Fusion (`pyna.MCF`)
+### Toroidal plasma physics (`pyna.toroidal`)
 
 | Submodule | Description |
 |-----------|-------------|
-| `MCF.equilibrium` | Solov'ev, Grad-Shafranov, stellarator analytic/numeric equilibria |
-| `MCF.coords` | PEST, Boozer, Hamada, Equal-arc magnetic coordinate systems |
-| `MCF.coils` | Coil geometry, Biot-Savart, RMP coil-set models |
-| `MCF.control` | Topology control: gap response, q-profile response |
-| `MCF.diagnostics` | Plasma diagnostic observables |
-| `MCF.plasma_response` | Perturbed GS solver for plasma response |
-| `MCF.visual` | Publication-quality tokamak figures (`tokamak_manifold`) |
-| `MCF.torus_deformation` | Non-resonant torus deformation (BNF spectral theory, Wei 2025) |
+| `toroidal.equilibrium` | Solov'ev, Grad-Shafranov, stellarator analytic/numeric equilibria |
+| `toroidal.coords` | PEST, Boozer, Hamada, Equal-arc magnetic coordinate systems |
+| `toroidal.coils` | Coil geometry, Biot-Savart, RMP coil-set models |
+| `toroidal.control` | Topology control: gap response, q-profile response |
+| `toroidal.diagnostics` | Plasma diagnostic observables |
+| `toroidal.plasma_response` | Perturbed GS solver for plasma response |
+| `toroidal.visual` | Publication-quality tokamak figures (`tokamak_manifold`) |
+| `toroidal.torus_deformation` | Non-resonant torus deformation (BNF spectral theory, Wei 2025) |
 
 ---
 
@@ -161,13 +161,13 @@ For axisymmetric (n = 0) poloidal-field coil perturbations the mean radial shift
 ⟨δr⟩ = −δι / ι'
 ```
 
-where δι is the first-order rotational-transform variation. These results are implemented in `pyna.MCF.torus_deformation`.
+where δι is the first-order rotational-transform variation. These results are implemented in `pyna.toroidal.torus_deformation`.
 
 ### Poincaré maps & manifolds
 A Poincaré section φ = φ₀ turns the continuous field-line flow into an area-preserving 2-D map. Near an X-point the stable (W^s) and unstable (W^u) manifolds intersect transversally, generating the heteroclinic tangle responsible for chaotic transport. `pyna.topo` provides algorithms to compute, visualize, and measure these structures.
 
 ### Grad-Shafranov equilibrium
-Toroidal MHD equilibrium satisfies ΔψGS = −μ₀R²dp/dψ − F dF/dψ. `pyna.MCF.equilibrium` exposes Solov'ev analytic solutions and a numerical GS solver with free-boundary capability.
+Toroidal MHD equilibrium satisfies ΔψGS = −μ₀R²dp/dψ − F dF/dψ. `pyna.toroidal.equilibrium` exposes Solov'ev analytic solutions and a numerical GS solver with free-boundary capability.
 
 ---
 

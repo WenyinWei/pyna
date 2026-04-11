@@ -1,7 +1,7 @@
 """Tests for pyna.mag.coordinate — cylindrical/Cartesian transforms."""
 import numpy as np
 import pytest
-from pyna.MCF.coords.coordinate import (
+from pyna.toroidal.coords.coordinate import (
     rzphi_to_xyz,
     xyz_to_rzphi,
     coord_system_change,
