@@ -1,4 +1,9 @@
-"""pyna.toroidal.plasma_response — toroidal plasma-response solvers."""
+"""pyna.toroidal.plasma_response — toroidal plasma-response solvers.
+
+Implementation-owner package for plasma-response solvers.  The broader
+architectural landing zone for toroidal perturbative theory is
+:mod:`pyna.toroidal.perturbation`.
+"""
 from pyna.toroidal.plasma_response.PerturbGS import (
     solve_perturbed_gs,
     solve_perturbed_gs_coupled,

@@ -1,5 +1,12 @@
 """Finite-beta perturbation framework for stellarator equilibrium.
 
+Namespace note
+--------------
+This module remains the implementation owner for finite-β equilibrium
+continuation.  New toroidal perturbative APIs should be discoverable from
+:mod:`pyna.toroidal.perturbation.equilibrium`, which acts as the canonical
+landing zone for this theory family.
+
 Solves the coupled variational system for the plasma response during
 beta climb in a stellarator:
 

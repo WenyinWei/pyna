@@ -42,7 +42,9 @@ pyna/                        �?pip-installable Python package
 ├── flow.py / map.py         �?Continuous-time flow & discrete-map wrappers  (§4)
 ├── topo/                    �?Topological analysis (Poincaré, islands, manifolds)  (§5)
 ├── control/                 �?FPT-based real-time topology control  (§6)
-├── MCF/                     �?Magnetic-confinement-fusion physics  (§7)
+├── toroidal/                �?Canonical toroidal / MHD physics namespace  (§7)
+│   ├── perturbation/        �?Toroidal perturbative equilibrium / plasma-response landing zone
+├── MCF/                     �?Legacy facade over toroidal physics  (§7)
 �?  ├── equilibrium/         �?Axisymmetric & stellarator equilibria
 �?  ├── coils/               �?Vacuum field, Biot-Savart, RMP
 �?  ├── coords/              �?Flux-surface coordinate systems
@@ -311,10 +313,30 @@ facade for older scripts and notebooks.
 Flux-surface coordinate systems (PEST, Boozer, Hamada, EqualArc).
 See `toroidal/coords/` for details.
 
+### `toroidal/perturbation/`
+
+Canonical architectural landing zone for **toroidal perturbative theory**.
+Use this namespace when adding new MHD-specific functional-perturbation APIs,
+while keeping mature solver implementations in their current modules until a
+real consolidation becomes worthwhile.
+
+Current sub-buckets:
+- `perturbation.equilibrium` → finite-β continuation, perturbed
+  Grad-Shafranov, force-balance correction workflows.
+- `perturbation.response` → plasma-response closures, coupled GS / MHD
+  response solvers, vacuum→plasma response operators.
+
+**Boundary rule:**
+- `pyna.control` = generic, dynamical-systems FPT and control
+- `pyna.toroidal.perturbation` = toroidal / MHD perturbative theory
+- `pyna.MCF.*` and top-level shims = compatibility only
+
 ### `toroidal/plasma_response/` (legacy `MCF/plasma_response/`)
 
 Linear MHD plasma response via perturbed Grad-Shafranov equation
-(`PerturbGS.py`).
+(`PerturbGS.py`). This remains an implementation-owner package; prefer
+`pyna.toroidal.perturbation.response` as the architectural discovery point for
+new theory code.
 
 ### `toroidal/control/` (legacy `MCF/control/`)
 

@@ -6,6 +6,10 @@ research: equilibria, magnetic coordinates, coil modelling, topology control,
 plasma response, diagnostics, publication-quality visualization, and
 non-resonant torus-deformation theory.
 
+For new toroidal perturbative-equilibrium / plasma-response theory code,
+prefer the architectural umbrella ``pyna.toroidal.perturbation``.  The legacy
+``pyna.MCF`` and top-level shim namespaces remain compatibility layers.
+
 .. contents:: Submodules
    :depth: 2
    :local:
@@ -96,6 +100,26 @@ MCF Topology Control
    :show-inheritance:
 
 .. automodule:: pyna.toroidal.control.wall
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+----
+
+Perturbative Theory
+-------------------
+
+.. automodule:: pyna.toroidal.perturbation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: pyna.toroidal.perturbation.equilibrium
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: pyna.toroidal.perturbation.response
    :members:
    :undoc-members:
    :show-inheritance:

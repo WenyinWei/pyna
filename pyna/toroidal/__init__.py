@@ -14,6 +14,7 @@ _SUBMODULES = {
     "diagnostics",
     "flt",
     "optimize",
+    "perturbation",
     "plasma_response",
     "torus_deformation",
     "visual",
