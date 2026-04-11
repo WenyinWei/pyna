@@ -29,7 +29,7 @@ import numpy as np
 from scipy.interpolate import UnivariateSpline, interp1d
 
 from pyna.topo.invariant import InvariantSet
-from pyna.topo.invariants import FixedPoint, PeriodicOrbit
+from pyna.topo.toroidal_invariants import FixedPoint, PeriodicOrbit
 from pyna.topo.invariant_torus import InvariantTorus, _ToriMixin
 
 if TYPE_CHECKING:

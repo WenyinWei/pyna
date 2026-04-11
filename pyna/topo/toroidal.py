@@ -8,9 +8,9 @@ This module collects coordinate-system-specific wrappers so the generic core in
 
 from pyna.topo.trajectory3d import Trajectory3DToroidal as ToroidalTrajectory
 from pyna.topo.trajectory3d import Trajectory3D as ToroidalTrajectoryAlias
-from pyna.topo.invariants import FixedPoint as ToroidalSectionPoint
-from pyna.topo.invariants import PeriodicOrbit as ToroidalPeriodicOrbit
-from pyna.topo.invariants import Cycle as ToroidalCycle
+from pyna.topo.toroidal_invariants import FixedPoint as ToroidalSectionPoint
+from pyna.topo.toroidal_invariants import PeriodicOrbit as ToroidalPeriodicOrbit
+from pyna.topo.toroidal_invariants import Cycle as ToroidalCycle
 from pyna.topo.trajectory3d import trace_toroidal_trajectory
 
 __all__ = [

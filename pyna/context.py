@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from pyna.topo.invariants import (
+from pyna.topo.toroidal_invariants import (
     Cycle,
     FixedPoint,
     Island,

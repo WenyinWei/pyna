@@ -10,7 +10,7 @@ from __future__ import annotations
 import numpy as np
 from typing import Optional
 
-from pyna.topo.invariants import (
+from pyna.topo.toroidal_invariants import (
     Cycle, Tube, TubeChain, FixedPoint, MonodromyData, Stability,
     Island, IslandChain,
 )

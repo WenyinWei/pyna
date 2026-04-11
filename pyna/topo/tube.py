@@ -34,7 +34,7 @@ import numpy as np
 
 from pyna.topo.invariant import InvariantSet
 from pyna.topo.island import Island, IslandChain
-from pyna.topo.invariants import Cycle, FixedPoint, MonodromyData, PeriodicOrbit
+from pyna.topo.toroidal_invariants import Cycle, FixedPoint, MonodromyData, PeriodicOrbit
 
 if TYPE_CHECKING:
     from pyna.topo.section_view import SectionView

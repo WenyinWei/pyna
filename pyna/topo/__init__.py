@@ -242,7 +242,7 @@ __all__ = [
 # Note: Island and IslandChain are intentionally NOT re-exported here to
 # avoid overriding the full implementations in island.py.
 try:
-    from pyna.topo.invariants import (
+    from pyna.topo.toroidal_invariants import (
         MonodromyData,
         FixedPoint,
         InvariantTorus,
