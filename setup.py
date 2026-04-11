@@ -92,11 +92,16 @@ def _install_xmake() -> bool:
     print("[cyna-build] xmake not found — installing …", flush=True)
 
     if _is_windows():
-        # winget (Windows 11+) → Chocolatey → PowerShell installer
+        # winget (Windows 11+) -> Chocolatey -> PowerShell installer (Gitee CN mirror first)
         for cmd in [
             ["winget", "install", "--id", "xmake-io.xmake", "-e", "--silent",
              "--accept-source-agreements", "--accept-package-agreements"],
             ["choco", "install", "xmake", "-y"],
+            # Gitee mirror (fast in CN)
+            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass",
+             "-Command",
+             "Invoke-Expression (Invoke-WebRequest -Uri 'https://gitee.com/tboox/xmake/raw/master/scripts/get.ps1' -UseBasicParsing).Content"],
+            # GitHub fallback
             ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass",
              "-Command",
              "Invoke-Expression (Invoke-WebRequest -Uri 'https://xmake.io/shget.text' -UseBasicParsing).Content"],
@@ -109,6 +114,8 @@ def _install_xmake() -> bool:
     elif _is_macos():
         for cmd in [
             ["brew", "install", "xmake"],
+            # Gitee mirror (CN), then GitHub
+            ["bash", "-c", "curl -fsSL https://gitee.com/tboox/xmake/raw/master/scripts/get.sh | bash"],
             ["bash", "-c", "curl -fsSL https://xmake.io/shget.text | bash"],
         ]:
             if shutil.which(cmd[0]) or cmd[0] == "bash":
@@ -122,7 +129,8 @@ def _install_xmake() -> bool:
             ["apt-get", "install", "-y", "xmake"],
             ["dnf",     "install", "-y", "xmake"],
             ["pacman",  "-S",      "--noconfirm", "xmake"],
-            # Official installer script
+            # Gitee mirror (CN), then GitHub
+            ["bash", "-c", "curl -fsSL https://gitee.com/tboox/xmake/raw/master/scripts/get.sh | bash"],
             ["bash", "-c", "curl -fsSL https://xmake.io/shget.text | bash"],
         ]:
             mgr = cmd[0]
@@ -238,12 +246,35 @@ def _has_cuda() -> bool:
 # ── pybind11 (Python-side, for include path) ──────────────────────────────────
 
 def _ensure_pybind11() -> None:
-    """Make sure pybind11 is importable so xmake can find its include path."""
+    """Make sure pybind11 is importable so xmake can find its include path.
+
+    Uses the Tsinghua PyPI mirror when the standard index is unreachable,
+    which significantly speeds up installation in mainland China.
+    """
     try:
         import pybind11  # noqa: F401
+        return  # already installed
     except ImportError:
-        print("[cyna-build] Installing pybind11 …", flush=True)
-        _run([sys.executable, "-m", "pip", "install", "pybind11", "--quiet"])
+        pass
+    print("[cyna-build] Installing pybind11 ...", flush=True)
+    # Try primary index first; fall back to Tsinghua mirror on failure
+    for index_url in [
+        None,  # default (PyPI)
+        "https://pypi.tuna.tsinghua.edu.cn/simple",   # Tsinghua (CN)
+        "https://mirrors.aliyun.com/pypi/simple",      # Aliyun (CN)
+        "https://pypi.mirrors.ustc.edu.cn/simple",     # USTC (CN)
+    ]:
+        cmd = [sys.executable, "-m", "pip", "install", "pybind11", "--quiet"]
+        if index_url:
+            cmd += ["-i", index_url, "--trusted-host", index_url.split("/")[2]]
+        rc = _run(cmd)
+        if rc == 0:
+            try:
+                import pybind11  # noqa: F401
+                return
+            except ImportError:
+                pass
+    print("[cyna-build] WARNING: pybind11 install failed; build may fail.", flush=True)
 
 
 # ── xmake build ───────────────────────────────────────────────────────────────
@@ -303,27 +334,25 @@ def _build_cyna() -> bool:
     print(f"[cyna-build]   Python include : {py_inc}", flush=True)
     print(f"[cyna-build]   CUDA           : {'yes' if _has_cuda() else 'no'}", flush=True)
 
-    # Configure — let xmake auto-detect the toolchain
-    # On Windows xmake finds VS automatically via vswhere; no need to specify
-    base_cfg = [xmake, "config", "--yes", "--mode=release"]
+    # --require=no: skip all package-manager network access (pybind11 comes from pip)
+    base_cfg = [xmake, "config", "--yes", "--mode=release", "--require=no"]
     if not _is_windows():
-        # On Linux/macOS pass Python path explicitly
         base_cfg += [f"--python={sys.executable}"]
     rc = _run(base_cfg + cuda_flag, cwd=str(CYNA_DIR), env=env)
     if rc != 0:
-        # Retry without cuda in case cuda config failed
         if cuda_flag:
-            print("[cyna-build] Config with CUDA failed, retrying without …", flush=True)
+            print("[cyna-build] Config with CUDA failed, retrying without ...", flush=True)
             rc = _run(base_cfg, cwd=str(CYNA_DIR), env=env)
 
-    # Build (no -v flag; verbose output via -D if needed)
+    # Build
     rc = _run([xmake, "build", "cyna_python"], cwd=str(CYNA_DIR), env=env)
     if rc != 0:
         print("[cyna-build] xmake build failed.", flush=True)
         return False
 
-    # The xmake after_build hook copies the file into pyna/_cyna/ automatically.
-    # Check DEST_DIR first before trying the glob search.
+    # The xmake after_build hook copies _cyna_ext.{pyd,so} into pyna/_cyna/.
+    # Verify the file landed there.
+    DEST_DIR.mkdir(parents=True, exist_ok=True)
     dest_matches = (
         list(DEST_DIR.glob("_cyna_ext*.pyd")) +
         list(DEST_DIR.glob("_cyna_ext*.so")) +
@@ -331,45 +360,21 @@ def _build_cyna() -> bool:
         list(DEST_DIR.glob("_cyna_ext.so"))
     )
     if dest_matches:
-        print(f"[cyna-build] Extension already in {DEST_DIR}: {dest_matches[0].name}", flush=True)
+        print(f"[cyna-build] Extension installed: {dest_matches[0].name} in {DEST_DIR}",
+              flush=True)
         return True
 
-    # Fallback: search build output dirs
-    found = False
-    for pattern in (
-        f"_cyna_ext{ext_sfx}",
-        "_cyna_ext.pyd",
-        "_cyna_ext.so",
-        f"*/_cyna_ext{ext_sfx}",
-        "*/_cyna_ext.pyd",
-        "*/_cyna_ext.so",
-        # xmake default output: build/release/
-        f"build/release/_cyna_ext{ext_sfx}",
-        "build/release/_cyna_ext.pyd",
-        "build/release/_cyna_ext.so",
-    ):
-        for src in CYNA_DIR.glob(pattern):
-            dst = DEST_DIR / src.name
-            shutil.copy2(str(src), str(dst))
-            print(f"[cyna-build] Installed: {src.name} → {dst}", flush=True)
-            found = True
+    # after_build hook already copied it but under a different name pattern
+    # (xmake v3 uses cpython ABI suffix).  Accept any _cyna_ext* file.
+    any_match = list(DEST_DIR.glob("_cyna_ext*"))
+    non_debug = [f for f in any_match if f.suffix not in (".lib", ".exp", ".pdb")]
+    if non_debug:
+        print(f"[cyna-build] Extension installed: {non_debug[0].name}", flush=True)
+        return True
 
-    if not found:
-        # xmake install to a temp dir and search there
-        install_dir = CYNA_DIR / "_install_tmp"
-        install_dir.mkdir(exist_ok=True)
-        _run([xmake, "install", "-o", str(install_dir)], cwd=str(CYNA_DIR), env=env)
-        for src in install_dir.rglob(f"*_cyna_ext*{ext_sfx}"):
-            dst = DEST_DIR / src.name
-            shutil.copy2(str(src), str(dst))
-            print(f"[cyna-build] Installed (via xmake install): {src.name} → {dst}", flush=True)
-            found = True
-        shutil.rmtree(str(install_dir), ignore_errors=True)
-
-    if not found:
-        print("[cyna-build] WARNING: built successfully but output not found — check xmake output.", flush=True)
-
-    return found
+    print("[cyna-build] WARNING: xmake built OK but extension not found in pyna/_cyna/ "
+          "-- check xmake after_build output above.", flush=True)
+    return False
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
