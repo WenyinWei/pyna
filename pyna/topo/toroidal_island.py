@@ -167,8 +167,12 @@ class Island(_ToriMixin, InvariantSet):
 
     # ── InvariantSet interface ─────────────────────────────────────────────
 
-    def section_cut(self, section) -> list:
-        """Return [self] — an Island is already a map-level object."""
+    def section_cut(self, section=None) -> list:
+        """Return this island's already-reduced section footprint."""
+        if section is not None:
+            raise ValueError(
+                "Island is already a discrete section object; cut the parent Tube instead."
+            )
         return [self]
 
     def diagnostics(self) -> Dict[str, Any]:
@@ -280,38 +284,10 @@ class IslandChain(InvariantSet):
         """All X-type FixedPoints from islands in this chain (flattened)."""
         return [fp for isl in self.islands for fp in isl.X_points]
 
-    def section_xpoints(self, phi: float, tol: float = 1e-6) -> List[FixedPoint]:
-        """X-points at section phi.
-
-        First tries an exact phi-match against stored FixedPoint.phi values.
-        If nothing is found (e.g. the chain was only refined at one section),
-        falls back to trajectory intersection via
-        ``PeriodicOrbit.section_at(phi)`` on every X_orbit, which correctly
-        returns all periodic-orbit crossings at any requested toroidal angle.
-        """
-        pts = [fp for fp in self.X_points if abs(fp.phi - phi) < tol]
-        if pts:
-            return pts
-        # Trajectory fallback: query every X_orbit's 3-D trajectory
-        result = []
-        for isl in self.islands:
-            for xorb in isl.X_orbits:
-                result.extend(xorb.section_at(phi, kind='X'))
-        return result
-
-    def section_opoints(self, phi: float, tol: float = 1e-6) -> List[FixedPoint]:
-        """O-points at section phi.
-
-        Same fallback strategy as :meth:`section_xpoints`.
-        """
-        pts = [fp for fp in self.O_points if abs(fp.phi - phi) < tol]
-        if pts:
-            return pts
-        # Trajectory fallback
-        result = []
-        for isl in self.islands:
-            result.extend(isl.O_orbit.section_at(phi, kind='O'))
-        return result
+    @property
+    def section_phi(self) -> Optional[float]:
+        """Toroidal angle of this already-reduced chain."""
+        return float(self.islands[0].O_point.phi) if self.islands else None
 
     def summary(self) -> str:
         return (
@@ -338,8 +314,13 @@ class IslandChain(InvariantSet):
 
     # ── InvariantSet interface ─────────────────────────────────────────────
 
-    def section_cut(self, section) -> list:
-        """Return the list of Islands (already section-level objects)."""
+    def section_cut(self, section=None) -> list:
+        """Return the already-reduced island list for this chain."""
+        if section is not None:
+            raise ValueError(
+                "IslandChain is already a discrete section object; cut the parent "
+                "TubeChain instead."
+            )
         return list(self.islands)
 
     def diagnostics(self) -> Dict[str, Any]:

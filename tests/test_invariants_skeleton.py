@@ -80,8 +80,9 @@ def test_tubechain_section_cut():
     assert isinstance(island_chain, IslandChain)
     assert len(island_chain.O_points) == 1
     assert len(island_chain.X_points) == 1
-    assert island_chain.section_xpoints(0.0)[0] is X_fp
-    assert island_chain.section_opoints(0.0)[0] is O_fp
+    assert island_chain.section_phi == pytest.approx(0.0)
+    assert island_chain.X_points[0] is X_fp
+    assert island_chain.O_points[0] is O_fp
 
     s = tc.summary()
     assert "TubeChain" in s

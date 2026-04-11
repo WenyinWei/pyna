@@ -277,35 +277,20 @@ class PeriodicOrbit(InvariantManifold):
             return self.orbit_trace.ambient_dim
         return None
 
-    def section_points(self, section_value: Optional[float] = None, section_label: Optional[str] = None, tol: float = 1e-9) -> List[SectionPoint]:
-        if section_value is None and section_label is None:
-            return list(self.points)
-        result: List[SectionPoint] = []
-        for pt in self.points:
-            if section_label is not None and pt.section_label != section_label:
-                continue
-            if section_value is not None:
-                if pt.section_value is None or abs(pt.section_value - section_value) > tol:
-                    continue
-            result.append(pt)
-        return result
+    @property
+    def section_value(self) -> Optional[float]:
+        return self.points[0].section_value if self.points else None
+
+    @property
+    def section_label(self) -> Optional[str]:
+        return self.points[0].section_label if self.points else None
 
     def section_cut(self, section=None) -> "PeriodicOrbit":
         if section is None:
             return self
-        if isinstance(section, tuple) and len(section) == 2:
-            pts = self.section_points(section_value=section[0], section_label=section[1])
-        elif hasattr(section, 'label'):
-            pts = self.section_points(section_label=getattr(section, 'label', None))
-        else:
-            pts = self.section_points(section_value=float(section))
-        return PeriodicOrbit(
-            points=list(pts),
-            period=len(pts),
-            stability=self.stability,
-            representative_state=(pts[0].state.copy() if pts else self.representative_state),
-            orbit_trace=self.orbit_trace,
-            metadata=dict(self.metadata),
+        raise ValueError(
+            "PeriodicOrbit is already a reduced discrete object; cut the parent "
+            "Cycle instead of selecting another section on the orbit."
         )
 
     def diagnostics(self) -> Dict[str, Any]:
@@ -338,9 +323,14 @@ class Cycle(InvariantManifold):
         return self.trajectory.ambient_dim
 
     def section_points(self, section_value: Optional[float] = None, section_label: Optional[str] = None, tol: float = 1e-9) -> List[SectionPoint]:
-        if self.return_map_orbit is not None:
-            return self.return_map_orbit.section_points(section_value=section_value, section_label=section_label, tol=tol)
-        return []
+        if self.return_map_orbit is None:
+            return []
+        pts = list(self.return_map_orbit.points)
+        if section_value is not None:
+            pts = [pt for pt in pts if pt.section_value is not None and abs(pt.section_value - section_value) <= tol]
+        if section_label is not None:
+            pts = [pt for pt in pts if pt.section_label == section_label]
+        return pts
 
     def section_cut(self, section=None) -> PeriodicOrbit:
         if section is None:
@@ -359,7 +349,24 @@ class Cycle(InvariantManifold):
             )
 
         if self.return_map_orbit is not None:
-            return self.return_map_orbit.section_cut(section)
+            if isinstance(section, tuple) and len(section) == 2:
+                section_value = float(section[0]) if section[0] is not None else None
+                section_label = section[1]
+            elif hasattr(section, 'label'):
+                section_value = None
+                section_label = getattr(section, 'label', None)
+            else:
+                section_value = float(section)
+                section_label = None
+            pts = self.section_points(section_value=section_value, section_label=section_label)
+            return PeriodicOrbit(
+                points=list(pts),
+                period=len(pts),
+                stability=self.return_map_orbit.stability,
+                representative_state=(pts[0].state.copy() if pts else self.return_map_orbit.representative_state),
+                orbit_trace=self.trajectory,
+                metadata=dict(self.metadata),
+            )
         return PeriodicOrbit(points=[])
 
     def diagnostics(self) -> Dict[str, Any]:

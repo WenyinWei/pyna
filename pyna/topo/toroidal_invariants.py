@@ -350,51 +350,19 @@ class PeriodicOrbit(Orbit):
     Parameters (continued)
     ----------------------
     trajectory : ToroidalTrajectory or None
-        Full 3-D continuous-flow trajectory of this orbit (optional).  When
-        present, :meth:`section_at` uses ``trajectory.intersect(phi)`` to
-        derive all crossing points at any toroidal section, covering the
-        complete set of periodic-orbit intersection points on that plane.
+        Optional parent continuous trajectory kept only as provenance.  Unlike
+        older designs, a discrete ``PeriodicOrbit`` is already reduced onto one
+        fixed section at construction time and does not support later
+        re-selection onto another section.
     """
     points: List[FixedPoint] = field(default_factory=list)
     ambient_dim: Optional[int] = None
     trajectory: Optional["ToroidalTrajectory"] = field(default=None, repr=False)
 
-    def section_at(self, phi: float, kind: str = '') -> List[FixedPoint]:
-        """Return all FixedPoints on the section at *phi* by trajectory intersection.
-
-        If a 3-D :attr:`trajectory` is attached, uses
-        :meth:`~pyna.topo.toroidal_trajectory.ToroidalTrajectory.intersect` to find
-        every crossing with the toroidal plane at *phi*, which correctly returns
-        all m points of a period-m orbit at that section.
-
-        Falls back to :attr:`points` when no trajectory is available.
-
-        Parameters
-        ----------
-        phi : float
-            Toroidal section angle [rad].
-        kind : str
-            If non-empty, filter by this kind (``'X'`` or ``'O'``).
-
-        Returns
-        -------
-        list of FixedPoint
-        """
-        if self.trajectory is not None:
-            R_cross, Z_cross = self.trajectory.intersect(phi)
-            # Inherit monodromy from the first existing point (best approximation)
-            DPm_ref = self.points[0].DPm if self.points else np.eye(2)
-            kind_ref = self.points[0].kind if self.points else kind
-            fps = [
-                FixedPoint(phi=phi, R=float(R), Z=float(Z),
-                           DPm=DPm_ref, kind=kind_ref)
-                for R, Z in zip(R_cross, Z_cross)
-            ]
-        else:
-            fps = list(self.points)
-        if kind:
-            fps = [fp for fp in fps if fp.kind == kind]
-        return fps
+    @property
+    def section_phi(self) -> Optional[float]:
+        """Toroidal angle of this already-reduced discrete orbit."""
+        return float(self.points[0].phi) if self.points else None
 
     @property
     def period(self) -> int:
@@ -455,14 +423,18 @@ class PeriodicOrbit(Orbit):
     # ── InvariantSet interface ───────────────────────────────────────────────
 
     def section_cut(self, section=None) -> "PeriodicOrbit":
-        """A toroidal periodic orbit is already a section-level object."""
+        """Return ``self`` only for the already-fixed section.
+
+        Discrete periodic orbits no longer provide cross-section selection.
+        Continuous-time :class:`Cycle` objects are responsible for constructing
+        the appropriate reduced ``PeriodicOrbit`` via ``Cycle.section_cut(...)``.
+        """
         if section is None:
             return self
-        if hasattr(section, 'phi'):
-            return PeriodicOrbit(points=self.section_at(float(section.phi)), ambient_dim=self.ambient_dim, trajectory=self.trajectory)
-        if isinstance(section, (int, float)):
-            return PeriodicOrbit(points=self.section_at(float(section)), ambient_dim=self.ambient_dim, trajectory=self.trajectory)
-        return self
+        raise ValueError(
+            "PeriodicOrbit is already a discrete section object; cut the parent "
+            "Cycle instead of re-selecting a section on the reduced orbit."
+        )
 
     def diagnostics(self) -> Dict[str, Any]:
         d: Dict[str, Any] = {
@@ -876,18 +848,20 @@ class IslandChain(InvariantSet):
         island.parent_chain = self
         self.islands.append(island)
 
-    def section_xpoints(self, phi: float, tol: float = 1e-6) -> List[FixedPoint]:
-        """X-points at section phi."""
-        return [fp for fp in self.X_points if abs(fp.phi - phi) < tol]
-
-    def section_opoints(self, phi: float, tol: float = 1e-6) -> List[FixedPoint]:
-        """O-points at section phi."""
-        return [fp for fp in self.O_points if abs(fp.phi - phi) < tol]
+    @property
+    def section_phi(self) -> Optional[float]:
+        """Toroidal angle of this already-reduced island chain."""
+        return float(self.islands[0].O_point.phi) if self.islands else None
 
     # ── InvariantSet interface ─────────────────────────────────────────────
 
     def section_cut(self, section=None) -> list:
-        """Return the list of Islands."""
+        """Return the already-reduced islands for this chain's fixed section."""
+        if section is not None:
+            raise ValueError(
+                "IslandChain is already a discrete section object; cut the parent "
+                "TubeChain instead of re-selecting a section on the reduced chain."
+            )
         return list(self.islands)
 
     def diagnostics(self) -> Dict[str, Any]:

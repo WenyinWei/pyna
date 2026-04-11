@@ -57,6 +57,11 @@ class Island(InvariantSet):
         self.child_chains.append(chain)
 
     def section_cut(self, section=None) -> list:
+        if section is not None:
+            raise ValueError(
+                "Island is already a reduced discrete object; cut the parent "
+                "continuous geometry instead."
+            )
         return [self]
 
     def diagnostics(self) -> Dict[str, Any]:
@@ -119,7 +124,20 @@ class IslandChain(InvariantSet):
         if self.period is None:
             self.period = len(self.islands)
 
+    @property
+    def section_value(self) -> Optional[float]:
+        return self.islands[0].O_point.section_value if self.islands and self.islands[0].O_point is not None else None
+
+    @property
+    def section_label(self) -> Optional[str]:
+        return self.islands[0].O_point.section_label if self.islands and self.islands[0].O_point is not None else None
+
     def section_cut(self, section=None) -> list:
+        if section is not None:
+            raise ValueError(
+                "IslandChain is already a reduced discrete object; cut the parent "
+                "continuous geometry instead."
+            )
         return list(self.islands)
 
     def diagnostics(self) -> Dict[str, Any]:
