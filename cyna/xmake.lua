@@ -52,8 +52,11 @@ target("cyna")
     add_headerfiles("include/(cyna/*.hpp)")
 
 -- pybind11 Python extension
--- The output filename must match Python's expected import name exactly:
---   _cyna_ext<EXT_SUFFIX>   e.g. _cyna_ext.pyd  or  _cyna_ext.cpython-310-....so
+-- CRITICAL: always use add_rules("python.module") to ensure:
+--   1. Correct PE subsystem (console, not GUI) on Windows
+--   2. Correct .pyd / .so / .cpython-XY-*.so suffix per platform
+--   3. Correct linker flags (no default lib conflicts on Windows)
+-- We use set_basename("_cyna_ext") only; let the rule set the suffix.
 target("cyna_python")
     set_kind("shared")
     add_files("bindings/flt_bindings.cpp")
@@ -71,16 +74,27 @@ target("cyna_python")
     end
 
     -- Set the output filename to exactly what Python expects.
-    -- EXT_SUFFIX includes the leading dot, e.g. ".pyd" or ".cpython-310-...so"
-    -- We strip the leading dot for set_extension(), or use set_suffixes() if available.
+    -- EXT_SUFFIX (from CYNA_EXT_SUFFIX env var) includes the leading dot,
+    -- e.g. ".pyd" or ".cp310-win_amd64.pyd" or ".cpython-310-...so"
+    set_basename("_cyna_ext")
     if EXT_SUFFIX ~= "" then
-        -- xmake's set_extension sets the file extension (including the dot)
+        -- Use the exact suffix Python reported for this interpreter
         set_extension(EXT_SUFFIX)
-        set_basename("_cyna_ext")
+    elseif is_plat("windows") then
+        set_extension(".pyd")
+    elseif is_plat("macosx") then
+        set_extension(".so")
     else
-        -- Fallback: use python.module rule which handles this automatically
-        set_filename("_cyna_ext")
-        add_rules("python.module")
+        set_extension(".so")
+    end
+    -- Windows-specific linker flags (applied regardless of extension source)
+    if is_plat("windows") then
+        -- Console subsystem is required; GUI causes "DLL load failed"
+        add_ldflags("/SUBSYSTEM:CONSOLE", {force = true, tools = {"link"}})
+        -- Suppress .exp and .lib side outputs
+        add_ldflags("/NOEXP", {force = true, tools = {"link"}})
+    elseif is_plat("macosx") then
+        add_ldflags("-bundle", "-undefined dynamic_lookup", {force = true})
     end
 
     -- Compiler flags
@@ -88,11 +102,6 @@ target("cyna_python")
     add_cxxflags("/O2", "/openmp",  {tools = {"cl"}})
     add_cxxflags("-O3", "-fopenmp", {tools = {"gcc"}})
     add_cxxflags("-O3",             {tools = {"clang"}})
-
-    -- Disable default lib/exp/pdb generation on Windows (keeps output clean)
-    if is_plat("windows") then
-        add_ldflags("/NOEXP", {force = true, tools = {"link"}})
-    end
 
     -- Link Python runtime
     if is_plat("windows") then
@@ -113,7 +122,10 @@ target("cyna_python")
         add_defines("CYNA_CUDA_ENABLED")
     end
 
-    -- After build: copy the correctly-named .pyd/.so into pyna/_cyna/
+    -- After build: copy the .pyd/.so into pyna/_cyna/
+    -- python.module produces e.g. _cyna_ext.pyd (Windows) or
+    -- _cyna_ext.cpython-310-x86_64-linux-gnu.so (Linux).
+    -- We copy whatever file was produced; Python's import system finds it.
     after_build(function(target)
         local dest = path.join(os.scriptdir(), "..", "pyna", "_cyna")
         os.mkdir(dest)
