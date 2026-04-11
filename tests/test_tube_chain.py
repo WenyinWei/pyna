@@ -4,6 +4,7 @@ import numpy as np
 
 from pyna.topo.toroidal_invariants import Cycle, FixedPoint, MonodromyData
 from pyna.topo.toroidal_tube import Tube, TubeChain, TubeCutPoint
+from pyna.topo.section import HyperplaneSection
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -133,6 +134,25 @@ def test_tube_chain_reconstruct_section_view_recovers_duplicate_point():
     assert view.correspondence.duplicate_tube_ids == []
     assert any(tid.tube_index == 1 for tid in view.correspondence.reconstructed_tube_ids)
     assert len(view.unique_points(dedup_tol=1e-10)) == 2
+
+
+def test_tubechain_section_cut_general_section_aggregates_tubes():
+    tube0 = _tube(
+        [(0.0, 1.00, 0.00, 'O'), (np.pi, 1.02, 0.00, 'O')],
+        orbit_samples=[(0.0, 1.00, -0.02), (0.2, 1.01, 0.02)],
+    )
+    tube1 = _tube(
+        [(0.0, 0.90, 0.00, 'O'), (np.pi, 0.92, 0.00, 'O')],
+        orbit_samples=[(0.0, 0.90, -0.02), (0.2, 0.91, 0.02)],
+    )
+    tc = TubeChain(tubes=[tube0, tube1])
+    tube0._tube_chain_ref = tc
+    tube1._tube_chain_ref = tc
+
+    sec = HyperplaneSection(normal_vec=np.array([0.0, 1.0]), offset=0.0, phase_dim=2)
+    chain = tc.section_cut(sec)
+    assert chain.n_islands >= 2
+    assert chain.metadata['n_tubes_included'] == 2
 
 
 def test_tubechain_from_XO_orbits_provides_joint_section_data():

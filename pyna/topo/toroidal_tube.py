@@ -261,17 +261,22 @@ class Tube(InvariantSet):
         if len(R_use) < 2:
             return []
         crossings = []
+        phase_dim = getattr(section, 'dim_phase', 2)
         for i in range(len(R_use) - 1):
-            pt_prev = np.array([R_use[i],   Z_use[i],   phi_use[i]])
-            pt_curr = np.array([R_use[i+1], Z_use[i+1], phi_use[i+1]])
+            if phase_dim >= 3:
+                pt_prev = np.array([R_use[i],   Z_use[i],   phi_use[i]])
+                pt_curr = np.array([R_use[i+1], Z_use[i+1], phi_use[i+1]])
+            else:
+                pt_prev = np.array([R_use[i],   Z_use[i]])
+                pt_curr = np.array([R_use[i+1], Z_use[i+1]])
             if hasattr(section, 'detect_crossing'):
                 hit = section.detect_crossing(pt_prev, pt_curr)
                 if hit is not None:
                     crossings.append(_SimplePoint(R=float(hit[0]), Z=float(hit[1])))
             elif hasattr(section, 'f'):
                 try:
-                    f_prev = section.f(np.array([R_use[i],   Z_use[i]]))
-                    f_curr = section.f(np.array([R_use[i+1], Z_use[i+1]]))
+                    f_prev = section.f(pt_prev)
+                    f_curr = section.f(pt_curr)
                     if f_prev * f_curr < 0:
                         t = abs(f_prev) / (abs(f_prev) + abs(f_curr) + 1e-30)
                         R_c = R_use[i] + t * (R_use[i+1] - R_use[i])
@@ -843,11 +848,30 @@ class TubeChain(InvariantSet):
 
     def section_cut(self, section, tol: float = 1e-6) -> IslandChain:
         from pyna.topo.section import ToroidalSection
+        from pyna.topo.toroidal_island import IslandChain as _IslandChain
         if isinstance(section, (int, float)):
             section = ToroidalSection(float(section))
         if hasattr(section, 'phi'):
             return self.to_island_chain_connected(section.phi, tol=tol)
-        raise NotImplementedError("TubeChain.section_cut supports ToroidalSection only.")
+
+        chain = _IslandChain(
+            m=self.m,
+            n=self.n,
+            parent_tube=self,
+            label=self.label,
+            metadata={
+                'n_tubes_included': self.n_tubes,
+                'section_object': section.__class__.__name__,
+            },
+        )
+        for tube_idx, tube in enumerate(self.tubes):
+            subchain = tube.section_cut(section, tol=tol)
+            for isl in subchain.islands:
+                isl.tube = tube
+                isl.tube_chain = self
+                isl.resonance_index = tube_idx
+                chain.add_island(isl)
+        return chain
 
     def _wire_island_connectivity(self) -> None:
         pass
