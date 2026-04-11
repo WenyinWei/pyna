@@ -312,8 +312,8 @@ def connection_length(
         angle is provided via ``phi_start``.
     wall : WallGeometry or (R_wall, Z_wall)
         First-wall polygon.  May be a toroidal-control wall geometry object
-        (legacy ``pyna.MCF.control.wall.WallGeometry`` instances are still
-        accepted) or a 2-tuple ``(R_wall, Z_wall)`` of closed polygon arrays.
+        (including package-root ``pyna.MCF.control.WallGeometry`` compatibility
+        instances) or a 2-tuple ``(R_wall, Z_wall)`` of closed polygon arrays.
     phi_start : float or array of shape (N,)
         Starting toroidal angle (rad) for each seed.  Scalar broadcasts to
         all seeds.  Default ``0.0``.

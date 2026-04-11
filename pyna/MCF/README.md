@@ -29,17 +29,25 @@ MCF/
 
 ## §1  `MCF/equilibrium/`
 
-| Module | Key exports |
-|--------|-------------|
-| `axisymmetric.py` | `EquilibriumAxisym` (abstract), `EquilibriumTokamakCircularSynthetic` |
-| `Solovev.py` | `EquilibriumSolovev` — analytic Solov'ev solution |
-| `GradShafranov.py` | `recover_pressure_simplest`, `solve_GS_perturbed` |
-| `stellarator.py` | `StellaratorSimple`, `simple_stellarator` factory |
-| `feedback_boozer.py` | `BoozerSurface`, `BoozerPerturbation`, `MHD_response_operator`, `compute_boozer_response`, `island_width_with_response` |
-| `feedback_cylindrical.py` | `CylindricalGrid`, `PerturbationField`, `PlasmaResponse`, `compute_plasma_response`, `feedback_correction_field`, `iterative_equilibrium_correction` |
+`pyna.MCF.equilibrium` is now a **package-level facade only**.
+The old module-by-module wrappers were removed; import from
+`pyna.toroidal.equilibrium` for all new code, or from the package root
+`pyna.MCF.equilibrium` while migrating older notebooks.
 
-`feedback_boozer.py` is valid only where flux surfaces exist (non-chaotic regions).
-`feedback_cylindrical.py` works everywhere, including chaotic and divertor regions.
+Representative package-root exports include:
+
+- `EquilibriumAxisym`, `EquilibriumTokamakCircularSynthetic`
+- `EquilibriumSolovev`
+- `recover_pressure_simplest`, `solve_GS_perturbed`
+- `StellaratorSimple`, `simple_stellarator`
+- `BoozerSurface`, `BoozerPerturbation`, `compute_boozer_response`
+- `CylindricalGrid`, `PerturbationField`, `PlasmaResponse`,
+  `compute_plasma_response`, `feedback_correction_field`,
+  `iterative_equilibrium_correction`
+
+Boozer response tools are valid only where flux surfaces exist
+(non-chaotic regions). Cylindrical response tools work everywhere,
+including chaotic and divertor regions.
 
 ## §2  `MCF/coils/`
 
@@ -65,12 +73,23 @@ Primary module: `PerturbGS.py`.
 
 ## §5  `MCF/control/`
 
-MCF-specific control compatibility modules:
-- `wall.py` — `WallGeometry` with gap monitoring points
-- `gap_response.py` — `gap_response_matrix_fpt`, `grow_stable_manifold_cached`
-- `island_control.py` — legacy wrapper over `pyna.toroidal.control.island_control`
-- `island_optimizer.py` — legacy wrapper over `pyna.toroidal.control.island_optimizer`
-- `qprofile_response.py` — q-profile response matrix
+`pyna.MCF.control` is likewise a **package-level facade only**.
+The old per-module wrappers were removed; import from
+`pyna.toroidal.control` for new code, or from the package root
+`pyna.MCF.control` while migrating.
+
+Representative package-root exports include:
+
+- `WallGeometry`, `make_east_like_wall`
+- `gap_response_matrix_fpt`
+- `q_from_flux_surface_integral`, `q_by_fieldline_tracing`,
+  `q_by_fieldline_winding`, `q_response_matrix_analytic`,
+  `q_response_matrix_fd`, `iota_response_matrix`, `build_qprofile_response`
+- `compute_resonant_amplitude`, `island_suppression_current`,
+  `phase_control_current`, `multi_mode_control`
+- `IslandOptimizer`, `OptimisationResult`,
+  `UnperturbedSurfaceReconstructor`, `compute_surface_deformation`,
+  `epsilon_eff_proxy`
 
 For the generic FPT-based topology controller see `pyna.control`. For the preferred toroidal import path, see `pyna.toroidal.control`.
 

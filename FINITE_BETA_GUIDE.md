@@ -186,7 +186,7 @@ where ε is the inverse aspect ratio.
 
 | Item | Path |
 |------|------|
-| Framework code | `pyna/pyna/MCF/equilibrium/finite_beta_perturbation.py` |
+| Framework code | `pyna/pyna/toroidal/equilibrium/finite_beta_perturbation.py` |
 | Workflow script | `pyna/scripts/hao_beta_climb.py` |
 | Tests | `pyna/tests/test_finite_beta_perturbation.py` |
 | Vacuum field data | `/mnt/c/Users/28105/Nutstore/1/haodata/coilsys/vacuum_fields/` |

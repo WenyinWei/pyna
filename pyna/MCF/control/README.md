@@ -9,15 +9,30 @@ see `pyna/control/README.md`.
 
 ---
 
-## Module reference
+## Package status
 
-| Module | Key exports |
-|--------|-------------|
-| `wall.py` | `WallGeometry` — first-wall polygon with gap-monitoring points and inward-normal queries |
-| `gap_response.py` | `gap_response_matrix_fpt` — compute ∂(gap_i)/∂(I_coil_k) via FPT manifold shift; `grow_stable_manifold_cached` — cached stable-manifold integration; `clear_manifold_cache` |
-| `island_control.py` | Legacy wrapper over `pyna.toroidal.control.island_control` |
-| `island_optimizer.py` | Legacy wrapper over `pyna.toroidal.control.island_optimizer` |
-| `qprofile_response.py` | `q_response_matrix_analytic`, `q_response_matrix_fd` — safety-factor response to coil currents |
+`pyna.MCF.control` is now a **package-level facade only**.
+The old leaf modules such as `wall.py`, `gap_response.py`, `island_control.py`,
+`island_optimizer.py`, and `qprofile_response.py` were removed because they had
+no independent implementation left beyond forwarding imports.
+
+Use either:
+
+- `pyna.toroidal.control` for all new code, or
+- `pyna.MCF.control` package-root imports while migrating old notebooks.
+
+Current package-root exports include:
+
+- wall helpers: `WallGeometry`, `make_east_like_wall`
+- gap response: `gap_response_matrix_fpt`
+- q-profile response: `q_from_flux_surface_integral`, `q_by_fieldline_tracing`,
+  `q_by_fieldline_winding`, `q_response_matrix_analytic`,
+  `q_response_matrix_fd`, `iota_response_matrix`, `build_qprofile_response`
+- island control / optimisation: `compute_resonant_amplitude`,
+  `island_suppression_current`, `phase_control_current`,
+  `multi_mode_control`, `IslandOptimizer`, `OptimisationResult`,
+  `UnperturbedSurfaceReconstructor`, `compute_surface_deformation`,
+  `epsilon_eff_proxy`
 
 ---
 

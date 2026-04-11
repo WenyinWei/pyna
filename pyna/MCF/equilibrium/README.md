@@ -7,26 +7,34 @@ as well as linear-response models for the effect of small external perturbations
 
 ---
 
-## Module reference
+## Package status
 
-### Ideal equilibria
+`pyna.MCF.equilibrium` is now a **package-level facade only**.
+The old leaf wrappers such as `axisymmetric.py`, `Solovev.py`,
+`GradShafranov.py`, `stellarator.py`, `feedback_boozer.py`,
+`feedback_cylindrical.py`, `feedback_cylindrical_utils.py`,
+`fenicsx_corrector.py`, and `finite_beta_perturbation.py` were removed because
+they no longer carried independent implementation.
 
-| Module | Class / function | Description |
-|--------|-----------------|-------------|
-| `axisymmetric.py` | `EquilibriumAxisym` | Abstract base for all axisymmetric (tokamak) equilibria |
-| `axisymmetric.py` | `EquilibriumTokamakCircularSynthetic` | Circular cross-section analytic model |
-| `Solovev.py` | `EquilibriumSolovev` | Analytic Solov'ev solution of the Grad-Shafranov equation |
-| `GradShafranov.py` | `solve_GS_perturbed` | Perturbed Grad-Shafranov solver |
-| `GradShafranov.py` | `recover_pressure_simplest` | Pressure profile from force balance |
-| `stellarator.py` | `StellaratorSimple` | Simple stellarator with helical ripple |
-| `stellarator.py` | `simple_stellarator` | Factory function |
+Use either:
 
-### Linear plasma response
+- `pyna.toroidal.equilibrium` for all new code, or
+- `pyna.MCF.equilibrium` package-root imports while migrating old notebooks.
 
-| Module | Key exports | Valid region |
-|--------|-------------|-------------|
-| `feedback_boozer.py` | `BoozerSurface`, `BoozerPerturbation`, `MHD_response_operator`, `compute_boozer_response`, `island_width_with_response` | Non-chaotic (flux surfaces intact) |
-| `feedback_cylindrical.py` | `CylindricalGrid`, `PerturbationField`, `PlasmaResponse`, `compute_plasma_response`, `feedback_correction_field`, `iterative_equilibrium_correction` | All regions (including chaotic) |
+Representative package-root exports include:
+
+- `EquilibriumAxisym`, `EquilibriumTokamakCircularSynthetic`
+- `EquilibriumSolovev`
+- `solve_GS_perturbed`, `recover_pressure_simplest`
+- `StellaratorSimple`, `simple_stellarator`
+- `BoozerSurface`, `BoozerPerturbation`, `compute_boozer_response`
+- `CylindricalGrid`, `PerturbationField`, `PlasmaResponse`,
+  `compute_plasma_response`, `feedback_correction_field`,
+  `iterative_equilibrium_correction`
+- FEniCS-x helpers such as `AndersonMixer`, `build_rz_mesh`,
+  `solve_force_balance_correction`, `fpt_fenicsx_beta_step`
+- cylindrical utility helpers such as `greens_function_cylinder`,
+  `lundquist_number`, `toroidal_fft`, `convergence_monitor`
 
 ---
 

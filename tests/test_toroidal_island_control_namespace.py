@@ -10,6 +10,24 @@ def test_toroidal_control_exports_island_stack():
     assert hasattr(control, "OptimisationResult")
 
 
+def test_legacy_mcf_control_package_is_a_facade_over_toroidal():
+    legacy_control = importlib.import_module("pyna.MCF.control")
+    toroidal_control = importlib.import_module("pyna.toroidal.control")
+
+    assert legacy_control.compute_resonant_amplitude is toroidal_control.compute_resonant_amplitude
+    assert legacy_control.island_suppression_current is toroidal_control.island_suppression_current
+    assert legacy_control.IslandOptimizer is toroidal_control.IslandOptimizer
+    assert legacy_control.OptimisationResult is toroidal_control.OptimisationResult
+
+
+def test_legacy_mcf_equilibrium_package_is_a_facade_over_toroidal():
+    legacy_eq = importlib.import_module("pyna.MCF.equilibrium")
+    toroidal_eq = importlib.import_module("pyna.toroidal.equilibrium")
+
+    assert legacy_eq.EquilibriumSolovev is toroidal_eq.EquilibriumSolovev
+    assert legacy_eq.compute_plasma_response is toroidal_eq.compute_plasma_response
+
+
 def test_mag_namespace_uses_toroidal_owned_island_exports():
     mag = importlib.import_module("pyna.mag")
     toroidal_control = importlib.import_module("pyna.toroidal.control")
