@@ -28,18 +28,9 @@ end
 local PY_INC     = os.getenv("CYNA_PY_INC")     or ""
 local PY_LIBDIR  = os.getenv("CYNA_PY_LIBDIR")  or ""
 local PY_LIB_WIN = os.getenv("CYNA_PY_LIB_WIN") or ""
--- EXT_SUFFIX: the correct Python extension suffix, e.g.
---   Windows:  .pyd  (or .cp310-win_amd64.pyd for limited API builds)
---   Linux:    .cpython-310-x86_64-linux-gnu.so
---   macOS:    .cpython-310-darwin.so
--- setup.py exports this so xmake can name the output file correctly.
-local EXT_SUFFIX = os.getenv("CYNA_EXT_SUFFIX") or ""
 
 if PY_INC ~= "" then
     print("cyna: Python include  : " .. PY_INC)
-end
-if EXT_SUFFIX ~= "" then
-    print("cyna: EXT_SUFFIX      : " .. EXT_SUFFIX)
 end
 if is_plat("windows") and PY_LIB_WIN ~= "" then
     print("cyna: Python lib (win): " .. PY_LIB_WIN)
@@ -51,12 +42,9 @@ target("cyna")
     add_includedirs("include", {public = true})
     add_headerfiles("include/(cyna/*.hpp)")
 
--- pybind11 Python extension
--- CRITICAL: always use add_rules("python.module") to ensure:
---   1. Correct PE subsystem (console, not GUI) on Windows
---   2. Correct .pyd / .so / .cpython-XY-*.so suffix per platform
---   3. Correct linker flags (no default lib conflicts on Windows)
--- We use set_basename("_cyna_ext") only; let the rule set the suffix.
+-- pybind11 Python extension: bare _cyna_ext.pyd / _cyna_ext.so
+-- Python's import system searches both bare names and ABI-tagged names,
+-- so bare .pyd/.so works on all platforms and is simpler to produce.
 target("cyna_python")
     set_kind("shared")
     add_files("bindings/flt_bindings.cpp")
@@ -74,16 +62,14 @@ target("cyna_python")
     end
 
     -- Set the output filename to exactly what Python expects.
-    -- EXT_SUFFIX (from CYNA_EXT_SUFFIX env var) includes the leading dot,
-    -- e.g. ".pyd" or ".cp310-win_amd64.pyd" or ".cpython-310-...so"
+    -- We use bare .pyd/.so (without ABI tags) which Python's import system
+    -- accepts as a fallback on all platforms. The wheel's ABI tag is encoded
+    -- in the wheel filename itself (set by cibuildwheel), not the .so name.
+    -- This is simpler and more portable than trying to replicate EXT_SUFFIX
+    -- logic inside xmake Lua.
     set_basename("_cyna_ext")
-    if EXT_SUFFIX ~= "" then
-        -- Use the exact suffix Python reported for this interpreter
-        set_extension(EXT_SUFFIX)
-    elseif is_plat("windows") then
+    if is_plat("windows") then
         set_extension(".pyd")
-    elseif is_plat("macosx") then
-        set_extension(".so")
     else
         set_extension(".so")
     end
@@ -122,10 +108,7 @@ target("cyna_python")
         add_defines("CYNA_CUDA_ENABLED")
     end
 
-    -- After build: copy the .pyd/.so into pyna/_cyna/
-    -- python.module produces e.g. _cyna_ext.pyd (Windows) or
-    -- _cyna_ext.cpython-310-x86_64-linux-gnu.so (Linux).
-    -- We copy whatever file was produced; Python's import system finds it.
+    -- After build: copy _cyna_ext.pyd/.so into pyna/_cyna/
     after_build(function(target)
         local dest = path.join(os.scriptdir(), "..", "pyna", "_cyna")
         os.mkdir(dest)

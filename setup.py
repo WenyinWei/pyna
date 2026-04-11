@@ -255,17 +255,20 @@ def _has_cuda() -> bool:
 
 # ── pybind11 (Python-side, for include path) ──────────────────────────────────
 
-def _ensure_pybind11() -> None:
+def _ensure_pybind11(skip_install: bool = False) -> None:
     """Make sure pybind11 is importable so xmake can find its include path.
 
-    Uses the Tsinghua PyPI mirror when the standard index is unreachable,
-    which significantly speeds up installation in mainland China.
+    Uses CN-friendly mirrors when the standard index is unreachable.
+    Pass skip_install=True (CI mode) to skip the install attempt.
     """
     try:
         import pybind11  # noqa: F401
         return  # already installed
     except ImportError:
         pass
+    if skip_install:
+        print("[cyna-build] WARNING: pybind11 not found and skip_install=True.", flush=True)
+        return
     print("[cyna-build] Installing pybind11 ...", flush=True)
     # Try primary index first; fall back to Tsinghua mirror on failure
     for index_url in [
@@ -294,8 +297,15 @@ def _build_cyna() -> bool:
 
     Returns True on success.
     """
+    # In CI (cibuildwheel) xmake and the compiler are pre-installed;
+    # skip the auto-install logic to save time and avoid network errors.
+    _skip_tool_install = os.environ.get("CYNA_SKIP_TOOL_INSTALL", "") == "1"
+
     xmake = _xmake_path()
     if xmake is None:
+        if _skip_tool_install:
+            print("[cyna-build] ERROR: xmake not found and CYNA_SKIP_TOOL_INSTALL=1.", flush=True)
+            return False
         if not _install_xmake():
             return False
         xmake = _xmake_path()
@@ -304,10 +314,12 @@ def _build_cyna() -> bool:
         return False
 
     if not _has_cxx_compiler():
-        if not _install_cxx_compiler():
+        if _skip_tool_install:
+            print("[cyna-build] WARNING: no C++ compiler found; proceeding (CI should have one).", flush=True)
+        elif not _install_cxx_compiler():
             print("[cyna-build] WARNING: proceeding without C++ compiler — may fail.", flush=True)
 
-    _ensure_pybind11()
+    _ensure_pybind11(skip_install=_skip_tool_install)
 
     # Determine Python info for xmake
     py_inc  = sysconfig.get_path("include")
@@ -322,10 +334,6 @@ def _build_cyna() -> bool:
     env["XMAKE_PYTHON"]       = sys.executable
     env["CYNA_PY_INC"]         = _sc.get_path("include") or ""
     env["CYNA_PY_LIBDIR"]      = _sc.get_config_var("LIBDIR") or ""
-    # EXT_SUFFIX: the correct Python binary extension suffix for this interpreter,
-    # e.g. ".pyd" on Windows, ".cpython-310-x86_64-linux-gnu.so" on Linux.
-    # xmake uses this to name the output file so Python's import system finds it.
-    env["CYNA_EXT_SUFFIX"]     = _sc.get_config_var("EXT_SUFFIX") or (".pyd" if _is_windows() else ".so")
     # pybind11 headers from pip (avoids xmake's CMake-based package download)
     try:
         import pybind11 as _pb11

@@ -1,9 +1,9 @@
 name: Build and Publish Wheels
 
 # Triggers:
-#   - push to master (smoke test only, no upload)
-#   - push of a version tag vX.Y.Z  → build + upload to PyPI
-#   - manual dispatch (choose whether to upload)
+#   - push of a version tag vX.Y.Z  -> build + upload to PyPI
+#   - push to master                -> build only (smoke test, no upload)
+#   - manual dispatch               -> build; optionally upload
 on:
   push:
     branches: [master]
@@ -16,77 +16,83 @@ on:
         default: "no"
 
 jobs:
-  # ────────────────────────────────────────────────────────────────────────────
-  # 1. Build wheels for CPython 3.9 – 3.13 on Windows / Linux / macOS
-  # ────────────────────────────────────────────────────────────────────────────
+  # ============================================================
+  # 1. Build wheels  (Windows / Linux / macOS x Intel+ARM)
+  # ============================================================
   build_wheels:
-    name: Build wheel (${{ matrix.os }})
+    name: Wheels / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-13, macos-14]
-        # macos-13 = Intel x86_64,  macos-14 = Apple-Silicon arm64
 
     steps:
       - uses: actions/checkout@v4
 
-      # ── Install xmake (needed by setup.py's build_ext) ────────────────────
-      - name: Install xmake (Linux)
+      # ── xmake (host runner; cibuildwheel re-uses it via env var) ──────────
+      - name: Install xmake (Linux host)
         if: runner.os == 'Linux'
         run: |
           curl -fsSL https://xmake.io/shget.text | bash
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Install xmake (macOS)
+      - name: Install xmake (macOS host)
         if: runner.os == 'macOS'
         run: brew install xmake
 
-      - name: Install xmake (Windows)
+      - name: Install xmake (Windows host)
         if: runner.os == 'Windows'
         uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
 
-      # ── Build wheels with cibuildwheel ────────────────────────────────────
+      # ── Build wheels ──────────────────────────────────────────────────────
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.22
         env:
-          # CPython 3.9 – 3.13; skip PyPy and 32-bit Windows
           CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
-          CIBW_SKIP: "*-win32 *-musllinux_i686"
+          CIBW_SKIP:  "*-win32 *-musllinux*"
 
-          # ── Linux: build inside manylinux2014 container ──────────────────
-          CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux2014_x86_64
+          # ── Linux (manylinux2014 container) ───────────────────────────────
+          # Install xmake inside the container once; expose via CIBW_ENVIRONMENT.
+          # xmake installs to ~/.local/bin which is /root/.local/bin in the container.
           CIBW_BEFORE_ALL_LINUX: |
-            curl -fsSL https://xmake.io/shget.text | bash
-            echo 'export PATH="$HOME/.local/bin:$PATH"' >> /etc/profile
-            source /etc/profile
+            curl -fsSL https://xmake.io/shget.text | bash || true
+            ls ~/.local/bin/xmake 2>/dev/null && echo "xmake ok" || echo "xmake install failed"
+          CIBW_ENVIRONMENT_LINUX: "PATH=/root/.local/bin:$PATH"
 
-          # ── macOS: ensure xmake visible inside build env ─────────────────
-          CIBW_BEFORE_ALL_MACOS: which xmake || brew install xmake
+          # ── macOS ─────────────────────────────────────────────────────────
+          # xmake already installed on the runner via brew above;
+          # CIBW_BEFORE_ALL is not needed.
 
-          # ── All platforms: install pybind11 before build ─────────────────
+          # ── Windows ───────────────────────────────────────────────────────
+          # xmake installed via xmake-io/github-action-setup-xmake@v1;
+          # it adds itself to the machine PATH so cibuildwheel subprocess sees it.
+
+          # ── All platforms: pybind11 headers before each wheel build ───────
+          # Also set CYNA_SKIP_TOOL_INSTALL=1 so setup.py does not try to
+          # install xmake/compiler (they are already present in CI).
           CIBW_BEFORE_BUILD: pip install pybind11
+          CIBW_ENVIRONMENT_PASS_LINUX: CYNA_SKIP_TOOL_INSTALL
+          CIBW_ENVIRONMENT: CYNA_SKIP_TOOL_INSTALL=1
 
-          # ── Run the test suite after building each wheel ─────────────────
-          CIBW_TEST_COMMAND: python -c "import pyna._cyna as c; assert c.is_available(), 'cyna unavailable'"
-          CIBW_TEST_SKIP: "*-macosx_arm64"   # can't run arm64 on x86 runner
+          # ── Test each wheel immediately after building ────────────────────
+          CIBW_TEST_COMMAND: >
+            python -c "import pyna._cyna as c; assert c.is_available(), 'cyna not available'"
+          # arm64 wheels built on x86 runner cannot be executed
+          CIBW_TEST_SKIP: "*-macosx_*_arm64 *-macosx_arm64"
 
-          # ── Pass CN-friendly pip index for pybind11 ──────────────────────
-          PIP_INDEX_URL: "https://pypi.org/simple"   # CI has fast GitHub infra
-
-      - name: Upload wheel artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: wheels-${{ matrix.os }}
           path: ./wheelhouse/*.whl
 
-  # ────────────────────────────────────────────────────────────────────────────
-  # 2. Build the pure-Python sdist (fallback for exotic platforms)
-  # ────────────────────────────────────────────────────────────────────────────
+  # ============================================================
+  # 2. Pure-Python sdist (fallback for exotic platforms)
+  # ============================================================
   build_sdist:
-    name: Build sdist
+    name: sdist
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -94,27 +100,28 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install build
+      # sdist build does NOT run build_ext (no xmake needed)
       - run: python -m build --sdist
       - uses: actions/upload-artifact@v4
         with:
           name: sdist
           path: dist/*.tar.gz
 
-  # ────────────────────────────────────────────────────────────────────────────
-  # 3. Upload to PyPI (only on version tags or manual dispatch with upload=yes)
-  # ────────────────────────────────────────────────────────────────────────────
+  # ============================================================
+  # 3. Publish to PyPI (tag push or manual upload=yes)
+  # ============================================================
   upload_pypi:
-    name: Upload to PyPI
+    name: Publish to PyPI
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
-    if: >
+    if: >-
       (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.upload == 'yes')
     environment:
       name: pypi
       url: https://pypi.org/p/pyna-chaos
     permissions:
-      id-token: write   # OIDC trusted publishing (no API token needed)
+      id-token: write   # OIDC trusted publishing
 
     steps:
       - uses: actions/download-artifact@v4
@@ -122,6 +129,7 @@ jobs:
           pattern: "wheels-*"
           path: dist
           merge-multiple: true
+
       - uses: actions/download-artifact@v4
         with:
           name: sdist
@@ -129,5 +137,3 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        # Uses OIDC trusted publishing — configure at:
-        # https://pypi.org/manage/project/pyna-chaos/settings/publishing/
