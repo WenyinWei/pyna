@@ -7,7 +7,6 @@ This module is explicitly coordinate-system-specific: it stores trajectories in
 """
 
 import numpy as np
-import h5py
 from dataclasses import dataclass, field
 from typing import Callable, Optional, Tuple
 
@@ -126,6 +125,8 @@ class ToroidalTrajectory(Trajectory):
         return float(np.sqrt(max(V, 0.0) / (2.0 * np.pi ** 2 * R_ax)))
 
     def save(self, path: str) -> None:
+        import h5py
+
         with h5py.File(path, 'w') as f:
             f.create_dataset('R', data=self.R, compression='gzip')
             f.create_dataset('Z', data=self.Z, compression='gzip')
@@ -139,6 +140,8 @@ class ToroidalTrajectory(Trajectory):
 
     @classmethod
     def load(cls, path: str) -> 'ToroidalTrajectory':
+        import h5py
+
         with h5py.File(path, 'r') as f:
             R = f['R'][:]
             Z = f['Z'][:]

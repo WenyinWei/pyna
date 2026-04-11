@@ -121,9 +121,9 @@ For EACH file below, replace:
 9. pyna/diff/cycle.py - variational ODE
 10. pyna/diff/fieldline.py - field-line ODE with dense_output
 11. pyna/diff/fixedpoint.py - variational ODE
-12. pyna/MCF/coords/PEST.py - field-line ODE
-13. pyna/MCF/control/island_optimizer.py - field-line ODE
-14. pyna/MCF/control/qprofile_response.py - field-line ODE
+12. [removed legacy pyna.MCF path] pyna/toroidal/coords/PEST.py - field-line ODE
+13. [removed legacy pyna.MCF path] pyna/toroidal/control/island_optimizer.py - field-line ODE
+14. [removed legacy pyna.MCF path] pyna/toroidal/control/qprofile_response.py - field-line ODE
 15. pyna/control/FPT.py - check what it uses
 
 ### Files in topoquest:

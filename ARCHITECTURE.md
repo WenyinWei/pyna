@@ -44,15 +44,9 @@ pyna/                        �?pip-installable Python package
 ├── control/                 �?FPT-based real-time topology control  (§6)
 ├── toroidal/                �?Canonical toroidal / MHD physics namespace  (§7)
 │   ├── perturbation/        �?Toroidal perturbative equilibrium / plasma-response landing zone
-├── MCF/                     �?Legacy facade over toroidal physics  (§7)
-�?  ├── equilibrium/         �?Axisymmetric & stellarator equilibria
-�?  ├── coils/               �?Vacuum field, Biot-Savart, RMP
-�?  ├── coords/              �?Flux-surface coordinate systems
-�?  ├── plasma_response/     �?Linear MHD plasma response
-�?  ├── control/             �?MCF-specific control (gap response, q-profile)
-�?  ├── diagnostics/         �?Connection-length, field-line endpoint diagnostics
-�?  ├── optimize/            �?Stellarator optimisation objectives
-�?  └── visual/              �?MCF-specific plotting helpers
+│
+│   Note: the historical ``pyna.MCF`` package tree has been removed.
+│   Toroidal / magnetic-specific code now lives directly under ``pyna.toroidal``.
 ├── diff/                    �?Numerical differentiation helpers
 ├── draw/                    �?Generic geometry drawing (manifolds, resonances)
 ├── gc/                      �?Guiding-centre motion

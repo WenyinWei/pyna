@@ -29,27 +29,27 @@ tokamak visualizations.
       Multi-section maps, X/O-point detection, island width extraction.
 
    .. grid-item-card:: Manifold Visualization
-      :link: en/api/MCF
+      :link: en/api/topo
       :link-type: doc
 
       Publication-quality stable/unstable manifold plots in the preferred
       ``pyna.toroidal`` namespace.
 
    .. grid-item-card:: Torus Deformation
-      :link: en/api/MCF
+      :link: en/api/control
       :link-type: doc
 
       Non-resonant BNF-derived analytic spectral theory (Wei 2025), surfaced
       through ``pyna.toroidal``.
 
    .. grid-item-card:: Toroidal Equilibria
-      :link: en/api/MCF
+      :link: en/api/index
       :link-type: doc
 
       Solov'ev, Grad-Shafranov, stellarator analytic/numeric solutions.
 
    .. grid-item-card:: Magnetic Coordinates
-      :link: en/api/MCF
+      :link: en/api/index
       :link-type: doc
 
       PEST, Boozer, Hamada, Equal-arc transformations via ``pyna.toroidal``.
