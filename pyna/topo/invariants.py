@@ -31,7 +31,7 @@ import numpy as np
 from pyna.topo._base import InvariantObject, InvariantSet, InvariantManifold, SectionCuttable
 
 if TYPE_CHECKING:
-    pass
+    from pyna.topo.trajectory3d import ToroidalTrajectory3D
 
 CoordT = TypeVar("CoordT")
 
@@ -343,9 +343,55 @@ class PeriodicOrbit(InvariantManifold):
       that intersects multiple Poincaré sections.  ``Cycle.section_cut(phi)``
       produces the ``PeriodicOrbit`` at that section.
     - **Island** is the region around an elliptic PeriodicOrbit.
+
+    Parameters (continued)
+    ----------------------
+    trajectory : ToroidalTrajectory3D or None
+        Full 3-D continuous-flow trajectory of this orbit (optional).  When
+        present, :meth:`section_at` uses ``trajectory.intersect(phi)`` to
+        derive all crossing points at any toroidal section, covering the
+        complete set of periodic-orbit intersection points on that plane.
     """
     points: List[FixedPoint] = field(default_factory=list)
     ambient_dim: Optional[int] = None
+    trajectory: Optional["ToroidalTrajectory3D"] = field(default=None, repr=False)
+
+    def section_at(self, phi: float, kind: str = '') -> List[FixedPoint]:
+        """Return all FixedPoints on the section at *phi* by trajectory intersection.
+
+        If a 3-D :attr:`trajectory` is attached, uses
+        :meth:`~pyna.topo.trajectory3d.ToroidalTrajectory3D.intersect` to find
+        every crossing with the toroidal plane at *phi*, which correctly returns
+        all m points of a period-m orbit at that section.
+
+        Falls back to :attr:`points` when no trajectory is available.
+
+        Parameters
+        ----------
+        phi : float
+            Toroidal section angle [rad].
+        kind : str
+            If non-empty, filter by this kind (``'X'`` or ``'O'``).
+
+        Returns
+        -------
+        list of FixedPoint
+        """
+        if self.trajectory is not None:
+            R_cross, Z_cross = self.trajectory.intersect(phi)
+            # Inherit monodromy from the first existing point (best approximation)
+            DPm_ref = self.points[0].DPm if self.points else np.eye(2)
+            kind_ref = self.points[0].kind if self.points else kind
+            fps = [
+                FixedPoint(phi=phi, R=float(R), Z=float(Z),
+                           DPm=DPm_ref, kind=kind_ref)
+                for R, Z in zip(R_cross, Z_cross)
+            ]
+        else:
+            fps = list(self.points)
+        if kind:
+            fps = [fp for fp in fps if fp.kind == kind]
+        return fps
 
     @property
     def period(self) -> int:
@@ -430,6 +476,12 @@ class Cycle(InvariantManifold):
     sections: Dict = field(default_factory=dict)  # phi -> List[FixedPoint], ordered by flow
     monodromy: Optional[MonodromyData] = None
     ambient_dim: Optional[int] = None
+    trajectory: Optional["ToroidalTrajectory3D"] = field(default=None, repr=False)
+    """Optional full 3-D orbit trajectory.  When present, section_points(phi)
+    uses trajectory.intersect(phi) as a fallback to find ALL periodic-orbit
+    intersection points at any requested phi — not just those pre-stored in
+    the sections dict.  This ensures X/O ring markers are complete at every
+    toroidal section of a 2x2 Poincaré plot."""
 
     @property
     def intrinsic_dim(self) -> int:
@@ -446,10 +498,48 @@ class Cycle(InvariantManifold):
         return Stability.UNKNOWN
 
     def section_points(self, phi: float, tol: float = 1e-6) -> list:
-        """Return all FixedPoints at this section, ordered by flow direction."""
+        """Return all FixedPoints at this section.
+
+        Strategy
+        --------
+        1. **Dict lookup** (exact match within *tol*): fastest, returns
+           Newton-refined points pre-stored at that section.
+        2. **Trajectory intersection** (fallback): when no exact key exists
+           in ``sections`` and a 3-D :attr:`trajectory` is attached, computes
+           ``trajectory.intersect(phi)`` to find every crossing of the
+           periodic orbit with the toroidal plane at *phi*.  This guarantees
+           all m points of a period-m X/O cycle appear on every section,
+           not just the one where Newton iteration was seeded.
+
+        Parameters
+        ----------
+        phi : float
+            Toroidal section angle [rad].
+        tol : float
+            Tolerance for exact key match.
+        """
+        # 1. Exact dict match
         for key, fps in self.sections.items():
             if abs(key - phi) < tol:
                 return fps if isinstance(fps, list) else [fps]
+        # 2. Trajectory intersection fallback
+        if self.trajectory is not None:
+            R_cross, Z_cross = self.trajectory.intersect(phi)
+            if len(R_cross) == 0:
+                return []
+            # Infer kind and DPm from existing stored points
+            kind_ref = 'X'
+            DPm_ref = np.eye(2)
+            for fps in self.sections.values():
+                fp0 = fps[0] if isinstance(fps, list) else fps
+                kind_ref = fp0.kind
+                DPm_ref = fp0.DPm
+                break
+            return [
+                FixedPoint(phi=phi, R=float(R), Z=float(Z),
+                           DPm=DPm_ref, kind=kind_ref)
+                for R, Z in zip(R_cross, Z_cross)
+            ]
         return []
 
     def section_cut(self, section=None) -> list:

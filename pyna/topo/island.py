@@ -273,12 +273,37 @@ class IslandChain(InvariantObject):
         return [fp for isl in self.islands for fp in isl.X_points]
 
     def section_xpoints(self, phi: float, tol: float = 1e-6) -> List[FixedPoint]:
-        """X-points at section phi."""
-        return [fp for fp in self.X_points if abs(fp.phi - phi) < tol]
+        """X-points at section phi.
+
+        First tries an exact phi-match against stored FixedPoint.phi values.
+        If nothing is found (e.g. the chain was only refined at one section),
+        falls back to trajectory intersection via
+        ``PeriodicOrbit.section_at(phi)`` on every X_orbit, which correctly
+        returns all periodic-orbit crossings at any requested toroidal angle.
+        """
+        pts = [fp for fp in self.X_points if abs(fp.phi - phi) < tol]
+        if pts:
+            return pts
+        # Trajectory fallback: query every X_orbit's 3-D trajectory
+        result = []
+        for isl in self.islands:
+            for xorb in isl.X_orbits:
+                result.extend(xorb.section_at(phi, kind='X'))
+        return result
 
     def section_opoints(self, phi: float, tol: float = 1e-6) -> List[FixedPoint]:
-        """O-points at section phi."""
-        return [fp for fp in self.O_points if abs(fp.phi - phi) < tol]
+        """O-points at section phi.
+
+        Same fallback strategy as :meth:`section_xpoints`.
+        """
+        pts = [fp for fp in self.O_points if abs(fp.phi - phi) < tol]
+        if pts:
+            return pts
+        # Trajectory fallback
+        result = []
+        for isl in self.islands:
+            result.extend(isl.O_orbit.section_at(phi, kind='O'))
+        return result
 
     def summary(self) -> str:
         return (

@@ -23,6 +23,7 @@ dependencies = [
     "matplotlib>=3.5",
     "sympy>=1.10",
     "deprecated>=1.2",
+    "h5py>=3.0",
 ]
 
 [project.optional-dependencies]
