@@ -1,4 +1,4 @@
-# pyna.mag — backward-compatibility shim
+# pyna.mag �?backward-compatibility shim
 # Files have moved to pyna.toroidal.*; this module re-exports everything.
 
 from pyna.toroidal.coords.coordinate import (
@@ -20,12 +20,15 @@ from pyna.toroidal.equilibrium.GradShafranov import (
 from pyna.toroidal.equilibrium.Solovev import EquilibriumSolovev
 from pyna.toroidal.equilibrium.axisymmetric import EquilibriumAxisym, EquilibriumTokamakCircularSynthetic
 from pyna.toroidal.equilibrium.stellarator import StellaratorSimple, simple_stellarator
-from pyna.MCF.coils.coil import BRBZ_induced_by_current_loop, BRBZ_induced_by_thick_finitelen_solenoid
-from pyna.MCF.coils.coil_system import CoilSet, Biot_Savart_field
-from pyna.MCF.coils.field import VectorField3DCylindrical, VectorField3DAxiSymmetric
-from pyna.MCF.coils.RMP import normalize_b, RMP_spectrum_2d, island_width_at_rational_surfaces
+from pyna.toroidal.coils.coil import BRBZ_induced_by_current_loop, BRBZ_induced_by_thick_finitelen_solenoid
+from pyna.toroidal.coils.coil_system import CoilSet, Biot_Savart_field
+from pyna.toroidal.coils.field import VectorField3DCylindrical, VectorField3DAxiSymmetric
+from pyna.toroidal.coils.RMP import normalize_b, RMP_spectrum_2d, island_width_at_rational_surfaces
 from pyna.MCF.diagnostics.measure import field_line_length, field_line_endpoints, field_line_min_psi
-from pyna.MCF.control.island_control import (
-    compute_resonant_amplitude, island_suppression_current,
-    phase_control_current, multi_mode_control,
+from pyna.toroidal.control import (
+    compute_resonant_amplitude,
+    island_suppression_current,
+    phase_control_current,
+    multi_mode_control,
 )
+

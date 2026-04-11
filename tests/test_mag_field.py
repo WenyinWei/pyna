@@ -1,7 +1,7 @@
-"""Tests for pyna.fields — VectorField3DCylindrical / VectorField3DAxiSymmetric."""
+"""Tests for pyna.fields cylindrical vector-field classes."""
 import numpy as np
 import pytest
-from pyna.MCF.coils.field import (
+from pyna.toroidal.coils.field import (
     VectorField3DCylindrical,
     VectorField3DAxiSymmetric,
 )
@@ -126,3 +126,4 @@ def test_interpolate_at_axivf3d(axivf3d):
     BR, BZ, BPhi = axivf3d.interpolate_at(2.0, 0.0)
     assert np.isfinite(float(BR))
     assert np.isfinite(float(BPhi))
+

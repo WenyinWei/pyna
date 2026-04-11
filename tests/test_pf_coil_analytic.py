@@ -1,7 +1,7 @@
 """Tests for CoilFieldAnalyticRectangularSection."""
 import numpy as np
 import pytest
-from pyna.MCF.coils import CoilFieldAnalyticRectangularSection, CoilFieldAnalyticCircular
+from pyna.toroidal.coils import CoilFieldAnalyticRectangularSection, CoilFieldAnalyticCircular
 
 
 # A representative PF coil: Rc=1.5m, Zc=0m, dR=0.05m, dZ=0.05m, 100 turns, 1A
@@ -67,3 +67,4 @@ def test_current_setter():
 def test_divergence_free():
     coil = CoilFieldAnalyticRectangularSection(RC, ZC, DR, DZ, TURNS)
     assert coil.divergence_free() is True
+

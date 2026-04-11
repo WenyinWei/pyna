@@ -1,13 +1,13 @@
-"""Tests for pyna.mag.coil — analytic coil field formulas."""
+"""Tests for pyna.mag.coil analytic coil field formulas."""
 import numpy as np
 import pytest
 from scipy.constants import mu_0, pi
-from pyna.MCF.coils.coil import BRBZ_induced_by_current_loop
+from pyna.toroidal.coils.coil import BRBZ_induced_by_current_loop
 
 
-# On-axis (R→0) check is singular; instead test the well-known on-axis formula
+# On-axis (R->0) check is singular; instead test the well-known on-axis formula
 # B_Z(R=0, Z) = mu0 * I * a^2 / (2 * (a^2 + Z^2)^1.5)
-# We test at R small but nonzero and verify BR ≈ 0 (symmetry) and
+# We test at small but nonzero R and verify BR ~= 0 (symmetry) and
 # BZ matches the analytic formula.
 
 def test_current_loop_on_axis_BZ():
@@ -63,3 +63,4 @@ def test_current_loop_midplane_BR_zero():
     Z_o = 0.3
     BR, _ = BRBZ_induced_by_current_loop(a, Z_o, I, R, Z_o * np.ones_like(R))
     np.testing.assert_allclose(BR, 0.0, atol=1e-10)
+

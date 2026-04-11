@@ -201,7 +201,7 @@ def compute_plasma_response(
         a = getattr(equilibrium, 'r0', getattr(equilibrium, 'a', 0.5))
 
         psi_approx = np.clip(((grid.R[:, None] - R0) ** 2) / (a**2 + 1e-30), 0, 1)
-        beta_arr = np.vectorize(beta_profile)(psi_approx)  # shape (NR, 1) → broadcasts to (NR, NZ)
+        beta_arr = np.vectorize(beta_profile)(psi_approx)  # shape (NR, 1); broadcasts to (NR, NZ)
 
         # Screening factor per model
         if model == 'ideal_mhd':
@@ -268,16 +268,16 @@ def feedback_correction_field(
     -------
     correction : PerturbationField
         The correction field δB_corr such that
-        δB_total = δB_ext + δB_plasma + δB_corr ≈ 0 at rational surfaces.
+        δB_total = δB_ext + δB_plasma + δB_corr �?0 at rational surfaces.
     
     Notes
     -----
     Uses Green's function method:
-    δB_corr(x) = ∫ G(x,x') × δj_plasma(x') dV'
+    δB_corr(x) = �?G(x,x') × δj_plasma(x') dV'
     where G is the magnetic Green's function for a current loop in
     cylindrical coordinates (Neumann formula).
     """
-    from pyna.MCF.coils.coil import BRBZ_induced_by_current_loop
+    from pyna.toroidal.coils.coil import BRBZ_induced_by_current_loop
 
     R3d, Z3d, phi3d = grid.meshgrid()
     dBR_corr = np.zeros(grid.shape)
@@ -314,14 +314,14 @@ def feedback_correction_field(
                 #   x_fld = R3d*cos(phi3d),     y_fld = R3d*sin(phi3d)
                 # Δx = x_fld - x_src = R3d*cos(phi3d) - R_src*cos(phi_src)
                 # However, for small (phi3d - phi_src) the dominant terms are:
-                #   Δx_R ≈ R3d*cos(phi3d) - R_src*cos(phi_src)  (radial offset contribution)
-                #   Δx_X ≈ -R_src*sin(phi3d - phi_src)          (azimuthal offset contribution)
+                #   Δx_R �?R3d*cos(phi3d) - R_src*cos(phi_src)  (radial offset contribution)
+                #   Δx_X �?-R_src*sin(phi3d - phi_src)          (azimuthal offset contribution)
                 dX = R3d * np.cos(phi3d) - R_src * np.cos(phi_src)   # Cartesian x displacement
                 dY = R3d * np.sin(phi3d) - R_src * np.sin(phi_src)   # Cartesian y displacement
                 dZ_cart = Z3d - Z_src                                  # z displacement
                 dist3 = (dX**2 + dY**2 + dZ_cart**2)**1.5 + 1e-20
 
-                # Biot-Savart: δB = (μ₀/4π) ∫ j × r̂/|r|² dV
+                # Biot-Savart: δB = (μ₀/4π) �?j × r̂/|r|² dV
                 # In Cartesian: δBx = (μ₀/4π) * dV * (jy*dZ - jz*dy) / |r|³
                 # Convert j to Cartesian: jx = jR*cos(phi_src) - jphi*sin(phi_src)
                 #                         jy = jR*sin(phi_src) + jphi*cos(phi_src)
@@ -358,7 +358,7 @@ def compute_shafranov_shift(
 
     Uses the cylindrical circular cross-section approximation::
 
-        Δ ≈ beta_p * a / (2 * q²)
+        Δ �?beta_p * a / (2 * q²)
 
     where ``beta_p`` is the poloidal beta and q is estimated from the
     background field components on the magnetic axis.
@@ -691,3 +691,4 @@ def iterative_equilibrium_correction(
         'cache': cache,
     }
     return current_pert, info
+

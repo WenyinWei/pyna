@@ -1,8 +1,8 @@
-"""Tests for pyna.mag.RMP — RMP spectrum and island width pipeline."""
+"""Tests for pyna.mag.RMP RMP spectrum and island-width pipeline."""
 import numpy as np
 import pytest
 from pyna.toroidal.equilibrium.axisymmetric import EquilibriumTokamakCircularSynthetic
-from pyna.MCF.coils.RMP import normalize_b, RMP_spectrum_2d, island_width_at_rational_surfaces
+from pyna.toroidal.coils.RMP import normalize_b, RMP_spectrum_2d, island_width_at_rational_surfaces
 
 
 # ---------------------------------------------------------------------------
@@ -54,7 +54,7 @@ def test_RMP_spectrum_single_mode():
     # For cos(2θ - φ), the rfft2 packs negative-m at index nT-m=62,
     # positive n=1 in the rfft output.  Check that the mode is prominent.
     pos_m = np.abs(spec[:, 2, 1])       # positive m=2
-    neg_m = np.abs(spec[:, nT - 2, 1])  # negative m → index nT-2=62
+    neg_m = np.abs(spec[:, nT - 2, 1])  # negative m �?index nT-2=62
     dominant = np.maximum(pos_m, neg_m)
     # Zero out those two contributions from all_others
     all_others = np.abs(spec.copy())
@@ -64,7 +64,7 @@ def test_RMP_spectrum_single_mode():
 
 
 # ---------------------------------------------------------------------------
-# Full pipeline: synthetic equilibrium + RMP perturbation → island widths
+# Full pipeline: synthetic equilibrium + RMP perturbation �?island widths
 # ---------------------------------------------------------------------------
 
 def _build_synthetic_RMP(eq, epsilon=1e-3, n_mode=1, m_mode=2, sigma=0.1):
@@ -106,3 +106,4 @@ def test_full_pipeline_island_widths(eq):
         assert np.isfinite(w), "Island width should be finite"
         # Physically reasonable: between 0 and 30% of minor radius
         assert 0.0 < w < 0.3, f"Island width {w:.4f} out of expected range"
+
