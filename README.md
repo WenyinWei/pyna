@@ -20,7 +20,7 @@
 | Feature | Details |
 |---------|---------|
 | 🔀 **Field-line tracing** | RK4 integrator, parallel CPU, optional CUDA (118× speedup) |
-| 🌀 **Poincaré maps** | Multi-section maps, X/O-point detection, island width extraction |
+| 🌀 **Poincaré sections & island chains** | Multi-section crossing accumulation, island-chain extraction, X/O-point analysis |
 | 🗺️ **Manifold visualization** | Publication-quality stable/unstable manifold plots for tokamaks |
 | 🧲 **MCF equilibria** | Solov'ev, Grad-Shafranov, stellarator analytic solutions |
 | 📐 **Magnetic coordinates** | PEST, Boozer, Hamada, Equal-arc transformations |
@@ -59,14 +59,30 @@ tracer = FieldLineTracer(eq.Bfield)
 trajectory = tracer.trace(R0=2.0, Z0=0.0, phi_end=200 * 2 * 3.14159)
 ```
 
-### Poincaré map
+### Poincaré crossings and island chains
 
 ```python
-from pyna.topo.poincare import PoincareMap
+import numpy as np
+from pyna.flt import FieldLineTracer
+from pyna.topo.poincare import PoincareAccumulator, PoincareToroidalSection, poincare_from_fieldlines
 
-pmap = PoincareMap(tracer, sections=[0.0])
-orbits = pmap.compute(seeds_R=[1.8, 2.0, 2.2], seeds_Z=[0.0, 0.0, 0.0], n_turns=500)
-pmap.plot(orbits)
+section = PoincareToroidalSection(0.0)
+acc = PoincareAccumulator([section])
+
+# or trace directly from field lines
+start_pts = np.array([
+    [1.8, 0.0, 0.0],
+    [2.0, 0.0, 0.0],
+    [2.2, 0.0, 0.0],
+])
+acc = poincare_from_fieldlines(
+    field_func=field_func,
+    start_pts=start_pts,
+    sections=[section],
+    t_max=500 * 2 * np.pi,
+    backend=tracer,
+)
+crossings = acc.crossing_array(0)
 ```
 
 ### EAST tokamak manifold visualization
@@ -122,7 +138,7 @@ print(f"Mean radial displacement: {mean_dr:.4f} m")
 | `pyna.system` | Abstract dynamical system hierarchy (`DynamicalSystem`, `VectorField*D`) |
 | `pyna.flt` | Field-line tracer: RK4, parallel CPU, CUDA/OpenCL backends |
 | `pyna.topo.toroidal_island` | Rational surface location, theoretical island half-width |
-| `pyna.topo.poincare` | Multi-section Poincaré map infrastructure |
+| `pyna.topo.poincare` | Multi-section crossing accumulation and section helpers |
 | `pyna.topo.manifold` | Stable/unstable manifold computation |
 | `pyna.topo.toroidal_cycle` | Periodic orbit (X/O cycle) detection and analysis |
 | `pyna.coord` | Flux coordinate transformations |

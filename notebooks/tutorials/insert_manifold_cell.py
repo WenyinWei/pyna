@@ -9,7 +9,7 @@ new_cell_source = [
     "# === Manifold Visualization ===\n",
     "from pyna.topo.variational import PoincareMapVariationalEquations\n",
     "from pyna.topo.manifold_improve import StableManifold, UnstableManifold\n",
-    "from pyna.MCF.visual.tokamak_manifold import _manifold_line_collection, manifold_legend_handles\n",
+    "from pyna.toroidal.visual.tokamak_manifold import _manifold_line_collection, manifold_legend_handles\n",
     "from matplotlib.colors import Normalize\n",
     "import matplotlib.cm as cm\n",
     "\n",

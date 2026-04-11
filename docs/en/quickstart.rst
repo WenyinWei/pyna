@@ -37,22 +37,21 @@ The returned ``eq`` object exposes ``eq.BR_BZ(R, Z)``, ``eq.Bphi(R)``,
 
 ----
 
-2. Trace Field Lines and Build a Poincaré Map
+2. Trace Field Lines and Accumulate Poincaré Crossings
 ----------------------------------------------
 
-A Poincaré map records the (R, Z) coordinates each time a field line crosses
-the midplane (φ = 0).  After many toroidal transits, nested flux surfaces
-appear as closed curves; a magnetic island shows up as a chain of dots.
+A Poincaré section records the (R, Z) coordinates each time a field line crosses
+a chosen toroidal section (here φ = 0). After many toroidal turns, nested flux
+surfaces appear as closed curves; a magnetic island shows up as a chain of
+discrete section points.
 
 .. code-block:: python
 
    from pyna.flt import FieldLineTracer, get_backend
-   from pyna.topo.poincare import PoincareMap, poincare_from_fieldlines
-   from pyna.topo.section import ToroidalSection
+   from pyna.topo.poincare import PoincareAccumulator, PoincareToroidalSection, poincare_from_fieldlines
 
-   # Section inputs are explicit: pass a numeric toroidal angle or a real
-   # ToroidalSection object. Generic Section subclasses are reserved for
-   # geometry-aware section_cut paths that support non-toroidal cuts.
+   # Crossing accumulation uses explicit toroidal sections.
+   section = PoincareToroidalSection(0.0)
 
    # --- define the ODE right-hand side: dR/dφ, dZ/dφ ---
    def field_rhs(phi, RZ):
@@ -68,9 +67,14 @@ appear as closed curves; a magnetic island shows up as a chain of dots.
    # --- integrate 300 toroidal turns per line ---
    backend = get_backend('cpu')
    flt = FieldLineTracer(field_rhs, backend=backend)
-   poincare_pts = poincare_from_fieldlines(
-       flt, R_starts, Z_starts, n_turns=300
+   pacc = poincare_from_fieldlines(
+       field_func=field_rhs,
+       start_pts=np.column_stack([R_starts, Z_starts, np.zeros_like(R_starts)]),
+       sections=[section],
+       t_max=300 * 2 * np.pi,
+       backend=flt,
    )
+   poincare_pts = [pacc.crossing_array(0)[:, :2]]
 
    # --- plot ---
    fig, ax = plt.subplots(figsize=(6, 6))

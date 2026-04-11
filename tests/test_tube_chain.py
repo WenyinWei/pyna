@@ -218,11 +218,12 @@ def test_tubechain_from_XO_orbits_provides_joint_section_data():
     # Cycles are duck-typed: they have .sections and can be treated as orbit objects
     tc = TubeChain.from_XO_orbits(x_cycles, o_cycles, winding=(2, 1))
     assert tc.m == 2
-    assert len(tc.section_opoints(0.0)) >= 1
-    assert len(tc.section_xpoints(0.0)) >= 1
+    island_chain = tc.section_cut(0.0)
+    assert island_chain.n_islands >= 1
 
-    # section_cut -> IslandChain with X_points populated
-    island_chain = tc.to_island_chain(0.0, proximity_tol=0.3)
-    assert island_chain is not None
-    anchors = tc.section_xpoints(0.0) + tc.section_opoints(0.0)
+    # section_cut -> IslandChain with per-island O/X representatives
+    anchors = []
+    for island in island_chain.islands:
+        anchors.append(island.O_point)
+        anchors.extend(island.X_points)
     assert len(anchors) >= 2
