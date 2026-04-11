@@ -67,6 +67,7 @@ from pyna.flt import FieldLineTracer
 from pyna.topo.poincare import PoincareAccumulator, poincare_from_fieldlines
 from pyna.topo.section import ToroidalSection
 
+# Canonical section type for topology APIs.
 section = ToroidalSection(0.0)
 acc = PoincareAccumulator([section])
 
@@ -107,11 +108,12 @@ plt.savefig("east_manifold.png", dpi=300)
 
 ```python
 import numpy as np
-from pyna.toroidal import (
-    non_resonant_deformation_spectrum,
-    poincare_section_deformation,
-    mean_radial_displacement,
-)
+from pyna import toroidal
+
+# The package root now exposes the preferred toroidal namespace directly.
+non_resonant_deformation_spectrum = toroidal.non_resonant_deformation_spectrum
+poincare_section_deformation = toroidal.poincare_section_deformation
+mean_radial_displacement = toroidal.mean_radial_displacement
 
 # Define perturbation spectrum (m, n, δBr, δBθ, δBφ in T·m)
 m = np.array([1, 2, 3])
@@ -149,6 +151,9 @@ print(f"Mean radial displacement: {mean_dr:.4f} m")
 | `pyna.utils` | Miscellaneous helpers |
 
 ### Toroidal plasma physics (`pyna.toroidal`)
+
+`pyna.toroidal` is the preferred public namespace for toroidal / magnetic-
+geometry work. `pyna.MCF` remains in the tree as a legacy compatibility facade.
 
 | Submodule | Description |
 |-----------|-------------|

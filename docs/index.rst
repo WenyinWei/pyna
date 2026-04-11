@@ -32,15 +32,17 @@ tokamak visualizations.
       :link: en/api/MCF
       :link-type: doc
 
-      Publication-quality stable/unstable manifold plots for tokamaks.
+      Publication-quality stable/unstable manifold plots in the preferred
+      ``pyna.toroidal`` namespace.
 
    .. grid-item-card:: Torus Deformation
       :link: en/api/MCF
       :link-type: doc
 
-      Non-resonant BNF-derived analytic spectral theory (Wei 2025).
+      Non-resonant BNF-derived analytic spectral theory (Wei 2025), surfaced
+      through ``pyna.toroidal``.
 
-   .. grid-item-card:: MCF Equilibria
+   .. grid-item-card:: Toroidal Equilibria
       :link: en/api/MCF
       :link-type: doc
 
@@ -50,7 +52,7 @@ tokamak visualizations.
       :link: en/api/MCF
       :link-type: doc
 
-      PEST, Boozer, Hamada, Equal-arc transformations.
+      PEST, Boozer, Hamada, Equal-arc transformations via ``pyna.toroidal``.
 
 .. toctree::
    :maxdepth: 2

@@ -11,6 +11,8 @@ toroidal  : Preferred toroidal physics namespace (successor to ``pyna.MCF``)
 """
 __version__ = "0.4.1"
 
+from importlib import import_module
+
 from pyna import field_data
 from pyna import vector_calc
 from pyna.fields import (
@@ -33,3 +35,31 @@ from pyna.system import (
     VectorField4D,
     VectorField3DAxiSymmetric,
 )
+
+def __getattr__(name):
+    if name == "toroidal":
+        return import_module("pyna.toroidal")
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+__all__ = [
+    "__version__",
+    "field_data",
+    "vector_calc",
+    "toroidal",
+    "ScalarField3DCylindrical",
+    "VectorField3DCylindrical",
+    "VectorField3DAxiSymmetric",
+    "ScalarField3DAxiSymmetric",
+    "classical_maps",
+    "poincare_io",
+    "DynamicalSystem",
+    "NonAutonomousDynamicalSystem",
+    "AutonomousDynamicalSystem",
+    "VectorField",
+    "VectorField1D",
+    "VectorField2D",
+    "VectorField3D",
+    "VectorField4D",
+    "VectorField3DAxiSymmetric",
+]

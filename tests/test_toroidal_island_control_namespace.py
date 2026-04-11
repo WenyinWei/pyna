@@ -28,3 +28,18 @@ def test_mag_namespace_uses_toroidal_owned_island_exports():
 
     assert mag.compute_resonant_amplitude is toroidal_control.compute_resonant_amplitude
     assert mag.island_suppression_current is toroidal_control.island_suppression_current
+
+
+def test_root_package_exposes_preferred_toroidal_namespace():
+    pyna_root = importlib.import_module("pyna")
+
+    assert "toroidal" in pyna_root.__all__
+    assert callable(pyna_root.__getattr__)
+
+
+def test_legacy_mcf_root_is_only_a_facade_over_toroidal():
+    legacy_root = importlib.import_module("pyna.MCF")
+    toroidal = importlib.import_module("pyna.toroidal")
+
+    assert legacy_root.EquilibriumSolovev is toroidal.EquilibriumSolovev
+    assert legacy_root.mean_radial_displacement is toroidal.mean_radial_displacement
