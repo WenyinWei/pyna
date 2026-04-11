@@ -10,7 +10,7 @@ import pytest
 PYNA_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PYNA_ROOT))
 
-from pyna.MCF.equilibrium.finite_beta_perturbation import (
+from pyna.toroidal.equilibrium.finite_beta_perturbation import (
     compute_diamagnetic_current,
     compute_pfirsch_schlueter_current,
     compute_bootstrap_current,

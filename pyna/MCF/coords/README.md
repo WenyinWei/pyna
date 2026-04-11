@@ -1,8 +1,8 @@
-# `pyna.MCF.coords` — Flux-Surface Coordinate Systems
+# `pyna.toroidal.coords` — Flux-Surface Coordinate Systems
 
 ## Overview
 
-`pyna.MCF.coords` implements the principal flux-surface coordinate systems used
+`pyna.toroidal.coords` implements the principal flux-surface coordinate systems used
 in tokamak and stellarator analysis.  Starting from an axisymmetric equilibrium
 object, these modules build structured meshes in the target coordinates and
 provide Jacobians and metric coefficients.
@@ -35,7 +35,7 @@ provide Jacobians and metric coefficients.
 ## Quick-start: PEST mesh
 
 ```python
-from pyna.MCF.coords.PEST import build_PEST_mesh
+from pyna.toroidal.coords.PEST import build_PEST_mesh
 
 mesh = build_PEST_mesh(
     equilibrium,
@@ -49,7 +49,7 @@ mesh = build_PEST_mesh(
 ## Quick-start: Boozer mesh
 
 ```python
-from pyna.MCF.coords.Boozer import build_Boozer_mesh
+from pyna.toroidal.coords.Boozer import build_Boozer_mesh
 
 bmesh = build_Boozer_mesh(
     equilibrium,

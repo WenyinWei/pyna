@@ -341,8 +341,8 @@ Three top-level packages are thin re-export layers for legacy code.
 
 | Shim | Points to |
 |------|-----------|
-| `pyna.mag` | `pyna.MCF.*` |
-| `pyna.coord` | `pyna.MCF.coords` |
+| `pyna.mag` | `pyna.toroidal.*` |
+| `pyna.coord` | `pyna.toroidal.coords` |
 | `pyna.plasma_response` | `pyna.MCF.plasma_response` |
 
 ---

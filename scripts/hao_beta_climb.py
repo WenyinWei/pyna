@@ -57,7 +57,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PYNA_ROOT = SCRIPT_DIR.parent
 sys.path.insert(0, str(PYNA_ROOT))
 
-from pyna.MCF.equilibrium.finite_beta_perturbation import (
+from pyna.toroidal.equilibrium.finite_beta_perturbation import (
     FiniteBetaPerturbation,
     load_hao_coils,
     PerturbationState,

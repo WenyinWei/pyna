@@ -223,7 +223,7 @@ class TestIMASEquilibriumIDS:
 
     def test_from_stellarator(self):
         from pyna.imas_compat import IMASEquilibriumIDS
-        from pyna.MCF.equilibrium.stellarator import StellaratorSimple
+        from pyna.toroidal.equilibrium.stellarator import StellaratorSimple
 
         st = StellaratorSimple()
         ids = IMASEquilibriumIDS.from_stellarator(st, n_psi=32, n_theta=64)

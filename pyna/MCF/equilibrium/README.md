@@ -1,4 +1,4 @@
-# `pyna.MCF.equilibrium` — MHD Equilibria
+# `pyna.toroidal.equilibrium` — MHD Equilibria
 
 ## Overview
 
@@ -49,7 +49,7 @@ eq.magnetic_axis        # (R_axis, Z_axis)
 ## Solov'ev equilibrium
 
 ```python
-from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev
+from pyna.toroidal.equilibrium.Solovev import EquilibriumSolovev
 
 eq = EquilibriumSolovev(R0=1.65, a=0.5, B0=1.0, q0=2.0, kappa=1.6, delta=0.3)
 psi_val = eq.psi(1.7, 0.1)
@@ -64,7 +64,7 @@ The Boozer formulation is fast (response diagonal in Fourier (m,n) space)
 but valid only where flux surfaces exist.
 
 ```python
-from pyna.MCF.equilibrium.feedback_boozer import (
+from pyna.toroidal.equilibrium.feedback_boozer import (
     BoozerPerturbation, compute_boozer_response, island_width_with_response,
 )
 
@@ -90,7 +90,7 @@ print(result['amplification'])
 For chaotic regions and divertor studies:
 
 ```python
-from pyna.MCF.equilibrium.feedback_cylindrical import (
+from pyna.toroidal.equilibrium.feedback_cylindrical import (
     CylindricalGrid, PerturbationField, compute_plasma_response,
     iterative_equilibrium_correction,
 )

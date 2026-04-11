@@ -6,3 +6,5 @@ oriented.
 """
 
 from pyna.MCF import *  # noqa: F401,F403
+from pyna.toroidal.coords import *  # noqa: F401,F403
+from pyna.toroidal.equilibrium import *  # noqa: F401,F403

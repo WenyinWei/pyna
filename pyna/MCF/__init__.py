@@ -46,8 +46,8 @@ From :mod:`pyna.MCF.torus_deformation`:
     green_function_spectrum,
     iota_to_q, q_to_iota, iota_prime_from_q_prime
 """
-from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev
-from pyna.MCF.equilibrium.axisymmetric import EquilibriumAxisym
+from pyna.toroidal.equilibrium.Solovev import EquilibriumSolovev
+from pyna.toroidal.equilibrium.axisymmetric import EquilibriumAxisym
 from pyna.MCF.torus_deformation import (
     TorusDeformationSpectrum,
     non_resonant_deformation_spectrum,

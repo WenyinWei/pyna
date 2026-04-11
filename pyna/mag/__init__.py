@@ -1,7 +1,7 @@
 # pyna.mag — backward-compatibility shim
-# Files have moved to pyna.MCF.*; this module re-exports everything.
+# Files have moved to pyna.toroidal.*; this module re-exports everything.
 
-from pyna.MCF.coords.coordinate import (
+from pyna.toroidal.coords.coordinate import (
     rzphi_to_xyz,
     xyz_to_rzphi,
     coord_system_change,
@@ -12,14 +12,14 @@ from pyna.MCF.coords.coordinate import (
     calc_dRZdSTET_mesh,
 )
 
-from pyna.MCF.equilibrium.GradShafranov import (
+from pyna.toroidal.equilibrium.GradShafranov import (
     recover_pressure_simplest,
     solve_GS_perturbed,
 )
 
-from pyna.MCF.equilibrium.Solovev import EquilibriumSolovev
-from pyna.MCF.equilibrium.axisymmetric import EquilibriumAxisym, EquilibriumTokamakCircularSynthetic
-from pyna.MCF.equilibrium.stellarator import StellaratorSimple, simple_stellarator
+from pyna.toroidal.equilibrium.Solovev import EquilibriumSolovev
+from pyna.toroidal.equilibrium.axisymmetric import EquilibriumAxisym, EquilibriumTokamakCircularSynthetic
+from pyna.toroidal.equilibrium.stellarator import StellaratorSimple, simple_stellarator
 from pyna.MCF.coils.coil import BRBZ_induced_by_current_loop, BRBZ_induced_by_thick_finitelen_solenoid
 from pyna.MCF.coils.coil_system import CoilSet, Biot_Savart_field
 from pyna.MCF.coils.field import VectorField3DCylindrical, VectorField3DAxiSymmetric
