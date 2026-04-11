@@ -39,7 +39,8 @@ from pyna.topo.fixed_points import (
     refine_fixed_points_from_pkl,
     group_fixed_points_by_orbit,
 )
-from pyna.topo.toroidal_island import Island as ToroidalIsland, IslandChain as ToroidalIslandChain, ChainRole
+from pyna.topo.island import Island, IslandChain, ChainRole
+from pyna.topo.toroidal_island import Island as ToroidalIsland, IslandChain as ToroidalIslandChain
 from pyna.topo.flux_surface import FluxSurface, FluxSurfaceMap, XPointOrbit
 from pyna.topo.island_extract import detect_residual_islands
 from pyna.topo.poincare import rotational_transform_from_trajectory, PoincareAccumulator
@@ -155,10 +156,13 @@ __all__ = [
     "classify_fixed_point",
     "classify_fixed_point_higher_order",
     "group_fixed_points_by_orbit",
+    # generic island topology
+    "Island",
+    "IslandChain",
+    "ChainRole",
     # toroidal island topology
     "ToroidalIsland",
     "ToroidalIslandChain",
-    "ChainRole",
     "FluxSurface",
     "FluxSurfaceMap",
     "XPointOrbit",

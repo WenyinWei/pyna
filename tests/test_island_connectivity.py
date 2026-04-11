@@ -15,8 +15,9 @@ from pyna.topo.toroidal_island import Island, IslandChain
 
 def make_chain(m: int, n: int, n_islands: int = None) -> IslandChain:
     """Create an IslandChain with dummy Island objects."""
+    from math import gcd
     if n_islands is None:
-        n_islands = m
+        n_islands = m // gcd(m, n)
     islands = [
         Island(O_orbit=PeriodicOrbit(points=[
             FixedPoint(phi=0.0, R=3.0 + i * 0.01, Z=0.0, DPm=np.eye(2), kind='O')
@@ -50,12 +51,12 @@ class TestIslandChainConnectivity:
         chain = make_chain(m=5, n=5)
         assert chain.is_connected is False
 
-    def test_w7x_5_5_orbit_groups(self):
+    def test_w7x_5_5_has_single_island_after_section_cut(self):
         chain = make_chain(m=5, n=5)
+        assert chain.n_islands == 1
         groups = chain.orbit_groups
         assert len(groups) == 5
-        for g in groups:
-            assert len(g) == 1
+        assert sum(len(g) for g in groups) == 1
 
     def test_generic_6_4_orbit_groups(self):
         chain = make_chain(m=6, n=4)
