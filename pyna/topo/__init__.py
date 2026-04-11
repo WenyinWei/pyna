@@ -2,12 +2,27 @@
 
 from pyna.topo._base import (
     InvariantSet, InvariantSet, InvariantManifold, SectionCuttable,
-    Trajectory, Orbit,
 )
 from pyna.topo.trajectory3d import (
     Trajectory3D,
     Trajectory3DToroidal,
     trace_toroidal_trajectory,
+)
+from pyna.topo.core import (
+    Stability,
+    LinearStabilityData,
+    SectionPoint,
+    Trajectory,
+    Orbit,
+    PeriodicOrbit,
+    Cycle,
+)
+from pyna.topo.toroidal import (
+    ToroidalTrajectory,
+    ToroidalTrajectoryAlias,
+    ToroidalSectionPoint,
+    ToroidalPeriodicOrbit,
+    ToroidalCycle,
 )
 
 from pyna.topo.variational import PoincareMapVariationalEquations
@@ -100,12 +115,22 @@ __all__ = [
     "InvariantSet",
     "InvariantManifold",
     "SectionCuttable",
-    "Trajectory",            # sampled continuous curve (not assumed invariant)
-    "Orbit",                 # discrete-map periodic orbit (intrinsic_dim=0)
+    "Trajectory",            # generic sampled continuous trajectory
+    "Orbit",                 # generic sampled discrete orbit
+    "SectionPoint",
+    "Stability",
+    "LinearStabilityData",
+    "PeriodicOrbit",         # generic invariant periodic orbit of a map
+    "Cycle",                 # generic invariant periodic orbit of a flow
     # 3D trajectories (continuous flow)
     "Trajectory3D",
     "Trajectory3D",          # compatibility alias to Trajectory3DToroidal
     "Trajectory3DToroidal",
+    "ToroidalTrajectory",
+    "ToroidalTrajectoryAlias",
+    "ToroidalSectionPoint",
+    "ToroidalPeriodicOrbit",
+    "ToroidalCycle",
     "trace_toroidal_trajectory",
     "PoincareMapVariationalEquations",
     "StableManifold",
@@ -150,9 +175,8 @@ __all__ = [
     "monodromy_change_under_perturbation",
     "second_order_orbit_variation",
     "monodromy_matrix",
-    # island chain connectivity
+    # toroidal / legacy island-chain connectivity
     "FixedPoint",
-    "PeriodicOrbit",
     # identity / bridge layer
     "ResonanceID",
     "TubeID",
@@ -214,20 +238,17 @@ __all__ = [
     "ResonanceNumber",
 ]
 
-# --- New invariant-object skeleton (backward-compatible re-exports) ---
+# --- Toroidal specializations kept available explicitly ---
 # Note: Island and IslandChain are intentionally NOT re-exported here to
 # avoid overriding the full implementations in island.py.
 try:
     from pyna.topo.invariants import (
-        Stability,
         MonodromyData,
         FixedPoint,
-        PeriodicOrbit,
-        Cycle,
         InvariantTorus,
         StableManifold,
         UnstableManifold,
-        # Tube and TubeChain come from tube.py (which uses invariants.Cycle)
+        # Tube and TubeChain come from tube.py (which uses toroidal invariants.Cycle)
     )
 except ImportError:
     pass
