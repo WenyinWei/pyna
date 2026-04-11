@@ -24,7 +24,7 @@ Poincaré Maps
 Magnetic Islands
 ----------------
 
-.. automodule:: pyna.topo.island
+.. automodule:: pyna.topo.toroidal_island
    :members:
    :undoc-members:
    :show-inheritance:
@@ -44,7 +44,7 @@ Manifold Computation
 Periodic Orbits / Cycles
 -------------------------
 
-.. automodule:: pyna.topo.cycle
+.. automodule:: pyna.topo.toroidal_cycle
    :members:
    :undoc-members:
    :show-inheritance:

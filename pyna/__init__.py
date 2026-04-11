@@ -1,12 +1,13 @@
-"""pyna — Python library for dynamical systems and MHD plasma physics.
+"""pyna — Python library for dynamical systems and toroidal / MHD plasma physics.
 
 Submodules
 ----------
-system   : Abstract dynamical system hierarchy
-flt      : Field line tracer
-mag      : Magnetic equilibrium, RMP analysis (tokamak/stellarator)
-topo     : Topological analysis (Poincaré maps, island chains)
-coord    : Magnetic coordinate systems (PEST, Boozer)
+system    : Abstract dynamical system hierarchy
+flt       : Field line tracer
+topo      : Topological analysis (generic + toroidal specializations)
+coord     : Magnetic coordinate systems (legacy re-export)
+mag       : Magnetic equilibrium and analysis (legacy re-export)
+toroidal  : Preferred toroidal physics namespace (successor to ``pyna.MCF``)
 """
 __version__ = "0.4.1"
 

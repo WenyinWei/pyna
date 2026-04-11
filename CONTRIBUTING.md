@@ -22,7 +22,7 @@ mods = [
     'pyna', 'pyna.topo.manifold', 'pyna.diff.cycle',
     'pyna.MCF.visual.tokamak_manifold', 'pyna.MCF.control.island_control',
     'pyna.topo.poincare', 'pyna.MCF.equilibrium.stellarator',
-    'pyna.MCF.coils.coil_system', 'pyna.topo.cycle',
+    'pyna.MCF.coils.coil_system', 'pyna.topo.toroidal_cycle',
     'pyna.topo.variational', 'pyna.topo.manifold_improve',
     'pyna.MCF.control.gap_response', 'pyna.topo.chaos',
 ]

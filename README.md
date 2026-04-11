@@ -121,10 +121,10 @@ print(f"Mean radial displacement: {mean_dr:.4f} m")
 |--------|-------------|
 | `pyna.system` | Abstract dynamical system hierarchy (`DynamicalSystem`, `VectorField*D`) |
 | `pyna.flt` | Field-line tracer: RK4, parallel CPU, CUDA/OpenCL backends |
-| `pyna.topo.island` | Rational surface location, theoretical island half-width |
+| `pyna.topo.toroidal_island` | Rational surface location, theoretical island half-width |
 | `pyna.topo.poincare` | Multi-section Poincaré map infrastructure |
 | `pyna.topo.manifold` | Stable/unstable manifold computation |
-| `pyna.topo.cycle` | Periodic orbit (X/O cycle) detection and analysis |
+| `pyna.topo.toroidal_cycle` | Periodic orbit (X/O cycle) detection and analysis |
 | `pyna.coord` | Flux coordinate transformations |
 | `pyna.draw` | High-level plotting utilities |
 | `pyna.gc` | Guiding-centre orbit integration |
