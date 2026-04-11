@@ -414,7 +414,7 @@ Design rule: ALWAYS represent objects as 3D trajectories first, then derive
 2D cross-sections by intersection. NEVER independently compute a geometric
 object at each phi section.
 
-The canonical representation is ToroidalTrajectory3D, which stores the full
+The canonical representation is ToroidalTrajectory, which stores the full
 (R, Z, phi) trajectory and provides:
   - .intersect(phi) -> cross-section points at any toroidal angle
   - .volume() -> enclosed volume via shoelace + toroidal integration

@@ -3,18 +3,11 @@
 import numpy as np
 import pytest
 
-from pyna.topo.invariants import (
-    Cycle,
-    FixedPoint,
-    InvariantTorus,
-    Island,
-    IslandChain,
-    MonodromyData,
-    PeriodicOrbit,
-    Stability,
-    Tube,
-    TubeChain,
-)
+from pyna.topo.toroidal_invariants import Cycle, FixedPoint, MonodromyData, PeriodicOrbit
+from pyna.topo.invariants import Stability
+from pyna.topo.invariant import InvariantTorus
+from pyna.topo.toroidal_island import Island, IslandChain
+from pyna.topo.toroidal_tube import Tube, TubeChain
 
 
 # ---------------------------------------------------------------------------

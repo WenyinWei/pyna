@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from pyna.topo.invariants import Cycle, FixedPoint, MonodromyData
-from pyna.topo.tube import Tube, TubeChain, TubeCutPoint
+from pyna.topo.toroidal_invariants import Cycle, FixedPoint, MonodromyData
+from pyna.topo.toroidal_tube import Tube, TubeChain, TubeCutPoint
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -137,7 +137,7 @@ def test_tube_chain_reconstruct_section_view_recovers_duplicate_point():
 
 def test_tubechain_from_XO_orbits_provides_joint_section_data():
     """TubeChain.from_XO_orbits assembles X and O data into one chain."""
-    from pyna.topo.invariants import Cycle as _Cycle
+    from pyna.topo.toroidal_invariants import Cycle as _Cycle
 
     def _orb_cycle(points, m=2, n=1):
         from collections import defaultdict

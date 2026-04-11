@@ -10,7 +10,7 @@ import pytest
 
 from pyna.topo.poincare import rotational_transform_from_trajectory
 from pyna.topo.island_extract import detect_residual_islands
-from pyna.topo.island import Island, IslandChain
+from pyna.topo.toroidal_island import Island, IslandChain
 
 
 # ---------------------------------------------------------------------------
@@ -128,7 +128,7 @@ class TestDetectResidualIslands:
 class TestIslandChainScanXORings:
 
     def _make_chain(self):
-        from pyna.topo.invariants import FixedPoint, PeriodicOrbit
+        from pyna.topo.toroidal_invariants import FixedPoint, PeriodicOrbit
         def _fp(R, Z):
             return FixedPoint(phi=0.0, R=R, Z=Z, DPm=np.eye(2), kind='O')
         isl0 = Island(O_orbit=PeriodicOrbit(points=[_fp(1.5, 0.05)]))

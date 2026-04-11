@@ -4,10 +4,10 @@ from __future__ import annotations
 import numpy as np
 
 from pyna.topo.identity import IslandID, ResonanceID, TubeID
-from pyna.topo.island import Island, IslandChain
-from pyna.topo.invariants import Cycle, FixedPoint, MonodromyData
-from pyna.topo.section_view import SectionView, SectionViewBuilder
-from pyna.topo.tube import Tube, TubeChain
+from pyna.topo.toroidal_island import Island, IslandChain
+from pyna.topo.toroidal_invariants import Cycle, FixedPoint, MonodromyData
+from pyna.topo.toroidal_section_view import SectionView, SectionViewBuilder
+from pyna.topo.toroidal_tube import Tube, TubeChain
 
 
 def _fp(phi: float, R: float, Z: float, kind: str) -> FixedPoint:

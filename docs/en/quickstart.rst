@@ -103,7 +103,7 @@ in a single call:
 
 .. code-block:: python
 
-   from pyna.topo.island import locate_rational_surface, island_halfwidth
+   from pyna.topo.toroidal_island import locate_rational_surface, island_halfwidth
 
    # Build q(S) from PEST mesh
    from pyna.MCF.coords.PEST import build_PEST_mesh

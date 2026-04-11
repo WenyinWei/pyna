@@ -12,15 +12,9 @@ import os
 import numpy as np
 import pytest
 
-from pyna.topo.invariants import (
-    Cycle,
-    FixedPoint,
-    Island,
-    IslandChain,
-    MonodromyData,
-    Tube,
-    TubeChain,
-)
+from pyna.topo.toroidal_invariants import Cycle, FixedPoint, MonodromyData
+from pyna.topo.toroidal_island import Island, IslandChain
+from pyna.topo.toroidal_tube import Tube, TubeChain
 
 # ---------------------------------------------------------------------------
 # Paths

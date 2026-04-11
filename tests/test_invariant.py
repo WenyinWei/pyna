@@ -12,17 +12,13 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from pyna.topo.invariants import (
-    FixedPoint,
-    Cycle,
-    MonodromyData,
-    Stability,
-)
+from pyna.topo.toroidal_invariants import FixedPoint, Cycle, MonodromyData
+from pyna.topo.invariants import Stability
 from pyna.topo.invariant import (
     InvariantObject,
     InvariantTorus,
 )
-from pyna.topo.island import Island, IslandChain
+from pyna.topo.toroidal_island import Island, IslandChain
 from pyna.topo.resonance import ResonanceNumber
 from pyna.topo.dynamics import MCFPoincareMap, MCF_2D
 

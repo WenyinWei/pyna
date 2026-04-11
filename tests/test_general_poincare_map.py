@@ -148,8 +148,8 @@ def test_general_poincare_map_no_crossing_same_sign():
 
 def test_tube_section_cut_general_section_with_orbit():
     """Tube.section_cut(HyperplaneSection) returns Islands via orbit scan."""
-    from pyna.topo.invariants import Cycle, FixedPoint
-    from pyna.topo.tube import Tube
+    from pyna.topo.toroidal_invariants import Cycle, FixedPoint
+    from pyna.topo.toroidal_tube import Tube
 
     th = 0.4
     DPm_O = np.array([[np.cos(th), -np.sin(th)], [np.sin(th), np.cos(th)]])
@@ -184,10 +184,10 @@ def test_tube_section_cut_general_section_with_orbit():
 
 def test_tube_section_cut_toroidal_still_works():
     """Tube.section_cut with ToroidalSection still uses the fast path."""
-    from pyna.topo.invariants import Cycle, FixedPoint
-    from pyna.topo.tube import Tube
+    from pyna.topo.toroidal_invariants import Cycle, FixedPoint
+    from pyna.topo.toroidal_tube import Tube
     from pyna.topo.section import ToroidalSection
-    from pyna.topo.island import Island
+    from pyna.topo.toroidal_island import Island
 
     th = 0.4
     DPm_O = np.array([[np.cos(th), -np.sin(th)], [np.sin(th), np.cos(th)]])

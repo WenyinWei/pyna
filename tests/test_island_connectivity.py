@@ -9,8 +9,8 @@ sys.path.insert(0, r'C:\Users\Legion\Nutstore\1\Repo\pyna')
 import numpy as np
 import pytest
 
-from pyna.topo.invariants import FixedPoint, PeriodicOrbit
-from pyna.topo.island import Island, IslandChain
+from pyna.topo.toroidal_invariants import FixedPoint, PeriodicOrbit
+from pyna.topo.toroidal_island import Island, IslandChain
 
 
 def make_chain(m: int, n: int, n_islands: int = None) -> IslandChain:

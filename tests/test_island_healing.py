@@ -13,8 +13,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from pyna.topo.island import Island, IslandChain
-from pyna.topo.invariants import FixedPoint, PeriodicOrbit
+from pyna.topo.toroidal_island import Island, IslandChain
+from pyna.topo.toroidal_invariants import FixedPoint, PeriodicOrbit
 from pyna.MCF.coords.island_healing import (
     assign_island_chain_pest_angles,
     build_r1_boundary,

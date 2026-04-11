@@ -16,11 +16,11 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from pyna.MCF.equilibrium.stellarator import StellaratorSimple
-from pyna.topo.cycle import (
+from pyna.topo.toroidal_cycle import (
     poincare_map_n,
     jacobian_of_poincare_map,
     find_cycle,
-    PeriodicOrbit,
+    ToroidalPeriodicOrbitTrace as PeriodicOrbit,
 )
 from pyna.topo.monodromy import evolve_DPm_along_cycle
 
