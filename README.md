@@ -153,7 +153,8 @@ print(f"Mean radial displacement: {mean_dr:.4f} m")
 ### Toroidal plasma physics (`pyna.toroidal`)
 
 `pyna.toroidal` is the preferred public namespace for toroidal / magnetic-
-geometry work. `pyna.MCF` remains in the tree as a legacy compatibility facade.
+geometry work. `pyna.MCF` remains in the tree only as a legacy compatibility
+facade; torus-deformation code now lives directly in `pyna.toroidal`.
 
 | Submodule | Description |
 |-----------|-------------|
@@ -174,7 +175,7 @@ geometry work. `pyna.MCF` remains in the tree as a legacy compatibility facade.
 Under an external perturbation δ**B**, each invariant torus (flux surface) deforms analytically. The displacement field δ**r** = (δr, δθ, δφ) is computed in Fourier space via the formula (Theorem 2 of Wei 2025):
 
 ```
-(δr)_mn = −(δBr)_mn / [(mι + n) · Bφ]
+(δr)_mn = (δBr)_mn / [i · (mι + n) · Bφ]
 ```
 
 For axisymmetric (n = 0) poloidal-field coil perturbations the mean radial shift reduces to:

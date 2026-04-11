@@ -139,7 +139,7 @@ single-column PRL/Nuclear Fusion figures.
 Non-resonant Torus Deformation (``pyna.toroidal.torus_deformation``)
 ---------------------------------------------------------------------
 
-Implements the analytic spectral theory of Wei (2025) for the deformation
+Implements the canonical `pyna.toroidal` spectral-theory module for the deformation
 of invariant tori (flux surfaces) under external magnetic perturbations.
 
 All formulas work in flux coordinates :math:`(r, \theta, \varphi)` with
