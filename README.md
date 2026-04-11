@@ -51,7 +51,7 @@ pip install "pyna-chaos[cuda]"
 ### Field-line tracing
 
 ```python
-from pyna.MCF.equilibrium.Solovev import SolovevEquilibrium
+from pyna.toroidal.equilibrium import EquilibriumSolovev as SolovevEquilibrium
 from pyna.flt import FieldLineTracer
 
 eq = SolovevEquilibrium.iter_like()
@@ -90,7 +90,7 @@ plt.savefig("east_manifold.png", dpi=300)
 
 ```python
 import numpy as np
-from pyna.MCF.torus_deformation import (
+from pyna.toroidal import (
     non_resonant_deformation_spectrum,
     poincare_section_deformation,
     mean_radial_displacement,

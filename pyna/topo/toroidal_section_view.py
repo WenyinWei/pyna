@@ -295,9 +295,18 @@ class SectionViewBuilder:
         )
 
 
+ToroidalSectionViewPoint = SectionViewPoint
+ToroidalSectionCorrespondence = SectionCorrespondence
+ToroidalSectionView = SectionView
+ToroidalSectionViewBuilder = SectionViewBuilder
+
 __all__ = [
     "SectionViewPoint",
     "SectionCorrespondence",
     "SectionView",
     "SectionViewBuilder",
+    "ToroidalSectionViewPoint",
+    "ToroidalSectionCorrespondence",
+    "ToroidalSectionView",
+    "ToroidalSectionViewBuilder",
 ]

@@ -23,7 +23,7 @@ Start by importing the equilibrium and inspecting its basic parameters:
 
    import numpy as np
    import matplotlib.pyplot as plt
-   from pyna.MCF.equilibrium.Solovev import solovev_iter_like
+   from pyna.toroidal.equilibrium import solovev_iter_like
 
    eq = solovev_iter_like(scale=0.3)          # EAST-like size
    Rmaxis, Zmaxis = eq.magnetic_axis
@@ -47,7 +47,8 @@ appear as closed curves; a magnetic island shows up as a chain of dots.
 .. code-block:: python
 
    from pyna.flt import FieldLineTracer, get_backend
-   from pyna.topo.poincare import PoincareMap, ToroidalSection, poincare_from_fieldlines
+   from pyna.topo.poincare import PoincareMap, poincare_from_fieldlines
+   from pyna.topo.section import ToroidalSection
 
    # --- define the ODE right-hand side: dR/dφ, dZ/dφ ---
    def field_rhs(phi, RZ):
@@ -106,7 +107,7 @@ in a single call:
    from pyna.topo.toroidal_island import locate_rational_surface, island_halfwidth
 
    # Build q(S) from PEST mesh
-   from pyna.MCF.coords.PEST import build_PEST_mesh
+   from pyna.toroidal.coords import build_PEST_mesh
 
    nR, nZ = 100, 100
    R_grid = np.linspace(0.3*eq.R0, 1.5*eq.R0, nR)

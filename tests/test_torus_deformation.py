@@ -19,7 +19,7 @@ import warnings
 import numpy as np
 import pytest
 
-from pyna.MCF.torus_deformation import (
+from pyna.toroidal import (
     TorusDeformationSpectrum,
     non_resonant_deformation_spectrum,
     poincare_section_deformation,

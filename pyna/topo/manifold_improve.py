@@ -370,12 +370,12 @@ class _AcceleratedManifoldBase(_ManifoldBase):
         self._Z_grid = np.ascontiguousarray(Z_grid, dtype=np.float64)
 
         try:
-            from pyna.MCF.flt import trace_poincare_batch_twall
+            from pyna.toroidal.flt import trace_poincare_batch_twall
             self._cyna_batch_twall = trace_poincare_batch_twall
         except ImportError:
             self._cyna_batch_twall = None
         try:
-            from pyna.MCF.flt import trace_poincare_batch
+            from pyna.toroidal.flt import trace_poincare_batch
             self._cyna_batch = trace_poincare_batch
         except ImportError:
             self._cyna_batch = None

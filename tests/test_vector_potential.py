@@ -1,7 +1,7 @@
 """Tests for CoilFieldVectorPotential: B = curl(A)."""
 import numpy as np
 import pytest
-from pyna.MCF.coils.vector_potential import CoilFieldVectorPotential
+from pyna.toroidal.coils import CoilFieldVectorPotential
 
 
 def make_uniform_Bz_field(B0=1.0, nR=50, nZ=50, nPhi=32):

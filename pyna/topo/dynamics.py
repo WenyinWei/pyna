@@ -5,7 +5,7 @@ This module defines the abstract foundations of the class hierarchy:
 
 These are intentionally abstract / thin — the mathematics says "there exists
 a flow φ^t", not "the flow is computed by this specific ODE solver".
-Concrete subclasses live in pyna.MCF (magnetic field line systems),
+Concrete subclasses live in pyna.toroidal / pyna.MCF (magnetic field line systems),
 pyna.Hamiltonian, etc.
 
 Layer 0 in the pyna.topo architecture (see ARCHITECTURE.md).

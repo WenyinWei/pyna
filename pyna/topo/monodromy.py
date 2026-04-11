@@ -1324,7 +1324,7 @@ def monodromy_matrix(
 
     try:
 
-        from pyna.MCF.flt import trace_poincare_batch_twall
+        from pyna.toroidal.flt import trace_poincare_batch_twall
 
         _has_twall = True
 
@@ -1334,7 +1334,7 @@ def monodromy_matrix(
 
     try:
 
-        from pyna.MCF.flt import trace_poincare_batch
+        from pyna.toroidal.flt import trace_poincare_batch
 
         _has_batch = True
 

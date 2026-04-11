@@ -22,7 +22,7 @@ def solovev_eq():
     tokamak equilibrium should request this fixture instead of calling
     ``solovev_iter_like`` directly.
     """
-    from pyna.MCF.equilibrium.Solovev import solovev_iter_like
+    from pyna.toroidal.equilibrium import solovev_iter_like
     return solovev_iter_like(scale=0.3)
 
 
@@ -50,7 +50,7 @@ def pest_mesh(solovev_eq):
     psi_norm_grid = eq.psi(Rg, Zg)
     Rmaxis, Zmaxis = eq.magnetic_axis
 
-    from pyna.MCF.coords.PEST import build_PEST_mesh
+    from pyna.toroidal.coords import build_PEST_mesh
     S, TET, R_mesh, Z_mesh, q_iS = build_PEST_mesh(
         R_grid, Z_grid, BR_grid, BZ_grid, BPhi_grid, psi_norm_grid,
         Rmaxis, Zmaxis, ns=20, ntheta=91,

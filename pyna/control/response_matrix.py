@@ -85,7 +85,7 @@ def build_full_response_matrix(
     R_full : ndarray, shape (n_obs_full, n_coils)
     labels_full : list of str
     """
-    from pyna.MCF.control.gap_response import gap_response_matrix_fpt
+    from pyna.toroidal.control import gap_response_matrix_fpt
 
     # Optionally include plasma response (experimental)
     effective_coil_funcs = coil_field_funcs

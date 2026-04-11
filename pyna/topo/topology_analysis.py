@@ -49,7 +49,8 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 from scipy.interpolate import UnivariateSpline
 
-from pyna.topo.poincare import ToroidalSection, poincare_from_fieldlines
+from pyna.topo.section import ToroidalSection
+from pyna.topo.poincare import poincare_from_fieldlines
 from pyna.topo.chaos import ftle_field, chaotic_boundary_estimate, chirikov_overlap
 from pyna.topo.toroidal_cycle import find_cycle, ToroidalPeriodicOrbitTrace
 from pyna.topo.toroidal_island import locate_all_rational_surfaces, island_halfwidth

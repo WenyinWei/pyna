@@ -38,9 +38,9 @@ from pyna.control.topology_state import (
 
 from pyna.control.response_matrix import build_response_matrix, build_full_response_matrix
 
-from pyna.MCF.control.wall import WallGeometry, make_east_like_wall
+from pyna.toroidal.control import WallGeometry, make_east_like_wall
 
-from pyna.MCF.control.gap_response import gap_response_matrix_fpt
+from pyna.toroidal.control import gap_response_matrix_fpt
 
 from pyna.control._cache import memory as cache_memory, hash_eq_params, invalidate_cache
 
