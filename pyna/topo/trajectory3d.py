@@ -86,6 +86,27 @@ class ToroidalTrajectory3D:
             R_cross.append(self.R[idx] + t * (self.R[idx + 1] - self.R[idx]))
             Z_cross.append(self.Z[idx] + t * (self.Z[idx + 1] - self.Z[idx]))
 
+        # ── Endpoint fix ──────────────────────────────────────────────────────
+        # When the trajectory starts very close to phi_target (e.g. a periodic
+        # orbit stored from phi=0 to phi=N*2π), the first and last points lie
+        # right on the section plane but the step-crossing detector above finds
+        # no crossing because phi[-1] forms no full upward step.  In this case
+        # we include phi[0] / phi[-1] directly (using the raw endpoint value).
+        tol_end = phi_period * 1e-4   # ~0.06 mrad tolerance
+        first_shifted = abs(self.phi[0]  % phi_period - phi_t)
+        last_shifted  = abs(self.phi[-1] % phi_period - phi_t)
+        # Normalise to be within [0, phi_period/2]
+        first_shifted = min(first_shifted, phi_period - first_shifted)
+        last_shifted  = min(last_shifted,  phi_period - last_shifted)
+        if first_shifted < tol_end:
+            R_cross.insert(0, float(self.R[0]))
+            Z_cross.insert(0, float(self.Z[0]))
+        if last_shifted < tol_end and len(self.phi) > 1:
+            # Only add if distinct from the first point
+            if not (first_shifted < tol_end and len(R_cross) == 1):
+                R_cross.append(float(self.R[-1]))
+                Z_cross.append(float(self.Z[-1]))
+
         return np.array(R_cross), np.array(Z_cross)
 
     # ------------------------------------------------------------------
