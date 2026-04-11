@@ -1,6 +1,6 @@
 """pyna.plasma_response — backward-compatibility shim.
-Files have moved to pyna.MCF.plasma_response.
+Files have moved to pyna.toroidal.plasma_response.
 """
-from pyna.MCF.plasma_response.PerturbGS import solve_perturbed_gs, compute_plasma_response
+from pyna.toroidal.plasma_response import solve_perturbed_gs, compute_plasma_response
 
 __all__ = ["solve_perturbed_gs", "compute_plasma_response"]

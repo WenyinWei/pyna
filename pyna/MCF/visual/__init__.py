@@ -1,6 +1,6 @@
-"""pyna.MCF.visual — publication-quality MCF equilibrium visualization."""
-from .equilibrium import plot_nested_flux_surfaces, BPOL_CMAP, ISLAND_CMAPS
-from .tokamak_manifold import (
+"""pyna.MCF.visual — legacy compatibility wrappers over ``pyna.toroidal.visual``."""
+from pyna.toroidal.visual.equilibrium import plot_nested_flux_surfaces, BPOL_CMAP, ISLAND_CMAPS
+from pyna.toroidal.visual.tokamak_manifold import (
     plot_equilibrium_cross_section,
     plot_poincare_orbits,
     plot_xcycle_marker,

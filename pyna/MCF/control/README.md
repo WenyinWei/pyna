@@ -1,8 +1,8 @@
-# `pyna.MCF.control` — MCF-Specific Topology Control
+# `pyna.MCF.control` — legacy compatibility layer for toroidal topology control
 
 ## Overview
 
-`pyna.MCF.control` provides magnetic-confinement-fusion specific control
+`pyna.MCF.control` now forwards to `pyna.toroidal.control`, which is the preferred implementation home for the toroidal control slice. The package provides magnetic-confinement-fusion specific control
 modules that sit on top of the generic `pyna.control` (FPT) framework.
 
 For the generic FPT topology controller and theory background,
@@ -30,8 +30,8 @@ It is computed via the FPT stable-manifold shift formula, avoiding expensive
 Poincaré map recomputation.
 
 ```python
-from pyna.MCF.control.gap_response import gap_response_matrix_fpt
-from pyna.MCF.control.wall import WallGeometry
+from pyna.toroidal.control.gap_response import gap_response_matrix_fpt
+from pyna.toroidal.control.wall import WallGeometry
 
 wall = WallGeometry(...)
 R_gap, gap_names = gap_response_matrix_fpt(
@@ -52,7 +52,7 @@ Call `clear_manifold_cache()` when the equilibrium changes.
 ## q-profile response
 
 ```python
-from pyna.MCF.control.qprofile_response import q_response_matrix_analytic
+from pyna.toroidal.control.qprofile_response import q_response_matrix_analytic
 
 # ∂q(psi_i)/∂I_k at a set of flux surfaces
 dq_dI = q_response_matrix_analytic(
