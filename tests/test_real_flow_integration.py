@@ -140,7 +140,7 @@ class TestSyntheticFlow:
         """Tube.section_cut() itself returns m Islands with ring links."""
         tc, o_cycle, x_cycle = _build_synthetic_tc()
         tube = tc.tubes[0]
-        islands = tube.section_cut(0.0)
+        islands = tube.section_cut(0.0).islands
         assert len(islands) == 10
         assert islands[0].step() is islands[1]
         assert islands[9].step() is islands[0]

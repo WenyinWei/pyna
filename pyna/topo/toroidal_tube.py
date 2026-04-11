@@ -193,8 +193,8 @@ class Tube(InvariantSet):
         idx = int(np.argmin(np.abs(phi_use - float(phi))))
         return float(R_use[idx]), float(Z_use[idx])
 
-    def section_cut(self, section, tol: float = 1e-6) -> List[Island]:
-        """Cut this Tube with a Section; return one Island per O-region found."""
+    def section_islands(self, section, tol: float = 1e-6) -> List[Island]:
+        """Cut this Tube with a Section and return the resulting Island objects."""
         from pyna.topo.toroidal_island import Island as _Island
         from pyna.topo.section import ToroidalSection
 
@@ -205,7 +205,6 @@ class Tube(InvariantSet):
             phi = section.phi
             fps = self.at_section(phi, tol=tol)
         else:
-            # General section: _SimplePoint objects, wrap in FixedPoint
             raw_fps = self._general_section_fps(section)
             fps = [
                 fp if isinstance(fp, FixedPoint) else
@@ -218,14 +217,14 @@ class Tube(InvariantSet):
             return []
 
         x_fps = self.x_at_section(getattr(section, 'phi', self.seed_phi), tol=tol)
+        x_groups: List[List[FixedPoint]] = [[] for _ in fps]
+        for xfp in x_fps:
+            dists = [np.hypot(xfp.R - ofp.R, xfp.Z - ofp.Z) for ofp in fps]
+            idx = int(np.argmin(dists))
+            x_groups[idx].append(xfp)
 
-        islands = []
-        for fp in fps:
-            x_fp_list = [xfp if isinstance(xfp, FixedPoint) else
-                         FixedPoint(phi=fp.phi, R=float(np.asarray(xfp)[0]),
-                                    Z=float(np.asarray(xfp)[1]),
-                                    DPm=np.array([[2.,0.],[0.,.5]]), kind='X')
-                         for xfp in x_fps]
+        islands: List[Island] = []
+        for fp, x_fp_list in zip(fps, x_groups):
             isl = _Island(
                 O_orbit=PeriodicOrbit(points=[fp]),
                 X_orbits=[PeriodicOrbit(points=[xfp]) for xfp in x_fp_list],
@@ -237,6 +236,16 @@ class Tube(InvariantSet):
                 isl.tube_chain = self._tube_chain_ref
             islands.append(isl)
         return islands
+
+    def section_cut(self, section, tol: float = 1e-6) -> IslandChain:
+        """Cut this Tube and return the induced toroidal IslandChain."""
+        from pyna.topo.toroidal_island import IslandChain as _IslandChain
+        islands = self.section_islands(section, tol=tol)
+        chain = _IslandChain(m=self.m, n=self.n, parent_tube=self, label=self.label,
+                             metadata={'n_tubes_included': 1})
+        for isl in islands:
+            chain.add_island(isl)
+        return chain
 
     def _general_section_fps(self, section) -> list:
         """Approximate section crossings via raw trajectory scan (non-toroidal sections)."""
@@ -783,6 +792,7 @@ class TubeChain(InvariantSet):
                 x_tubechain.raw_section_view(phi, kind='X', tol=tol, dedup_tol=1e-6)
             )
         chain = view.to_island_chain(x_section_view=x_view, proximity_tol=proximity_tol, dedup_tol=1e-6)
+        chain.metadata['n_tubes_included'] = self.n_tubes
         chain.warn_if_incomplete(prefix="TubeChain.to_island_chain: ")
         return chain
 

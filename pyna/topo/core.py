@@ -163,6 +163,40 @@ class Trajectory(GeometricObject):
     def component(self, i: int) -> np.ndarray:
         return self.states[:, i]
 
+    def section_cut(self, section, *, tol: float = 1e-10) -> List[SectionPoint]:
+        """Intersect the sampled trajectory with a generic section.
+
+        Returns a list of :class:`SectionPoint` objects carrying projected
+        section coordinates plus metadata about the ambient crossing point and
+        trajectory parameter value.
+        """
+        hits: List[SectionPoint] = []
+        for i in range(self.n_samples - 1):
+            x0 = self.states[i]
+            x1 = self.states[i + 1]
+            x_hit = section.detect_crossing(x0, x1, tol=tol)
+            if x_hit is None:
+                continue
+            t0 = self.times[i]
+            t1 = self.times[i + 1]
+            f0 = section.f(x0) if hasattr(section, 'f') else 0.0
+            f1 = section.f(x1) if hasattr(section, 'f') else 0.0
+            denom = abs(f0) + abs(f1)
+            w = 0.5 if denom < 1e-30 else abs(f0) / denom
+            t_hit = (1.0 - w) * t0 + w * t1
+            hits.append(SectionPoint(
+                state=np.asarray(section.project(x_hit), dtype=float),
+                section_value=float(t_hit),
+                section_label=getattr(section, 'label', None),
+                metadata={
+                    'ambient_state': np.asarray(x_hit, dtype=float),
+                    'time_name': self.time_name,
+                    'coordinate_names': self.coordinate_names,
+                    'section_object': section.__class__.__name__,
+                },
+            ))
+        return hits
+
     def diagnostics(self) -> Dict[str, Any]:
         return {
             "object_type": "Trajectory",
@@ -256,12 +290,23 @@ class PeriodicOrbit(InvariantManifold):
             result.append(pt)
         return result
 
-    def section_cut(self, section=None) -> list:
+    def section_cut(self, section=None) -> "PeriodicOrbit":
         if section is None:
-            return list(self.points)
+            return self
         if isinstance(section, tuple) and len(section) == 2:
-            return self.section_points(section_value=section[0], section_label=section[1])
-        return self.section_points(section_value=float(section))
+            pts = self.section_points(section_value=section[0], section_label=section[1])
+        elif hasattr(section, 'label'):
+            pts = self.section_points(section_label=getattr(section, 'label', None))
+        else:
+            pts = self.section_points(section_value=float(section))
+        return PeriodicOrbit(
+            points=list(pts),
+            period=len(pts),
+            stability=self.stability,
+            representative_state=(pts[0].state.copy() if pts else self.representative_state),
+            orbit_trace=self.orbit_trace,
+            metadata=dict(self.metadata),
+        )
 
     def diagnostics(self) -> Dict[str, Any]:
         return {
@@ -293,14 +338,29 @@ class Cycle(InvariantManifold):
         return self.trajectory.ambient_dim
 
     def section_points(self, section_value: Optional[float] = None, section_label: Optional[str] = None, tol: float = 1e-9) -> List[SectionPoint]:
-        if self.return_map_orbit is None:
-            return []
-        return self.return_map_orbit.section_points(section_value=section_value, section_label=section_label, tol=tol)
+        if self.return_map_orbit is not None:
+            return self.return_map_orbit.section_points(section_value=section_value, section_label=section_label, tol=tol)
+        return []
 
-    def section_cut(self, section=None) -> list:
-        if self.return_map_orbit is None:
-            return []
-        return self.return_map_orbit.section_cut(section)
+    def section_cut(self, section=None) -> PeriodicOrbit:
+        if section is None:
+            if self.return_map_orbit is not None:
+                return self.return_map_orbit
+            return PeriodicOrbit(points=[])
+
+        if hasattr(section, 'detect_crossing'):
+            pts = self.trajectory.section_cut(section)
+            return PeriodicOrbit(
+                points=pts,
+                period=len(pts),
+                stability=(self.return_map_orbit.stability if self.return_map_orbit is not None else None),
+                representative_state=(pts[0].state.copy() if pts else None),
+                metadata=dict(self.metadata),
+            )
+
+        if self.return_map_orbit is not None:
+            return self.return_map_orbit.section_cut(section)
+        return PeriodicOrbit(points=[])
 
     def diagnostics(self) -> Dict[str, Any]:
         return {

@@ -174,8 +174,9 @@ def test_tube_section_cut_general_section_with_orbit():
         offset=0.0,
         phase_dim=2,
     )
-    islands = tube.section_cut(sec)
-    assert isinstance(islands, list)
+    chain = tube.section_cut(sec)
+    islands = chain.islands
+    assert hasattr(chain, 'islands')
     for isl in islands:
         # O_point is a FixedPoint; verify it has R, Z coordinates
         assert hasattr(isl.O_point, 'R') and hasattr(isl.O_point, 'Z')
@@ -196,9 +197,9 @@ def test_tube_section_cut_toroidal_still_works():
                   monodromy=fp.monodromy, ambient_dim=2)
     tube = Tube(o_cycle=cycle, x_cycles=[])
     sec = ToroidalSection(0.0)
-    islands = tube.section_cut(sec)
-    assert len(islands) == 1
-    assert isinstance(islands[0], Island)
+    chain = tube.section_cut(sec)
+    assert len(chain.islands) == 1
+    assert isinstance(chain.islands[0], Island)
 
 
 # ── GeneralPoincareMap.trajectory ─────────────────────────────────────────────

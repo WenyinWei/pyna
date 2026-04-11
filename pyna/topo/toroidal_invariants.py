@@ -454,9 +454,15 @@ class PeriodicOrbit(Orbit):
 
     # ── InvariantSet interface ───────────────────────────────────────────────
 
-    def section_cut(self, section=None) -> list:
-        """Return the orbit points as a list."""
-        return list(self.points)
+    def section_cut(self, section=None) -> "PeriodicOrbit":
+        """A toroidal periodic orbit is already a section-level object."""
+        if section is None:
+            return self
+        if hasattr(section, 'phi'):
+            return PeriodicOrbit(points=self.section_at(float(section.phi)), ambient_dim=self.ambient_dim, trajectory=self.trajectory)
+        if isinstance(section, (int, float)):
+            return PeriodicOrbit(points=self.section_at(float(section)), ambient_dim=self.ambient_dim, trajectory=self.trajectory)
+        return self
 
     def diagnostics(self) -> Dict[str, Any]:
         d: Dict[str, Any] = {
@@ -545,25 +551,18 @@ class Cycle(InvariantManifold):
             ]
         return []
 
-    def section_cut(self, section=None) -> list:
-        """Return FixedPoints at the given section.
-
-        Parameters
-        ----------
-        section : float or object with .phi attribute, optional
-            If float, treated as phi angle.  If omitted, return all points
-            from the first section.
-        """
+    def section_cut(self, section=None) -> PeriodicOrbit:
+        """Cut a toroidal cycle and return the induced toroidal periodic orbit."""
         if section is None:
-            # Return all points from first section
-            for fps in self.sections.values():
-                return fps if isinstance(fps, list) else [fps]
-            return []
+            for phi0 in self.sections.keys():
+                pts = self.section_points(phi0)
+                return PeriodicOrbit(points=pts, ambient_dim=self.ambient_dim, trajectory=self.trajectory)
+            return PeriodicOrbit(points=[], ambient_dim=self.ambient_dim, trajectory=self.trajectory)
         phi = float(section) if isinstance(section, (int, float)) else float(getattr(section, 'phi', section))
         pts = self.section_points(phi)
         if not pts:
             raise KeyError(phi)
-        return pts
+        return PeriodicOrbit(points=pts, ambient_dim=self.ambient_dim, trajectory=self.trajectory)
 
     def diagnostics(self) -> Dict[str, Any]:
         return {

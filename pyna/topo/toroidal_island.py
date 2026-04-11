@@ -210,6 +210,7 @@ class IslandChain(InvariantSet):
     islands: List[Island] = field(default_factory=list)
     parent_tube: Optional[Any] = None
     label: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
     # Allow parent_island for hierarchy (set by Island.add_child_chain)
     parent_island: Optional[Island] = field(default=None, repr=False)
 
@@ -224,8 +225,15 @@ class IslandChain(InvariantSet):
 
     @property
     def expected_n_islands(self) -> int:
-        """Expected number of O-point islands in a complete chain."""
-        return self.m // gcd(self.m, self.n)
+        """Expected number of islands represented in this chain.
+
+        For one independent Tube, the section cut contains ``m/gcd(m,n)``
+        islands. For a full TubeChain with multiple independent Tubes, this is
+        multiplied by the number of included Tubes.
+        """
+        islands_per_tube = self.m // gcd(self.m, self.n)
+        n_tubes_included = int(self.metadata.get('n_tubes_included', 1))
+        return islands_per_tube * n_tubes_included
 
     @property
     def n_independent_orbits(self) -> int:
@@ -389,7 +397,7 @@ class IslandChain(InvariantSet):
                 X_orbits=[PeriodicOrbit(points=[xfp]) for xfp in nearby_x],
             ))
 
-        return cls(m=m, n=n, islands=islands)
+        return cls(m=m, n=n, islands=islands, metadata={'n_tubes_included': len(islands) // max(1, (m // gcd(m, n))) if islands else 0})
 
 
 # ---------------------------------------------------------------------------

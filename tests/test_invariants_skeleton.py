@@ -126,7 +126,7 @@ def test_tube_section_cut_period3():
     x_cycle = Cycle(winding=(3, 1), sections={0.0: x_fps}, monodromy=mono_X)
 
     tube = Tube(O_cycle=o_cycle, X_cycles=[x_cycle])
-    islands = tube.section_cut(0.0)
+    islands = tube.section_cut(0.0).islands
 
     assert len(islands) == 3
     assert islands[0].step() is islands[1]
@@ -149,7 +149,7 @@ def test_tube_section_cut_period1():
     o_fp = FixedPoint(phi=0.0, R=1.05, Z=0.0, DPm=DPm_O)
     o_cycle = Cycle(winding=(1, 0), sections={0.0: [o_fp]})
     tube = Tube(O_cycle=o_cycle, X_cycles=[])
-    islands = tube.section_cut(0.0)
+    islands = tube.section_cut(0.0).islands
     assert len(islands) == 1
     assert islands[0].step() is islands[0]   # m=1 自指
 
@@ -188,7 +188,7 @@ def test_root_tube_axis_ordering():
     island_tube.parent_chain = tc   # island_tube knows its parent chain
 
     # section_cut should sort by polar angle
-    islands = island_tube.section_cut(0.0)
+    islands = island_tube.section_cut(0.0).islands
     assert len(islands) == 4
 
     # Verify polar angles are monotonically increasing

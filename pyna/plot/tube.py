@@ -104,7 +104,7 @@ def plot_tube_section(
 
     # O-point Islands from section cut
     if show_o:
-        islands = tube.section_cut(section)
+        islands = tube.section_islands(section)
         s = {**_tube_style(tube_idx, 'O'), **(style or {})}
         for island in islands:
             R, Z = float(island.O_point[0]), float(island.O_point[1])
