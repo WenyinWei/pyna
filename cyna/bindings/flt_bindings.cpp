@@ -1,11 +1,22 @@
-// flt_bindings.cpp — pybind11 bindings for cyna Poincaré tracer
+// flt_bindings.cpp — pybind11 bindings for cyna Poincaré tracer + coil fields
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <thread>
 #include <stdexcept>
 #include <cmath>
+#include <vector>
 #include "cyna/poincare.hpp"
 #include "cyna/objectives.hpp"
+#include "cyna/coil_field.hpp"
+
+#ifdef CYNA_CUDA_ENABLED
+extern "C" bool cyna_coil_circular_field_cuda(
+    float,float,float, float,float,float, float,float,
+    const float*,int, float*,float*,float*);
+extern "C" bool cyna_coil_biot_savart_cuda(
+    const float*,const float*,int,float,
+    const float*,int, float*,float*,float*);
+#endif
 
 namespace py = pybind11;
 
@@ -720,4 +731,111 @@ PYBIND11_MODULE(_cyna_ext, m) {
         "Integrate field line from (R0,Z0,phi0) for phi_span radians, outputting\n"
         "(R,Z,phi,DPm[n,4],alive[n]) at evenly-spaced phi_out intervals.\n"
         "DPm is the P^n_turns_DPm Jacobian via central FD — used for ribbon visualization.");
+
+    // -----------------------------------------------------------------------
+    // coil_circular_field — analytic ring-coil B at a Cartesian point cloud
+    // -----------------------------------------------------------------------
+    m.def("coil_circular_field",
+        [](double cx, double cy, double cz,
+           double nx, double ny, double nz,
+           double radius, double current,
+           py::array_t<float> xyz_f32)
+        -> py::tuple
+        {
+            if (xyz_f32.ndim() != 2 || xyz_f32.shape(1) != 3)
+                throw std::runtime_error("xyz must have shape (N, 3)");
+            if (!(xyz_f32.flags() & py::array::c_style))
+                throw std::runtime_error("xyz must be C-contiguous");
+
+            int N = (int)xyz_f32.shape(0);
+            const float* pxyz = xyz_f32.data();
+
+            py::array_t<float> BR({N}), BPhi({N}), BZ({N});
+            float* pBR   = BR.mutable_data();
+            float* pBPhi = BPhi.mutable_data();
+            float* pBZ   = BZ.mutable_data();
+
+#ifdef CYNA_CUDA_ENABLED
+            bool ok = cyna_coil_circular_field_cuda(
+                (float)cx,(float)cy,(float)cz,
+                (float)nx,(float)ny,(float)nz,
+                (float)radius,(float)current,
+                pxyz, N, pBR, pBPhi, pBZ);
+            if (!ok) {
+                // CUDA failed — fall back to CPU
+                cyna::circular_coil_field_cpu(
+                    (float)cx,(float)cy,(float)cz,
+                    (float)nx,(float)ny,(float)nz,
+                    (float)radius,(float)current,
+                    pxyz, N, pBR, pBPhi, pBZ);
+            }
+#else
+            cyna::circular_coil_field_cpu(
+                (float)cx,(float)cy,(float)cz,
+                (float)nx,(float)ny,(float)nz,
+                (float)radius,(float)current,
+                pxyz, N, pBR, pBPhi, pBZ);
+#endif
+            return py::make_tuple(BR, BPhi, BZ);
+        },
+        py::arg("cx"),py::arg("cy"),py::arg("cz"),
+        py::arg("nx"),py::arg("ny"),py::arg("nz"),
+        py::arg("radius"),py::arg("current"),
+        py::arg("xyz"),
+        "Compute the magnetic field of one circular ring coil at N Cartesian\n"
+        "field points.  Uses CUDA kernel when compiled with --with-cuda=y,\n"
+        "otherwise falls back to OpenMP CPU implementation.\n"
+        "Returns (BR, BPhi, BZ) — three (N,) float32 arrays in Tesla.");
+
+    // -----------------------------------------------------------------------
+    // coil_biot_savart — Biot-Savart for one arbitrary filamentary coil
+    // -----------------------------------------------------------------------
+    m.def("coil_biot_savart",
+        [](py::array_t<float> seg_starts,
+           py::array_t<float> seg_ends,
+           double current,
+           py::array_t<float> xyz_f32)
+        -> py::tuple
+        {
+            if (seg_starts.ndim()!=2 || seg_starts.shape(1)!=3)
+                throw std::runtime_error("seg_starts must have shape (N_seg, 3)");
+            if (seg_ends.ndim()!=2 || seg_ends.shape(1)!=3)
+                throw std::runtime_error("seg_ends must have shape (N_seg, 3)");
+            if (xyz_f32.ndim()!=2 || xyz_f32.shape(1)!=3)
+                throw std::runtime_error("xyz must have shape (N, 3)");
+            if (!(seg_starts.flags() & py::array::c_style) ||
+                !(seg_ends.flags()   & py::array::c_style) ||
+                !(xyz_f32.flags()    & py::array::c_style))
+                throw std::runtime_error("All arrays must be C-contiguous");
+
+            int N_seg = (int)seg_starts.shape(0);
+            int N     = (int)xyz_f32.shape(0);
+            const float* pss  = seg_starts.data();
+            const float* pse  = seg_ends.data();
+            const float* pxyz = xyz_f32.data();
+
+            py::array_t<float> BR({N}), BPhi({N}), BZ({N});
+            float* pBR   = BR.mutable_data();
+            float* pBPhi = BPhi.mutable_data();
+            float* pBZ   = BZ.mutable_data();
+
+#ifdef CYNA_CUDA_ENABLED
+            bool ok = cyna_coil_biot_savart_cuda(
+                pss, pse, N_seg, (float)current,
+                pxyz, N, pBR, pBPhi, pBZ);
+            if (!ok) {
+                cyna::biot_savart_field_cpu(pss, pse, N_seg, (float)current,
+                                            pxyz, N, pBR, pBPhi, pBZ);
+            }
+#else
+            cyna::biot_savart_field_cpu(pss, pse, N_seg, (float)current,
+                                        pxyz, N, pBR, pBPhi, pBZ);
+#endif
+            return py::make_tuple(BR, BPhi, BZ);
+        },
+        py::arg("seg_starts"),py::arg("seg_ends"),py::arg("current"),py::arg("xyz"),
+        "Compute Biot-Savart field for one arbitrary filamentary coil.\n"
+        "seg_starts/seg_ends: (N_seg,3) float32 Cartesian segment endpoints (m).\n"
+        "Returns (BR, BPhi, BZ) — three (N,) float32 arrays in Tesla.\n"
+        "Uses CUDA kernel when compiled with --with-cuda=y.");
 }

@@ -55,6 +55,8 @@ def get_version() -> str:
 
 
 if _available:
+    coil_circular_field           = getattr(_cyna_ext, "coil_circular_field", None)
+    coil_biot_savart              = getattr(_cyna_ext, "coil_biot_savart",     None)
     trace_poincare_batch = _cyna_ext.trace_poincare_batch
     trace_poincare_multi = _cyna_ext.trace_poincare_multi
     trace_poincare_batch_twall    = getattr(_cyna_ext, "trace_poincare_batch_twall",    None)
@@ -69,6 +71,8 @@ if _available:
 else:
     # Fallback stubs so ``from pyna._cyna import X`` always succeeds;
     # callers receive None and are expected to guard with is_available().
+    coil_circular_field           = None
+    coil_biot_savart              = None
     trace_poincare_batch          = None
     trace_poincare_multi          = None
     trace_poincare_batch_twall    = None
@@ -84,6 +88,8 @@ else:
 __all__ = [
     "is_available",
     "get_version",
+    "coil_circular_field",
+    "coil_biot_savart",
     "trace_poincare_batch",
     "trace_poincare_multi",
     "trace_poincare_batch_twall",

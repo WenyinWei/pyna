@@ -356,7 +356,7 @@ Three top-level packages are thin re-export layers for legacy code.
 
 ---
 
-## §9  Optional C++ Acceleration (`_cyna`)
+## §9  C++ / CUDA Acceleration (`cyna` / `pyna._cyna`)
 
 `pyna._cyna` tries to import a compiled C++ extension `_cyna_ext` at startup.
 If unavailable, all calls fall back silently to pure Python.
@@ -366,8 +366,38 @@ from pyna._cyna import is_available, get_version
 print(is_available())   # True when compiled extension is present
 ```
 
-The C++ source lives in the sibling `cyna/` directory.
-See `cyna/README.md` for build instructions.
+### Public kernels
+
+| Function | Description |
+|---|---|
+| `coil_circular_field(cx,cy,cz, nx,ny,nz, a, I, xyz, …)` | Analytic ring-coil field — AGM elliptic integrals (float32, OpenMP/CUDA) |
+| `coil_biot_savart(seg_starts, seg_ends, I, xyz, …)` | Filamentary Biot-Savart for arbitrary coil geometry (float32, OpenMP/CUDA) |
+| `trace_poincare_batch_twall(…)` | Stream-compacted RK4 Poincaré tracing with 3D wall termination |
+| `trace_poincare_multi(…)` | Multi-section Poincaré tracing: one pass → crossings at N sections |
+| `trace_connection_length_twall(…)` | Connection-length Lc to 3D first wall |
+| `find_fixed_points_batch(…)` | Batched Newton search for P^m fixed points |
+
+### Build
+
+```bash
+cd pyna/
+pip install -e .          # builds cyna via xmake, installs _cyna_ext.pyd/.so
+```
+
+Requires: xmake ≥ 2.x, MSVC 2022+ (Windows) or GCC ≥ 11 (Linux).
+CUDA is optional (auto-detected via `nvcc`).  MSVC 2026 + CUDA 13.x require
+`-allow-unsupported-compiler` (added automatically by `setup.py`).
+
+The C++ source lives in the sibling `cyna/` directory (header-only `include/cyna/`,
+pybind11 bindings in `bindings/`, optional CUDA kernel in `coil_field_cuda.cu`).
+
+### Performance
+
+| Kernel | CPU (OpenMP) | CUDA (sm_86) |
+|---|---|---|
+| `coil_circular_field` 196×212×256 grid | ~0.25 s | ~0.02 s |
+| `coil_biot_savart` TF coil | ~0.5 s | ~0.05 s |
+| `trace_poincare_multi` 48 seeds × 250 turns | < 1 s | — |
 
 ---
 

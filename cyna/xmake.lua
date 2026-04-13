@@ -103,9 +103,18 @@ target("cyna_python")
         add_rpathdirs(PY_LIBDIR)
     end
 
-    -- CUDA (optional)
+    -- CUDA (optional): compile coil_field_cuda.cu and link cudart
     if has_config("with-cuda") then
         add_defines("CYNA_CUDA_ENABLED")
+        add_rules("cuda")
+        add_files("coil_field_cuda.cu")
+        -- sm_86 = Ampere (RTX 3060/3070/3080/A40 …); adjust for other GPUs
+        add_cuflags("-arch=sm_86", "--use_fast_math", "-allow-unsupported-compiler", {force = true})
+        if is_plat("windows") then
+            add_links("cudart_static", "cuda")
+        else
+            add_links("cudart")
+        end
     end
 
     -- After build: copy _cyna_ext.pyd/.so into pyna/_cyna/
