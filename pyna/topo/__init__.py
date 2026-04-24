@@ -85,6 +85,14 @@ from pyna.topo.island_healed_coords import (
     build_from_orbits,
     build_from_island_chain,
 )
+from pyna.topo.healed_scaffold_3d import (
+    TransportedSection,
+    SectionCorrespondence,
+    FieldLineScaffold3D,
+    trace_grid_to_phi,
+    trace_section_curve_to_phi,
+    trace_surface_family_to_sections,
+)
 
 
 # Layer 0: Phase space and dynamics
@@ -207,6 +215,13 @@ __all__ = [
     "fp_by_section_from_orbits",
     "build_from_orbits",
     "build_from_island_chain",
+    # traced 3D healed scaffold
+    "TransportedSection",
+    "SectionCorrespondence",
+    "FieldLineScaffold3D",
+    "trace_grid_to_phi",
+    "trace_section_curve_to_phi",
+    "trace_surface_family_to_sections",
     "lcfs_effective_minor_radius",
     "make_reff_profile_grid",
     "compute_profile_objectives_fast",
