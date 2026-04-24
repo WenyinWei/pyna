@@ -6,33 +6,27 @@ This module lifts the "reference section + field-line tracing" workflow from
 project scripts (for example ``topoquest/scripts/w7x/w7x_healed_scaffold.py``)
 into reusable ``pyna.topo`` infrastructure.
 
-The key idea is simple:
+Besides discrete field-line transport, this module now also provides a more
+robust section-local X/O ordering helper for building healed ``C_XO``
+boundaries.  The key design choice is to avoid relying on a raw polar-angle
+sort alone; instead we:
 
-1. Build a reliable reference poloidal scaffold at one toroidal angle
-   ``phi_ref``.
-2. Sample that scaffold on a regular ``(r, theta)`` grid.
-3. Transport those sample points to other toroidal sections by tracing the
-   *actual* field lines.
-4. Fit / store the transported surface family as a discrete 3D scaffold.
+1. deduplicate points,
+2. infer a smooth O-ring backbone,
+3. assign each X-point to the most plausible O-slot using local chord geometry,
+4. build an alternating O/X sequence with monotone arclength on that backbone,
+5. validate the resulting curve against winding / slot / spacing heuristics.
 
-This is intentionally a first-step implementation:
-
-- it works on a *discrete* set of toroidal sections ``phi_samples``;
-- it stores transported points directly instead of enforcing a global variational
-  reconstruction;
-- it is meant to replace ad-hoc script glue and serve as the basis for a future
-  continuous ``IslandHealedCoordMap3D``.
-
-The API is designed so that existing section-wise Fourier maps can provide the
-reference scaffold, while downstream code can obtain toroidally consistent
-section cuts from one unified 3D object.
+This improves behaviour for edge island chains whose naive angular ordering can
+break because of non-convexity, strong shaping, or boundary bending.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Optional, Sequence, Tuple
+from typing import Callable, Optional, Sequence, Tuple, List, Any, Dict
 
 import numpy as np
+from scipy.interpolate import CubicSpline
 
 
 ArrayLike = np.ndarray
@@ -49,216 +43,433 @@ def _forward_span(phi_src: float, phi_tgt: float) -> float:
     return float((phi_tgt - phi_src) % (2.0 * np.pi))
 
 
-@dataclass
-class TransportedSection:
-    """A single transported toroidal section of the scaffold.
-
-    Attributes
-    ----------
-    phi : float
-        Toroidal angle of this section [rad].
-    R : ndarray, shape (n_r, n_theta)
-        Transported R coordinates.
-    Z : ndarray, shape (n_r, n_theta)
-        Transported Z coordinates.
-    valid : ndarray, shape (n_r, n_theta)
-        Boolean validity mask. ``False`` means tracing / intersection failed.
-    """
-
-    phi: float
-    R: ArrayLike
-    Z: ArrayLike
-    valid: ArrayLike
-
-
-@dataclass
-class SectionCorrespondence:
-    """Discrete transport correspondence from a reference section.
-
-    This object makes the transport relation explicit:
-    the point with indices ``(i_r, i_theta)`` at the reference section is mapped
-    to the transported point ``(R[i_r, i_theta], Z[i_r, i_theta])`` at target
-    toroidal angle ``phi``.
-    """
-
-    phi_ref: float
-    phi: float
-    r_levels: ArrayLike
-    theta_levels: ArrayLike
-    R: ArrayLike
-    Z: ArrayLike
-    valid: ArrayLike
-
-    def coverage_fraction(self) -> float:
-        """Return valid-point coverage fraction in [0, 1]."""
-        return float(np.mean(self.valid)) if self.valid.size else 0.0
-
-    def valid_counts_by_r(self) -> ArrayLike:
-        """Return number of valid θ samples for each r level."""
-        return np.sum(self.valid, axis=1)
-
-
-class FieldLineScaffold3D:
-    """Discrete 3D scaffold built by field-line transport from one reference section.
-
-    Parameters
-    ----------
-    phi_ref : float
-        Reference toroidal angle [rad].
-    r_levels : ndarray, shape (n_r,)
-        Radial sample levels on the reference section.
-    theta_levels : ndarray, shape (n_theta,)
-        Poloidal sample levels on the reference section.
-    phi_samples : ndarray, shape (n_phi,)
-        Toroidal sections where the scaffold is sampled.
-    sections : list[TransportedSection]
-        One transported section per ``phi_samples``.
-    R_ref, Z_ref : ndarray, shape (n_r, n_theta)
-        Reference-section coordinates.
-    """
-
-    def __init__(
-        self,
-        phi_ref: float,
-        r_levels: ArrayLike,
-        theta_levels: ArrayLike,
-        phi_samples: ArrayLike,
-        sections: Sequence[TransportedSection],
-        R_ref: ArrayLike,
-        Z_ref: ArrayLike,
-    ):
-        self.phi_ref = _wrap_angle(phi_ref)
-        self.r_levels = np.asarray(r_levels, dtype=float)
-        self.theta_levels = np.asarray(theta_levels, dtype=float)
-        self.phi_samples = np.asarray([_wrap_angle(phi) for phi in phi_samples], dtype=float)
-        self.sections = list(sections)
-        self.R_ref = np.asarray(R_ref, dtype=float)
-        self.Z_ref = np.asarray(Z_ref, dtype=float)
-
-        if len(self.sections) != len(self.phi_samples):
-            raise ValueError("len(sections) must equal len(phi_samples)")
-        if self.R_ref.shape != (len(self.r_levels), len(self.theta_levels)):
-            raise ValueError("R_ref shape must be (n_r, n_theta)")
-        if self.Z_ref.shape != self.R_ref.shape:
-            raise ValueError("Z_ref shape mismatch")
-
-    @classmethod
-    def from_reference_map(
-        cls,
-        reference_map,
-        phi_ref: float,
-        r_levels: Sequence[float],
-        theta_levels: Sequence[float],
-        phi_samples: Sequence[float],
-        trace_func: TraceFunction,
-        *,
-        dphi_hint: float = 0.04,
-        phi_hit_tol_factor: float = 5.0,
-    ) -> "FieldLineScaffold3D":
-        """Build scaffold from a reference section map and a tracing function.
-
-        Parameters
-        ----------
-        reference_map : object
-            Any object exposing ``eval_RZ(r, theta) -> (R, Z)`` on the reference
-            toroidal section. ``InnerFourierSection`` is the intended first use.
-        phi_ref : float
-            Reference toroidal angle [rad].
-        r_levels, theta_levels, phi_samples : sequence of float
-            Discrete scaffold sampling levels.
-        trace_func : callable
-            Signature ``trace_func(R0, Z0, phi0, phi_span, dphi_out)`` returning
-            ``(R_arr, Z_arr, phi_arr)`` along the traced field line.
-        dphi_hint : float, optional
-            Preferred φ output spacing for tracing.
-        phi_hit_tol_factor : float, optional
-            Accept transported hit if nearest traced sample lies within
-            ``phi_hit_tol_factor * dphi_out`` of the target section.
-
-        Returns
-        -------
-        FieldLineScaffold3D
-        """
-        phi_ref = _wrap_angle(phi_ref)
-        r_levels = np.asarray(r_levels, dtype=float)
-        theta_levels = np.asarray(theta_levels, dtype=float)
-        phi_samples = np.asarray([_wrap_angle(phi) for phi in phi_samples], dtype=float)
-
-        n_r = len(r_levels)
-        n_theta = len(theta_levels)
-
-        R_ref = np.empty((n_r, n_theta), dtype=float)
-        Z_ref = np.empty((n_r, n_theta), dtype=float)
-        for i, r in enumerate(r_levels):
-            for j, theta in enumerate(theta_levels):
-                R_ref[i, j], Z_ref[i, j] = reference_map.eval_RZ(float(r), float(theta))
-
-        sections = []
-        for phi_tgt in phi_samples:
-            if abs(_forward_span(phi_ref, phi_tgt)) < 1e-12:
-                valid = np.ones_like(R_ref, dtype=bool)
-                sections.append(
-                    TransportedSection(phi=float(phi_tgt), R=R_ref.copy(), Z=Z_ref.copy(), valid=valid)
-                )
+def _as_point_rows(points: Sequence[Any]) -> np.ndarray:
+    if points is None:
+        return np.empty((0, 2), dtype=float)
+    try:
+        arr0 = np.asarray(points, dtype=float)
+    except Exception:
+        arr0 = None
+    if arr0 is not None and arr0.ndim == 2 and arr0.shape[1] >= 2:
+        return np.asarray(arr0[:, :2], dtype=float)
+    rows: List[List[float]] = []
+    for pt in points:
+        if hasattr(pt, "R") and hasattr(pt, "Z"):
+            rows.append([float(pt.R), float(pt.Z)])
+            continue
+        if isinstance(pt, (tuple, list)) and len(pt) >= 2:
+            try:
+                rows.append([float(pt[0]), float(pt[1])])
                 continue
+            except Exception:
+                pass
+        arr = np.asarray(pt, dtype=float).ravel()
+        if arr.size < 2:
+            continue
+        rows.append([float(arr[0]), float(arr[1])])
+    return np.asarray(rows, dtype=float) if rows else np.empty((0, 2), dtype=float)
 
-            R_tgt, Z_tgt, valid = trace_grid_to_phi(
-                R_ref,
-                Z_ref,
-                phi_src=phi_ref,
-                phi_tgt=float(phi_tgt),
-                trace_func=trace_func,
-                dphi_hint=dphi_hint,
-                phi_hit_tol_factor=phi_hit_tol_factor,
-            )
-            sections.append(
-                TransportedSection(phi=float(phi_tgt), R=R_tgt, Z=Z_tgt, valid=valid)
-            )
 
-        return cls(
-            phi_ref=phi_ref,
-            r_levels=r_levels,
-            theta_levels=theta_levels,
-            phi_samples=phi_samples,
-            sections=sections,
-            R_ref=R_ref,
-            Z_ref=Z_ref,
+def _dedup_points(points: np.ndarray, tol: float = 1e-6) -> np.ndarray:
+    if len(points) <= 1:
+        return points.copy()
+    kept: List[np.ndarray] = []
+    for p in points:
+        if not kept:
+            kept.append(p)
+            continue
+        if min(np.hypot(*(p - q)) for q in kept) > tol:
+            kept.append(p)
+    return np.asarray(kept, dtype=float)
+
+
+def _pairwise_dist(points_a: np.ndarray, points_b: np.ndarray) -> np.ndarray:
+    if len(points_a) == 0 or len(points_b) == 0:
+        return np.empty((len(points_a), len(points_b)), dtype=float)
+    da = points_a[:, None, :] - points_b[None, :, :]
+    return np.sqrt(np.sum(da * da, axis=2))
+
+
+def _nearest_neighbor_cycle_order(points: np.ndarray) -> np.ndarray:
+    n = len(points)
+    if n <= 2:
+        return np.arange(n, dtype=int)
+    D = _pairwise_dist(points, points)
+    np.fill_diagonal(D, np.inf)
+    start = int(np.argmin(points[:, 0]))
+    order = [start]
+    used = {start}
+    cur = start
+    for _ in range(n - 1):
+        cand = np.argsort(D[cur])
+        nxt = next((int(j) for j in cand if int(j) not in used), None)
+        if nxt is None:
+            break
+        order.append(nxt)
+        used.add(nxt)
+        cur = nxt
+    if len(order) < n:
+        order.extend([i for i in range(n) if i not in used])
+    return np.asarray(order, dtype=int)
+
+
+def _curve_cumulative_arclength(curve: np.ndarray) -> np.ndarray:
+    if len(curve) == 0:
+        return np.empty(0, dtype=float)
+    ds = np.sqrt(np.sum(np.diff(curve, axis=0) ** 2, axis=1))
+    return np.concatenate([[0.0], np.cumsum(ds)])
+
+
+def _polygon_signed_area(curve: np.ndarray) -> float:
+    if len(curve) < 3:
+        return 0.0
+    x = np.asarray(curve[:, 0], dtype=float)
+    y = np.asarray(curve[:, 1], dtype=float)
+    return 0.5 * float(np.sum(x * np.roll(y, -1) - np.roll(x, -1) * y))
+
+
+def _segments_intersect(a1: np.ndarray, a2: np.ndarray, b1: np.ndarray, b2: np.ndarray, atol: float = 1e-9) -> bool:
+    def orient(p: np.ndarray, q: np.ndarray, r: np.ndarray) -> float:
+        return float((q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]))
+
+    def on_segment(p: np.ndarray, q: np.ndarray, r: np.ndarray) -> bool:
+        return (
+            min(p[0], q[0]) - atol <= r[0] <= max(p[0], q[0]) + atol
+            and min(p[1], q[1]) - atol <= r[1] <= max(p[1], q[1]) + atol
         )
 
-    def nearest_section_index(self, phi: float) -> int:
-        """Return index of the nearest sampled toroidal section."""
-        phi_w = _wrap_angle(phi)
-        dphi = np.abs(np.angle(np.exp(1j * (self.phi_samples - phi_w))))
-        return int(np.argmin(dphi))
+    o1 = orient(a1, a2, b1)
+    o2 = orient(a1, a2, b2)
+    o3 = orient(b1, b2, a1)
+    o4 = orient(b1, b2, a2)
+    if ((o1 > atol and o2 < -atol) or (o1 < -atol and o2 > atol)) and ((o3 > atol and o4 < -atol) or (o3 < -atol and o4 > atol)):
+        return True
+    if abs(o1) <= atol and on_segment(a1, a2, b1):
+        return True
+    if abs(o2) <= atol and on_segment(a1, a2, b2):
+        return True
+    if abs(o3) <= atol and on_segment(b1, b2, a1):
+        return True
+    if abs(o4) <= atol and on_segment(b1, b2, a2):
+        return True
+    return False
 
-    def section_at(self, phi: float) -> TransportedSection:
-        """Return nearest discrete transported section to ``phi``."""
-        return self.sections[self.nearest_section_index(phi)]
 
-    def correspondence_at(self, phi: float) -> SectionCorrespondence:
-        """Return explicit transport correspondence to nearest sampled section."""
-        sec = self.section_at(phi)
-        return SectionCorrespondence(
-            phi_ref=self.phi_ref,
-            phi=sec.phi,
-            r_levels=self.r_levels,
-            theta_levels=self.theta_levels,
-            R=sec.R,
-            Z=sec.Z,
-            valid=sec.valid,
-        )
+def _segment_intersection_count(curve: np.ndarray, atol: float = 1e-9) -> int:
+    if len(curve) < 4:
+        return 0
+    pts = np.asarray(curve, dtype=float)
+    n = len(pts)
+    count = 0
+    for i in range(n):
+        a1 = pts[i]
+        a2 = pts[(i + 1) % n]
+        for j in range(i + 1, n):
+            if (i + 1) % n == j or (j + 1) % n == i:
+                continue
+            b1 = pts[j]
+            b2 = pts[(j + 1) % n]
+            if _segments_intersect(a1, a2, b1, b2, atol=atol):
+                count += 1
+    return count
 
-    def sample_surface(self, r_index: int, phi: float) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
-        """Return sampled θ-ring at a given radial index and toroidal section."""
-        sec = self.section_at(phi)
-        return sec.R[r_index], sec.Z[r_index], sec.valid[r_index]
 
-    def sampled_arrays(self) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
-        """Return stacked sampled arrays with shape (n_phi, n_r, n_theta)."""
-        R = np.stack([sec.R for sec in self.sections], axis=0)
-        Z = np.stack([sec.Z for sec in self.sections], axis=0)
-        valid = np.stack([sec.valid for sec in self.sections], axis=0)
-        return R, Z, valid
+def _cleanup_monotone_samples(
+    s_vals: np.ndarray,
+    R_vals: np.ndarray,
+    Z_vals: np.ndarray,
+    *,
+    min_ds: float = 1e-9,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    if len(s_vals) == 0:
+        keep = np.empty(0, dtype=bool)
+        return s_vals, R_vals, Z_vals, keep
+    keep = np.ones(len(s_vals), dtype=bool)
+    last = 0
+    for i in range(1, len(s_vals)):
+        ds = float(s_vals[i] - s_vals[last])
+        dR = float(R_vals[i] - R_vals[last])
+        dZ = float(Z_vals[i] - Z_vals[last])
+        if ds <= min_ds or np.hypot(dR, dZ) <= min_ds:
+            keep[i] = False
+            continue
+        last = i
+    return s_vals[keep], R_vals[keep], Z_vals[keep], keep
+
+
+def _enforce_forward_winding(sequence: List["XOArcPoint"]) -> List["XOArcPoint"]:
+    if len(sequence) < 3:
+        return list(sequence)
+    curve = np.array([[p.R, p.Z] for p in sequence], dtype=float)
+    if _polygon_signed_area(curve) >= 0.0:
+        return list(sequence)
+    seq_rev = list(reversed(sequence))
+    total_s = float(sequence[-1].s)
+    rebuilt: List[XOArcPoint] = []
+    for idx, pt in enumerate(seq_rev):
+        s_new = 0.0 if idx == 0 else total_s - float(pt.s)
+        rebuilt.append(XOArcPoint(kind=pt.kind, index=pt.index, R=pt.R, Z=pt.Z, s=s_new, slot=pt.slot, local_t=pt.local_t))
+    return rebuilt
+
+
+def _project_to_segment_param(p: np.ndarray, a: np.ndarray, b: np.ndarray) -> Tuple[float, float, np.ndarray]:
+    ab = b - a
+    lab2 = float(np.dot(ab, ab))
+    if lab2 <= 0.0:
+        q = a.copy()
+        return 0.0, float(np.hypot(*(p - q))), q
+    t = float(np.dot(p - a, ab) / lab2)
+    t_clip = min(1.0, max(0.0, t))
+    q = a + t_clip * ab
+    return t_clip, float(np.hypot(*(p - q))), q
+
+
+@dataclass
+class XOArcPoint:
+    kind: str
+    index: int
+    R: float
+    Z: float
+    s: float
+    slot: Optional[int] = None
+    local_t: Optional[float] = None
+
+
+@dataclass
+class XOSequence:
+    """Ordered / connected section-local X/O sequence for healed boundary work."""
+
+    axis: Tuple[float, float]
+    O_points: ArrayLike
+    X_points: ArrayLike
+    O_order: ArrayLike
+    X_slot: ArrayLike
+    sequence: List[XOArcPoint]
+    s_closed: ArrayLike
+    R_closed: ArrayLike
+    Z_closed: ArrayLike
+    diagnostics: Dict[str, Any]
+
+    def periodic_splines(self) -> Tuple[Optional[CubicSpline], Optional[CubicSpline]]:
+        if len(self.s_closed) < 4:
+            return None, None
+        if not np.all(np.diff(self.s_closed) > 0):
+            return None, None
+        try:
+            return (
+                CubicSpline(self.s_closed, self.R_closed, bc_type="periodic"),
+                CubicSpline(self.s_closed, self.Z_closed, bc_type="periodic"),
+            )
+        except Exception:
+            return None, None
+
+
+def build_xo_sequence(
+    O_points: Sequence[Any],
+    X_points: Sequence[Any],
+    *,
+    axis: Optional[Tuple[float, float]] = None,
+    rho_min: float = 0.0,
+    dedup_tol: float = 1e-5,
+    min_o_points: int = 3,
+) -> Optional[XOSequence]:
+    """Build a robust alternating X/O sequence on one section.
+
+    The backbone is defined by a cyclic ordering of O-points, refined by local
+    nearest-neighbour continuity rather than simple polar-angle sorting.  Each
+    X-point is then assigned to the O-slot whose chord it best matches.
+    """
+    O = _dedup_points(_as_point_rows(O_points), tol=dedup_tol)
+    X = _dedup_points(_as_point_rows(X_points), tol=dedup_tol)
+    if axis is None:
+        if len(O):
+            axis = (float(np.mean(O[:, 0])), float(np.mean(O[:, 1])))
+        elif len(X):
+            axis = (float(np.mean(X[:, 0])), float(np.mean(X[:, 1])))
+        else:
+            return None
+    R_ax, Z_ax = float(axis[0]), float(axis[1])
+
+    if rho_min > 0.0:
+        if len(O):
+            O = O[np.hypot(O[:, 0] - R_ax, O[:, 1] - Z_ax) > rho_min]
+        if len(X):
+            X = X[np.hypot(X[:, 0] - R_ax, X[:, 1] - Z_ax) > rho_min]
+    if len(O) < min_o_points or len(X) < 1:
+        return None
+
+    order_seed = _nearest_neighbor_cycle_order(O)
+    O_ord = O[order_seed]
+    if _polygon_signed_area(O_ord) < 0.0:
+        O_ord = O_ord[::-1].copy()
+        order_seed = order_seed[::-1].copy()
+
+    ang = np.unwrap(np.arctan2(O_ord[:, 1] - Z_ax, O_ord[:, 0] - R_ax))
+    if np.ptp(ang) > 0:
+        shift = int(np.argmin(ang))
+        O_ord = np.roll(O_ord, -shift, axis=0)
+        order_seed = np.roll(order_seed, -shift)
+
+    O_closed = np.vstack([O_ord, O_ord[0]])
+    sO = _curve_cumulative_arclength(O_closed)
+    n_O = len(O_ord)
+
+    slot_best: Dict[int, Dict[str, float]] = {}
+    x_slot = np.full(len(X), -1, dtype=int)
+
+    for ix, xp in enumerate(X):
+        best = None
+        for k in range(n_O):
+            a = O_ord[k]
+            b = O_ord[(k + 1) % n_O]
+            tloc, dist, q = _project_to_segment_param(xp, a, b)
+            chord = float(np.hypot(*(b - a))) + 1e-12
+            mid = 0.5 * (a + b)
+            radial_pen = abs(np.hypot(*(xp - np.array([R_ax, Z_ax]))) - np.hypot(*(mid - np.array([R_ax, Z_ax]))))
+            endpoint_pen = min(tloc, 1.0 - tloc)
+            score = dist / chord + 0.35 * radial_pen / chord - 0.15 * endpoint_pen
+            cand = {
+                "slot": k,
+                "score": float(score),
+                "t": float(tloc),
+                "s": float(sO[k] + tloc * chord),
+                "R": float(xp[0]),
+                "Z": float(xp[1]),
+            }
+            if best is None or cand["score"] < best["score"]:
+                best = cand
+        if best is None:
+            continue
+        slot = int(best["slot"])
+        prev = slot_best.get(slot)
+        if prev is None or best["score"] < prev["score"]:
+            slot_best[slot] = {**best, "ix": ix}
+
+    for slot, rec in slot_best.items():
+        x_slot[int(rec["ix"])] = int(slot)
+
+    seq: List[XOArcPoint] = []
+    for k in range(n_O):
+        seq.append(XOArcPoint(kind="O", index=int(order_seed[k]), R=float(O_ord[k, 0]), Z=float(O_ord[k, 1]), s=float(sO[k]), slot=k, local_t=0.0))
+        rec = slot_best.get(k)
+        if rec is not None:
+            seq.append(XOArcPoint(kind="X", index=int(rec["ix"]), R=float(rec["R"]), Z=float(rec["Z"]), s=float(rec["s"]), slot=k, local_t=float(rec["t"])))
+
+    if len(seq) < 4:
+        return None
+
+    seq = sorted(seq, key=lambda p: p.s)
+    seq = _enforce_forward_winding(seq)
+    s_vals = np.array([p.s for p in seq], dtype=float)
+    R_vals = np.array([p.R for p in seq], dtype=float)
+    Z_vals = np.array([p.Z for p in seq], dtype=float)
+    s_vals, R_vals, Z_vals, keep = _cleanup_monotone_samples(s_vals, R_vals, Z_vals, min_ds=1e-10)
+    seq = [p for p, kk in zip(seq, keep) if kk]
+    if len(seq) < 4:
+        return None
+
+    total_len = float(sO[-1])
+    curve = np.column_stack([R_vals, Z_vals])
+    turn = np.unwrap(np.arctan2(Z_vals - Z_ax, R_vals - R_ax))
+    winding_monotone = bool(np.all(np.diff(turn) > -1e-8))
+    self_intersections = int(_segment_intersection_count(curve))
+    if self_intersections > 0:
+        return None
+
+    s_closed = np.append(s_vals, s_vals[0] + total_len)
+    R_closed = np.append(R_vals, R_vals[0])
+    Z_closed = np.append(Z_vals, Z_vals[0])
+
+    diagnostics = {
+        "n_O": int(len(O_ord)),
+        "n_X": int(len(X)),
+        "n_X_assigned": int(np.sum(x_slot >= 0)),
+        "n_slots_filled": int(len(slot_best)),
+        "coverage": float(len(slot_best) / max(len(O_ord), 1)),
+        "total_length": total_len,
+        "slot_fill_fraction": float(len(slot_best) / max(n_O, 1)),
+        "sequence_cleanup_removed": int(np.sum(~keep)),
+        "self_intersections": self_intersections,
+        "winding_monotone": winding_monotone,
+        "signed_area": float(_polygon_signed_area(curve)),
+    }
+    return XOSequence(
+        axis=(R_ax, Z_ax),
+        O_points=O,
+        X_points=X,
+        O_order=order_seed,
+        X_slot=x_slot,
+        sequence=seq,
+        s_closed=s_closed,
+        R_closed=R_closed,
+        Z_closed=Z_closed,
+        diagnostics=diagnostics,
+    )
+
+
+def build_cxo_spline(
+    O_points: Sequence[Any],
+    X_points: Sequence[Any],
+    *,
+    axis: Optional[Tuple[float, float]] = None,
+    rho_min: float = 0.30,
+    dedup_tol: float = 1e-5,
+    min_o_points: int = 3,
+    validate_winding: bool = True,
+    sample_count: int = 360,
+) -> Tuple[Optional[CubicSpline], Optional[CubicSpline], Optional[XOSequence]]:
+    """Build a robust periodic ``C_XO`` spline from section-local O/X points."""
+    xo = build_xo_sequence(
+        O_points,
+        X_points,
+        axis=axis,
+        rho_min=rho_min,
+        dedup_tol=dedup_tol,
+        min_o_points=min_o_points,
+    )
+    if xo is None:
+        return None, None, None
+
+    sR, sZ = xo.periodic_splines()
+    if sR is None or sZ is None:
+        return None, None, xo
+
+    if validate_winding:
+        ss = np.linspace(xo.s_closed[0], xo.s_closed[-1], sample_count, endpoint=False)
+        ang = np.unwrap(np.arctan2(sZ(ss) - xo.axis[1], sR(ss) - xo.axis[0]))
+        dang = np.diff(ang)
+        if np.any(dang <= -1e-6):
+            return None, None, xo
+        rr = np.hypot(sR(ss) - xo.axis[0], sZ(ss) - xo.axis[1])
+        if np.nanmin(rr) <= 0.0:
+            return None, None, xo
+
+    return sR, sZ, xo
+
+
+@dataclass
+class SectionFit:
+    phi: float
+    R_ax: float
+    Z_ax: float
+    spl_R_in: Optional[Sequence]
+    spl_Z_in: Optional[Sequence]
+    spl_R_ext: Optional[Sequence]
+    spl_Z_ext: Optional[Sequence]
+    r_max: float
+    r_aug_ext: ArrayLike
+    spl_R_CXO: Optional[Any]
+    spl_Z_CXO: Optional[Any]
+    cxo_param: Optional[ArrayLike] = None
+    scaffold_valid: bool = False
+    trace_valid_fraction: float = 0.0
+
+
+@dataclass
+class SectionScaffoldBundle:
+    scaffold_3d: FieldLineScaffold3D
+    fits: Sequence[SectionFit]
+    reference_index: int
 
 
 def trace_grid_to_phi(
@@ -271,26 +482,7 @@ def trace_grid_to_phi(
     dphi_hint: float = 0.04,
     phi_hit_tol_factor: float = 5.0,
 ) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
-    """Transport a 2D ``(r, θ)`` point grid from one toroidal section to another.
-
-    Parameters
-    ----------
-    R_grid, Z_grid : ndarray, shape (n_r, n_theta)
-        Source coordinates on the reference section.
-    phi_src, phi_tgt : float
-        Source and target toroidal angles [rad].
-    trace_func : callable
-        Signature ``trace_func(R0, Z0, phi0, phi_span, dphi_out)``.
-    dphi_hint : float, optional
-        Preferred tracing output spacing.
-    phi_hit_tol_factor : float, optional
-        Target-hit tolerance in units of ``dphi_out``.
-
-    Returns
-    -------
-    R_tgt, Z_tgt, valid : ndarray
-        Transported coordinates and validity mask, all shape ``(n_r, n_theta)``.
-    """
+    """Transport a 2D ``(r, θ)`` point grid from one toroidal section to another."""
     R_grid = np.asarray(R_grid, dtype=float)
     Z_grid = np.asarray(Z_grid, dtype=float)
     if R_grid.shape != Z_grid.shape:
@@ -315,19 +507,127 @@ def trace_grid_to_phi(
             Z0 = float(Z_grid[i, j])
             if not (np.isfinite(R0) and np.isfinite(Z0)):
                 continue
-
             R_arr, Z_arr, phi_arr = trace_func(R0, Z0, float(phi_src), float(span + 2.0 * dphi_out), float(dphi_out))
             if len(phi_arr) == 0:
                 continue
-
             phi_mod = np.asarray(phi_arr, dtype=float) % (2.0 * np.pi)
-            idx = int(np.argmin(np.abs(phi_mod - phi_tgt_w)))
-            if abs(phi_mod[idx] - phi_tgt_w) < phi_tol:
+            delta = np.abs(np.angle(np.exp(1j * (phi_mod - phi_tgt_w))))
+            idx = int(np.argmin(delta))
+            if float(delta[idx]) < phi_tol:
                 R_tgt[i, j] = float(R_arr[idx])
                 Z_tgt[i, j] = float(Z_arr[idx])
                 valid[i, j] = True
-
     return R_tgt, Z_tgt, valid
+
+
+@dataclass
+class TransportedSection:
+    phi: float
+    R: ArrayLike
+    Z: ArrayLike
+    valid: ArrayLike
+
+
+@dataclass
+class SectionCorrespondence:
+    phi_ref: float
+    phi: float
+    r_levels: ArrayLike
+    theta_levels: ArrayLike
+    R: ArrayLike
+    Z: ArrayLike
+    valid: ArrayLike
+
+    def coverage_fraction(self) -> float:
+        return float(np.mean(self.valid)) if self.valid.size else 0.0
+
+    def valid_counts_by_r(self) -> ArrayLike:
+        return np.sum(self.valid, axis=1)
+
+
+class FieldLineScaffold3D:
+    def __init__(
+        self,
+        phi_ref: float,
+        r_levels: ArrayLike,
+        theta_levels: ArrayLike,
+        phi_samples: ArrayLike,
+        sections: Sequence[TransportedSection],
+        R_ref: ArrayLike,
+        Z_ref: ArrayLike,
+    ):
+        self.phi_ref = _wrap_angle(phi_ref)
+        self.r_levels = np.asarray(r_levels, dtype=float)
+        self.theta_levels = np.asarray(theta_levels, dtype=float)
+        self.phi_samples = np.asarray([_wrap_angle(phi) for phi in phi_samples], dtype=float)
+        self.sections = list(sections)
+        self.R_ref = np.asarray(R_ref, dtype=float)
+        self.Z_ref = np.asarray(Z_ref, dtype=float)
+        if len(self.sections) != len(self.phi_samples):
+            raise ValueError("len(sections) must equal len(phi_samples)")
+        if self.R_ref.shape != (len(self.r_levels), len(self.theta_levels)):
+            raise ValueError("R_ref shape must be (n_r, n_theta)")
+        if self.Z_ref.shape != self.R_ref.shape:
+            raise ValueError("Z_ref shape mismatch")
+
+    @classmethod
+    def from_reference_map(
+        cls,
+        reference_map,
+        phi_ref: float,
+        r_levels: Sequence[float],
+        theta_levels: Sequence[float],
+        phi_samples: Sequence[float],
+        trace_func: TraceFunction,
+        *,
+        dphi_hint: float = 0.04,
+        phi_hit_tol_factor: float = 5.0,
+    ) -> "FieldLineScaffold3D":
+        phi_ref = _wrap_angle(phi_ref)
+        r_levels = np.asarray(r_levels, dtype=float)
+        theta_levels = np.asarray(theta_levels, dtype=float)
+        phi_samples = np.asarray([_wrap_angle(phi) for phi in phi_samples], dtype=float)
+        n_r = len(r_levels)
+        n_theta = len(theta_levels)
+        R_ref = np.empty((n_r, n_theta), dtype=float)
+        Z_ref = np.empty((n_r, n_theta), dtype=float)
+        for i, r in enumerate(r_levels):
+            for j, theta in enumerate(theta_levels):
+                R_ref[i, j], Z_ref[i, j] = reference_map.eval_RZ(float(r), float(theta))
+        sections = []
+        for phi_tgt in phi_samples:
+            if abs(_forward_span(phi_ref, phi_tgt)) < 1e-12:
+                valid = np.ones_like(R_ref, dtype=bool)
+                sections.append(TransportedSection(phi=float(phi_tgt), R=R_ref.copy(), Z=Z_ref.copy(), valid=valid))
+                continue
+            R_tgt, Z_tgt, valid = trace_grid_to_phi(
+                R_ref, Z_ref, phi_src=phi_ref, phi_tgt=float(phi_tgt), trace_func=trace_func,
+                dphi_hint=dphi_hint, phi_hit_tol_factor=phi_hit_tol_factor,
+            )
+            sections.append(TransportedSection(phi=float(phi_tgt), R=R_tgt, Z=Z_tgt, valid=valid))
+        return cls(phi_ref=phi_ref, r_levels=r_levels, theta_levels=theta_levels, phi_samples=phi_samples, sections=sections, R_ref=R_ref, Z_ref=Z_ref)
+
+    def nearest_section_index(self, phi: float) -> int:
+        phi_w = _wrap_angle(phi)
+        dphi = np.abs(np.angle(np.exp(1j * (self.phi_samples - phi_w))))
+        return int(np.argmin(dphi))
+
+    def section_at(self, phi: float) -> TransportedSection:
+        return self.sections[self.nearest_section_index(phi)]
+
+    def correspondence_at(self, phi: float) -> SectionCorrespondence:
+        sec = self.section_at(phi)
+        return SectionCorrespondence(phi_ref=self.phi_ref, phi=sec.phi, r_levels=self.r_levels, theta_levels=self.theta_levels, R=sec.R, Z=sec.Z, valid=sec.valid)
+
+    def sample_surface(self, r_index: int, phi: float) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
+        sec = self.section_at(phi)
+        return sec.R[r_index], sec.Z[r_index], sec.valid[r_index]
+
+    def sampled_arrays(self) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
+        R = np.stack([sec.R for sec in self.sections], axis=0)
+        Z = np.stack([sec.Z for sec in self.sections], axis=0)
+        valid = np.stack([sec.valid for sec in self.sections], axis=0)
+        return R, Z, valid
 
 
 def trace_section_curve_to_phi(
@@ -340,21 +640,11 @@ def trace_section_curve_to_phi(
     dphi_hint: float = 0.04,
     phi_hit_tol_factor: float = 5.0,
 ) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
-    """Transport one poloidal curve from ``phi_src`` to ``phi_tgt``.
-
-    This is a thin convenience wrapper over :func:`trace_grid_to_phi` for the
-    common "trace a boundary / one r-level ring" use case.
-    """
     R_curve = np.asarray(R_curve, dtype=float)[None, :]
     Z_curve = np.asarray(Z_curve, dtype=float)[None, :]
     R_t, Z_t, valid = trace_grid_to_phi(
-        R_curve,
-        Z_curve,
-        phi_src=phi_src,
-        phi_tgt=phi_tgt,
-        trace_func=trace_func,
-        dphi_hint=dphi_hint,
-        phi_hit_tol_factor=phi_hit_tol_factor,
+        R_curve, Z_curve, phi_src=phi_src, phi_tgt=phi_tgt, trace_func=trace_func,
+        dphi_hint=dphi_hint, phi_hit_tol_factor=phi_hit_tol_factor,
     )
     return R_t[0], Z_t[0], valid[0]
 
@@ -370,7 +660,6 @@ def trace_surface_family_to_sections(
     dphi_hint: float = 0.04,
     phi_hit_tol_factor: float = 5.0,
 ) -> FieldLineScaffold3D:
-    """Functional convenience wrapper for :meth:`FieldLineScaffold3D.from_reference_map`."""
     return FieldLineScaffold3D.from_reference_map(
         reference_map=reference_map,
         phi_ref=phi_ref,
@@ -381,3 +670,154 @@ def trace_surface_family_to_sections(
         dphi_hint=dphi_hint,
         phi_hit_tol_factor=phi_hit_tol_factor,
     )
+
+
+def fit_ring_fourier(theta: ArrayLike, R: ArrayLike, Z: ArrayLike, n_coeff: int) -> Tuple[np.ndarray, np.ndarray]:
+    theta = np.asarray(theta, dtype=float)
+    R = np.asarray(R, dtype=float)
+    Z = np.asarray(Z, dtype=float)
+    A = np.empty((len(theta), n_coeff), dtype=float)
+    A[:, 0] = 1.0
+    n_map = (n_coeff - 1) // 2
+    for k in range(1, n_map + 1):
+        A[:, 2 * k - 1] = np.cos(k * theta)
+        A[:, 2 * k] = np.sin(k * theta)
+    cR, *_ = np.linalg.lstsq(A, R, rcond=None)
+    cZ, *_ = np.linalg.lstsq(A, Z, rcond=None)
+    return cR, cZ
+
+
+def build_pchip_family(r_pts: ArrayLike, cR_pts: ArrayLike, cZ_pts: ArrayLike):
+    from scipy.interpolate import PchipInterpolator
+    r_pts = np.asarray(r_pts, dtype=float)
+    cR_pts = np.asarray(cR_pts, dtype=float)
+    cZ_pts = np.asarray(cZ_pts, dtype=float)
+    _, u = np.unique(np.round(r_pts, 8), return_index=True)
+    r = r_pts[u]
+    cR = cR_pts[u]
+    cZ = cZ_pts[u]
+    if len(r) < 2:
+        return None, None, r
+    return ([PchipInterpolator(r, cR[:, k]) for k in range(cR.shape[1])], [PchipInterpolator(r, cZ[:, k]) for k in range(cZ.shape[1])], r)
+
+
+def eval_fourier_family(coeff_R: Sequence, coeff_Z: Sequence, r: float, theta: ArrayLike) -> Tuple[np.ndarray, np.ndarray]:
+    theta = np.asarray(theta, dtype=float)
+    cR = np.array([spl(r) for spl in coeff_R], dtype=float)
+    cZ = np.array([spl(r) for spl in coeff_Z], dtype=float)
+    n_coeff = len(cR)
+    A = np.empty((len(theta), n_coeff), dtype=float)
+    A[:, 0] = 1.0
+    n_map = (n_coeff - 1) // 2
+    for k in range(1, n_map + 1):
+        A[:, 2 * k - 1] = np.cos(k * theta)
+        A[:, 2 * k] = np.sin(k * theta)
+    return A @ cR, A @ cZ
+
+
+class _ReferenceMapAdapter:
+    def __init__(self, spl_R, spl_Z):
+        self.spl_R = spl_R
+        self.spl_Z = spl_Z
+    def eval_RZ(self, r: float, theta: float) -> Tuple[float, float]:
+        R, Z = eval_fourier_family(self.spl_R, self.spl_Z, r, np.array([theta], dtype=float))
+        return float(R[0]), float(Z[0])
+
+
+def build_section_scaffold_bundle(
+    *,
+    phi_samples: Sequence[float],
+    phi_ref: float,
+    reference_spl_R: Sequence,
+    reference_spl_Z: Sequence,
+    r_levels: Sequence[float],
+    theta_levels: Sequence[float],
+    trace_func: TraceFunction,
+    section_axes: Sequence[Tuple[float, float]],
+    cxo_local: Optional[Sequence[Optional[Tuple[Any, Any]]]] = None,
+    fit_inner_limit: Optional[float] = None,
+    n_coeff: int,
+    dphi_hint: float = 0.04,
+    phi_hit_tol_factor: float = 5.0,
+    cxo_trace_theta: Optional[Sequence[float]] = None,
+) -> SectionScaffoldBundle:
+    phi_samples = np.asarray(phi_samples, dtype=float)
+    ref_idx = int(np.argmin(np.abs(np.angle(np.exp(1j * (phi_samples - _wrap_angle(phi_ref)))))))
+    scaffold = trace_surface_family_to_sections(
+        reference_map=_ReferenceMapAdapter(reference_spl_R, reference_spl_Z),
+        phi_ref=phi_ref,
+        r_levels=r_levels,
+        theta_levels=theta_levels,
+        phi_samples=phi_samples,
+        trace_func=trace_func,
+        dphi_hint=dphi_hint,
+        phi_hit_tol_factor=phi_hit_tol_factor,
+    )
+    fits: List[SectionFit] = []
+    cxo_trace_theta = np.asarray(cxo_trace_theta if cxo_trace_theta is not None else theta_levels, dtype=float)
+
+    for ip, phi in enumerate(phi_samples):
+        sec = scaffold.sections[ip]
+        R_ax, Z_ax = section_axes[ip]
+        cR_ax = np.zeros(n_coeff, dtype=float); cR_ax[0] = R_ax
+        cZ_ax = np.zeros(n_coeff, dtype=float); cZ_ax[0] = Z_ax
+        r_ok = [0.0]
+        cR_rows = [cR_ax]
+        cZ_rows = [cZ_ax]
+        for ir, r_val in enumerate(r_levels):
+            ok = np.asarray(sec.valid[ir], dtype=bool)
+            if int(np.sum(ok)) < max(8, len(theta_levels) // 3):
+                continue
+            cR, cZ = fit_ring_fourier(np.asarray(theta_levels)[ok], np.asarray(sec.R[ir])[ok], np.asarray(sec.Z[ir])[ok], n_coeff)
+            r_ok.append(float(r_val))
+            cR_rows.append(cR)
+            cZ_rows.append(cZ)
+        cR_arr = np.asarray(cR_rows, dtype=float)
+        cZ_arr = np.asarray(cZ_rows, dtype=float)
+        r_ok_arr = np.asarray(r_ok, dtype=float)
+        if fit_inner_limit is None:
+            inner_mask = np.ones_like(r_ok_arr, dtype=bool)
+        else:
+            inner_mask = r_ok_arr <= float(fit_inner_limit) + 1e-12
+        spl_R_in, spl_Z_in, _ = build_pchip_family(r_ok_arr[inner_mask], cR_arr[inner_mask], cZ_arr[inner_mask])
+        spl_R_ext, spl_Z_ext, r_aug_ext = build_pchip_family(r_ok_arr, cR_arr, cZ_arr)
+        r_max = float(np.max(r_ok_arr[inner_mask])) if np.any(inner_mask) else 0.0
+
+        spl_R_CXO = None
+        spl_Z_CXO = None
+        cxo_param = None
+        if cxo_local is not None and ip < len(cxo_local) and cxo_local[ip] is not None:
+            spl_R_CXO, spl_Z_CXO = cxo_local[ip]
+        elif cxo_local is not None and ref_idx < len(cxo_local) and cxo_local[ref_idx] is not None:
+            ref_cxo = cxo_local[ref_idx]
+            Rc, Zc = trace_section_curve_to_phi(
+                ref_cxo[0](cxo_trace_theta), ref_cxo[1](cxo_trace_theta),
+                phi_src=float(phi_ref), phi_tgt=float(phi), trace_func=trace_func,
+                dphi_hint=dphi_hint, phi_hit_tol_factor=phi_hit_tol_factor,
+            )[:2]
+            okc = np.isfinite(Rc) & np.isfinite(Zc)
+            if np.sum(okc) >= max(12, len(cxo_trace_theta) // 3):
+                tt = np.linspace(0.0, 1.0, int(np.sum(okc)), endpoint=False)
+                Rc1 = Rc[okc]; Zc1 = Zc[okc]
+                t_closed = np.append(tt, 1.0)
+                Rc_closed = np.append(Rc1, Rc1[0])
+                Zc_closed = np.append(Zc1, Zc1[0])
+                try:
+                    spl_R_CXO = CubicSpline(t_closed, Rc_closed, bc_type="periodic")
+                    spl_Z_CXO = CubicSpline(t_closed, Zc_closed, bc_type="periodic")
+                    cxo_param = t_closed
+                except Exception:
+                    spl_R_CXO = None
+                    spl_Z_CXO = None
+
+        fits.append(SectionFit(
+            phi=float(phi), R_ax=float(R_ax), Z_ax=float(Z_ax),
+            spl_R_in=spl_R_in, spl_Z_in=spl_Z_in,
+            spl_R_ext=spl_R_ext, spl_Z_ext=spl_Z_ext,
+            r_max=r_max, r_aug_ext=r_aug_ext,
+            spl_R_CXO=spl_R_CXO, spl_Z_CXO=spl_Z_CXO, cxo_param=cxo_param,
+            scaffold_valid=(spl_R_in is not None),
+            trace_valid_fraction=float(np.mean(sec.valid)),
+        ))
+    return SectionScaffoldBundle(scaffold_3d=scaffold, fits=fits, reference_index=ref_idx)
+
