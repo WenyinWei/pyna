@@ -120,6 +120,13 @@ def _curve_cumulative_arclength(curve: np.ndarray) -> np.ndarray:
     return np.concatenate([[0.0], np.cumsum(ds)])
 
 
+def _cyclic_dist(a: int, b: int, n: int) -> int:
+    if n <= 0:
+        return 0
+    d = abs(int(a) - int(b)) % n
+    return int(min(d, n - d))
+
+
 def _polygon_signed_area(curve: np.ndarray) -> float:
     if len(curve) < 3:
         return 0.0
@@ -278,6 +285,15 @@ def build_xo_sequence(
     The backbone is defined by a cyclic ordering of O-points, refined by local
     nearest-neighbour continuity rather than simple polar-angle sorting.  Each
     X-point is then assigned to the O-slot whose chord it best matches.
+
+    Compared with the initial greedy implementation, this version keeps a full
+    candidate table and then repairs slot gaps with lightweight global logic:
+
+    * favour the best one-to-one X↔slot matching first,
+    * allow missing-slot repair when an unassigned X fits an empty neighbour
+      slot substantially better than the original winner,
+    * softly prefer angular continuity between X and slot on the O-ring,
+    * keep the final polygon rejection (self-intersection / winding) intact.
     """
     O = _dedup_points(_as_point_rows(O_points), tol=dedup_tol)
     X = _dedup_points(_as_point_rows(X_points), tol=dedup_tol)
@@ -289,6 +305,7 @@ def build_xo_sequence(
         else:
             return None
     R_ax, Z_ax = float(axis[0]), float(axis[1])
+    axis_vec = np.array([R_ax, Z_ax], dtype=float)
 
     if rho_min > 0.0:
         if len(O):
@@ -309,44 +326,103 @@ def build_xo_sequence(
         shift = int(np.argmin(ang))
         O_ord = np.roll(O_ord, -shift, axis=0)
         order_seed = np.roll(order_seed, -shift)
+        ang = np.roll(ang, -shift)
+    ang = np.unwrap(ang)
 
     O_closed = np.vstack([O_ord, O_ord[0]])
     sO = _curve_cumulative_arclength(O_closed)
     n_O = len(O_ord)
 
-    slot_best: Dict[int, Dict[str, float]] = {}
     x_slot = np.full(len(X), -1, dtype=int)
+    x_angle = np.unwrap(np.arctan2(X[:, 1] - Z_ax, X[:, 0] - R_ax)) if len(X) else np.empty(0, dtype=float)
+    if len(x_angle) and len(ang):
+        x_angle = x_angle + 2.0 * np.pi * np.round((np.mean(ang) - np.mean(x_angle)) / (2.0 * np.pi))
+
+    slot_candidates: Dict[int, List[Dict[str, float]]] = {k: [] for k in range(n_O)}
+    x_candidates: Dict[int, List[Dict[str, float]]] = {ix: [] for ix in range(len(X))}
 
     for ix, xp in enumerate(X):
-        best = None
+        xp = np.asarray(xp, dtype=float)
         for k in range(n_O):
             a = O_ord[k]
             b = O_ord[(k + 1) % n_O]
             tloc, dist, q = _project_to_segment_param(xp, a, b)
             chord = float(np.hypot(*(b - a))) + 1e-12
             mid = 0.5 * (a + b)
-            radial_pen = abs(np.hypot(*(xp - np.array([R_ax, Z_ax]))) - np.hypot(*(mid - np.array([R_ax, Z_ax]))))
+            radial_pen = abs(np.hypot(*(xp - axis_vec)) - np.hypot(*(mid - axis_vec)))
             endpoint_pen = min(tloc, 1.0 - tloc)
-            score = dist / chord + 0.35 * radial_pen / chord - 0.15 * endpoint_pen
+            theta_mid = 0.5 * (ang[k] + ang[(k + 1) % n_O])
+            angle_pen = abs(float(x_angle[ix] - theta_mid)) / np.pi if len(x_angle) else 0.0
+            base_score = dist / chord + 0.35 * radial_pen / chord - 0.15 * endpoint_pen
+            score = base_score + 0.10 * angle_pen
             cand = {
                 "slot": k,
                 "score": float(score),
+                "base_score": float(base_score),
+                "angle_pen": float(angle_pen),
                 "t": float(tloc),
                 "s": float(sO[k] + tloc * chord),
                 "R": float(xp[0]),
                 "Z": float(xp[1]),
+                "ix": ix,
+                "dist": float(dist),
+                "chord": float(chord),
             }
-            if best is None or cand["score"] < best["score"]:
-                best = cand
-        if best is None:
-            continue
-        slot = int(best["slot"])
-        prev = slot_best.get(slot)
-        if prev is None or best["score"] < prev["score"]:
-            slot_best[slot] = {**best, "ix": ix}
+            slot_candidates[k].append(cand)
+            x_candidates[ix].append(cand)
 
-    for slot, rec in slot_best.items():
+    for k in range(n_O):
+        slot_candidates[k].sort(key=lambda rec: (rec["score"], rec["angle_pen"], rec["dist"]))
+    for ix in range(len(X)):
+        x_candidates[ix].sort(key=lambda rec: (rec["score"], rec["angle_pen"], rec["dist"]))
+
+    slot_best: Dict[int, Dict[str, float]] = {}
+    used_x: set[int] = set()
+
+    def _assign(slot: int, rec: Dict[str, float]) -> None:
+        slot_best[int(slot)] = rec
         x_slot[int(rec["ix"])] = int(slot)
+        used_x.add(int(rec["ix"]))
+
+    for k in range(n_O):
+        for cand in slot_candidates[k]:
+            ix = int(cand["ix"])
+            if ix in used_x:
+                continue
+            _assign(k, cand)
+            break
+
+    empty_slots = [k for k in range(n_O) if k not in slot_best]
+    if empty_slots:
+        unassigned = [ix for ix in range(len(X)) if ix not in used_x]
+        for k in empty_slots:
+            cands = [rec for rec in slot_candidates[k] if int(rec["ix"]) in unassigned]
+            if not cands:
+                continue
+            best = cands[0]
+            if best["score"] <= 1.35:
+                _assign(k, best)
+                unassigned.remove(int(best["ix"]))
+
+    empty_slots = [k for k in range(n_O) if k not in slot_best]
+    if empty_slots:
+        unassigned = [ix for ix in range(len(X)) if ix not in used_x]
+        for k in empty_slots:
+            for rec in slot_candidates[k]:
+                ix = int(rec["ix"])
+                if ix not in unassigned:
+                    continue
+                best_x = x_candidates[ix][0] if x_candidates[ix] else None
+                if best_x is None:
+                    continue
+                best_slot = int(best_x["slot"])
+                donor = slot_best.get(best_slot)
+                score_gain = float(rec["score"] - best_x["score"])
+                near_pref = _cyclic_dist(k, best_slot, n_O)
+                if donor is None or score_gain <= 0.20 + 0.08 * near_pref:
+                    _assign(k, rec)
+                    unassigned.remove(ix)
+                    break
 
     seq: List[XOArcPoint] = []
     for k in range(n_O):
@@ -392,6 +468,8 @@ def build_xo_sequence(
         "self_intersections": self_intersections,
         "winding_monotone": winding_monotone,
         "signed_area": float(_polygon_signed_area(curve)),
+        "slot_gap_count": int(np.sum([k not in slot_best for k in range(n_O)])),
+        "n_unassigned_X": int(np.sum(x_slot < 0)),
     }
     return XOSequence(
         axis=(R_ax, Z_ax),
