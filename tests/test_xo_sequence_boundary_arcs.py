@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pyna.topo.healed_scaffold_3d import build_xo_sequence, xo_sequence_boundary_arcs
+from pyna.topo.healed_flux_coords import build_xo_sequence, xo_sequence_boundary_arcs
 
 
 def test_xo_sequence_boundary_arcs_returns_segment_list():

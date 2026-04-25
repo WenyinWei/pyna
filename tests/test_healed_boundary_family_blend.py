@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from pyna.topo.healed_scaffold_3d import BoundaryFamily3D
+from pyna.topo.healed_flux_coords import BoundaryFamily3D
 
 
 def _shift_trace(R0, Z0, phi0, phi_span, dphi_out):

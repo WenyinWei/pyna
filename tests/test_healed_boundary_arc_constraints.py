@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from pyna.topo.healed_scaffold_3d import BoundaryConstraintSet, correct_boundary_with_constraints
+from pyna.topo.healed_flux_coords import BoundaryConstraintSet, correct_boundary_with_constraints
 
 
 def test_arc_constraints_pull_curve_segment_toward_arc():
