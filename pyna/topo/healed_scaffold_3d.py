@@ -580,14 +580,17 @@ class BoundaryConstraintSet:
 
     This is intentionally generic: callers may provide invariant points from
     island chains, periodic orbits, manifolds, or any other section-local
-    boundary markers.  ``attract_points`` are features that should lie near the
-    corrected boundary; ``repel_points`` are kept for diagnostics / future use.
+    boundary markers. ``attract_points`` are sparse markers; ``attract_arcs``
+    are ordered polyline-like samples that indicate boundary segments that
+    should be followed locally.
     """
 
     attract_points: ArrayLike
+    attract_arcs: Optional[Sequence[ArrayLike]] = None
     repel_points: Optional[ArrayLike] = None
     local_weight: float = 0.7
     snap_length_scale: Optional[float] = None
+    arc_weight: Optional[float] = None
 
 
 def _nearest_curve_samples(
@@ -620,11 +623,9 @@ def correct_boundary_with_constraints(
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, Dict[str, Any]]:
     """Apply a generic local correction from section-local boundary markers.
 
-    The current correction is deliberately light-touch and geometry-agnostic:
-    nearest curve samples are softly snapped toward section-local attractor
-    points, then blended back onto the transported curve.  This improves local
-    boundary fidelity even when a full local closed boundary spline is not
-    available.
+    Two complementary correction modes are supported:
+    1. sparse point attraction for isolated invariant markers,
+    2. arc-aware attraction for ordered local boundary segments.
     """
     R = np.asarray(R_curve, dtype=float).copy()
     Z = np.asarray(Z_curve, dtype=float).copy()
@@ -634,37 +635,70 @@ def correct_boundary_with_constraints(
         "n_snap_used": 0,
         "mean_snap_distance": 0.0,
         "max_snap_distance": 0.0,
+        "n_arcs": 0,
+        "n_arc_samples_used": 0,
     }
     if constraints is None:
         return R, Z, ok, diagnostics
-    attract = np.asarray(constraints.attract_points, dtype=float)
-    if attract.size == 0:
-        return R, Z, ok, diagnostics
-    if attract.ndim == 1:
-        attract = attract[None, :]
-    diagnostics["n_attract"] = int(len(attract))
-    idx, dist, _ = _nearest_curve_samples(R, Z, attract)
-    if len(idx) == 0:
-        return R, Z, ok, diagnostics
-    length_scale = constraints.snap_length_scale
-    if length_scale is None:
-        finite_dist = dist[np.isfinite(dist)]
-        length_scale = float(np.median(finite_dist)) if finite_dist.size else 0.0
-    weight = float(np.clip(constraints.local_weight, 0.0, 1.0))
-    used = 0
+
     moved = []
-    for ip, j in enumerate(idx):
-        if not np.isfinite(dist[ip]):
+    length_scale = constraints.snap_length_scale
+    weight = float(np.clip(constraints.local_weight, 0.0, 1.0))
+    arc_weight = float(np.clip(constraints.arc_weight if constraints.arc_weight is not None else max(weight, 0.85), 0.0, 1.0))
+
+    attract = np.asarray(constraints.attract_points, dtype=float)
+    if attract.size != 0:
+        if attract.ndim == 1:
+            attract = attract[None, :]
+        diagnostics["n_attract"] = int(len(attract))
+        idx, dist, _ = _nearest_curve_samples(R, Z, attract)
+        if length_scale is None:
+            finite_dist = dist[np.isfinite(dist)]
+            length_scale = float(np.median(finite_dist)) if finite_dist.size else 0.0
+        for ip, j in enumerate(idx):
+            if not np.isfinite(dist[ip]):
+                continue
+            if length_scale > 0.0 and dist[ip] > 3.0 * length_scale:
+                continue
+            R[j] = (1.0 - weight) * R[j] + weight * attract[ip, 0]
+            Z[j] = (1.0 - weight) * Z[j] + weight * attract[ip, 1]
+            ok[j] = True
+            diagnostics["n_snap_used"] += 1
+            moved.append(float(dist[ip]))
+
+    arcs = constraints.attract_arcs or []
+    diagnostics["n_arcs"] = int(len(arcs))
+    for arc in arcs:
+        arc_arr = np.asarray(arc, dtype=float)
+        if arc_arr.ndim != 2 or arc_arr.shape[0] < 2 or arc_arr.shape[1] < 2:
             continue
-        if length_scale > 0.0 and dist[ip] > 3.0 * length_scale:
+        idx_arc, dist_arc, _ = _nearest_curve_samples(R, Z, arc_arr[:, :2])
+        if length_scale is None:
+            finite_dist = dist_arc[np.isfinite(dist_arc)]
+            length_scale = float(np.median(finite_dist)) if finite_dist.size else 0.0
+        used_idx = []
+        used_pts = []
+        for ip, j in enumerate(idx_arc):
+            if not np.isfinite(dist_arc[ip]):
+                continue
+            if length_scale > 0.0 and dist_arc[ip] > 4.0 * length_scale:
+                continue
+            used_idx.append(int(j))
+            used_pts.append(arc_arr[ip, :2])
+        if len(used_idx) < 2:
             continue
-        R[j] = (1.0 - weight) * R[j] + weight * attract[ip, 0]
-        Z[j] = (1.0 - weight) * Z[j] + weight * attract[ip, 1]
-        ok[j] = True
-        used += 1
-        moved.append(float(dist[ip]))
+        order = np.argsort(used_idx)
+        used_idx = [used_idx[k] for k in order]
+        used_pts = [used_pts[k] for k in order]
+        for j, pt in zip(used_idx, used_pts):
+            R[j] = (1.0 - arc_weight) * R[j] + arc_weight * float(pt[0])
+            Z[j] = (1.0 - arc_weight) * Z[j] + arc_weight * float(pt[1])
+            ok[j] = True
+        diagnostics["n_arc_samples_used"] += int(len(used_idx))
+        seg_move = np.sqrt((np.array([pt[0] for pt in used_pts]) - R[np.array(used_idx)])**2 + (np.array([pt[1] for pt in used_pts]) - Z[np.array(used_idx)])**2)
+        moved.extend([float(v) for v in seg_move])
+
     if moved:
-        diagnostics["n_snap_used"] = int(used)
         diagnostics["mean_snap_distance"] = float(np.mean(moved))
         diagnostics["max_snap_distance"] = float(np.max(moved))
     return R, Z, ok, diagnostics
