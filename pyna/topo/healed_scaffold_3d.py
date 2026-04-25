@@ -26,7 +26,7 @@ from dataclasses import dataclass
 from typing import Callable, Optional, Sequence, Tuple, List, Any, Dict
 
 import numpy as np
-from scipy.interpolate import CubicSpline
+from scipy.interpolate import CubicSpline, PchipInterpolator
 
 
 ArrayLike = np.ndarray
@@ -257,18 +257,43 @@ class XOSequence:
     Z_closed: ArrayLike
     diagnostics: Dict[str, Any]
 
-    def periodic_splines(self) -> Tuple[Optional[CubicSpline], Optional[CubicSpline]]:
+    def periodic_splines(self) -> Tuple[Optional[Any], Optional[Any]]:
         if len(self.s_closed) < 4:
             return None, None
         if not np.all(np.diff(self.s_closed) > 0):
             return None, None
-        try:
-            return (
-                CubicSpline(self.s_closed, self.R_closed, bc_type="periodic"),
-                CubicSpline(self.s_closed, self.Z_closed, bc_type="periodic"),
-            )
-        except Exception:
+        s = np.asarray(self.s_closed, dtype=float)
+        R = np.asarray(self.R_closed, dtype=float)
+        Z = np.asarray(self.Z_closed, dtype=float)
+        total = float(s[-1] - s[0])
+        if total <= 0.0:
             return None, None
+        try:
+            s_ext = np.concatenate([s[:-1] - total, s, s[1:] + total])
+            R_ext = np.concatenate([R[:-1], R, R[1:]])
+            Z_ext = np.concatenate([Z[:-1], Z, Z[1:]])
+            pR = PchipInterpolator(s_ext, R_ext, extrapolate=True)
+            pZ = PchipInterpolator(s_ext, Z_ext, extrapolate=True)
+
+            class _PeriodicPchip:
+                def __init__(self, base, s0, period):
+                    self.base = base
+                    self.s0 = float(s0)
+                    self.period = float(period)
+                def __call__(self, x):
+                    x_arr = np.asarray(x, dtype=float)
+                    xw = self.s0 + np.mod(x_arr - self.s0, self.period)
+                    return self.base(xw)
+
+            return _PeriodicPchip(pR, s[0], total), _PeriodicPchip(pZ, s[0], total)
+        except Exception:
+            try:
+                return (
+                    CubicSpline(s, R, bc_type="periodic"),
+                    CubicSpline(s, Z, bc_type="periodic"),
+                )
+            except Exception:
+                return None, None
 
 
 def build_xo_sequence(
@@ -918,11 +943,6 @@ class BoundaryFamily3D:
         t = t[order]
         R = R[order]
         Z = Z[order]
-        axis = np.array([np.mean(R), np.mean(Z)], dtype=float)
-        ang = np.unwrap(np.arctan2(Z - axis[1], R - axis[0]))
-        winding = abs(float((ang[-1] - ang[0]) / (2.0 * np.pi))) if len(ang) > 1 else 0.0
-        if winding > 1.5:
-            return None, None, None, float(np.mean(ok)), sec.source + "+rejected-multiwrap"
         t_closed = np.append(t, 1.0)
         R_closed = np.append(R, R[0])
         Z_closed = np.append(Z, Z[0])
