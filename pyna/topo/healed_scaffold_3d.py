@@ -490,31 +490,61 @@ def xo_sequence_boundary_arcs(
     *,
     include_o_segments: bool = True,
     include_x_segments: bool = True,
+    include_cross_segments: bool = True,
+    outward_quantile: float = 0.5,
+    min_length_fraction: float = 0.0,
     min_points: int = 2,
 ) -> List[np.ndarray]:
-    """Extract slot/segment-aware local boundary arcs from an ``XOSequence``.
+    """Extract physically filtered slot/segment-aware local boundary arcs.
 
-    Returned arcs are short ordered polylines taken directly from the repaired
-    X/O boundary sequence, so they carry more geometric meaning than simply
-    sorting raw X or O points by polar angle.
+    The raw repaired X/O sequence contains many short local connections. For
+    boundary correction we usually only want segments that are plausibly part of
+    the outer healed envelope. This helper therefore supports lightweight
+    physics-aware filtering by outwardness and relative segment length.
     """
     if xo is None or len(xo.sequence) < max(2, min_points):
         return []
-    arcs: List[np.ndarray] = []
     seq = list(xo.sequence)
     n = len(seq)
+    axis = np.asarray(xo.axis, dtype=float)
+    candidates: List[Dict[str, Any]] = []
+    lengths = []
+    outward_vals = []
     for i, p0 in enumerate(seq):
         p1 = seq[(i + 1) % n]
         pts = np.array([[p0.R, p0.Z], [p1.R, p1.Z]], dtype=float)
         if pts.shape[0] < min_points:
             continue
         kinds = {p0.kind, p1.kind}
-        if kinds == {"O"} and include_o_segments:
-            arcs.append(pts)
-        elif kinds == {"X"} and include_x_segments:
-            arcs.append(pts)
-        elif kinds == {"O", "X"}:
-            arcs.append(pts)
+        keep_kind = (
+            (kinds == {"O"} and include_o_segments)
+            or (kinds == {"X"} and include_x_segments)
+            or (kinds == {"O", "X"} and include_cross_segments)
+        )
+        if not keep_kind:
+            continue
+        rho = np.hypot(pts[:, 0] - axis[0], pts[:, 1] - axis[1])
+        outward = float(np.mean(rho))
+        seg_len = float(np.hypot(*(pts[1] - pts[0])))
+        candidates.append({
+            "pts": pts,
+            "outward": outward,
+            "length": seg_len,
+            "kinds": kinds,
+        })
+        lengths.append(seg_len)
+        outward_vals.append(outward)
+    if not candidates:
+        return []
+    outward_cut = float(np.quantile(outward_vals, np.clip(outward_quantile, 0.0, 1.0)))
+    max_len = max(lengths) if lengths else 0.0
+    arcs: List[np.ndarray] = []
+    for rec in candidates:
+        if rec["outward"] + 1e-12 < outward_cut:
+            continue
+        if max_len > 0.0 and rec["length"] + 1e-12 < float(min_length_fraction) * max_len:
+            continue
+        arcs.append(np.asarray(rec["pts"], dtype=float))
     return arcs
 
 
