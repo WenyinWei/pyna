@@ -88,6 +88,8 @@ from pyna.topo.island_healed_coords import (
 from pyna.topo.healed_scaffold_3d import (
     TransportedSection,
     SectionCorrespondence,
+    BoundarySection,
+    BoundaryFamily3D,
     FieldLineScaffold3D,
     trace_grid_to_phi,
     trace_section_curve_to_phi,
@@ -218,6 +220,8 @@ __all__ = [
     # traced 3D healed scaffold
     "TransportedSection",
     "SectionCorrespondence",
+    "BoundarySection",
+    "BoundaryFamily3D",
     "FieldLineScaffold3D",
     "trace_grid_to_phi",
     "trace_section_curve_to_phi",

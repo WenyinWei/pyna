@@ -541,6 +541,186 @@ class SectionFit:
     cxo_param: Optional[ArrayLike] = None
     scaffold_valid: bool = False
     trace_valid_fraction: float = 0.0
+    boundary_source: str = "none"
+    boundary_valid_fraction: float = 0.0
+
+
+@dataclass
+class BoundarySection:
+    """One toroidal section of a transported healed boundary family.
+
+    Parameters
+    ----------
+    phi : float
+        Toroidal angle [rad].
+    R, Z : ndarray, shape (n_theta,)
+        Boundary coordinates sampled on a shared boundary parameter grid.
+    valid : ndarray, shape (n_theta,)
+        Validity mask after field-line transport / repair.
+    param : ndarray, shape (n_theta,)
+        Shared boundary parameter in [0, 1).
+    source : str
+        Provenance label, e.g. ``local-cxo`` or ``transported-ref-cxo``.
+    """
+    phi: float
+    R: ArrayLike
+    Z: ArrayLike
+    valid: ArrayLike
+    param: ArrayLike
+    source: str = "unknown"
+
+    def valid_fraction(self) -> float:
+        return float(np.mean(self.valid)) if np.size(self.valid) else 0.0
+
+
+class BoundaryFamily3D:
+    """Toroidally transported healed boundary family.
+
+    This promotes the outer healed boundary from a section-local plotting helper
+    to a first-class 3D object.  A boundary family is built from one reference
+    closed curve plus optional local boundary observations at other toroidal
+    sections.  Transport provides cross-section continuity; local observations
+    refine the transported shape when available.
+    """
+
+    def __init__(
+        self,
+        *,
+        phi_ref: float,
+        phi_samples: Sequence[float],
+        param_levels: Sequence[float],
+        sections: Sequence[BoundarySection],
+        ref_R: Sequence[float],
+        ref_Z: Sequence[float],
+        ref_source: str = "reference",
+    ):
+        self.phi_ref = _wrap_angle(phi_ref)
+        self.phi_samples = np.asarray([_wrap_angle(phi) for phi in phi_samples], dtype=float)
+        self.param_levels = np.asarray(param_levels, dtype=float)
+        self.sections = list(sections)
+        self.ref_R = np.asarray(ref_R, dtype=float)
+        self.ref_Z = np.asarray(ref_Z, dtype=float)
+        self.ref_source = str(ref_source)
+        if len(self.sections) != len(self.phi_samples):
+            raise ValueError("len(sections) must equal len(phi_samples)")
+        n_theta = len(self.param_levels)
+        if self.ref_R.shape != (n_theta,) or self.ref_Z.shape != (n_theta,):
+            raise ValueError("reference boundary must have shape (n_theta,)")
+        for sec in self.sections:
+            if np.asarray(sec.R).shape != (n_theta,) or np.asarray(sec.Z).shape != (n_theta,):
+                raise ValueError("all boundary sections must share the same parameter grid")
+
+    @classmethod
+    def from_reference_curve(
+        cls,
+        *,
+        phi_ref: float,
+        phi_samples: Sequence[float],
+        ref_R: Sequence[float],
+        ref_Z: Sequence[float],
+        trace_func: TraceFunction,
+        local_sections: Optional[Sequence[Optional[Tuple[Sequence[float], Sequence[float]]]]] = None,
+        param_levels: Optional[Sequence[float]] = None,
+        dphi_hint: float = 0.04,
+        phi_hit_tol_factor: float = 5.0,
+        blend_local_weight: float = 0.65,
+        min_transport_fraction: float = 0.35,
+    ) -> "BoundaryFamily3D":
+        ref_R = np.asarray(ref_R, dtype=float)
+        ref_Z = np.asarray(ref_Z, dtype=float)
+        n_theta = len(ref_R)
+        if n_theta < 8 or ref_Z.shape != ref_R.shape:
+            raise ValueError("reference boundary must be a closed curve with >=8 samples")
+        if param_levels is None:
+            param_levels = np.linspace(0.0, 1.0, n_theta, endpoint=False)
+        param_levels = np.asarray(param_levels, dtype=float)
+        phi_samples = np.asarray([_wrap_angle(phi) for phi in phi_samples], dtype=float)
+        ref_idx = int(np.argmin(np.abs(np.angle(np.exp(1j * (phi_samples - _wrap_angle(phi_ref)))))))
+        sections: List[BoundarySection] = []
+        for ip, phi in enumerate(phi_samples):
+            if ip == ref_idx:
+                valid = np.ones(n_theta, dtype=bool)
+                source = "reference"
+                R_use = ref_R.copy()
+                Z_use = ref_Z.copy()
+            else:
+                R_t, Z_t, valid = trace_section_curve_to_phi(
+                    ref_R, ref_Z,
+                    phi_src=float(phi_ref), phi_tgt=float(phi), trace_func=trace_func,
+                    dphi_hint=dphi_hint, phi_hit_tol_factor=phi_hit_tol_factor,
+                )
+                source = "transported-ref-cxo"
+                R_use = np.asarray(R_t, dtype=float)
+                Z_use = np.asarray(Z_t, dtype=float)
+                valid = np.asarray(valid, dtype=bool)
+            if local_sections is not None and ip < len(local_sections) and local_sections[ip] is not None:
+                R_loc = np.asarray(local_sections[ip][0], dtype=float)
+                Z_loc = np.asarray(local_sections[ip][1], dtype=float)
+                if R_loc.shape == (n_theta,) and Z_loc.shape == (n_theta,):
+                    good_loc = np.isfinite(R_loc) & np.isfinite(Z_loc)
+                    if np.mean(good_loc) >= min_transport_fraction:
+                        if np.mean(valid) >= min_transport_fraction:
+                            both = valid & good_loc
+                            if np.any(both):
+                                w = float(np.clip(blend_local_weight, 0.0, 1.0))
+                                R_use[both] = (1.0 - w) * R_use[both] + w * R_loc[both]
+                                Z_use[both] = (1.0 - w) * Z_use[both] + w * Z_loc[both]
+                                valid = valid | good_loc
+                                source = "blended-local+transport"
+                        else:
+                            R_use = R_loc.copy()
+                            Z_use = Z_loc.copy()
+                            valid = good_loc.copy()
+                            source = "local-cxo"
+            sections.append(BoundarySection(
+                phi=float(phi),
+                R=R_use,
+                Z=Z_use,
+                valid=valid,
+                param=param_levels.copy(),
+                source=source,
+            ))
+        return cls(
+            phi_ref=float(phi_ref),
+            phi_samples=phi_samples,
+            param_levels=param_levels,
+            sections=sections,
+            ref_R=ref_R,
+            ref_Z=ref_Z,
+            ref_source="reference",
+        )
+
+    def nearest_section_index(self, phi: float) -> int:
+        phi_w = _wrap_angle(phi)
+        dphi = np.abs(np.angle(np.exp(1j * (self.phi_samples - phi_w))))
+        return int(np.argmin(dphi))
+
+    def section_at(self, phi: float) -> BoundarySection:
+        return self.sections[self.nearest_section_index(phi)]
+
+    def section_splines(self, phi: float) -> Tuple[Optional[CubicSpline], Optional[CubicSpline], Optional[np.ndarray], float, str]:
+        sec = self.section_at(phi)
+        ok = np.asarray(sec.valid, dtype=bool) & np.isfinite(sec.R) & np.isfinite(sec.Z)
+        if np.sum(ok) < max(12, len(sec.param) // 3):
+            return None, None, None, float(np.mean(ok)) if ok.size else 0.0, sec.source
+        t = np.asarray(sec.param[ok], dtype=float)
+        R = np.asarray(sec.R[ok], dtype=float)
+        Z = np.asarray(sec.Z[ok], dtype=float)
+        if len(t) < 4:
+            return None, None, None, float(np.mean(ok)), sec.source
+        t_closed = np.append(t, 1.0)
+        R_closed = np.append(R, R[0])
+        Z_closed = np.append(Z, Z[0])
+        try:
+            return (
+                CubicSpline(t_closed, R_closed, bc_type="periodic"),
+                CubicSpline(t_closed, Z_closed, bc_type="periodic"),
+                t_closed,
+                float(np.mean(ok)),
+                sec.source,
+            )
+        except Exception:
+            return None, None, None, float(np.mean(ok)), sec.source
 
 
 @dataclass
@@ -548,6 +728,7 @@ class SectionScaffoldBundle:
     scaffold_3d: FieldLineScaffold3D
     fits: Sequence[SectionFit]
     reference_index: int
+    boundary_family: Optional[BoundaryFamily3D] = None
 
 
 def trace_grid_to_phi(
@@ -818,6 +999,7 @@ def build_section_scaffold_bundle(
     dphi_hint: float = 0.04,
     phi_hit_tol_factor: float = 5.0,
     cxo_trace_theta: Optional[Sequence[float]] = None,
+    boundary_family: Optional[BoundaryFamily3D] = None,
 ) -> SectionScaffoldBundle:
     phi_samples = np.asarray(phi_samples, dtype=float)
     ref_idx = int(np.argmin(np.abs(np.angle(np.exp(1j * (phi_samples - _wrap_angle(phi_ref)))))))
@@ -833,6 +1015,31 @@ def build_section_scaffold_bundle(
     )
     fits: List[SectionFit] = []
     cxo_trace_theta = np.asarray(cxo_trace_theta if cxo_trace_theta is not None else theta_levels, dtype=float)
+
+    if boundary_family is None and cxo_local is not None and ref_idx < len(cxo_local) and cxo_local[ref_idx] is not None:
+        ref_cxo = cxo_local[ref_idx]
+        ref_R = np.asarray(ref_cxo[0](cxo_trace_theta), dtype=float)
+        ref_Z = np.asarray(ref_cxo[1](cxo_trace_theta), dtype=float)
+        local_boundary_samples = []
+        for item in cxo_local:
+            if item is None:
+                local_boundary_samples.append(None)
+            else:
+                local_boundary_samples.append((
+                    np.asarray(item[0](cxo_trace_theta), dtype=float),
+                    np.asarray(item[1](cxo_trace_theta), dtype=float),
+                ))
+        boundary_family = BoundaryFamily3D.from_reference_curve(
+            phi_ref=float(phi_ref),
+            phi_samples=phi_samples,
+            ref_R=ref_R,
+            ref_Z=ref_Z,
+            trace_func=trace_func,
+            local_sections=local_boundary_samples,
+            param_levels=np.linspace(0.0, 1.0, len(cxo_trace_theta), endpoint=False),
+            dphi_hint=dphi_hint,
+            phi_hit_tol_factor=phi_hit_tol_factor,
+        )
 
     for ip, phi in enumerate(phi_samples):
         sec = scaffold.sections[ip]
@@ -864,29 +1071,14 @@ def build_section_scaffold_bundle(
         spl_R_CXO = None
         spl_Z_CXO = None
         cxo_param = None
-        if cxo_local is not None and ip < len(cxo_local) and cxo_local[ip] is not None:
+        boundary_source = "none"
+        boundary_valid_fraction = 0.0
+        if boundary_family is not None:
+            spl_R_CXO, spl_Z_CXO, cxo_param, boundary_valid_fraction, boundary_source = boundary_family.section_splines(float(phi))
+        elif cxo_local is not None and ip < len(cxo_local) and cxo_local[ip] is not None:
             spl_R_CXO, spl_Z_CXO = cxo_local[ip]
-        elif cxo_local is not None and ref_idx < len(cxo_local) and cxo_local[ref_idx] is not None:
-            ref_cxo = cxo_local[ref_idx]
-            Rc, Zc = trace_section_curve_to_phi(
-                ref_cxo[0](cxo_trace_theta), ref_cxo[1](cxo_trace_theta),
-                phi_src=float(phi_ref), phi_tgt=float(phi), trace_func=trace_func,
-                dphi_hint=dphi_hint, phi_hit_tol_factor=phi_hit_tol_factor,
-            )[:2]
-            okc = np.isfinite(Rc) & np.isfinite(Zc)
-            if np.sum(okc) >= max(12, len(cxo_trace_theta) // 3):
-                tt = np.linspace(0.0, 1.0, int(np.sum(okc)), endpoint=False)
-                Rc1 = Rc[okc]; Zc1 = Zc[okc]
-                t_closed = np.append(tt, 1.0)
-                Rc_closed = np.append(Rc1, Rc1[0])
-                Zc_closed = np.append(Zc1, Zc1[0])
-                try:
-                    spl_R_CXO = CubicSpline(t_closed, Rc_closed, bc_type="periodic")
-                    spl_Z_CXO = CubicSpline(t_closed, Zc_closed, bc_type="periodic")
-                    cxo_param = t_closed
-                except Exception:
-                    spl_R_CXO = None
-                    spl_Z_CXO = None
+            boundary_source = "local-cxo"
+            boundary_valid_fraction = 1.0
 
         fits.append(SectionFit(
             phi=float(phi), R_ax=float(R_ax), Z_ax=float(Z_ax),
@@ -896,6 +1088,8 @@ def build_section_scaffold_bundle(
             spl_R_CXO=spl_R_CXO, spl_Z_CXO=spl_Z_CXO, cxo_param=cxo_param,
             scaffold_valid=(spl_R_in is not None),
             trace_valid_fraction=float(np.mean(sec.valid)),
+            boundary_source=boundary_source,
+            boundary_valid_fraction=boundary_valid_fraction,
         ))
-    return SectionScaffoldBundle(scaffold_3d=scaffold, fits=fits, reference_index=ref_idx)
+    return SectionScaffoldBundle(scaffold_3d=scaffold, fits=fits, reference_index=ref_idx, boundary_family=boundary_family)
 
