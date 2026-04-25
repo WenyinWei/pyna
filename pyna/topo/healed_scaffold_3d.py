@@ -568,9 +568,106 @@ class BoundarySection:
     valid: ArrayLike
     param: ArrayLike
     source: str = "unknown"
+    diagnostics: Optional[Dict[str, Any]] = None
 
     def valid_fraction(self) -> float:
         return float(np.mean(self.valid)) if np.size(self.valid) else 0.0
+
+
+@dataclass
+class BoundaryConstraintSet:
+    """Section-local geometric constraints for boundary correction.
+
+    This is intentionally generic: callers may provide invariant points from
+    island chains, periodic orbits, manifolds, or any other section-local
+    boundary markers.  ``attract_points`` are features that should lie near the
+    corrected boundary; ``repel_points`` are kept for diagnostics / future use.
+    """
+
+    attract_points: ArrayLike
+    repel_points: Optional[ArrayLike] = None
+    local_weight: float = 0.7
+    snap_length_scale: Optional[float] = None
+
+
+def _nearest_curve_samples(
+    R_curve: Sequence[float],
+    Z_curve: Sequence[float],
+    points: Sequence[Sequence[float]],
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    Rc = np.asarray(R_curve, dtype=float)
+    Zc = np.asarray(Z_curve, dtype=float)
+    P = np.asarray(points, dtype=float)
+    if P.size == 0 or Rc.size == 0:
+        return np.empty(0, dtype=int), np.empty(0, dtype=float), np.empty((0, 2), dtype=float)
+    if P.ndim == 1:
+        P = P[None, :]
+    dR = Rc[None, :] - P[:, 0][:, None]
+    dZ = Zc[None, :] - P[:, 1][:, None]
+    dist = np.sqrt(dR * dR + dZ * dZ)
+    idx = np.argmin(dist, axis=1)
+    dmin = dist[np.arange(len(P)), idx]
+    curve_pts = np.column_stack([Rc[idx], Zc[idx]])
+    return idx.astype(int), dmin.astype(float), curve_pts
+
+
+def correct_boundary_with_constraints(
+    R_curve: Sequence[float],
+    Z_curve: Sequence[float],
+    *,
+    constraints: Optional[BoundaryConstraintSet] = None,
+    valid: Optional[Sequence[bool]] = None,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, Dict[str, Any]]:
+    """Apply a generic local correction from section-local boundary markers.
+
+    The current correction is deliberately light-touch and geometry-agnostic:
+    nearest curve samples are softly snapped toward section-local attractor
+    points, then blended back onto the transported curve.  This improves local
+    boundary fidelity even when a full local closed boundary spline is not
+    available.
+    """
+    R = np.asarray(R_curve, dtype=float).copy()
+    Z = np.asarray(Z_curve, dtype=float).copy()
+    ok = np.ones_like(R, dtype=bool) if valid is None else np.asarray(valid, dtype=bool).copy()
+    diagnostics = {
+        "n_attract": 0,
+        "n_snap_used": 0,
+        "mean_snap_distance": 0.0,
+        "max_snap_distance": 0.0,
+    }
+    if constraints is None:
+        return R, Z, ok, diagnostics
+    attract = np.asarray(constraints.attract_points, dtype=float)
+    if attract.size == 0:
+        return R, Z, ok, diagnostics
+    if attract.ndim == 1:
+        attract = attract[None, :]
+    diagnostics["n_attract"] = int(len(attract))
+    idx, dist, _ = _nearest_curve_samples(R, Z, attract)
+    if len(idx) == 0:
+        return R, Z, ok, diagnostics
+    length_scale = constraints.snap_length_scale
+    if length_scale is None:
+        finite_dist = dist[np.isfinite(dist)]
+        length_scale = float(np.median(finite_dist)) if finite_dist.size else 0.0
+    weight = float(np.clip(constraints.local_weight, 0.0, 1.0))
+    used = 0
+    moved = []
+    for ip, j in enumerate(idx):
+        if not np.isfinite(dist[ip]):
+            continue
+        if length_scale > 0.0 and dist[ip] > 3.0 * length_scale:
+            continue
+        R[j] = (1.0 - weight) * R[j] + weight * attract[ip, 0]
+        Z[j] = (1.0 - weight) * Z[j] + weight * attract[ip, 1]
+        ok[j] = True
+        used += 1
+        moved.append(float(dist[ip]))
+    if moved:
+        diagnostics["n_snap_used"] = int(used)
+        diagnostics["mean_snap_distance"] = float(np.mean(moved))
+        diagnostics["max_snap_distance"] = float(np.max(moved))
+    return R, Z, ok, diagnostics
 
 
 class BoundaryFamily3D:
@@ -620,6 +717,7 @@ class BoundaryFamily3D:
         ref_Z: Sequence[float],
         trace_func: TraceFunction,
         local_sections: Optional[Sequence[Optional[Tuple[Sequence[float], Sequence[float]]]]] = None,
+        local_constraints: Optional[Sequence[Optional[BoundaryConstraintSet]]] = None,
         param_levels: Optional[Sequence[float]] = None,
         dphi_hint: float = 0.04,
         phi_hit_tol_factor: float = 5.0,
@@ -653,6 +751,7 @@ class BoundaryFamily3D:
                 R_use = np.asarray(R_t, dtype=float)
                 Z_use = np.asarray(Z_t, dtype=float)
                 valid = np.asarray(valid, dtype=bool)
+            diagnostics = None
             if local_sections is not None and ip < len(local_sections) and local_sections[ip] is not None:
                 R_loc = np.asarray(local_sections[ip][0], dtype=float)
                 Z_loc = np.asarray(local_sections[ip][1], dtype=float)
@@ -672,6 +771,15 @@ class BoundaryFamily3D:
                             Z_use = Z_loc.copy()
                             valid = good_loc.copy()
                             source = "local-cxo"
+            if local_constraints is not None and ip < len(local_constraints) and local_constraints[ip] is not None:
+                R_use, Z_use, valid, diagnostics = correct_boundary_with_constraints(
+                    R_use,
+                    Z_use,
+                    constraints=local_constraints[ip],
+                    valid=valid,
+                )
+                if diagnostics.get("n_snap_used", 0) > 0:
+                    source = f"{source}+constraint-correction"
             sections.append(BoundarySection(
                 phi=float(phi),
                 R=R_use,
@@ -679,6 +787,7 @@ class BoundaryFamily3D:
                 valid=valid,
                 param=param_levels.copy(),
                 source=source,
+                diagnostics=diagnostics,
             ))
         return cls(
             phi_ref=float(phi_ref),
@@ -994,6 +1103,7 @@ def build_section_scaffold_bundle(
     trace_func: TraceFunction,
     section_axes: Sequence[Tuple[float, float]],
     cxo_local: Optional[Sequence[Optional[Tuple[Any, Any]]]] = None,
+    local_boundary_constraints: Optional[Sequence[Optional[BoundaryConstraintSet]]] = None,
     fit_inner_limit: Optional[float] = None,
     n_coeff: int,
     dphi_hint: float = 0.04,
@@ -1036,6 +1146,7 @@ def build_section_scaffold_bundle(
             ref_Z=ref_Z,
             trace_func=trace_func,
             local_sections=local_boundary_samples,
+            local_constraints=local_boundary_constraints,
             param_levels=np.linspace(0.0, 1.0, len(cxo_trace_theta), endpoint=False),
             dphi_hint=dphi_hint,
             phi_hit_tol_factor=phi_hit_tol_factor,
