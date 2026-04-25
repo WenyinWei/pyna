@@ -1065,7 +1065,6 @@ def build_section_scaffold_bundle(
         else:
             inner_mask = r_ok_arr <= float(fit_inner_limit) + 1e-12
         spl_R_in, spl_Z_in, _ = build_pchip_family(r_ok_arr[inner_mask], cR_arr[inner_mask], cZ_arr[inner_mask])
-        spl_R_ext, spl_Z_ext, r_aug_ext = build_pchip_family(r_ok_arr, cR_arr, cZ_arr)
         r_max = float(np.max(r_ok_arr[inner_mask])) if np.any(inner_mask) else 0.0
 
         spl_R_CXO = None
@@ -1079,6 +1078,37 @@ def build_section_scaffold_bundle(
             spl_R_CXO, spl_Z_CXO = cxo_local[ip]
             boundary_source = "local-cxo"
             boundary_valid_fraction = 1.0
+
+        cR_ext_arr = cR_arr.copy()
+        cZ_ext_arr = cZ_arr.copy()
+        r_ext_arr = r_ok_arr.copy()
+        if spl_R_CXO is not None and spl_Z_CXO is not None:
+            t_eval = np.asarray(cxo_trace_theta, dtype=float)
+            if cxo_param is None:
+                Rb = np.asarray(spl_R_CXO(t_eval), dtype=float)
+                Zb = np.asarray(spl_Z_CXO(t_eval), dtype=float)
+                theta_b = 2.0 * np.pi * t_eval
+            else:
+                tb = np.asarray(cxo_param[:-1], dtype=float) if len(cxo_param) > 1 else np.asarray(cxo_param, dtype=float)
+                Rb = np.asarray(spl_R_CXO(tb), dtype=float)
+                Zb = np.asarray(spl_Z_CXO(tb), dtype=float)
+                theta_b = 2.0 * np.pi * tb
+            if len(Rb) >= max(8, n_coeff):
+                cR_bnd, cZ_bnd = fit_ring_fourier(theta_b[:len(Rb)], Rb, Zb, n_coeff)
+                if np.any(np.isclose(r_ext_arr, 1.0, atol=1e-8)):
+                    i1 = int(np.argmin(np.abs(r_ext_arr - 1.0)))
+                    cR_ext_arr[i1] = cR_bnd
+                    cZ_ext_arr[i1] = cZ_bnd
+                else:
+                    r_ext_arr = np.append(r_ext_arr, 1.0)
+                    cR_ext_arr = np.vstack([cR_ext_arr, cR_bnd])
+                    cZ_ext_arr = np.vstack([cZ_ext_arr, cZ_bnd])
+                order = np.argsort(r_ext_arr)
+                r_ext_arr = r_ext_arr[order]
+                cR_ext_arr = cR_ext_arr[order]
+                cZ_ext_arr = cZ_ext_arr[order]
+
+        spl_R_ext, spl_Z_ext, r_aug_ext = build_pchip_family(r_ext_arr, cR_ext_arr, cZ_ext_arr)
 
         fits.append(SectionFit(
             phi=float(phi), R_ax=float(R_ax), Z_ax=float(Z_ax),
