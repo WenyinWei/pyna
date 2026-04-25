@@ -485,6 +485,39 @@ def build_xo_sequence(
     )
 
 
+def xo_sequence_boundary_arcs(
+    xo: Optional[XOSequence],
+    *,
+    include_o_segments: bool = True,
+    include_x_segments: bool = True,
+    min_points: int = 2,
+) -> List[np.ndarray]:
+    """Extract slot/segment-aware local boundary arcs from an ``XOSequence``.
+
+    Returned arcs are short ordered polylines taken directly from the repaired
+    X/O boundary sequence, so they carry more geometric meaning than simply
+    sorting raw X or O points by polar angle.
+    """
+    if xo is None or len(xo.sequence) < max(2, min_points):
+        return []
+    arcs: List[np.ndarray] = []
+    seq = list(xo.sequence)
+    n = len(seq)
+    for i, p0 in enumerate(seq):
+        p1 = seq[(i + 1) % n]
+        pts = np.array([[p0.R, p0.Z], [p1.R, p1.Z]], dtype=float)
+        if pts.shape[0] < min_points:
+            continue
+        kinds = {p0.kind, p1.kind}
+        if kinds == {"O"} and include_o_segments:
+            arcs.append(pts)
+        elif kinds == {"X"} and include_x_segments:
+            arcs.append(pts)
+        elif kinds == {"O", "X"}:
+            arcs.append(pts)
+    return arcs
+
+
 def build_cxo_spline(
     O_points: Sequence[Any],
     X_points: Sequence[Any],
