@@ -914,6 +914,15 @@ class BoundaryFamily3D:
         Z = np.asarray(sec.Z[ok], dtype=float)
         if len(t) < 4:
             return None, None, None, float(np.mean(ok)), sec.source
+        order = np.argsort(t)
+        t = t[order]
+        R = R[order]
+        Z = Z[order]
+        axis = np.array([np.mean(R), np.mean(Z)], dtype=float)
+        ang = np.unwrap(np.arctan2(Z - axis[1], R - axis[0]))
+        winding = abs(float((ang[-1] - ang[0]) / (2.0 * np.pi))) if len(ang) > 1 else 0.0
+        if winding > 1.5:
+            return None, None, None, float(np.mean(ok)), sec.source + "+rejected-multiwrap"
         t_closed = np.append(t, 1.0)
         R_closed = np.append(R, R[0])
         Z_closed = np.append(Z, Z[0])
