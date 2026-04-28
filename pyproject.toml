@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyna-chaos"
-version = "0.4.1"
+version = "0.5.0"
 description = "Python library for dynamical systems and magnetic confinement fusion analysis"
 readme = "README.md"
 license = {text = "GPL-3.0-or-later"}
