@@ -1,5 +1,5 @@
 #pragma once
-// poincare.hpp — self-contained Poincaré field-line tracer
+// poincare.hpp - self-contained Poincaré field-line tracer
 // Dependencies: C++17 stdlib + BS_thread_pool.hpp only
 #ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
@@ -71,7 +71,7 @@ static inline bool point_in_toroidal_wall(double R, double Z, double phi,
 // ---------------------------------------------------------------------------
 // Trilinear interpolation on regular 3D grid [iR][iZ][iPhi]
 //
-// Phi convention — matches topoquest's scipy setup exactly:
+// Phi convention - matches topoquest's scipy setup exactly:
 //   Phi_grid is Phi_ext = np.append(linspace(0, 2pi, N, endpoint=False), 2pi)
 //   so it has length N+1, Phi_grid[0]=0, Phi_grid[N]=2pi,
 //   and data[:,:,N] is a copy of data[:,:,0]  (the _ext() wrap).
@@ -168,6 +168,61 @@ inline double interp3d(
 
 
 // ---------------------------------------------------------------------------
+// Trilinear interpolation + spatial gradients for DX_pol variational equations
+// ---------------------------------------------------------------------------
+static inline bool interp3d_grad(
+    double& val, double& dR, double& dZ,
+    const double* data,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi,
+    double R, double Z, double Phi)
+{
+    if (!std::isfinite(R) || !std::isfinite(Z) || !std::isfinite(Phi))
+        return false;
+    if (R < R_grid[0] || R > R_grid[nR - 1] ||
+        Z < Z_grid[0] || Z > Z_grid[nZ - 1])
+        return false;
+    Phi = mod2pi(Phi);
+    double dRg = (R_grid[nR-1] - R_grid[0]) / (nR - 1);
+    double dZg = (Z_grid[nZ-1] - Z_grid[0]) / (nZ - 1);
+    double inv_dR = 1.0 / dRg, inv_dZ = 1.0 / dZg;
+
+    double tR_raw = (R - R_grid[0]) / (R_grid[nR-1] - R_grid[0]) * (nR - 1);
+    int iR = (int)tR_raw; if (iR < 0) iR = 0; if (iR >= nR-1) iR = nR-2;
+    double tR = tR_raw - iR;
+
+    double tZ_raw = (Z - Z_grid[0]) / (Z_grid[nZ-1] - Z_grid[0]) * (nZ - 1);
+    int iZ = (int)tZ_raw; if (iZ < 0) iZ = 0; if (iZ >= nZ-1) iZ = nZ-2;
+    double tZ = tZ_raw - iZ;
+
+    int iPhi; { int lo=0,hi=nPhi-2; while(lo<hi){int mid=(lo+hi)/2; if(Phi>=Phi_grid[mid+1])lo=mid+1;else hi=mid;} iPhi=lo; }
+    int iPhi1 = iPhi + 1;
+    double phiLo=Phi_grid[iPhi], phiHi=Phi_grid[iPhi1];
+    double tP = (phiHi > phiLo) ? (Phi - phiLo) / (phiHi - phiLo) : 0.0;
+    if (tP < 0.0) tP = 0.0; if (tP > 1.0) tP = 1.0;
+
+    auto v = [&](int r,int z,int p){return data[r*nZ*nPhi+z*nPhi+p];};
+    double c000=v(iR,iZ,iPhi),c001=v(iR,iZ,iPhi1),c010=v(iR,iZ+1,iPhi),c011=v(iR,iZ+1,iPhi1);
+    double c100=v(iR+1,iZ,iPhi),c101=v(iR+1,iZ,iPhi1),c110=v(iR+1,iZ+1,iPhi),c111=v(iR+1,iZ+1,iPhi1);
+    if(!std::isfinite(c000)||!std::isfinite(c001)||!std::isfinite(c010)||!std::isfinite(c011)||
+       !std::isfinite(c100)||!std::isfinite(c101)||!std::isfinite(c110)||!std::isfinite(c111))
+        return false;
+
+    double oR=1.0-tR, oZ=1.0-tZ, oP=1.0-tP;
+    val = c000*oR*oZ*oP + c001*oR*oZ*tP + c010*oR*tZ*oP + c011*oR*tZ*tP
+        + c100*tR*oZ*oP + c101*tR*oZ*tP + c110*tR*tZ*oP + c111*tR*tZ*tP;
+    double dtR = -c000*oZ*oP - c001*oZ*tP - c010*tZ*oP - c011*tZ*tP
+                + c100*oZ*oP + c101*oZ*tP + c110*tZ*oP + c111*tZ*tP;
+    dR = dtR * inv_dR;
+    double dtZ = -c000*oR*oP - c001*oR*tP + c010*oR*oP + c011*oR*tP
+                - c100*tR*oP - c101*tR*tP + c110*tR*oP + c111*tR*tP;
+    dZ = dtZ * inv_dZ;
+    return true;
+}
+
+
+// ---------------------------------------------------------------------------
 // RK4 step: advance (R,Z,Phi) by dPhi
 // ---------------------------------------------------------------------------
 static inline void rk4_step(
@@ -204,6 +259,82 @@ static inline void rk4_step(
 
     R += dPhi / 6.0 * (k1R + 2*k2R + 2*k3R + k4R);
     Z += dPhi / 6.0 * (k1Z + 2*k2Z + 2*k3Z + k4Z);
+}
+
+
+// ---------------------------------------------------------------------------
+// RK4 step with DX_pol evolution (variational equations)
+// ---------------------------------------------------------------------------
+// Advances the field-line trajectory (R,Z) AND the 2×2 poloidal Jacobian
+// DX_pol(φ_s, φ_e) = ∂(R(φ_e),Z(φ_e)) / ∂(R(φ_s),Z(φ_s)).
+//
+// Variational equation:  d(DX_pol)/dφ_e = J(φ_e) · DX_pol
+// where J = ∂(R·B_R/B_φ, R·B_Z/B_φ) / ∂(R, Z) is the analytic Jacobian
+// of the field-line ODE right-hand side, evaluated on the trajectory.
+//
+// Initial DX_pol should be identity; after integrating over m toroidal turns
+// (one full island-chain period), DX_pol = DPm(φ_s), the monodromy matrix.
+//
+// DX_pol stored row-major: D00,D01,D10,D11.
+static inline void rk4_step_DX_pol(
+    double& R, double& Z,
+    double& D00, double& D01, double& D10, double& D11,
+    double phi, double dPhi,
+    const double* BR, const double* BPhi, const double* BZ,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi)
+{
+    // Analytic local gradient of the field-line ODE: J = ∂f/∂(R,Z)
+    // where f(R,Z) = [R·B_R/B_φ, R·B_Z/B_φ]
+    // (Not a Jacobian in the DX_pol/DPm sense - those are derivatives
+    // w.r.t. initial conditions; this is a local spatial gradient.)
+    auto eval_local_grad = [&](double r, double z, double p,
+                         double& fR, double& fZ,
+                         double& J00, double& J01, double& J10, double& J11) -> bool {
+        double BRv, dBR_dR, dBR_dZ;
+        double BPhiv, dBPhi_dR, dBPhi_dZ;
+        double BZv, dBZ_dR, dBZ_dZ;
+        if (!interp3d_grad(BRv, dBR_dR, dBR_dZ, BR, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, r,z,p)) return false;
+        if (!interp3d_grad(BPhiv, dBPhi_dR, dBPhi_dZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, r,z,p)) return false;
+        if (!interp3d_grad(BZv, dBZ_dR, dBZ_dZ, BZ, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, r,z,p)) return false;
+        if (std::abs(BPhiv) <= 1e-12) { fR = fZ = 0.0; J00=J01=J10=J11=0.0; return true; }
+        double invBp = 1.0 / BPhiv, invBp2 = invBp / BPhiv;
+        fR = r * BRv * invBp;
+        fZ = r * BZv * invBp;
+        J00 = BRv*invBp + r*(dBR_dR*invBp - BRv*invBp2*dBPhi_dR);
+        J01 = r*(dBR_dZ*invBp - BRv*invBp2*dBPhi_dZ);
+        J10 = BZv*invBp + r*(dBZ_dR*invBp - BZv*invBp2*dBPhi_dR);
+        J11 = r*(dBZ_dZ*invBp - BZv*invBp2*dBPhi_dZ);
+        return true;
+    };
+    double fR1,fZ1,J00_1,J01_1,J10_1,J11_1;
+    if(!eval_local_grad(R,Z,phi,fR1,fZ1,J00_1,J01_1,J10_1,J11_1))return;
+    double k1_D00=J00_1*D00+J01_1*D10, k1_D01=J00_1*D01+J01_1*D11;
+    double k1_D10=J10_1*D00+J11_1*D10, k1_D11=J10_1*D01+J11_1*D11;
+    double hh=0.5*dPhi;
+    double R2=R+hh*fR1,Z2=Z+hh*fZ1, D00_2=D00+hh*k1_D00,D01_2=D01+hh*k1_D01,D10_2=D10+hh*k1_D10,D11_2=D11+hh*k1_D11;
+    double fR2,fZ2,J00_2,J01_2,J10_2,J11_2;
+    if(!eval_local_grad(R2,Z2,phi+hh,fR2,fZ2,J00_2,J01_2,J10_2,J11_2))return;
+    double k2_D00=J00_2*D00_2+J01_2*D10_2, k2_D01=J00_2*D01_2+J01_2*D11_2;
+    double k2_D10=J10_2*D00_2+J11_2*D10_2, k2_D11=J10_2*D01_2+J11_2*D11_2;
+    double R3=R+hh*fR2,Z3=Z+hh*fZ2, D00_3=D00+hh*k2_D00,D01_3=D01+hh*k2_D01,D10_3=D10+hh*k2_D10,D11_3=D11+hh*k2_D11;
+    double fR3,fZ3,J00_3,J01_3,J10_3,J11_3;
+    if(!eval_local_grad(R3,Z3,phi+hh,fR3,fZ3,J00_3,J01_3,J10_3,J11_3))return;
+    double k3_D00=J00_3*D00_3+J01_3*D10_3, k3_D01=J00_3*D01_3+J01_3*D11_3;
+    double k3_D10=J10_3*D00_3+J11_3*D10_3, k3_D11=J10_3*D01_3+J11_3*D11_3;
+    double R4=R+dPhi*fR3,Z4=Z+dPhi*fZ3, D00_4=D00+dPhi*k3_D00,D01_4=D01+dPhi*k3_D01,D10_4=D10+dPhi*k3_D10,D11_4=D11+dPhi*k3_D11;
+    double fR4,fZ4,J00_4,J01_4,J10_4,J11_4;
+    if(!eval_local_grad(R4,Z4,phi+dPhi,fR4,fZ4,J00_4,J01_4,J10_4,J11_4))return;
+    double k4_D00=J00_4*D00_4+J01_4*D10_4, k4_D01=J00_4*D01_4+J01_4*D11_4;
+    double k4_D10=J10_4*D00_4+J11_4*D10_4, k4_D11=J10_4*D01_4+J11_4*D11_4;
+    double s6=dPhi/6.0;
+    R += s6*(fR1+2*fR2+2*fR3+fR4);
+    Z += s6*(fZ1+2*fZ2+2*fZ3+fZ4);
+    D00 += s6*(k1_D00+2*k2_D00+2*k3_D00+k4_D00);
+    D01 += s6*(k1_D01+2*k2_D01+2*k3_D01+k4_D01);
+    D10 += s6*(k1_D10+2*k2_D10+2*k3_D10+k4_D10);
+    D11 += s6*(k1_D11+2*k2_D11+2*k3_D11+k4_D11);
 }
 
 // ---------------------------------------------------------------------------
@@ -650,16 +781,16 @@ void trace_wall_hits_twall(
 //
 // For each initial guess (R0, Z0), run Newton iterations on P^n(x) - x = 0
 // using finite-difference Jacobian (4 extra field-line integrations per step).
-// On convergence, also returns the full 2x2 DPm = DP^n at the fixed point,
+// On convergence, also returns the full 2×2 DPm = DP^m at the fixed point,
 // eigenvalues, and a classification: 1=X-point (|Tr|>2), 0=O-point (|Tr|<2).
 //
 // Outputs (length N_seeds each):
-//   R_out, Z_out          – converged position (NaN if not converged)
-//   residual_out          – |P^n(x)-x| at final iterate
-//   converged_out         – 1 if converged, 0 otherwise
-//   DPm_out               – flattened 2x2 DPm row-major (length 4*N_seeds)
-//   eig_r_out, eig_i_out  – real/imag parts of eigenvalues (length 2*N_seeds)
-//   point_type_out        – 1=X-point, 0=O-point, -1=not converged
+//   R_out, Z_out          - converged position (NaN if not converged)
+//   residual_out          - |P^n(x)-x| at final iterate
+//   converged_out         - 1 if converged, 0 otherwise
+//   DPm_out               — flattened 2×2 DPm row-major (length 4*N_seeds)
+//   eig_r_out, eig_i_out  - real/imag parts of eigenvalues (length 2*N_seeds)
+//   point_type_out        - 1=X-point, 0=O-point, -1=not converged
 // ---------------------------------------------------------------------------
 struct FixedPointResult {
     double R, Z;
@@ -670,18 +801,18 @@ struct FixedPointResult {
     int    point_type;  // 1=X, 0=O, -1=failed
 };
 
-// Integrate n_turns starting from (R, Z, phi_start); return final (R, Z).
+// Integrate m_turns starting from (R, Z, phi_start); return final (R, Z).
 // Returns false if field line exits the grid or becomes non-finite.
-static inline bool pmap_n(
+static inline bool pmap_m(
     double& R, double& Z,
-    double phi_start, int n_turns, double DPhi,
+    double phi_start, int m_turns, double DPhi,
     const double* BR, const double* BPhi, const double* BZ,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi)
 {
     double phi = phi_start;
-    double phi_end = phi_start + n_turns * 2.0 * M_PI;
+    double phi_end = phi_start + m_turns * 2.0 * M_PI;
     while (phi < phi_end - 1e-12) {
         double step = std::min(DPhi, phi_end - phi);
         rk4_step(R, Z, phi, step, BR, BPhi, BZ, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
@@ -694,14 +825,57 @@ static inline bool pmap_n(
     return true;
 }
 
+
+// ---------------------------------------------------------------------------
+// Evolve DX_pol(φ_s, φ_s+2πm) over m toroidal turns.
+// ---------------------------------------------------------------------------
+// Simultaneously integrates the field-line trajectory (R,Z) and the 2×2
+// poloidal Jacobian DX_pol using the analytic local gradient J(φ):
+//
+//   d(DX_pol)/dφ = J(φ) · DX_pol,    DX_pol(φ_s, φ_s) = I
+//
+// Returns DX_out[4] = DX_pol(φ_s, φ_s+2πm) in row-major order.
+// When the turn count m equals the island-chain poloidal mode number,
+// DX_out = DPm(φ_s), the monodromy matrix.
+//
+// Unlike central finite differences (which require 4 separate m-turn
+// integrations and accumulate O(ε2) truncation error), this uses the
+// analytic local gradient of the ODE right-hand side at each RK4 substep,
+// producing the variational-equation-accurate result in a single pass.
+static inline bool DX_pol_m_turns(
+    double& R, double& Z,
+    double DX_out[4],
+    double phi_start, int m_turns, double DPhi,
+    const double* BR, const double* BPhi, const double* BZ,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi)
+{
+    double D00=1.0,D01=0.0,D10=0.0,D11=1.0;  // DX_pol(φ_s, φ_s) = I
+    double phi = phi_start;
+    double phi_end = phi_start + m_turns * 2.0 * M_PI;
+    while (phi < phi_end - 1e-12) {
+        double step = std::min(DPhi, phi_end - phi);
+        rk4_step_DX_pol(R, Z, D00,D01,D10,D11, phi, step,
+                        BR, BPhi, BZ, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi);
+        phi += step;
+        if (!std::isfinite(R) || !std::isfinite(Z) ||
+            R < R_grid[0] || R > R_grid[nR-1] ||
+            Z < Z_grid[0] || Z > Z_grid[nZ-1])
+            return false;
+    }
+    DX_out[0]=D00; DX_out[1]=D01; DX_out[2]=D10; DX_out[3]=D11;
+    return true;
+}
+
 static inline FixedPointResult newton_fixed_point(
     double R0, double Z0,
     double phi_section,     // Poincare section angle [rad]
-    int    n_turns,         // P^n: n toroidal turns
+    int    m_turns,         // P^m: m toroidal turns (poloidal mode number)
     double DPhi,
     double fd_eps,          // finite-difference step [m]
     int    max_iter,
-    double tol,             // convergence: |P^n(x)-x| < tol
+    double tol,             // convergence: |P^m(x)-x| < tol
     const double* BR, const double* BPhi, const double* BZ,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
@@ -720,46 +894,30 @@ static inline FixedPointResult newton_fixed_point(
     double R = R0, Z = Z0;
 
     for (int iter = 0; iter < max_iter; ++iter) {
-        // Evaluate F(x) = P^n(x) - x
+        // Evaluate F(x) = P^m(x) - x  and compute DPm = DX_pol(φ, φ+2πm)
+        // via analytic DX_pol evolution (DX_pol_m_turns).
         double Rf = R, Zf = Z;
-        if (!pmap_n(Rf, Zf, phi0, n_turns, DPhi, BR, BPhi, BZ,
-                    R_grid, nR, Z_grid, nZ, Phi_grid, nPhi))
-            return res;  // field line lost – give up
+        double DP_cur[4];
+        if (!DX_pol_m_turns(Rf, Zf, DP_cur, phi0, m_turns, DPhi,
+                            BR, BPhi, BZ, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi))
+            return res;
         double F0 = Rf - R;
         double F1 = Zf - Z;
 
         res.residual = std::sqrt(F0*F0 + F1*F1);
         if (res.residual < tol) {
             res.converged = 1;
+            // Store DPm(φ_s) = DX_pol(φ_s, φ_s+2πm) from analytic evolution
+            res.DPm[0]=DP_cur[0]; res.DPm[1]=DP_cur[1];
+            res.DPm[2]=DP_cur[2]; res.DPm[3]=DP_cur[3];
             break;
         }
 
-        // Jacobian columns via central finite differences
-        // dF/dR: perturb R by ±eps
-        double Rp = R + fd_eps, Zp = Z;
-        if (!pmap_n(Rp, Zp, phi0, n_turns, DPhi, BR, BPhi, BZ,
-                    R_grid, nR, Z_grid, nZ, Phi_grid, nPhi)) return res;
-        double Rm = R - fd_eps, Zm = Z;
-        if (!pmap_n(Rm, Zm, phi0, n_turns, DPhi, BR, BPhi, BZ,
-                    R_grid, nR, Z_grid, nZ, Phi_grid, nPhi)) return res;
-        double J00 = (Rp - Rm) / (2.0*fd_eps);  // dPR/dR - 1 → need full J then subtract I
-        double J10 = (Zp - Zm) / (2.0*fd_eps);
-
-        // dF/dZ: perturb Z by ±eps
-        double Rpz = R, Zpz = Z + fd_eps;
-        if (!pmap_n(Rpz, Zpz, phi0, n_turns, DPhi, BR, BPhi, BZ,
-                    R_grid, nR, Z_grid, nZ, Phi_grid, nPhi)) return res;
-        double Rmz = R, Zmz = Z - fd_eps;
-        if (!pmap_n(Rmz, Zmz, phi0, n_turns, DPhi, BR, BPhi, BZ,
-                    R_grid, nR, Z_grid, nZ, Phi_grid, nPhi)) return res;
-        double J01 = (Rpz - Rmz) / (2.0*fd_eps);
-        double J11 = (Zpz - Zmz) / (2.0*fd_eps);
-
-        // DF = J - I  (Jacobian of F = P^n(x) - x)
-        double DF00 = J00 - 1.0, DF01 = J01;
-        double DF10 = J10,       DF11 = J11 - 1.0;
+        // DF = DPm - I  (Jacobian of F = P^m(x) - x)
+        double DF00 = DP_cur[0] - 1.0, DF01 = DP_cur[1];
+        double DF10 = DP_cur[2],        DF11 = DP_cur[3] - 1.0;
         double det = DF00*DF11 - DF01*DF10;
-        if (std::abs(det) < 1e-20) return res;  // singular
+        if (std::abs(det) < 1e-20) return res;
 
         // Newton step: dx = -DF^{-1} * F
         double dR = -(DF11*F0 - DF01*F1) / det;
@@ -767,7 +925,6 @@ static inline FixedPointResult newton_fixed_point(
 
         R += dR; Z += dZ;
 
-        // Bounds check
         if (R < R_grid[0] || R > R_grid[nR-1] ||
             Z < Z_grid[0] || Z > Z_grid[nZ-1])
             return res;
@@ -775,26 +932,9 @@ static inline FixedPointResult newton_fixed_point(
 
     if (!res.converged) return res;
 
-    // Store result
     res.R = R; res.Z = Z;
 
-    // Recompute DPm = DP^n at converged point (central FD)
-    double phi0c = mod2pi(phi_section);
-    auto pmap = [&](double r, double z, double& ro, double& zo) -> bool {
-        ro = r; zo = z;
-        return pmap_n(ro, zo, phi0c, n_turns, DPhi, BR, BPhi, BZ,
-                      R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
-    };
-    double Rpp, Zpp, Rpm, Zpm, Rpz, Zpz2, Rmz2, Zmz2;
-    if (!pmap(R+fd_eps, Z, Rpp, Zpp)) return res;
-    if (!pmap(R-fd_eps, Z, Rpm, Zpm)) return res;
-    if (!pmap(R, Z+fd_eps, Rpz, Zpz2)) return res;
-    if (!pmap(R, Z-fd_eps, Rmz2, Zmz2)) return res;
-
-    res.DPm[0] = (Rpp - Rpm) / (2.0*fd_eps);   // dR'/dR
-    res.DPm[1] = (Rpz - Rmz2) / (2.0*fd_eps);  // dR'/dZ
-    res.DPm[2] = (Zpp - Zpm) / (2.0*fd_eps);   // dZ'/dR
-    res.DPm[3] = (Zpz2 - Zmz2) / (2.0*fd_eps); // dZ'/dZ
+    // DPm already stored during the final convergence-check iteration
 
     // Eigenvalues of 2x2 matrix via characteristic polynomial
     double a = res.DPm[0], b = res.DPm[1], c2 = res.DPm[2], d = res.DPm[3];
@@ -817,7 +957,7 @@ static inline FixedPointResult newton_fixed_point(
 void find_fixed_points_batch(
     const double* R_seeds, const double* Z_seeds, int N_seeds,
     double phi_section,
-    int    n_turns,
+    int    m_turns,
     double DPhi,
     double fd_eps,
     int    max_iter,
@@ -843,7 +983,7 @@ void find_fixed_points_batch(
         for (int i = i_start; i < i_end; ++i) {
             auto r = newton_fixed_point(
                 R_seeds[i], Z_seeds[i],
-                phi_section, n_turns, DPhi, fd_eps, max_iter, tol,
+                phi_section, m_turns, DPhi, fd_eps, max_iter, tol,
                 BR, BPhi, BZ,
                 R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
 
@@ -869,8 +1009,9 @@ void find_fixed_points_batch(
 //
 // Starting from (R0, Z0) at phi0, integrate the field line and output
 // (R, Z) at evenly spaced phi values: phi0, phi0+dphi_out, ..., phi0+phi_span.
-// Also computes the 2x2 DPm (finite-difference P^n_turns Jacobian) at each
-// output point — used for ribbon eigenvector visualization.
+// Also computes the 2×2 DPm(φ) = DX_pol(φ, φ+2π·m_turns_DPm) at each
+// output point via analytic DX_pol evolution (DX_pol_m_turns).
+// output point - used for ribbon eigenvector visualization.
 //
 // Output arrays (length n_out = ceil(phi_span/dphi_out)+1):
 //   R_traj, Z_traj          : orbit positions
@@ -882,9 +1023,9 @@ void trace_orbit_along_phi(
     double R0, double Z0, double phi0,
     double phi_span,    // total toroidal angle to cover [rad]
     double dphi_out,    // output spacing [rad]
-    int    n_turns_DPm, // n for P^n Jacobian (island chain period)
+    int    m_turns_DPm, // m for DPm = DX_pol(φ, φ+2πm) (island chain period)
     double DPhi,        // integration step
-    double fd_eps,      // finite-difference step for DPm
+    double fd_eps,      // unused (was FD step; DPm now via DX_pol_m_turns)
     const double* BR, const double* BPhi, const double* BZ,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
@@ -909,32 +1050,23 @@ void trace_orbit_along_phi(
     double phi_next_out = phi0; // next output checkpoint
     int    out_idx = 0;
 
-    // Helper: compute DPm at (R, Z, phi_sec) using central FD on P^n_turns
+    // Helper: compute DPm(φ) = DX_pol(φ, φ+2π·m_turns_DPm) at the
+    // current trajectory point.  Uses DX_pol_m_turns which integrates the
+    // analytic variational equation  d(DX_pol)/dφ = J·DX_pol  alongside
+    // the field-line trajectory in a single pass.
     auto compute_DPm = [&](double r, double z, double phi_sec,
-                            double* dpm) -> bool {
-        auto pm = [&](double rr, double zz, double& ro, double& zo) -> bool {
-            ro = rr; zo = zz;
-            return pmap_n(ro, zo, mod2pi(phi_sec), n_turns_DPm, DPhi,
-                          BR, BPhi, BZ, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
-        };
-        double Rpp,Zpp, Rpm,Zpm, Rpz,Zpz, Rmz,Zmz;
-        if (!pm(r+fd_eps, z, Rpp, Zpp)) return false;
-        if (!pm(r-fd_eps, z, Rpm, Zpm)) return false;
-        if (!pm(r, z+fd_eps, Rpz, Zpz)) return false;
-        if (!pm(r, z-fd_eps, Rmz, Zmz)) return false;
-        dpm[0] = (Rpp-Rpm)/(2*fd_eps);
-        dpm[1] = (Rpz-Rmz)/(2*fd_eps);
-        dpm[2] = (Zpp-Zpm)/(2*fd_eps);
-        dpm[3] = (Zpz-Zmz)/(2*fd_eps);
-        return true;
+                            double* DPm) -> bool {
+        double Rf = r, Zf = z;
+        return DX_pol_m_turns(Rf, Zf, DPm, mod2pi(phi_sec), m_turns_DPm, DPhi,
+                              BR, BPhi, BZ, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
     };
 
     // Record initial point
     if (out_idx < n_out) {
         R_traj[out_idx] = R; Z_traj[out_idx] = Z; phi_traj[out_idx] = phi;
-        double dpm[4];
-        if (compute_DPm(R, Z, phi, dpm)) {
-            for (int k=0;k<4;k++) DPm_traj[4*out_idx+k] = dpm[k];
+        double DPm[4];
+        if (compute_DPm(R, Z, phi, DPm)) {
+            for (int k=0;k<4;k++) DPm_traj[4*out_idx+k] = DPm[k];
         }
         alive_out[out_idx] = 1;
         out_idx++;
@@ -958,9 +1090,9 @@ void trace_orbit_along_phi(
         // Check if we passed an output checkpoint
         while (out_idx < n_out && phi >= phi_next_out - 1e-12) {
             R_traj[out_idx] = R; Z_traj[out_idx] = Z; phi_traj[out_idx] = phi_next_out;
-            double dpm[4];
-            if (compute_DPm(R, Z, mod2pi(phi_next_out), dpm)) {
-                for (int k=0;k<4;k++) DPm_traj[4*out_idx+k] = dpm[k];
+            double DPm[4];
+            if (compute_DPm(R, Z, mod2pi(phi_next_out), DPm)) {
+                for (int k=0;k<4;k++) DPm_traj[4*out_idx+k] = DPm[k];
             }
             alive_out[out_idx] = 1;
             out_idx++;
@@ -976,17 +1108,17 @@ void trace_orbit_along_phi(
 // Pfirsch-Schlüter field correction for finite beta on-the-fly during RK4.
 //
 // Beta correction (evaluated at each sub-step):
-//   mu0 = 4π×10⁻⁷
-//   p0  = beta * B_ref² * (alpha+1) / (2*mu0)
-//   psi_n    = min(((R-R_ax)²+(Z-Z_ax)²)/a_eff², 1)
+//   mu0 = 4π×10-7
+//   p0  = beta * B_ref2 * (alpha+1) / (2*mu0)
+//   psi_n    = min(((R-R_ax)2+(Z-Z_ax)2)/a_eff2, 1)
 //   profile  = (1-psi_n)^alpha
 //   dp_dpsi  = -alpha*(1-psi_n)^(alpha-1)
 //
-//   dBR   = -(mu0*p0/BPhi) * dp_dpsi * 2*(R-R_ax)/a_eff²
-//           + 2*(mu0*p0/B²) * kappa_R * profile          [PS term]
-//   dBZ   = -(mu0*p0/BPhi) * dp_dpsi * 2*(Z-Z_ax)/a_eff²
+//   dBR   = -(mu0*p0/BPhi) * dp_dpsi * 2*(R-R_ax)/a_eff2
+//           + 2*(mu0*p0/B2) * kappa_R * profile          [PS term]
+//   dBZ   = -(mu0*p0/BPhi) * dp_dpsi * 2*(Z-Z_ax)/a_eff2
 //   dBPhi =  (mu0*p0/BPhi) * profile
-//   kappa_R = -(Z-Z_ax) / (sqrt((R-R_ax)²+(Z-Z_ax)²)+eps * R)
+//   kappa_R = -(Z-Z_ax) / (sqrt((R-R_ax)2+(Z-Z_ax)2)+eps * R)
 //
 // Output layout (same as trace_poincare_multi / trace_one_seed):
 //   poi_counts[seed*n_sec + s]                          = n crossings

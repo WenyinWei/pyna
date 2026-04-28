@@ -1,17 +1,7 @@
 """Toroidal plasma-response namespace.
 
-This shim collects toroidal plasma-response theory under
-:mod:`pyna.toroidal.perturbation` without moving battle-tested modules yet.
-
-Canonical implementation owners today
--------------------------------------
-- :mod:`pyna.toroidal.plasma_response.PerturbGS`
-- :mod:`pyna.toroidal.plasma_response.coupled_gs`
-- selected response-oriented helpers in
-  :mod:`pyna.toroidal.equilibrium.feedback_cylindrical` and
-  :mod:`pyna.toroidal.equilibrium.feedback_boozer`
+Delegates to :mod:`topoquest.analysis.fem` for PerturbGS + coupled MHD solvers.
 """
-
 from importlib import import_module
 
 _SYMBOL_MODULES = {
@@ -24,13 +14,14 @@ _SYMBOL_MODULES = {
     "compute_cylindrical_response": "pyna.toroidal.equilibrium.feedback_cylindrical",
     "feedback_correction_field": "pyna.toroidal.equilibrium.feedback_cylindrical",
     "iterative_equilibrium_correction": "pyna.toroidal.equilibrium.feedback_cylindrical",
-    "solve_perturbed_gs": "pyna.toroidal.plasma_response",
-    "solve_perturbed_gs_coupled": "pyna.toroidal.plasma_response",
-    "compute_plasma_response": "pyna.toroidal.plasma_response",
-    "compute_equilibrium_currents": "pyna.toroidal.plasma_response",
-    "compute_diamagnetic_current": "pyna.toroidal.plasma_response",
-    "compute_pfirsch_schlueter_current": "pyna.toroidal.plasma_response",
-    "solve_coupled_mhd": "pyna.toroidal.plasma_response",
+    # PerturbGS + coupled_gs → topoquest
+    "solve_perturbed_gs": "topoquest.analysis.fem.perturb_gs",
+    "solve_perturbed_gs_coupled": "topoquest.analysis.fem.perturb_gs",
+    "compute_plasma_response": "topoquest.analysis.fem.perturb_gs",
+    "compute_equilibrium_currents": "topoquest.analysis.fem.perturb_gs",
+    "compute_diamagnetic_current": "topoquest.analysis.fem.perturb_gs",
+    "compute_pfirsch_schlueter_current": "topoquest.analysis.fem.perturb_gs",
+    "solve_coupled_mhd": "topoquest.analysis.fem.coupled_gs",
 }
 
 _ALIASES = {

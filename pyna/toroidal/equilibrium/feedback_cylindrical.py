@@ -537,7 +537,7 @@ class BetaClimbingSequence:
 
     def _compute_modified_cache(self, beta_val: float) -> dict:
         """Compute and return a modified field cache for a given beta."""
-        from pyna.toroidal.plasma_response.PerturbGS import solve_perturbed_gs
+        from topoquest.analysis.fem.perturb_gs import solve_perturbed_gs
 
         if beta_val == 0.0:
             return self.B0_field_cache

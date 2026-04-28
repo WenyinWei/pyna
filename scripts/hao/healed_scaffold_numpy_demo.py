@@ -1,5 +1,5 @@
 import numpy as np
-from pyna.topo.healed_scaffold_3d import build_xo_sequence, build_cxo_spline
+from pyna.topo.healed_flux_coords import build_xo_sequence, build_cxo_spline
 
 
 def _star_section(n=7, seed=0):

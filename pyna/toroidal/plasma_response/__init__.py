@@ -1,10 +1,9 @@
 """pyna.toroidal.plasma_response — toroidal plasma-response solvers.
 
-Implementation-owner package for plasma-response solvers.  The broader
-architectural landing zone for toroidal perturbative theory is
-:mod:`pyna.toroidal.perturbation`.
+All PerturbGS and coupled MHD solvers now live in
+:mod:`topoquest.analysis.fem`.  This package delegates there.
 """
-from pyna.toroidal.plasma_response.PerturbGS import (
+from topoquest.analysis.fem.perturb_gs import (
     solve_perturbed_gs,
     solve_perturbed_gs_coupled,
     compute_plasma_response,
@@ -12,7 +11,7 @@ from pyna.toroidal.plasma_response.PerturbGS import (
     compute_diamagnetic_current,
     compute_pfirsch_schlueter_current,
 )
-from pyna.toroidal.plasma_response.coupled_gs import solve_coupled_mhd
+from topoquest.analysis.fem.coupled_gs import solve_coupled_mhd
 
 __all__ = [
     "solve_perturbed_gs",

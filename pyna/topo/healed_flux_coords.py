@@ -43,6 +43,17 @@ def _forward_span(phi_src: float, phi_tgt: float) -> float:
     return float((phi_tgt - phi_src) % (2.0 * np.pi))
 
 
+def _shortest_span(phi_src: float, phi_tgt: float) -> float:
+    """Shortest signed toroidal span from ``phi_src`` to ``phi_tgt``.
+
+    Returns a signed value in (-π, π]: positive = forward, negative = backward.
+    """
+    dphi = float((phi_tgt - phi_src) % (2.0 * np.pi))
+    if dphi > np.pi:
+        return dphi - 2.0 * np.pi
+    return dphi
+
+
 def _as_point_rows(points: Sequence[Any]) -> np.ndarray:
     if points is None:
         return np.empty((0, 2), dtype=float)
@@ -179,6 +190,89 @@ def _segment_intersection_count(curve: np.ndarray, atol: float = 1e-9) -> int:
             if _segments_intersect(a1, a2, b1, b2, atol=atol):
                 count += 1
     return count
+
+
+# ---------------------------------------------------------------------------
+# Robust self-intersection detector (corrected — the _segment_intersection_count
+# above has false positives for smooth closed curves due to collinear endpoint
+# handling).  This version properly excludes adjacent segments and only counts
+# genuine non-adjacent crossings.
+# ---------------------------------------------------------------------------
+
+def _orientation(p, q, r):
+    return (q[0]-p[0])*(r[1]-p[1]) - (q[1]-p[1])*(r[0]-p[0])
+
+def _on_segment(p, q, r, atol=1e-12):
+    return (min(p[0],q[0])-atol <= r[0] <= max(p[0],q[0])+atol and
+            min(p[1],q[1])-atol <= r[1] <= max(p[1],q[1])+atol)
+
+def _segments_cross(p1, q1, p2, q2, atol=1e-12):
+    o1=_orientation(p1,q1,p2); o2=_orientation(p1,q1,q2)
+    o3=_orientation(p2,q2,p1); o4=_orientation(p2,q2,q1)
+    if ((o1>atol and o2<-atol) or (o1<-atol and o2>atol)) and \
+       ((o3>atol and o4<-atol) or (o3<-atol and o4>atol)):
+        return True
+    if abs(o1)<=atol and _on_segment(p1,q1,p2,atol): return True
+    if abs(o2)<=atol and _on_segment(p1,q1,q2,atol): return True
+    if abs(o3)<=atol and _on_segment(p2,q2,p1,atol): return True
+    if abs(o4)<=atol and _on_segment(p2,q2,q1,atol): return True
+    return False
+
+def count_self_intersections(R, Z, atol=1e-12):
+    """Count self-intersections in a closed polygon (non-adjacent segments only).
+
+    Correctly handles collinear endpoint sharing by non-adjacent segments
+    (e.g. figure-8 crossing at the centre).  Adjacent segments are excluded.
+
+    Parameters
+    ----------
+    R, Z : array-like, shape (n,)
+        Polygon vertex coordinates (closed automatically).
+    atol : float
+        Absolute tolerance for collinearity test.
+
+    Returns
+    -------
+    count : int
+        Number of intersecting non-adjacent segment pairs.
+    """
+    R=np.asarray(R,float); Z=np.asarray(Z,float); n=len(R)
+    if n<4: return 0
+    count=0
+    for i in range(n):
+        p1=np.array([R[i],Z[i]]); q1=np.array([R[(i+1)%n],Z[(i+1)%n]])
+        for j in range(i+1,n):
+            if j==i+1 or (i==0 and j==n-1): continue
+            p2=np.array([R[j],Z[j]]); q2=np.array([R[(j+1)%n],Z[(j+1)%n]])
+            if _segments_cross(p1,q1,p2,q2,atol): count+=1
+    return count
+
+
+def recenter_surface(R, Z, R_axis, Z_axis, threshold=0.001):
+    """Recenter a flux surface on a specified magnetic axis.
+
+    Field-line transport from a reference section can produce systematic
+    offsets at non-reference toroidal angles.  This shifts the surface
+    centroid to the given axis without changing its shape.
+
+    Parameters
+    ----------
+    R, Z : ndarray
+        Surface coordinates.
+    R_axis, Z_axis : float
+        Target magnetic axis position.
+    threshold : float
+        Minimum offset (metres) to trigger recentering.
+
+    Returns
+    -------
+    R, Z : ndarray
+        Recentered coordinates.
+    """
+    cR, cZ = float(np.mean(R)), float(np.mean(Z))
+    if abs(cR - R_axis) > threshold or abs(cZ - Z_axis) > threshold:
+        return R - cR + R_axis, Z - cZ + Z_axis
+    return R, Z
 
 
 def _cleanup_monotone_samples(
@@ -340,11 +434,25 @@ def build_xo_sequence(
     if len(O) < min_o_points or len(X) < 1:
         return None
 
-    order_seed = _nearest_neighbor_cycle_order(O)
-    O_ord = O[order_seed]
-    if _polygon_signed_area(O_ord) < 0.0:
-        O_ord = O_ord[::-1].copy()
-        order_seed = order_seed[::-1].copy()
+    # Angular sort from the axis is more reliable than nearest-neighbour for
+    # non-convex cross-sections (e.g. W7-X bean shape where nearest-neighbour
+    # gets O-backbone order wrong, causing a self-intersecting polygon).
+    # Try angular sort first; fall back to nearest-neighbour if it self-intersects.
+    ang_raw = np.arctan2(O[:, 1] - Z_ax, O[:, 0] - R_ax)
+    order_ang = np.argsort(ang_raw)
+    O_ang = O[order_ang]
+    if _polygon_signed_area(O_ang) < 0.0:
+        O_ang = O_ang[::-1].copy()
+        order_ang = order_ang[::-1].copy()
+    if _segment_intersection_count(O_ang) == 0:
+        order_seed = order_ang
+        O_ord = O_ang
+    else:
+        order_seed = _nearest_neighbor_cycle_order(O)
+        O_ord = O[order_seed]
+        if _polygon_signed_area(O_ord) < 0.0:
+            O_ord = O_ord[::-1].copy()
+            order_seed = order_seed[::-1].copy()
 
     ang = np.unwrap(np.arctan2(O_ord[:, 1] - Z_ax, O_ord[:, 0] - R_ax))
     if np.ptp(ang) > 0:
@@ -508,6 +616,68 @@ def build_xo_sequence(
         Z_closed=Z_closed,
         diagnostics=diagnostics,
     )
+
+
+def smooth_closed_boundary_polar(
+    R: Sequence[float],
+    Z: Sequence[float],
+    *,
+    axis: Tuple[float, float],
+    param: Optional[Sequence[float]] = None,
+    n_out: Optional[int] = None,
+    anchor_param: Optional[Sequence[float]] = None,
+    anchor_weight: float = 0.6,
+    fourier_cutoff: Optional[int] = 12,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Constraint-aware periodic smoothing in polar form.
+
+    Preserve topology/order in parameter space, smooth only the scalar radial
+    signal, and optionally re-anchor selected feature parameters after
+    smoothing.  A lightweight Fourier cutoff damps high-frequency roughness
+    without changing feature order.
+    """
+    R = np.asarray(R, dtype=float)
+    Z = np.asarray(Z, dtype=float)
+    if param is None:
+        param = np.linspace(0.0, 1.0, len(R), endpoint=False)
+    t = np.asarray(param, dtype=float)
+    order = np.argsort(t)
+    t = t[order]
+    R = R[order]
+    Z = Z[order]
+    R_ax, Z_ax = float(axis[0]), float(axis[1])
+    th = np.unwrap(np.arctan2(Z - Z_ax, R - R_ax))
+    rho = np.hypot(R - R_ax, Z - Z_ax)
+    if n_out is None:
+        n_out = len(R)
+    t_closed = np.append(t, 1.0)
+    rho_closed = np.append(rho, rho[0])
+    th_closed = np.append(th, th[0] + 2.0 * np.pi)
+    s_rho = CubicSpline(t_closed, rho_closed, bc_type="periodic")
+    s_th = CubicSpline(t_closed, th_closed)
+    tt = np.linspace(0.0, 1.0, int(n_out), endpoint=False)
+    rho_s = np.asarray(s_rho(tt), dtype=float)
+    th_s = np.asarray(s_th(tt), dtype=float)
+
+    if fourier_cutoff is not None and fourier_cutoff >= 1 and len(rho_s) >= 8:
+        coeff = np.fft.rfft(rho_s)
+        keep = int(min(fourier_cutoff, len(coeff) - 1))
+        coeff[keep + 1:] = 0.0
+        rho_f = np.fft.irfft(coeff, n=len(rho_s))
+        rho_s = np.asarray(rho_f, dtype=float)
+
+    if anchor_param is not None:
+        ta = np.asarray(anchor_param, dtype=float)
+        if ta.size:
+            ta = np.mod(ta, 1.0)
+            rho_a = np.interp(ta, t_closed, rho_closed)
+            idx = np.clip(np.round(ta * len(tt)).astype(int), 0, len(tt) - 1)
+            w = float(np.clip(anchor_weight, 0.0, 1.0))
+            rho_s[idx] = (1.0 - w) * rho_s[idx] + w * rho_a
+
+    Rs = R_ax + rho_s * np.cos(th_s)
+    Zs = Z_ax + rho_s * np.sin(th_s)
+    return Rs, Zs, tt
 
 
 def xo_sequence_boundary_arcs(
@@ -792,6 +962,42 @@ def correct_boundary_with_constraints(
     return R, Z, ok, diagnostics
 
 
+def resample_closed_curve_fourier(
+    R: Sequence[float],
+    Z: Sequence[float],
+    *,
+    n_samples: int = 2000,
+    fourier_cutoff: Optional[int] = None,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Uniformly resample a closed curve with optional low-pass Fourier filtering."""
+    R = np.asarray(R, dtype=float)
+    Z = np.asarray(Z, dtype=float)
+    if R.shape != Z.shape or R.ndim != 1 or len(R) < 4:
+        raise ValueError("R and Z must be 1D arrays of equal length >= 4")
+    if not np.isfinite(R).all() or not np.isfinite(Z).all():
+        raise ValueError("curve contains non-finite samples")
+    Rc = np.append(R, R[0])
+    Zc = np.append(Z, Z[0])
+    ds = np.hypot(np.diff(Rc), np.diff(Zc))
+    s = np.concatenate([[0.0], np.cumsum(ds)])
+    total = float(s[-1])
+    if total <= 0.0:
+        raise ValueError("closed curve has zero total arclength")
+    su = np.linspace(0.0, total, int(n_samples) + 1, dtype=float)[:-1]
+    Ru = np.interp(su, s, Rc)
+    Zu = np.interp(su, s, Zc)
+    if fourier_cutoff is not None and fourier_cutoff >= 1:
+        cR = np.fft.rfft(Ru)
+        cZ = np.fft.rfft(Zu)
+        keep = int(min(fourier_cutoff, len(cR) - 1, len(cZ) - 1))
+        cR[keep + 1:] = 0.0
+        cZ[keep + 1:] = 0.0
+        Ru = np.fft.irfft(cR, n=len(Ru))
+        Zu = np.fft.irfft(cZ, n=len(Zu))
+    tu = np.linspace(0.0, 1.0, len(Ru), endpoint=False)
+    return Ru, Zu, tu
+
+
 class BoundaryFamily3D:
     """Toroidally transported healed boundary family.
 
@@ -929,7 +1135,24 @@ class BoundaryFamily3D:
     def section_at(self, phi: float) -> BoundarySection:
         return self.sections[self.nearest_section_index(phi)]
 
-    def section_splines(self, phi: float) -> Tuple[Optional[CubicSpline], Optional[CubicSpline], Optional[np.ndarray], float, str]:
+    def section_resampled_curve(
+        self,
+        phi: float,
+        *,
+        n_samples: int = 2000,
+        fourier_cutoff: Optional[int] = None,
+    ) -> Tuple[Optional[np.ndarray], Optional[np.ndarray], Optional[np.ndarray], float, str]:
+        spl_R, spl_Z, _, valid_frac, source = self.section_splines(phi)
+        if spl_R is None or spl_Z is None:
+            return None, None, None, valid_frac, source
+        t = np.linspace(0.0, 1.0, int(n_samples), endpoint=False)
+        R = np.asarray(spl_R(t), dtype=float)
+        Z = np.asarray(spl_Z(t), dtype=float)
+        if fourier_cutoff is not None:
+            R, Z, t = resample_closed_curve_fourier(R, Z, n_samples=n_samples, fourier_cutoff=fourier_cutoff)
+        return R, Z, t, valid_frac, source
+
+    def section_splines(self, phi: float) -> Tuple[Optional[Any], Optional[Any], Optional[np.ndarray], float, str]:
         sec = self.section_at(phi)
         ok = np.asarray(sec.valid, dtype=bool) & np.isfinite(sec.R) & np.isfinite(sec.Z)
         if np.sum(ok) < max(12, len(sec.param) // 3):
@@ -947,15 +1170,41 @@ class BoundaryFamily3D:
         R_closed = np.append(R, R[0])
         Z_closed = np.append(Z, Z[0])
         try:
+            period = float(t_closed[-1] - t_closed[0])
+            t_ext = np.concatenate([t_closed[:-1] - period, t_closed, t_closed[1:] + period])
+            R_ext = np.concatenate([R_closed[:-1], R_closed, R_closed[1:]])
+            Z_ext = np.concatenate([Z_closed[:-1], Z_closed, Z_closed[1:]])
+            pR = PchipInterpolator(t_ext, R_ext, extrapolate=True)
+            pZ = PchipInterpolator(t_ext, Z_ext, extrapolate=True)
+
+            class _PeriodicPchip:
+                def __init__(self, base, t0, period):
+                    self.base = base
+                    self.t0 = float(t0)
+                    self.period = float(period)
+                def __call__(self, x):
+                    x_arr = np.asarray(x, dtype=float)
+                    xw = self.t0 + np.mod(x_arr - self.t0, self.period)
+                    return self.base(xw)
+
             return (
-                CubicSpline(t_closed, R_closed, bc_type="periodic"),
-                CubicSpline(t_closed, Z_closed, bc_type="periodic"),
+                _PeriodicPchip(pR, t_closed[0], period),
+                _PeriodicPchip(pZ, t_closed[0], period),
                 t_closed,
                 float(np.mean(ok)),
                 sec.source,
             )
         except Exception:
-            return None, None, None, float(np.mean(ok)), sec.source
+            try:
+                return (
+                    CubicSpline(t_closed, R_closed, bc_type="periodic"),
+                    CubicSpline(t_closed, Z_closed, bc_type="periodic"),
+                    t_closed,
+                    float(np.mean(ok)),
+                    sec.source,
+                )
+            except Exception:
+                return None, None, None, float(np.mean(ok)), sec.source
 
 
 @dataclass
@@ -1228,6 +1477,7 @@ def build_section_scaffold_bundle(
     theta_levels: Sequence[float],
     trace_func: TraceFunction,
     section_axes: Sequence[Tuple[float, float]],
+    axis_family: Optional[Tuple[Sequence[float], Sequence[float]]] = None,
     cxo_local: Optional[Sequence[Optional[Tuple[Any, Any]]]] = None,
     local_boundary_constraints: Optional[Sequence[Optional[BoundaryConstraintSet]]] = None,
     fit_inner_limit: Optional[float] = None,
@@ -1278,15 +1528,34 @@ def build_section_scaffold_bundle(
             phi_hit_tol_factor=phi_hit_tol_factor,
         )
 
+    if axis_family is not None:
+        axis_R = np.asarray(axis_family[0], dtype=float)
+        axis_Z = np.asarray(axis_family[1], dtype=float)
+        if axis_R.shape != (len(phi_samples),) or axis_Z.shape != (len(phi_samples),):
+            raise ValueError("axis_family arrays must match phi_samples length")
+    else:
+        axis_R = np.asarray([ax[0] for ax in section_axes], dtype=float)
+        axis_Z = np.asarray([ax[1] for ax in section_axes], dtype=float)
+
     for ip, phi in enumerate(phi_samples):
         sec = scaffold.sections[ip]
-        R_ax, Z_ax = section_axes[ip]
+        R_ax = float(axis_R[ip])
+        Z_ax = float(axis_Z[ip])
+        r_ok = []
+        cR_rows = []
+        cZ_rows = []
         cR_ax = np.zeros(n_coeff, dtype=float); cR_ax[0] = R_ax
         cZ_ax = np.zeros(n_coeff, dtype=float); cZ_ax[0] = Z_ax
-        r_ok = [0.0]
-        cR_rows = [cR_ax]
-        cZ_rows = [cZ_ax]
+        if not np.any(np.isclose(r_levels, 0.0, atol=1e-12)):
+            r_ok.append(0.0)
+            cR_rows.append(cR_ax)
+            cZ_rows.append(cZ_ax)
         for ir, r_val in enumerate(r_levels):
+            if abs(float(r_val)) <= 1e-12:
+                r_ok.append(0.0)
+                cR_rows.append(cR_ax)
+                cZ_rows.append(cZ_ax)
+                continue
             ok = np.asarray(sec.valid[ir], dtype=bool)
             if int(np.sum(ok)) < max(8, len(theta_levels) // 3):
                 continue
@@ -1324,14 +1593,27 @@ def build_section_scaffold_bundle(
             if cxo_param is None:
                 Rb = np.asarray(spl_R_CXO(t_eval), dtype=float)
                 Zb = np.asarray(spl_Z_CXO(t_eval), dtype=float)
-                theta_b = 2.0 * np.pi * t_eval
             else:
                 tb = np.asarray(cxo_param[:-1], dtype=float) if len(cxo_param) > 1 else np.asarray(cxo_param, dtype=float)
                 Rb = np.asarray(spl_R_CXO(tb), dtype=float)
                 Zb = np.asarray(spl_Z_CXO(tb), dtype=float)
-                theta_b = 2.0 * np.pi * tb
+            # Use geometric angles — consistent with interior Poincaré fit convention
+            theta_b = np.arctan2(Zb - Z_ax, Rb - R_ax)
             if len(Rb) >= max(8, n_coeff):
                 cR_bnd, cZ_bnd = fit_ring_fourier(theta_b[:len(Rb)], Rb, Zb, n_coeff)
+                if len(r_ext_arr):
+                    i_outer = int(np.argmax(r_ext_arr))
+                    r_outer = float(r_ext_arr[i_outer])
+                    cR_outer = np.asarray(cR_ext_arr[i_outer], dtype=float)
+                    cZ_outer = np.asarray(cZ_ext_arr[i_outer], dtype=float)
+                    if r_outer < 0.995:
+                        r_blend = min(0.985, max(r_outer + 0.5 * (1.0 - r_outer), 0.92))
+                        w_blend = (r_blend - r_outer) / max(1.0 - r_outer, 1e-12)
+                        cR_mid = (1.0 - w_blend) * cR_outer + w_blend * cR_bnd
+                        cZ_mid = (1.0 - w_blend) * cZ_outer + w_blend * cZ_bnd
+                        r_ext_arr = np.append(r_ext_arr, r_blend)
+                        cR_ext_arr = np.vstack([cR_ext_arr, cR_mid])
+                        cZ_ext_arr = np.vstack([cZ_ext_arr, cZ_mid])
                 if np.any(np.isclose(r_ext_arr, 1.0, atol=1e-8)):
                     i1 = int(np.argmin(np.abs(r_ext_arr - 1.0)))
                     cR_ext_arr[i1] = cR_bnd

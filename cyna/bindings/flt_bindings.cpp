@@ -610,7 +610,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
 
     m.def("find_fixed_points_batch",
         [](py::array_t<double> R_seeds, py::array_t<double> Z_seeds,
-           double phi_section, int n_turns, double DPhi,
+           double phi_section, int m_turns, double DPhi,
            double fd_eps, int max_iter, double tol,
            py::array_t<double> BR, py::array_t<double> BPhi, py::array_t<double> BZ,
            py::array_t<double> R_grid, py::array_t<double> Z_grid,
@@ -627,7 +627,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
 
             cyna::find_fixed_points_batch(
                 buf(R_seeds,"R_seeds"), buf(Z_seeds,"Z_seeds"), N,
-                phi_section, n_turns, DPhi, fd_eps, max_iter, tol,
+                phi_section, m_turns, DPhi, fd_eps, max_iter, tol,
                 buf(BR,"BR"), buf(BPhi,"BPhi"), buf(BZ,"BZ"),
                 buf(R_grid,"R_grid"), (int)R_grid.size(),
                 buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
@@ -643,7 +643,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
                                   DPm_out, eigr_out, eigi_out, ptype_out);
         },
         py::arg("R_seeds"), py::arg("Z_seeds"),
-        py::arg("phi_section"), py::arg("n_turns"), py::arg("DPhi") = 0.05,
+        py::arg("phi_section"), py::arg("m_turns"), py::arg("DPhi") = 0.05,
         py::arg("fd_eps") = 1e-4, py::arg("max_iter") = 40, py::arg("tol") = 1e-9,
         py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
@@ -700,7 +700,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
 
     m.def("trace_orbit_along_phi",
         [](double R0, double Z0, double phi0,
-           double phi_span, double dphi_out, int n_turns_DPm,
+           double phi_span, double dphi_out, int m_turns_DPm,
            double DPhi, double fd_eps,
            py::array_t<double> BR, py::array_t<double> BPhi, py::array_t<double> BZ,
            py::array_t<double> R_grid, py::array_t<double> Z_grid,
@@ -712,7 +712,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
             py::array_t<int>    alive_t({n_out});
 
             cyna::trace_orbit_along_phi(
-                R0, Z0, phi0, phi_span, dphi_out, n_turns_DPm, DPhi, fd_eps,
+                R0, Z0, phi0, phi_span, dphi_out, m_turns_DPm, DPhi, fd_eps,
                 buf(BR,"BR"), buf(BPhi,"BPhi"), buf(BZ,"BZ"),
                 buf(R_grid,"R_grid"), (int)R_grid.size(),
                 buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
@@ -724,13 +724,13 @@ PYBIND11_MODULE(_cyna_ext, m) {
             return py::make_tuple(R_t, Z_t, phi_t, DPm_t, alive_t);
         },
         py::arg("R0"), py::arg("Z0"), py::arg("phi0"),
-        py::arg("phi_span"), py::arg("dphi_out"), py::arg("n_turns_DPm"),
+        py::arg("phi_span"), py::arg("dphi_out"), py::arg("m_turns_DPm"),
         py::arg("DPhi") = 0.05, py::arg("fd_eps") = 1e-4,
         py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         "Integrate field line from (R0,Z0,phi0) for phi_span radians, outputting\n"
         "(R,Z,phi,DPm[n,4],alive[n]) at evenly-spaced phi_out intervals.\n"
-        "DPm is the P^n_turns_DPm Jacobian via central FD — used for ribbon visualization.");
+        "DPm(φ)=DX_pol(φ,φ+2π·m_turns_DPm) via analytic DX_pol evolution — used for cycle visualisation.");
 
     // -----------------------------------------------------------------------
     // coil_circular_field — analytic ring-coil B at a Cartesian point cloud
