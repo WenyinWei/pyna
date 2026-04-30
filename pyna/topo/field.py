@@ -1,40 +1,27 @@
-"""pyna.topo.field — Toroidal vector field and equilibrium data structures.
+"""pyna.topo.field — Vector field and equilibrium data structures.
 
 Design principles
 -----------------
-ToroidalField      — pure vector field (geometry + 3 components).
-                    Not magnetic-specific; stores any (BR, BPhi, BZ).
-Equilibrium        — slot-based MHD equilibrium.  B0 is mandatory;
-                    everything else (J, p, u, ...) is optional and
-                    compositionally attached.
-EquilibriumLike    — Protocol: minimal interface for interop with
-                    EFIT, LIUQE, TGYRO, SD1D, … via adapters.
+Class hierarchy:
+    VectorField          — abstract, arbitrary dimension + coordinate names
+    ToroidalField        — 3D vector on cylindrical (R,Z,phi) cross-section
+    AxisymmetricField    — ToroidalField with ∂/∂phi = 0
 
-Physics functions (standalone, not methods on ToroidalField):
-    compute_J_by_curl(B)   → J = curl(B)/mu0
-    compute_B_pol(B)       → |(BR, BZ)|
+Component ordering: BR, BZ, BPhi  (matches (R, Z, phi) coordinate order).
+All cross-product formulas follow Jx = det(e_R, e_Z, e_phi; J; B).
 
-Interop adapters live in pyna.io.* (future):
-    pyna.io.efit      — read/write GEQDSK
-    pyna.io.liuqe     — LIUQE output
-    pyna.io.tgyro     — TGYRO input profiles
-    ...
+Equilibrium           — slot-based MHD equilibrium. B is mandatory;
+                        everything else (J, p, u, ...) is optional.
+EquilibriumLike       — Protocol: any object with .B (ToroidalField).
 
-Example usage
--------------
-    from pyna.topo.field import ToroidalField, Equilibrium, compute_J_by_curl
+Standalone physics:
+    compute_J_by_curl(B) → J = curl(B)/mu0
 
-    B0 = ToroidalField(R, Z, BR, BPhi, BZ, label="EFIT_B0")
-    J0 = compute_J_by_curl(B0)
-
-    eq = Equilibrium(B0=B0, J_total=J0, p_total=p_arr)
-    eq = Equilibrium(B0=B0, J_bootstrap=J_bs, J_ecrh=J_ec, ...)
-
-    # Protocol interop
-    def analyze(equilibrium: EquilibriumLike): ...
+Interop (future): pyna.io.efit, pyna.io.liuqe, pyna.io.tgyro, ...
 """
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field as dc_field
 from typing import Optional, Protocol, Tuple, runtime_checkable
 
@@ -44,23 +31,51 @@ import numpy as np
 MU0 = 4e-7 * np.pi
 
 # ===========================================================================
-# ToroidalField — pure vector field
+# VectorField — abstract base, arbitrary dimension
+# ===========================================================================
+
+class VectorField(ABC):
+    """Abstract vector field on a coordinate grid, arbitrary dimension.
+
+    Subclasses define .dim, .coordinate_names, and accessors.
+    """
+    @property
+    @abstractmethod
+    def dim(self) -> int: ...
+
+    @property
+    @abstractmethod
+    def coordinate_names(self) -> Tuple[str, ...]: ...
+
+    @property
+    @abstractmethod
+    def components(self) -> np.ndarray: ...
+
+    @property
+    def rms(self) -> float:
+        return float(np.sqrt(np.mean(np.sum(self.components**2, axis=0))))
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(dim={self.dim}, rms={self.rms:.3g})"
+
+
+# ===========================================================================
+# ToroidalField — cylindrical (R, Z, phi) cross-section
 # ===========================================================================
 
 @dataclass
-class ToroidalField:
-    """Generic toroidal vector field on an (R, Z) grid at fixed phi.
+class ToroidalField(VectorField):
+    """Vector field on an (R, Z) grid at fixed toroidal angle.
 
-    Not magnetic-specific.  Use for B, J, u, dB, … — any 3-component
-    vector on a poloidal cross-section.
+    Component order: (BR, BZ, BPhi) — matches (R, Z, phi) coordinates.
 
     Parameters
     ----------
     R_arr : (nR,) — Major radius [m].
     Z_arr : (nZ,) — Vertical coordinate [m].
-    BR : (nR, nZ) — "R" component.
+    BR : (nR, nZ) — Radial component.
+    BZ : (nR, nZ) — Vertical component.
     BPhi : (nR, nZ) — Toroidal component.
-    BZ : (nR, nZ) — "Z" component.
     phi : float — Toroidal angle [rad].
     label : str or None.
     """
@@ -68,36 +83,39 @@ class ToroidalField:
     R_arr: np.ndarray
     Z_arr: np.ndarray
     BR: np.ndarray
-    BPhi: np.ndarray
     BZ: np.ndarray
+    BPhi: np.ndarray
     phi: float = 0.0
     label: Optional[str] = None
 
+    # -- VectorField interface --
+    @property
+    def dim(self) -> int: return 3
+
+    @property
+    def coordinate_names(self) -> Tuple[str, str, str]:
+        return ("R", "Z", "phi")
+
+    @property
+    def components(self) -> np.ndarray:
+        """Stacked as (3, nR, nZ)."""
+        return np.stack([self.BR, self.BZ, self.BPhi], axis=0)
+
     # -- grid --
     @property
-    def shape(self) -> Tuple[int, int]:
-        return self.BR.shape
+    def shape(self) -> Tuple[int, int]: return self.BR.shape
     @property
-    def nR(self) -> int:
-        return self.BR.shape[0]
+    def nR(self) -> int: return self.BR.shape[0]
     @property
-    def nZ(self) -> int:
-        return self.BR.shape[1]
+    def nZ(self) -> int: return self.BR.shape[1]
 
     # -- magnitude --
     @property
     def abs(self) -> np.ndarray:
-        """Point-wise magnitude sqrt(BR² + BPhi² + BZ²)."""
-        return np.sqrt(self.BR**2 + self.BPhi**2 + self.BZ**2)
-
-    @property
-    def rms(self) -> float:
-        """RMS magnitude over the grid."""
-        return float(np.sqrt(np.mean(self.BR**2 + self.BPhi**2 + self.BZ**2)))
+        return np.sqrt(self.BR**2 + self.BZ**2 + self.BPhi**2)
 
     @property
     def poloidal_abs(self) -> np.ndarray:
-        """Poloidal magnitude sqrt(BR² + BZ²)."""
         return np.sqrt(self.BR**2 + self.BZ**2)
 
     # -- construction --
@@ -110,13 +128,13 @@ class ToroidalField:
     def from_cache(cls, cache: dict, phi_idx: int = 0, *, label: str = "") -> "ToroidalField":
         """Slice a 3D field-cache dict at given toroidal index.
 
-        Cache keys: BR, BPhi, BZ, R_grid, Z_grid, Phi_grid (nR×nZ×nPhi).
+        Cache keys: BR, BZ, BPhi, R_grid, Z_grid, Phi_grid (nR x nZ x nPhi).
         """
         return cls(
             R_arr=cache["R_grid"], Z_arr=cache["Z_grid"],
             BR=cache["BR"][:, :, phi_idx],
-            BPhi=cache["BPhi"][:, :, phi_idx],
             BZ=cache["BZ"][:, :, phi_idx],
+            BPhi=cache["BPhi"][:, :, phi_idx],
             phi=float(cache["Phi_grid"][phi_idx]),
             label=label or f"cache_phi{phi_idx}",
         )
@@ -124,15 +142,15 @@ class ToroidalField:
     def downsample(self, skip: int) -> "ToroidalField":
         return ToroidalField(
             R_arr=self.R_arr[::skip], Z_arr=self.Z_arr[::skip],
-            BR=self.BR[::skip, ::skip], BPhi=self.BPhi[::skip, ::skip],
-            BZ=self.BZ[::skip, ::skip], phi=self.phi, label=self.label,
+            BR=self.BR[::skip, ::skip], BZ=self.BZ[::skip, ::skip],
+            BPhi=self.BPhi[::skip, ::skip], phi=self.phi, label=self.label,
         )
 
     def __add__(self, other: "ToroidalField") -> "ToroidalField":
         return ToroidalField(
             R_arr=self.R_arr, Z_arr=self.Z_arr,
-            BR=self.BR + other.BR, BPhi=self.BPhi + other.BPhi,
-            BZ=self.BZ + other.BZ, phi=self.phi,
+            BR=self.BR + other.BR, BZ=self.BZ + other.BZ,
+            BPhi=self.BPhi + other.BPhi, phi=self.phi,
         )
 
     def __repr__(self) -> str:
@@ -141,25 +159,41 @@ class ToroidalField:
 
 
 # ===========================================================================
+# AxisymmetricField — ∂/∂phi = 0
+# ===========================================================================
+
+@dataclass
+class AxisymmetricField(ToroidalField):
+    """ToroidalField with axisymmetry: ∂/∂phi = 0.
+
+    All quantities are independent of toroidal angle.  Flux surfaces
+    are nested in the (R, Z) plane.  This is the natural representation
+    for tokamak equilibria and Grad-Shafranov solutions.
+    """
+    pass  # inherits everything; semantics are in the label/usage
+
+
+# ===========================================================================
 # Standalone physics functions
 # ===========================================================================
 
 def compute_J_by_curl(B: ToroidalField) -> ToroidalField:
-    """Compute current density J = curl(B) / mu0 via finite differences."""
+    """Compute current density J = curl(B) / mu0 via finite differences.
+
+    In (R, Z, phi) coordinates with axisymmetry (∂/∂phi = 0):
+        curl_R = -∂Bphi/∂Z
+        curl_Z = ∂Bphi/∂R + Bphi/R
+        curl_phi = ∂BR/∂Z - ∂BZ/∂R
+    """
     dR = B.R_arr[1] - B.R_arr[0]
     dZ = B.Z_arr[1] - B.Z_arr[0]
     J_R = -np.gradient(B.BPhi, dZ, axis=1, edge_order=2) / MU0
-    J_Phi = (np.gradient(B.BR, dZ, axis=1, edge_order=2)
-             - np.gradient(B.BZ, dR, axis=0, edge_order=2)) / MU0
     J_Z = (B.BPhi / B.R_arr[:, None]
            + np.gradient(B.BPhi, dR, axis=0, edge_order=2)) / MU0
-    return ToroidalField(B.R_arr, B.Z_arr, J_R, J_Phi, J_Z, phi=B.phi,
+    J_Phi = (np.gradient(B.BR, dZ, axis=1, edge_order=2)
+             - np.gradient(B.BZ, dR, axis=0, edge_order=2)) / MU0
+    return ToroidalField(B.R_arr, B.Z_arr, J_R, J_Z, J_Phi, phi=B.phi,
                          label=f"curl({B.label})" if B.label else "J")
-
-
-def poloidal_B(B: ToroidalField) -> np.ndarray:
-    """Poloidal field magnitude |(BR, BZ)|."""
-    return B.poloidal_abs
 
 
 # ===========================================================================
@@ -168,51 +202,53 @@ def poloidal_B(B: ToroidalField) -> np.ndarray:
 
 @runtime_checkable
 class EquilibriumLike(Protocol):
-    """Minimal protocol for any equilibrium representation.
+    """Minimal protocol: any object with .B (ToroidalField).
 
-    Any object with .B0 (ToroidalField) and .R_arr/.Z_arr satisfies this.
-    Adapters for EFIT, LIUQE, TGYRO, etc. implement this protocol.
+    Adapters for EFIT, LIUQE, TGYRO, SD1D, etc. implement this.
     """
-
     @property
-    def B0(self) -> ToroidalField: ...
+    def B(self) -> ToroidalField: ...
 
     @property
     def R_arr(self) -> np.ndarray:
-        return self.B0.R_arr
+        return self.B.R_arr
 
     @property
     def Z_arr(self) -> np.ndarray:
-        return self.B0.Z_arr
+        return self.B.Z_arr
 
 
 @dataclass
 class Equilibrium:
     """MHD equilibrium on a toroidal cross-section.
 
-    Design: slot-based container.  B0 is mandatory; everything else
-    is an optional typed slot.  Use composition — only populate what
-    you have.  For interop with specific codes, see adapters in
-    pyna.io.* (future).
+    B is the magnetic field (required).  All other slots are optional.
+    An equilibrium does not carry a perturbation concept — the field is
+    simply B.  Perturbations (delta_B, delta_B_ext) are separate
+    ToroidalField instances provided by the caller.
 
     Slots
     -----
-    B0 : ToroidalField                  — magnetic field [T] (required)
-    J_total, J_ohmic, J_bootstrap,      — current density [A/m²]
-    J_ecrh, J_icrh, J_nbi, J_fast,
-    J_diamagnetic : Optional[ToroidalField]
-    p_total, p_ion, p_electron,         — pressure [Pa] (nR,nZ arrays)
-    p_fast, p_rad : Optional[np.ndarray]
-    u_ion, u_electron, u_fast,          — flow velocity [m/s]
-    u_impurity : Optional[ToroidalField]
-    psi : Optional[np.ndarray]           — poloidal flux [Wb/rad]
-    q_profile : Optional[callable]      — q(psi)
-    p_profile_1d : Optional[callable]   — p(psi)
+    B : ToroidalField
+        Magnetic field [T] (required).
+    J_total, J_ohmic, J_bootstrap, J_ecrh, J_icrh, J_nbi, J_fast,
+    J_diamagnetic : ToroidalField | None
+        Current density components [A/m²].
+    p_total, p_ion, p_electron, p_fast, p_rad : ndarray | None
+        Pressure [Pa] on (nR, nZ) grid.
+    u_ion, u_electron, u_fast, u_impurity : ToroidalField | None
+        Flow velocity [m/s].
+    psi : ndarray | None
+        Poloidal flux [Wb/rad].
+    q_profile, p_profile_1d : callable | None
+        Flux functions q(psi), p(psi).
+    label : str or None
+    meta : dict — free-form metadata (code provenance, shot number, ...).
     """
 
-    B0: ToroidalField
+    B: ToroidalField
 
-    # -- Current components --
+    # -- Current --
     J_total: Optional[ToroidalField] = None
     J_ohmic: Optional[ToroidalField] = None
     J_bootstrap: Optional[ToroidalField] = None
@@ -229,68 +265,57 @@ class Equilibrium:
     p_fast: Optional[np.ndarray] = None
     p_rad: Optional[np.ndarray] = None
 
-    # -- Rotation / flow --
+    # -- Rotation --
     u_ion: Optional[ToroidalField] = None
     u_electron: Optional[ToroidalField] = None
     u_fast: Optional[ToroidalField] = None
     u_impurity: Optional[ToroidalField] = None
 
-    # -- Flux functions (1D) --
-    psi: Optional[np.ndarray] = None          # poloidal flux on grid
-    q_profile: Optional[object] = None        # q(psi): callable or 1D array
-    p_profile_1d: Optional[object] = None     # p(psi): callable or 1D array
+    # -- Flux functions --
+    psi: Optional[np.ndarray] = None
+    q_profile: Optional[object] = None
+    p_profile_1d: Optional[object] = None
 
     # -- Metadata --
     label: Optional[str] = None
-    meta: dict = dc_field(default_factory=dict)  # free-form metadata
+    meta: dict = dc_field(default_factory=dict)
 
     # -- derived --
     @property
-    def R_arr(self): return self.B0.R_arr
+    def R_arr(self): return self.B.R_arr
     @property
-    def Z_arr(self): return self.B0.Z_arr
+    def Z_arr(self): return self.B.Z_arr
     @property
-    def phi(self):   return self.B0.phi
+    def phi(self):   return self.B.phi
     @property
-    def nR(self):    return self.B0.nR
+    def nR(self):    return self.B.nR
     @property
-    def nZ(self):    return self.B0.nZ
+    def nZ(self):    return self.B.nZ
 
-    # -- helpers --
     def _zero_J(self):
-        z = np.zeros_like(self.B0.BR)
+        z = np.zeros_like(self.B.BR)
         return ToroidalField(self.R_arr, self.Z_arr, z, z, z)
 
     def get_J_total(self) -> ToroidalField:
-        """Return J_total, or zero field if not set."""
         return self.J_total if self.J_total is not None else self._zero_J()
 
-    def _nonzero_slots(self) -> list[str]:
-        slots = []
-        for name in ["J_total", "J_ohmic", "J_bootstrap", "J_ecrh", "J_icrh",
-                     "J_nbi", "J_fast", "J_diamagnetic",
-                     "p_total", "p_ion", "p_electron", "p_fast", "p_rad",
-                     "u_ion", "u_electron", "u_fast", "u_impurity",
-                     "psi", "q_profile", "p_profile_1d"]:
-            val = getattr(self, name)
-            if val is not None and not (isinstance(val, np.ndarray) and not val.any()):
-                continue
-            if val is not None:
-                slots.append(name)
-        return slots
+    @classmethod
+    def from_cache(cls, cache: dict, phi_idx: int = 0, *,
+                   label: str = "", compute_J0: bool = False) -> "Equilibrium":
+        """Create from 3D field cache.  Optionally compute J_total."""
+        B = ToroidalField.from_cache(cache, phi_idx, label=label)
+        J_total = compute_J_by_curl(B) if compute_J0 else None
+        return cls(B=B, J_total=J_total)
 
     def __repr__(self) -> str:
         lbl = f"'{self.label}'" if self.label else ""
-        slots = self._nonzero_slots()
-        slot_str = ", ".join(slots[:6])
-        if len(slots) > 6:
-            slot_str += f", +{len(slots)-6}"
-        return f"Equilibrium({self.nR}x{self.nZ}, {slot_str}{lbl})"
+        j = " +J" if self.J_total is not None else ""
+        return f"Equilibrium({self.nR}x{self.nZ}{j}{lbl})"
 
 
-# Backward compat: re-export MU0
 __all__ = [
-    "ToroidalField", "Equilibrium", "EquilibriumLike",
-    "compute_J_by_curl", "poloidal_B",
+    "VectorField", "ToroidalField", "AxisymmetricField",
+    "Equilibrium", "EquilibriumLike",
+    "compute_J_by_curl",
     "MU0",
 ]
