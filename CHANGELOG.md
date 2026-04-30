@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/WenyinWei/pyna/compare/v0.6.0...v0.7.0) (2026-04-30)
+
+
+### Features
+
+* ToroidalField, PerturbedField dataclasses for clean field API ([3cb3162](https://github.com/WenyinWei/pyna/commit/3cb3162948f20948bfa2855e4a5a72c3dfbc01b6))
+
 ## [Unreleased]
 
 ### Added
