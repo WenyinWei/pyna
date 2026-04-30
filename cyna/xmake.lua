@@ -3,7 +3,7 @@
 -- Python paths and pybind11 headers are passed via environment variables
 -- set by setup.py, avoiding any CMake/package-manager dependency.
 set_project("cyna")
-set_version("0.2.0")
+set_version("0.6.0")
 
 set_languages("c++17")
 
@@ -71,6 +71,7 @@ target("cyna_python")
     if is_plat("windows") then
         set_extension(".pyd")
     else
+        set_prefixname("")   -- suppress "lib" prefix on Linux
         set_extension(".so")
     end
     -- Windows-specific linker flags (applied regardless of extension source)
