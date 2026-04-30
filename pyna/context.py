@@ -4,16 +4,18 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from pyna.topo.toroidal_invariants import (
+from pyna.topo.toroidal import (
     Cycle,
     FixedPoint,
     MonodromyData,
     PeriodicOrbit,
     StableManifold,
     UnstableManifold,
+    Island,
+    IslandChain,
+    Tube,
+    TubeChain,
 )
-from pyna.topo.toroidal_island import Island, IslandChain
-from pyna.topo.toroidal_tube import Tube, TubeChain
 
 
 class DynamicsContext:
@@ -55,7 +57,6 @@ class DynamicsContext:
         return Island(
             O_orbit=PeriodicOrbit(points=[O_point]),
             X_orbits=[PeriodicOrbit(points=[xfp]) for xfp in x_fps],
-            ambient_dim=self.section_dim,
         )
 
     def island_chain(
@@ -63,28 +64,29 @@ class DynamicsContext:
         O_points: Optional[List[FixedPoint]] = None,
         X_points: Optional[List[FixedPoint]] = None,
     ) -> IslandChain:
-        return IslandChain(
-            islands=[],
-            ambient_dim=self.section_dim,
-        )
+        return IslandChain(islands=[])
 
     def tube(self, O_cycle: Cycle, X_cycles: Optional[List[Cycle]] = None) -> Tube:
-        return Tube(
-            O_cycle=O_cycle,
-            X_cycles=X_cycles or [],
-            ambient_dim=self.ambient_dim,
-        )
+        return Tube(O_cycle=O_cycle, X_cycles=X_cycles or [])
 
     def tube_chain(
         self,
         O_cycles: Optional[List[Cycle]] = None,
         X_cycles: Optional[List[Cycle]] = None,
     ) -> TubeChain:
-        return TubeChain(
-            O_cycles=O_cycles or [],
-            X_cycles=X_cycles or [],
-            ambient_dim=self.ambient_dim,
-        )
+        o_list = O_cycles or []
+        x_list = X_cycles or []
+        tubes = []
+        for o_cyc in o_list:
+            tubes.append(Tube(O_cycle=o_cyc, X_cycles=[]))
+        for i, x_cyc in enumerate(x_list):
+            if i < len(tubes):
+                tubes[i].X_cycles.append(x_cyc)
+            else:
+                tubes.append(Tube(O_cycle=Cycle(winding=(1,), sections={}), X_cycles=[x_cyc]))
+        if not tubes and not x_list:
+            return TubeChain(tubes=[])
+        return TubeChain(tubes=tubes)
 
     def stable_manifold(self, cycle: Cycle, branches: Optional[list] = None) -> StableManifold:
         return StableManifold(

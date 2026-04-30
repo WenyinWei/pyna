@@ -38,7 +38,7 @@ import numpy as np
 
 from pyna.topo.variational import PoincareMapVariationalEquations
 
-from pyna.topo.toroidal_invariants import FixedPoint
+from pyna.topo.toroidal import FixedPoint
 try:
     from pyna._cyna import find_fixed_points_batch as _cyna_find_fixed_points_batch
     _CYNA_AVAILABLE = True

@@ -268,11 +268,11 @@ static inline void rk4_step(
 // Advances the field-line trajectory (R,Z) AND the 2×2 poloidal Jacobian
 // DX_pol(φ_s, φ_e) = ∂(R(φ_e),Z(φ_e)) / ∂(R(φ_s),Z(φ_s)).
 //
-// Variational equation:  d(DX_pol)/dφ_e = J(φ_e) · DX_pol
-// where J = ∂(R·B_R/B_φ, R·B_Z/B_φ) / ∂(R, Z) is the analytic Jacobian
+// Variational equation:  d(DX_pol)/dphi_e = A(phi_e) * DX_pol
+// where A = d(R*B_R/B_phi, R*B_Z/B_phi)/d(R,Z) is the analytic Jacobian
 // of the field-line ODE right-hand side, evaluated on the trajectory.
 //
-// Initial DX_pol should be identity; after integrating over m toroidal turns
+// Initial DX_pol should be identity; after integrating over m turns
 // (one full island-chain period), DX_pol = DPm(φ_s), the monodromy matrix.
 //
 // DX_pol stored row-major: D00,D01,D10,D11.
@@ -285,49 +285,49 @@ static inline void rk4_step_DX_pol(
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi)
 {
-    // Analytic local gradient of the field-line ODE: J = ∂f/∂(R,Z)
-    // where f(R,Z) = [R·B_R/B_φ, R·B_Z/B_φ]
+    // Analytic local gradient of the field-line ODE: A = ∂f/∂(R,Z)
+    // where f(R,Z) = [R*B_R/B_phi, R*B_Z/B_phi]
     // (Not a Jacobian in the DX_pol/DPm sense - those are derivatives
-    // w.r.t. initial conditions; this is a local spatial gradient.)
+    // w.r.t. initial conditions; A is a local spatial gradient.)
     auto eval_local_grad = [&](double r, double z, double p,
                          double& fR, double& fZ,
-                         double& J00, double& J01, double& J10, double& J11) -> bool {
+                         double& A00, double& A01, double& A10, double& A11) -> bool {
         double BRv, dBR_dR, dBR_dZ;
         double BPhiv, dBPhi_dR, dBPhi_dZ;
         double BZv, dBZ_dR, dBZ_dZ;
         if (!interp3d_grad(BRv, dBR_dR, dBR_dZ, BR, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, r,z,p)) return false;
         if (!interp3d_grad(BPhiv, dBPhi_dR, dBPhi_dZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, r,z,p)) return false;
         if (!interp3d_grad(BZv, dBZ_dR, dBZ_dZ, BZ, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, r,z,p)) return false;
-        if (std::abs(BPhiv) <= 1e-12) { fR = fZ = 0.0; J00=J01=J10=J11=0.0; return true; }
+        if (std::abs(BPhiv) <= 1e-12) { fR = fZ = 0.0; A00=A01=A10=A11=0.0; return true; }
         double invBp = 1.0 / BPhiv, invBp2 = invBp / BPhiv;
         fR = r * BRv * invBp;
         fZ = r * BZv * invBp;
-        J00 = BRv*invBp + r*(dBR_dR*invBp - BRv*invBp2*dBPhi_dR);
-        J01 = r*(dBR_dZ*invBp - BRv*invBp2*dBPhi_dZ);
-        J10 = BZv*invBp + r*(dBZ_dR*invBp - BZv*invBp2*dBPhi_dR);
-        J11 = r*(dBZ_dZ*invBp - BZv*invBp2*dBPhi_dZ);
+        A00 = BRv*invBp + r*(dBR_dR*invBp - BRv*invBp2*dBPhi_dR);
+        A01 = r*(dBR_dZ*invBp - BRv*invBp2*dBPhi_dZ);
+        A10 = BZv*invBp + r*(dBZ_dR*invBp - BZv*invBp2*dBPhi_dR);
+        A11 = r*(dBZ_dZ*invBp - BZv*invBp2*dBPhi_dZ);
         return true;
     };
-    double fR1,fZ1,J00_1,J01_1,J10_1,J11_1;
-    if(!eval_local_grad(R,Z,phi,fR1,fZ1,J00_1,J01_1,J10_1,J11_1))return;
-    double k1_D00=J00_1*D00+J01_1*D10, k1_D01=J00_1*D01+J01_1*D11;
-    double k1_D10=J10_1*D00+J11_1*D10, k1_D11=J10_1*D01+J11_1*D11;
+    double fR1,fZ1,A00_1,A01_1,A10_1,A11_1;
+    if(!eval_local_grad(R,Z,phi,fR1,fZ1,A00_1,A01_1,A10_1,A11_1))return;
+    double k1_D00=A00_1*D00+A01_1*D10, k1_D01=A00_1*D01+A01_1*D11;
+    double k1_D10=A10_1*D00+A11_1*D10, k1_D11=A10_1*D01+A11_1*D11;
     double hh=0.5*dPhi;
     double R2=R+hh*fR1,Z2=Z+hh*fZ1, D00_2=D00+hh*k1_D00,D01_2=D01+hh*k1_D01,D10_2=D10+hh*k1_D10,D11_2=D11+hh*k1_D11;
-    double fR2,fZ2,J00_2,J01_2,J10_2,J11_2;
-    if(!eval_local_grad(R2,Z2,phi+hh,fR2,fZ2,J00_2,J01_2,J10_2,J11_2))return;
-    double k2_D00=J00_2*D00_2+J01_2*D10_2, k2_D01=J00_2*D01_2+J01_2*D11_2;
-    double k2_D10=J10_2*D00_2+J11_2*D10_2, k2_D11=J10_2*D01_2+J11_2*D11_2;
+    double fR2,fZ2,A00_2,A01_2,A10_2,A11_2;
+    if(!eval_local_grad(R2,Z2,phi+hh,fR2,fZ2,A00_2,A01_2,A10_2,A11_2))return;
+    double k2_D00=A00_2*D00_2+A01_2*D10_2, k2_D01=A00_2*D01_2+A01_2*D11_2;
+    double k2_D10=A10_2*D00_2+A11_2*D10_2, k2_D11=A10_2*D01_2+A11_2*D11_2;
     double R3=R+hh*fR2,Z3=Z+hh*fZ2, D00_3=D00+hh*k2_D00,D01_3=D01+hh*k2_D01,D10_3=D10+hh*k2_D10,D11_3=D11+hh*k2_D11;
-    double fR3,fZ3,J00_3,J01_3,J10_3,J11_3;
-    if(!eval_local_grad(R3,Z3,phi+hh,fR3,fZ3,J00_3,J01_3,J10_3,J11_3))return;
-    double k3_D00=J00_3*D00_3+J01_3*D10_3, k3_D01=J00_3*D01_3+J01_3*D11_3;
-    double k3_D10=J10_3*D00_3+J11_3*D10_3, k3_D11=J10_3*D01_3+J11_3*D11_3;
+    double fR3,fZ3,A00_3,A01_3,A10_3,A11_3;
+    if(!eval_local_grad(R3,Z3,phi+hh,fR3,fZ3,A00_3,A01_3,A10_3,A11_3))return;
+    double k3_D00=A00_3*D00_3+A01_3*D10_3, k3_D01=A00_3*D01_3+A01_3*D11_3;
+    double k3_D10=A10_3*D00_3+A11_3*D10_3, k3_D11=A10_3*D01_3+A11_3*D11_3;
     double R4=R+dPhi*fR3,Z4=Z+dPhi*fZ3, D00_4=D00+dPhi*k3_D00,D01_4=D01+dPhi*k3_D01,D10_4=D10+dPhi*k3_D10,D11_4=D11+dPhi*k3_D11;
-    double fR4,fZ4,J00_4,J01_4,J10_4,J11_4;
-    if(!eval_local_grad(R4,Z4,phi+dPhi,fR4,fZ4,J00_4,J01_4,J10_4,J11_4))return;
-    double k4_D00=J00_4*D00_4+J01_4*D10_4, k4_D01=J00_4*D01_4+J01_4*D11_4;
-    double k4_D10=J10_4*D00_4+J11_4*D10_4, k4_D11=J10_4*D01_4+J11_4*D11_4;
+    double fR4,fZ4,A00_4,A01_4,A10_4,A11_4;
+    if(!eval_local_grad(R4,Z4,phi+dPhi,fR4,fZ4,A00_4,A01_4,A10_4,A11_4))return;
+    double k4_D00=A00_4*D00_4+A01_4*D10_4, k4_D01=A00_4*D01_4+A01_4*D11_4;
+    double k4_D10=A10_4*D00_4+A11_4*D10_4, k4_D11=A10_4*D01_4+A11_4*D11_4;
     double s6=dPhi/6.0;
     R += s6*(fR1+2*fR2+2*fR3+fR4);
     Z += s6*(fZ1+2*fZ2+2*fZ3+fZ4);
@@ -832,7 +832,7 @@ static inline bool pmap_m(
 // Simultaneously integrates the field-line trajectory (R,Z) and the 2×2
 // poloidal Jacobian DX_pol using the analytic local gradient J(φ):
 //
-//   d(DX_pol)/dφ = J(φ) · DX_pol,    DX_pol(φ_s, φ_s) = I
+//   d(DX_pol)/dphi = A(phi) * DX_pol,    DX_pol(phi_s, phi_s) = I
 //
 // Returns DX_out[4] = DX_pol(φ_s, φ_s+2πm) in row-major order.
 // When the turn count m equals the island-chain poloidal mode number,
@@ -867,6 +867,86 @@ static inline bool DX_pol_m_turns(
     DX_out[0]=D00; DX_out[1]=D01; DX_out[2]=D10; DX_out[3]=D11;
     return true;
 }
+
+// ---------------------------------------------------------------------------
+// Evolve DPm(phi) along a cycle orbit using the commutator ODE.
+// ---------------------------------------------------------------------------
+// For a period-m fixed point (P^m(x)=x), the monodromy DPm(phi) satisfies:
+//
+//   d(DPm)/dphi = A(phi+2pi_m)*DPm(phi) - DPm(phi)*A(phi)
+//
+// At the fixed point A(phi+2pi_m)=A(phi) (field-line returns to same
+// spatial point after m toroidal turns), giving the commutator:
+//
+//   d(DPm)/dphi = A*DPm - DPm*A  =  [A, DPm]
+//
+// This preserves Tr(DPm) (commutator trace=0), so X vs O classification
+// is invariant along the cycle -- as physically expected.
+//
+// Given the orbit (R,Z,phi) at discrete points and DPm(phi0) from a
+// Newton solve at phi=0, this integrates DPm along the entire cycle
+// WITHOUT additional field-line tracing.
+static inline void evolve_DPm_along_cycle(
+    const double* R_traj, const double* Z_traj, const double* phi_traj,
+    int n_pts,
+    const double* DPm_init,  // [D00,D01,D10,D11] at index 0
+    double* DPm_out,         // n_pts * 4
+    const double* BR, const double* BPhi, const double* BZ,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi)
+{
+    if (n_pts < 1) return;
+    DPm_out[0]=DPm_init[0];DPm_out[1]=DPm_init[1];
+    DPm_out[2]=DPm_init[2];DPm_out[3]=DPm_init[3];
+
+    // RK4 for commutator ODE: dD/dphi = J*D - D*J
+    auto rk4_c = [&](double R,double Z,double phi,double dPhi,
+                      double& A,double& B,double& C,double& Dm){
+        double fR,fZ,A00,A01,A10,A11;
+        {double BRv,dBR_dR,dBR_dZ,BPhiv,dBPhi_dR,dBPhi_dZ,BZv,dBZ_dR,dBZ_dZ;
+         if(!interp3d_grad(BRv,dBR_dR,dBR_dZ,BR,R_grid,nR,Z_grid,nZ,Phi_grid,nPhi,R,Z,phi))return;
+         if(!interp3d_grad(BPhiv,dBPhi_dR,dBPhi_dZ,BPhi,R_grid,nR,Z_grid,nZ,Phi_grid,nPhi,R,Z,phi))return;
+         if(!interp3d_grad(BZv,dBZ_dR,dBZ_dZ,BZ,R_grid,nR,Z_grid,nZ,Phi_grid,nPhi,R,Z,phi))return;
+         if(std::abs(BPhiv)<=1e-12){A00=A01=A10=A11=0.0;return;}
+         double iBp=1.0/BPhiv,iBp2=iBp/BPhiv;
+         fR=R*BRv*iBp;fZ=R*BZv*iBp;
+         A00=BRv*iBp+R*(dBR_dR*iBp-BRv*iBp2*dBPhi_dR);
+         A01=R*(dBR_dZ*iBp-BRv*iBp2*dBPhi_dZ);
+         A10=BZv*iBp+R*(dBZ_dR*iBp-BZv*iBp2*dBPhi_dR);
+         A11=R*(dBZ_dZ*iBp-BZv*iBp2*dBPhi_dZ);}
+        // Commutator: f(D)=A*D-D*A, D=[A B;C Dm], A=[A00 A01;A10 A11]
+        double fA=A01*C-B*A10,fB=A00*B+A01*Dm-A*A01-B*A11;
+        double fC=A10*A+A11*C-C*A00-Dm*A10,fDm=A10*B-C*A01;
+        double hh=0.5*dPhi;
+        double k1_A=fA,k1_B=fB,k1_C=fC,k1_Dm=fDm;
+        double A2=A+hh*k1_A,B2=B+hh*k1_B,C2=C+hh*k1_C,Dm2=Dm+hh*k1_Dm;
+        double k2_A=A01*C2-B2*A10,k2_B=A00*B2+A01*Dm2-A2*A01-B2*A11;
+        double k2_C=A10*A2+A11*C2-C2*A00-Dm2*A10,k2_Dm=A10*B2-C2*A01;
+        double A3=A+hh*k2_A,B3=B+hh*k2_B,C3=C+hh*k2_C,Dm3=Dm+hh*k2_Dm;
+        double k3_A=A01*C3-B3*A10,k3_B=A00*B3+A01*Dm3-A3*A01-B3*A11;
+        double k3_C=A10*A3+A11*C3-C3*A00-Dm3*A10,k3_Dm=A10*B3-C3*A01;
+        double A4=A+dPhi*k3_A,B4=B+dPhi*k3_B,C4=C+dPhi*k3_C,Dm4=Dm+dPhi*k3_Dm;
+        double k4_A=A01*C4-B4*A10,k4_B=A00*B4+A01*Dm4-A4*A01-B4*A11;
+        double k4_C=A10*A4+A11*C4-C4*A00-Dm4*A10,k4_Dm=A10*B4-C4*A01;
+        double s6=dPhi/6.0;
+        A+=s6*(k1_A+2*k2_A+2*k3_A+k4_A);B+=s6*(k1_B+2*k2_B+2*k3_B+k4_B);
+        C+=s6*(k1_C+2*k2_C+2*k3_C+k4_C);Dm+=s6*(k1_Dm+2*k2_Dm+2*k3_Dm+k4_Dm);
+    };
+    double A=DPm_init[0],B=DPm_init[1],C=DPm_init[2],Dm=DPm_init[3];
+    for(int k=1;k<n_pts;++k){
+        double R=R_traj[k-1],Z=Z_traj[k-1];
+        double phi0=phi_traj[k-1],phi1=phi_traj[k];
+        double ds=phi1-phi0;
+        if(ds<=0.0){DPm_out[4*k]=A;DPm_out[4*k+1]=B;DPm_out[4*k+2]=C;DPm_out[4*k+3]=Dm;continue;}
+        int ns=(int)std::ceil(ds/0.005);if(ns<1)ns=1;
+        double dss=ds/ns,ph=phi0;
+        for(int s=0;s<ns;++s,ph+=dss)rk4_c(R,Z,ph,dss,A,B,C,Dm);
+        DPm_out[4*k]=A;DPm_out[4*k+1]=B;DPm_out[4*k+2]=C;DPm_out[4*k+3]=Dm;
+    }
+}
+
+
 
 static inline FixedPointResult newton_fixed_point(
     double R0, double Z0,
@@ -1075,8 +1155,9 @@ void trace_orbit_along_phi(
 
     double phi_end = phi0 + phi_span;
 
-    while (phi < phi_end - 1e-12 && out_idx < n_out) {
-        double step = std::min(DPhi, phi_end - phi);
+    while ((phi_end > phi0 ? phi < phi_end - 1e-12 : phi > phi_end + 1e-12) && out_idx < n_out) {
+        double step_raw = (phi_end > phi0 ? std::min(DPhi, phi_end - phi) : std::max(-DPhi, phi_end - phi));
+        double step = step_raw;
         // Integrate one step
         rk4_step(R, Z, phi, step, BR, BPhi, BZ,
                  R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
@@ -1087,8 +1168,8 @@ void trace_orbit_along_phi(
             Z < Z_grid[0] || Z > Z_grid[nZ-1])
             break;
 
-        // Check if we passed an output checkpoint
-        while (out_idx < n_out && phi >= phi_next_out - 1e-12) {
+        // Check if we passed an output checkpoint (forward or backward)
+        while (out_idx < n_out && (dphi_out>0 ? phi >= phi_next_out - 1e-12 : phi <= phi_next_out + 1e-12)) {
             R_traj[out_idx] = R; Z_traj[out_idx] = Z; phi_traj[out_idx] = phi_next_out;
             double DPm[4];
             if (compute_DPm(R, Z, mod2pi(phi_next_out), DPm)) {

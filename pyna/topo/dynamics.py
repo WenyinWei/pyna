@@ -388,9 +388,17 @@ class MCFPoincareMap(DiscreteMap):
 
     @staticmethod
     def _prepare_arrays(fc: dict):
-        """Extend phi periodicity and ensure C-contiguous float64 arrays."""
+        """Extend phi periodicity and ensure C-contiguous float64 arrays.
+
+        The cyna interp3d function requires nPhi = N_phi_original + 1,
+        with the last phi slice = 2*pi (copy of phi=0 data). If the input
+        already has this extension, we skip the extra copy to avoid a
+        stride mismatch between B arrays and Phi_grid.
+        """
         Phi_grid = np.asarray(fc['Phi_grid'], dtype=np.float64)
-        if abs(Phi_grid[-1] - 2 * np.pi) > 1e-6:
+        needs_ext = abs(Phi_grid[-1] - 2 * np.pi) > 1e-6
+
+        if needs_ext:
             Phi_ext = np.append(Phi_grid, 2 * np.pi)
         else:
             Phi_ext = Phi_grid.copy()
@@ -399,9 +407,15 @@ class MCFPoincareMap(DiscreteMap):
             a = np.asarray(a, dtype=np.float64)
             return np.ascontiguousarray(np.concatenate([a, a[:, :, :1]], axis=2))
 
-        BR_c   = _ext(fc['BR'])
-        BPhi_c = _ext(fc['BPhi'])
-        BZ_c   = _ext(fc['BZ'])
+        if needs_ext:
+            BR_c   = _ext(fc['BR'])
+            BPhi_c = _ext(fc['BPhi'])
+            BZ_c   = _ext(fc['BZ'])
+        else:
+            # Phi already includes 2*pi copy → B arrays already have the right size
+            BR_c   = np.ascontiguousarray(fc['BR'], dtype=np.float64)
+            BPhi_c = np.ascontiguousarray(fc['BPhi'], dtype=np.float64)
+            BZ_c   = np.ascontiguousarray(fc['BZ'], dtype=np.float64)
         Rg = np.ascontiguousarray(fc['R_grid'],  dtype=np.float64)
         Zg = np.ascontiguousarray(fc['Z_grid'],  dtype=np.float64)
         Pg = np.ascontiguousarray(Phi_ext)
@@ -502,11 +516,16 @@ class MCFPoincareMap(DiscreteMap):
                 np.ascontiguousarray(Z_arr, dtype=np.float64),
                 float(self._phi_section),
                 int(n_turns),
-                BR=self._BR_c, BPhi=self._BPhi_c, BZ=self._BZ_c,
-                R_grid=self._Rg, Z_grid=self._Zg, Phi_grid=self._Pg,
+                float(self._DPhi),
+                self._BR_c, self._BPhi_c, self._BZ_c,
+                self._Rg, self._Zg, self._Pg,
+                np.array([], dtype=np.float64),
+                np.array([], dtype=np.float64),
+                int(self._n_threads),
             )
-            R_out = np.asarray(result[0], dtype=float)
-            Z_out = np.asarray(result[1], dtype=float)
+            n_seeds = len(R_arr)
+            R_out = result[1].reshape(n_seeds, n_turns)
+            Z_out = result[2].reshape(n_seeds, n_turns)
             return R_out, Z_out
         except Exception as exc:
             raise RuntimeError(
@@ -526,12 +545,16 @@ class MCFPoincareMap(DiscreteMap):
                 np.ascontiguousarray(Z_arr, dtype=np.float64),
                 float(self._phi_section),
                 int(self._n_turns),
-                BR=self._BR_c, BPhi=self._BPhi_c, BZ=self._BZ_c,
-                R_grid=self._Rg, Z_grid=self._Zg, Phi_grid=self._Pg,
+                float(self._DPhi),
+                self._BR_c, self._BPhi_c, self._BZ_c,
+                self._Rg, self._Zg, self._Pg,
+                np.array([], dtype=np.float64),
+                np.array([], dtype=np.float64),
+                int(self._n_threads),
             )
-            R_out_full = np.asarray(result[0], dtype=float)  # shape (N, n_turns)
-            Z_out_full = np.asarray(result[1], dtype=float)
-            # Return only the first crossing (one step)
+            n_seeds = len(R_arr)
+            R_out_full = result[1].reshape(n_seeds, self._n_turns)
+            Z_out_full = result[2].reshape(n_seeds, self._n_turns)
             if R_out_full.ndim == 2:
                 return R_out_full[:, 0], Z_out_full[:, 0]
             return R_out_full, Z_out_full

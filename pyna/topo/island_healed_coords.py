@@ -1445,7 +1445,7 @@ def build_from_island_chain(
 
         Typical usage::
 
-            from pyna.topo.toroidal_island import IslandChain
+            from pyna.topo.toroidal import IslandChain
             chain = IslandChain(m=2, n=1, islands=[...])
             chain.orbit = my_orbit   # IslandChainOrbit with X and O fps
             coord_map = build_from_island_chain(coords_npz, secondary_chain=chain)

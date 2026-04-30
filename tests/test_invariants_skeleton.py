@@ -3,11 +3,11 @@
 import numpy as np
 import pytest
 
-from pyna.topo.toroidal_invariants import Cycle, FixedPoint, MonodromyData, PeriodicOrbit
+from pyna.topo.toroidal import Cycle, FixedPoint, MonodromyData, PeriodicOrbit
 from pyna.topo.invariants import Stability
 from pyna.topo.invariant import InvariantTorus
-from pyna.topo.toroidal_island import Island, IslandChain
-from pyna.topo.toroidal_tube import Tube, TubeChain
+from pyna.topo.toroidal import Island, IslandChain
+from pyna.topo.toroidal import Tube, TubeChain
 
 
 # ---------------------------------------------------------------------------
@@ -74,7 +74,7 @@ def test_tubechain_section_cut():
     X_cycle = Cycle(winding=(10, 3), sections={0.0: [X_fp], np.pi / 4: [X_fp2]})
 
     tube = Tube(O_cycle=O_cycle, X_cycles=[X_cycle])
-    tc = TubeChain(O_cycles=[O_cycle], X_cycles=[X_cycle], tubes=[tube])
+    tc = TubeChain(tubes=[tube])
 
     island_chain = tc.section_cut(0.0)
     assert isinstance(island_chain, IslandChain)
@@ -136,7 +136,7 @@ def test_tube_section_cut_period3():
     assert islands[0].step_back() is islands[2]
 
     # TubeChain
-    tc = TubeChain(O_cycles=[o_cycle], X_cycles=[x_cycle], tubes=[tube])
+    tc = TubeChain(tubes=[tube])
     chain = tc.section_cut(0.0)
     assert isinstance(chain, IslandChain)
     assert len(chain.islands) == 3
@@ -184,7 +184,7 @@ def test_root_tube_axis_ordering():
     island_tube = Tube(O_cycle=o_cycle, X_cycles=[])
 
     # Build hierarchy: axis_tube -> TubeChain -> island_tube
-    tc = TubeChain(O_cycles=[o_cycle], X_cycles=[], tubes=[island_tube])
+    tc = TubeChain(tubes=[island_tube])
     axis_tube.add_child_chain(tc)   # tc.parent_tube = axis_tube
     island_tube.parent_chain = tc   # island_tube knows its parent chain
 

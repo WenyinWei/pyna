@@ -706,7 +706,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
            py::array_t<double> R_grid, py::array_t<double> Z_grid,
            py::array_t<double> Phi_grid) -> py::tuple
         {
-            int n_out = (int)std::ceil(phi_span / dphi_out) + 1;
+            int n_out = (int)std::ceil(std::abs(phi_span) / dphi_out) + 1;
             py::array_t<double> R_t({n_out}), Z_t({n_out}), phi_t({n_out});
             py::array_t<double> DPm_t({n_out, 4});
             py::array_t<int>    alive_t({n_out});
@@ -731,6 +731,39 @@ PYBIND11_MODULE(_cyna_ext, m) {
         "Integrate field line from (R0,Z0,phi0) for phi_span radians, outputting\n"
         "(R,Z,phi,DPm[n,4],alive[n]) at evenly-spaced phi_out intervals.\n"
         "DPm(φ)=DX_pol(φ,φ+2π·m_turns_DPm) via analytic DX_pol evolution — used for cycle visualisation.");
+
+    // -----------------------------------------------------------------------
+    // evolve_DPm_along_cycle — integrate DPm along a known orbit via commutator ODE
+    // -----------------------------------------------------------------------
+    m.def("evolve_DPm_along_cycle",
+        [](py::array_t<double> R_traj, py::array_t<double> Z_traj,
+           py::array_t<double> phi_traj,
+           py::array_t<double> DPm_init,
+           py::array_t<double> BR, py::array_t<double> BPhi, py::array_t<double> BZ,
+           py::array_t<double> R_grid, py::array_t<double> Z_grid,
+           py::array_t<double> Phi_grid)
+        -> py::array_t<double>
+        {
+            int n_pts = (int)R_traj.size();
+            py::array_t<double> DPm_out({n_pts, 4});
+            cyna::evolve_DPm_along_cycle(
+                buf(R_traj,"R_traj"), buf(Z_traj,"Z_traj"), buf(phi_traj,"phi_traj"),
+                n_pts,
+                buf(DPm_init,"DPm_init"),
+                DPm_out.mutable_data(),
+                buf(BR,"BR"), buf(BPhi,"BPhi"), buf(BZ,"BZ"),
+                buf(R_grid,"R_grid"), (int)R_grid.size(),
+                buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
+                buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size());
+            return DPm_out;
+        },
+        py::arg("R_traj"), py::arg("Z_traj"), py::arg("phi_traj"),
+        py::arg("DPm_init"),
+        py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
+        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+        "Integrate DPm along a known cycle orbit using the commutator ODE\n"
+        "d(DPm)/dφ = J·DPm - DPm·J.  Requires only the orbit (R,Z,φ) and\n"
+        "initial DPm from Newton at φ=0 — no additional field-line tracing.");
 
     // -----------------------------------------------------------------------
     // coil_circular_field — analytic ring-coil B at a Cartesian point cloud

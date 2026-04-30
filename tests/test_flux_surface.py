@@ -16,7 +16,7 @@ import numpy as np
 import pytest
 
 from pyna.topo.flux_surface import FluxSurface, FluxSurfaceMap, XPointOrbit
-from pyna.topo.toroidal_island import Island
+from pyna.topo.toroidal import Island
 
 
 # ---------------------------------------------------------------------------

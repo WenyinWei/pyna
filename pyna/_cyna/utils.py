@@ -113,7 +113,7 @@ def build_fixed_points_from_batch(
     list of FixedPoint
         Only converged points are included.
     """
-    from pyna.topo.toroidal_invariants import FixedPoint
+    from pyna.topo.toroidal import FixedPoint
 
     # Normalise DPm shape
     if DPm_flat.ndim == 2 and DPm_flat.shape[1] == 4:
@@ -171,7 +171,7 @@ def build_cycles_from_batch(
     -------
     o_cycles, x_cycles : list of Cycle
     """
-    from pyna.topo.toroidal_invariants import Cycle, FixedPoint, MonodromyData
+    from pyna.topo.toroidal import Cycle, FixedPoint, MonodromyData
     from pyna._cyna import find_fixed_points_batch as _ffpb
 
     if _ffpb is None:

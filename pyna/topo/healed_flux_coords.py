@@ -43,6 +43,24 @@ def _forward_span(phi_src: float, phi_tgt: float) -> float:
     return float((phi_tgt - phi_src) % (2.0 * np.pi))
 
 
+def _forward_span_nfp(phi_src: float, phi_tgt: float, nfp: int) -> float:
+    """Forward toroidal span minimised by exploiting N-fold field periodicity.
+
+    With ``nfp`` identical field periods,  φ_tgt ≡ φ_tgt + k·2π/nfp  for any
+    integer k.  This returns the smallest positive span that reaches φ_tgt or
+    any of its periodic images.
+    """
+    period = 2.0 * np.pi / nfp
+    phi_tgt_w = float(phi_tgt % (2.0 * np.pi))
+    best = float('inf')
+    for k in range(nfp + 1):  # check up to one extra period
+        candidate_phi = phi_tgt_w + k * period
+        span = float((candidate_phi - phi_src) % (2.0 * np.pi))
+        if 1e-12 < span < best:
+            best = span
+    return best if best < float('inf') else _forward_span(phi_src, phi_tgt)
+
+
 def _shortest_span(phi_src: float, phi_tgt: float) -> float:
     """Shortest signed toroidal span from ``phi_src`` to ``phi_tgt``.
 
@@ -1224,8 +1242,17 @@ def trace_grid_to_phi(
     trace_func: TraceFunction,
     dphi_hint: float = 0.04,
     phi_hit_tol_factor: float = 5.0,
+    nfp: int = 1,
 ) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
-    """Transport a 2D ``(r, θ)`` point grid from one toroidal section to another."""
+    """Transport a 2D ``(r, θ)`` point grid from one toroidal section to another.
+
+    The ``nfp`` parameter is **ignored** — it is kept for backward compatibility
+    only.  N-fold-periodicity shortcuts require coordinate rotation to bring the
+    traced periodic-image cross-section back to the target toroidal plane, which
+    is not yet implemented.  Using the raw (R,Z) from a periodic-image trace
+    endpoint introduces systematic geometric errors because φ=φ_tgt+k·2π/nfp is
+    a physically different stellarator cross-section.
+    """
     R_grid = np.asarray(R_grid, dtype=float)
     Z_grid = np.asarray(Z_grid, dtype=float)
     if R_grid.shape != Z_grid.shape:
@@ -1240,7 +1267,7 @@ def trace_grid_to_phi(
     if span < 1e-12:
         return R_grid.copy(), Z_grid.copy(), np.ones_like(R_grid, dtype=bool)
 
-    dphi_out = min(span / 30.0, dphi_hint) if span > 0 else dphi_hint
+    dphi_out = (span / abs(span)) * min(abs(span) / 30.0, dphi_hint) if abs(span) > 1e-12 else dphi_hint
     phi_tgt_w = _wrap_angle(phi_tgt)
     phi_tol = phi_hit_tol_factor * dphi_out
 
@@ -1325,7 +1352,10 @@ class FieldLineScaffold3D:
         *,
         dphi_hint: float = 0.04,
         phi_hit_tol_factor: float = 5.0,
+        nfp: int = 1,
     ) -> "FieldLineScaffold3D":
+        # nfp is accepted for backward compatibility but currently ignored;
+        # see trace_grid_to_phi docstring for the coordinate-rotation limitation.
         phi_ref = _wrap_angle(phi_ref)
         r_levels = np.asarray(r_levels, dtype=float)
         theta_levels = np.asarray(theta_levels, dtype=float)
@@ -1345,7 +1375,7 @@ class FieldLineScaffold3D:
                 continue
             R_tgt, Z_tgt, valid = trace_grid_to_phi(
                 R_ref, Z_ref, phi_src=phi_ref, phi_tgt=float(phi_tgt), trace_func=trace_func,
-                dphi_hint=dphi_hint, phi_hit_tol_factor=phi_hit_tol_factor,
+                dphi_hint=dphi_hint, phi_hit_tol_factor=phi_hit_tol_factor, nfp=nfp,
             )
             sections.append(TransportedSection(phi=float(phi_tgt), R=R_tgt, Z=Z_tgt, valid=valid))
         return cls(phi_ref=phi_ref, r_levels=r_levels, theta_levels=theta_levels, phi_samples=phi_samples, sections=sections, R_ref=R_ref, Z_ref=Z_ref)
@@ -1402,6 +1432,7 @@ def trace_surface_family_to_sections(
     *,
     dphi_hint: float = 0.04,
     phi_hit_tol_factor: float = 5.0,
+    nfp: int = 1,
 ) -> FieldLineScaffold3D:
     return FieldLineScaffold3D.from_reference_map(
         reference_map=reference_map,
@@ -1412,6 +1443,7 @@ def trace_surface_family_to_sections(
         trace_func=trace_func,
         dphi_hint=dphi_hint,
         phi_hit_tol_factor=phi_hit_tol_factor,
+        nfp=nfp,
     )
 
 
@@ -1486,6 +1518,7 @@ def build_section_scaffold_bundle(
     phi_hit_tol_factor: float = 5.0,
     cxo_trace_theta: Optional[Sequence[float]] = None,
     boundary_family: Optional[BoundaryFamily3D] = None,
+    nfp: int = 1,
 ) -> SectionScaffoldBundle:
     phi_samples = np.asarray(phi_samples, dtype=float)
     ref_idx = int(np.argmin(np.abs(np.angle(np.exp(1j * (phi_samples - _wrap_angle(phi_ref)))))))
@@ -1498,6 +1531,7 @@ def build_section_scaffold_bundle(
         trace_func=trace_func,
         dphi_hint=dphi_hint,
         phi_hit_tol_factor=phi_hit_tol_factor,
+        nfp=nfp,
     )
     fits: List[SectionFit] = []
     cxo_trace_theta = np.asarray(cxo_trace_theta if cxo_trace_theta is not None else theta_levels, dtype=float)

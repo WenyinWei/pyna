@@ -65,6 +65,7 @@ if _available:
     find_fixed_points_batch       = getattr(_cyna_ext, "find_fixed_points_batch",       None)
     trace_orbit_along_phi         = getattr(_cyna_ext, "trace_orbit_along_phi",         None)
     compute_A_matrix_batch        = getattr(_cyna_ext, "compute_A_matrix_batch",        None)
+    evolve_DPm_along_cycle        = getattr(_cyna_ext, "evolve_DPm_along_cycle",        None)
     trace_surface_metrics_batch_twall = getattr(_cyna_ext, "trace_surface_metrics_batch_twall", None)
     summarize_profile_objectives  = getattr(_cyna_ext, "summarize_profile_objectives",  None)
     trace_poincare_beta_sweep     = getattr(_cyna_ext, "trace_poincare_beta_sweep",     None)
@@ -81,6 +82,7 @@ else:
     find_fixed_points_batch       = None
     trace_orbit_along_phi         = None
     compute_A_matrix_batch        = None
+    evolve_DPm_along_cycle        = None
     trace_surface_metrics_batch_twall = None
     summarize_profile_objectives  = None
     trace_poincare_beta_sweep     = None
@@ -98,6 +100,7 @@ __all__ = [
     "find_fixed_points_batch",
     "trace_orbit_along_phi",
     "compute_A_matrix_batch",
+    "evolve_DPm_along_cycle",
     "trace_surface_metrics_batch_twall",
     "summarize_profile_objectives",
     "trace_poincare_beta_sweep",

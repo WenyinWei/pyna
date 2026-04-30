@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from pyna.topo.toroidal_invariants import Cycle, FixedPoint, MonodromyData
-from pyna.topo.toroidal_tube import Tube, TubeChain, TubeCutPoint
+from pyna.topo.toroidal import Cycle, FixedPoint, MonodromyData
+from pyna.topo.toroidal import Tube, TubeChain, TubeCutPoint
 from pyna.topo.section import HyperplaneSection, ToroidalSection
 
 
@@ -195,7 +195,7 @@ def test_tubechain_section_cut_general_section_aggregates_tubes():
 
 def test_tubechain_from_XO_orbits_provides_joint_section_data():
     """TubeChain.from_XO_orbits assembles X and O data into one chain."""
-    from pyna.topo.toroidal_invariants import Cycle as _Cycle
+    from pyna.topo.toroidal import Cycle as _Cycle
 
     def _orb_cycle(points, m=2, n=1):
         from collections import defaultdict

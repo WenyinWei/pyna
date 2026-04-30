@@ -12,9 +12,9 @@ import os
 import numpy as np
 import pytest
 
-from pyna.topo.toroidal_invariants import Cycle, FixedPoint, MonodromyData
-from pyna.topo.toroidal_island import Island, IslandChain
-from pyna.topo.toroidal_tube import Tube, TubeChain
+from pyna.topo.toroidal import Cycle, FixedPoint, MonodromyData
+from pyna.topo.toroidal import Island, IslandChain
+from pyna.topo.toroidal import Tube, TubeChain
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -59,7 +59,7 @@ def _build_synthetic_tc():
     )
 
     tube = Tube(O_cycle=o_cycle, X_cycles=[x_cycle])
-    tc = TubeChain(O_cycles=[o_cycle], X_cycles=[x_cycle], tubes=[tube])
+    tc = TubeChain(tubes=[tube])
     return tc, o_cycle, x_cycle
 
 
@@ -237,7 +237,7 @@ class TestRealFlowIntegration:
         )
 
         tube = Tube(O_cycle=o_cycle, X_cycles=[x_cycle])
-        tc = TubeChain(O_cycles=[o_cycle], X_cycles=[x_cycle], tubes=[tube])
+        tc = TubeChain(tubes=[tube])
         return tc
 
     def test_section_cut_real(self, real_tc):

@@ -4,8 +4,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from pyna.topo.toroidal_invariants import Cycle, FixedPoint, MonodromyData
-from pyna.topo.toroidal_tube import Tube, TubeChain
+from pyna.topo.toroidal import Cycle, FixedPoint, MonodromyData
+from pyna.topo.toroidal import Tube, TubeChain
 
 
 def _fp(phi=0.0, R=1.5, Z=0.0, kind='O') -> FixedPoint:

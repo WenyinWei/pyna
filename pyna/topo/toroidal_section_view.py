@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 import numpy as np
 
 from pyna.topo.identity import ResonanceID, TubeID, IslandID
-from pyna.topo.toroidal_island import IslandChain
+from pyna.topo.toroidal import IslandChain
 
 
 def _unique_cut_points(cut_points, dedup_tol: float = 1e-6):
@@ -17,10 +17,10 @@ def _unique_cut_points(cut_points, dedup_tol: float = 1e-6):
             out.append(cp)
     return out
 
-from pyna.topo.toroidal_invariants import FixedPoint
+from pyna.topo.toroidal import FixedPoint
 
 if TYPE_CHECKING:
-    from pyna.topo.toroidal_tube import TubeChain
+    from pyna.topo.toroidal import TubeChain
 
 
 @dataclass

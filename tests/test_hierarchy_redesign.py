@@ -19,10 +19,10 @@ from pyna.topo._base import (
     SectionCuttable,
     InvariantObject,       # backward-compat alias
 )
-from pyna.topo.toroidal_invariants import FixedPoint, Cycle, MonodromyData, PeriodicOrbit, StableManifold, UnstableManifold
+from pyna.topo.toroidal import FixedPoint, Cycle, MonodromyData, PeriodicOrbit, StableManifold, UnstableManifold
 from pyna.topo.invariants import Stability
 from pyna.topo.invariant import InvariantTorus
-from pyna.topo.toroidal_island import Island, IslandChain
+from pyna.topo.toroidal import Island, IslandChain
 from pyna.topo.regularity import (
     spectral_regularity,
     spectral_regularity_single,

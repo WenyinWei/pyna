@@ -72,7 +72,7 @@ def plot_tube_section(
 
     The Tube is cut at ``section`` (ToroidalSection or float phi).
     O-point Islands are drawn with filled markers; X-point regions
-    (from tube.x_cycles) are drawn with crosses.
+    (from tube.X_cycles) are drawn with crosses.
 
     Parameters
     ----------
@@ -110,9 +110,9 @@ def plot_tube_section(
             ax.plot(R, Z, marker=s['marker'], color=s['color'],
                     ms=s['ms'], mew=0, ls='None', zorder=20)
 
-    # X-point markers from x_cycles
+    # X-point markers from X_cycles
     if show_x and phi is not None:
-        for xc in tube.x_cycles:
+        for xc in tube.X_cycles:
             # x_cycles are Cycle objects; use section_points(phi)
             if hasattr(xc, 'section_points'):
                 fps = xc.section_points(phi)
@@ -316,8 +316,8 @@ def plot_resonance_section(
     Parameters
     ----------
     tubechain : TubeChain
-        Contains both O-cycles (in each Tube.o_cycle) and X-cycles
-        (in each Tube.x_cycles).
+        Contains both O-cycles (in each Tube.O_cycle) and X-cycles
+        (in each Tube.X_cycles).
     section : Section | float
     ax : matplotlib.axes.Axes, optional
     show_o, show_x : bool
@@ -353,7 +353,7 @@ def plot_resonance_section(
             if style and 'x' in style:
                 s = style['x']
                 color = s.get('color', color)
-            for xc in tube.x_cycles:
+            for xc in tube.X_cycles:
                 x_fps = xc.section_points(phi)
                 for fp in x_fps:
                     ax.plot(fp.R, fp.Z, marker='x', color=color,

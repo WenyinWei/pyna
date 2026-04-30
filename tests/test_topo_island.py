@@ -8,16 +8,14 @@ with q0 = 1.5, q1 = 4.0.  Rational surfaces are analytically at:
 """
 import numpy as np
 import pytest
+from pyna.topo.toroidal import Island, IslandChain, ChainRole
 from pyna.topo.toroidal_island import (
     locate_rational_surface,
     locate_all_rational_surfaces,
     island_halfwidth,
     all_rational_q,
-    Island,
-    IslandChain,
-    ChainRole,
 )
-from pyna.topo.toroidal_invariants import FixedPoint, PeriodicOrbit
+from pyna.topo.toroidal import FixedPoint, PeriodicOrbit
 
 
 def _fp(R, Z, kind='O'):

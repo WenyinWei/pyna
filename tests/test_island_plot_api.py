@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from pyna.topo.toroidal_island import Island
-from pyna.topo.toroidal_invariants import Cycle, FixedPoint, PeriodicOrbit
+from pyna.topo.toroidal import Island
+from pyna.topo.toroidal import Cycle, FixedPoint, PeriodicOrbit
 from pyna.topo import (
     island_section_points,
     island_chain_section_points,
