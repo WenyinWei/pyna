@@ -30,13 +30,12 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          # winget is available on windows-2022 runner
-          winget install --id xmake-io.xmake -e --silent --accept-source-agreements --accept-package-agreements
-          # Fallback: chocolatey
-          if (-not (Get-Command xmake -ErrorAction SilentlyContinue)) {
-            choco install xmake -y --no-progress
-          }
-          Add-Content $env:GITHUB_PATH "$env:USERPROFILE\.xmake\bin"
+          $url = "https://github.com/xmake-io/xmake/releases/download/v3.0.8/xmake-v3.0.8.win64.zip"
+          $zip = "$env:TEMP\xmake.zip"
+          $dest = "$env:USERPROFILE\.xmake"
+          Invoke-WebRequest -Uri $url -OutFile $zip -UseBasicParsing
+          Expand-Archive -Path $zip -DestinationPath $dest -Force
+          Add-Content $env:GITHUB_PATH "$dest\xmake\bin"
 
       - name: Install C++ compiler (Linux)
         if: runner.os == 'Linux'
