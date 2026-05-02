@@ -30,8 +30,12 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $script = [System.Text.Encoding]::UTF8.GetString((Invoke-WebRequest -Uri 'https://xmake.io/shget.text' -UseBasicParsing).Content)
-          Invoke-Expression $script
+          # winget is available on windows-2022 runner
+          winget install --id xmake-io.xmake -e --silent --accept-source-agreements --accept-package-agreements
+          # Fallback: chocolatey
+          if (-not (Get-Command xmake -ErrorAction SilentlyContinue)) {
+            choco install xmake -y --no-progress
+          }
           Add-Content $env:GITHUB_PATH "$env:USERPROFILE\.xmake\bin"
 
       - name: Install C++ compiler (Linux)
