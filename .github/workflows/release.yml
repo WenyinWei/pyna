@@ -9,12 +9,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2025, macos-15]
+        os: [ubuntu-24.04, windows-2022, macos-14]
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
         exclude:
-          # Python 3.9 EOL, still build for compatibility
-          # macOS ARM doesn't have 3.9 on GitHub runners
-          - os: macos-15
+          - os: macos-14
             python-version: "3.9"
     runs-on: ${{ matrix.os }}
 
@@ -22,26 +20,25 @@ jobs:
       - uses: actions/checkout@v4
 
       # ── xmake ──────────────────────────────────────────────────────
-      - name: Install xmake (Linux)
-        if: runner.os == 'Linux'
+      - name: Install xmake (Linux & macOS)
+        if: runner.os != 'Windows'
         run: |
           curl -fsSL https://xmake.io/shget.text | bash
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-      - name: Install xmake (macOS)
-        if: runner.os == 'macOS'
-        run: brew install xmake
-
       - name: Install xmake (Windows)
         if: runner.os == 'Windows'
-        uses: xmake-io/setup-xmake@v1
+        shell: pwsh
+        run: |
+          Invoke-Expression (Invoke-WebRequest -Uri 'https://xmake.io/shget.text' -UseBasicParsing).Content
+          Add-Content $env:GITHUB_PATH "$env:USERPROFILE\.xmake\bin"
 
       - name: Install C++ compiler (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get update -qq && sudo apt-get install -y build-essential
 
-      # macOS: Xcode CLT on macos-15 includes clang++
-      # Windows: VS 2022 on windows-2025 includes MSVC
+      # macOS: Xcode CLT already present
+      # Windows: VS 2022 already present on windows-2022 runner
 
       # ── Python & build ─────────────────────────────────────────────
       - uses: actions/setup-python@v5

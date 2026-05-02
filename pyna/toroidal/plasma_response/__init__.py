@@ -1,24 +1,20 @@
-"""pyna.toroidal.plasma_response — toroidal plasma-response solvers.
+"""pyna.toroidal.plasma_response — DEPRECATED shim.
 
-All PerturbGS and coupled MHD solvers now live in
-:mod:`topoquest.analysis.fem`.  This package delegates there.
+⚠️  All plasma-response solvers have moved to :mod:`topoquest.analysis.response`.
+
+This module exists only for backward compatibility and will be removed
+in a future release.  Please update imports:
+
+    from pyna.toroidal.plasma_response import compute_plasma_response   # ⛔ old
+    from topoquest.analysis.response import compute_plasma_response    # ✅ new
 """
-from topoquest.analysis.fem.perturb_gs import (
-    solve_perturbed_gs,
-    solve_perturbed_gs_coupled,
-    compute_plasma_response,
-    compute_equilibrium_currents,
-    compute_diamagnetic_current,
-    compute_pfirsch_schlueter_current,
-)
-from topoquest.analysis.fem.coupled_gs import solve_coupled_mhd
 
-__all__ = [
-    "solve_perturbed_gs",
-    "solve_perturbed_gs_coupled",
-    "compute_plasma_response",
-    "compute_equilibrium_currents",
-    "compute_diamagnetic_current",
-    "compute_pfirsch_schlueter_current",
-    "solve_coupled_mhd",
-]
+import warnings
+
+warnings.warn(
+    "pyna.toroidal.plasma_response is deprecated. "
+    "Use topoquest.analysis.response instead.",
+    DeprecationWarning, stacklevel=2,
+)
+
+from topoquest.analysis.response import *  # noqa: F401, F403, E402
