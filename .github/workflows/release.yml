@@ -30,7 +30,8 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          Invoke-Expression (Invoke-WebRequest -Uri 'https://xmake.io/shget.text' -UseBasicParsing).Content
+          $script = [System.Text.Encoding]::UTF8.GetString((Invoke-WebRequest -Uri 'https://xmake.io/shget.text' -UseBasicParsing).Content)
+          Invoke-Expression $script
           Add-Content $env:GITHUB_PATH "$env:USERPROFILE\.xmake\bin"
 
       - name: Install C++ compiler (Linux)
