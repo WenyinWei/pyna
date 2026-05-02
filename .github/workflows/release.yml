@@ -1,0 +1,82 @@
+name: Build wheels
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025, macos-15]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        exclude:
+          # Python 3.9 EOL, still build for compatibility
+          # macOS ARM doesn't have 3.9 on GitHub runners
+          - os: macos-15
+            python-version: "3.9"
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── xmake ──────────────────────────────────────────────────────
+      - name: Install xmake (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          curl -fsSL https://xmake.io/shget.text | bash
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install xmake (macOS)
+        if: runner.os == 'macOS'
+        run: brew install xmake
+
+      - name: Install xmake (Windows)
+        if: runner.os == 'Windows'
+        uses: xmake-io/setup-xmake@v1
+
+      - name: Install C++ compiler (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -qq && sudo apt-get install -y build-essential
+
+      # macOS: Xcode CLT on macos-15 includes clang++
+      # Windows: VS 2022 on windows-2025 includes MSVC
+
+      # ── Python & build ─────────────────────────────────────────────
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install build deps
+        run: pip install build pybind11
+
+      - name: Build wheel
+        env:
+          CYNA_SKIP_TOOL_INSTALL: "1"
+        run: python -m build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: dist/
+
+  release:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          merge-multiple: true
+          path: dist/
+
+      - name: Show all wheels
+        run: ls -lh dist/
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/pyna_chaos-*.whl
+          generate_release_notes: true
