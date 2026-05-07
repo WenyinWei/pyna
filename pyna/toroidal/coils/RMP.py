@@ -84,7 +84,8 @@ def RMP_spectrum_2d(
     return spectrum
 
 
-# Backward-compatibility alias removed — use RMP_spectrum_2d directly.
+# Lowercase alias for compatibility with topoquest and newer code
+rmp_spectrum_2d = RMP_spectrum_2d
 
 def island_width_at_rational_surfaces(
     tilde_b_mn: np.ndarray,

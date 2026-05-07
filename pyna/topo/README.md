@@ -22,7 +22,7 @@ Core capabilities:
 |------|----------------|
 | `poincare.py` | `Section` (abstract), `ToroidalSection`, `PoincareMap` |
 | `fixed_points.py` | `poincare_map()`, `scan_fixed_point_seeds()`, `find_periodic_orbit()`, `classify_fixed_point()` |
-| `island.py` | `Island`, `IslandChain` dataclasses |
+| `toroidal/` (subpackage) | `Island`, `IslandChain`, `FixedPoint`, `Cycle`, `PeriodicOrbit`, `Tube`, `TubeChain` — toroidal/MCF specializations |
 | `island_extract.py` | `detect_islands()`, `island_halfwidth()` |
 | `monodromy.py` | `MonodromyAnalysis`: `DPm`, `eigenvalues`, `stability_index`, `Greene_residue` |
 | `variational.py` | `PoincareMapVariationalEquations`, `tangent_map()` |

@@ -24,44 +24,39 @@ When tracing Poincaré maps for stellarators and non-axisymmetric configurations
 4. **Never re-seed independently** at each section — that produces geometrically
    inconsistent objects.
 
----�?a framework that
-computes, analytically or semi-analytically, how geometric structures in phase space
-(fixed points, invariant manifolds, flux surfaces) respond to small perturbations of the
-underlying vector field.
-
 ---
 
 ## Top-level layout
 
 ```
-pyna/                        �?pip-installable Python package
-�?
-├── fields/                  �?Unified field class hierarchy  (§1)
-├── system.py                �?Dynamical-system abstract base classes  (§2)
-├── flt.py / flt_cuda.py     �?Field-line tracer (CPU / CUDA)  (§3)
-├── flow.py / map.py         �?Continuous-time flow & discrete-map wrappers  (§4)
-├── topo/                    �?Topological analysis (Poincaré, islands, manifolds)  (§5)
-├── control/                 �?FPT-based real-time topology control  (§6)
-├── toroidal/                �?Canonical toroidal / MHD physics namespace  (§7)
-│   ├── perturbation/        �?Toroidal perturbative equilibrium / plasma-response landing zone
+pyna/                        — pip-installable Python package
+
+├── fields/                  — Unified field class hierarchy  (§1)
+├── system.py                — Dynamical-system abstract base classes  (§2)
+├── flt.py / flt_cuda.py     — Field-line tracer (CPU / CUDA)  (§3)
+├── flow.py / map.py         — Continuous-time flow & discrete-map wrappers  (§4)
+├── topo/                    — Topological analysis (Poincaré, islands, manifolds)  (§5)
+├── control/                 — FPT-based real-time topology control  (§6)
+├── toroidal/                — Canonical toroidal / MHD physics namespace  (§7)
+│   ├── perturbation/        — Toroidal perturbative equilibrium / plasma-response landing zone
 │
 │   Note: the historical ``pyna.MCF`` package tree has been removed.
 │   Toroidal / magnetic-specific code now lives directly under ``pyna.toroidal``.
-├── diff/                    �?Numerical differentiation helpers
-├── draw/                    �?Generic geometry drawing (manifolds, resonances)
-├── gc/                      �?Guiding-centre motion
-├── interact/                �?Interactive matplotlib utilities
-├── io/                      �?Poincaré orbit file I/O
-├── utils/symutil/           �?SymPy helper routines
-├── progress.py              �?Progress-reporting protocol
-├── cache.py                 �?Lightweight disk-cache decorator
-├── polynomial.py            �?2-D polynomial type
-├── polymap.py               �?Polynomial Poincaré map
-├── withparam.py             �?Parametric/symbolic object mixin
-├── sysutil.py               �?Utility functions for dynamical systems
-├── vector_calc.py           �?Legacy vector calculus helpers
-├── field_data.py            �?Legacy field-data storage
-└── imas_compat.py           �?IMAS / OMAS data-dictionary adapter
+├── diff/                    — Numerical differentiation helpers
+├── draw/                    — Generic geometry drawing (manifolds, resonances)
+├── gc/                      — Guiding-centre motion
+├── interact/                — Interactive matplotlib utilities
+├── io/                      — Poincaré orbit file I/O
+├── utils/symutil/           — SymPy helper routines
+├── progress.py              — Progress-reporting protocol
+├── cache.py                 — Lightweight disk-cache decorator
+├── polynomial.py            — 2-D polynomial type
+├── polymap.py               — Polynomial Poincaré map
+├── withparam.py             — Parametric/symbolic object mixin
+├── sysutil.py               — Utility functions for dynamical systems
+├── vector_calc.py           — Legacy vector calculus helpers
+├── field_data.py            — Legacy field-data storage
+└── imas_compat.py           — IMAS / OMAS data-dictionary adapter
 ```
 
 The companion C++ acceleration layer lives in `cyna/` (sibling directory).
@@ -69,22 +64,22 @@ See `cyna/README.md` for build and usage instructions.
 
 ---
 
-## §1  `pyna.fields` �?Unified Field Hierarchy
+## §1  `pyna.fields` — Unified Field Hierarchy
 
 All field-like objects in pyna descend from a single abstract tree.
 
 ```
 Field  (abstract)
 ├── ScalarField  (range rank = 0)
-�?  ├── ScalarField1D / 2D / 3D / 4D
-�?  └── ScalarField3DCylindrical   �?concrete: (R,Z,φ) grid + interpolation
-�?      └── ScalarField3DAxiSymmetric  �?�?∂�?= 0
+│   ├── ScalarField1D / 2D / 3D / 4D
+│   └── ScalarField3DCylindrical   — concrete: (R,Z,φ) grid + interpolation
+│       └── ScalarField3DAxiSymmetric  — ∂/∂φ = 0
 └── VectorField  (range rank = 1)
     ├── VectorField1D / 2D / 3D / 4D
-    �?  └── VectorField3D
-    �?      ├── VectorField3DCylindrical   �?concrete: (R,Z,φ) grid
-    �?      └── VectorField3DAxiSymmetric  �?no φ variation
-    └── TensorField  (range rank �?2)
+    │   └── VectorField3D
+    │       ├── VectorField3DCylindrical   — concrete: (R,Z,φ) grid
+    │       └── VectorField3DAxiSymmetric  — no φ variation
+    └── TensorField  (range rank ≥ 2)
         ├── TensorField3DRank2
         └── TensorField4DRank2
 ```
@@ -100,25 +95,25 @@ Coordinate metadata is attached via `fields/coords.py`:
 
 ---
 
-## §2  `pyna.system` �?Dynamical System Abstractions
+## §2  `pyna.system` — Dynamical System Abstractions
 
 ```
 DynamicalSystem  (abstract)
-├── NonAutonomousDynamicalSystem    �?= f(x, t)
-└── AutonomousDynamicalSystem       �?= f(x)
+├── NonAutonomousDynamicalSystem    — = f(x, t)
+└── AutonomousDynamicalSystem       — = f(x)
     └── VectorField                 a VectorField IS a DynamicalSystem
         ├── VectorField1D / 2D / 3D / 4D
         └── VectorField3DAxiSymmetric
 ```
 
-Key contracts: `state_dim` (int), `__call__(coords)` �?velocity.
+Key contracts: `state_dim` (int), `__call__(coords)` → velocity.
 
 `system.py` also defines the `_LegacyVectorField3D` shim for any code that
 still subclasses the old name.
 
 ---
 
-## §3  `pyna.flt` �?Field-Line Tracer
+## §3  `pyna.flt` — Field-Line Tracer
 
 `FieldLineTracer` integrates the ODE
 
@@ -136,9 +131,9 @@ trajectories = tracer.trace_many(start_pts, t_max=100.0, progress=TqdmProgress()
 ```
 
 The `get_backend(mode)` factory selects:
-- `'cpu'`   �?`FieldLineTracer` (pure Python / SciPy)
-- `'cuda'`  �?`FieldLineTracerCUDA` (CuPy, see `flt_cuda.py`)
-- `'opencl'`�?reserved (raises `NotImplementedError`)
+- `'cpu'`   → `FieldLineTracer` (pure Python / SciPy)
+- `'cuda'`  → `FieldLineTracerCUDA` (CuPy, see `flt_cuda.py`)
+- `'opencl'` → reserved (raises `NotImplementedError`)
 
 The legacy `bundle_tracing_with_t_as_DeltaPhi(...)` function is fully preserved.
 
@@ -166,8 +161,8 @@ topo/
 ├── _base.py               InvariantSet (root ABC), InvariantManifold, SectionCuttable
 ├── invariants.py           FixedPoint, PeriodicOrbit, Cycle, Island, IslandChain,
 │                           Tube, TubeChain, StableManifold, UnstableManifold
-├── island.py              Island, IslandChain (MCF-enriched versions)
-├── tube.py                Tube, TubeChain (MCF-enriched: trajectory, section-view bridge)
+├── toroidal/               Toroidal/MCF specializations (Island, IslandChain,
+│                           Tube, TubeChain, FixedPoint, Cycle, PeriodicOrbit)
 ├── poincare.py            Section (abstract), ToroidalSection, PoincareMap
 ├── fixed_points.py        poincare_map(), find_periodic_orbit(), classify_fixed_point()
 ├── monodromy.py           MonodromyAnalysis: eigenvalues, stability_index, Greene_residue
@@ -246,24 +241,28 @@ W7X 5/5 → `gcd(5,5) = 5` independent orbits, each island disconnected.
 
 ---
 
-## §6  `pyna.control` �?FPT-Based Topology Control
+## §6  `pyna.control` — Generic FPT-Based Topology Control
 
 `pyna.control` implements **Functional Perturbation Theory** for real-time
-multi-objective control of magnetic topology.  It is independent of fusion
-details �?the same API works for any area-preserving 2-D system.
+multi-objective control of dynamical topology.  It is independent of fusion
+details — the same API works for any area-preserving 2-D system.
+
+This is the GENERIC FPT layer: it operates on any dynamical system.  For
+toroidal/plasma-specific wrappers (gap response, island control, q-profile),
+see `pyna.toroidal.control`.
 
 ```
 control/
 ├── fpt.py               Core FPT: A_matrix, DPm_axisymmetric, cycle_shift,
-�?                       DPm_change, delta_A_total, manifold_shift,
-�?                       flux_surface_deformation
+│                        DPm_change, delta_A_total, manifold_shift,
+│                        flux_surface_deformation
 ├── topology_state.py    TopologyState, XPointState, OPointState, SurfaceFate,
-�?                       compute_topology_state()
+│                        compute_topology_state()
 ├── response_matrix.py   build_response_matrix(), build_full_response_matrix()
 ├── optimizer.py         ControlWeights, ControlConstraints, TopologyController
 ├── surface_fate.py      Greene_residue(), classify_surface_fate()
 ├── _cache.py            Internal caching utilities
-└── _cached_fpt.py       CachedFPTAnalyzer �?high-level cached FPT workflow
+└── _cached_fpt.py       CachedFPTAnalyzer — high-level cached FPT workflow
 ```
 
 See `pyna/control/README.md` for theory background and usage examples.
@@ -280,7 +279,7 @@ legacy `pyna.MCF` compatibility tree has been removed.
 | Module | Key classes / functions |
 |--------|------------------------|
 | `axisymmetric.py` | `EquilibriumAxisym` (abstract), `EquilibriumTokamakCircularSynthetic` |
-| `Solovev.py` | `EquilibriumSolovev` �?analytic Solov'ev equilibrium |
+| `Solovev.py` | `EquilibriumSolovev` — analytic Solov'ev equilibrium |
 | `GradShafranov.py` | `recover_pressure_simplest`, `solve_GS_perturbed` |
 | `stellarator.py` | `StellaratorSimple`, `simple_stellarator` factory |
 | `feedback_boozer.py` | `BoozerSurface`, `BoozerPerturbation`, `MHD_response_operator`, `compute_boozer_response` |
@@ -326,7 +325,21 @@ long-term public pyna namespace.
 
 ### `toroidal/control/` (legacy `MCF/control/`)
 
-Toroidal control modules (gap response, island control, q-profile response).
+Toroidal/plasma-specific FPT control wrappers.  These modules build on
+the generic FPT layer in `pyna.control` (§6) and add MCF-specific
+physics (gap response, island suppression, q-profile shaping).
+
+| Module | Purpose |
+|--------|---------|
+| `gap_response.py` | Gap response matrix for divertor strike-point control |
+| `island_control.py` | Resonant amplitude computation for island chains |
+| `island_optimizer.py` | Multi-objective island suppression optimizer |
+| `qprofile_response.py` | Safety-factor profile response to coil perturbations |
+| `wall.py` | Wall geometry for boundary constraints |
+
+**Relationship to §6:** `pyna.control` = generic FPT (any area-preserving 2-D system).
+`pyna.toroidal.control` = MCF/plasma-specific wrappers that use the generic FPT layer
+with toroidal physics context.
 
 ### `toroidal/diagnostics/` (legacy `MCF/diagnostics/`)
 

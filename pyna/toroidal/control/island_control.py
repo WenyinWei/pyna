@@ -1,7 +1,23 @@
-"""Magnetic island-chain control primitives in the preferred toroidal namespace.
+"""Magnetic island chain control via external coil perturbations.
 
-This module owns the toroidal / stellarator-facing island-response utilities,
-with all implementation and internal imports living in ``pyna.toroidal``.
+Algorithms:
+1. island_suppression_current: find coil currents that cancel ψ_mn at target surface
+2. phase_control_current: find currents to rotate island phase by desired angle
+3. multi_mode_control: optimize currents to suppress target while monitoring side effects
+
+The "press-down-gourd" (按下葫芦起了瓢) problem:
+When suppressing mode (m1,n1), mode (m2,n2) may be amplified.
+Multi-mode control handles this by solving a constrained optimization.
+
+Physics background
+------------------
+The external coil system produces an additional perturbation δb_mn. The total
+resonant driving term at the q=m/n surface becomes:
+
+    b_mn_total = b_mn_natural + δb_mn(I_coil)
+
+Suppression: find I_coil such that |b_mn_total| → 0.
+Phase control: find I_coil such that arg(b_mn_total) = desired_phase.
 """
 from __future__ import annotations
 
@@ -23,7 +39,37 @@ def compute_resonant_amplitude(
     n_theta: int = 64,
     n_phi: int = 64,
 ) -> complex:
-    """Compute the (m,n) Fourier component of a perturbation field at a resonant surface."""
+    """Compute the (m,n) Fourier component of a perturbation field at a resonant surface.
+
+    Integrates the normal (radial) component of the perturbation field along
+    the q=m/n flux surface and extracts the (m,n) Fourier coefficient.
+
+    The resonant amplitude is:
+
+        b̃_mn = (1 / (2π)²) ∫₀²π ∫₀²π B_r(θ,φ) exp(-i(mθ - nφ)) dθ dφ
+
+    evaluated on the flux surface at r = r_res = sqrt(S_res) * r0.
+
+    Parameters
+    ----------
+    field_func_perturbation : callable
+        Function f(R, Z, phi) → (BR_pert, BZ_pert, BPhi_pert) giving the
+        perturbation field at a point.  For a CoilSet, use a wrapper that
+        calls Biot_Savart_field.
+    S_res : float
+        Normalised flux coordinate of the resonant surface (ψ_norm ∈ [0,1]).
+    m, n : int
+        Poloidal and toroidal mode numbers.
+    equilibrium : SimpleStellarator
+        The equilibrium object (provides R0, r0).
+    n_theta, n_phi : int
+        Number of integration points in each angle.
+
+    Returns
+    -------
+    complex
+        The complex amplitude b̃_mn = |b̃_mn| · exp(i·phase_mn).
+    """
     R0 = equilibrium.R0
     r0 = equilibrium.r0
     r_res = np.sqrt(max(S_res, 1e-6)) * r0
@@ -43,6 +89,7 @@ def compute_resonant_amplitude(
                 br, bz, bp = field_func_perturbation(R, Z, phi)
             except Exception:
                 br = bz = bp = 0.0
+            # Radial (normal to flux surface) component
             b_rad = br * np.cos(theta) + bz * np.sin(theta)
             total += b_rad * np.exp(-1j * (m * theta - n * phi)) * dth * dph
 
