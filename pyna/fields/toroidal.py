@@ -168,7 +168,8 @@ def compute_J_by_curl(B: VectorFieldCylind) -> VectorFieldCylind:
     dR = B.R_arr[1] - B.R_arr[0]
     dZ = B.Z_arr[1] - B.Z_arr[0]
     J_R = -np.gradient(B.BPhi, dZ, axis=1, edge_order=2) / MU0
-    J_Z = (B.BPhi / B.R_arr[:, None] + np.gradient(B.BPhi, dR, axis=0, edge_order=2)) / MU0
+    dBPhi_dR = np.gradient(B.BPhi, dR, axis=0, edge_order=2)
+    J_Z = (B.BPhi / B.R_arr[:, None] + dBPhi_dR) / MU0
     dBR_dZ = np.gradient(B.BR, dZ, axis=1, edge_order=2)
     dBZ_dR = np.gradient(B.BZ, dR, axis=0, edge_order=2)
     J_Phi = (dBR_dZ - dBZ_dR) / MU0
