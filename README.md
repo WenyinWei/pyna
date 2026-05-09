@@ -51,12 +51,20 @@ pip install "pyna-chaos[cuda]"
 ### Field-line tracing
 
 ```python
-from pyna.toroidal.equilibrium import EquilibriumSolovev as SolovevEquilibrium
+from pyna.toroidal.equilibrium.Solovev import solovev_iter_like
 from pyna.flt import FieldLineTracer
+import numpy as np
 
-eq = SolovevEquilibrium.iter_like()
-tracer = FieldLineTracer(eq.Bfield)
-trajectory = tracer.trace(R0=2.0, Z0=0.0, phi_end=200 * 2 * 3.14159)
+eq = solovev_iter_like()
+
+# FieldLineTracer expects f([R, Z, phi]) → [BR, BZ, Bphi]
+def solovev_field(y):
+    R, Z, phi = y
+    BR, BZ = eq.BR_BZ(R, Z)
+    return np.array([BR, BZ, eq.Bphi(R)])
+
+tracer = FieldLineTracer(solovev_field)
+trajectory = tracer.trace(np.array([2.0, 0.0, 0.0]), 200 * 2 * np.pi)
 ```
 
 ### Poincaré crossings and island chains
@@ -93,14 +101,15 @@ crossings = acc.crossing_array(0)
 from pyna.toroidal.visual.tokamak_manifold import (
     plot_equilibrium_cross_section,
     plot_poincare_orbits,
-    plot_manifold_bundle,
+    plot_manifold_1d,
 )
 import matplotlib.pyplot as plt
 
 fig, ax = plt.subplots(figsize=(5, 7))
-plot_equilibrium_cross_section(ax, eq)
-plot_poincare_orbits(ax, orbits, cmap_by='psi_norm')
-plot_manifold_bundle(ax, stable_manifold, unstable_manifold)
+plot_equilibrium_cross_section(fig, ax, eq)
+plot_poincare_orbits(fig, ax, orbits, cmap_by='psi_norm')
+plot_manifold_1d(fig, ax, stable_manifold_RZ, unstable=False)
+plot_manifold_1d(fig, ax, unstable_manifold_RZ, unstable=True)
 plt.savefig("east_manifold.png", dpi=300)
 ```
 

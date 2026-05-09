@@ -309,18 +309,20 @@ See `toroidal/coords/` for details.
 ### `toroidal/perturbation/`
 
 Canonical architectural landing zone for **toroidal perturbative theory**.
-Use this namespace sparingly for toroidal perturbative helpers that remain in
-repo for now; plasma-behaviour analysis should ultimately move out to topoquest.
+This namespace is actively being migrated — most functionality now delegates
+to `topoquest.analysis.fem`:
 
-Current sub-buckets:
-- `perturbation.equilibrium` → finite-β continuation, perturbed
-  Grad-Shafranov, force-balance correction workflows.
+- `perturbation.equilibrium` → delegates to `topoquest.analysis.fem.fenicsx_corrector`
+  and `topoquest.analysis.fem.finite_beta_perturbation` for heavy solvers;
+  re-exports `recover_pressure_simplest`, `solve_GS_perturbed` from
+  `pyna.toroidal.equilibrium.GradShafranov` for legacy code.
 - `perturbation.response` → plasma-response closures, coupled GS / MHD
   response solvers, vacuum→plasma response operators.
 
 **Boundary rule:**
 - `pyna.control` = generic, dynamical-systems FPT and control
 - `pyna.toroidal.perturbation` = toroidal / MHD perturbative theory
+  (thin re-export layer; core implementations live in topoquest)
 
 ### `toroidal/plasma_response/`
 
