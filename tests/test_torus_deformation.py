@@ -378,3 +378,20 @@ def test_split_nonresonant_deformation_omits_island_driving_mode():
 def test_split_rejects_mismatched_shapes():
     with pytest.raises(ValueError, match="identical shapes"):
         split_radial_perturbation_spectrum([1, 2], [1], [0.1, 0.2], IOTA)
+
+
+def test_split_nonresonant_deformation_rejects_component_shape_mismatch():
+    split = split_radial_perturbation_spectrum(
+        m=[1, 2],
+        n=[1, 1],
+        dBr_mn=[0.1, 0.2],
+        iota=IOTA,
+    )
+
+    with pytest.raises(ValueError, match="dBth_mn"):
+        split.nonresonant_deformation(
+            iota=IOTA,
+            Bphi=BPHI,
+            Btheta=BTHETA,
+            dBth_mn=[0.0],
+        )

@@ -48,7 +48,8 @@ def __getattr__(name):
         module = import_module(module_name)
     except ModuleNotFoundError as exc:
         missing_name = getattr(exc, "name", "")
-        if missing_name == "topoquest" or "No module named 'topoquest'" in str(exc):
+        missing_topoquest = "No module named 'topoquest'" in str(exc)
+        if missing_name == "topoquest" or missing_topoquest:
             raise ImportError(
                 f"{name} is provided by optional dependency 'topoquest'. "
                 "Install topoquest to use plasma-response equilibrium exports."
