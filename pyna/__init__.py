@@ -9,7 +9,7 @@ coord     : Magnetic coordinate systems (legacy re-export)
 mag       : Magnetic equilibrium and analysis (legacy re-export)
 toroidal  : Toroidal geometry and field-line utilities
 """
-__version__ = "0.6.0"
+__version__ = "0.8.5"
 
 from importlib import import_module
 

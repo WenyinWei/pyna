@@ -79,6 +79,8 @@ Field  (abstract)
     │   └── VectorField3D
     │       ├── VectorField3DCylindrical   — concrete: (R,Z,φ) grid
     │       └── VectorField3DAxiSymmetric  — no φ variation
+    ├── VectorFieldCylind / VectorFieldCylindAxisym
+    │       — fixed-section compatibility helpers for historical toroidal APIs
     └── TensorField  (range rank ≥ 2)
         ├── TensorField3DRank2
         └── TensorField4DRank2
@@ -92,6 +94,8 @@ Coordinate metadata is attached via `fields/coords.py`:
 `Coords3DCylindrical`, `Coords3DSpherical`, `Coords3DToroidal`, `Coords4D*`.
 
 **Design rule:** `pyna.fields` is the sole canonical field hierarchy.
+`pyna.topo.field` is only a compatibility re-export and must not define a
+parallel field tree.
 
 ---
 
@@ -159,8 +163,9 @@ Both share a `WithParam` mixin (`withparam.py`) for parametric/symbolic objects.
 ```
 topo/
 ├── _base.py               InvariantSet (root ABC), InvariantManifold, SectionCuttable
-├── invariants.py           FixedPoint, PeriodicOrbit, Cycle, Island, IslandChain,
-│                           Tube, TubeChain, StableManifold, UnstableManifold
+├── core.py                 Generic SectionPoint, PeriodicOrbit, Cycle,
+│                           Island, IslandChain, Tube, TubeChain
+├── invariant.py            InvariantTorus and invariant-hierarchy exports
 ├── toroidal/               Toroidal/MCF specializations (Island, IslandChain,
 │                           Tube, TubeChain, FixedPoint, Cycle, PeriodicOrbit)
 ├── poincare.py            Section (abstract), ToroidalSection, PoincareMap

@@ -40,6 +40,7 @@ Field  (abstract — fields/base.py)
 |------|----------|
 | `base.py` | Abstract `Field`, `ScalarField`, `VectorField`, `TensorField` and their 1-D–4-D specialisations |
 | `cylindrical.py` | Concrete grid-based implementations: `ScalarField3DCylindrical`, `VectorField3DCylindrical`, `VectorField3DAxiSymmetric`, `ScalarField3DAxiSymmetric` |
+| `toroidal.py` | Fixed-section toroidal compatibility helpers: `VectorFieldCylind`, `VectorFieldCylindAxisym`, `Equilibrium`, `compute_J_by_curl` |
 | `coords.py` | Coordinate-system metadata: `Coords3DCylindrical`, `Coords3DSpherical`, `Coords3DToroidal`, `Coords4D*` |
 | `properties.py` | `FieldProperty` flag enum: `DIVERGENCE_FREE`, `CURL_FREE`, `HARMONIC`, etc. |
 | `diff_ops.py` | Differential operators returning `Field` instances: `gradient`, `divergence`, `curl`, `laplacian` |
@@ -55,9 +56,11 @@ from pyna.fields import VectorField3DCylindrical, ScalarField3DCylindrical
 # Construct a magnetic field on a (R, Z, φ) grid
 B = VectorField3DCylindrical(
     R=R_arr, Z=Z_arr, Phi=Phi_arr,
-    BR=BR_data, BZ=BZ_data, BPhi=BPhi_data,
+    VR=VR_data, VZ=VZ_data, VPhi=VPhi_data,
     name='B_field', units='T',
 )
+# Constructor parameters use generic vector names (VR, VZ, VPhi);
+# magnetic aliases (BR, BZ, BPhi) are available as properties.
 
 # Evaluate at a single point
 RZPhi = [1.7, 0.0, 0.0]
@@ -74,6 +77,8 @@ field_vals = B(pts)  # shape (N, 3)
 
 1. **Single canonical hierarchy** — do not create parallel field classes
    elsewhere.  Extend `VectorField3DCylindrical` or add a new concrete subclass.
-3. **No backward-compat aliases** — rename and update all call sites immediately.
+2. **Compatibility helpers live here** — legacy imports such as
+   `pyna.topo.field.VectorFieldCylind` must re-export `pyna.fields` classes.
+3. **No new backward-compat aliases** — rename and update all call sites immediately.
 4. **Differential operators propagate `FieldProperty`** — e.g. `curl` of a
    `CURL_FREE` field raises `ValueError` before computing.
