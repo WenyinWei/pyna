@@ -352,6 +352,7 @@ def test_split_radial_perturbation_spectrum_masks_resonance():
     np.testing.assert_allclose(split.resonant_dBr, [0.1])
     np.testing.assert_array_equal(split.nonresonant_m, [1, 2])
     np.testing.assert_array_equal(split.nonresonant_n, [1, 0])
+    np.testing.assert_allclose(split.nonresonant_dBr, [0.02, 0.03])
 
 
 def test_split_nonresonant_deformation_omits_island_driving_mode():
