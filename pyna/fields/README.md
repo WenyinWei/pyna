@@ -59,6 +59,8 @@ B = VectorField3DCylindrical(
     VR=BR_data, VZ=BZ_data, VPhi=BPhi_data,
     name='B_field', units='T',
 )
+# Constructor parameters use generic vector names (VR, VZ, VPhi);
+# magnetic aliases (BR, BZ, BPhi) are available as properties.
 
 # Evaluate at a single point
 RZPhi = [1.7, 0.0, 0.0]

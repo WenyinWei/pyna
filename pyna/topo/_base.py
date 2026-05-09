@@ -22,8 +22,8 @@ geometry, but it is not an ``InvariantSet`` merely because it came from a
 flow integration.  Established periodic objects such as ``Cycle`` and
 ``PeriodicOrbit`` remain in the invariant hierarchy.
 
-``InvariantObject`` is retained as a backward-compatible alias for
-``InvariantSet`` so that existing subclass declarations keep working.
+``InvariantObject`` remains available as a backward-compatible alias that
+points to ``InvariantSet`` so that existing subclass declarations keep working.
 """
 from __future__ import annotations
 
