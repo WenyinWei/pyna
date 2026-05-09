@@ -26,9 +26,7 @@ from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 import numpy as np
 
 # InvariantSet lives in _base to avoid circular imports
-from pyna.topo._base import InvariantSet, InvariantManifold, SectionCuttable
-
-InvariantObject = InvariantSet
+from pyna.topo._base import InvariantSet, InvariantObject, InvariantManifold, SectionCuttable
 
 
 if TYPE_CHECKING:
