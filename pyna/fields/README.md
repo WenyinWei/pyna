@@ -56,7 +56,7 @@ from pyna.fields import VectorField3DCylindrical, ScalarField3DCylindrical
 # Construct a magnetic field on a (R, Z, φ) grid
 B = VectorField3DCylindrical(
     R=R_arr, Z=Z_arr, Phi=Phi_arr,
-    VR=BR_data, VZ=BZ_data, VPhi=BPhi_data,
+    VR=VR_data, VZ=VZ_data, VPhi=VPhi_data,
     name='B_field', units='T',
 )
 # Constructor parameters use generic vector names (VR, VZ, VPhi);
