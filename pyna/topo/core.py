@@ -107,7 +107,7 @@ class LinearStabilityData(GeometricObject):
 # ────────────────────────────────────────────────────────────────────────────
 
 @dataclass(eq=False)
-class SectionPoint(GeometricObject):
+class SectionPoint(InvariantManifold):
     """A point on a section of a finite-dimensional dynamical system.
 
     This is the generic root for toroidal.FixedPoint.

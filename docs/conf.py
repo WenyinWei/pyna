@@ -6,8 +6,8 @@ sys.path.insert(0, os.path.abspath('..'))
 project = 'pyna'
 copyright = '2024-2026, Wenyin Wei'
 author = 'Wenyin Wei'
-release = '0.3.0'
-version = '0.3.0'
+release = '0.8.5'
+version = '0.8.5'
 
 extensions = [
     'sphinx.ext.autodoc',

@@ -26,7 +26,7 @@ from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 import numpy as np
 
 # InvariantSet lives in _base to avoid circular imports
-from pyna.topo._base import InvariantSet, InvariantSet, InvariantManifold, SectionCuttable
+from pyna.topo._base import InvariantSet, InvariantObject, InvariantManifold, SectionCuttable
 
 
 if TYPE_CHECKING:
@@ -35,9 +35,9 @@ if TYPE_CHECKING:
 
 __all__ = [
     "InvariantSet",
+    "InvariantObject",
     "InvariantManifold",
     "SectionCuttable",
-    "InvariantSet",
     "InvariantTorus",
 ]
 
@@ -46,7 +46,7 @@ __all__ = [
 # InvariantTorus
 # ─────────────────────────────────────────────────────────────────────────────
 
-class InvariantTorus(InvariantSet):
+class InvariantTorus(InvariantManifold):
     """A KAM (Kolmogorov–Arnold–Moser) invariant torus.
 
     A KAM torus is a non-resonant invariant surface in phase space.
@@ -70,8 +70,10 @@ class InvariantTorus(InvariantSet):
 
     def __init__(
         self,
-        crossings: Dict[float, np.ndarray],
+        crossings: Optional[Dict[float, np.ndarray]] = None,
         *,
+        rotation_vector: Optional[Sequence[float]] = None,
+        ambient_dim: Optional[int] = None,
         rotational_transform: Optional[float] = None,
         label: Optional[str] = None,
         poincare_map=None,
@@ -79,8 +81,13 @@ class InvariantTorus(InvariantSet):
         """
         Parameters
         ----------
-        crossings : dict {phi: ndarray shape (N,2)}
+        crossings : dict {phi: ndarray shape (N,2)}, optional
             Poincaré crossing arrays (R, Z) at each section phi.
+        rotation_vector : sequence of float, optional
+            Domain-agnostic rotation vector.  Its length defines intrinsic
+            dimension when supplied.
+        ambient_dim : int, optional
+            Ambient phase-space dimension for generic finite-dimensional use.
         rotational_transform : float, optional
             Estimated ι. If None, estimated from the first crossing array.
         label : str, optional
@@ -88,9 +95,13 @@ class InvariantTorus(InvariantSet):
         """
         self._label = label
         self._poincare_map = poincare_map
-        self._crossings = {float(k): np.asarray(v, dtype=float)
-                           for k, v in crossings.items()}
+        self._crossings = {
+            float(k): np.asarray(v, dtype=float)
+            for k, v in (crossings or {}).items()
+        }
         self._iota = rotational_transform
+        self._rotation_vector = tuple(rotation_vector) if rotation_vector is not None else ()
+        self._ambient_dim = ambient_dim
 
     # ── InvariantSet interface ─────────────────────────────────────────────
 
@@ -101,6 +112,22 @@ class InvariantTorus(InvariantSet):
     @property
     def poincare_map(self):
         return self._poincare_map
+
+    @property
+    def rotation_vector(self) -> tuple[float, ...]:
+        return self._rotation_vector
+
+    @property
+    def intrinsic_dim(self) -> Optional[int]:
+        if self._rotation_vector:
+            return len(self._rotation_vector)
+        if self._crossings:
+            return 2
+        return None
+
+    @property
+    def ambient_dim(self) -> Optional[int]:
+        return self._ambient_dim
 
     # ── Constructors ─────────────────────────────────────────────────────────
 

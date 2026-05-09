@@ -38,6 +38,16 @@ from pyna.fields.diff_ops import (
     helmholtz_decomposition,
 )
 from pyna.fields.tensor import TensorField3DRank2, TensorField4DRank2
+from pyna.fields.toroidal import (
+    VectorFieldCylind,
+    VectorFieldCylindAxisym,
+    ToroidalField,
+    AxisymmetricField,
+    Equilibrium,
+    EquilibriumLike,
+    compute_J_by_curl,
+    MU0,
+)
 from pyna.fields.coords import (
     CoordsCartesian,
     Coords3DCylindrical,
@@ -56,6 +66,9 @@ __all__ = [
     "FieldProperty",
     "ScalarField3DCylindrical", "VectorField3DCylindrical",
     "ScalarField3DAxiSymmetric", "VectorField3DAxiSymmetric",
+    "VectorFieldCylind", "VectorFieldCylindAxisym",
+    "ToroidalField", "AxisymmetricField",
+    "Equilibrium", "EquilibriumLike", "compute_J_by_curl", "MU0",
     "gradient", "divergence", "curl", "laplacian",
     "hessian", "jacobian_field", "field_line_curvature",
     "covariant_derivative_of_vector",
