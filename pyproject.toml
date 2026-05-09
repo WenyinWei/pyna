@@ -24,6 +24,7 @@ dependencies = [
     "sympy>=1.10",
     "deprecated>=1.2",
     "h5py>=3.0",
+    "joblib>=1.2",
 ]
 
 [project.optional-dependencies]
@@ -41,7 +42,6 @@ docs = [
     "sphinx-autoapi",
     "ipykernel",
     "scikit-image",
-    "joblib",
     "deprecated",
     "pandas",
     "pytest-timeout",

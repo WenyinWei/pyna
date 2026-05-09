@@ -5,12 +5,14 @@ Quick integration test for evaluate_topology() using HAO starting config.
 import sys
 import time
 from pathlib import Path
+import pytest
 
 TOPOQUEST = Path(r"C:\Users\Legion\Nutstore\1\Repo\topoquest")
 PYNA = Path(r"C:\Users\Legion\Nutstore\1\Repo\pyna")
 sys.path.insert(0, str(TOPOQUEST))
 sys.path.insert(0, str(PYNA))
 
+pytest.importorskip("explore_hao_divertor_configs")
 from explore_hao_divertor_configs import load_field_cache
 from pyna.topo.topology_eval import evaluate_topology
 
