@@ -25,6 +25,14 @@ Public API
 TorusDeformationSpectrum
     Container for the full (δr, δθ, δφ) Fourier spectra — Theorem 2 of the paper.
 
+RadialPerturbationSplit
+    Container that separates radial perturbation Fourier modes into resonant
+    components (island-width drivers) and non-resonant components
+    (surface-deformation drivers).
+
+split_radial_perturbation_spectrum
+    Classify a B^r Fourier spectrum against the local rotational transform.
+
 non_resonant_deformation_spectrum
     Compute (δr)_mn, (δθ)_mn, (δφ)_mn for every (m,n) pair in the input.
 
@@ -75,6 +83,8 @@ from numpy import ndarray
 
 __all__ = [
     "TorusDeformationSpectrum",
+    "RadialPerturbationSplit",
+    "split_radial_perturbation_spectrum",
     "non_resonant_deformation_spectrum",
     "poincare_section_deformation",
     "iota_variation_pf",
@@ -151,6 +161,128 @@ class TorusDeformationSpectrum:
         """δθ on a Poincaré section φ = φ0."""
         coeffs = self.delta_theta * np.exp(1j * self.n * phi0)
         return _eval_real_field_1d(coeffs, self.m, theta)
+
+
+@dataclass
+class RadialPerturbationSplit:
+    """Resonant/non-resonant split of a radial magnetic perturbation spectrum.
+
+    The resonant part ``m*ι+n≈0`` is the input for island-width estimates; the
+    non-resonant part is the input for flux-surface deformation.
+    """
+    m: ndarray
+    n: ndarray
+    dBr: ndarray
+    resonant_mask: ndarray
+
+    @property
+    def nonresonant_mask(self) -> ndarray:
+        """Boolean mask selecting modes that deform nested flux surfaces."""
+        return ~self.resonant_mask
+
+    @property
+    def resonant_m(self) -> ndarray:
+        return self.m[self.resonant_mask]
+
+    @property
+    def resonant_n(self) -> ndarray:
+        return self.n[self.resonant_mask]
+
+    @property
+    def resonant_dBr(self) -> ndarray:
+        return self.dBr[self.resonant_mask]
+
+    @property
+    def nonresonant_m(self) -> ndarray:
+        return self.m[self.nonresonant_mask]
+
+    @property
+    def nonresonant_n(self) -> ndarray:
+        return self.n[self.nonresonant_mask]
+
+    @property
+    def nonresonant_dBr(self) -> ndarray:
+        return self.dBr[self.nonresonant_mask]
+
+    def nonresonant_deformation(
+        self,
+        iota: float,
+        Bphi: float,
+        Btheta: float,
+        dBth_mn: Union[ndarray, list, None] = None,
+        dBph_mn: Union[ndarray, list, None] = None,
+        g_r_theta: float = 0.0,
+        g_r_phi: float = 0.0,
+        regularise_eps: float = 0.0,
+    ) -> TorusDeformationSpectrum:
+        """Compute torus deformation using only non-resonant modes."""
+        keep = self.nonresonant_mask
+        dBth = _optional_component(dBth_mn, self.m.shape, "dBth_mn")[keep]
+        dBph = _optional_component(dBph_mn, self.m.shape, "dBph_mn")[keep]
+        return non_resonant_deformation_spectrum(
+            self.m[keep],
+            self.n[keep],
+            self.dBr[keep],
+            dBth,
+            dBph,
+            iota=iota,
+            Bphi=Bphi,
+            Btheta=Btheta,
+            g_r_theta=g_r_theta,
+            g_r_phi=g_r_phi,
+            resonance_tol=0.0,
+            regularise_eps=regularise_eps,
+        )
+
+
+def _optional_component(values, shape: tuple[int, ...], name: str) -> ndarray:
+    """Return an optional perturbation component as a validated complex array.
+
+    Parameters
+    ----------
+    values
+        Input component values, or ``None`` to use a zero array.
+    shape
+        Required shape, matching the radial spectrum arrays.
+    name
+        Component name used in validation errors.
+    """
+    if values is None:
+        return np.zeros(shape, dtype=complex)
+    arr = np.asarray(values, dtype=complex)
+    if arr.shape != shape:
+        raise ValueError(f"{name} must have shape {shape}, got {arr.shape}")
+    return arr
+
+
+def split_radial_perturbation_spectrum(
+    m: Union[ndarray, list],
+    n: Union[ndarray, list],
+    dBr_mn: Union[ndarray, list],
+    iota: float,
+    resonance_tol: float = 1e-9,
+) -> RadialPerturbationSplit:
+    """Split B^r Fourier modes into island-driving and deformation-driving parts.
+
+    Modes satisfying ``abs(m*ι+n) < resonance_tol`` are resonant and should be
+    passed to island-chain / island-width analysis.  All remaining modes can be
+    sent to :func:`non_resonant_deformation_spectrum` to compute smooth flux
+    surface deformation.
+    """
+    m = np.asarray(m, dtype=int)
+    n = np.asarray(n, dtype=int)
+    dBr = np.asarray(dBr_mn, dtype=complex)
+    if m.shape != n.shape or m.shape != dBr.shape:
+        raise ValueError(
+            "m, n, and dBr_mn must have identical shapes; "
+            f"got {m.shape}, {n.shape}, and {dBr.shape}"
+        )
+    return RadialPerturbationSplit(
+        m=m,
+        n=n,
+        dBr=dBr,
+        resonant_mask=_check_resonant(m, n, iota, tol=resonance_tol),
+    )
 
 
 def _eval_real_field(coeffs: ndarray, m: ndarray, n: ndarray,

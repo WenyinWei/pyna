@@ -21,6 +21,8 @@ import pytest
 
 from pyna.toroidal import (
     TorusDeformationSpectrum,
+    RadialPerturbationSplit,
+    split_radial_perturbation_spectrum,
     non_resonant_deformation_spectrum,
     poincare_section_deformation,
     iota_variation_pf,
@@ -334,3 +336,64 @@ def test_real_field_reconstruction_symmetry():
     field = spec.real_field_r(TH, PH)
     # Imaginary part should be zero (real perturbation → real deformation)
     np.testing.assert_allclose(np.imag(field), 0.0, atol=1e-14)
+
+
+def test_split_radial_perturbation_spectrum_masks_resonance():
+    split = split_radial_perturbation_spectrum(
+        m=[3, 1, 2],
+        n=[-1, 1, 0],
+        dBr_mn=[0.1, 0.02, 0.03],
+        iota=1.0 / 3.0,
+    )
+
+    assert isinstance(split, RadialPerturbationSplit)
+    np.testing.assert_array_equal(split.resonant_m, [3])
+    np.testing.assert_array_equal(split.resonant_n, [-1])
+    np.testing.assert_allclose(split.resonant_dBr, [0.1])
+    np.testing.assert_array_equal(split.nonresonant_m, [1, 2])
+    np.testing.assert_array_equal(split.nonresonant_n, [1, 0])
+    np.testing.assert_allclose(split.nonresonant_dBr, [0.02, 0.03])
+
+
+def test_split_nonresonant_deformation_omits_island_driving_mode():
+    split = split_radial_perturbation_spectrum(
+        m=[3, 1],
+        n=[-1, 1],
+        dBr_mn=[0.1, 0.02],
+        iota=1.0 / 3.0,
+    )
+
+    spec = split.nonresonant_deformation(
+        iota=1.0 / 3.0,
+        Bphi=BPHI,
+        Btheta=BTHETA,
+    )
+
+    np.testing.assert_array_equal(spec.m, [1])
+    np.testing.assert_array_equal(spec.n, [1])
+    assert not spec.resonant_mask.any()
+    alpha = 1.0 / 3.0 + 1.0
+    expected = 0.02 / (1j * BPHI * alpha)
+    np.testing.assert_allclose(spec.delta_r, [expected])
+
+
+def test_split_rejects_mismatched_shapes():
+    with pytest.raises(ValueError, match="identical shapes"):
+        split_radial_perturbation_spectrum([1, 2], [1], [0.1, 0.2], IOTA)
+
+
+def test_split_nonresonant_deformation_rejects_component_shape_mismatch():
+    split = split_radial_perturbation_spectrum(
+        m=[1, 2],
+        n=[1, 1],
+        dBr_mn=[0.1, 0.2],
+        iota=IOTA,
+    )
+
+    with pytest.raises(ValueError, match="dBth_mn"):
+        split.nonresonant_deformation(
+            iota=IOTA,
+            Bphi=BPHI,
+            Btheta=BTHETA,
+            dBth_mn=[0.0],
+        )
