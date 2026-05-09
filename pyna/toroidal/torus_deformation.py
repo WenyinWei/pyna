@@ -236,7 +236,17 @@ class RadialPerturbationSplit:
 
 
 def _optional_component(values, shape: tuple[int, ...], name: str) -> ndarray:
-    """Return a complex component array, defaulting to zeros."""
+    """Return an optional perturbation component as a validated complex array.
+
+    Parameters
+    ----------
+    values
+        Input component values, or ``None`` to use a zero array.
+    shape
+        Required shape, matching the radial spectrum arrays.
+    name
+        Component name used in validation errors.
+    """
     if values is None:
         return np.zeros(shape, dtype=complex)
     arr = np.asarray(values, dtype=complex)

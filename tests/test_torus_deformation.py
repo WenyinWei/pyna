@@ -372,7 +372,8 @@ def test_split_nonresonant_deformation_omits_island_driving_mode():
     np.testing.assert_array_equal(spec.m, [1])
     np.testing.assert_array_equal(spec.n, [1])
     assert not spec.resonant_mask.any()
-    expected = 0.02 / (1j * BPHI * (1.0 / 3.0 + 1.0))
+    alpha = 1.0 / 3.0 + 1.0
+    expected = 0.02 / (1j * BPHI * alpha)
     np.testing.assert_allclose(spec.delta_r, [expected])
 
 
