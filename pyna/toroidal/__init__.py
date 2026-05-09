@@ -23,6 +23,8 @@ _SYMBOL_MODULES = {
     "EquilibriumSolovev": "pyna.toroidal.equilibrium.Solovev",
     "EquilibriumAxisym": "pyna.toroidal.equilibrium.axisymmetric",
     "TorusDeformationSpectrum": "pyna.toroidal.torus_deformation",
+    "RadialPerturbationSplit": "pyna.toroidal.torus_deformation",
+    "split_radial_perturbation_spectrum": "pyna.toroidal.torus_deformation",
     "non_resonant_deformation_spectrum": "pyna.toroidal.torus_deformation",
     "poincare_section_deformation": "pyna.toroidal.torus_deformation",
     "iota_variation_pf": "pyna.toroidal.torus_deformation",

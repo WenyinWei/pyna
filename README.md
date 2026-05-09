@@ -114,6 +114,7 @@ from pyna import toroidal
 non_resonant_deformation_spectrum = toroidal.non_resonant_deformation_spectrum
 poincare_section_deformation = toroidal.poincare_section_deformation
 mean_radial_displacement = toroidal.mean_radial_displacement
+split_radial_perturbation_spectrum = toroidal.split_radial_perturbation_spectrum
 
 # Define perturbation spectrum (m, n, δBr, δBθ, δBφ in T·m)
 m = np.array([1, 2, 3])
@@ -122,11 +123,12 @@ dBr = np.array([1e-4+0j, 5e-5+0j, 2e-5+0j])
 dBth = np.zeros(3, dtype=complex)
 dBph = np.zeros(3, dtype=complex)
 
-spec = non_resonant_deformation_spectrum(
-    m, n, dBr, dBth, dBph,
-    iota=0.35, Bphi=4.5, Btheta=0.3, r=1.0
+split = split_radial_perturbation_spectrum(m, n, dBr, iota=0.35)
+spec = split.nonresonant_deformation(
+    iota=0.35, Bphi=4.5, Btheta=0.3,
+    dBth_mn=dBth, dBph_mn=dBph,
 )
-mean_dr = mean_radial_displacement(spec, iota_prime=-0.1)
+mean_dr = mean_radial_displacement(delta_iota=1e-4, iota_prime=-0.1)
 print(f"Mean radial displacement: {mean_dr:.4f} m")
 ```
 
@@ -182,7 +184,10 @@ For axisymmetric (n = 0) poloidal-field coil perturbations the mean radial shift
 ⟨δr⟩ = −δι / ι'
 ```
 
-where δι is the first-order rotational-transform variation. These results are implemented in `pyna.toroidal.torus_deformation`.
+where δι is the first-order rotational-transform variation. Resonant B^r Fourier
+components (`mι+n=0`) are separated for island-width analysis, while
+non-resonant components drive smooth flux-surface deformation. These results are
+implemented in `pyna.toroidal.torus_deformation`.
 
 ### Poincaré maps & manifolds
 A Poincaré section φ = φ₀ turns the continuous field-line flow into an area-preserving 2-D map. Near an X-point the stable (W^s) and unstable (W^u) manifolds intersect transversally, generating the heteroclinic tangle responsible for chaotic transport. `pyna.topo` provides algorithms to compute, visualize, and measure these structures.
