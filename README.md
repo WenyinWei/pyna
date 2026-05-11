@@ -155,7 +155,7 @@ print(f"Mean radial displacement: {mean_dr:.4f} m")
 | `pyna.topo.poincare` | Multi-section crossing accumulation and section helpers |
 | `pyna.topo.manifold` | Stable/unstable manifold computation |
 | `pyna.topo.toroidal_cycle` | Periodic orbit (X/O cycle) detection and analysis |
-| `pyna.coord` | Flux coordinate transformations |
+| `pyna.toroidal.coords` | Flux coordinate transformations (PEST, Boozer, Hamada, Equal-arc) |
 | `pyna.draw` | High-level plotting utilities |
 | `pyna.gc` | Guiding-centre orbit integration |
 | `pyna.interact` | Interactive widgets (Jupyter) |

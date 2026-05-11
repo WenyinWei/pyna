@@ -326,9 +326,10 @@ to `topoquest.analysis.fem`:
 
 ### `toroidal/plasma_response/`
 
-Legacy in-repo plasma-response implementation kept only until the planned
-move of plasma-behaviour workflows to topoquest. Do not treat this as a
-long-term public pyna namespace.
+DEPRECATED compatibility shim.  All plasma-response solvers have moved to
+``topoquest.analysis.response``.  This module exists only for backward
+compatibility and will be removed in a future release.  New code must use
+``topoquest.analysis.response`` directly.
 
 ### `toroidal/control/` (legacy `MCF/control/`)
 
@@ -366,13 +367,12 @@ Toroidal plotting: RMP spectrum, equilibrium cross-sections, tokamak manifolds.
 
 ## §8  Backward-Compatibility Shims
 
-Three top-level packages are thin re-export layers for legacy code.
-**Do not add new code here.**
+As of v0.8.6, the legacy top-level shims ``pyna.mag`` and ``pyna.coord``
+have been **removed**.  Use ``pyna.toroidal.*`` and ``pyna.toroidal.coords``
+directly.
 
-| Shim | Points to |
-|------|-----------|
-| `pyna.mag` | `pyna.toroidal.*` |
-| `pyna.coord` | `pyna.toroidal.coords` |
+``pyna.toroidal.plasma_response`` remains as a deprecated re-export layer
+that delegates to ``topoquest.analysis.response``.
 
 ---
 

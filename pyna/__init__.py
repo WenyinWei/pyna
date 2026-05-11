@@ -5,11 +5,14 @@ Submodules
 system    : Abstract dynamical system hierarchy
 flt       : Field line tracer
 topo      : Topological analysis (generic + toroidal specializations)
-coord     : Magnetic coordinate systems (legacy re-export)
-mag       : Magnetic equilibrium and analysis (legacy re-export)
 toroidal  : Toroidal geometry and field-line utilities
+
+.. deprecated:: 0.8.6
+    ``pyna.coord`` and ``pyna.mag`` have been removed.
+    Use ``pyna.toroidal.coords`` and the relevant ``pyna.toroidal.*``
+    submodules directly.
 """
-__version__ = "0.8.5"
+__version__ = "0.8.6"
 
 from importlib import import_module
 
