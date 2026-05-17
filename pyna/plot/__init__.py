@@ -3,6 +3,7 @@
 from pyna.plot.island import plot_island, island_section_points
 from pyna.plot.island_chain import plot_island_chain, island_chain_section_points
 from pyna.plot.xo_points import draw_xo_points, XO_STYLE
+from pyna.plot.poincare_beta import plot_poincare_beta_grid
 from pyna.plot.tube import (
     plot_tube_section,
     plot_tube_chain_section,
@@ -21,6 +22,7 @@ __all__ = [
     "island_chain_section_points",
     "draw_xo_points",
     "XO_STYLE",
+    "plot_poincare_beta_grid",
     # Tube / TubeChain (first-class)
     "plot_tube_section",
     "plot_tube_chain_section",
