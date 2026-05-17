@@ -89,6 +89,11 @@ target("cyna_python")
     add_cxxflags("/O2", "/openmp",  {tools = {"cl"}})
     add_cxxflags("-O3", "-fopenmp", {tools = {"gcc"}})
     add_cxxflags("-O3",             {tools = {"clang"}})
+    if is_plat("linux") then
+        add_syslinks("gomp")
+    elseif is_plat("macosx") then
+        add_syslinks("omp")
+    end
 
     -- Link Python runtime
     if is_plat("windows") then

@@ -328,6 +328,10 @@ def _build_cyna() -> bool:
     ext_sfx = sysconfig.get_config_var("EXT_SUFFIX") or ".so"
 
     env = os.environ.copy()
+    # xmake refuses to run as root by default.  That is sensible for normal
+    # development, but many CI/docker/WSL scientific images intentionally build
+    # wheels as root.  Keep the permission explicit and local to this subprocess.
+    env["XMAKE_ROOT"] = env.get("XMAKE_ROOT", "y")
     # Export Python paths as env vars so xmake.lua can read them
     # (xmake Lua sandbox forbids pcall/io.popen, so we pass via env)
     import sysconfig as _sc
@@ -358,8 +362,6 @@ def _build_cyna() -> bool:
 
     # --require=no: skip all package-manager network access (pybind11 comes from pip)
     base_cfg = [xmake, "config", "--yes", "--mode=release", "--require=no"]
-    if not _is_windows():
-        base_cfg += [f"--python={sys.executable}"]
     rc = _run(base_cfg + cuda_flag, cwd=str(CYNA_DIR), env=env)
     if rc != 0:
         if cuda_flag:
@@ -421,12 +423,10 @@ class BuildCynaExt(_build_ext):
                 "  pyna will work in pure-Python fallback mode.",
                 flush=True,
             )
-        # Always call super so other extensions (if any) are handled normally
-        # Don't fail the whole install if cyna fails
-        try:
-            super().run()
-        except Exception:
-            pass
+        # The only extension declared in pyproject is a marker stub.  xmake has
+        # already produced the real binary, so letting setuptools compile the
+        # empty stub would create an unusable _cyna_ext ABI-tagged library.
+        return
 
 
 class DevelopWithCyna(_develop):

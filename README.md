@@ -44,6 +44,22 @@ pip install -e ".[dev]"
 pip install "pyna-chaos[cuda]"
 ```
 
+### cyna C++ accelerator
+
+Source installs build the local `cyna` extension with xmake by default:
+
+```bash
+pip install -e .
+python -c "import pyna._cyna as c; print(c.is_available())"
+```
+
+If xmake or a C++17 compiler is missing, `setup.py` tries to install a minimal
+toolchain for Windows, macOS, and Linux before building.  CI builds platform
+wheels for Linux, Windows, and macOS through `cibuildwheel`, so normal PyPI
+installs should receive a prebuilt wheel with `_cyna_ext` already included.
+Set `CYNA_SKIP_TOOL_INSTALL=1` in controlled CI images where xmake/compiler
+provisioning is handled externally.
+
 ---
 
 ## 🚀 Quick Start
