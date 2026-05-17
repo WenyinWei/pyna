@@ -12,7 +12,7 @@ toroidal  : Toroidal geometry and field-line utilities
     Use ``pyna.toroidal.coords`` and the relevant ``pyna.toroidal.*``
     submodules directly.
 """
-__version__ = "0.8.8"
+__version__ = "0.8.9"
 
 from importlib import import_module
 
