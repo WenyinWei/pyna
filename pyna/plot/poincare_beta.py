@@ -86,8 +86,20 @@ def plot_poincare_beta_grid(
         core_by_sec = row.get("core_by_sec", [])
         r_norm = np.asarray(row.get("r_norm_core", []), dtype=float)
         axis_by_sec = row.get("axis_by_sec", [None] * n_cols)
+        wall_by_sec = row.get("wall_by_sec", [None] * n_cols)
         for cidx, phi in enumerate(phi_sections):
             ax = axes[ridx, cidx]
+            wall = wall_by_sec[cidx] if cidx < len(wall_by_sec) else None
+            if wall is not None:
+                wall_R, wall_Z = wall
+                ax.plot(
+                    np.asarray(wall_R, dtype=float),
+                    np.asarray(wall_Z, dtype=float),
+                    color="0.58",
+                    lw=0.65,
+                    alpha=0.55,
+                    zorder=0,
+                )
             traces = core_by_sec[cidx] if cidx < len(core_by_sec) else []
             for tidx, trace in enumerate(traces):
                 if trace is None:
