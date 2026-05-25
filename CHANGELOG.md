@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.9.0](https://github.com/WenyinWei/pyna/compare/v0.8.5...v0.9.0) (2026-05-25)
+
+
+### Features
+
+* add beta-scan poincare grid plot ([28ed2f7](https://github.com/WenyinWei/pyna/commit/28ed2f75c0f5a9e1c582f2ad5406fdc82859dcbb))
+* overlay walls in beta Poincare grids ([dda270e](https://github.com/WenyinWei/pyna/commit/dda270e46e1a2a348ebd452d44c732f049780980))
+
+
+### Documentation
+
+* update ARCHITECTURE.md and README.md for topoquest v0.2.2 ([c0d309b](https://github.com/WenyinWei/pyna/commit/c0d309b7b18fddd1a38c931679edb0279a9476a0))
+
 ## [Unreleased]
 
 ### Added
