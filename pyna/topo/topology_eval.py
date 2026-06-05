@@ -332,7 +332,7 @@ def _poincare_single_section(
     Z_s = np.ascontiguousarray(Z_seeds, dtype=np.float64)
     counts, pR_flat, pZ_flat = _cyna_poincare_twall(
         R_s, Z_s, float(phi_sec), int(n_turns), float(DPhi),
-        fc.BR, fc.BPhi, fc.BZ,
+        fc.BR, fc.BZ, fc.BPhi,
         fc.Rg, fc.Zg, fc.Pg_ext,
         phi_c, wall_R, wall_Z,
     )
@@ -360,7 +360,7 @@ def _poincare_multi_section(
 
     counts_arr, R_flat, Z_flat = _cyna_poincare_multi(
         Rs, Zs, phi_arr, int(n_turns), float(DPhi),
-        fc.BR, fc.BPhi, fc.BZ,
+        fc.BR, fc.BZ, fc.BPhi,
         fc.Rg, fc.Zg, fc.Pg_ext,
         box_R, box_Z,
         -1,   # n_threads
@@ -391,7 +391,7 @@ def _is_confined_cyna(R, Z, phi_start, max_turns, fc: _FC,
         np.array([R], dtype=np.float64),
         np.array([Z], dtype=np.float64),
         float(phi_start), int(max_turns), float(DPhi),
-        fc.BR, fc.BPhi, fc.BZ,
+        fc.BR, fc.BZ, fc.BPhi,
         fc.Rg, fc.Zg, fc.Pg_ext,
         phi_c, wall_R, wall_Z,
     )
@@ -476,7 +476,7 @@ def _DPm_from_orbit(R_t, Z_t, phi_t, fc: _FC) -> np.ndarray:
 
     A_batch = _cyna_A_matrix(
         R_arr, Z_arr, phi_arr,
-        fc.BR, fc.BPhi, fc.BZ,
+        fc.BR, fc.BZ, fc.BPhi,
         fc.Rg, fc.Zg, fc.Pg_ext,
         1e-4,
     )   # shape (N, 2, 2)
@@ -500,7 +500,7 @@ def _compute_DPm_cyna(R_xpt, Z_xpt, fc: _FC,
         float(R_xpt), float(Z_xpt), float(phi0),
         phi_span, dphi_out, 0,
         DPhi, 1e-4,
-        fc.BR, fc.BPhi, fc.BZ,
+        fc.BR, fc.BZ, fc.BPhi,
         fc.Rg, fc.Zg, fc.Pg_ext,
     )
     alive = np.asarray(alive_t, dtype=bool)
@@ -592,7 +592,7 @@ def evaluate_topology(
     Parameters
     ----------
     field_cache : dict
-        Field cache dict with keys BR, BPhi, BZ, R_grid, Z_grid, Phi_grid.
+        Field cache dict with keys BR, BZ, BPhi, R_grid, Z_grid, Phi_grid.
     device : DeviceConfig
         Device configuration. Defaults to HAO_CONFIG for backward compat.
     compute_iota : bool

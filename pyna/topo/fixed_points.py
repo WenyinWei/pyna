@@ -144,9 +144,9 @@ def _in_bounds(R: float, Z: float) -> bool:
 
 
 def _extract_field_cache(tracer) -> Optional[dict]:
-    """Extract BR/BPhi/BZ grid arrays from a FieldlineTracer.
+    """Extract BR/BZ/BPhi grid arrays from a FieldlineTracer.
 
-    Returns a dict with keys BR, BPhi, BZ, R_grid, Z_grid, Phi_grid,
+    Returns a dict with keys BR, BZ, BPhi, R_grid, Z_grid, Phi_grid,
     or None if extraction fails.
     """
     try:
@@ -164,7 +164,7 @@ def _extract_field_cache(tracer) -> Optional[dict]:
         BR   = BR.reshape(nR, nZ, nPhi)
         BPhi = BPhi.reshape(nR, nZ, nPhi)
         BZ   = BZ.reshape(nR, nZ, nPhi)
-        return dict(BR=BR, BPhi=BPhi, BZ=BZ,
+        return dict(BR=BR, BZ=BZ, BPhi=BPhi,
                     R_grid=R_grid, Z_grid=Z_grid, Phi_grid=Phi_grid)
     except Exception as exc:
         warnings.warn(f"_extract_field_cache failed: {exc}")
@@ -314,7 +314,7 @@ def find_magnetic_axis(
     verbose : bool
         Print iteration progress. Default False.
     field_cache : dict, optional
-        Pre-extracted field arrays (BR, BPhi, BZ, R_grid, Z_grid, Phi_grid).
+        Pre-extracted field arrays (BR, BZ, BPhi, R_grid, Z_grid, Phi_grid).
         If None, extracted automatically from tracer (or Python fallback used).
 
     Returns
@@ -339,7 +339,7 @@ def find_magnetic_axis(
                 np.array([Z_guess], dtype=np.float64),
                 float(phi_sec), 1,
                 max_iter=max_iter, tol=tol,
-                BR=fc['BR'], BPhi=fc['BPhi'], BZ=fc['BZ'],
+                BR=fc['BR'], BZ=fc['BZ'], BPhi=fc['BPhi'],
                 R_grid=fc['R_grid'], Z_grid=fc['Z_grid'], Phi_grid=fc['Phi_grid'],
             )
             R, Z, DPm, kind = _cyna_result_to_fp(R_out, Z_out, res, conv, DPm_flat, eig_r, eig_i, ptype, 0)
@@ -398,7 +398,7 @@ def find_fixed_point_newton(
     verbose : bool
         Print iteration progress. Default False.
     field_cache : dict, optional
-        Pre-extracted field arrays (BR, BPhi, BZ, R_grid, Z_grid, Phi_grid).
+        Pre-extracted field arrays (BR, BZ, BPhi, R_grid, Z_grid, Phi_grid).
         If None, extracted automatically from tracer (or Python fallback used).
 
     Returns
@@ -425,7 +425,7 @@ def find_fixed_point_newton(
                 np.array([Z_guess], dtype=np.float64),
                 float(phi_sec), int(period),
                 max_iter=max_iter, tol=tol,
-                BR=fc['BR'], BPhi=fc['BPhi'], BZ=fc['BZ'],
+                BR=fc['BR'], BZ=fc['BZ'], BPhi=fc['BPhi'],
                 R_grid=fc['R_grid'], Z_grid=fc['Z_grid'], Phi_grid=fc['Phi_grid'],
             )
             R, Z, DPm, kind = _cyna_result_to_fp(R_out, Z_out, res, conv, DPm_flat, eig_r, eig_i, ptype, 0)
@@ -934,7 +934,7 @@ def find_island_chain_fixed_points(
             R_seeds_all, Z_seeds_all,
             float(phi_sec), int(period),
             max_iter=8, tol=coarse_tol * 0.1,
-            BR=fc['BR'], BPhi=fc['BPhi'], BZ=fc['BZ'],
+            BR=fc['BR'], BZ=fc['BZ'], BPhi=fc['BPhi'],
             R_grid=fc['R_grid'], Z_grid=fc['Z_grid'], Phi_grid=fc['Phi_grid'],
         )
         # period-1 exclusion via cyna (single turn)
@@ -942,7 +942,7 @@ def find_island_chain_fixed_points(
             R_seeds_all, Z_seeds_all,
             float(phi_sec), 1,
             max_iter=8, tol=period1_tol * 0.1,
-            BR=fc['BR'], BPhi=fc['BPhi'], BZ=fc['BZ'],
+            BR=fc['BR'], BZ=fc['BZ'], BPhi=fc['BPhi'],
             R_grid=fc['R_grid'], Z_grid=fc['Z_grid'], Phi_grid=fc['Phi_grid'],
         )
         for i in range(len(R_seeds_all)):
@@ -999,7 +999,7 @@ def find_island_chain_fixed_points(
             R_seeds, Z_seeds,
             float(phi_sec), int(period),
             max_iter=max_iter, tol=tol,
-            BR=fc['BR'], BPhi=fc['BPhi'], BZ=fc['BZ'],
+            BR=fc['BR'], BZ=fc['BZ'], BPhi=fc['BPhi'],
             R_grid=fc['R_grid'], Z_grid=fc['Z_grid'], Phi_grid=fc['Phi_grid'],
         )
         for idx in range(len(R_seeds)):

@@ -84,7 +84,7 @@ class TopologyCache:
     属性（加载后可用）
     ------------------
     base_fc : dict
-        基础场 cache（BR/BPhi/BZ shape: NR×NZ×NPHI，float32）
+        基础场 cache（BR/BZ/BPhi shape: NR×NZ×NPHI，float32）
     BR_resp / BPhi_resp / BZ_resp : np.ndarray  shape (N_coils, NR, NZ, NPHI)
         各线圈单位电流响应场（float32）
     N_coils : int
@@ -145,7 +145,7 @@ class TopologyCache:
         nan_bz = np.isnan(self.BZ_resp).sum()
         total_nan = nan_br + nan_bp + nan_bz
         if total_nan > 0:
-            self._log(f"  [警告] 响应场中有 {total_nan} 个 NaN (BR={nan_br}, BPhi={nan_bp}, BZ={nan_bz})")
+            self._log(f"  [警告] 响应场中有 {total_nan} 个 NaN (BR={nan_br}, BZ={nan_bz}, BPhi={nan_bp})")
             self._log(f"  [建议] 请使用 v2 真空场 (recompute_vacuum_fields.py) 以消除 NaN")
             self._log(f"  [临时] 将 NaN 替换为 0 以避免计算崩溃（物理上不正确！）")
             # 临时修复：用 0 替换 NaN（比中位数更诚实）
@@ -203,7 +203,7 @@ class TopologyCache:
             self._log(f"[警告] 固定点 pkl 未找到")
 
         # ── 5. 预计算分组位型所需的 basis 向量（可选，供快速评估） ─────────
-        self._group_cache: dict[str, dict] = {}  # scheme_name -> {BR, BPhi, BZ}
+        self._group_cache: dict[str, dict] = {}  # scheme_name -> {BR, BZ, BPhi}
         self.basis_dlambda: dict[str, np.ndarray] = {}  # scheme -> (K,)
 
         # NOTE: precompute_basis_dlambda() 需要完整 field_cache + pkl X 点，
@@ -354,7 +354,7 @@ class TopologyCache:
 
         Returns
         -------
-        field_cache dict（BR/BPhi/BZ/R_grid/Z_grid/Phi_grid）
+        field_cache dict（BR/BZ/BPhi/R_grid/Z_grid/Phi_grid）
         """
         if scheme_name not in self._group_cache:
             raise ValueError(f"方案 '{scheme_name}' 尚未预计算，请先调用 precompute_group_basis()")
@@ -596,14 +596,14 @@ def build_field_superposition_cache(
 
     Parameters
     ----------
-    field_cache_base     : 基础场 dict（BR/BPhi/BZ/R_grid/Z_grid/Phi_grid）
+    field_cache_base     : 基础场 dict（BR/BZ/BPhi/R_grid/Z_grid/Phi_grid）
     coil_currents_matrix : shape (N_configs, N_coils)，相对基础场的增量电流（A）
     BR_resp / BPhi_resp / BZ_resp : shape (N_coils, NR, NZ, NPHI)，响应场
     chunk_size           : 每批处理的位型数（控制 RAM 峰值）
 
     Returns
     -------
-    list of N_configs field_cache dicts（每个 dict 引用各自独立的 BR/BPhi/BZ）
+    list of N_configs field_cache dicts（每个 dict 引用各自独立的 BR/BZ/BPhi）
     """
     I_mat = np.asarray(coil_currents_matrix, dtype=np.float64)   # (C, N_coils)
     BR_r  = np.asarray(BR_resp,   dtype=np.float64)               # (N_coils, NR, NZ, NPHI)
@@ -680,7 +680,7 @@ def fast_evaluate_single(
 
     Parameters
     ----------
-    field_cache     : dict with BR/BPhi/BZ/R_grid/Z_grid/Phi_grid
+    field_cache     : dict with BR/BZ/BPhi/R_grid/Z_grid/Phi_grid
     boundary_xpts   : list of {R, Z, DPm, lambda_u}（来自 TopologyCache）
     baseline_lambda_u : 基础位型 λ_u（用于线性近似参考点）
     basis_dlambda   : shape (K,)，∂λ_u/∂I_group（可选，直接传入）
@@ -733,7 +733,7 @@ def fast_evaluate_single(
                     R_seeds, Z_seeds,
                     0.0, 10,  # phi_sec=0, period=10
                     max_iter=30, tol=1e-9,
-                    BR=fc_obj.BR, BPhi=fc_obj.BPhi, BZ=fc_obj.BZ,
+                    BR=fc_obj.BR, BZ=fc_obj.BZ, BPhi=fc_obj.BPhi,
                     R_grid=fc_obj.Rg, Z_grid=fc_obj.Zg, Phi_grid=fc_obj.Pg_ext,
                 )
                 # ptype=1 means X-point (|Tr|>2, hyperbolic) — only use those
@@ -769,7 +769,7 @@ def fast_evaluate_single(
                     np.array([R_ax_trial]), np.array([Z_ax_trial]),
                     0.0, 1,   # period=1: magnetic axis is a period-1 O-point
                     max_iter=25, tol=1e-8,
-                    BR=fc.BR, BPhi=fc.BPhi, BZ=fc.BZ,
+                    BR=fc.BR, BZ=fc.BZ, BPhi=fc.BPhi,
                     R_grid=fc.Rg, Z_grid=fc.Zg, Phi_grid=fc.Pg_ext,
                 )
                 if conv_ax[0] and ptype_ax[0] == 0:  # O-point (elliptic, period-1)
@@ -1186,7 +1186,7 @@ def _smoke_test():
     Z_grid   = np.linspace(-0.42, 0.42, NZ)
     Phi_grid = np.linspace(0, 2 * np.pi, NPHI, endpoint=False)
 
-    base_fc = dict(BR=BR_base, BPhi=BPhi_base, BZ=BZ_base,
+    base_fc = dict(BR=BR_base, BZ=BZ_base, BPhi=BPhi_base,
                    R_grid=R_grid, Z_grid=Z_grid, Phi_grid=Phi_grid)
 
     BR_resp   = rng.uniform(-0.01, 0.01, (N_coils, NR, NZ, NPHI)).astype(np.float32)

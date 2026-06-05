@@ -207,7 +207,7 @@ from ..flow import FlowCallable
 from pyna.topo._rk4 import rk4_integrate as solve_ivp  # retained for variational ODEs
 from functools import reduce
 import operator
-from pyna.fields.cylindrical import VectorField3DCylindrical
+from pyna.fields.cylindrical import VectorFieldCylind
 from pyna._cyna import trace_orbit_along_phi as _cyna_trace_orbit
 
 
@@ -234,7 +234,7 @@ def _trace_fieldline_as_sol(R, Z, Phi, BR, BZ, BPhi, t_span, y0):
     R_out, Z_out, Phi_out, _mono, _flags = _cyna_trace_orbit(
         R0, Z0, phi_start, phi_span, dPhi / 2,
         1, dPhi / 2, 1e-4,
-        BR_flat, BPhi_flat, BZ_flat, R_g, Z_g, Phi_g,
+        BR_flat, BZ_flat, BPhi_flat, R_g, Z_g, Phi_g,
     )
     # Reconstruct monotone Phi covering the full t_span
     Phi_mono = phi_start + np.cumsum(
@@ -254,7 +254,7 @@ def _trace_fieldline_as_sol(R, Z, Phi, BR, BZ, BPhi, t_span, y0):
     return _Sol()
 
 
-def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(afield:VectorField3DCylindrical, t_span, y0, highest_order=1, *arg, **kwarg):
+def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(afield:VectorFieldCylind, t_span, y0, highest_order=1, *arg, **kwarg):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
     
     RBRdBPhi = R[:,None,None]*BR/BPhi
@@ -355,7 +355,7 @@ import threading
 import concurrent.futures
 # from numba import jit
 
-def partial_XRZ_partial_x0RZ_until_ordk_along_field_line(afield:VectorField3DCylindrical, t_span, y0, highest_order=1, *arg, **kwarg): 
+def partial_XRZ_partial_x0RZ_until_ordk_along_field_line(afield:VectorFieldCylind, t_span, y0, highest_order=1, *arg, **kwarg): 
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
     
     RBRdBPhi = R[:,None,None]*BR/BPhi
@@ -447,7 +447,7 @@ def partial_XRZ_partial_x0RZ_until_ordk_along_field_line(afield:VectorField3DCyl
     return XpRpZ_sols
 
 
-def Poincare_trace(afield:VectorField3DCylindrical,  x0_RZPhi, Poincare_section_Phi, times):
+def Poincare_trace(afield:VectorFieldCylind,  x0_RZPhi, Poincare_section_Phi, times):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
     
     Phigap_from_x0_to_section = ( Poincare_section_Phi - x0_RZPhi[-1] ) % (2*np.pi) # which shall be a float falling in the range [0, 2pi)
@@ -474,7 +474,7 @@ def Poincare_trace(afield:VectorField3DCylindrical,  x0_RZPhi, Poincare_section_
             t_eval = np.linspace(x0_RZPhi[-1] + Phigap_from_x0_to_section + 2*np.pi*times[-1], x0_RZPhi[-1] + Phigap_from_x0_to_section + 2*np.pi*times[0], abs(times[0]-times[1])+1 ) )[0].y 
         return neg_trace[:,::-1]
 
-def Poincare_plot(afield:VectorField3DCylindrical,  init_RZPhi, Poincare_section_Phi, fig, ax):
+def Poincare_plot(afield:VectorFieldCylind,  init_RZPhi, Poincare_section_Phi, fig, ax):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
     
     x_trace_future_list = []

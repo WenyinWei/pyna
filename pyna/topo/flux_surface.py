@@ -490,7 +490,7 @@ class XPointOrbit:
         period : int
             Number of toroidal turns (e.g. 10 for m/n=10/3).
         field_cache : dict
-            Dict with keys R_grid, Z_grid, Phi_grid, BR, BPhi, BZ.
+            Dict with keys R_grid, Z_grid, Phi_grid, BR, BZ, BPhi.
         dphi_out : float
             Output step in φ [rad].
 
@@ -507,7 +507,7 @@ class XPointOrbit:
             float(R_xpt), float(Z_xpt), float(phi0),
             phi_span, dphi_out, 0,
             dphi_out, 1e-4,
-            fc.BR, fc.BPhi, fc.BZ,
+            fc.BR, fc.BZ, fc.BPhi,
             fc.Rg, fc.Zg, fc.Pg_ext,
         )
         alive = np.asarray(alive_t, dtype=bool)

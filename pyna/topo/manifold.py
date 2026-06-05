@@ -1,5 +1,5 @@
 from mimetypes import init
-from pyna.fields.cylindrical import VectorField3DCylindrical
+from pyna.fields.cylindrical import VectorFieldCylind
 # bundle_tracing_with_t_as_DeltaPhi was removed in batch-1 legacy cleanup.
 # pyna.topo.manifold is a legacy module; only accumulate_s_from_RZ_arr is
 # still referenced externally by legacy toroidal visualisation helpers.
@@ -23,7 +23,7 @@ from numpy import ndarray
 
 
 def grow_manifold_from_Xcycle_naive_init_segment(
-    afield:VectorField3DCylindrical, 
+    afield:VectorFieldCylind, 
     Xcycle_RZdiff, 
     Jac_evosol_along_Xcycle, 
     eigind:int, Phi_span, total_deltaPhi:float, ptsnum_initseg:int=300, initseg_len=0.8e-4, *arg_sovle_ivp, **kwarg_solve_ivp):    
@@ -59,7 +59,7 @@ def grow_manifold_from_Xcycle_naive_init_segment(
 
     return fltres
 
-def grow_manifold_from_Xcycle_naive_carousel(afield:VectorField3DCylindrical, Xcycle_RZdiff, Jac_evosol_along_Xcycle, eigind:int, Phi_span, W_nPhi:int, Ind_num:int, first_step=5e-5, max_step=1e-4):    
+def grow_manifold_from_Xcycle_naive_carousel(afield:VectorFieldCylind, Xcycle_RZdiff, Jac_evosol_along_Xcycle, eigind:int, Phi_span, W_nPhi:int, Ind_num:int, first_step=5e-5, max_step=1e-4):    
     Phi_start, Phi_end = Phi_span[0], Phi_span[1]
     W_Phi = np.linspace(Phi_start, Phi_end, num=W_nPhi, endpoint=True)
     W_dPhi = W_Phi[1]-W_Phi[0]
@@ -148,7 +148,7 @@ def _central_finite_difference_first_derivative(arr:np.ndarray, dPhi:float, accu
 
 from deprecated import deprecated
 
-def grow_manifold_from_Xcycle_eig_interp(afield:VectorField3DCylindrical, Xcycle_RZdiff, Jac_evosol_along_Xcycle, eigind, S_span, S_num:int, Phi_span, Phi_num:int, rev_eigvec=False, first_step=5e-5, max_step=1e-4):
+def grow_manifold_from_Xcycle_eig_interp(afield:VectorFieldCylind, Xcycle_RZdiff, Jac_evosol_along_Xcycle, eigind, S_span, S_num:int, Phi_span, Phi_num:int, rev_eigvec=False, first_step=5e-5, max_step=1e-4):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
 
     Phi_start, Phi_end = Phi_span[0], Phi_span[1]
@@ -305,7 +305,7 @@ def accumulate_s_from_RZ_arr(W1d_RZ:ndarray):
 
 
 def create_W1d_interpolator_s_to_RZdRZds(
-    afield:VectorField3DCylindrical, 
+    afield:VectorFieldCylind, 
     Wivp_bundle, phi:float, phi_epsilon:float, mturn=int):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi
     

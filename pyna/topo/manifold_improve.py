@@ -344,14 +344,14 @@ class _AcceleratedManifoldBase(_ManifoldBase):
         import numpy as np
         from scipy.interpolate import RegularGridInterpolator
 
-        BR, BPhi_arr, BZ_arr = cache['BR'], cache['BPhi'], cache['BZ']
+        BR, BZ_arr, BPhi_arr = cache['BR'], cache['BZ'], cache['BPhi']
         R_grid, Z_grid, Phi_grid = cache['R_grid'], cache['Z_grid'], cache['Phi_grid']
         Phi_ext = np.append(Phi_grid, 2 * np.pi)
         _ext = lambda X: np.concatenate([X, X[:, :, :1]], axis=2)
         kwi = dict(method='linear', bounds_error=False, fill_value=np.nan)
         itp_BR   = RegularGridInterpolator((R_grid, Z_grid, Phi_ext), _ext(BR),     **kwi)
-        itp_BPhi = RegularGridInterpolator((R_grid, Z_grid, Phi_ext), _ext(BPhi_arr), **kwi)
         itp_BZ   = RegularGridInterpolator((R_grid, Z_grid, Phi_ext), _ext(BZ_arr),  **kwi)
+        itp_BPhi = RegularGridInterpolator((R_grid, Z_grid, Phi_ext), _ext(BPhi_arr), **kwi)
 
         def field_func_2d(R, Z, phi):
             phi_w = phi % (2 * np.pi)
@@ -384,8 +384,8 @@ class _AcceleratedManifoldBase(_ManifoldBase):
         Phi_ext2 = np.append(Phi_grid, 2 * np.pi)
         self._Phi_ext  = np.ascontiguousarray(Phi_ext2, dtype=np.float64)
         self._BR_flat   = np.ascontiguousarray(_ext(BR),     dtype=np.float64).ravel()
-        self._BPhi_flat = np.ascontiguousarray(_ext(BPhi_arr), dtype=np.float64).ravel()
         self._BZ_flat   = np.ascontiguousarray(_ext(BZ_arr),  dtype=np.float64).ravel()
+        self._BPhi_flat = np.ascontiguousarray(_ext(BPhi_arr), dtype=np.float64).ravel()
 
         # Wall arrays
         self._wall_phi  = np.ascontiguousarray(wall._phi_centers, dtype=np.float64) if hasattr(wall, '_phi_centers') else None
@@ -415,16 +415,16 @@ class _AcceleratedManifoldBase(_ManifoldBase):
             counts, R_flat, Z_flat = self._cyna_batch_twall(
                 R_s, Z_s,
                 float(self._phi_section), N_turns, float(self._DPhi),
-                self._BR_flat, self._BPhi_flat, self._BZ_flat,
                 self._R_grid, self._Z_grid, self._Phi_ext,
+                self._BR_flat, self._BZ_flat, self._BPhi_flat,
                 self._wall_phi, self._wall_R_all, self._wall_Z_all,
             )
         else:
             counts, R_flat, Z_flat = self._cyna_batch(
                 R_s, Z_s,
                 float(self._phi_section), N_turns, float(self._DPhi),
-                self._BR_flat, self._BPhi_flat, self._BZ_flat,
                 self._R_grid, self._Z_grid, self._Phi_ext,
+                self._BR_flat, self._BZ_flat, self._BPhi_flat,
                 self._wall_R, self._wall_Z,
             )
         # Fixed-stride output: seed 0 occupies slot 0 (1 turn requested)

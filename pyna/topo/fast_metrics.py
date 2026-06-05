@@ -110,7 +110,7 @@ def compute_profile_objectives_fast(
         R_seeds, Z_seeds,
         float(R_axis), float(Z_axis),
         0.0, int(n_turns), float(DPhi),
-        fc.BR, fc.BPhi, fc.BZ,
+        fc.BR, fc.BZ, fc.BPhi,
         fc.Rg, fc.Zg, fc.Pg_ext,
         np.ascontiguousarray(phi_c, dtype=np.float64),
         np.ascontiguousarray(wall_R, dtype=np.float64),

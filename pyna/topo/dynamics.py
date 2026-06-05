@@ -202,12 +202,12 @@ class MagneticFieldLine(ContinuousFlow, ABC):
 
     @abstractmethod
     def field(self, R: float, Z: float, phi: float) -> Tuple[float, float, float]:
-        """Return (B_R, B_phi, B_Z) at (R, Z, φ)."""
+        """Return (B_R, B_Z, B_phi) at (R, Z, φ)."""
 
     def vector_field(self, x: np.ndarray, t: float = 0.0) -> np.ndarray:
         """RHS of field-line ODE: dx/dφ = [R·B_R/B_φ, R·B_Z/B_φ]."""
         R, Z = float(x[0]), float(x[1])
-        BR, BPhi, BZ = self.field(R, Z, float(t))
+        BR, BZ, BPhi = self.field(R, Z, float(t))
         if abs(BPhi) < 1e-30:
             return np.zeros(2)
         return np.array([R * BR / BPhi, R * BZ / BPhi])
@@ -343,7 +343,7 @@ class MCFPoincareMap(DiscreteMap):
     ----------
     field_cache : dict
         Field cache dict with keys:
-        ``'BR', 'BPhi', 'BZ'``  — 3-D arrays (NR, NZ, NPhi)
+        ``'BR', 'BZ', 'BPhi'``  — 3-D arrays (NR, NZ, NPhi)
         ``'R_grid', 'Z_grid', 'Phi_grid'``  — 1-D coordinate arrays
     Np : int
         Field toroidal periodicity (stellarator period).
@@ -381,7 +381,7 @@ class MCFPoincareMap(DiscreteMap):
         self._n_threads = int(n_threads)
 
         # Pre-process field arrays (extend phi periodicity)
-        self._BR_c, self._BPhi_c, self._BZ_c, self._Rg, self._Zg, self._Pg = \
+        self._BR_c, self._BZ_c, self._BPhi_c, self._Rg, self._Zg, self._Pg = \
             self._prepare_arrays(field_cache)
 
     # ── Array preparation ─────────────────────────────────────────────────────
@@ -409,24 +409,24 @@ class MCFPoincareMap(DiscreteMap):
 
         if needs_ext:
             BR_c   = _ext(fc['BR'])
-            BPhi_c = _ext(fc['BPhi'])
             BZ_c   = _ext(fc['BZ'])
+            BPhi_c = _ext(fc['BPhi'])
         else:
             # Phi already includes 2*pi copy → B arrays already have the right size
             BR_c   = np.ascontiguousarray(fc['BR'], dtype=np.float64)
-            BPhi_c = np.ascontiguousarray(fc['BPhi'], dtype=np.float64)
             BZ_c   = np.ascontiguousarray(fc['BZ'], dtype=np.float64)
+            BPhi_c = np.ascontiguousarray(fc['BPhi'], dtype=np.float64)
         Rg = np.ascontiguousarray(fc['R_grid'],  dtype=np.float64)
         Zg = np.ascontiguousarray(fc['Z_grid'],  dtype=np.float64)
         Pg = np.ascontiguousarray(Phi_ext)
 
-        return BR_c, BPhi_c, BZ_c, Rg, Zg, Pg
+        return BR_c, BZ_c, BPhi_c, Rg, Zg, Pg
 
     # ── Properties ────────────────────────────────────────────────────────────
 
     @property
     def field_cache(self) -> dict:
-        """The field cache dict (BR, BPhi, BZ, grids)."""
+        """The field cache dict (BR, BZ, BPhi, grids)."""
         return self._fc
 
     @property
@@ -517,7 +517,7 @@ class MCFPoincareMap(DiscreteMap):
                 float(self._phi_section),
                 int(n_turns),
                 float(self._DPhi),
-                self._BR_c, self._BPhi_c, self._BZ_c,
+                self._BR_c, self._BZ_c, self._BPhi_c,
                 self._Rg, self._Zg, self._Pg,
                 np.array([], dtype=np.float64),
                 np.array([], dtype=np.float64),
@@ -546,7 +546,7 @@ class MCFPoincareMap(DiscreteMap):
                 float(self._phi_section),
                 int(self._n_turns),
                 float(self._DPhi),
-                self._BR_c, self._BPhi_c, self._BZ_c,
+                self._BR_c, self._BZ_c, self._BPhi_c,
                 self._Rg, self._Zg, self._Pg,
                 np.array([], dtype=np.float64),
                 np.array([], dtype=np.float64),

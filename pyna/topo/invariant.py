@@ -154,7 +154,7 @@ class InvariantTorus(InvariantManifold):
         n_turns : int
             Number of Poincaré map iterations.
         field_cache : dict, optional
-            cyna field cache (BR, BPhi, BZ, grids).
+            cyna field cache (BR, BZ, BPhi, grids).
         poincare_map : MCFPoincareMap, optional
             Alternative source for field_cache.
         section_phis : list of float, optional
@@ -198,7 +198,7 @@ class InvariantTorus(InvariantManifold):
                         np.array([Z0], dtype=np.float64),
                         float(phi_s),
                         int(n_turns),
-                        BR=BR_c, BPhi=BPhi_c, BZ=BZ_c,
+                        BR=BR_c, BZ=BZ_c, BPhi=BPhi_c,
                         R_grid=Rg, Z_grid=Zg, Phi_grid=Pg,
                     )
                     R_arr = np.asarray(result[0][0], dtype=float)

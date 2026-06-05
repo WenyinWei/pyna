@@ -61,7 +61,7 @@ def hao_tracer():
 
     wall = WallGeometry(str(_WALL_PATH))
     tracer = FieldlineTracer(
-        itp_BR=itp_BR, itp_BPhi=itp_BPhi, itp_BZ=itp_BZ,
+        itp_BR=itp_BR, itp_BZ=itp_BZ, itp_BPhi=itp_BPhi,
         wall=wall, R_grid=R_grid, Z_grid=Z_grid, Phi_grid=Phi_grid,
         DPhi=0.05,
         cache_dir=None,
@@ -247,7 +247,7 @@ if __name__ == "__main__":
     itp_BZ   = RegularGridInterpolator((R_grid, Z_grid, Phi_ext), _ext(fc['BZ']),   **kw)
     wall = WallGeometry(str(_WALL_PATH))
     tracer = FieldlineTracer(
-        itp_BR=itp_BR, itp_BPhi=itp_BPhi, itp_BZ=itp_BZ,
+        itp_BR=itp_BR, itp_BZ=itp_BZ, itp_BPhi=itp_BPhi,
         wall=wall, R_grid=R_grid, Z_grid=Z_grid, Phi_grid=Phi_grid,
         DPhi=0.05, cache_dir=None,
     )
