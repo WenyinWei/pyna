@@ -74,6 +74,14 @@ from pyna.topo.monodromy import (
     second_order_orbit_variation,
     monodromy_matrix,
 )
+from pyna.topo.fpt import (
+    OrbitPerturbationResponse,
+    TrajectoryPerturbationResponse,
+    CyclePerturbationResponse,
+    InvariantTorusPerturbationResponse,
+    StableManifoldPerturbationResponse,
+    compute_cycle_response_from_cache,
+)
 from pyna.topo.identity import ResonanceID, TubeID, IslandID
 from pyna.topo.toroidal_section_view import (
     SectionViewPoint as ToroidalSectionViewPoint,
@@ -238,6 +246,13 @@ __all__ = [
     "monodromy_change_under_perturbation",
     "second_order_orbit_variation",
     "monodromy_matrix",
+    # Functional perturbation theory response hierarchy
+    "OrbitPerturbationResponse",
+    "TrajectoryPerturbationResponse",
+    "CyclePerturbationResponse",
+    "InvariantTorusPerturbationResponse",
+    "StableManifoldPerturbationResponse",
+    "compute_cycle_response_from_cache",
     # Identity / bridge layer
     "ResonanceID",
     "TubeID",

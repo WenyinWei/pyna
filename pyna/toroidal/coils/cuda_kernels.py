@@ -18,7 +18,7 @@ step required):
 Both kernels launch one CUDA thread per field point.  The field points are
 expected as a (N, 3) float32 C-contiguous CuPy array in Cartesian (x,y,z)
 coordinates.  Results are returned as three (N,) float32 CuPy arrays in
-cylindrical (BR, BPhi, BZ).
+    cylindrical (BR, BZ, BPhi).
 
 CPU fallbacks (OpenMP, if cyna is available, otherwise single-threaded NumPy)
 are provided for environments without a GPU.
@@ -46,7 +46,7 @@ _CIRCULAR_COIL_KERNEL_SRC = r"""
 //
 // Coil: center (cx,cy,cz), unit normal (nx,ny,nz), radius a, current I [A].
 // Field point: (xyz[3*i], xyz[3*i+1], xyz[3*i+2]) in Cartesian metres.
-// Output: (BR[i], BPhi[i], BZ[i]) in Tesla, cylindrical w.r.t. global z-axis.
+// Output: (BR[i], BZ[i], BPhi[i]) in Tesla, cylindrical w.r.t. global z-axis.
 
 // AGM elliptic integral K(m), float32, 8 iterations (~7e-8 relative error)
 __device__ float _kf(float m) {
@@ -105,8 +105,8 @@ extern "C" __global__ void circular_coil_kernel(
     const float* __restrict__ xyz,   // (N, 3)
     int N,
     float* __restrict__ BR,
-    float* __restrict__ BPhi,
-    float* __restrict__ BZ)
+    float* __restrict__ BZ,
+    float* __restrict__ BPhi)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= N) return;
@@ -155,7 +155,7 @@ _BIOT_SAVART_KERNEL_SRC = r"""
 // seg_starts, seg_ends: (N_seg, 3) float32 Cartesian metres
 // current: scalar Amperes
 // xyz: (N_pts, 3) float32 Cartesian metres
-// Output: (BR, BPhi, BZ) Tesla, cylindrical
+// Output: (BR, BZ, BPhi) Tesla, cylindrical
 
 extern "C" __global__ void biot_savart_kernel(
     const float* __restrict__ seg_starts,  // (N_seg, 3)
@@ -165,8 +165,8 @@ extern "C" __global__ void biot_savart_kernel(
     const float* __restrict__ xyz,         // (N_pts, 3)
     int   N_pts,
     float* __restrict__ BR,
-    float* __restrict__ BPhi,
-    float* __restrict__ BZ)
+    float* __restrict__ BZ,
+    float* __restrict__ BPhi)
 {
     const float MU0_4PI = 1.0e-7f;
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -251,7 +251,7 @@ def circular_coil_field_gpu(
 
     Returns
     -------
-    BR, BPhi, BZ : (N,) float32 CuPy arrays — cylindrical B in Tesla
+    BR, BZ, BPhi : (N,) float32 CuPy arrays — cylindrical B in Tesla
     """
     N = xyz_gpu.shape[0]
     BR   = cp.empty(N, dtype=cp.float32)
@@ -266,9 +266,9 @@ def circular_coil_field_gpu(
          cp.float32(nx), cp.float32(ny), cp.float32(nz),
          cp.float32(radius), cp.float32(current),
          xyz_gpu, cp.int32(N),
-         BR, BPhi, BZ),
+         BR, BZ, BPhi),
     )
-    return BR, BPhi, BZ
+    return BR, BZ, BPhi
 
 
 def biot_savart_field_gpu(
@@ -288,7 +288,7 @@ def biot_savart_field_gpu(
 
     Returns
     -------
-    BR, BPhi, BZ : (N,) float32 CuPy arrays — cylindrical B in Tesla
+    BR, BZ, BPhi : (N,) float32 CuPy arrays — cylindrical B in Tesla
     """
     N_seg = seg_starts_gpu.shape[0]
     N_pts = xyz_gpu.shape[0]
@@ -303,9 +303,9 @@ def biot_savart_field_gpu(
         (seg_starts_gpu, seg_ends_gpu, cp.int32(N_seg),
          cp.float32(current),
          xyz_gpu, cp.int32(N_pts),
-         BR, BPhi, BZ),
+         BR, BZ, BPhi),
     )
-    return BR, BPhi, BZ
+    return BR, BZ, BPhi
 
 
 # ── CPU fallbacks (OpenMP via cyna, or pure NumPy) ───────────────────────────
@@ -365,7 +365,7 @@ def _circular_coil_numpy(cx, cy, cz, nx, ny, nz, a, I, xyz):
     BR   = (bx*cp_ + by*sp_).astype(np.float32)
     BPhi = (-bx*sp_ + by*cp_).astype(np.float32)
     BZ   = bz.astype(np.float32)
-    return BR, BPhi, BZ
+    return BR, BZ, BPhi
 
 
 def biot_savart_field_cpu(
@@ -412,8 +412,8 @@ def _biot_savart_numpy(seg_starts, seg_ends, current, xyz):
     cp_ = np.cos(phi); sp_ = np.sin(phi)
     return (
         (bx*cp_ + by*sp_).astype(np.float32),
-        (-bx*sp_ + by*cp_).astype(np.float32),
         bz.astype(np.float32),
+        (-bx*sp_ + by*cp_).astype(np.float32),
     )
 
 
@@ -427,9 +427,9 @@ def circular_coil_field(
     """Dispatch to GPU or CPU implementation; always returns NumPy arrays."""
     if use_gpu and _HAS_CUPY:
         xyz_g = cp.asarray(xyz, dtype=cp.float32)
-        BR_g, BPhi_g, BZ_g = circular_coil_field_gpu(
+        BR_g, BZ_g, BPhi_g = circular_coil_field_gpu(
             cx, cy, cz, nx, ny, nz, radius, current, xyz_g)
-        return cp.asnumpy(BR_g), cp.asnumpy(BPhi_g), cp.asnumpy(BZ_g)
+        return cp.asnumpy(BR_g), cp.asnumpy(BZ_g), cp.asnumpy(BPhi_g)
     else:
         return circular_coil_field_cpu(
             cx, cy, cz, nx, ny, nz, radius, current,
@@ -445,8 +445,8 @@ def biot_savart_field(
         ss_g = cp.asarray(np.ascontiguousarray(seg_starts, np.float32))
         se_g = cp.asarray(np.ascontiguousarray(seg_ends,   np.float32))
         xyz_g = cp.asarray(np.ascontiguousarray(xyz,       np.float32))
-        BR_g, BPhi_g, BZ_g = biot_savart_field_gpu(ss_g, se_g, current, xyz_g)
-        return cp.asnumpy(BR_g), cp.asnumpy(BPhi_g), cp.asnumpy(BZ_g)
+        BR_g, BZ_g, BPhi_g = biot_savart_field_gpu(ss_g, se_g, current, xyz_g)
+        return cp.asnumpy(BR_g), cp.asnumpy(BZ_g), cp.asnumpy(BPhi_g)
     else:
         return biot_savart_field_cpu(
             np.ascontiguousarray(seg_starts, np.float32),

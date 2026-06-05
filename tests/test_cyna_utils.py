@@ -37,13 +37,13 @@ class TestPrepareFieldCache:
             'Z_grid':   np.linspace(-1.0, 1.0, NZ),
             'Phi_grid': np.linspace(0, 2 * np.pi, NPhi, endpoint=False),
             'BR':       np.random.randn(NR, NZ, NPhi),
-            'BPhi':     np.ones((NR, NZ, NPhi)),
             'BZ':       np.random.randn(NR, NZ, NPhi),
+            'BPhi':     np.ones((NR, NZ, NPhi)),
         }
 
     def test_output_keys(self, dummy_fc):
         result = prepare_field_cache(dummy_fc)
-        for key in ['BR', 'BPhi', 'BZ', 'R_grid', 'Z_grid', 'Phi_grid']:
+        for key in ['BR', 'BZ', 'BPhi', 'R_grid', 'Z_grid', 'Phi_grid']:
             assert key in result
 
     def test_phi_extended(self, dummy_fc):

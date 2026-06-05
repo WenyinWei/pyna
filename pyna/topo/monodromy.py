@@ -1352,7 +1352,7 @@ def monodromy_matrix(
 
     # Extract grid
 
-    BR, BPhi, BZ = cache['BR'], cache['BPhi'], cache['BZ']
+    BR, BZ, BPhi = cache['BR'], cache['BZ'], cache['BPhi']
 
     R_grid, Z_grid, Phi_grid = cache['R_grid'], cache['Z_grid'], cache['Phi_grid']
 
@@ -1364,9 +1364,9 @@ def monodromy_matrix(
 
     BR_ext  = np.concatenate([BR,   BR[:, :, :1]],  axis=2)
 
-    BPhi_ext= np.concatenate([BPhi, BPhi[:, :, :1]], axis=2)
-
     BZ_ext  = np.concatenate([BZ,   BZ[:, :, :1]],  axis=2)
+
+    BPhi_ext= np.concatenate([BPhi, BPhi[:, :, :1]], axis=2)
 
 
 
@@ -1374,9 +1374,9 @@ def monodromy_matrix(
 
     BR_flat   = np.ascontiguousarray(BR_ext,   dtype=np.float64).ravel()
 
-    BPhi_flat = np.ascontiguousarray(BPhi_ext, dtype=np.float64).ravel()
-
     BZ_flat   = np.ascontiguousarray(BZ_ext,   dtype=np.float64).ravel()
+
+    BPhi_flat = np.ascontiguousarray(BPhi_ext, dtype=np.float64).ravel()
 
     R_g = np.ascontiguousarray(R_grid, dtype=np.float64)
 
@@ -1408,7 +1408,7 @@ def monodromy_matrix(
 
             R_seeds, Z_seeds, float(phi_section), int(m_turns), float(DPhi),
 
-            BR_flat, BPhi_flat, BZ_flat, R_g, Z_g, Phi_g,
+            BR_flat, BZ_flat, BPhi_flat, R_g, Z_g, Phi_g,
 
             np.ascontiguousarray(wall._phi_centers, dtype=np.float64),
 
@@ -1426,7 +1426,7 @@ def monodromy_matrix(
 
             R_seeds, Z_seeds, float(phi_section), int(m_turns), float(DPhi),
 
-            BR_flat, BPhi_flat, BZ_flat, R_g, Z_g, Phi_g,
+            BR_flat, BZ_flat, BPhi_flat, R_g, Z_g, Phi_g,
 
             np.ascontiguousarray(wR, dtype=np.float64),
 

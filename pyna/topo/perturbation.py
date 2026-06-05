@@ -24,7 +24,7 @@ field Î´B, we compute:
 C++ acceleration
 ----------------
 When ``base_field_cache`` and ``pert_field_cache`` are supplied as dicts with
-keys ``BR, BPhi, BZ, R_grid, Z_grid, Phi_grid`` (matching pyna's field-cache
+keys ``BR, BZ, BPhi, R_grid, Z_grid, Phi_grid`` (matching pyna's field-cache
 convention), the following cyna functions are used:
 
 * ``pyna._cyna.trace_orbit_along_phi`` â€?orbit tracing + DPm in C++.
@@ -35,9 +35,9 @@ RK4 + finite-difference Jacobians (``PoincareMapVariationalEquations``).
 
 Field-cache convention (identical to pyna.topo.island_chain)
 -------------------------------------------------------------
-``field_cache = dict(BR=..., BPhi=..., BZ=..., R_grid=..., Z_grid=...,
+``field_cache = dict(BR=..., BZ=..., BPhi=..., R_grid=..., Z_grid=...,
                      Phi_grid=...)``
-Arrays must be C-contiguous float64; BR/BPhi/BZ have shape
+Arrays must be C-contiguous float64; BR/BZ/BPhi have shape
 ``(nR, nZ, nPhi)`` or compatible layout accepted by cyna.
 
 References
@@ -110,7 +110,7 @@ def _compute_DPm_via_cyna(
     island_period : int
         Number of toroidal turns (m) for the DPm Jacobian.
     field_cache : dict
-        Keys: BR, BPhi, BZ, R_grid, Z_grid, Phi_grid.
+        Keys: BR, BZ, BPhi, R_grid, Z_grid, Phi_grid.
     DPhi : float
         RK4 step size inside cyna.
     fd_eps : float
@@ -126,10 +126,10 @@ def _compute_DPm_via_cyna(
 
     BR    = _c(field_cache['BR'].ravel() if field_cache['BR'].ndim == 3
                else field_cache['BR'])
-    BPhi  = _c(field_cache['BPhi'].ravel() if field_cache['BPhi'].ndim == 3
-               else field_cache['BPhi'])
     BZ    = _c(field_cache['BZ'].ravel() if field_cache['BZ'].ndim == 3
                else field_cache['BZ'])
+    BPhi  = _c(field_cache['BPhi'].ravel() if field_cache['BPhi'].ndim == 3
+               else field_cache['BPhi'])
     Rg    = _c(field_cache['R_grid'])
     Zg    = _c(field_cache['Z_grid'])
     Phig  = _c(field_cache['Phi_grid'])
@@ -141,7 +141,7 @@ def _compute_DPm_via_cyna(
         float(R0), float(Z0), float(phi_start),
         float(phi_span), float(dphi_out),
         int(island_period), float(DPhi), float(fd_eps),
-        BR, BPhi, BZ, Rg, Zg, Phig,
+        BR, BZ, BPhi, Rg, Zg, Phig,
     )
     R_arr   = np.asarray(R_arr)
     Z_arr   = np.asarray(Z_arr)
@@ -343,7 +343,7 @@ def DPm_finite_difference(
     fd_eps_state : float, optional
         FD step for Python variational equations. Default 1e-6.
     base_field_cache : dict, optional
-        Field-cache dict for cyna C++ path (BR, BPhi, BZ, R_grid, Z_grid,
+        Field-cache dict for cyna C++ path (BR, BZ, BPhi, R_grid, Z_grid,
         Phi_grid). When supplied together with ``pert_field_cache``, the cyna
         ``trace_orbit_along_phi`` C++ backend is used.
     pert_field_cache : dict, optional
@@ -531,12 +531,12 @@ def DPm_shift_under_field_perturbation(
             _c(base_field_cache['BR'].ravel()
                if base_field_cache['BR'].ndim == 3
                else base_field_cache['BR']),
-            _c(base_field_cache['BPhi'].ravel()
-               if base_field_cache['BPhi'].ndim == 3
-               else base_field_cache['BPhi']),
             _c(base_field_cache['BZ'].ravel()
                if base_field_cache['BZ'].ndim == 3
                else base_field_cache['BZ']),
+            _c(base_field_cache['BPhi'].ravel()
+               if base_field_cache['BPhi'].ndim == 3
+               else base_field_cache['BPhi']),
             _c(base_field_cache['R_grid']),
             _c(base_field_cache['Z_grid']),
             _c(base_field_cache['Phi_grid']),

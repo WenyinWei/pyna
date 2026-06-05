@@ -4,6 +4,7 @@
 #include <thread>
 #include <stdexcept>
 #include <cmath>
+#include <limits>
 #include <vector>
 #include "cyna/poincare.hpp"
 #include "cyna/objectives.hpp"
@@ -34,9 +35,7 @@ static py::array_t<double> py_compute_A_matrix_batch(
     py::array_t<double> R_arr,
     py::array_t<double> Z_arr,
     py::array_t<double> phi_arr,
-    py::array_t<double> BR,
-    py::array_t<double> BPhi,
-    py::array_t<double> BZ,
+    py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
     py::array_t<double> R_grid,
     py::array_t<double> Z_grid,
     py::array_t<double> Phi_grid,
@@ -107,9 +106,7 @@ static py::tuple py_trace_poincare_batch(
     double phi_section,
     int N_turns,
     double DPhi,
-    py::array_t<double> BR,
-    py::array_t<double> BPhi,
-    py::array_t<double> BZ,
+    py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
     py::array_t<double> R_grid,
     py::array_t<double> Z_grid,
     py::array_t<double> Phi_grid,
@@ -138,7 +135,7 @@ static py::tuple py_trace_poincare_batch(
     cyna::trace_poincare_batch(
         buf(R_seeds, "R_seeds"), buf(Z_seeds, "Z_seeds"), N_seeds,
         phi_section, N_turns, DPhi,
-        buf(BR, "BR"), buf(BPhi, "BPhi"), buf(BZ, "BZ"),
+        buf(BR,"BR"), buf(BZ,"BZ"), buf(BPhi,"BPhi"),
         buf(R_grid, "R_grid"), nR,
         buf(Z_grid, "Z_grid"), nZ,
         buf(Phi_grid, "Phi_grid"), nPhi,
@@ -157,9 +154,7 @@ static py::tuple py_trace_poincare_batch_twall(
     double phi_section,
     int N_turns,
     double DPhi,
-    py::array_t<double> BR,
-    py::array_t<double> BPhi,
-    py::array_t<double> BZ,
+    py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
     py::array_t<double> R_grid,
     py::array_t<double> Z_grid,
     py::array_t<double> Phi_grid,
@@ -196,7 +191,7 @@ static py::tuple py_trace_poincare_batch_twall(
     cyna::trace_poincare_batch_twall(
         buf(R_seeds, "R_seeds"), buf(Z_seeds, "Z_seeds"), N_seeds,
         phi_section, N_turns, DPhi,
-        buf(BR, "BR"), buf(BPhi, "BPhi"), buf(BZ, "BZ"),
+        buf(BR,"BR"), buf(BZ,"BZ"), buf(BPhi,"BPhi"),
         buf(R_grid, "R_grid"), nR,
         buf(Z_grid, "Z_grid"), nZ,
         buf(Phi_grid, "Phi_grid"), nPhi,
@@ -216,9 +211,7 @@ static py::tuple py_trace_poincare_multi(
     py::array_t<double> phi_sections,
     int N_turns,
     double DPhi,
-    py::array_t<double> BR,
-    py::array_t<double> BPhi,
-    py::array_t<double> BZ,
+    py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
     py::array_t<double> R_grid,
     py::array_t<double> Z_grid,
     py::array_t<double> Phi_grid,
@@ -259,7 +252,7 @@ static py::tuple py_trace_poincare_multi(
                 R_seeds.data()[i], Z_seeds.data()[i], secs[0],
                 secs.data(), n_sec,
                 N_turns, DPhi,
-                buf(BR, "BR"), buf(BPhi, "BPhi"), buf(BZ, "BZ"),
+                buf(BR,"BR"), buf(BZ,"BZ"), buf(BPhi,"BPhi"),
                 buf(R_grid, "R_grid"), nR,
                 buf(Z_grid, "Z_grid"), nZ,
                 buf(Phi_grid, "Phi_grid"), nPhi,
@@ -283,9 +276,7 @@ static py::tuple py_trace_surface_metrics_batch_twall(
     double phi_start,
     int N_turns,
     double DPhi,
-    py::array_t<double> BR,
-    py::array_t<double> BPhi,
-    py::array_t<double> BZ,
+    py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
     py::array_t<double> R_grid,
     py::array_t<double> Z_grid,
     py::array_t<double> Phi_grid,
@@ -322,7 +313,7 @@ static py::tuple py_trace_surface_metrics_batch_twall(
     cyna::trace_surface_metrics_batch_twall(
         buf(R_seeds, "R_seeds"), buf(Z_seeds, "Z_seeds"), N_seeds,
         R_axis, Z_axis, phi_start, N_turns, DPhi,
-        buf(BR, "BR"), buf(BPhi, "BPhi"), buf(BZ, "BZ"),
+        buf(BR,"BR"), buf(BZ,"BZ"), buf(BPhi,"BPhi"),
         buf(R_grid, "R_grid"), (int)R_grid.size(),
         buf(Z_grid, "Z_grid"), (int)Z_grid.size(),
         buf(Phi_grid, "Phi_grid"), (int)Phi_grid.size(),
@@ -375,15 +366,160 @@ static py::tuple py_summarize_profile_objectives(
                           D_Merc_proxy);
 }
 
+static py::tuple py_compute_cycle_perturbation_response(
+    double R0, double Z0, double phi0,
+    double phi_span, double dphi_out, double DPhi, double fd_eps,
+    py::array_t<double> BR_base, py::array_t<double> BZ_base, py::array_t<double> BPhi_base,
+    py::array_t<double> BR_pert, py::array_t<double> BZ_pert, py::array_t<double> BPhi_pert,
+    py::array_t<double> R_grid,
+    py::array_t<double> Z_grid,
+    py::array_t<double> Phi_grid)
+{
+    const int nR = (int)R_grid.size();
+    const int nZ = (int)Z_grid.size();
+    const int nPhi = (int)Phi_grid.size();
+    const int n_out = (int)std::ceil(std::abs(phi_span) / std::abs(dphi_out)) + 1;
+    const double* Rg = buf(R_grid, "R_grid");
+    const double* Zg = buf(Z_grid, "Z_grid");
+    const double* Pg = buf(Phi_grid, "Phi_grid");
+    const double* br0 = buf(BR_base, "BR_base");
+    const double* bz0 = buf(BZ_base, "BZ_base");
+    const double* bp0 = buf(BPhi_base, "BPhi_base");
+    const double* br1 = buf(BR_pert, "BR_pert");
+    const double* bz1 = buf(BZ_pert, "BZ_pert");
+    const double* bp1 = buf(BPhi_pert, "BPhi_pert");
+
+    py::array_t<double> R_t({n_out}), Z_t({n_out}), phi_t({n_out});
+    py::array_t<double> DP_t({n_out, 4});
+    py::array_t<double> dXpol_t({n_out, 2});
+    py::array_t<double> dXcyc_t({n_out, 2});
+    py::array_t<int> alive_t({n_out});
+
+    auto f_eval = [&](const double* BR, const double* BZ, const double* BPhi,
+                      double R, double Z, double phi, double& fR, double& fZ) {
+        double bp = cyna::interp3d(BPhi, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi);
+        double br = cyna::interp3d(BR,   Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi);
+        double bz = cyna::interp3d(BZ,   Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi);
+        if (!std::isfinite(bp) || std::abs(bp) < 1e-30 ||
+            !std::isfinite(br) || !std::isfinite(bz)) {
+            fR = std::numeric_limits<double>::quiet_NaN();
+            fZ = std::numeric_limits<double>::quiet_NaN();
+            return;
+        }
+        fR = R * br / bp;
+        fZ = R * bz / bp;
+    };
+
+    auto A_eval = [&](double R, double Z, double phi, double A[4]) {
+        double g0p, g1p, g0m, g1m;
+        f_eval(br0, bz0, bp0, R + fd_eps, Z, phi, g0p, g1p);
+        f_eval(br0, bz0, bp0, R - fd_eps, Z, phi, g0m, g1m);
+        A[0] = (g0p - g0m) / (2.0 * fd_eps);
+        A[2] = (g1p - g1m) / (2.0 * fd_eps);
+        f_eval(br0, bz0, bp0, R, Z + fd_eps, phi, g0p, g1p);
+        f_eval(br0, bz0, bp0, R, Z - fd_eps, phi, g0m, g1m);
+        A[1] = (g0p - g0m) / (2.0 * fd_eps);
+        A[3] = (g1p - g1m) / (2.0 * fd_eps);
+    };
+
+    auto rhs = [&](const double y[8], double phi, double out[8]) {
+        double fR0, fZ0, fR1, fZ1;
+        f_eval(br0, bz0, bp0, y[0], y[1], phi, fR0, fZ0);
+        f_eval(br1, bz1, bp1, y[0], y[1], phi, fR1, fZ1);
+        double A[4];
+        A_eval(y[0], y[1], phi, A);
+        out[0] = fR0;
+        out[1] = fZ0;
+        // M is row-major [[m00,m01],[m10,m11]]
+        out[2] = A[0] * y[2] + A[1] * y[4];
+        out[3] = A[0] * y[3] + A[1] * y[5];
+        out[4] = A[2] * y[2] + A[3] * y[4];
+        out[5] = A[2] * y[3] + A[3] * y[5];
+        out[6] = A[0] * y[6] + A[1] * y[7] + (fR1 - fR0);
+        out[7] = A[2] * y[6] + A[3] * y[7] + (fZ1 - fZ0);
+    };
+
+    auto rk4 = [&](double y[8], double phi, double h) {
+        double k1[8], k2[8], k3[8], k4[8], yt[8];
+        rhs(y, phi, k1);
+        for (int i=0;i<8;i++) yt[i] = y[i] + 0.5 * h * k1[i];
+        rhs(yt, phi + 0.5*h, k2);
+        for (int i=0;i<8;i++) yt[i] = y[i] + 0.5 * h * k2[i];
+        rhs(yt, phi + 0.5*h, k3);
+        for (int i=0;i<8;i++) yt[i] = y[i] + h * k3[i];
+        rhs(yt, phi + h, k4);
+        for (int i=0;i<8;i++) y[i] += (h / 6.0) * (k1[i] + 2.0*k2[i] + 2.0*k3[i] + k4[i]);
+    };
+
+    double y[8] = {R0, Z0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0};
+    double phi = phi0;
+    const double phi_end = phi0 + phi_span;
+    const double dir = (phi_span >= 0.0) ? 1.0 : -1.0;
+    int out_idx = 0;
+    double next_out = phi0;
+
+    auto record = [&]() {
+        if (out_idx >= n_out) return;
+        R_t.mutable_data()[out_idx] = y[0];
+        Z_t.mutable_data()[out_idx] = y[1];
+        phi_t.mutable_data()[out_idx] = next_out;
+        for (int k=0;k<4;k++) DP_t.mutable_data()[4*out_idx+k] = y[2+k];
+        dXpol_t.mutable_data()[2*out_idx+0] = y[6];
+        dXpol_t.mutable_data()[2*out_idx+1] = y[7];
+        alive_t.mutable_data()[out_idx] = (std::isfinite(y[0]) && std::isfinite(y[1])) ? 1 : 0;
+        out_idx++;
+    };
+
+    record();
+    next_out += dphi_out;
+    while ((dir > 0 ? phi < phi_end - 1e-13 : phi > phi_end + 1e-13) && out_idx < n_out) {
+        double target = next_out;
+        if (dir > 0) target = std::min(target, phi_end);
+        else target = std::max(target, phi_end);
+        while (dir > 0 ? phi < target - 1e-13 : phi > target + 1e-13) {
+            double h = dir * std::min(std::abs(DPhi), std::abs(target - phi));
+            rk4(y, phi, h);
+            phi += h;
+            if (!std::isfinite(y[0]) || !std::isfinite(y[1])) break;
+        }
+        record();
+        next_out += dphi_out;
+    }
+
+    // Solve (I-DPm) dx0 = dXpol_end for periodic cycle response.
+    const double m00 = y[2], m01 = y[3], m10 = y[4], m11 = y[5];
+    const double a00 = 1.0 - m00, a01 = -m01, a10 = -m10, a11 = 1.0 - m11;
+    const double det = a00*a11 - a01*a10;
+    double dx0 = std::numeric_limits<double>::quiet_NaN();
+    double dz0 = std::numeric_limits<double>::quiet_NaN();
+    if (std::abs(det) > 1e-30) {
+        dx0 = ( a11*y[6] - a01*y[7]) / det;
+        dz0 = (-a10*y[6] + a00*y[7]) / det;
+    } else if (std::hypot(y[6], y[7]) < 1e-30) {
+        dx0 = 0.0;
+        dz0 = 0.0;
+    }
+
+    for (int i=0; i<n_out; ++i) {
+        double* M = DP_t.mutable_data() + 4*i;
+        double* xp = dXpol_t.mutable_data() + 2*i;
+        dXcyc_t.mutable_data()[2*i+0] = xp[0] + M[0]*dx0 + M[1]*dz0;
+        dXcyc_t.mutable_data()[2*i+1] = xp[1] + M[2]*dx0 + M[3]*dz0;
+    }
+
+    py::array_t<double> dx0_arr({2});
+    dx0_arr.mutable_data()[0] = dx0;
+    dx0_arr.mutable_data()[1] = dz0;
+    return py::make_tuple(R_t, Z_t, phi_t, DP_t, dXpol_t, dXcyc_t, dx0_arr, alive_t);
+}
+
 static py::tuple py_trace_poincare_beta_sweep(
     py::array_t<double> R_seeds,
     py::array_t<double> Z_seeds,
     py::array_t<double> phi_sections,
     int N_turns,
     double DPhi,
-    py::array_t<double> BR,
-    py::array_t<double> BPhi,
-    py::array_t<double> BZ,
+    py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
     py::array_t<double> R_grid,
     py::array_t<double> Z_grid,
     py::array_t<double> Phi_grid,
@@ -420,7 +556,7 @@ static py::tuple py_trace_poincare_beta_sweep(
         buf(R_seeds, "R_seeds"), buf(Z_seeds, "Z_seeds"), N_seeds,
         buf(phi_sections, "phi_sections"), n_sec,
         N_turns, DPhi,
-        buf(BR, "BR"), buf(BPhi, "BPhi"), buf(BZ, "BZ"),
+        buf(BR,"BR"), buf(BZ,"BZ"), buf(BPhi,"BPhi"),
         buf(R_grid, "R_grid"), nR,
         buf(Z_grid, "Z_grid"), nZ,
         buf(Phi_grid, "Phi_grid"), nPhi,
@@ -446,12 +582,11 @@ PYBIND11_MODULE(_cyna_ext, m) {
 
     // Debug: one RK4 step
     m.def("rk4_step_test", [](double R, double Z, double phi, double DPhi,
-                               py::array_t<double> BR, py::array_t<double> BPhi,
-                               py::array_t<double> BZ,
+                               py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
                                py::array_t<double> Rg, py::array_t<double> Zg,
                                py::array_t<double> Pg) {
         cyna::rk4_step(R, Z, phi, DPhi,
-            BR.data(), BPhi.data(), BZ.data(),
+            BR.data(), BZ.data(), BPhi.data(),
             Rg.data(), (int)Rg.size(),
             Zg.data(), (int)Zg.size(),
             Pg.data(), (int)Pg.size());
@@ -472,7 +607,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
     m.def("trace_poincare_batch", &py_trace_poincare_batch,
         py::arg("R_seeds"), py::arg("Z_seeds"), py::arg("phi_section"),
         py::arg("N_turns"), py::arg("DPhi"),
-        py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
+        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         py::arg("wall_R"), py::arg("wall_Z"),
         py::arg("n_threads") = -1,
@@ -482,7 +617,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
     m.def("trace_poincare_batch_twall", &py_trace_poincare_batch_twall,
         py::arg("R_seeds"), py::arg("Z_seeds"), py::arg("phi_section"),
         py::arg("N_turns"), py::arg("DPhi"),
-        py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
+        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         py::arg("wall_phi_centers"), py::arg("wall_R"), py::arg("wall_Z"),
         py::arg("n_threads") = -1,
@@ -492,7 +627,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
     m.def("trace_poincare_multi", &py_trace_poincare_multi,
         py::arg("R_seeds"), py::arg("Z_seeds"), py::arg("phi_sections"),
         py::arg("N_turns"), py::arg("DPhi"),
-        py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
+        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         py::arg("wall_R"), py::arg("wall_Z"),
         py::arg("n_threads") = -1,
@@ -502,7 +637,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
     m.def("trace_connection_length_twall",
         [](py::array_t<double> R_seeds, py::array_t<double> Z_seeds,
            double phi_start, int max_turns, double DPhi,
-           py::array_t<double> BR, py::array_t<double> BPhi, py::array_t<double> BZ,
+           py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
            py::array_t<double> R_grid, py::array_t<double> Z_grid,
            py::array_t<double> Phi_grid,
            py::array_t<double> wall_phi_centers,
@@ -527,7 +662,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
             cyna::trace_connection_length_twall(
                 buf(R_seeds,"R_seeds"), buf(Z_seeds,"Z_seeds"), N_seeds,
                 phi_start, max_turns, DPhi,
-                buf(BR,"BR"), buf(BPhi,"BPhi"), buf(BZ,"BZ"),
+                buf(BR,"BR"), buf(BZ,"BZ"), buf(BPhi,"BPhi"),
                 buf(R_grid,"R_grid"), (int)R_grid.size(),
                 buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
                 buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size(),
@@ -541,7 +676,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         },
         py::arg("R_seeds"), py::arg("Z_seeds"), py::arg("phi_start"),
         py::arg("max_turns"), py::arg("DPhi"),
-        py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
+        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         py::arg("wall_phi_centers"), py::arg("wall_R"), py::arg("wall_Z"),
         py::arg("n_threads") = -1,
@@ -551,7 +686,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
     m.def("trace_wall_hits_twall",
         [](py::array_t<double> R_seeds, py::array_t<double> Z_seeds,
            double phi_start, int max_turns, double DPhi,
-           py::array_t<double> BR, py::array_t<double> BPhi, py::array_t<double> BZ,
+           py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
            py::array_t<double> R_grid, py::array_t<double> Z_grid,
            py::array_t<double> Phi_grid,
            py::array_t<double> wall_phi_centers,
@@ -578,7 +713,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
             cyna::trace_wall_hits_twall(
                 buf(R_seeds,"R_seeds"), buf(Z_seeds,"Z_seeds"), N_seeds,
                 phi_start, max_turns, DPhi,
-                buf(BR,"BR"), buf(BPhi,"BPhi"), buf(BZ,"BZ"),
+                buf(BR,"BR"), buf(BZ,"BZ"), buf(BPhi,"BPhi"),
                 buf(R_grid,"R_grid"), (int)R_grid.size(),
                 buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
                 buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size(),
@@ -597,7 +732,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         },
         py::arg("R_seeds"), py::arg("Z_seeds"), py::arg("phi_start"),
         py::arg("max_turns"), py::arg("DPhi"),
-        py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
+        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         py::arg("wall_phi_centers"), py::arg("wall_R"), py::arg("wall_Z"),
         py::arg("n_threads") = -1,
@@ -612,7 +747,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         [](py::array_t<double> R_seeds, py::array_t<double> Z_seeds,
            double phi_section, int m_turns, double DPhi,
            double fd_eps, int max_iter, double tol,
-           py::array_t<double> BR, py::array_t<double> BPhi, py::array_t<double> BZ,
+           py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
            py::array_t<double> R_grid, py::array_t<double> Z_grid,
            py::array_t<double> Phi_grid,
            int n_threads) -> py::tuple
@@ -628,7 +763,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
             cyna::find_fixed_points_batch(
                 buf(R_seeds,"R_seeds"), buf(Z_seeds,"Z_seeds"), N,
                 phi_section, m_turns, DPhi, fd_eps, max_iter, tol,
-                buf(BR,"BR"), buf(BPhi,"BPhi"), buf(BZ,"BZ"),
+                buf(BR,"BR"), buf(BZ,"BZ"), buf(BPhi,"BPhi"),
                 buf(R_grid,"R_grid"), (int)R_grid.size(),
                 buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
                 buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size(),
@@ -645,7 +780,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("R_seeds"), py::arg("Z_seeds"),
         py::arg("phi_section"), py::arg("m_turns"), py::arg("DPhi") = 0.05,
         py::arg("fd_eps") = 1e-4, py::arg("max_iter") = 40, py::arg("tol") = 1e-9,
-        py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
+        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         py::arg("n_threads") = -1,
         "Parallel Newton search for P^n fixed points (X/O points).\n"
@@ -656,7 +791,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
 
     m.def("compute_A_matrix_batch", &py_compute_A_matrix_batch,
         py::arg("R_arr"), py::arg("Z_arr"), py::arg("phi_arr"),
-        py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
+        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         py::arg("eps") = 1e-4,
         "Compute the 2x2 A-matrix at N orbit points using C++ trilinear interpolation.\n"
@@ -667,7 +802,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("R_seeds"), py::arg("Z_seeds"),
         py::arg("R_axis"), py::arg("Z_axis"),
         py::arg("phi_start"), py::arg("N_turns"), py::arg("DPhi"),
-        py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
+        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         py::arg("wall_phi_centers"), py::arg("wall_R"), py::arg("wall_Z"),
         py::arg("fd_eps_R") = 1e-4, py::arg("fd_eps_Z") = 1e-4, py::arg("fd_eps_phi") = 1e-4,
@@ -683,7 +818,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("R_seeds"), py::arg("Z_seeds"),
         py::arg("phi_sections"),
         py::arg("N_turns"), py::arg("DPhi"),
-        py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
+        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         py::arg("wall_R"), py::arg("wall_Z"),
         py::arg("beta") = 0.0,
@@ -702,7 +837,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         [](double R0, double Z0, double phi0,
            double phi_span, double dphi_out, int m_turns_DPm,
            double DPhi, double fd_eps,
-           py::array_t<double> BR, py::array_t<double> BPhi, py::array_t<double> BZ,
+           py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
            py::array_t<double> R_grid, py::array_t<double> Z_grid,
            py::array_t<double> Phi_grid) -> py::tuple
         {
@@ -713,7 +848,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
 
             cyna::trace_orbit_along_phi(
                 R0, Z0, phi0, phi_span, dphi_out, m_turns_DPm, DPhi, fd_eps,
-                buf(BR,"BR"), buf(BPhi,"BPhi"), buf(BZ,"BZ"),
+                buf(BR,"BR"), buf(BZ,"BZ"), buf(BPhi,"BPhi"),
                 buf(R_grid,"R_grid"), (int)R_grid.size(),
                 buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
                 buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size(),
@@ -726,11 +861,23 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("R0"), py::arg("Z0"), py::arg("phi0"),
         py::arg("phi_span"), py::arg("dphi_out"), py::arg("m_turns_DPm"),
         py::arg("DPhi") = 0.05, py::arg("fd_eps") = 1e-4,
-        py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
+        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         "Integrate field line from (R0,Z0,phi0) for phi_span radians, outputting\n"
         "(R,Z,phi,DPm[n,4],alive[n]) at evenly-spaced phi_out intervals.\n"
         "DPm(φ)=DX_pol(φ,φ+2π·m_turns_DPm) via analytic DX_pol evolution — used for cycle visualisation.");
+
+    m.def("compute_cycle_perturbation_response", &py_compute_cycle_perturbation_response,
+        py::arg("R0"), py::arg("Z0"), py::arg("phi0"),
+        py::arg("phi_span"), py::arg("dphi_out"),
+        py::arg("DPhi") = 0.05, py::arg("fd_eps") = 1e-4,
+        py::arg("BR_base"), py::arg("BZ_base"), py::arg("BPhi_base"),
+        py::arg("BR_pert"), py::arg("BZ_pert"), py::arg("BPhi_pert"),
+        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+        "Integrate the first-order field-line response along one cycle.\n"
+        "Returns (R, Z, phi, DP[n,4], dXpol[n,2], dXcyc[n,2], dXcyc0[2], alive[n]).\n"
+        "dXpol is the zero-initial particular solution; dXcyc is the periodic\n"
+        "cycle displacement satisfying (I-DP) dXcyc0 = dXpol(end).");
 
     // -----------------------------------------------------------------------
     // evolve_DPm_along_cycle — integrate DPm along a known orbit via commutator ODE
@@ -739,7 +886,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         [](py::array_t<double> R_traj, py::array_t<double> Z_traj,
            py::array_t<double> phi_traj,
            py::array_t<double> DPm_init,
-           py::array_t<double> BR, py::array_t<double> BPhi, py::array_t<double> BZ,
+           py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
            py::array_t<double> R_grid, py::array_t<double> Z_grid,
            py::array_t<double> Phi_grid)
         -> py::array_t<double>
@@ -751,7 +898,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
                 n_pts,
                 buf(DPm_init,"DPm_init"),
                 DPm_out.mutable_data(),
-                buf(BR,"BR"), buf(BPhi,"BPhi"), buf(BZ,"BZ"),
+                buf(BR,"BR"), buf(BZ,"BZ"), buf(BPhi,"BPhi"),
                 buf(R_grid,"R_grid"), (int)R_grid.size(),
                 buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
                 buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size());
@@ -759,7 +906,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         },
         py::arg("R_traj"), py::arg("Z_traj"), py::arg("phi_traj"),
         py::arg("DPm_init"),
-        py::arg("BR"), py::arg("BPhi"), py::arg("BZ"),
+        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         "Integrate DPm along a known cycle orbit using the commutator ODE\n"
         "d(DPm)/dφ = J·DPm - DPm·J.  Requires only the orbit (R,Z,φ) and\n"
@@ -783,33 +930,33 @@ PYBIND11_MODULE(_cyna_ext, m) {
             int N = (int)xyz_f32.shape(0);
             const float* pxyz = xyz_f32.data();
 
-            py::array_t<float> BR({N}), BPhi({N}), BZ({N});
+            py::array_t<float> BR({N}), BZ({N}), BPhi({N});
             float* pBR   = BR.mutable_data();
-            float* pBPhi = BPhi.mutable_data();
             float* pBZ   = BZ.mutable_data();
+            float* pBPhi = BPhi.mutable_data();
 
 #ifdef CYNA_CUDA_ENABLED
             bool ok = cyna_coil_circular_field_cuda(
                 (float)cx,(float)cy,(float)cz,
                 (float)nx,(float)ny,(float)nz,
                 (float)radius,(float)current,
-                pxyz, N, pBR, pBPhi, pBZ);
+                pxyz, N, pBR, pBZ, pBPhi);
             if (!ok) {
                 // CUDA failed — fall back to CPU
                 cyna::circular_coil_field_cpu(
                     (float)cx,(float)cy,(float)cz,
                     (float)nx,(float)ny,(float)nz,
                     (float)radius,(float)current,
-                    pxyz, N, pBR, pBPhi, pBZ);
+                    pxyz, N, pBR, pBZ, pBPhi);
             }
 #else
             cyna::circular_coil_field_cpu(
                 (float)cx,(float)cy,(float)cz,
                 (float)nx,(float)ny,(float)nz,
                 (float)radius,(float)current,
-                pxyz, N, pBR, pBPhi, pBZ);
+                pxyz, N, pBR, pBZ, pBPhi);
 #endif
-            return py::make_tuple(BR, BPhi, BZ);
+            return py::make_tuple(BR, BZ, BPhi);
         },
         py::arg("cx"),py::arg("cy"),py::arg("cz"),
         py::arg("nx"),py::arg("ny"),py::arg("nz"),
@@ -818,7 +965,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         "Compute the magnetic field of one circular ring coil at N Cartesian\n"
         "field points.  Uses CUDA kernel when compiled with --with-cuda=y,\n"
         "otherwise falls back to OpenMP CPU implementation.\n"
-        "Returns (BR, BPhi, BZ) — three (N,) float32 arrays in Tesla.");
+        "Returns (BR, BZ, BPhi) — three (N,) float32 arrays in Tesla.");
 
     // -----------------------------------------------------------------------
     // coil_biot_savart — Biot-Savart for one arbitrary filamentary coil
@@ -847,28 +994,28 @@ PYBIND11_MODULE(_cyna_ext, m) {
             const float* pse  = seg_ends.data();
             const float* pxyz = xyz_f32.data();
 
-            py::array_t<float> BR({N}), BPhi({N}), BZ({N});
+            py::array_t<float> BR({N}), BZ({N}), BPhi({N});
             float* pBR   = BR.mutable_data();
-            float* pBPhi = BPhi.mutable_data();
             float* pBZ   = BZ.mutable_data();
+            float* pBPhi = BPhi.mutable_data();
 
 #ifdef CYNA_CUDA_ENABLED
             bool ok = cyna_coil_biot_savart_cuda(
                 pss, pse, N_seg, (float)current,
-                pxyz, N, pBR, pBPhi, pBZ);
+                pxyz, N, pBR, pBZ, pBPhi);
             if (!ok) {
                 cyna::biot_savart_field_cpu(pss, pse, N_seg, (float)current,
-                                            pxyz, N, pBR, pBPhi, pBZ);
+                                            pxyz, N, pBR, pBZ, pBPhi);
             }
 #else
             cyna::biot_savart_field_cpu(pss, pse, N_seg, (float)current,
-                                        pxyz, N, pBR, pBPhi, pBZ);
+                                        pxyz, N, pBR, pBZ, pBPhi);
 #endif
-            return py::make_tuple(BR, BPhi, BZ);
+            return py::make_tuple(BR, BZ, BPhi);
         },
         py::arg("seg_starts"),py::arg("seg_ends"),py::arg("current"),py::arg("xyz"),
         "Compute Biot-Savart field for one arbitrary filamentary coil.\n"
         "seg_starts/seg_ends: (N_seg,3) float32 Cartesian segment endpoints (m).\n"
-        "Returns (BR, BPhi, BZ) — three (N,) float32 arrays in Tesla.\n"
+        "Returns (BR, BZ, BPhi) — three (N,) float32 arrays in Tesla.\n"
         "Uses CUDA kernel when compiled with --with-cuda=y.");
 }

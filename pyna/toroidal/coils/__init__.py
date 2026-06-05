@@ -12,7 +12,12 @@ from pyna.toroidal.coils.coil_system import (
     Biot_Savart_field,
     CoilFieldBiotSavart,
 )
-from pyna.toroidal.coils.field import VectorField3DCylindrical, VectorField3DAxiSymmetric
+from pyna.toroidal.coils.field import (
+    VectorFieldCylind,
+    VectorFieldCylindAxisym,
+    VectorFieldCylind,
+    VectorFieldCylindAxisym,
+)
 from pyna.toroidal.coils.RMP import normalize_b, RMP_spectrum_2d, island_width_at_rational_surfaces
 from pyna.toroidal.coils.vector_potential import CoilFieldVectorPotential
 from pyna.toroidal.coils.accel import (

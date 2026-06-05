@@ -14,7 +14,7 @@
 // Coordinate convention
 // ---------------------
 // Field points are supplied as (N, 3) float32 arrays in Cartesian (x, y, z).
-// Outputs are in global cylindrical (BR, BPhi, BZ) where
+// Outputs are in global cylindrical components where
 //   BR   = B_x cos φ + B_y sin φ
 //   BPhi = −B_x sin φ + B_y cos φ
 //   BZ   = B_z
@@ -115,16 +115,16 @@ inline void circular_coil_BrhoBz_f(
 /// @param xyz_pts    (N, 3) float32 C-contiguous array — Cartesian field points
 /// @param N          Number of field points
 /// @param BR         (N,) output — B_R in Tesla
-/// @param BPhi       (N,) output — B_φ in Tesla
 /// @param BZ         (N,) output — B_Z in Tesla
+/// @param BPhi       (N,) output — B_φ in Tesla
 inline void circular_coil_field_cpu(
         float cx, float cy, float cz,
         float nx, float ny, float nz,
         float a,  float current,
         const float* xyz_pts, int N,
         float* BR,
-        float* BPhi,
-        float* BZ) noexcept
+        float* BZ,
+        float* BPhi) noexcept
 {
 #ifdef _OPENMP
     #pragma omp parallel for schedule(static)
@@ -181,15 +181,15 @@ inline void circular_coil_field_cpu(
 /// @param current     Current (A, signed)
 /// @param xyz_pts     (N, 3) float32 — Cartesian field points
 /// @param N           Number of field points
-/// @param BR,BPhi,BZ  (N,) outputs in Tesla, cylindrical
+/// @param BR,BZ,BPhi  (N,) outputs in Tesla, cylindrical
 inline void biot_savart_field_cpu(
         const float* seg_starts,
         const float* seg_ends,
         int N_seg, float current,
         const float* xyz_pts, int N,
         float* BR,
-        float* BPhi,
-        float* BZ) noexcept
+        float* BZ,
+        float* BPhi) noexcept
 {
     constexpr float MU0_4PI = 1.0e-7f;
 

@@ -12,23 +12,23 @@ Canonical class map
 +----------------------------------------------+----------------------------+
 | Old name (eliminated)                        | Canonical class            |
 +==============================================+============================+
-| ``CylindricalGridVectorField3D``             | ``VectorField3DCylindrical``|
+| ``CylindricalGridVectorField3D``             | ``VectorFieldCylind``       |
 +----------------------------------------------+----------------------------+
-| ``CylindricalGridAxiVectorField3D``          | ``VectorField3DAxiSymmetric``|
+| ``CylindricalGridAxiVectorField3D``          | ``VectorFieldCylindAxisym`` |
 +----------------------------------------------+----------------------------+
-| ``RegualrCylindricalGridField`` (misspelled) | ``VectorField3DCylindrical``|
+| ``RegualrCylindricalGridField`` (misspelled) | ``VectorFieldCylind``       |
 +----------------------------------------------+----------------------------+
 """
 from pyna.fields.cylindrical import (
-    ScalarField3DCylindrical,
-    VectorField3DCylindrical,
-    ScalarField3DAxiSymmetric,
-    VectorField3DAxiSymmetric,
+    ScalarFieldCylind,
+    VectorFieldCylind,
+    VectorFieldCylindAxisym,
+    ScalarFieldCylindAxisym,
 )
 
 __all__ = [
-    "ScalarField3DCylindrical",
-    "VectorField3DCylindrical",
-    "ScalarField3DAxiSymmetric",
-    "VectorField3DAxiSymmetric",
+    "ScalarFieldCylind",
+    "VectorFieldCylind",
+    "VectorFieldCylindAxisym",
+    "ScalarFieldCylindAxisym",
 ]

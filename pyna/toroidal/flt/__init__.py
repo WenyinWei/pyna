@@ -3,19 +3,31 @@
 from pyna.toroidal.flt.numba_poincare import (
     precompile_tracer,
     trace_poincare_batch,
+    trace_poincare_batch_field,
     trace_poincare_multi_batch,
+    trace_poincare_multi_batch_field,
     trace_poincare_batch_twall,
+    trace_poincare_batch_twall_field,
     find_fixed_points_batch,
+    find_fixed_points_batch_field,
     trace_orbit_along_phi,
+    trace_orbit_along_phi_field,
+    field_arrays_from_field,
     field_arrays_from_interpolators,
 )
 
 __all__ = [
     "precompile_tracer",
     "trace_poincare_batch",
+    "trace_poincare_batch_field",
     "trace_poincare_multi_batch",
+    "trace_poincare_multi_batch_field",
     "trace_poincare_batch_twall",
+    "trace_poincare_batch_twall_field",
     "find_fixed_points_batch",
+    "find_fixed_points_batch_field",
     "trace_orbit_along_phi",
+    "trace_orbit_along_phi_field",
+    "field_arrays_from_field",
     "field_arrays_from_interpolators",
 ]

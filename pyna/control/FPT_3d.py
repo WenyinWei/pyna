@@ -90,12 +90,12 @@ def compute_A_matrix_batch_from_cache(
     Z_arr   = np.ascontiguousarray(trajectory_RZphi[:, 1], dtype=np.float64)
     phi_arr = np.ascontiguousarray(trajectory_RZphi[:, 2], dtype=np.float64)
     BR      = np.ascontiguousarray(field_cache['BR'],      dtype=np.float64)
-    BPhi    = np.ascontiguousarray(field_cache['BPhi'],    dtype=np.float64)
     BZ      = np.ascontiguousarray(field_cache['BZ'],      dtype=np.float64)
+    BPhi    = np.ascontiguousarray(field_cache['BPhi'],    dtype=np.float64)
     R_grid  = np.ascontiguousarray(field_cache['R_grid'],  dtype=np.float64)
     Z_grid  = np.ascontiguousarray(field_cache['Z_grid'],  dtype=np.float64)
     Phi_grid = np.ascontiguousarray(field_cache['Phi_grid'], dtype=np.float64)
-    return _cyna_A_batch(R_arr, Z_arr, phi_arr, BR, BPhi, BZ, R_grid, Z_grid, Phi_grid, eps)
+    return _cyna_A_batch(R_arr, Z_arr, phi_arr, BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, eps)
 
 
 # ============================================================================

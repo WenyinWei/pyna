@@ -26,6 +26,7 @@ Core capabilities:
 | `island_extract.py` | `detect_islands()`, `island_halfwidth()` |
 | `monodromy.py` | `MonodromyAnalysis`: `DPm`, `eigenvalues`, `stability_index`, `Greene_residue` |
 | `variational.py` | `PoincareMapVariationalEquations`, `tangent_map()` |
+| `fpt.py` | `compute_cycle_response_from_cache()`, `CyclePerturbationResponse` |
 | `manifold_improve.py` | `StableManifold`, `UnstableManifold` (arc-length parameterised extraction; accelerated backend by default) |
 | `manifold.py` | `grow_manifold_from_Xcycle()` |
 | `topology_analysis.py` | `analyse_topology()`, `TopologyReport` |
@@ -48,6 +49,51 @@ available; backend-explicit names are compatibility aliases, not the preferred A
 | `DPm` | Monodromy matrix after *m* full turns `DP(φ₀ + 2πm)` |
 
 Never use `J` or `M` for these.
+
+---
+
+## Functional perturbation theory response hierarchy
+
+Use `pyna.topo.fpt` for perturbative responses under a global magnetic-field
+change.  This is the canonical landing zone for:
+
+- orbit / trajectory response
+- periodic cycle response
+- invariant-torus response
+- stable / unstable manifold response
+
+For the field-line ODE `dX/dphi = f(X, phi)`, the response equation is:
+
+```
+d(delta_X)/dphi = A(X, phi) delta_X + delta_f(X, phi)
+```
+
+`delta_X_pol` is the zero-initial particular solution.  It measures endpoint
+motion along a traced orbit and is not itself the periodic cycle shift.
+
+`delta_X_cyc` is the physical cycle displacement:
+
+```
+delta_X_cyc(phi) = delta_X_pol(phi) + DP(phi) delta_X_cyc(phi0)
+(I - DP(T)) delta_X_cyc(phi0) = delta_X_pol(phi0 + T)
+```
+
+For an Nfp-periodic stellarator field-period cycle, pass `T = 2*pi/Nfp`.
+Then `delta_X_cyc(phi + T)` should match `delta_X_cyc(phi)`.
+
+The accelerated entry point is:
+
+```python
+from pyna.topo.fpt import compute_cycle_response_from_cache
+
+resp = compute_cycle_response_from_cache(
+    R0, Z0, phi0, 2*np.pi/Nfp,
+    base_field_cache, perturbed_field_cache,
+)
+```
+
+Field caches use the canonical component order `BR, BZ, BPhi` and keys
+`BR, BZ, BPhi, R_grid, Z_grid, Phi_grid`.
 
 ---
 

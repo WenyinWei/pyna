@@ -228,7 +228,7 @@ static inline bool interp3d_grad(
 static inline void rk4_step(
     double& R, double& Z, double phi,
     double dPhi,
-    const double* BR, const double* BPhi, const double* BZ,
+    const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi)
@@ -280,7 +280,7 @@ static inline void rk4_step_DX_pol(
     double& R, double& Z,
     double& D00, double& D01, double& D10, double& D11,
     double phi, double dPhi,
-    const double* BR, const double* BPhi, const double* BZ,
+    const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi)
@@ -350,7 +350,7 @@ void trace_one_seed(
     double R0, double Z0, double phi_start,
     const double* phi_sections, int n_sec,
     int N_turns, double DPhi,
-    const double* BR, const double* BPhi, const double* BZ,
+    const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi,
@@ -373,7 +373,7 @@ void trace_one_seed(
 
         // RK4 advance
         rk4_step(R, Z, phi, step,
-                 BR, BPhi, BZ,
+                 BR, BZ, BPhi,
                  R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
         phi += step;
 
@@ -417,7 +417,7 @@ void trace_poincare_batch(
     const double* R_seeds, const double* Z_seeds, int N_seeds,
     double phi_section,
     int N_turns, double DPhi,
-    const double* BR, const double* BPhi, const double* BZ,
+    const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi,
@@ -440,7 +440,7 @@ void trace_poincare_batch(
                 R_seeds[i], Z_seeds[i], phi_sec[0],
                 phi_sec, 1,
                 N_turns, DPhi,
-                BR, BPhi, BZ,
+                BR, BZ, BPhi,
                 R_grid, nR, Z_grid, nZ, Phi_grid, nPhi,
                 wall_R, wall_Z, n_wall,
                 poi_counts, poi_R_flat, poi_Z_flat);
@@ -455,7 +455,7 @@ void trace_poincare_batch_twall(
     const double* R_seeds, const double* Z_seeds, int N_seeds,
     double phi_section,
     int N_turns, double DPhi,
-    const double* BR, const double* BPhi, const double* BZ,
+    const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi,
@@ -486,7 +486,7 @@ void trace_poincare_batch_twall(
                     double step = std::min(DPhi, phi_end_turn - phi);
 
                     rk4_step(R, Z, phi, step,
-                             BR, BPhi, BZ,
+                             BR, BZ, BPhi,
                              R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
                     phi += step;
 
@@ -531,7 +531,7 @@ void trace_connection_length_twall(
     const double* R_seeds, const double* Z_seeds, int N_seeds,
     double phi_start,
     int max_turns, double DPhi,
-    const double* BR, const double* BPhi, const double* BZ,
+    const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi,
@@ -576,7 +576,7 @@ void trace_connection_length_twall(
 
                     double phi_step_dir = dir * step;
                     rk4_step(R, Z, phi, phi_step_dir,
-                             BR, BPhi, BZ,
+                             BR, BZ, BPhi,
                              R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
                     phi = mod2pi(phi + phi_step_dir);
                     phi_total += step;
@@ -624,7 +624,7 @@ void trace_wall_hits_twall(
     const double* R_seeds, const double* Z_seeds, int N_seeds,
     double phi_start,
     int max_turns, double DPhi,
-    const double* BR, const double* BPhi, const double* BZ,
+    const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi,
@@ -683,7 +683,7 @@ void trace_wall_hits_twall(
 
                     double phi_step_dir = dir * step;
                     rk4_step(R, Z, phi, phi_step_dir,
-                             BR, BPhi, BZ,
+                             BR, BZ, BPhi,
                              R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
                     phi = mod2pi(phi + phi_step_dir);
                     phi_total += step;
@@ -806,7 +806,7 @@ struct FixedPointResult {
 static inline bool pmap_m(
     double& R, double& Z,
     double phi_start, int m_turns, double DPhi,
-    const double* BR, const double* BPhi, const double* BZ,
+    const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi)
@@ -815,7 +815,7 @@ static inline bool pmap_m(
     double phi_end = phi_start + m_turns * 2.0 * M_PI;
     while (phi < phi_end - 1e-12) {
         double step = std::min(DPhi, phi_end - phi);
-        rk4_step(R, Z, phi, step, BR, BPhi, BZ, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+        rk4_step(R, Z, phi, step, BR, BZ, BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
         phi += step;
         if (!std::isfinite(R) || !std::isfinite(Z) ||
             R < R_grid[0] || R > R_grid[nR-1] ||
@@ -846,7 +846,7 @@ static inline bool DX_pol_m_turns(
     double& R, double& Z,
     double DX_out[4],
     double phi_start, int m_turns, double DPhi,
-    const double* BR, const double* BPhi, const double* BZ,
+    const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi)
@@ -857,7 +857,7 @@ static inline bool DX_pol_m_turns(
     while (phi < phi_end - 1e-12) {
         double step = std::min(DPhi, phi_end - phi);
         rk4_step_DX_pol(R, Z, D00,D01,D10,D11, phi, step,
-                        BR, BPhi, BZ, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi);
+                        BR, BZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi);
         phi += step;
         if (!std::isfinite(R) || !std::isfinite(Z) ||
             R < R_grid[0] || R > R_grid[nR-1] ||
@@ -891,7 +891,7 @@ static inline void evolve_DPm_along_cycle(
     int n_pts,
     const double* DPm_init,  // [D00,D01,D10,D11] at index 0
     double* DPm_out,         // n_pts * 4
-    const double* BR, const double* BPhi, const double* BZ,
+    const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi)
@@ -956,7 +956,7 @@ static inline FixedPointResult newton_fixed_point(
     double fd_eps,          // finite-difference step [m]
     int    max_iter,
     double tol,             // convergence: |P^m(x)-x| < tol
-    const double* BR, const double* BPhi, const double* BZ,
+    const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi)
@@ -979,7 +979,7 @@ static inline FixedPointResult newton_fixed_point(
         double Rf = R, Zf = Z;
         double DP_cur[4];
         if (!DX_pol_m_turns(Rf, Zf, DP_cur, phi0, m_turns, DPhi,
-                            BR, BPhi, BZ, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi))
+                            BR, BZ, BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi))
             return res;
         double F0 = Rf - R;
         double F1 = Zf - Z;
@@ -1042,7 +1042,7 @@ void find_fixed_points_batch(
     double fd_eps,
     int    max_iter,
     double tol,
-    const double* BR, const double* BPhi, const double* BZ,
+    const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi,
@@ -1064,7 +1064,7 @@ void find_fixed_points_batch(
             auto r = newton_fixed_point(
                 R_seeds[i], Z_seeds[i],
                 phi_section, m_turns, DPhi, fd_eps, max_iter, tol,
-                BR, BPhi, BZ,
+                BR, BZ, BPhi,
                 R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
 
             R_out[i]          = r.R;
@@ -1106,7 +1106,7 @@ void trace_orbit_along_phi(
     int    m_turns_DPm, // m for DPm = DX_pol(φ, φ+2πm) (island chain period)
     double DPhi,        // integration step
     double fd_eps,      // unused (was FD step; DPm now via DX_pol_m_turns)
-    const double* BR, const double* BPhi, const double* BZ,
+    const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi,
@@ -1138,7 +1138,7 @@ void trace_orbit_along_phi(
                             double* DPm) -> bool {
         double Rf = r, Zf = z;
         return DX_pol_m_turns(Rf, Zf, DPm, mod2pi(phi_sec), m_turns_DPm, DPhi,
-                              BR, BPhi, BZ, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+                              BR, BZ, BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
     };
 
     // Record initial point
@@ -1159,7 +1159,7 @@ void trace_orbit_along_phi(
         double step_raw = (phi_end > phi0 ? std::min(DPhi, phi_end - phi) : std::max(-DPhi, phi_end - phi));
         double step = step_raw;
         // Integrate one step
-        rk4_step(R, Z, phi, step, BR, BPhi, BZ,
+        rk4_step(R, Z, phi, step, BR, BZ, BPhi,
                  R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
         phi += step;
 
@@ -1211,7 +1211,7 @@ static constexpr double BETA_MU0 = 4.0e-7 * M_PI;
 
 static inline void rk4_step_beta(
     double& R, double& Z, double phi, double dPhi,
-    const double* BR, const double* BPhi, const double* BZ,
+    const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi,
@@ -1281,7 +1281,7 @@ static void trace_one_seed_beta(
     double R0, double Z0, double phi_start,
     const double* phi_sections, int n_sec,
     int N_turns, double DPhi,
-    const double* BR, const double* BPhi, const double* BZ,
+    const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi,
@@ -1305,7 +1305,7 @@ static void trace_one_seed_beta(
         double R_old = R, Z_old = Z, phi_old = phi;
 
         rk4_step_beta(R, Z, phi, step,
-                      BR, BPhi, BZ,
+                      BR, BZ, BPhi,
                       R_grid, nR, Z_grid, nZ, Phi_grid, nPhi,
                       beta, R_ax, Z_ax, a_eff, alpha, p0);
         phi += step;
@@ -1340,7 +1340,7 @@ void trace_poincare_beta_sweep(
     const double* R_seeds, const double* Z_seeds, int N_seeds,
     const double* phi_sections, int n_sec,
     int N_turns, double DPhi,
-    const double* BR, const double* BPhi, const double* BZ,
+    const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi,
@@ -1373,7 +1373,7 @@ void trace_poincare_beta_sweep(
                 R_seeds[i], Z_seeds[i], secs[0],
                 secs.data(), n_sec,
                 N_turns, DPhi,
-                BR, BPhi, BZ,
+                BR, BZ, BPhi,
                 R_grid, nR, Z_grid, nZ, Phi_grid, nPhi,
                 wall_R, wall_Z, n_wall,
                 beta, R_ax, Z_ax, a_eff, alpha_pressure, p0,

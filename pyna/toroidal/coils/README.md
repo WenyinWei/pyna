@@ -38,7 +38,7 @@ CoilFieldVacuum  (abstract, base.py)
 
 **Design rule:** `pyna.fields` is the canonical field hierarchy.
 `CoilFieldVacuum` is a physics interface (exposes `field_func`) layered on top.
-`field.py` re-exports `VectorField3DCylindrical` etc. from `pyna.fields` directly.
+`field.py` re-exports `VectorFieldCylind` etc. from `pyna.fields` directly.
 
 ---
 

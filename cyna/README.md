@@ -26,6 +26,7 @@ bottlenecks:
 | Field-line tracing (RK4 / Ascent ODE) | `pyna.flt` | `cyna/flt.hpp` |
 | Regular-grid interpolation | `pyna.coord` | `cyna/interpolate.hpp` |
 | NumPy `.npz` I/O | `numpy` | `cyna/io.hpp` |
+| FPT cycle response `delta_X_pol`, `delta_X_cyc` | `pyna.topo.fpt` | `cyna/poincare.hpp` |
 
 Everything else stays in Python — there is no benefit in rewriting it.
 
@@ -85,6 +86,27 @@ from pyna._cyna import is_available, get_version
 print(is_available())   # True if compiled extension is present
 print(get_version())
 ```
+
+## Python acceleration surface
+
+The public Python wrappers live in `pyna._cyna`.  Magnetic-field component
+arguments use the canonical cylindrical order:
+
+```
+BR, BZ, BPhi, R_grid, Z_grid, Phi_grid
+```
+
+Important exported functions:
+
+- `trace_orbit_along_phi`: field-line trace with DPm samples.
+- `compute_A_matrix_batch`: batch finite-difference Jacobian of
+  `f=(R*BR/BPhi, R*BZ/BPhi)`.
+- `compute_cycle_perturbation_response`: integrates the FPT response equation
+  and returns both `delta_X_pol` and periodic `delta_X_cyc`.
+
+Prefer the high-level wrapper `pyna.topo.fpt.compute_cycle_response_from_cache`
+in application code.  Use the `_cyna` functions only at bridge boundaries or
+for low-level diagnostics.
 
 ## Design principles
 

@@ -112,7 +112,7 @@ def Biot_Savart_field(coil_pts, coil_current, R_grid, Z_grid, Phi_grid=None):
     By[near_mask] = np.nan
     Bz_out[near_mask] = np.nan
 
-    # Convert Bx, By, Bz -> BR, BPhi, BZ
+    # Convert Bx, By, Bz -> BR, BZ, BPhi
     cos_phi = np.cos(Phif)
     sin_phi = np.sin(Phif)
     BR = Bx * cos_phi + By * sin_phi

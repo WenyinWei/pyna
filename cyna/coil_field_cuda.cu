@@ -87,8 +87,8 @@ __global__ void _circular_coil_kernel(
     const float* __restrict__ xyz,   // (N, 3) Cartesian field points
     int N,
     float* __restrict__ BR,
-    float* __restrict__ BPhi,
-    float* __restrict__ BZ)
+    float* __restrict__ BZ,
+    float* __restrict__ BPhi)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= N) return;
@@ -130,8 +130,8 @@ __global__ void _biot_savart_kernel(
     const float* __restrict__ xyz,         // (N_pts, 3)
     int   N_pts,
     float* __restrict__ BR,
-    float* __restrict__ BPhi,
-    float* __restrict__ BZ)
+    float* __restrict__ BZ,
+    float* __restrict__ BPhi)
 {
     const float MU0_4PI = 1.0e-7f;
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -181,14 +181,14 @@ __global__ void _biot_savart_kernel(
 
 /// Compute circular coil field on GPU.
 /// xyz_cpu : (N,3) float32 host array
-/// BR/BPhi/BZ_cpu : (N,) float32 host output arrays (pre-allocated)
+/// BR/BZ/BPhi_cpu : (N,) float32 host output arrays (pre-allocated)
 extern "C"
 bool cyna_coil_circular_field_cuda(
     float cx, float cy, float cz,
     float nx, float ny, float nz,
     float a,  float current,
     const float* xyz_cpu, int N,
-    float* BR_cpu, float* BPhi_cpu, float* BZ_cpu)
+    float* BR_cpu, float* BZ_cpu, float* BPhi_cpu)
 {
     size_t sz3 = (size_t)N * 3 * sizeof(float);
     size_t sz1 = (size_t)N     * sizeof(float);
@@ -203,7 +203,7 @@ bool cyna_coil_circular_field_cuda(
 
     int blocks = (N + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
     _circular_coil_kernel<<<blocks, THREADS_PER_BLOCK>>>(
-        cx, cy, cz, nx, ny, nz, a, current, d_xyz, N, d_BR, d_BP, d_BZ);
+        cx, cy, cz, nx, ny, nz, a, current, d_xyz, N, d_BR, d_BZ, d_BP);
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaDeviceSynchronize());
 
@@ -218,13 +218,13 @@ bool cyna_coil_circular_field_cuda(
 /// Compute Biot-Savart field for one filamentary coil on GPU.
 /// seg_starts_cpu, seg_ends_cpu : (N_seg,3) float32 host arrays
 /// xyz_cpu : (N,3) float32 host array
-/// BR/BPhi/BZ_cpu : (N,) float32 host output arrays (pre-allocated)
+/// BR/BZ/BPhi_cpu : (N,) float32 host output arrays (pre-allocated)
 extern "C"
 bool cyna_coil_biot_savart_cuda(
     const float* seg_starts_cpu, const float* seg_ends_cpu,
     int N_seg, float current,
     const float* xyz_cpu, int N,
-    float* BR_cpu, float* BPhi_cpu, float* BZ_cpu)
+    float* BR_cpu, float* BZ_cpu, float* BPhi_cpu)
 {
     size_t szS  = (size_t)N_seg * 3 * sizeof(float);
     size_t sz3  = (size_t)N     * 3 * sizeof(float);
@@ -245,7 +245,7 @@ bool cyna_coil_biot_savart_cuda(
 
     int blocks = (N + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
     _biot_savart_kernel<<<blocks, THREADS_PER_BLOCK>>>(
-        d_ss, d_se, N_seg, current, d_xyz, N, d_BR, d_BP, d_BZ);
+        d_ss, d_se, N_seg, current, d_xyz, N, d_BR, d_BZ, d_BP);
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaDeviceSynchronize());
 

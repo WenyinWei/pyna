@@ -6,7 +6,7 @@ files = sorted(glob.glob("/mnt/c/Users/28105/Nutstore/1/haodata/coilsys/vacuum_f
 print(f"Total files: {len(files)}")
 
 # Sum all
-BR = BPhi = BZ = None
+BR = BZ = BPhi = None
 for i, fp in enumerate(files):
     d = np.load(fp)
     if BR is None:

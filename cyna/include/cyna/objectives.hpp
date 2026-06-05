@@ -15,9 +15,7 @@ inline bool eval_field_jxb(
     double R,
     double Z,
     double phi,
-    const double* BR,
-    const double* BPhi,
-    const double* BZ,
+    const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid,
     int nR,
     const double* Z_grid,
@@ -116,9 +114,7 @@ inline void trace_surface_metrics_batch_twall(
     double phi_start,
     int N_turns,
     double DPhi,
-    const double* BR,
-    const double* BPhi,
-    const double* BZ,
+    const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid,
     int nR,
     const double* Z_grid,
@@ -167,7 +163,7 @@ inline void trace_surface_metrics_batch_twall(
                 double Bmag, B2, JxB_mag;
                 bool ok = eval_field_jxb(
                     R, Z, phi,
-                    BR, BPhi, BZ,
+                    BR, BZ, BPhi,
                     R_grid, nR, Z_grid, nZ, Phi_grid, nPhi,
                     fd_eps_R, fd_eps_Z, fd_eps_phi,
                     Bmag, B2, JxB_mag);
@@ -187,7 +183,7 @@ inline void trace_surface_metrics_batch_twall(
                 double R_next = R;
                 double Z_next = Z;
                 rk4_step(R_next, Z_next, phi, step,
-                         BR, BPhi, BZ,
+                         BR, BZ, BPhi,
                          R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
                 double phi_next = phi + step;
                 if (!std::isfinite(R_next) || !std::isfinite(Z_next) ||

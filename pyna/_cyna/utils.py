@@ -5,7 +5,7 @@ bridge from raw cyna output arrays to the pyna invariant-object hierarchy.
 """
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -29,56 +29,40 @@ def ensure_c_double(arr: np.ndarray) -> np.ndarray:
 
 
 def prepare_field_cache(
-    field_cache: dict,
+    field_cache: Any,
     *,
     extend_phi: bool = True,
 ) -> dict:
-    """Prepare a field_cache dict for cyna C++ calls.
+    """Prepare a cylindrical field for cyna C++ calls.
 
     Returns a new dict with all arrays guaranteed C-contiguous float64.
     If *extend_phi* is True (default), the toroidal grid and field arrays
     are extended by one period copy so cyna's trilinear interpolation
     handles the 2π seam correctly.
 
-    The returned dict can be passed directly to any ``pyna._cyna.*`` function
-    as keyword arguments.
+    The input may be a :class:`pyna.fields.VectorFieldCylind`, a compatible
+    cylindrical field object, or a legacy field-cache dict.  The returned dict
+    can be passed directly to any ``pyna._cyna.*`` function as keyword
+    arguments.
 
     Parameters
     ----------
-    field_cache : dict
-        Must contain keys 'BR', 'BPhi', 'BZ', 'R_grid', 'Z_grid', 'Phi_grid'.
+    field_cache : object or dict
+        Prefer a cylindrical vector-field object.  Legacy dicts must contain
+        'BR', 'BZ', 'BPhi', 'R_grid', 'Z_grid', 'Phi_grid'.
     extend_phi : bool
         Whether to extend the phi dimension by one period copy.
 
     Returns
     -------
-    dict with keys 'BR', 'BPhi', 'BZ', 'R_grid', 'Z_grid', 'Phi_grid',
+    dict with keys 'BR', 'BZ', 'BPhi', 'R_grid', 'Z_grid', 'Phi_grid',
     all C-contiguous float64.
     """
-    Rg = ensure_c_double(np.asarray(field_cache['R_grid']))
-    Zg = ensure_c_double(np.asarray(field_cache['Z_grid']))
-    Pg = ensure_c_double(np.asarray(field_cache['Phi_grid']))
+    from pyna.fields.cylindrical import as_vector_field_cylindrical
 
-    BR   = np.asarray(field_cache['BR'])
-    BPhi = np.asarray(field_cache['BPhi'])
-    BZ   = np.asarray(field_cache['BZ'])
-
-    if extend_phi:
-        if abs(float(Pg[-1]) - 2 * np.pi) > _PHI_WRAP_TOL:
-            Pg = np.append(Pg, 2 * np.pi)
-        # Extend field arrays along the last (phi) axis
-        BR   = np.concatenate([BR,   BR[:, :, :1]],   axis=2)
-        BPhi = np.concatenate([BPhi, BPhi[:, :, :1]], axis=2)
-        BZ   = np.concatenate([BZ,   BZ[:, :, :1]],   axis=2)
-
-    return {
-        'BR':       ensure_c_double(BR),
-        'BPhi':     ensure_c_double(BPhi),
-        'BZ':       ensure_c_double(BZ),
-        'R_grid':   Rg,
-        'Z_grid':   Zg,
-        'Phi_grid': ensure_c_double(Pg),
-    }
+    field = as_vector_field_cylindrical(field_cache)
+    arrays = field.cyna_arrays(extend_phi=extend_phi)
+    return arrays.as_field_cache()
 
 
 # ---------------------------------------------------------------------------

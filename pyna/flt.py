@@ -61,7 +61,7 @@ from typing import Callable, List, Optional
 
 import numpy as np
 
-from pyna.fields.cylindrical import VectorField3DCylindrical
+from pyna.fields.cylindrical import VectorFieldCylind
 from pyna.progress import TraceProgressBase, _coerce_progress
 from scipy.interpolate import RegularGridInterpolator
 

@@ -3,7 +3,7 @@ import numpy as np
 import glob
 
 files = sorted(glob.glob("/mnt/c/Users/28105/Nutstore/1/haodata/coilsys/vacuum_fields/dipole_coil_*.npz"))[:30]
-BR = BPhi = BZ = None
+BR = BZ = BPhi = None
 for fp in files:
     d = np.load(fp)
     if BR is None:
