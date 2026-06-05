@@ -30,7 +30,7 @@ import numpy as np
 from scipy.sparse import lil_matrix
 from scipy.sparse.linalg import lsqr, bicgstab
 
-from pyna.fields.cylindrical import VectorField3DAxiSymmetric, ScalarField3DAxiSymmetric
+from pyna.fields.cylindrical import VectorFieldCylindAxisym, ScalarFieldCylindAxisym
 
 
 # ---------------------------------------------------------------------------
@@ -47,17 +47,23 @@ def recover_pressure_simplest(grad_p):
 
     Parameters
     ----------
-    grad_p : VectorField3DAxiSymmetric or compatible
+    grad_p : VectorFieldCylindAxisym or compatible
         Gradient of the pressure.  Must expose ``.R``, ``.Z``, ``.BR``
         (radial component ∂p/∂R) and ``.BZ`` (axial component ∂p/∂Z),
         each of shape (nR, nZ).
 
     Returns
     -------
-    delta_p : ScalarField3DAxiSymmetric
+    delta_p : ScalarFieldCylindAxisym
         Recovered pressure perturbation on the same (R, Z) grid.
     """
     R, Z = grad_p.R, grad_p.Z
+    grad_R = np.asarray(grad_p.BR)
+    grad_Z = np.asarray(grad_p.BZ)
+    if grad_R.ndim == 3:
+        grad_R = grad_R[:, :, 0]
+    if grad_Z.ndim == 3:
+        grad_Z = grad_Z[:, :, 0]
     nR, nZ = len(R), len(Z)
     dR, dZ = R[1] - R[0], Z[1] - Z[0]
 
@@ -66,31 +72,31 @@ def recover_pressure_simplest(grad_p):
     for j in range(nZ):
         for i in range(1, nR):
             p_R_fwd[i, j] = (p_R_fwd[i - 1, j]
-                             + 0.5 * (grad_p.BR[i, j] + grad_p.BR[i - 1, j]) * dR)
+                             + 0.5 * (grad_R[i, j] + grad_R[i - 1, j]) * dR)
 
     # Path 2: integrate ∂p/∂Z from Zmin to Zmax (forward in Z)
     p_Z_fwd = np.zeros((nR, nZ))
     for i in range(nR):
         for j in range(1, nZ):
             p_Z_fwd[i, j] = (p_Z_fwd[i, j - 1]
-                             + 0.5 * (grad_p.BZ[i, j] + grad_p.BZ[i, j - 1]) * dZ)
+                             + 0.5 * (grad_Z[i, j] + grad_Z[i, j - 1]) * dZ)
 
     # Path 3: integrate ∂p/∂R from Rmax to Rmin (backward in R)
     p_R_bwd = np.zeros((nR, nZ))
     for j in range(nZ):
         for i in range(nR - 2, -1, -1):
             p_R_bwd[i, j] = (p_R_bwd[i + 1, j]
-                             - 0.5 * (grad_p.BR[i + 1, j] + grad_p.BR[i, j]) * dR)
+                             - 0.5 * (grad_R[i + 1, j] + grad_R[i, j]) * dR)
 
     # Path 4: integrate ∂p/∂Z from Zmax to Zmin (backward in Z)
     p_Z_bwd = np.zeros((nR, nZ))
     for i in range(nR):
         for j in range(nZ - 2, -1, -1):
             p_Z_bwd[i, j] = (p_Z_bwd[i, j + 1]
-                             - 0.5 * (grad_p.BZ[i, j + 1] + grad_p.BZ[i, j]) * dZ)
+                             - 0.5 * (grad_Z[i, j + 1] + grad_Z[i, j]) * dZ)
 
     delta_p = 0.25 * (p_R_fwd + p_Z_fwd + p_R_bwd + p_Z_bwd)
-    return ScalarField3DAxiSymmetric(R, Z, delta_p)
+    return ScalarFieldCylindAxisym(R, Z, delta_p)
 
 
 # ---------------------------------------------------------------------------
@@ -98,10 +104,10 @@ def recover_pressure_simplest(grad_p):
 # ---------------------------------------------------------------------------
 
 def solve_GS_perturbed(
-        B0: VectorField3DAxiSymmetric,
-        J0: VectorField3DAxiSymmetric,
-        p0: ScalarField3DAxiSymmetric,
-        delta_B_ext: VectorField3DAxiSymmetric,
+        B0: VectorFieldCylindAxisym,
+        J0: VectorFieldCylindAxisym,
+        p0: ScalarFieldCylindAxisym,
+        delta_B_ext: VectorFieldCylindAxisym,
         x0):
     """Solve the linearised ideal-MHD equations for a perturbed equilibrium.
 
@@ -120,25 +126,25 @@ def solve_GS_perturbed(
 
     Parameters
     ----------
-    B0 : VectorField3DAxiSymmetric
+    B0 : VectorFieldCylindAxisym
         Background equilibrium magnetic field.
-    J0 : VectorField3DAxiSymmetric
+    J0 : VectorFieldCylindAxisym
         Background equilibrium current density.
-    p0 : ScalarField3DAxiSymmetric
+    p0 : ScalarFieldCylindAxisym
         Background equilibrium pressure.  Used to identify vacuum regions.
-    delta_B_ext : VectorField3DAxiSymmetric
+    delta_B_ext : VectorFieldCylindAxisym
         External magnetic field perturbation.
     x0 : ndarray
         Initial guess for the linear solver, shape (7 * nR * nZ,).
-        The first 3*n entries are δB (R, φ, Z), next 3*n are δJ, last n are δp.
+        The first 3*n entries are δB (R, Z, Phi), next 3*n are δJ, last n are δp.
 
     Returns
     -------
-    delta_B_plasma : VectorField3DAxiSymmetric
+    delta_B_plasma : VectorFieldCylindAxisym
         Plasma response magnetic field perturbation.
-    delta_J : VectorField3DAxiSymmetric
+    delta_J : VectorFieldCylindAxisym
         Plasma response current density perturbation.
-    delta_p : ScalarField3DAxiSymmetric
+    delta_p : ScalarFieldCylindAxisym
         Plasma response pressure perturbation.
     """
     mu0 = 4e-7 * np.pi  # vacuum permeability [T·m/A]
@@ -151,11 +157,23 @@ def solve_GS_perturbed(
     # Number of equations per grid point
     nEq = 14
 
-    # Physical component indices: R=0, φ=1, Z=2
-    iR, iPHI, iZ = 0, 1, 2
+    # Physical component indices in canonical storage order: R=0, Z=1, Phi=2.
+    iR, iZ, iPHI = 0, 1, 2
 
     # --- Pre-compute force-balance RHS: −J₀ × δB_ext ---
     RHS_fb = -J0.cross(delta_B_ext)
+
+    def _axisym_components_2d(v):
+        comps = getattr(v, "components_3d", (v.BR, v.BZ, v.BPhi))
+        out = []
+        for comp in comps:
+            arr = np.asarray(comp)
+            out.append(arr[:, :, 0] if arr.ndim == 3 else arr)
+        return out
+
+    B0_R, B0_Z, B0_Phi = _axisym_components_2d(B0)
+    J0_R, J0_Z, J0_Phi = _axisym_components_2d(J0)
+    RHS_R, RHS_Z, RHS_Phi = _axisym_components_2d(RHS_fb)
 
     # --- Sparse matrix assembly ---
     A = lil_matrix((nEq * n, 7 * n))
@@ -235,18 +253,18 @@ def solve_GS_perturbed(
                 def cross_matrix(v):
                     """Matrix representation of  v × ·."""
                     return np.array([
-                        [0,       -v[iZ], v[iPHI]],
-                        [v[iZ],   0,     -v[iR]],
-                        [-v[iPHI], v[iR], 0],
+                        [0,        v[iPHI], -v[iZ]],
+                        [-v[iPHI], 0,        v[iR]],
+                        [v[iZ],   -v[iR],    0],
                     ])
 
                 # δJ × B₀
                 A[nEq * k + 3:nEq * k + 6, 3 * k + 3 * n:3 * k + 3 * n + 3] = \
-                    -cross_matrix(np.array([B0.BR[i, j], B0.BPhi[i, j], B0.BZ[i, j]]))
+                    -cross_matrix(np.array([B0_R[i, j], B0_Z[i, j], B0_Phi[i, j]]))
 
                 # J₀ × δB
                 A[nEq * k + 3:nEq * k + 6, 3 * k:3 * k + 3] = \
-                    cross_matrix(np.array([J0.BR[i, j], J0.BPhi[i, j], J0.BZ[i, j]]))
+                    cross_matrix(np.array([J0_R[i, j], J0_Z[i, j], J0_Phi[i, j]]))
 
                 # −∇δp  (second-order central differences)
                 A[nEq * k + 3 + iR, k_pR + 6 * n] = -1.0 / (2 * dR)
@@ -255,9 +273,9 @@ def solve_GS_perturbed(
                 A[nEq * k + 3 + iZ, k_mZ + 6 * n] =  1.0 / (2 * dZ)
 
                 # RHS
-                b[nEq * k + 3 + iR]   = RHS_fb.BR[i, j]
-                b[nEq * k + 3 + iPHI] = RHS_fb.BPhi[i, j]
-                b[nEq * k + 3 + iZ]   = RHS_fb.BZ[i, j]
+                b[nEq * k + 3 + iR]   = RHS_R[i, j]
+                b[nEq * k + 3 + iZ]   = RHS_Z[i, j]
+                b[nEq * k + 3 + iPHI] = RHS_Phi[i, j]
 
                 # Scale force-balance rows to match Ampère
                 scale_fb = 1e-2
@@ -311,18 +329,18 @@ def solve_GS_perturbed(
             delta_J_arr[i, j, :] = x[3 * n + 3 * k:3 * n + 3 * k + 3]
             delta_p_arr[i, j]    = x[6 * n + k]
 
-    delta_B_plasma = VectorField3DAxiSymmetric(
+    delta_B_plasma = VectorFieldCylindAxisym(
         R, Z,
         BR=delta_B_arr[:, :, iR],
-        BPhi=delta_B_arr[:, :, iPHI],
         BZ=delta_B_arr[:, :, iZ],
+        BPhi=delta_B_arr[:, :, iPHI],
     )
-    delta_J = VectorField3DAxiSymmetric(
+    delta_J = VectorFieldCylindAxisym(
         R, Z,
         BR=delta_J_arr[:, :, iR],
-        BPhi=delta_J_arr[:, :, iPHI],
         BZ=delta_J_arr[:, :, iZ],
+        BPhi=delta_J_arr[:, :, iPHI],
     )
-    delta_p = ScalarField3DAxiSymmetric(R, Z, B=delta_p_arr)
+    delta_p = ScalarFieldCylindAxisym(R, Z, B=delta_p_arr)
 
     return delta_B_plasma, delta_J, delta_p

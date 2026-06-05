@@ -9,7 +9,7 @@ from pyna.system import (
     VectorField2D,
     VectorField3D,
     VectorField4D,
-    VectorField3DAxiSymmetric,
+    VectorFieldCylindAxisym,
 )
 
 
@@ -32,7 +32,7 @@ class _ConcreteVF3D(VectorField3D):
         return (0.0, 0.0, 1.0)
 
 
-class _ConcreteAxiVF3D(VectorField3DAxiSymmetric):
+class _ConcreteAxiVF3D(VectorFieldCylindAxisym):
     """Minimal concrete subclass for MRO checks; inherits __init__(R, Z, VR_2d, VZ_2d, VPhi_2d, ...)."""
     pass
 
@@ -93,7 +93,7 @@ def test_axisym_mro():
     Z = np.linspace(-0.5, 0.5, 5)
     zero = np.zeros((5, 5))
     vf = _ConcreteAxiVF3D(R, Z, zero, zero, np.ones((5, 5)))
-    assert isinstance(vf, VectorField3DAxiSymmetric)
+    assert isinstance(vf, VectorFieldCylindAxisym)
     assert isinstance(vf, VectorField3D)
     assert isinstance(vf, VectorField)
     assert isinstance(vf, AutonomousDynamicalSystem)

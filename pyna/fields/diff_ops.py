@@ -38,6 +38,8 @@ def _grad_Z(arr, Z):
 
 def _grad_phi(arr, Phi, periodic=True):
     """Second-order central differences along phi (axis 2), periodic or one-sided."""
+    if len(Phi) < 2:
+        return np.zeros_like(arr)
     if periodic:
         dphi = Phi[1] - Phi[0]
         return (np.roll(arr, -1, axis=2) - np.roll(arr, 1, axis=2)) / (2 * dphi)
@@ -62,67 +64,111 @@ def _check_coords(field, coords_override):
         )
 
 
-def gradient(f, coords=None) -> "VectorField3DCylindrical":
+def _components_3d(v):
+    if hasattr(v, "components_3d"):
+        return v.components_3d
+    return v.VR, v.VZ, v.VPhi
+
+
+def _is_axisym(field) -> bool:
+    from pyna.fields.cylindrical import ScalarFieldCylindAxisym, VectorFieldCylindAxisym
+    return isinstance(field, (ScalarFieldCylindAxisym, VectorFieldCylindAxisym))
+
+
+def _scalar_result_like(field, value, *, name="", units="", properties=FieldProperty.NONE):
+    from pyna.fields.cylindrical import ScalarFieldCylind, ScalarFieldCylindAxisym
+    if _is_axisym(field):
+        return ScalarFieldCylindAxisym(field.R, field.Z, np.asarray(value)[:, :, 0],
+                                      name=name, units=units, properties=properties)
+    return ScalarFieldCylind(field.R, field.Z, field.Phi, value,
+                             field_periods=getattr(field, "field_periods", 1),
+                             name=name, units=units, properties=properties)
+
+
+def _vector_result_like(field, BR, BZ, BPhi, *, name="", units="", properties=FieldProperty.NONE):
+    from pyna.fields.cylindrical import VectorFieldCylind, VectorFieldCylindAxisym
+    if _is_axisym(field):
+        return VectorFieldCylindAxisym(field.R, field.Z, BR=BR[:, :, 0], BZ=BZ[:, :, 0],
+                                      BPhi=BPhi[:, :, 0], name=name, units=units,
+                                      properties=properties)
+    if getattr(field, "is_section", False):
+        return VectorFieldCylind(field.R, field.Z, BR=BR[:, :, 0], BZ=BZ[:, :, 0],
+                                 BPhi=BPhi[:, :, 0], phi=float(field.Phi[0]),
+                                 field_periods=getattr(field, "field_periods", 1),
+                                 name=name, units=units, properties=properties,
+                                 section_mode=True)
+    return VectorFieldCylind(field.R, field.Z, field.Phi, BR, BZ, BPhi,
+                             field_periods=getattr(field, "field_periods", 1),
+                             name=name, units=units, properties=properties)
+
+
+def _tensor2_result_like(field, data, *, name="", units="", properties=FieldProperty.NONE):
+    from pyna.fields.tensor import Tensor2FieldCylind, Tensor2FieldCylindAxisym
+    if _is_axisym(field):
+        return Tensor2FieldCylindAxisym(field.R, field.Z, np.asarray(data)[:, :, 0],
+                                       name=name, units=units, properties=properties)
+    return Tensor2FieldCylind(field.R, field.Z, field.Phi, data,
+                              name=name, units=units, properties=properties)
+
+
+def gradient(f, coords=None) -> "VectorFieldCylind":
     """Gradient of a scalar field in cylindrical coordinates.
 
     ∇f = (∂f/∂R,  ∂f/∂Z,  (1/R)·∂f/∂φ)
 
     Parameters
     ----------
-    f : ScalarField3DCylindrical
+    f : ScalarFieldCylind
 
     Returns
     -------
-    VectorField3DCylindrical
+    VectorFieldCylind
     """
     _check_coords(f, coords)
-    from pyna.fields.cylindrical import VectorField3DCylindrical
     R3d = f.R[:, None, None]
     df_dR   = _grad_R(f.value, f.R)
     df_dZ   = _grad_Z(f.value, f.Z)
     df_dphi = _grad_phi(f.value, f.Phi, periodic=True)
-    return VectorField3DCylindrical(
-        R=f.R, Z=f.Z, Phi=f.Phi,
-        VR=df_dR,
-        VZ=df_dZ,
-        VPhi=df_dphi / R3d,
-        field_periods=f.field_periods,
+    return _vector_result_like(
+        f,
+        df_dR,
+        df_dZ,
+        df_dphi / R3d,
         name=f"grad({f.name})",
         units=f"{f.units}/m",
         properties=FieldProperty.NONE,
     )
 
 
-def divergence(v) -> "ScalarField3DCylindrical":
+def divergence(v) -> "ScalarFieldCylind":
     """Divergence of a vector field in cylindrical coordinates.
 
     ∇·V = ∂V_R/∂R + ∂V_Z/∂Z + (V_R + ∂V_φ/∂φ) / R
 
     Parameters
     ----------
-    v : VectorField3DCylindrical
+    v : VectorFieldCylind
 
     Returns
     -------
-    ScalarField3DCylindrical
+    ScalarFieldCylind
     """
-    from pyna.fields.cylindrical import ScalarField3DCylindrical
     R3d = v.R[:, None, None]
-    dVR_dR      = _grad_R(v.VR, v.R)
-    dVZ_dZ      = _grad_Z(v.VZ, v.Z)
-    dVPhi_dphi  = _grad_phi(v.VPhi, v.Phi, periodic=True)
-    div = dVR_dR + dVZ_dZ + (v.VR + dVPhi_dphi) / R3d
-    return ScalarField3DCylindrical(
-        R=v.R, Z=v.Z, Phi=v.Phi,
-        value=div,
-        field_periods=v.field_periods,
+    VR, VZ, VPhi = _components_3d(v)
+    dVR_dR      = _grad_R(VR, v.R)
+    dVZ_dZ      = _grad_Z(VZ, v.Z)
+    dVPhi_dphi  = _grad_phi(VPhi, v.Phi, periodic=True)
+    div = dVR_dR + dVZ_dZ + (VR + dVPhi_dphi) / R3d
+    return _scalar_result_like(
+        v,
+        div,
         name=f"div({v.name})",
         units="",
         properties=FieldProperty.NONE,
     )
 
 
-def curl(v) -> "VectorField3DCylindrical":
+def curl(v) -> "VectorFieldCylind":
     """Curl of a vector field in cylindrical coordinates.
 
     (∇×V)_R   = (1/R)·∂V_Z/∂φ  - ∂V_φ/∂Z
@@ -133,37 +179,38 @@ def curl(v) -> "VectorField3DCylindrical":
 
     Parameters
     ----------
-    v : VectorField3DCylindrical
+    v : VectorFieldCylind
 
     Returns
     -------
-    VectorField3DCylindrical  (with FieldProperty.DIVERGENCE_FREE)
+    VectorFieldCylind  (with FieldProperty.DIVERGENCE_FREE)
     """
-    from pyna.fields.cylindrical import VectorField3DCylindrical
     R3d = v.R[:, None, None]
+    VR, VZ, VPhi = _components_3d(v)
 
-    dVZ_dphi   = _grad_phi(v.VZ,   v.Phi, periodic=True)
-    dVPhi_dZ   = _grad_Z(v.VPhi, v.Z)
-    dVPhi_dR   = _grad_R(v.VPhi, v.R)
-    dVR_dphi   = _grad_phi(v.VR,   v.Phi, periodic=True)
-    dVR_dZ     = _grad_Z(v.VR,   v.Z)
-    dVZ_dR     = _grad_R(v.VZ,   v.R)
+    dVZ_dphi   = _grad_phi(VZ, v.Phi, periodic=True)
+    dVPhi_dZ   = _grad_Z(VPhi, v.Z)
+    dVPhi_dR   = _grad_R(VPhi, v.R)
+    dVR_dphi   = _grad_phi(VR, v.Phi, periodic=True)
+    dVR_dZ     = _grad_Z(VR, v.Z)
+    dVZ_dR     = _grad_R(VZ, v.R)
 
     curl_R   = dVZ_dphi / R3d - dVPhi_dZ
-    curl_Z   = dVPhi_dR + v.VPhi / R3d - dVR_dphi / R3d
+    curl_Z   = dVPhi_dR + VPhi / R3d - dVR_dphi / R3d
     curl_Phi = dVR_dZ - dVZ_dR
 
-    return VectorField3DCylindrical(
-        R=v.R, Z=v.Z, Phi=v.Phi,
-        VR=curl_R, VZ=curl_Z, VPhi=curl_Phi,
-        field_periods=v.field_periods,
+    return _vector_result_like(
+        v,
+        curl_R,
+        curl_Z,
+        curl_Phi,
         name=f"curl({v.name})",
         units=f"{v.units}/m",
         properties=FieldProperty.DIVERGENCE_FREE,
     )
 
 
-def laplacian(f) -> "ScalarField3DCylindrical":
+def laplacian(f) -> "ScalarFieldCylind":
     """Scalar Laplacian in cylindrical coordinates.
 
     ∇²f = (1/R)·∂/∂R(R·∂f/∂R) + ∂²f/∂Z² + (1/R²)·∂²f/∂φ²
@@ -172,27 +219,25 @@ def laplacian(f) -> "ScalarField3DCylindrical":
 
     Parameters
     ----------
-    f : ScalarField3DCylindrical
+    f : ScalarFieldCylind
 
     Returns
     -------
-    ScalarField3DCylindrical
+    ScalarFieldCylind
     """
     grad_f = gradient(f)
     lap = divergence(grad_f)
     # rename
-    from pyna.fields.cylindrical import ScalarField3DCylindrical
-    return ScalarField3DCylindrical(
-        R=f.R, Z=f.Z, Phi=f.Phi,
-        value=lap.value,
-        field_periods=f.field_periods,
+    return _scalar_result_like(
+        f,
+        lap.value,
         name=f"laplacian({f.name})",
         units=f"{f.units}/m²",
         properties=FieldProperty.NONE,
     )
 
 
-def hessian(f) -> "TensorField3DRank2":
+def hessian(f) -> "Tensor2FieldCylind":
     """Hessian tensor H_ij = ∇_i ∇_j f in cylindrical coordinates.
 
     Computed by taking the gradient of each component of ∇f, including
@@ -207,13 +252,12 @@ def hessian(f) -> "TensorField3DRank2":
 
     Parameters
     ----------
-    f : ScalarField3DCylindrical
+    f : ScalarFieldCylind
 
     Returns
     -------
-    TensorField3DRank2
+    Tensor2FieldCylind
     """
-    from pyna.fields.tensor import TensorField3DRank2
     R3d = f.R[:, None, None]
     nR, nZ, nPhi = len(f.R), len(f.Z), len(f.Phi)
 
@@ -241,16 +285,16 @@ def hessian(f) -> "TensorField3DRank2":
     data[..., 1, 2] = d2f_dZdphi / R3d
     data[..., 2, 1] = data[..., 1, 2]
 
-    return TensorField3DRank2(
-        R=f.R, Z=f.Z, Phi=f.Phi,
-        data=data,
+    return _tensor2_result_like(
+        f,
+        data,
         name=f"hessian({f.name})",
         units=f"{f.units}/m²",
         properties=FieldProperty.SYMMETRIC,
     )
 
 
-def jacobian_field(v) -> "TensorField3DRank2":
+def jacobian_field(v) -> "Tensor2FieldCylind":
     """Jacobian tensor J_ij = ∂V_i/∂x^j in cylindrical coordinates.
 
     Includes connection (Christoffel) corrections for curvilinear basis:
@@ -270,34 +314,33 @@ def jacobian_field(v) -> "TensorField3DRank2":
 
     Parameters
     ----------
-    v : VectorField3DCylindrical
+    v : VectorFieldCylind
 
     Returns
     -------
-    TensorField3DRank2, shape (nR, nZ, nPhi, 3, 3)
+    Tensor2FieldCylind, shape (nR, nZ, nPhi, 3, 3)
       J[..., i, j] = ∂V_i/∂x^j  with phi-axis scaled by 1/R
     """
-    from pyna.fields.tensor import TensorField3DRank2
     R3d = v.R[:, None, None]
     nR, nZ, nPhi = len(v.R), len(v.Z), len(v.Phi)
 
     data = np.zeros((nR, nZ, nPhi, 3, 3), dtype=float)
 
-    for i_comp, arr in enumerate([v.VR, v.VZ, v.VPhi]):
+    for i_comp, arr in enumerate(_components_3d(v)):
         data[..., i_comp, 0] = _grad_R(arr, v.R)
         data[..., i_comp, 1] = _grad_Z(arr, v.Z)
         data[..., i_comp, 2] = _grad_phi(arr, v.Phi, periodic=True) / R3d
 
-    return TensorField3DRank2(
-        R=v.R, Z=v.Z, Phi=v.Phi,
-        data=data,
+    return _tensor2_result_like(
+        v,
+        data,
         name=f"jacobian({v.name})",
         units=f"{v.units}/m",
         properties=FieldProperty.NONE,
     )
 
 
-def field_line_curvature(B) -> "VectorField3DCylindrical":
+def field_line_curvature(B) -> "VectorFieldCylind":
     """Magnetic field-line curvature vector κ = (b̂·∇)b̂.
 
     Where b̂ = B/|B| is the unit vector along the field.
@@ -311,19 +354,19 @@ def field_line_curvature(B) -> "VectorField3DCylindrical":
 
     Parameters
     ----------
-    B : VectorField3DCylindrical
+    B : VectorFieldCylind
 
     Returns
     -------
-    VectorField3DCylindrical
+    VectorFieldCylind
     """
-    from pyna.fields.cylindrical import VectorField3DCylindrical
     R3d = B.R[:, None, None]
+    BR, BZ, BPhi = _components_3d(B)
 
-    Bmag = np.sqrt(B.VR**2 + B.VZ**2 + B.VPhi**2) + 1e-30
-    bR   = B.VR   / Bmag
-    bZ   = B.VZ   / Bmag
-    bPhi = B.VPhi / Bmag
+    Bmag = np.sqrt(BR**2 + BZ**2 + BPhi**2) + 1e-30
+    bR   = BR   / Bmag
+    bZ   = BZ   / Bmag
+    bPhi = BPhi / Bmag
 
     bphi_over_R = bPhi / R3d
 
@@ -346,10 +389,11 @@ def field_line_curvature(B) -> "VectorField3DCylindrical":
     kappa_Phi = (bR * dbPhi_dR + bZ * dbPhi_dZ + bphi_over_R * dbPhi_dphi
                  + bPhi * bR / R3d)
 
-    return VectorField3DCylindrical(
-        R=B.R, Z=B.Z, Phi=B.Phi,
-        VR=kappa_R, VZ=kappa_Z, VPhi=kappa_Phi,
-        field_periods=B.field_periods,
+    return _vector_result_like(
+        B,
+        kappa_R,
+        kappa_Z,
+        kappa_Phi,
         name=f"curvature({B.name})",
         units="1/m",
         properties=FieldProperty.NONE,
@@ -367,23 +411,22 @@ def covariant_derivative_of_vector(v, coords=None):
 
     Parameters
     ----------
-    v : VectorField3DCylindrical
+    v : VectorFieldCylind
     coords : CoordinateSystem, optional
         Defaults to Coords3DCylindrical().
 
     Returns
     -------
-    TensorField3DRank2, shape (nR, nZ, nPhi, 3, 3)
+    Tensor2FieldCylind, shape (nR, nZ, nPhi, 3, 3)
         Component [i,j] = nabla_i V^j
     """
     from pyna.fields.coords import Coords3DCylindrical
-    from pyna.fields.tensor import TensorField3DRank2
 
     if coords is None:
         coords = Coords3DCylindrical()
 
     # Get ordinary Jacobian (d_i V^j)
-    J = jacobian_field(v)  # TensorField3DRank2, [i,j] = d_i V^j
+    J = jacobian_field(v)  # Tensor2FieldCylind, [i,j] = d_i V^j
 
     # Add Christoffel correction: Gamma^j_{ik} V^k
     # Evaluate Christoffel at every grid point
@@ -395,7 +438,7 @@ def covariant_derivative_of_vector(v, coords=None):
     Gamma = Gamma.reshape(shape3d + (3, 3, 3))  # (nR,nZ,nPhi, k, i, j)
 
     # V components on grid
-    V = np.stack([v.VR, v.VZ, v.VPhi], axis=-1)  # (nR,nZ,nPhi, 3)
+    V = np.stack(_components_3d(v), axis=-1)  # (nR,nZ,nPhi, 3)
 
     # Correction: sum_k Gamma^j_{ik} V^k  -> result[..., i, j]
     # Gamma[..., k, i, j] summed over k with V[..., k]
@@ -403,8 +446,7 @@ def covariant_derivative_of_vector(v, coords=None):
 
     cov_data = J.data + correction  # (nR,nZ,nPhi,3,3)
 
-    return TensorField3DRank2(v.R, v.Z, v.Phi, cov_data,
-                               name=f"nabla({v.name})", units=v.units)
+    return _tensor2_result_like(v, cov_data, name=f"nabla({v.name})", units=v.units)
 
 
 def riemann_tensor(coords, pt, eps=1e-4):
@@ -499,28 +541,20 @@ def helmholtz_decomposition(v, tol=1e-6):
 
     Returns
     -------
-    (v_div_free, v_curl_free) : tuple of VectorField3DCylindrical
+    (v_div_free, v_curl_free) : tuple of VectorFieldCylind
         v_div_free  -- curl(v), annotated as DIVERGENCE_FREE
         v_curl_free -- v - curl(v), annotated as CURL_FREE
         v ≈ v_div_free + v_curl_free  (approximate)
     """
-    from pyna.fields.cylindrical import VectorField3DCylindrical
     from pyna.fields.properties import FieldProperty
 
     curl_v = curl(v)
 
-    v_div_free = VectorField3DCylindrical(
-        v.R, v.Z, v.Phi, curl_v.VR, curl_v.VZ, curl_v.VPhi,
-        name=f"divfree({v.name})",
-        properties=FieldProperty.DIVERGENCE_FREE,
-    )
+    v_div_free = curl_v
+    v_div_free.name = f"divfree({v.name})"
+    v_div_free._properties = FieldProperty.DIVERGENCE_FREE
 
-    VR_cf = v.VR - curl_v.VR
-    VZ_cf = v.VZ - curl_v.VZ
-    VP_cf = v.VPhi - curl_v.VPhi
-    v_curl_free = VectorField3DCylindrical(
-        v.R, v.Z, v.Phi, VR_cf, VZ_cf, VP_cf,
-        name=f"curlfree({v.name})",
-        properties=FieldProperty.CURL_FREE,
-    )
+    v_curl_free = v - curl_v
+    v_curl_free.name = f"curlfree({v.name})"
+    v_curl_free._properties = FieldProperty.CURL_FREE
     return v_div_free, v_curl_free

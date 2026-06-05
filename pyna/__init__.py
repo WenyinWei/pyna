@@ -19,10 +19,15 @@ from importlib import import_module
 from pyna import field_data
 from pyna import vector_calc
 from pyna.fields import (
-    ScalarField3DCylindrical,
-    VectorField3DCylindrical,
-    VectorField3DAxiSymmetric,
-    ScalarField3DAxiSymmetric,
+    CylindricalFieldArrays,
+    ScalarFieldCylind,
+    ScalarFieldCylindAxisym,
+    VectorFieldCylind,
+    VectorFieldCylindAxisym,
+    as_scalar_field_cylindrical,
+    as_scalar_field_cylind,
+    as_vector_field_cylindrical,
+    as_vector_field_cylind,
 )
 from pyna.topo import classical_maps
 from pyna.io import poincare_io
@@ -36,7 +41,7 @@ from pyna.system import (
     VectorField2D,
     VectorField3D,
     VectorField4D,
-    VectorField3DAxiSymmetric,
+    VectorFieldCylindAxisym,
 )
 
 def __getattr__(name):
@@ -50,10 +55,15 @@ __all__ = [
     "field_data",
     "vector_calc",
     "toroidal",
-    "ScalarField3DCylindrical",
-    "VectorField3DCylindrical",
-    "VectorField3DAxiSymmetric",
-    "ScalarField3DAxiSymmetric",
+    "CylindricalFieldArrays",
+    "VectorFieldCylind",
+    "VectorFieldCylindAxisym",
+    "ScalarFieldCylind",
+    "ScalarFieldCylindAxisym",
+    "as_scalar_field_cylindrical",
+    "as_scalar_field_cylind",
+    "as_vector_field_cylindrical",
+    "as_vector_field_cylind",
     "classical_maps",
     "poincare_io",
     "DynamicalSystem",
@@ -64,5 +74,5 @@ __all__ = [
     "VectorField2D",
     "VectorField3D",
     "VectorField4D",
-    "VectorField3DAxiSymmetric",
+    "VectorFieldCylindAxisym",
 ]

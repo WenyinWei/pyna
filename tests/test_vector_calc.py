@@ -2,7 +2,7 @@
 
 import numpy as np
 import pytest
-from pyna.fields import VectorField3DCylindrical, ScalarField3DCylindrical
+from pyna.fields import VectorFieldCylind, ScalarFieldCylind
 from pyna.vector_calc import (
     magnitude, cross, divergence,
     directional_derivative_of_scalar,
@@ -24,11 +24,38 @@ def test_cross_self_is_zero():
     VR = np.random.default_rng(0).normal(size=(nR, nZ, nPhi))
     VZ = np.random.default_rng(1).normal(size=(nR, nZ, nPhi))
     VPhi = np.random.default_rng(2).normal(size=(nR, nZ, nPhi))
-    v = VectorField3DCylindrical(R=R, Z=Z, Phi=Phi, VR=VR, VZ=VZ, VPhi=VPhi)
+    v = VectorFieldCylind(R=R, Z=Z, Phi=Phi, VR=VR, VZ=VZ, VPhi=VPhi)
     c = cross(v, v)
     assert np.allclose(c.VR, 0, atol=1e-14)
     assert np.allclose(c.VZ, 0, atol=1e-14)
     assert np.allclose(c.VPhi, 0, atol=1e-14)
+
+
+def test_cross_cylindrical_basis_orientation():
+    """With storage order R,Z,Phi, physical basis obeys e_R × e_Z = -e_Phi."""
+    R, Z, Phi = make_grid(nR=4, nZ=3, nPhi=2)
+    shape = (len(R), len(Z), len(Phi))
+    eR = VectorFieldCylind(
+        R=R, Z=Z, Phi=Phi,
+        VR=np.ones(shape), VZ=np.zeros(shape), VPhi=np.zeros(shape),
+    )
+    eZ = VectorFieldCylind(
+        R=R, Z=Z, Phi=Phi,
+        VR=np.zeros(shape), VZ=np.ones(shape), VPhi=np.zeros(shape),
+    )
+    ePhi = VectorFieldCylind(
+        R=R, Z=Z, Phi=Phi,
+        VR=np.zeros(shape), VZ=np.zeros(shape), VPhi=np.ones(shape),
+    )
+
+    r_cross_z = cross(eR, eZ)
+    r_cross_phi = cross(eR, ePhi)
+    np.testing.assert_allclose(r_cross_z.BR, 0.0)
+    np.testing.assert_allclose(r_cross_z.BZ, 0.0)
+    np.testing.assert_allclose(r_cross_z.BPhi, -1.0)
+    np.testing.assert_allclose(r_cross_phi.BR, 0.0)
+    np.testing.assert_allclose(r_cross_phi.BZ, 1.0)
+    np.testing.assert_allclose(r_cross_phi.BPhi, 0.0)
 
 
 def test_cross_anticommutative():
@@ -37,7 +64,7 @@ def test_cross_anticommutative():
     nR, nZ, nPhi = len(R), len(Z), len(Phi)
     rng = np.random.default_rng(42)
     def rand_field():
-        return VectorField3DCylindrical(R=R, Z=Z, Phi=Phi,
+        return VectorFieldCylind(R=R, Z=Z, Phi=Phi,
                                       VR=rng.normal(size=(nR, nZ, nPhi)),
                                       VZ=rng.normal(size=(nR, nZ, nPhi)),
                                       VPhi=rng.normal(size=(nR, nZ, nPhi)))
@@ -57,7 +84,7 @@ def test_divergence_uniform_field():
     # ∇·V = ∂_R(1) + ∂_Z(1) + (1 + ∂_phi(1))/R = 0 + 0 + 1/R ≠ 0 for VR=1
     # So use only VZ=1, VR=VPhi=0 → div = 0
     VZ = np.ones((nR, nZ, nPhi))
-    v = VectorField3DCylindrical(R=R, Z=Z, Phi=Phi,
+    v = VectorFieldCylind(R=R, Z=Z, Phi=Phi,
                                VR=np.zeros_like(VZ), VZ=VZ, VPhi=np.zeros_like(VZ))
     div = divergence(v)
     assert np.allclose(div.value, 0, atol=1e-10)
@@ -70,7 +97,7 @@ def test_divergence_manufactured():
     # VR = R (a function of R only), VZ = VPhi = 0
     # ∇·V = ∂_R(R) + 0 + R/R = 1 + 1 = 2
     VR = R[:, None, None] * np.ones((nR, nZ, nPhi))
-    v = VectorField3DCylindrical(R=R, Z=Z, Phi=Phi,
+    v = VectorFieldCylind(R=R, Z=Z, Phi=Phi,
                                VR=VR, VZ=np.zeros_like(VR), VPhi=np.zeros_like(VR))
     div = divergence(v)
     # Expect ≈ 2 at interior points (boundary has one-sided diff errors)
@@ -84,12 +111,12 @@ def test_directional_derivative_of_scalar_constant():
     nR, nZ, nPhi = len(R), len(Z), len(Phi)
     rng = np.random.default_rng(7)
     # Random vector field
-    v = VectorField3DCylindrical(R=R, Z=Z, Phi=Phi,
+    v = VectorFieldCylind(R=R, Z=Z, Phi=Phi,
                                VR=rng.normal(size=(nR, nZ, nPhi)),
                                VZ=rng.normal(size=(nR, nZ, nPhi)),
                                VPhi=rng.normal(size=(nR, nZ, nPhi)))
     # Constant scalar field
-    s = ScalarField3DCylindrical(R=R, Z=Z, Phi=Phi,
+    s = ScalarFieldCylind(R=R, Z=Z, Phi=Phi,
                                value=5.0 * np.ones((nR, nZ, nPhi)))
     result = directional_derivative_of_scalar(v, s)
     assert np.allclose(result.value, 0, atol=1e-12)
@@ -100,7 +127,7 @@ def test_directional_derivative_of_vector_constant():
     R, Z, Phi = make_grid()
     nR, nZ, nPhi = len(R), len(Z), len(Phi)
     # v1 with only VZ component, constant everywhere
-    v1 = VectorField3DCylindrical(R=R, Z=Z, Phi=Phi,
+    v1 = VectorFieldCylind(R=R, Z=Z, Phi=Phi,
                                 VR=np.zeros((nR, nZ, nPhi)),
                                 VZ=np.ones((nR, nZ, nPhi)),
                                 VPhi=np.zeros((nR, nZ, nPhi)))

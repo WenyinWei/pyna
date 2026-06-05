@@ -196,11 +196,11 @@ This keeps related classes adjacent in IDE autocomplete and `dir()` output.
 | `BiotSavartCoilField` | `CoilFieldBiotSavart` | CoilField is the noun; Biot-Savart is the method |
 | `AnalyticCircularCoilField` | `CoilFieldAnalyticCircular` | CoilField is the noun; analytic+circular is the variant |
 | `VectorPotentialField` | `CoilFieldVectorPotential` | CoilField is the noun; vector-potential is the method |
-| `AxiSymmetricVectorField3D` | `VectorField3DAxiSymmetric` | `3D` before `AxiSymmetric`: dimensionality is prerequisite for symmetry |
-| `AxiSymmetricScalarField3D` | `ScalarField3DAxiSymmetric` | same: you must first know it's 3D, then constrain to axisymmetric |
-| `CylindricalVectorField3D` | `VectorField3DCylindrical` | VectorField is the noun; Cylindrical is the coord-system qualifier |
-| `CylindricalScalarField3D` | `ScalarField3DCylindrical` | ScalarField is the noun; Cylindrical is the coord-system qualifier |
-| `CylindricalGridVectorField3D` | `VectorField3DCylindrical` | same rule; "Grid" is implicit in "Cylindrical" (regular grid) |
+| `AxiSymmetricVectorField3D` | `VectorFieldCylindAxisym` | `3D` before `AxiSymmetric`: dimensionality is prerequisite for symmetry |
+| `AxiSymmetricScalarField3D` | `ScalarFieldCylindAxisym` | same: you must first know it's 3D, then constrain to axisymmetric |
+| `CylindricalVectorField3D` | `VectorFieldCylind` | VectorField is the noun; Cylindrical is the coord-system qualifier |
+| `CylindricalScalarField3D` | `ScalarFieldCylind` | ScalarField is the noun; Cylindrical is the coord-system qualifier |
+| `CylindricalGridVectorField3D` | `VectorFieldCylind` | same rule; "Grid" is implicit in "Cylindrical" (regular grid) |
 | `CylindricalCoords3D` | `Coords3DCylindrical` | Coords is the noun; 3D is the dimension; Cylindrical is the geometry |
 | `SphericalCoords3D` | `Coords3DSpherical` | same ordering rule |
 | `VacuumCoilField` | `CoilFieldVacuum` | CoilField is the noun; Vacuum is the physics qualifier |

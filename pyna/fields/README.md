@@ -17,18 +17,18 @@ Field  (abstract — fields/base.py)
 │
 ├── ScalarField  (range_rank = 0)
 │   ├── ScalarField1D / 2D / 3D / 4D   (abstract, domain_dim specialised)
-│   └── ScalarField3DCylindrical        ← concrete implementation
-│       └── ScalarField3DAxiSymmetric   ← ∂/∂φ = 0 specialisation
+│   └── ScalarFieldCylind        ← concrete implementation
+│       └── ScalarFieldCylindAxisym   ← ∂/∂φ = 0 specialisation
 │
 ├── VectorField  (range_rank = 1)
 │   ├── VectorField1D / 2D / 3D / 4D   (abstract)
 │   │   └── VectorField3D
-│   │       ├── VectorField3DCylindrical    ← concrete: (R,Z,φ) grid
-│   │       └── VectorField3DAxiSymmetric  ← no φ variation
+│   │       ├── VectorFieldCylind    ← concrete: (R,Z,φ) grid
+│   │       └── VectorFieldCylindAxisym  ← no φ variation
 │   └── (VectorField4D)
 │
 └── TensorField  (range_rank ≥ 2)
-    ├── TensorField3DRank2   ← rank-2 tensor on (R,Z,φ) domain
+    ├── Tensor2FieldCylind   ← rank-2 tensor on (R,Z,φ) domain
     └── TensorField4DRank2
 ```
 
@@ -39,7 +39,7 @@ Field  (abstract — fields/base.py)
 | File | Contents |
 |------|----------|
 | `base.py` | Abstract `Field`, `ScalarField`, `VectorField`, `TensorField` and their 1-D–4-D specialisations |
-| `cylindrical.py` | Concrete grid-based implementations: `ScalarField3DCylindrical`, `VectorField3DCylindrical`, `VectorField3DAxiSymmetric`, `ScalarField3DAxiSymmetric` |
+| `cylindrical.py` | Concrete grid-based implementations: `ScalarFieldCylind`, `VectorFieldCylind`, `VectorFieldCylindAxisym`, `ScalarFieldCylindAxisym` |
 | `toroidal.py` | Fixed-section toroidal compatibility helpers: `VectorFieldCylind`, `VectorFieldCylindAxisym`, `Equilibrium`, `compute_J_by_curl` |
 | `coords.py` | Coordinate-system metadata: `Coords3DCylindrical`, `Coords3DSpherical`, `Coords3DToroidal`, `Coords4D*` |
 | `properties.py` | `FieldProperty` flag enum: `DIVERGENCE_FREE`, `CURL_FREE`, `HARMONIC`, etc. |
@@ -51,10 +51,10 @@ Field  (abstract — fields/base.py)
 ## Quick-start
 
 ```python
-from pyna.fields import VectorField3DCylindrical, ScalarField3DCylindrical
+from pyna.fields import VectorFieldCylind, ScalarFieldCylind
 
 # Construct a magnetic field on a (R, Z, φ) grid
-B = VectorField3DCylindrical(
+B = VectorFieldCylind(
     R=R_arr, Z=Z_arr, Phi=Phi_arr,
     VR=VR_data, VZ=VZ_data, VPhi=VPhi_data,
     name='B_field', units='T',
@@ -76,7 +76,7 @@ field_vals = B(pts)  # shape (N, 3)
 ## Design rules
 
 1. **Single canonical hierarchy** — do not create parallel field classes
-   elsewhere.  Extend `VectorField3DCylindrical` or add a new concrete subclass.
+   elsewhere.  Extend `VectorFieldCylind` or add a new concrete subclass.
 2. **Compatibility helpers live here** — legacy imports such as
    `pyna.topo.field.VectorFieldCylind` must re-export `pyna.fields` classes.
 3. **No new backward-compat aliases** — rename and update all call sites immediately.

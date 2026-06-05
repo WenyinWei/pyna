@@ -1,11 +1,11 @@
-"""Tests for pyna.field_data — VectorField3DCylindrical and ScalarField3DCylindrical."""
+"""Tests for pyna.field_data — VectorFieldCylind and ScalarFieldCylind."""
 
 import numpy as np
 import pytest
 import tempfile
 import os
 
-from pyna.fields import VectorField3DCylindrical, ScalarField3DCylindrical
+from pyna.fields import VectorFieldCylind, ScalarFieldCylind
 from pyna.vector_calc import magnitude
 
 
@@ -19,7 +19,7 @@ def make_simple_vfield(nR=12, nZ=10, nPhi=8):
     VPhi = 1.0 / R[:, None, None] * np.ones((nR, nZ, nPhi))
     VR = np.zeros((nR, nZ, nPhi))
     VZ = np.zeros((nR, nZ, nPhi))
-    return VectorField3DCylindrical(R=R, Z=Z, Phi=Phi, VR=VR, VZ=VZ, VPhi=VPhi)
+    return VectorFieldCylind(R=R, Z=Z, Phi=Phi, VR=VR, VZ=VZ, VPhi=VPhi)
 
 
 def make_simple_sfield(nR=12, nZ=10, nPhi=8):
@@ -28,7 +28,7 @@ def make_simple_sfield(nR=12, nZ=10, nPhi=8):
     Z = np.linspace(-0.5, 0.5, nZ)
     Phi = np.linspace(0, 2 * np.pi, nPhi, endpoint=False)
     value = R[:, None, None]**2 * np.ones((nR, nZ, nPhi))
-    return ScalarField3DCylindrical(R=R, Z=Z, Phi=Phi, value=value)
+    return ScalarFieldCylind(R=R, Z=Z, Phi=Phi, value=value)
 
 
 # ---- Tests ------------------------------------------------------------------
@@ -38,8 +38,8 @@ def test_vfield_shape_assertion():
     R = np.linspace(1, 2, 5)
     Z = np.linspace(-1, 1, 4)
     Phi = np.linspace(0, 2 * np.pi, 3, endpoint=False)
-    with pytest.raises(AssertionError):
-        VectorField3DCylindrical(R=R, Z=Z, Phi=Phi,
+    with pytest.raises(ValueError):
+        VectorFieldCylind(R=R, Z=Z, Phi=Phi,
                                VR=np.zeros((5, 4, 4)),  # wrong nPhi
                                VZ=np.zeros((5, 4, 3)),
                                VPhi=np.zeros((5, 4, 3)))
@@ -78,7 +78,7 @@ def test_vfield_from_callable():
     R = np.linspace(1.0, 2.0, 8)
     Z = np.linspace(-0.3, 0.3, 6)
     Phi = np.linspace(0, 2 * np.pi, 5, endpoint=False)
-    v = VectorField3DCylindrical.from_callable(field_func, R, Z, Phi, n_workers=2)
+    v = VectorFieldCylind.from_callable(field_func, R, Z, Phi, n_workers=2)
 
     # Check one interior point
     iR, iZ, iPhi = 3, 2, 1
@@ -92,7 +92,7 @@ def test_vfield_to_from_npz_roundtrip():
     with tempfile.TemporaryDirectory() as tmp:
         path = os.path.join(tmp, "test_field")
         v.to_npz(path)
-        v2 = VectorField3DCylindrical.from_npz(path + ".npz")
+        v2 = VectorFieldCylind.from_npz(path + ".npz")
     assert np.allclose(v.VPhi, v2.VPhi)
     assert np.allclose(v.R, v2.R)
     assert v.field_periods == v2.field_periods
@@ -103,7 +103,7 @@ def test_sfield_to_from_npz_roundtrip():
     with tempfile.TemporaryDirectory() as tmp:
         path = os.path.join(tmp, "test_scalar")
         s.to_npz(path)
-        s2 = ScalarField3DCylindrical.from_npz(path + ".npz")
+        s2 = ScalarFieldCylind.from_npz(path + ".npz")
     assert np.allclose(s.value, s2.value)
 
 
@@ -112,5 +112,5 @@ def test_magnitude_uniform_field():
     v = make_simple_vfield()
     mag = magnitude(v)
     R3d = v.R[:, None, None]
-    expected = 1.0 / R3d * np.ones_like(mag)
-    assert np.allclose(mag, expected, rtol=1e-10)
+    expected = 1.0 / R3d * np.ones_like(mag.value)
+    assert np.allclose(mag.value, expected, rtol=1e-10)

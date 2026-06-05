@@ -72,17 +72,17 @@ All field-like objects in pyna descend from a single abstract tree.
 Field  (abstract)
 ├── ScalarField  (range rank = 0)
 │   ├── ScalarField1D / 2D / 3D / 4D
-│   └── ScalarField3DCylindrical   — concrete: (R,Z,φ) grid + interpolation
-│       └── ScalarField3DAxiSymmetric  — ∂/∂φ = 0
+│   └── ScalarFieldCylind   — concrete: (R,Z,φ) grid + interpolation
+│       └── ScalarFieldCylindAxisym  — ∂/∂φ = 0
 └── VectorField  (range rank = 1)
     ├── VectorField1D / 2D / 3D / 4D
     │   └── VectorField3D
-    │       ├── VectorField3DCylindrical   — concrete: (R,Z,φ) grid
-    │       └── VectorField3DAxiSymmetric  — no φ variation
+    │       ├── VectorFieldCylind   — concrete: (R,Z,φ) grid
+    │       └── VectorFieldCylindAxisym  — no φ variation
     ├── VectorFieldCylind / VectorFieldCylindAxisym
     │       — fixed-section compatibility helpers for historical toroidal APIs
     └── TensorField  (range rank ≥ 2)
-        ├── TensorField3DRank2
+        ├── Tensor2FieldCylind
         └── TensorField4DRank2
 ```
 
@@ -107,7 +107,7 @@ DynamicalSystem  (abstract)
 └── AutonomousDynamicalSystem       — = f(x)
     └── VectorField                 a VectorField IS a DynamicalSystem
         ├── VectorField1D / 2D / 3D / 4D
-        └── VectorField3DAxiSymmetric
+        └── VectorFieldCylindAxisym
 ```
 
 Key contracts: `state_dim` (int), `__call__(coords)` → velocity.
@@ -430,7 +430,7 @@ See `STYLE.md` for the full style guide.  Quick reference:
 | Proper nouns / acronyms | Keep capitalisation | `Biot_Savart_field`, `RMP_coils`, `MHD_response_operator` |
 | Poincaré map Jacobian | `DP` / `DPm` | not `J`, not `M` |
 | Orbital Jacobian | `DX` | not `J` |
-| Class names | Noun first, qualifier last | `VectorField3DCylindrical`, `EquilibriumSolovev` |
+| Class names | Noun first, qualifier last | `VectorFieldCylind`, `EquilibriumSolovev` |
 | Coordinates | `R, Z, phi` (cylindrical); `psi_B, theta_B, phi_B` (Boozer) | |
 | Continuous solutions | *trajectory* | `trajectory_RZPhi` |
 | Discrete iterates | *orbit* | `orbit_RZ` |

@@ -2,10 +2,10 @@
 import numpy as np
 import pytest
 from pyna.toroidal.coils.field import (
-    VectorField3DCylindrical,
-    VectorField3DAxiSymmetric,
+    VectorFieldCylind,
+    VectorFieldCylindAxisym,
 )
-from pyna.system import VectorField3D, VectorField3DAxiSymmetric, VectorField
+from pyna.system import VectorField3D, VectorFieldCylindAxisym, VectorField
 
 
 # ---------------------------------------------------------------------------
@@ -21,7 +21,7 @@ def vf3d():
     BR = 0.1 * np.sin(PP)
     BZ = 0.05 * ZZ
     BPhi = 2.0 * R[0] / RR
-    return VectorField3DCylindrical(R, Z, Phi, BR, BZ, BPhi)
+    return VectorFieldCylind(R, Z, Phi, BR, BZ, BPhi)
 
 
 @pytest.fixture()
@@ -32,7 +32,7 @@ def axivf3d():
     BR = np.zeros_like(RR)
     BZ = 0.05 * ZZ
     BPhi = 2.0 / RR
-    return VectorField3DAxiSymmetric(R, Z, BR, BZ, BPhi)
+    return VectorFieldCylindAxisym(R, Z, BR, BZ, BPhi)
 
 
 # ---------------------------------------------------------------------------
@@ -45,7 +45,7 @@ def test_cgvf3d_mro(vf3d):
 
 
 def test_axiavf3d_mro(axivf3d):
-    assert isinstance(axivf3d, VectorField3DAxiSymmetric)
+    assert isinstance(axivf3d, VectorFieldCylindAxisym)
     assert isinstance(axivf3d, VectorField3D)
 
 
@@ -67,7 +67,7 @@ def test_axivf3d_dim(axivf3d):
 # ---------------------------------------------------------------------------
 
 def test_regualr_alias(vf3d):
-    assert type(vf3d) is VectorField3DCylindrical
+    assert type(vf3d) is VectorFieldCylind
 
 
 # ---------------------------------------------------------------------------
@@ -84,7 +84,7 @@ def test_grid_properties(vf3d):
 def test_axi_grid_properties(axivf3d):
     assert len(axivf3d.R) == 30
     assert len(axivf3d.Z) == 30
-    # VectorField3DAxiSymmetric stores components as (nR, nZ, 1) via the parent's 3D layout
+    # VectorFieldCylindAxisym stores components as (nR, nZ, 1) via the parent's 3D layout
     assert axivf3d.BR.shape == (30, 30, 1)
 
 

@@ -141,7 +141,7 @@ class VectorField4D(VectorField):
         return 4
 
 
-class _LegacyVectorField3DAxiSymmetric(_LegacyVectorField3D):
+class _LegacyVectorFieldCylindAxisym(_LegacyVectorField3D):
     """Axisymmetric 3-D vector field (no φ dependence in cylindrical coords).
 
     Special case of :class:`VectorField3D` where the field components
@@ -158,14 +158,14 @@ class _LegacyVectorField3DAxiSymmetric(_LegacyVectorField3D):
 
 
 # ── Canonical names point to pyna.fields ──────────────────────────────────────
-# VectorField3DCylindrical inherits from fields.base.VectorField3D, so
+# VectorFieldCylind inherits from fields.base.VectorField3D, so
 # isinstance(field, VectorField3D) works for all cylindrical fields.
 from pyna.fields.base import (  # noqa: E402
     VectorField3D as VectorField3D,
     VectorField as _FieldsVectorField,
 )
 from pyna.fields.cylindrical import (  # noqa: E402
-    VectorField3DAxiSymmetric as VectorField3DAxiSymmetric,
+    VectorFieldCylindAxisym as VectorFieldCylindAxisym,
 )
 
 # Register fields.base classes as virtual subclasses of system.VectorField

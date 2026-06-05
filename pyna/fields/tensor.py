@@ -1,4 +1,4 @@
-"""Concrete rank-2 tensor field on cylindrical grid."""
+"""Concrete tensor fields on cylindrical grids."""
 from __future__ import annotations
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
@@ -7,7 +7,7 @@ from pyna.fields.base import TensorField
 from pyna.fields.properties import FieldProperty
 
 
-class TensorField3DRank2(_TF3D_rank2_Base):
+class Tensor2FieldCylind(_TF3D_rank2_Base):
     """Rank-2 tensor field T_ij(R, Z, φ) on a regular cylindrical grid.
 
     Data shape: (nR, nZ, nPhi, 3, 3) — spatial axes first, tensor indices last.
@@ -44,25 +44,30 @@ class TensorField3DRank2(_TF3D_rank2_Base):
     def Phi(self): return self._Phi
     @property
     def data(self): return self._data
+    @property
+    def is_axisymmetric(self) -> bool: return False
 
     def component(self, i: int, j: int) -> np.ndarray:
         """Return the (i,j) component grid, shape (nR, nZ, nPhi)."""
         return self._data[:, :, :, i, j]
 
-    def trace(self) -> np.ndarray:
-        """Return trace T_ii, shape (nR, nZ, nPhi)."""
-        return sum(self._data[:,:,:,i,i] for i in range(3))
+    def trace(self):
+        """Return trace T_ii as a scalar field."""
+        from pyna.fields.cylindrical import ScalarFieldCylind
+        value = sum(self._data[:,:,:,i,i] for i in range(3))
+        return ScalarFieldCylind(self._R, self._Z, self._Phi, value,
+                                 name=f"tr({self.name})", units=self.units)
 
-    def transpose(self) -> "TensorField3DRank2":
+    def transpose(self) -> "Tensor2FieldCylind":
         """Return T^T (swap last two axes)."""
-        return TensorField3DRank2(
+        return Tensor2FieldCylind(
             self._R, self._Z, self._Phi,
             np.transpose(self._data, (0,1,2,4,3)),
             name=f"({self.name})^T", units=self.units, properties=self._properties)
 
-    def symmetrize(self) -> "TensorField3DRank2":
+    def symmetrize(self) -> "Tensor2FieldCylind":
         """Return (T + T^T)/2."""
-        return TensorField3DRank2(
+        return Tensor2FieldCylind(
             self._R, self._Z, self._Phi,
             0.5 * (self._data + np.transpose(self._data, (0,1,2,4,3))),
             name=f"sym({self.name})", units=self.units,
@@ -89,6 +94,53 @@ class TensorField3DRank2(_TF3D_rank2_Base):
             for j in range(3):
                 out[:,i,j] = self._interps[i][j](pts)
         return out.reshape(shape + (3, 3))
+
+
+class Tensor2FieldCylindAxisym(Tensor2FieldCylind):
+    """Axisymmetric rank-2 tensor field T_ij(R, Z)."""
+
+    def __init__(self, R, Z, data_2d, name="", units="",
+                 properties=FieldProperty.NONE):
+        data = np.asarray(data_2d, dtype=float)
+        if data.ndim == 4:
+            data = data[:, :, np.newaxis, :, :]
+        elif data.ndim == 5 and data.shape[2] == 1:
+            pass
+        else:
+            raise ValueError("axisymmetric rank-2 tensor data must have shape (nR,nZ,3,3)")
+        super().__init__(R, Z, np.array([0.0]), data,
+                         name=name, units=units, properties=properties)
+
+    @property
+    def is_axisymmetric(self) -> bool: return True
+
+    @property
+    def data_2d(self) -> np.ndarray:
+        return self._data[:, :, 0, :, :]
+
+    def __call__(self, coords: np.ndarray, **kwargs) -> np.ndarray:
+        coords = np.asarray(coords, dtype=float)
+        coords_axi = coords.copy()
+        coords_axi[..., 2] = 0.0
+        return super().__call__(coords_axi, **kwargs)
+
+    def trace(self):
+        from pyna.fields.cylindrical import ScalarFieldCylindAxisym
+        value = sum(self._data[:, :, 0, i, i] for i in range(3))
+        return ScalarFieldCylindAxisym(self._R, self._Z, value,
+                                      name=f"tr({self.name})", units=self.units)
+
+    def transpose(self) -> "Tensor2FieldCylindAxisym":
+        return Tensor2FieldCylindAxisym(
+            self._R, self._Z, np.transpose(self.data_2d, (0,1,3,2)),
+            name=f"({self.name})^T", units=self.units, properties=self._properties)
+
+    def symmetrize(self) -> "Tensor2FieldCylindAxisym":
+        data_t = np.transpose(self.data_2d, (0,1,3,2))
+        return Tensor2FieldCylindAxisym(
+            self._R, self._Z, 0.5 * (self.data_2d + data_t),
+            name=f"sym({self.name})", units=self.units,
+            properties=self._properties | FieldProperty.SYMMETRIC)
 
 
 class TensorField4DRank2(TensorField):
@@ -182,3 +234,8 @@ class TensorField4DRank2(TensorField):
         data = g.reshape(shape + (4, 4))
         return cls(axes, data, name=f"g_{coords.__class__.__name__}",
                    units="", properties=FieldProperty.SYMMETRIC)
+
+
+# Compatibility name retained for older tensor callers; canonical code should
+# use Tensor2FieldCylind / Tensor2FieldCylindAxisym.
+TensorField3DRank2 = Tensor2FieldCylind

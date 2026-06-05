@@ -20,37 +20,33 @@ Reference:
 
 import numpy as np
 
-from pyna.fields.cylindrical import VectorField3DCylindrical, ScalarField3DCylindrical
+from pyna.fields.cylindrical import (
+    VectorFieldCylind,
+    ScalarFieldCylind,
+    _binary_grid,
+    _broadcast_vector_components,
+    _make_vector_result,
+)
 
-def magnitude(v: VectorField3DCylindrical) -> np.ndarray:
+def magnitude(v: VectorFieldCylind) -> ScalarFieldCylind:
 
-    """Pointwise magnitude |V| = sqrt(VR² + VZ² + VPhi²)."""
+    """Pointwise magnitude |V| as a scalar field."""
 
-    return np.sqrt(v.VR**2 + v.VZ**2 + v.VPhi**2)
+    return v.magnitude()
 
-def cross(v1: VectorField3DCylindrical, v2: VectorField3DCylindrical) -> VectorField3DCylindrical:
+def cross(v1: VectorFieldCylind, v2: VectorFieldCylind) -> VectorFieldCylind:
 
     """Cross product v1 × v2 in cylindrical coordinates.
 
-    (v1 × v2)_R   = v1_Z * v2_Phi - v1_Phi * v2_Z
+    (v1 × v2)_R   = v1_Phi * v2_Z - v1_Z * v2_Phi
 
-    (v1 × v2)_Z   = v1_Phi * v2_R  - v1_R  * v2_Phi
+    (v1 × v2)_Z   = v1_R * v2_Phi  - v1_Phi * v2_R
 
-    (v1 × v2)_Phi = v1_R  * v2_Z   - v1_Z  * v2_R
+    (v1 × v2)_Phi = v1_Z * v2_R    - v1_R * v2_Z
 
     """
 
-    return VectorField3DCylindrical(
-
-        R=v1.R, Z=v1.Z, Phi=v1.Phi, field_periods=v1.field_periods,
-
-        VR=v1.VZ * v2.VPhi - v1.VPhi * v2.VZ,
-
-        VZ=v1.VPhi * v2.VR - v1.VR * v2.VPhi,
-
-        VPhi=v1.VR * v2.VZ - v1.VZ * v2.VR,
-
-    )
+    return v1.cross(v2)
 
 def _grad_R(arr, R):
 
@@ -92,6 +88,9 @@ def _grad_phi(arr, Phi, periodic=True):
 
     """Second-order central differences along phi (axis 2), periodic BCs."""
 
+    if len(Phi) < 2:
+        return np.zeros_like(arr)
+
     out = np.empty_like(arr)
 
     if periodic:
@@ -114,7 +113,7 @@ def _grad_phi(arr, Phi, periodic=True):
 
     return out
 
-def divergence(v: VectorField3DCylindrical) -> ScalarField3DCylindrical:
+def divergence(v: VectorFieldCylind) -> ScalarFieldCylind:
 
     """Divergence ∇·V in cylindrical coords using 2nd-order finite differences.
 
@@ -126,35 +125,13 @@ def divergence(v: VectorField3DCylindrical) -> ScalarField3DCylindrical:
 
     """
 
-    R3d = v.R[:, None, None]  # broadcast shape (nR, 1, 1)
-
-    dVR_dR = _grad_R(v.VR, v.R)
-
-    dVZ_dZ = _grad_Z(v.VZ, v.Z)
-
-    dVPhi_dphi = _grad_phi(v.VPhi, v.Phi, periodic=True)
-
-    div = dVR_dR + dVZ_dZ + (v.VR + dVPhi_dphi) / R3d
-
-    return ScalarField3DCylindrical(
-
-        R=v.R, Z=v.Z, Phi=v.Phi,
-
-        value=div,
-
-        field_periods=v.field_periods,
-
-        name=f"div({v.name})",
-
-        units=""
-
-    )
+    return v.div()
 
 def directional_derivative_of_scalar(
 
-    v: VectorField3DCylindrical, s: ScalarField3DCylindrical
+    v: VectorFieldCylind, s: ScalarFieldCylind
 
-) -> ScalarField3DCylindrical:
+) -> ScalarFieldCylind:
 
     """v·∇s in cylindrical coordinates.
 
@@ -162,35 +139,13 @@ def directional_derivative_of_scalar(
 
     """
 
-    R3d = v.R[:, None, None]
-
-    ds_dR = _grad_R(s.value, s.R)
-
-    ds_dZ = _grad_Z(s.value, s.Z)
-
-    ds_dphi = _grad_phi(s.value, s.Phi, periodic=True)
-
-    result = v.VR * ds_dR + v.VZ * ds_dZ + (v.VPhi / R3d) * ds_dphi
-
-    return ScalarField3DCylindrical(
-
-        R=s.R, Z=s.Z, Phi=s.Phi,
-
-        value=result,
-
-        field_periods=s.field_periods,
-
-        name=f"({v.name})·∇({s.name})",
-
-        units=s.units
-
-    )
+    return v.dot(s.grad())
 
 def directional_derivative_of_vector(
 
-    v1: VectorField3DCylindrical, v2: VectorField3DCylindrical
+    v1: VectorFieldCylind, v2: VectorFieldCylind
 
-) -> VectorField3DCylindrical:
+) -> VectorFieldCylind:
 
     """v1·∇v2 in cylindrical coordinates (includes Christoffel terms).
 
@@ -206,47 +161,35 @@ def directional_derivative_of_vector(
 
     """
 
-    R3d = v1.R[:, None, None]
+    R, Z, Phi, axisym, section = _binary_grid(v1, v2)
+    v1R, v1Z, v1Phi = _broadcast_vector_components(v1, Phi)
+    v2R, v2Z, v2Phi = _broadcast_vector_components(v2, Phi)
+    R3d = R[:, None, None]
 
-    v1phi_over_R = v1.VPhi / R3d
+    v1phi_over_R = v1Phi / R3d
 
-    dv2R_dR = _grad_R(v2.VR, v2.R)
+    dv2R_dR = _grad_R(v2R, R)
+    dv2R_dZ = _grad_Z(v2R, Z)
+    dv2R_dphi = _grad_phi(v2R, Phi)
 
-    dv2R_dZ = _grad_Z(v2.VR, v2.Z)
+    dv2Z_dR = _grad_R(v2Z, R)
+    dv2Z_dZ = _grad_Z(v2Z, Z)
+    dv2Z_dphi = _grad_phi(v2Z, Phi)
 
-    dv2R_dphi = _grad_phi(v2.VR, v2.Phi)
+    dv2Phi_dR = _grad_R(v2Phi, R)
+    dv2Phi_dZ = _grad_Z(v2Phi, Z)
+    dv2Phi_dphi = _grad_phi(v2Phi, Phi)
 
-    dv2Z_dR = _grad_R(v2.VZ, v2.R)
+    res_R = (v1R * dv2R_dR + v1Z * dv2R_dZ + v1phi_over_R * dv2R_dphi
+             - v1Phi * v2Phi / R3d)
+    res_Z = v1R * dv2Z_dR + v1Z * dv2Z_dZ + v1phi_over_R * dv2Z_dphi
+    res_Phi = (v1R * dv2Phi_dR + v1Z * dv2Phi_dZ + v1phi_over_R * dv2Phi_dphi
+               + v1Phi * v2R / R3d)
 
-    dv2Z_dZ = _grad_Z(v2.VZ, v2.Z)
-
-    dv2Z_dphi = _grad_phi(v2.VZ, v2.Phi)
-
-    dv2Phi_dR = _grad_R(v2.VPhi, v2.R)
-
-    dv2Phi_dZ = _grad_Z(v2.VPhi, v2.Z)
-
-    dv2Phi_dphi = _grad_phi(v2.VPhi, v2.Phi)
-
-    res_R = (v1.VR * dv2R_dR + v1.VZ * dv2R_dZ + v1phi_over_R * dv2R_dphi
-
-             - v1.VPhi * v2.VPhi / R3d)
-
-    res_Z = v1.VR * dv2Z_dR + v1.VZ * dv2Z_dZ + v1phi_over_R * dv2Z_dphi
-
-    res_Phi = (v1.VR * dv2Phi_dR + v1.VZ * dv2Phi_dZ + v1phi_over_R * dv2Phi_dphi
-
-               + v1.VPhi * v2.VR / R3d)
-
-    return VectorField3DCylindrical(
-
-        R=v1.R, Z=v1.Z, Phi=v1.Phi,
-
-        VR=res_R, VZ=res_Z, VPhi=res_Phi,
-
-        field_periods=v1.field_periods,
-
-        name=f"({v1.name})·∇({v2.name})"
-
+    return _make_vector_result(
+        R, Z, Phi, res_R, res_Z, res_Phi,
+        axisym=axisym,
+        section=section,
+        name=f"({v1.name})·∇({v2.name})",
     )
 
