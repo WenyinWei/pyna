@@ -89,6 +89,21 @@ def test_bfield_finite(eq):
     assert np.all(np.isfinite(BPhi))
 
 
+def test_to_vector_field_matches_bfield(eq):
+    from pyna.fields import VectorFieldCylindAxisym
+
+    R = np.linspace(eq.R0 - 0.3, eq.R0 + 0.3, 10)
+    Z = np.linspace(-0.2, 0.2, 8)
+    RR, ZZ = np.meshgrid(R, Z, indexing="ij")
+    BR, BZ, BPhi = eq.B_field(RR, ZZ)
+    field = eq.to_vector_field(R, Z)
+
+    assert isinstance(field, VectorFieldCylindAxisym)
+    np.testing.assert_allclose(field.BR[:, :, 0], BR)
+    np.testing.assert_allclose(field.BZ[:, :, 0], BZ)
+    np.testing.assert_allclose(field.BPhi[:, :, 0], BPhi)
+
+
 # ---------------------------------------------------------------------------
 # time_linear_weighting
 # ---------------------------------------------------------------------------

@@ -125,6 +125,24 @@ class TestCoilSet:
         assert BZ.shape == (5, 4)
         assert BP.shape == (5, 4)
 
+    def test_to_vector_field_matches_field_on_grid(self):
+        from pyna.fields import VectorFieldCylind
+        from pyna.toroidal.coils.coil_system import CoilSet
+
+        cs = CoilSet()
+        pts = make_circular_loop_pts(0.5, N=50)
+        cs.add_coil(pts, 100.0)
+
+        R_1d = np.linspace(0.1, 0.9, 5)
+        Z_1d = np.linspace(-0.3, 0.3, 4)
+        BR, BZ, BPhi = cs.field_on_grid(R_1d, Z_1d, phi_1d=np.array([0.0]))
+        field = cs.to_vector_field(R_1d, Z_1d, phi=0.0)
+
+        assert isinstance(field, VectorFieldCylind)
+        np.testing.assert_allclose(field.BR, BR[:, :, 0])
+        np.testing.assert_allclose(field.BZ, BZ[:, :, 0])
+        np.testing.assert_allclose(field.BPhi, BPhi[:, :, 0])
+
     def test_get_set_currents(self):
         from pyna.toroidal.coils.coil_system import CoilSet
 

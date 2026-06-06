@@ -185,6 +185,62 @@ class CoilSet:
 
         return BR_tot, BZ_tot, BP_tot
 
+    def to_vector_field(
+        self,
+        R_1d,
+        Z_1d,
+        phi_1d=None,
+        *,
+        phi: float = 0.0,
+        n_workers=None,
+        label: str = "",
+    ):
+        """Compute total coil field as ``VectorFieldCylind``.
+
+        ``field_on_grid`` is retained for legacy tuple callers.  This helper is
+        the preferred high-level API because component access is named.
+        """
+
+        from pyna.fields.cylindrical import VectorFieldCylind
+
+        R_1d = np.asarray(R_1d, dtype=float)
+        Z_1d = np.asarray(Z_1d, dtype=float)
+        if phi_1d is None:
+            phi_arr = np.asarray([float(phi)], dtype=float)
+            BR, BZ, BPhi = self.field_on_grid(
+                R_1d,
+                Z_1d,
+                phi_arr,
+                n_workers=n_workers,
+            )
+            return VectorFieldCylind(
+                R_1d,
+                Z_1d,
+                BR=BR[:, :, 0],
+                BZ=BZ[:, :, 0],
+                BPhi=BPhi[:, :, 0],
+                phi=float(phi),
+                label=label,
+                section_mode=True,
+            )
+
+        phi_arr = np.asarray(phi_1d, dtype=float)
+        BR, BZ, BPhi = self.field_on_grid(
+            R_1d,
+            Z_1d,
+            phi_arr,
+            n_workers=n_workers,
+        )
+        return VectorFieldCylind(
+            R_1d,
+            Z_1d,
+            phi_arr,
+            BR=BR,
+            BZ=BZ,
+            BPhi=BPhi,
+            label=label,
+        )
+
     def scale_currents(self, scale):
         """Scale all currents by a factor."""
         self.coils = [(pts, I * scale) for pts, I in self.coils]

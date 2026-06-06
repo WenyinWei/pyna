@@ -103,6 +103,35 @@ class EquilibriumAxisym(ABC):
         (BR, BZ, BPhi) : tuple of ndarray
         """
 
+    def to_vector_field(
+        self,
+        R_arr: Optional[np.ndarray] = None,
+        Z_arr: Optional[np.ndarray] = None,
+        *,
+        name: str = "",
+    ):
+        """Evaluate the equilibrium on an R-Z grid as ``VectorFieldCylindAxisym``.
+
+        ``B_field`` remains the legacy component-tuple API.  This helper is the
+        preferred object API for code that wants named ``BR``, ``BZ`` and
+        ``BPhi`` access.
+        """
+
+        from pyna.fields.cylindrical import VectorFieldCylindAxisym
+
+        R_vec = np.asarray(self.R_mesh if R_arr is None else R_arr, dtype=float)
+        Z_vec = np.asarray(self.Z_mesh if Z_arr is None else Z_arr, dtype=float)
+        RR, ZZ = np.meshgrid(R_vec, Z_vec, indexing="ij")
+        BR, BZ, BPhi = self.B_field(RR, ZZ)
+        return VectorFieldCylindAxisym(
+            R_vec,
+            Z_vec,
+            BR=np.asarray(BR, dtype=float),
+            BZ=np.asarray(BZ, dtype=float),
+            BPhi=np.asarray(BPhi, dtype=float),
+            name=name,
+        )
+
 
 # ---------------------------------------------------------------------------
 # Synthetic equilibrium

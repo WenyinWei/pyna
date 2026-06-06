@@ -80,6 +80,7 @@ from pyna.topo.fpt import (
     CyclePerturbationResponse,
     InvariantTorusPerturbationResponse,
     StableManifoldPerturbationResponse,
+    compute_cycle_response,
     compute_cycle_response_from_cache,
 )
 from pyna.topo.identity import ResonanceID, TubeID, IslandID
@@ -252,6 +253,7 @@ __all__ = [
     "CyclePerturbationResponse",
     "InvariantTorusPerturbationResponse",
     "StableManifoldPerturbationResponse",
+    "compute_cycle_response",
     "compute_cycle_response_from_cache",
     # Identity / bridge layer
     "ResonanceID",

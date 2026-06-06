@@ -82,6 +82,60 @@ class CoilFieldVacuum(ABC):
             return mem.cache(_compute, ignore=[])()
         return _compute()
 
+    def to_vector_field(
+        self,
+        R_arr: np.ndarray,
+        Z_arr: np.ndarray,
+        Phi_arr: np.ndarray | None = None,
+        *,
+        phi: float = 0.0,
+        label: str = "",
+        cache_path: str | None = None,
+        cache_key: str | None = None,
+    ):
+        """Evaluate this coil field as a canonical ``VectorFieldCylind``.
+
+        Legacy callers can keep using :meth:`B_at` or :meth:`to_grid_field`.
+        New high-level code should prefer this object form and access
+        ``field.BR``, ``field.BZ`` and ``field.BPhi`` by name.
+        """
+
+        from pyna.fields.cylindrical import VectorFieldCylind
+
+        R_arr = np.asarray(R_arr, dtype=float)
+        Z_arr = np.asarray(Z_arr, dtype=float)
+        if Phi_arr is None:
+            RR, ZZ = np.meshgrid(R_arr, Z_arr, indexing='ij')
+            PP = np.full_like(RR, float(phi), dtype=float)
+            BR, BZ, BPhi = self.B_at(RR, ZZ, PP)
+            return VectorFieldCylind(
+                R_arr, Z_arr,
+                BR=np.asarray(BR, dtype=float),
+                BZ=np.asarray(BZ, dtype=float),
+                BPhi=np.asarray(BPhi, dtype=float),
+                phi=float(phi),
+                label=label,
+                section_mode=True,
+            )
+
+        Phi_arr = np.asarray(Phi_arr, dtype=float)
+        BR, BZ, BPhi = self.to_grid_field(
+            R_arr,
+            Z_arr,
+            Phi_arr,
+            cache_path=cache_path,
+            cache_key=cache_key,
+        )
+        return VectorFieldCylind(
+            R_arr,
+            Z_arr,
+            Phi_arr,
+            BR=np.asarray(BR, dtype=float),
+            BZ=np.asarray(BZ, dtype=float),
+            BPhi=np.asarray(BPhi, dtype=float),
+            label=label,
+        )
+
 
 class CoilFieldSuperposition(CoilFieldVacuum):
     """Linear superposition of multiple CoilFieldVacuum objects.

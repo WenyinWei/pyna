@@ -26,9 +26,11 @@ period.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Mapping
+from typing import Any, Mapping
 
 import numpy as np
+
+from pyna._cyna.utils import prepare_field_cache
 
 try:
     from pyna._cyna import compute_cycle_perturbation_response as _cyna_cycle_response
@@ -41,6 +43,7 @@ __all__ = [
     "CyclePerturbationResponse",
     "InvariantTorusPerturbationResponse",
     "StableManifoldPerturbationResponse",
+    "compute_cycle_response",
     "compute_cycle_response_from_cache",
 ]
 
@@ -117,13 +120,44 @@ def _cache_array(cache: Mapping[str, np.ndarray], key: str) -> np.ndarray:
     return np.ascontiguousarray(arr, dtype=np.float64)
 
 
+def compute_cycle_response(
+    R0: float,
+    Z0: float,
+    phi0: float,
+    phi_span: float,
+    base_field: Any,
+    pert_field: Any,
+    *,
+    dphi_out: float = 0.01,
+    DPhi: float = 0.01,
+    fd_eps: float = 1e-4,
+) -> CyclePerturbationResponse:
+    """Compute cycle FPT response from cylindrical vector-field objects.
+
+    ``base_field`` and ``pert_field`` may be :class:`VectorFieldCylind`
+    instances, compatible field-like objects, or legacy field-cache dicts.
+    """
+
+    return compute_cycle_response_from_cache(
+        R0,
+        Z0,
+        phi0,
+        phi_span,
+        base_field,
+        pert_field,
+        dphi_out=dphi_out,
+        DPhi=DPhi,
+        fd_eps=fd_eps,
+    )
+
+
 def compute_cycle_response_from_cache(
     R0: float,
     Z0: float,
     phi0: float,
     phi_span: float,
-    base_field_cache: Mapping[str, np.ndarray],
-    pert_field_cache: Mapping[str, np.ndarray],
+    base_field_cache: Any,
+    pert_field_cache: Any,
     *,
     dphi_out: float = 0.01,
     DPhi: float = 0.01,
@@ -131,7 +165,9 @@ def compute_cycle_response_from_cache(
 ) -> CyclePerturbationResponse:
     """Compute ``delta_X_pol`` and periodic ``delta_X_cyc`` using cyna.
 
-    ``base_field_cache`` and ``pert_field_cache`` must contain
+    ``base_field_cache`` and ``pert_field_cache`` may be
+    :class:`VectorFieldCylind` objects, compatible field-like objects, or
+    legacy field-cache dicts containing
     ``BR, BZ, BPhi, R_grid, Z_grid, Phi_grid``.  Component order is always
     canonical ``BR, BZ, BPhi``.
     """
@@ -139,18 +175,21 @@ def compute_cycle_response_from_cache(
     if _cyna_cycle_response is None:
         raise RuntimeError("pyna._cyna.compute_cycle_perturbation_response is unavailable.")
 
+    base_fc = prepare_field_cache(base_field_cache, extend_phi=True)
+    pert_fc = prepare_field_cache(pert_field_cache, extend_phi=True)
+
     R, Z, phi, DP, dXpol, dXcyc, dXcyc0, alive = _cyna_cycle_response(
         float(R0), float(Z0), float(phi0),
         float(phi_span), float(dphi_out), float(DPhi), float(fd_eps),
-        _cache_array(base_field_cache, "BR"),
-        _cache_array(base_field_cache, "BZ"),
-        _cache_array(base_field_cache, "BPhi"),
-        _cache_array(pert_field_cache, "BR"),
-        _cache_array(pert_field_cache, "BZ"),
-        _cache_array(pert_field_cache, "BPhi"),
-        _cache_array(base_field_cache, "R_grid"),
-        _cache_array(base_field_cache, "Z_grid"),
-        _cache_array(base_field_cache, "Phi_grid"),
+        _cache_array(base_fc, "BR"),
+        _cache_array(base_fc, "BZ"),
+        _cache_array(base_fc, "BPhi"),
+        _cache_array(pert_fc, "BR"),
+        _cache_array(pert_fc, "BZ"),
+        _cache_array(pert_fc, "BPhi"),
+        _cache_array(base_fc, "R_grid"),
+        _cache_array(base_fc, "Z_grid"),
+        _cache_array(base_fc, "Phi_grid"),
     )
 
     return CyclePerturbationResponse(

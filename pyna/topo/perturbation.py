@@ -57,7 +57,9 @@ used in the X-point displacement instability calculation.
 from __future__ import annotations
 
 import numpy as np
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
+
+from pyna._cyna.utils import prepare_field_cache
 
 # ---------------------------------------------------------------------------
 # Optional cyna C++ backend
@@ -93,7 +95,7 @@ def _compute_DPm_via_cyna(
     phi_start: float,
     phi_span: float,
     island_period: int,
-    field_cache: dict,
+    field_cache: Any,
     DPhi: float = 0.05,
     fd_eps: float = 1e-4,
 ) -> np.ndarray:
@@ -109,8 +111,9 @@ def _compute_DPm_via_cyna(
         Total integration span = island_period * 2Ï€.
     island_period : int
         Number of toroidal turns (m) for the DPm Jacobian.
-    field_cache : dict
-        Keys: BR, BZ, BPhi, R_grid, Z_grid, Phi_grid.
+    field_cache : VectorFieldCylind-compatible object or dict
+        Prefer a cylindrical vector field. Legacy dicts must contain
+        BR, BZ, BPhi, R_grid, Z_grid, Phi_grid.
     DPhi : float
         RK4 step size inside cyna.
     fd_eps : float
@@ -124,15 +127,14 @@ def _compute_DPm_via_cyna(
     def _c(a):
         return np.ascontiguousarray(a, dtype=np.float64)
 
-    BR    = _c(field_cache['BR'].ravel() if field_cache['BR'].ndim == 3
-               else field_cache['BR'])
-    BZ    = _c(field_cache['BZ'].ravel() if field_cache['BZ'].ndim == 3
-               else field_cache['BZ'])
-    BPhi  = _c(field_cache['BPhi'].ravel() if field_cache['BPhi'].ndim == 3
-               else field_cache['BPhi'])
-    Rg    = _c(field_cache['R_grid'])
-    Zg    = _c(field_cache['Z_grid'])
-    Phig  = _c(field_cache['Phi_grid'])
+    fc = prepare_field_cache(field_cache, extend_phi=True)
+
+    BR    = _c(fc['BR'].ravel() if fc['BR'].ndim == 3 else fc['BR'])
+    BZ    = _c(fc['BZ'].ravel() if fc['BZ'].ndim == 3 else fc['BZ'])
+    BPhi  = _c(fc['BPhi'].ravel() if fc['BPhi'].ndim == 3 else fc['BPhi'])
+    Rg    = _c(fc['R_grid'])
+    Zg    = _c(fc['Z_grid'])
+    Phig  = _c(fc['Phi_grid'])
 
     # dphi_out: output every DPhi radians
     dphi_out = DPhi * 4  # coarser output for speed
@@ -320,8 +322,8 @@ def DPm_finite_difference(
     field_func_pert,
     phi_span,
     fd_eps_state: float = 1e-6,
-    base_field_cache: Optional[dict] = None,
-    pert_field_cache: Optional[dict] = None,
+    base_field_cache: Any = None,
+    pert_field_cache: Any = None,
     island_period: int = 1,
     DPhi: float = 0.05,
     fd_eps_cyna: float = 1e-4,
@@ -342,12 +344,11 @@ def DPm_finite_difference(
         (phi_start, phi_end).
     fd_eps_state : float, optional
         FD step for Python variational equations. Default 1e-6.
-    base_field_cache : dict, optional
-        Field-cache dict for cyna C++ path (BR, BZ, BPhi, R_grid, Z_grid,
-        Phi_grid). When supplied together with ``pert_field_cache``, the cyna
-        ``trace_orbit_along_phi`` C++ backend is used.
-    pert_field_cache : dict, optional
-        Field-cache dict for the perturbed field.
+    base_field_cache : VectorFieldCylind-compatible object or dict, optional
+        Base field for the cyna path. Legacy dicts use
+        BR, BZ, BPhi, R_grid, Z_grid, Phi_grid.
+    pert_field_cache : VectorFieldCylind-compatible object or dict, optional
+        Perturbed field for the cyna path.
     island_period : int, optional
         Number of toroidal turns (used by cyna path). Default 1.
     DPhi : float, optional
@@ -401,8 +402,8 @@ def DPm_shift_under_field_perturbation(
     island_period: int = 1,
     fd_eps: float = 1e-6,
     field_func_pert=None,
-    base_field_cache: Optional[dict] = None,
-    pert_field_cache: Optional[dict] = None,
+    base_field_cache: Any = None,
+    pert_field_cache: Any = None,
     DPhi: float = 0.05,
     fd_eps_cyna: float = 1e-4,
 ) -> dict:
@@ -435,10 +436,10 @@ def DPm_shift_under_field_perturbation(
     field_func_pert : callable, optional
         Fully perturbed field function ``(R, Z, phi)`` â†?array (2,).
         If given, takes precedence over building one from ``delta_B_func``.
-    base_field_cache : dict, optional
-        Field cache for the base field (cyna C++ path).
-    pert_field_cache : dict, optional
-        Field cache for the perturbed field (cyna C++ path).
+    base_field_cache : VectorFieldCylind-compatible object or dict, optional
+        Base field for the cyna path.
+    pert_field_cache : VectorFieldCylind-compatible object or dict, optional
+        Perturbed field for the cyna path.
     DPhi : float
         RK4 step for cyna orbit tracing. Default 0.05.
     fd_eps_cyna : float
@@ -526,20 +527,21 @@ def DPm_shift_under_field_perturbation(
         phi_arr = np.ascontiguousarray(traj[:, 2], dtype=np.float64)
         def _c(a):
             return np.ascontiguousarray(a, dtype=np.float64)
+        base_fc = prepare_field_cache(base_field_cache, extend_phi=True)
         A_arr = _cyna_A_batch(
             R_arr, Z_arr, phi_arr,
-            _c(base_field_cache['BR'].ravel()
-               if base_field_cache['BR'].ndim == 3
-               else base_field_cache['BR']),
-            _c(base_field_cache['BZ'].ravel()
-               if base_field_cache['BZ'].ndim == 3
-               else base_field_cache['BZ']),
-            _c(base_field_cache['BPhi'].ravel()
-               if base_field_cache['BPhi'].ndim == 3
-               else base_field_cache['BPhi']),
-            _c(base_field_cache['R_grid']),
-            _c(base_field_cache['Z_grid']),
-            _c(base_field_cache['Phi_grid']),
+            _c(base_fc['BR'].ravel()
+               if base_fc['BR'].ndim == 3
+               else base_fc['BR']),
+            _c(base_fc['BZ'].ravel()
+               if base_fc['BZ'].ndim == 3
+               else base_fc['BZ']),
+            _c(base_fc['BPhi'].ravel()
+               if base_fc['BPhi'].ndim == 3
+               else base_fc['BPhi']),
+            _c(base_fc['R_grid']),
+            _c(base_fc['Z_grid']),
+            _c(base_fc['Phi_grid']),
             fd_eps_cyna,
         )
 

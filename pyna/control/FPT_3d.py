@@ -24,7 +24,9 @@ and unperturbed fields evaluated at each trajectory point.
 """
 
 import numpy as np
-from typing import Callable, List, Optional
+from typing import Any, Callable, List, Optional
+
+from pyna._cyna.utils import prepare_field_cache
 
 # Try to use C++ batch A-matrix computation for speed
 try:
@@ -60,7 +62,7 @@ def _A_matrix_from_field(field_func: Callable, R: float, Z: float,
 
 def compute_A_matrix_batch_from_cache(
     trajectory_RZphi: np.ndarray,
-    field_cache: dict,
+    field_cache: Any,
     eps: float = 1e-4,
 ) -> np.ndarray:
     """Compute A-matrix at all orbit points using C++ batch interpolation.
@@ -69,8 +71,9 @@ def compute_A_matrix_batch_from_cache(
     ----------
     trajectory_RZphi : ndarray, shape (N, 3)
         Orbit points [R, Z, phi].
-    field_cache : dict
-        Must contain 'BR', 'BPhi', 'BZ', 'R_grid', 'Z_grid', 'Phi_grid'.
+    field_cache : VectorFieldCylind-compatible object or dict
+        Prefer a cylindrical vector field. Legacy dicts must contain
+        'BR', 'BZ', 'BPhi', 'R_grid', 'Z_grid', 'Phi_grid'.
     eps : float
         Finite-difference step.
 
@@ -86,15 +89,16 @@ def compute_A_matrix_batch_from_cache(
     """
     if not _HAS_CYNA_AMAT:
         raise RuntimeError("cyna C++ backend not available; cannot use compute_A_matrix_batch_from_cache")
+    fc = prepare_field_cache(field_cache, extend_phi=True)
     R_arr   = np.ascontiguousarray(trajectory_RZphi[:, 0], dtype=np.float64)
     Z_arr   = np.ascontiguousarray(trajectory_RZphi[:, 1], dtype=np.float64)
     phi_arr = np.ascontiguousarray(trajectory_RZphi[:, 2], dtype=np.float64)
-    BR      = np.ascontiguousarray(field_cache['BR'],      dtype=np.float64)
-    BZ      = np.ascontiguousarray(field_cache['BZ'],      dtype=np.float64)
-    BPhi    = np.ascontiguousarray(field_cache['BPhi'],    dtype=np.float64)
-    R_grid  = np.ascontiguousarray(field_cache['R_grid'],  dtype=np.float64)
-    Z_grid  = np.ascontiguousarray(field_cache['Z_grid'],  dtype=np.float64)
-    Phi_grid = np.ascontiguousarray(field_cache['Phi_grid'], dtype=np.float64)
+    BR      = np.ascontiguousarray(fc['BR'],      dtype=np.float64)
+    BZ      = np.ascontiguousarray(fc['BZ'],      dtype=np.float64)
+    BPhi    = np.ascontiguousarray(fc['BPhi'],    dtype=np.float64)
+    R_grid  = np.ascontiguousarray(fc['R_grid'],  dtype=np.float64)
+    Z_grid  = np.ascontiguousarray(fc['Z_grid'],  dtype=np.float64)
+    Phi_grid = np.ascontiguousarray(fc['Phi_grid'], dtype=np.float64)
     return _cyna_A_batch(R_arr, Z_arr, phi_arr, BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, eps)
 
 
@@ -111,8 +115,8 @@ def delta_DPm_along_cycle_3d(
     m: float = 1.0,
     method: str = 'rk4',
     eps_A: float = 1e-4,
-    base_field_cache: dict = None,
-    pert_field_cache: dict = None,
+    base_field_cache: Any = None,
+    pert_field_cache: Any = None,
 ) -> np.ndarray:
     """Compute delta_DPm for a 3-D non-axisymmetric field.
 

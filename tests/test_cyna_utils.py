@@ -68,6 +68,17 @@ class TestPrepareFieldCache:
         result = prepare_field_cache(dummy_fc)
         assert result['BR'].dtype == np.float64
 
+    def test_vector_field_input_preserves_named_component_order(self, dummy_fc):
+        from pyna.fields import VectorFieldCylind
+
+        field = VectorFieldCylind.from_field_cache(dummy_fc, phi_idx=None)
+        result = prepare_field_cache(field, extend_phi=True)
+
+        np.testing.assert_allclose(result['BR'][:, :, :-1], dummy_fc['BR'])
+        np.testing.assert_allclose(result['BZ'][:, :, :-1], dummy_fc['BZ'])
+        np.testing.assert_allclose(result['BPhi'][:, :, :-1], dummy_fc['BPhi'])
+        assert result['Phi_grid'][-1] == pytest.approx(2 * np.pi)
+
 
 class TestBuildFixedPointsFromBatch:
     def test_basic(self):

@@ -72,6 +72,31 @@ def test_mcf_poincare_map_is_discrete_map():
     assert isinstance(pm, DiscreteMap)
 
 
+def test_mcf_poincare_map_accepts_vector_field():
+    from pyna.fields import VectorFieldCylind
+    from pyna.topo.dynamics import MCFPoincareMap
+
+    NR, NZ, NPhi = 5, 5, 4
+    R = np.linspace(0.5, 2.0, NR)
+    Z = np.linspace(-1.0, 1.0, NZ)
+    Phi = np.linspace(0, 2 * np.pi, NPhi, endpoint=False)
+    shape = (NR, NZ, NPhi)
+    field = VectorFieldCylind(
+        R,
+        Z,
+        Phi,
+        BR=np.zeros(shape),
+        BZ=2.0 * np.ones(shape),
+        BPhi=3.0 * np.ones(shape),
+    )
+
+    pm = MCFPoincareMap(field, Np=2, phi_section=0.0)
+    fc = pm.field_cache
+    np.testing.assert_allclose(fc["BR"][:, :, :-1], field.BR)
+    np.testing.assert_allclose(fc["BZ"][:, :, :-1], field.BZ)
+    np.testing.assert_allclose(fc["BPhi"][:, :, :-1], field.BPhi)
+
+
 # ── Section.f / contains / normal ─────────────────────────────────────────────
 
 def test_hyperplane_section_f():

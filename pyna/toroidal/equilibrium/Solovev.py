@@ -481,6 +481,49 @@ class EquilibriumSolovev:
         R = np.asarray(R, dtype=float)
         return self._B0 * self.R0 / R
 
+    def B_field(self, R, Z) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Magnetic field components ``(BR, BZ, BPhi)`` at ``(R, Z)``."""
+
+        R = np.asarray(R, dtype=float)
+        Z = np.asarray(Z, dtype=float)
+        BR, BZ = self.BR_BZ(R, Z)
+        return BR, BZ, self.Bphi(R)
+
+    def to_vector_field(self, R_arr, Z_arr, *, name: str = ""):
+        """Evaluate ``B`` on an R-Z grid as ``VectorFieldCylindAxisym``."""
+
+        from pyna.fields.cylindrical import VectorFieldCylindAxisym
+
+        R_arr = np.asarray(R_arr, dtype=float)
+        Z_arr = np.asarray(Z_arr, dtype=float)
+        RR, ZZ = np.meshgrid(R_arr, Z_arr, indexing="ij")
+        BR, BZ, BPhi = self.B_field(RR, ZZ)
+        return VectorFieldCylindAxisym(
+            R_arr,
+            Z_arr,
+            BR=BR,
+            BZ=BZ,
+            BPhi=BPhi,
+            name=name,
+        )
+
+    def J_vector_field(self, R_arr, Z_arr, *, name: str = ""):
+        """Evaluate current density on an R-Z grid as ``VectorFieldCylindAxisym``."""
+
+        from pyna.fields.cylindrical import VectorFieldCylindAxisym
+
+        R_arr = np.asarray(R_arr, dtype=float)
+        Z_arr = np.asarray(Z_arr, dtype=float)
+        JR, JZ, Jphi = self.J_grid(R_arr, Z_arr)
+        return VectorFieldCylindAxisym(
+            R_arr,
+            Z_arr,
+            BR=JR,
+            BZ=JZ,
+            BPhi=Jphi,
+            name=name,
+        )
+
     def psi_lcfs(self) -> float:
         """Return the physical poloidal flux ψ_phys at the LCFS (= 0 in C&F normalisation).
 

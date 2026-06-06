@@ -18,6 +18,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
+from pyna._cyna.utils import prepare_field_cache
 
 if TYPE_CHECKING:
     from pyna.topo.section import Section
@@ -341,8 +342,8 @@ class MCFPoincareMap(DiscreteMap):
 
     Parameters
     ----------
-    field_cache : dict
-        Field cache dict with keys:
+    field_cache : VectorFieldCylind-compatible object or dict
+        Prefer a cylindrical vector field. Legacy field-cache dicts use:
         ``'BR', 'BZ', 'BPhi'``  — 3-D arrays (NR, NZ, NPhi)
         ``'R_grid', 'Z_grid', 'Phi_grid'``  — 1-D coordinate arrays
     Np : int
@@ -365,7 +366,7 @@ class MCFPoincareMap(DiscreteMap):
 
     def __init__(
         self,
-        field_cache: dict,
+        field_cache: Any,
         *,
         Np: int = 1,
         phi_section: float = 0.0,
@@ -373,7 +374,7 @@ class MCFPoincareMap(DiscreteMap):
         DPhi: float = 0.05,
         n_threads: int = 0,
     ):
-        self._fc = field_cache
+        self._fc = prepare_field_cache(field_cache, extend_phi=True)
         self._Np = int(Np)
         self._phi_section = float(phi_section)
         self._n_turns = int(n_turns)
@@ -382,43 +383,21 @@ class MCFPoincareMap(DiscreteMap):
 
         # Pre-process field arrays (extend phi periodicity)
         self._BR_c, self._BZ_c, self._BPhi_c, self._Rg, self._Zg, self._Pg = \
-            self._prepare_arrays(field_cache)
+            self._prepare_arrays(self._fc)
 
     # ── Array preparation ─────────────────────────────────────────────────────
 
     @staticmethod
-    def _prepare_arrays(fc: dict):
-        """Extend phi periodicity and ensure C-contiguous float64 arrays.
+    def _prepare_arrays(fc: Any):
+        """Ensure cyna-ready arrays in canonical BR, BZ, BPhi order."""
 
-        The cyna interp3d function requires nPhi = N_phi_original + 1,
-        with the last phi slice = 2*pi (copy of phi=0 data). If the input
-        already has this extension, we skip the extra copy to avoid a
-        stride mismatch between B arrays and Phi_grid.
-        """
-        Phi_grid = np.asarray(fc['Phi_grid'], dtype=np.float64)
-        needs_ext = abs(Phi_grid[-1] - 2 * np.pi) > 1e-6
-
-        if needs_ext:
-            Phi_ext = np.append(Phi_grid, 2 * np.pi)
-        else:
-            Phi_ext = Phi_grid.copy()
-
-        def _ext(a):
-            a = np.asarray(a, dtype=np.float64)
-            return np.ascontiguousarray(np.concatenate([a, a[:, :, :1]], axis=2))
-
-        if needs_ext:
-            BR_c   = _ext(fc['BR'])
-            BZ_c   = _ext(fc['BZ'])
-            BPhi_c = _ext(fc['BPhi'])
-        else:
-            # Phi already includes 2*pi copy → B arrays already have the right size
-            BR_c   = np.ascontiguousarray(fc['BR'], dtype=np.float64)
-            BZ_c   = np.ascontiguousarray(fc['BZ'], dtype=np.float64)
-            BPhi_c = np.ascontiguousarray(fc['BPhi'], dtype=np.float64)
+        fc = prepare_field_cache(fc, extend_phi=True)
+        BR_c   = np.ascontiguousarray(fc['BR'], dtype=np.float64)
+        BZ_c   = np.ascontiguousarray(fc['BZ'], dtype=np.float64)
+        BPhi_c = np.ascontiguousarray(fc['BPhi'], dtype=np.float64)
         Rg = np.ascontiguousarray(fc['R_grid'],  dtype=np.float64)
         Zg = np.ascontiguousarray(fc['Z_grid'],  dtype=np.float64)
-        Pg = np.ascontiguousarray(Phi_ext)
+        Pg = np.ascontiguousarray(fc['Phi_grid'], dtype=np.float64)
 
         return BR_c, BZ_c, BPhi_c, Rg, Zg, Pg
 
@@ -426,7 +405,7 @@ class MCFPoincareMap(DiscreteMap):
 
     @property
     def field_cache(self) -> dict:
-        """The field cache dict (BR, BZ, BPhi, grids)."""
+        """The prepared field cache dict (BR, BZ, BPhi, grids)."""
         return self._fc
 
     @property
