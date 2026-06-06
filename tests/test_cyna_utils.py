@@ -79,6 +79,25 @@ class TestPrepareFieldCache:
         np.testing.assert_allclose(result['BPhi'][:, :, :-1], dummy_fc['BPhi'])
         assert result['Phi_grid'][-1] == pytest.approx(2 * np.pi)
 
+    def test_axisym_vector_field_input_preserves_named_component_order(self):
+        from pyna.fields import VectorFieldCylindAxisym
+
+        R = np.linspace(1.0, 2.0, 4)
+        Z = np.linspace(-0.5, 0.5, 5)
+        BR = np.arange(20.0).reshape(4, 5)
+        BZ = BR + 100.0
+        BPhi = BR + 200.0
+        field = VectorFieldCylindAxisym(R, Z, BR=BR, BZ=BZ, BPhi=BPhi)
+
+        result = prepare_field_cache(field, extend_phi=True)
+
+        assert result['BR'].shape == (4, 5, 2)
+        assert result['Phi_grid'][-1] == pytest.approx(2 * np.pi)
+        np.testing.assert_allclose(result['BR'][:, :, 0], BR)
+        np.testing.assert_allclose(result['BR'][:, :, 1], BR)
+        np.testing.assert_allclose(result['BZ'][:, :, 0], BZ)
+        np.testing.assert_allclose(result['BPhi'][:, :, 0], BPhi)
+
 
 class TestBuildFixedPointsFromBatch:
     def test_basic(self):

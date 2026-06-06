@@ -31,6 +31,8 @@ class Field(ABC):
         Physical units string (e.g. 'T', 'T/m', 'Pa').
     """
 
+    __slots__ = ("_properties", "name", "units", "_coords")
+
     def __init__(
         self,
         properties: FieldProperty = FieldProperty.NONE,
@@ -95,53 +97,72 @@ class Field(ABC):
 
 class ScalarField(Field):
     """Abstract scalar field (range rank = 0)."""
+    __slots__ = ()
+
     @property
     def range_rank(self) -> int: return 0
 
 
 class VectorField(Field):
     """Abstract vector field (range rank = 1)."""
+    __slots__ = ()
+
     @property
     def range_rank(self) -> int: return 1
 
 
 class TensorField(Field):
     """Abstract tensor field (range rank ≥ 2)."""
+    __slots__ = ()
 
 
 # 1-D through 4-D scalar fields
 class ScalarField1D(ScalarField):
+    __slots__ = ()
+
     @property
     def domain_dim(self) -> int: return 1
 
 
 class ScalarField2D(ScalarField):
+    __slots__ = ()
+
     @property
     def domain_dim(self) -> int: return 2
 
 
 class ScalarField3D(ScalarField):
+    __slots__ = ()
+
     @property
     def domain_dim(self) -> int: return 3
 
 
 class ScalarField4D(ScalarField):
+    __slots__ = ()
+
     @property
     def domain_dim(self) -> int: return 4
 
 
 # 1-D through 4-D vector fields
 class VectorField1D(VectorField):
+    __slots__ = ()
+
     @property
     def domain_dim(self) -> int: return 1
 
 
 class VectorField2D(VectorField):
+    __slots__ = ()
+
     @property
     def domain_dim(self) -> int: return 2
 
 
 class VectorField3D(VectorField):
+    __slots__ = ()
+
     @property
     def domain_dim(self) -> int: return 3
 
@@ -161,6 +182,8 @@ class VectorField3D(VectorField):
 
 
 class VectorField4D(VectorField):
+    __slots__ = ()
+
     @property
     def domain_dim(self) -> int: return 4
 
@@ -172,6 +195,8 @@ class TensorField3DRank2(TensorField):
     Concrete arrays stored as shape (nR, nZ, nPhi, 3, 3) — spatial axes first,
     tensor indices last (PyTorch/JAX convention).
     """
+    __slots__ = ()
+
     @property
     def domain_dim(self) -> int: return 3
 

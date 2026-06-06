@@ -14,7 +14,7 @@ from pyna.fields.properties import FieldProperty
 from pyna.fields.coords import Coords3DCylindrical as _CylCoords3D
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CylindricalFieldArrays:
     """Contiguous cylindrical field arrays for low-level backends.
 
@@ -82,6 +82,21 @@ class ScalarFieldCylind(ScalarField3D):
     properties : FieldProperty
     """
 
+    __slots__ = (
+        "_R",
+        "_Z",
+        "_Phi",
+        "_value",
+        "_value_2d_view",
+        "_shape",
+        "_nR",
+        "_nZ",
+        "_nPhi",
+        "_axisymmetric",
+        "_interp",
+        "field_periods",
+    )
+
     def __init__(
         self,
         R: np.ndarray,
@@ -92,16 +107,31 @@ class ScalarFieldCylind(ScalarField3D):
         name: str = "",
         units: str = "",
         properties: FieldProperty = FieldProperty.NONE,
+        *,
+        axisymmetric: bool = False,
     ) -> None:
         super().__init__(properties=properties, name=name, units=units,
                          coords=_CylCoords3D())
-        self._R = np.asarray(R, dtype=float)
-        self._Z = np.asarray(Z, dtype=float)
-        self._Phi = np.asarray(Phi, dtype=float)
-        self._value = np.asarray(value, dtype=float)
-        self.field_periods = field_periods
-        assert self._value.shape == (len(self._R), len(self._Z), len(self._Phi)), \
-            f"value shape {self._value.shape} mismatch"
+        R_arr = np.asarray(R, dtype=np.float64)
+        Z_arr = np.asarray(Z, dtype=np.float64)
+        Phi_arr = np.asarray(Phi, dtype=np.float64)
+        value_arr = np.asarray(value, dtype=np.float64)
+        shape = (len(R_arr), len(Z_arr), len(Phi_arr))
+        if value_arr.shape != shape:
+            raise ValueError(f"value shape {value_arr.shape} mismatch; expected {shape}")
+        self._R = R_arr
+        self._Z = Z_arr
+        self._Phi = Phi_arr
+        self._value = value_arr
+        self.field_periods = int(field_periods)
+        self._shape = shape
+        self._nR = int(shape[0])
+        self._nZ = int(shape[1])
+        self._nPhi = int(shape[2])
+        self._axisymmetric = bool(axisymmetric)
+        self._value_2d_view = (
+            value_arr[:, :, 0] if self._axisymmetric and self._nPhi == 1 else None
+        )
         self._interp: Optional[RegularGridInterpolator] = None
 
     # Grid properties
@@ -157,23 +187,23 @@ class ScalarFieldCylind(ScalarField3D):
 
     @property
     def is_axisymmetric(self) -> bool:
-        return False
+        return self._axisymmetric
 
     @property
     def shape(self) -> tuple[int, int, int]:
-        return self._value.shape
+        return self._shape
 
     @property
     def nR(self) -> int:
-        return len(self._R)
+        return self._nR
 
     @property
     def nZ(self) -> int:
-        return len(self._Z)
+        return self._nZ
 
     @property
     def nPhi(self) -> int:
-        return len(self._Phi)
+        return self._nPhi
 
     @property
     def data(self) -> np.ndarray:
@@ -251,6 +281,27 @@ class VectorFieldCylind(VectorField3D):
     properties : FieldProperty
     """
 
+    __slots__ = (
+        "_R",
+        "_Z",
+        "_Phi",
+        "_VR",
+        "_VZ",
+        "_VPhi",
+        "_shape",
+        "_nR",
+        "_nZ",
+        "_nPhi",
+        "_axisymmetric",
+        "_section_mode",
+        "_interp_VR",
+        "_interp_VZ",
+        "_interp_VPhi",
+        "phi",
+        "label",
+        "field_periods",
+    )
+
     component_order = ("R", "Z", "Phi")
     magnetic_component_order = ("BR", "BZ", "BPhi")
 
@@ -273,6 +324,7 @@ class VectorFieldCylind(VectorField3D):
         units: str = "",
         properties: FieldProperty = FieldProperty.NONE,
         section_mode: Optional[bool] = None,
+        axisymmetric: bool = False,
     ) -> None:
         # New fixed-section positional form: VectorFieldCylind(R, Z, BR, BZ, BPhi)
         if VPhi is None and BR is None and BZ is None and BPhi is None and VZ is not None:
@@ -328,8 +380,8 @@ class VectorFieldCylind(VectorField3D):
 
         super().__init__(properties=properties, name=name, units=units,
                          coords=_CylCoords3D())
-        self._R = np.asarray(R, dtype=float)
-        self._Z = np.asarray(Z, dtype=float)
+        self._R = np.asarray(R, dtype=np.float64)
+        self._Z = np.asarray(Z, dtype=np.float64)
         self._Phi = Phi_arr
         self._VR = BR_3d
         self._VZ = BZ_3d
@@ -337,10 +389,16 @@ class VectorFieldCylind(VectorField3D):
         self.phi = float(phi)
         self.label = label
         self._section_mode = section
-        self.field_periods = field_periods
+        self.field_periods = int(field_periods)
+        self._axisymmetric = bool(axisymmetric)
         shape = (len(self._R), len(self._Z), len(self._Phi))
-        for arr, nm in [(self._VR,'VR'),(self._VZ,'VZ'),(self._VPhi,'VPhi')]:
-            assert arr.shape == shape, f"{nm} shape {arr.shape} != {shape}"
+        for arr, nm in [(self._VR, 'VR'), (self._VZ, 'VZ'), (self._VPhi, 'VPhi')]:
+            if arr.shape != shape:
+                raise ValueError(f"{nm} shape {arr.shape} != {shape}")
+        self._shape = shape[:2] if section else shape
+        self._nR = int(shape[0])
+        self._nZ = int(shape[1])
+        self._nPhi = int(shape[2])
         self._interp_VR: Optional[RegularGridInterpolator] = None
         self._interp_VZ: Optional[RegularGridInterpolator] = None
         self._interp_VPhi: Optional[RegularGridInterpolator] = None
@@ -359,9 +417,9 @@ class VectorFieldCylind(VectorField3D):
     @property
     def coordinate_names(self) -> Tuple[str, str, str]: return ("R", "Z", "phi")
     @property
-    def is_section(self) -> bool: return bool(self._section_mode)
+    def is_section(self) -> bool: return self._section_mode
     @property
-    def nPhi(self) -> int: return int(self._VR.shape[2])
+    def nPhi(self) -> int: return self._nPhi
 
     # Both naming conventions
     @property
@@ -371,15 +429,20 @@ class VectorFieldCylind(VectorField3D):
     @property
     def VPhi(self) -> np.ndarray: return self.BPhi
     @property
-    def BR(self) -> np.ndarray: return self._VR[:, :, 0] if self.is_section else self._VR
+    def BR(self) -> np.ndarray: return self._VR[:, :, 0] if self._section_mode else self._VR
     @property
-    def BZ(self) -> np.ndarray: return self._VZ[:, :, 0] if self.is_section else self._VZ
+    def BZ(self) -> np.ndarray: return self._VZ[:, :, 0] if self._section_mode else self._VZ
     @property
-    def BPhi(self) -> np.ndarray: return self._VPhi[:, :, 0] if self.is_section else self._VPhi
+    def BPhi(self) -> np.ndarray: return self._VPhi[:, :, 0] if self._section_mode else self._VPhi
 
     @property
     def components(self) -> np.ndarray:
-        return np.stack([self.BR, self.BZ, self.BPhi], axis=0)
+        if self._section_mode:
+            return np.stack(
+                (self._VR[:, :, 0], self._VZ[:, :, 0], self._VPhi[:, :, 0]),
+                axis=0,
+            )
+        return np.stack((self._VR, self._VZ, self._VPhi), axis=0)
 
     @property
     def components_3d(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -387,31 +450,37 @@ class VectorFieldCylind(VectorField3D):
 
     @property
     def rms(self) -> float:
-        return float(np.sqrt(np.mean(np.sum(self.components**2, axis=0))))
+        return float(np.sqrt(np.mean(
+            self._VR * self._VR + self._VZ * self._VZ + self._VPhi * self._VPhi
+        )))
 
     @property
     def shape(self) -> tuple[int, ...]:
-        return self.BR.shape
+        return self._shape
 
     @property
     def nR(self) -> int:
-        return int(self.BR.shape[0])
+        return self._nR
 
     @property
     def nZ(self) -> int:
-        return int(self.BR.shape[1])
+        return self._nZ
 
     @property
     def abs(self) -> np.ndarray:
-        return np.sqrt(self.BR**2 + self.BZ**2 + self.BPhi**2)
+        mag = np.sqrt(
+            self._VR * self._VR + self._VZ * self._VZ + self._VPhi * self._VPhi
+        )
+        return mag[:, :, 0] if self._section_mode else mag
 
     @property
     def poloidal_abs(self) -> np.ndarray:
-        return np.sqrt(self.BR**2 + self.BZ**2)
+        mag = np.sqrt(self._VR * self._VR + self._VZ * self._VZ)
+        return mag[:, :, 0] if self._section_mode else mag
 
     @property
     def is_axisymmetric(self) -> bool:
-        return isinstance(self, VectorFieldCylindAxisym)
+        return self._axisymmetric
 
     def _build_interps(self):
         if self._interp_VR is None:
@@ -720,6 +789,8 @@ class VectorFieldCylind(VectorField3D):
 class VectorFieldCylindAxisym(VectorFieldCylind):
     """Axisymmetric vector field: components depend only on (R, Z)."""
 
+    __slots__ = ()
+
     def __init__(self, R, Z, VR_2d=None, VZ_2d=None, VPhi_2d=None,
                  *, BR=None, BZ=None, BPhi=None,
                  name="", units="", properties=FieldProperty.NONE):
@@ -735,7 +806,8 @@ class VectorFieldCylindAxisym(VectorFieldCylind):
         def _e(a): return np.asarray(a, dtype=float)[:, :, np.newaxis]
         super().__init__(R, Z, Phi, _e(BR), _e(BZ), _e(BPhi),
                          field_periods=1, name=name, units=units,
-                         properties=properties, section_mode=False)
+                         properties=properties, section_mode=False,
+                         axisymmetric=True)
 
     def __call__(self, coords: np.ndarray, **kwargs) -> np.ndarray:
         """Override: ignore phi (axisymmetric), always query at phi=0."""
@@ -755,6 +827,8 @@ class VectorFieldCylindAxisym(VectorFieldCylind):
 class ScalarFieldCylindAxisym(ScalarFieldCylind):
     """Axisymmetric scalar field: value depends only on (R, Z)."""
 
+    __slots__ = ()
+
     def __init__(self, R, Z, value_2d=None, *, value=None, B=None,
                  name="", units="", properties=FieldProperty.NONE):
         if value_2d is None:
@@ -764,7 +838,8 @@ class ScalarFieldCylindAxisym(ScalarFieldCylind):
         Phi = np.array([0.0])
         value_3d = np.asarray(value_2d, dtype=float)[:, :, np.newaxis]
         super().__init__(R, Z, Phi, value_3d, field_periods=1,
-                         name=name, units=units, properties=properties)
+                         name=name, units=units, properties=properties,
+                         axisymmetric=True)
 
     @property
     def is_axisymmetric(self) -> bool:
@@ -772,7 +847,11 @@ class ScalarFieldCylindAxisym(ScalarFieldCylind):
 
     @property
     def value_2d(self) -> np.ndarray:
-        return self._value[:, :, 0]
+        return (
+            self._value_2d_view
+            if self._value_2d_view is not None
+            else self._value[:, :, 0]
+        )
     @property
     def B(self) -> np.ndarray: return self.value_2d
 

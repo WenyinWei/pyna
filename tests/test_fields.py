@@ -127,6 +127,32 @@ def test_vector_field_cylind_canonical_name(grid_3d):
     np.testing.assert_allclose(arrays.BPhi, BPhi)
 
 
+def test_vector_field_fast_cached_accessors(grid_3d):
+    from pyna.fields import VectorFieldCylind
+
+    R, Z, Phi = grid_3d
+    shape = (len(R), len(Z), len(Phi))
+    f = VectorFieldCylind(
+        R=R,
+        Z=Z,
+        Phi=Phi,
+        BR=np.ones(shape),
+        BZ=2.0 * np.ones(shape),
+        BPhi=3.0 * np.ones(shape),
+    )
+
+    assert "_shape" in VectorFieldCylind.__slots__
+    assert f.shape == shape
+    assert f.nR == len(R)
+    assert f.nZ == len(Z)
+    assert f.nPhi == len(Phi)
+    assert f.is_axisymmetric is False
+    assert not hasattr(f, "__dict__")
+    assert f.rms == pytest.approx(np.sqrt(14.0))
+    np.testing.assert_allclose(f.abs, np.sqrt(14.0))
+    np.testing.assert_allclose(f.poloidal_abs, np.sqrt(5.0))
+
+
 # ── Group 3: ScalarFieldCylind ─────────────────────────────────────────
 
 def test_scalar_construction(linear_scalar_field, grid_3d):
@@ -170,6 +196,25 @@ def test_axi_vector_2d():
     result = f(coords)
     assert result.shape == (1, 3)
     np.testing.assert_allclose(result[0, 1], 1.0, atol=1e-6)
+
+
+def test_axisym_fields_use_cached_metadata_and_views():
+    from pyna.fields.cylindrical import ScalarFieldCylindAxisym, VectorFieldCylindAxisym
+
+    R = np.linspace(1.0, 3.0, 5)
+    Z = np.linspace(-1.0, 1.0, 6)
+    data = np.arange(len(R) * len(Z), dtype=float).reshape(len(R), len(Z))
+    vf = VectorFieldCylindAxisym(R, Z, BR=data, BZ=2.0 * data, BPhi=3.0 * data)
+    sf = ScalarFieldCylindAxisym(R, Z, value=data)
+
+    assert vf.is_axisymmetric is True
+    assert sf.is_axisymmetric is True
+    assert not hasattr(vf, "__dict__")
+    assert not hasattr(sf, "__dict__")
+    assert vf.shape == (len(R), len(Z), 1)
+    assert sf.shape == (len(R), len(Z), 1)
+    assert np.shares_memory(sf.value_2d, sf.value)
+    np.testing.assert_allclose(sf.value_2d, data)
 
 
 # ── Group 5: diff_ops ─────────────────────────────────────────────────────────
