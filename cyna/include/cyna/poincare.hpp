@@ -276,7 +276,7 @@ static inline void rk4_step(
 // (one full island-chain period), DX_pol = DPm(φ_s), the monodromy matrix.
 //
 // DX_pol stored row-major: D00,D01,D10,D11.
-static inline void rk4_step_DX_pol(
+static inline bool rk4_step_DX_pol(
     double& R, double& Z,
     double& D00, double& D01, double& D10, double& D11,
     double phi, double dPhi,
@@ -309,23 +309,23 @@ static inline void rk4_step_DX_pol(
         return true;
     };
     double fR1,fZ1,A00_1,A01_1,A10_1,A11_1;
-    if(!eval_local_grad(R,Z,phi,fR1,fZ1,A00_1,A01_1,A10_1,A11_1))return;
+    if(!eval_local_grad(R,Z,phi,fR1,fZ1,A00_1,A01_1,A10_1,A11_1))return false;
     double k1_D00=A00_1*D00+A01_1*D10, k1_D01=A00_1*D01+A01_1*D11;
     double k1_D10=A10_1*D00+A11_1*D10, k1_D11=A10_1*D01+A11_1*D11;
     double hh=0.5*dPhi;
     double R2=R+hh*fR1,Z2=Z+hh*fZ1, D00_2=D00+hh*k1_D00,D01_2=D01+hh*k1_D01,D10_2=D10+hh*k1_D10,D11_2=D11+hh*k1_D11;
     double fR2,fZ2,A00_2,A01_2,A10_2,A11_2;
-    if(!eval_local_grad(R2,Z2,phi+hh,fR2,fZ2,A00_2,A01_2,A10_2,A11_2))return;
+    if(!eval_local_grad(R2,Z2,phi+hh,fR2,fZ2,A00_2,A01_2,A10_2,A11_2))return false;
     double k2_D00=A00_2*D00_2+A01_2*D10_2, k2_D01=A00_2*D01_2+A01_2*D11_2;
     double k2_D10=A10_2*D00_2+A11_2*D10_2, k2_D11=A10_2*D01_2+A11_2*D11_2;
     double R3=R+hh*fR2,Z3=Z+hh*fZ2, D00_3=D00+hh*k2_D00,D01_3=D01+hh*k2_D01,D10_3=D10+hh*k2_D10,D11_3=D11+hh*k2_D11;
     double fR3,fZ3,A00_3,A01_3,A10_3,A11_3;
-    if(!eval_local_grad(R3,Z3,phi+hh,fR3,fZ3,A00_3,A01_3,A10_3,A11_3))return;
+    if(!eval_local_grad(R3,Z3,phi+hh,fR3,fZ3,A00_3,A01_3,A10_3,A11_3))return false;
     double k3_D00=A00_3*D00_3+A01_3*D10_3, k3_D01=A00_3*D01_3+A01_3*D11_3;
     double k3_D10=A10_3*D00_3+A11_3*D10_3, k3_D11=A10_3*D01_3+A11_3*D11_3;
     double R4=R+dPhi*fR3,Z4=Z+dPhi*fZ3, D00_4=D00+dPhi*k3_D00,D01_4=D01+dPhi*k3_D01,D10_4=D10+dPhi*k3_D10,D11_4=D11+dPhi*k3_D11;
     double fR4,fZ4,A00_4,A01_4,A10_4,A11_4;
-    if(!eval_local_grad(R4,Z4,phi+dPhi,fR4,fZ4,A00_4,A01_4,A10_4,A11_4))return;
+    if(!eval_local_grad(R4,Z4,phi+dPhi,fR4,fZ4,A00_4,A01_4,A10_4,A11_4))return false;
     double k4_D00=A00_4*D00_4+A01_4*D10_4, k4_D01=A00_4*D01_4+A01_4*D11_4;
     double k4_D10=A10_4*D00_4+A11_4*D10_4, k4_D11=A10_4*D01_4+A11_4*D11_4;
     double s6=dPhi/6.0;
@@ -335,6 +335,7 @@ static inline void rk4_step_DX_pol(
     D01 += s6*(k1_D01+2*k2_D01+2*k3_D01+k4_D01);
     D10 += s6*(k1_D10+2*k2_D10+2*k3_D10+k4_D10);
     D11 += s6*(k1_D11+2*k2_D11+2*k3_D11+k4_D11);
+    return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -856,8 +857,9 @@ static inline bool DX_pol_m_turns(
     double phi_end = phi_start + m_turns * 2.0 * M_PI;
     while (phi < phi_end - 1e-12) {
         double step = std::min(DPhi, phi_end - phi);
-        rk4_step_DX_pol(R, Z, D00,D01,D10,D11, phi, step,
-                        BR, BZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi);
+        if (!rk4_step_DX_pol(R, Z, D00,D01,D10,D11, phi, step,
+                             BR, BZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi))
+            return false;
         phi += step;
         if (!std::isfinite(R) || !std::isfinite(Z) ||
             R < R_grid[0] || R > R_grid[nR-1] ||
@@ -866,6 +868,101 @@ static inline bool DX_pol_m_turns(
     }
     DX_out[0]=D00; DX_out[1]=D01; DX_out[2]=D10; DX_out[3]=D11;
     return true;
+}
+
+static inline void eig_abs_2x2(
+    double a, double b, double c, double d,
+    double& eig0_abs, double& eig1_abs)
+{
+    const double tr = a + d;
+    const double det = a * d - b * c;
+    const double disc = tr * tr - 4.0 * det;
+    if (disc >= 0.0) {
+        const double root = std::sqrt(disc);
+        eig0_abs = std::abs(0.5 * (tr + root));
+        eig1_abs = std::abs(0.5 * (tr - root));
+    } else if (det >= 0.0) {
+        eig0_abs = eig1_abs = std::sqrt(det);
+    } else {
+        eig0_abs = eig1_abs = std::numeric_limits<double>::quiet_NaN();
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Trace one seed and record cumulative DP^k at Poincare returns.
+// ---------------------------------------------------------------------------
+// Unlike trace_orbit_along_phi(..., m_turns_DPm), this integrates the orbit
+// and variational matrix only once from the initial point.  At return k it
+// records DX_pol(phi0, phi0 + k * return_period), so scanning k=1..500 is
+// O(k) instead of repeatedly launching k-turn integrations from Python.
+void trace_poincare_dpk_growth(
+    double R0, double Z0, double phi0,
+    int max_returns,
+    double return_period,
+    int record_stride,
+    double DPhi,
+    const double* BR, const double* BZ, const double* BPhi,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi,
+    int n_out,
+    int* k_out,
+    double* R_out, double* Z_out, double* phi_out,
+    double* DPk_out,
+    double* eig_abs_out,
+    int* alive_out)
+{
+    constexpr double NAN_V = std::numeric_limits<double>::quiet_NaN();
+    for (int i = 0; i < n_out; ++i) {
+        k_out[i] = 0;
+        R_out[i] = NAN_V; Z_out[i] = NAN_V; phi_out[i] = NAN_V;
+        DPk_out[4*i+0] = NAN_V; DPk_out[4*i+1] = NAN_V;
+        DPk_out[4*i+2] = NAN_V; DPk_out[4*i+3] = NAN_V;
+        eig_abs_out[2*i+0] = NAN_V; eig_abs_out[2*i+1] = NAN_V;
+        alive_out[i] = 0;
+    }
+    if (max_returns <= 0 || record_stride <= 0 ||
+        !std::isfinite(return_period) || std::abs(return_period) <= 1e-14 ||
+        !std::isfinite(DPhi) || std::abs(DPhi) <= 1e-14)
+        return;
+
+    double R = R0, Z = Z0, phi = phi0;
+    double D00 = 1.0, D01 = 0.0, D10 = 0.0, D11 = 1.0;
+    int out_idx = 0;
+
+    for (int ret = 1; ret <= max_returns; ++ret) {
+        const double target = phi0 + ret * return_period;
+        const double dir = (target >= phi) ? 1.0 : -1.0;
+        while (dir > 0.0 ? phi < target - 1e-12 : phi > target + 1e-12) {
+            const double step_abs = std::min(std::abs(DPhi), std::abs(target - phi));
+            const double step = dir * step_abs;
+            if (!rk4_step_DX_pol(R, Z, D00,D01,D10,D11, phi, step,
+                                 BR, BZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi))
+                return;
+            phi += step;
+            if (!std::isfinite(R) || !std::isfinite(Z) ||
+                R < R_grid[0] || R > R_grid[nR-1] ||
+                Z < Z_grid[0] || Z > Z_grid[nZ-1])
+                return;
+            if (!std::isfinite(D00) || !std::isfinite(D01) ||
+                !std::isfinite(D10) || !std::isfinite(D11))
+                return;
+        }
+
+        if (ret % record_stride == 0 && out_idx < n_out) {
+            k_out[out_idx] = ret;
+            R_out[out_idx] = R;
+            Z_out[out_idx] = Z;
+            phi_out[out_idx] = target;
+            DPk_out[4*out_idx+0] = D00; DPk_out[4*out_idx+1] = D01;
+            DPk_out[4*out_idx+2] = D10; DPk_out[4*out_idx+3] = D11;
+            eig_abs_2x2(D00, D01, D10, D11,
+                        eig_abs_out[2*out_idx+0],
+                        eig_abs_out[2*out_idx+1]);
+            alive_out[out_idx] = 1;
+            out_idx++;
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------

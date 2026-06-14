@@ -513,6 +513,47 @@ static py::tuple py_compute_cycle_perturbation_response(
     return py::make_tuple(R_t, Z_t, phi_t, DP_t, dXpol_t, dXcyc_t, dx0_arr, alive_t);
 }
 
+static py::tuple py_trace_poincare_dpk_growth(
+    double R0, double Z0, double phi0,
+    int max_returns,
+    double return_period,
+    int record_stride,
+    double DPhi,
+    py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
+    py::array_t<double> R_grid,
+    py::array_t<double> Z_grid,
+    py::array_t<double> Phi_grid)
+{
+    if (max_returns < 0)
+        throw std::runtime_error("max_returns must be non-negative");
+    if (record_stride <= 0)
+        throw std::runtime_error("record_stride must be positive");
+    if (!std::isfinite(return_period) || std::abs(return_period) <= 1e-14)
+        throw std::runtime_error("return_period must be finite and non-zero");
+    if (!std::isfinite(DPhi) || std::abs(DPhi) <= 1e-14)
+        throw std::runtime_error("DPhi must be finite and non-zero");
+
+    const int n_out = (max_returns + record_stride - 1) / record_stride;
+    py::array_t<int> k_t({n_out});
+    py::array_t<double> R_t({n_out}), Z_t({n_out}), phi_t({n_out});
+    py::array_t<double> DPk_t({n_out, 4});
+    py::array_t<double> eig_abs_t({n_out, 2});
+    py::array_t<int> alive_t({n_out});
+
+    cyna::trace_poincare_dpk_growth(
+        R0, Z0, phi0, max_returns, return_period, record_stride, DPhi,
+        buf(BR,"BR"), buf(BZ,"BZ"), buf(BPhi,"BPhi"),
+        buf(R_grid,"R_grid"), (int)R_grid.size(),
+        buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
+        buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size(),
+        n_out,
+        k_t.mutable_data(),
+        R_t.mutable_data(), Z_t.mutable_data(), phi_t.mutable_data(),
+        DPk_t.mutable_data(), eig_abs_t.mutable_data(), alive_t.mutable_data());
+
+    return py::make_tuple(k_t, R_t, Z_t, phi_t, DPk_t, eig_abs_t, alive_t);
+}
+
 static py::tuple py_trace_poincare_beta_sweep(
     py::array_t<double> R_seeds,
     py::array_t<double> Z_seeds,
@@ -866,6 +907,19 @@ PYBIND11_MODULE(_cyna_ext, m) {
         "Integrate field line from (R0,Z0,phi0) for phi_span radians, outputting\n"
         "(R,Z,phi,DPm[n,4],alive[n]) at evenly-spaced phi_out intervals.\n"
         "DPm(φ)=DX_pol(φ,φ+2π·m_turns_DPm) via analytic DX_pol evolution — used for cycle visualisation.");
+
+    m.def("trace_poincare_dpk_growth", &py_trace_poincare_dpk_growth,
+        py::arg("R0"), py::arg("Z0"), py::arg("phi0"),
+        py::arg("max_returns"),
+        py::arg("return_period") = 2.0 * M_PI,
+        py::arg("record_stride") = 1,
+        py::arg("DPhi") = 0.05,
+        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
+        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+        "Trace one seed and record cumulative DP^k at Poincare returns.\n"
+        "Returns (k, R, Z, phi, DPk[n,4], eig_abs[n,2], alive[n]).\n"
+        "This integrates the orbit and variational equation once, so k=1..500\n"
+        "is O(k) rather than repeated Python-level DP^m tracing.");
 
     m.def("compute_cycle_perturbation_response", &py_compute_cycle_perturbation_response,
         py::arg("R0"), py::arg("Z0"), py::arg("phi0"),

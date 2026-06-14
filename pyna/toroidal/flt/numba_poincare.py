@@ -13,6 +13,7 @@ from pyna._cyna import (
     trace_poincare_batch_twall as _cyna_trace_poincare_batch_twall,
     find_fixed_points_batch as _cyna_find_fixed_points_batch,
     trace_orbit_along_phi as _cyna_trace_orbit_along_phi,
+    trace_poincare_dpk_growth as _cyna_trace_poincare_dpk_growth,
 )
 
 
@@ -405,6 +406,80 @@ def trace_orbit_along_phi_field(
     )
 
 
+def trace_poincare_dpk_growth(
+    R0,
+    Z0,
+    phi_start,
+    max_returns,
+    DPhi,
+    R_grid,
+    Z_grid,
+    Phi_grid,
+    BR_flat,
+    BZ_flat,
+    BPhi_flat,
+    *,
+    return_period: float = 2.0 * np.pi,
+    record_stride: int = 1,
+):
+    """Trace one seed and record cumulative ``DP^k`` at Poincare returns.
+
+    This calls the cyna variational-equation path once and records
+    ``DX_pol(phi_start, phi_start + k * return_period)`` at each requested
+    return.  It is the hot-path API for chaos/LCFS screening with k up to
+    hundreds of returns.
+    """
+    if not _cyna_available() or _cyna_trace_poincare_dpk_growth is None:
+        raise ImportError("pyna._cyna.trace_poincare_dpk_growth is unavailable. Build cyna first.")
+    return _cyna_trace_poincare_dpk_growth(
+        float(R0),
+        float(Z0),
+        float(phi_start),
+        int(max_returns),
+        float(return_period),
+        int(record_stride),
+        float(DPhi),
+        np.ascontiguousarray(BR_flat, dtype=np.float64),
+        np.ascontiguousarray(BZ_flat, dtype=np.float64),
+        np.ascontiguousarray(BPhi_flat, dtype=np.float64),
+        np.ascontiguousarray(R_grid, dtype=np.float64),
+        np.ascontiguousarray(Z_grid, dtype=np.float64),
+        np.ascontiguousarray(Phi_grid, dtype=np.float64),
+    )
+
+
+def trace_poincare_dpk_growth_field(
+    field,
+    R0,
+    Z0,
+    phi_start,
+    max_returns,
+    DPhi,
+    *,
+    extend_phi: bool = True,
+    return_period: float = 2.0 * np.pi,
+    record_stride: int = 1,
+):
+    """Object-first wrapper for cumulative Poincare ``DP^k`` growth."""
+
+    arrays = field_arrays_from_field(field, extend_phi=extend_phi)
+    return trace_poincare_dpk_growth(
+        R0,
+        Z0,
+        phi_start,
+        max_returns,
+        DPhi,
+        arrays.R_grid,
+        arrays.Z_grid,
+        arrays.Phi_grid,
+        arrays.BR_flat,
+        arrays.BZ_flat,
+        arrays.BPhi_flat,
+        return_period=return_period,
+        record_stride=record_stride,
+    )
+
+
 __all__ = [
     "field_arrays_from_interpolators",
     "field_arrays_from_field",
@@ -419,4 +494,6 @@ __all__ = [
     "find_fixed_points_batch_field",
     "trace_orbit_along_phi",
     "trace_orbit_along_phi_field",
+    "trace_poincare_dpk_growth",
+    "trace_poincare_dpk_growth_field",
 ]

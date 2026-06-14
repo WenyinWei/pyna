@@ -12,6 +12,8 @@ from pyna.toroidal.flt.numba_poincare import (
     find_fixed_points_batch_field,
     trace_orbit_along_phi,
     trace_orbit_along_phi_field,
+    trace_poincare_dpk_growth,
+    trace_poincare_dpk_growth_field,
     field_arrays_from_field,
     field_arrays_from_interpolators,
 )
@@ -28,6 +30,8 @@ __all__ = [
     "find_fixed_points_batch_field",
     "trace_orbit_along_phi",
     "trace_orbit_along_phi_field",
+    "trace_poincare_dpk_growth",
+    "trace_poincare_dpk_growth_field",
     "field_arrays_from_field",
     "field_arrays_from_interpolators",
 ]
