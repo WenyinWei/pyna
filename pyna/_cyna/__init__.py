@@ -68,6 +68,7 @@ if _available:
     trace_poincare_dpk_growth_twall = getattr(_cyna_ext, "trace_poincare_dpk_growth_twall", None)
     compute_cycle_perturbation_response = getattr(_cyna_ext, "compute_cycle_perturbation_response", None)
     compute_A_matrix_batch        = getattr(_cyna_ext, "compute_A_matrix_batch",        None)
+    progress_DX_pol_along_orbit   = getattr(_cyna_ext, "progress_DX_pol_along_orbit",   None)
     evolve_DPm_along_cycle        = getattr(_cyna_ext, "evolve_DPm_along_cycle",        None)
     trace_surface_metrics_batch_twall = getattr(_cyna_ext, "trace_surface_metrics_batch_twall", None)
     summarize_profile_objectives  = getattr(_cyna_ext, "summarize_profile_objectives",  None)
@@ -88,6 +89,7 @@ else:
     trace_poincare_dpk_growth_twall = None
     compute_cycle_perturbation_response = None
     compute_A_matrix_batch        = None
+    progress_DX_pol_along_orbit   = None
     evolve_DPm_along_cycle        = None
     trace_surface_metrics_batch_twall = None
     summarize_profile_objectives  = None
@@ -109,6 +111,7 @@ __all__ = [
     "trace_poincare_dpk_growth_twall",
     "compute_cycle_perturbation_response",
     "compute_A_matrix_batch",
+    "progress_DX_pol_along_orbit",
     "evolve_DPm_along_cycle",
     "trace_surface_metrics_batch_twall",
     "summarize_profile_objectives",

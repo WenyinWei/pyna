@@ -100,6 +100,40 @@ static py::array_t<double> py_compute_A_matrix_batch(
     return out;
 }
 
+// ---------------------------------------------------------------------------
+// progress_DX_pol_along_orbit
+// ---------------------------------------------------------------------------
+static py::array_t<double> py_progress_DX_pol_along_orbit(
+    py::array_t<double> R_traj,
+    py::array_t<double> Z_traj,
+    py::array_t<double> phi_traj,
+    py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
+    py::array_t<double> R_grid,
+    py::array_t<double> Z_grid,
+    py::array_t<double> Phi_grid,
+    double max_step)
+{
+    const int n_pts = (int)R_traj.size();
+    if ((int)Z_traj.size() != n_pts || (int)phi_traj.size() != n_pts) {
+        throw std::runtime_error("R_traj, Z_traj and phi_traj must have the same length");
+    }
+    if (max_step <= 0.0 || !std::isfinite(max_step)) {
+        throw std::runtime_error("max_step must be finite and positive");
+    }
+
+    py::array_t<double> out({n_pts, 2, 2});
+    cyna::progress_DX_pol_along_orbit(
+        buf(R_traj, "R_traj"), buf(Z_traj, "Z_traj"), buf(phi_traj, "phi_traj"),
+        n_pts,
+        out.mutable_data(),
+        buf(BR,"BR"), buf(BZ,"BZ"), buf(BPhi,"BPhi"),
+        buf(R_grid,"R_grid"), (int)R_grid.size(),
+        buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
+        buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size(),
+        max_step);
+    return out;
+}
+
 static py::tuple py_trace_poincare_batch(
     py::array_t<double> R_seeds,
     py::array_t<double> Z_seeds,
@@ -896,6 +930,15 @@ PYBIND11_MODULE(_cyna_ext, m) {
         "Compute the 2x2 A-matrix at N orbit points using C++ trilinear interpolation.\n"
         "Returns ndarray of shape (N, 2, 2).\n"
         "A[k] = [[dg0/dR, dg0/dZ], [dg1/dR, dg1/dZ]] where g=[R*BR/BPhi, R*BZ/BPhi].");
+
+    m.def("progress_DX_pol_along_orbit", &py_progress_DX_pol_along_orbit,
+        py::arg("R_traj"), py::arg("Z_traj"), py::arg("phi_traj"),
+        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
+        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+        py::arg("max_step") = 0.005,
+        "Progress DX_pol(phi_e, phi_s) along an already sampled orbit.\n"
+        "Returns ndarray of shape (N, 2, 2), with DX_pol[0] = identity.\n"
+        "The orbit samples are used as the path; this does not retrace field lines.");
 
     m.def("trace_surface_metrics_batch_twall", &py_trace_surface_metrics_batch_twall,
         py::arg("R_seeds"), py::arg("Z_seeds"),

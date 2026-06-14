@@ -13,6 +13,7 @@ from pyna._cyna import (
     trace_poincare_batch_twall as _cyna_trace_poincare_batch_twall,
     find_fixed_points_batch as _cyna_find_fixed_points_batch,
     trace_orbit_along_phi as _cyna_trace_orbit_along_phi,
+    progress_DX_pol_along_orbit as _cyna_progress_DX_pol_along_orbit,
     trace_poincare_dpk_growth as _cyna_trace_poincare_dpk_growth,
     trace_poincare_dpk_growth_twall as _cyna_trace_poincare_dpk_growth_twall,
 )
@@ -407,6 +408,67 @@ def trace_orbit_along_phi_field(
     )
 
 
+def progress_DX_pol_along_orbit(
+    R_traj,
+    Z_traj,
+    phi_traj,
+    R_grid,
+    Z_grid,
+    Phi_grid,
+    BR_flat,
+    BZ_flat,
+    BPhi_flat,
+    *,
+    max_step: float = 0.005,
+):
+    """Progress ``DX_pol(phi_e, phi_s)`` along an already sampled orbit.
+
+    The returned array has shape ``(N, 2, 2)`` and starts from identity at
+    index 0.  The cyna backend uses the supplied orbit samples as the path;
+    it does not retrace the field line.
+    """
+    if not _cyna_available() or _cyna_progress_DX_pol_along_orbit is None:
+        raise ImportError("pyna._cyna.progress_DX_pol_along_orbit is unavailable. Build cyna first.")
+    return _cyna_progress_DX_pol_along_orbit(
+        np.ascontiguousarray(R_traj, dtype=np.float64),
+        np.ascontiguousarray(Z_traj, dtype=np.float64),
+        np.ascontiguousarray(phi_traj, dtype=np.float64),
+        np.ascontiguousarray(BR_flat, dtype=np.float64),
+        np.ascontiguousarray(BZ_flat, dtype=np.float64),
+        np.ascontiguousarray(BPhi_flat, dtype=np.float64),
+        np.ascontiguousarray(R_grid, dtype=np.float64),
+        np.ascontiguousarray(Z_grid, dtype=np.float64),
+        np.ascontiguousarray(Phi_grid, dtype=np.float64),
+        float(max_step),
+    )
+
+
+def progress_DX_pol_along_orbit_field(
+    field,
+    R_traj,
+    Z_traj,
+    phi_traj,
+    *,
+    extend_phi: bool = True,
+    max_step: float = 0.005,
+):
+    """Object-first wrapper for ``progress_DX_pol_along_orbit``."""
+
+    arrays = field_arrays_from_field(field, extend_phi=extend_phi)
+    return progress_DX_pol_along_orbit(
+        R_traj,
+        Z_traj,
+        phi_traj,
+        arrays.R_grid,
+        arrays.Z_grid,
+        arrays.Phi_grid,
+        arrays.BR_flat,
+        arrays.BZ_flat,
+        arrays.BPhi_flat,
+        max_step=max_step,
+    )
+
+
 def trace_poincare_dpk_growth(
     R0,
     Z0,
@@ -586,6 +648,8 @@ __all__ = [
     "find_fixed_points_batch_field",
     "trace_orbit_along_phi",
     "trace_orbit_along_phi_field",
+    "progress_DX_pol_along_orbit",
+    "progress_DX_pol_along_orbit_field",
     "trace_poincare_dpk_growth",
     "trace_poincare_dpk_growth_field",
     "trace_poincare_dpk_growth_twall",

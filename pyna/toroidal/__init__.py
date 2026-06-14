@@ -15,6 +15,7 @@ _SUBMODULES = {
     "flt",
     "optimize",
     "perturbation",
+    "surface_coordinates",
     "torus_deformation",
     "visual",
 }

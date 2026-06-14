@@ -1166,6 +1166,158 @@ static inline void evolve_DPm_along_cycle(
 }
 
 
+// ---------------------------------------------------------------------------
+// Progress DX_pol(phi_e, phi_s) along an already sampled orbit.
+// ---------------------------------------------------------------------------
+// This integrates only the variational equation
+//
+//   d(DX_pol)/dphi = A(R(phi), Z(phi), phi) * DX_pol,
+//
+// with DX_pol(phi_s)=I.  The orbit samples are treated as the authoritative
+// path and linearly interpolated inside each output segment; no field-line
+// retracing is performed here.
+static inline void progress_DX_pol_along_orbit(
+    const double* R_traj, const double* Z_traj, const double* phi_traj,
+    int n_pts,
+    double* DX_out,         // n_pts * 4, row-major 2x2 matrices
+    const double* BR, const double* BZ, const double* BPhi,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi,
+    double max_step)
+{
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    if (n_pts < 1) return;
+    std::fill(DX_out, DX_out + 4 * n_pts, nan);
+
+    if (!(max_step > 0.0) || !std::isfinite(max_step)) {
+        max_step = 0.005;
+    }
+
+    double D00 = 1.0, D01 = 0.0, D10 = 0.0, D11 = 1.0;
+    DX_out[0] = D00; DX_out[1] = D01; DX_out[2] = D10; DX_out[3] = D11;
+
+    auto eval_A = [&](double R, double Z, double phi,
+                      double& A00, double& A01, double& A10, double& A11) -> bool {
+        double BRv, dBR_dR, dBR_dZ;
+        double BPhiv, dBPhi_dR, dBPhi_dZ;
+        double BZv, dBZ_dR, dBZ_dZ;
+        if (!interp3d_grad(BRv, dBR_dR, dBR_dZ, BR, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi)) return false;
+        if (!interp3d_grad(BPhiv, dBPhi_dR, dBPhi_dZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi)) return false;
+        if (!interp3d_grad(BZv, dBZ_dR, dBZ_dZ, BZ, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi)) return false;
+        if (std::abs(BPhiv) <= 1e-12) {
+            A00 = A01 = A10 = A11 = 0.0;
+            return true;
+        }
+        const double invBp = 1.0 / BPhiv;
+        const double invBp2 = invBp / BPhiv;
+        A00 = BRv*invBp + R*(dBR_dR*invBp - BRv*invBp2*dBPhi_dR);
+        A01 = R*(dBR_dZ*invBp - BRv*invBp2*dBPhi_dZ);
+        A10 = BZv*invBp + R*(dBZ_dR*invBp - BZv*invBp2*dBPhi_dR);
+        A11 = R*(dBZ_dZ*invBp - BZv*invBp2*dBPhi_dZ);
+        return std::isfinite(A00) && std::isfinite(A01) &&
+               std::isfinite(A10) && std::isfinite(A11);
+    };
+
+    auto segment_position = [](double R0, double Z0, double p0,
+                               double R1, double Z1, double p1,
+                               double p, double& R, double& Z) {
+        const double ds = p1 - p0;
+        double t = 0.0;
+        if (std::abs(ds) > 1e-30) {
+            t = (p - p0) / ds;
+        }
+        R = R0 + t * (R1 - R0);
+        Z = Z0 + t * (Z1 - Z0);
+    };
+
+    auto deriv = [&](double R, double Z, double phi,
+                     double a, double b, double c, double d,
+                     double& da, double& db, double& dc, double& dd) -> bool {
+        double A00, A01, A10, A11;
+        if (!eval_A(R, Z, phi, A00, A01, A10, A11)) return false;
+        da = A00*a + A01*c;
+        db = A00*b + A01*d;
+        dc = A10*a + A11*c;
+        dd = A10*b + A11*d;
+        return std::isfinite(da) && std::isfinite(db) &&
+               std::isfinite(dc) && std::isfinite(dd);
+    };
+
+    for (int k = 1; k < n_pts; ++k) {
+        const double R0 = R_traj[k-1], Z0 = Z_traj[k-1], p0 = phi_traj[k-1];
+        const double R1 = R_traj[k],   Z1 = Z_traj[k],   p1 = phi_traj[k];
+        const double ds = p1 - p0;
+
+        if (!std::isfinite(R0) || !std::isfinite(Z0) || !std::isfinite(p0) ||
+            !std::isfinite(R1) || !std::isfinite(Z1) || !std::isfinite(p1)) {
+            return;
+        }
+
+        if (std::abs(ds) <= 1e-30) {
+            DX_out[4*k+0] = D00; DX_out[4*k+1] = D01;
+            DX_out[4*k+2] = D10; DX_out[4*k+3] = D11;
+            continue;
+        }
+
+        int ns = (int)std::ceil(std::abs(ds) / max_step);
+        if (ns < 1) ns = 1;
+        const double h = ds / (double)ns;
+        double ph = p0;
+
+        for (int s = 0; s < ns; ++s) {
+            double rA, zA, rB, zB, rC, zC;
+            segment_position(R0, Z0, p0, R1, Z1, p1, ph, rA, zA);
+            segment_position(R0, Z0, p0, R1, Z1, p1, ph + 0.5*h, rB, zB);
+            segment_position(R0, Z0, p0, R1, Z1, p1, ph + h, rC, zC);
+
+            double k1_00, k1_01, k1_10, k1_11;
+            if (!deriv(rA, zA, ph, D00, D01, D10, D11,
+                       k1_00, k1_01, k1_10, k1_11)) return;
+
+            const double E00_2 = D00 + 0.5*h*k1_00;
+            const double E01_2 = D01 + 0.5*h*k1_01;
+            const double E10_2 = D10 + 0.5*h*k1_10;
+            const double E11_2 = D11 + 0.5*h*k1_11;
+            double k2_00, k2_01, k2_10, k2_11;
+            if (!deriv(rB, zB, ph + 0.5*h, E00_2, E01_2, E10_2, E11_2,
+                       k2_00, k2_01, k2_10, k2_11)) return;
+
+            const double E00_3 = D00 + 0.5*h*k2_00;
+            const double E01_3 = D01 + 0.5*h*k2_01;
+            const double E10_3 = D10 + 0.5*h*k2_10;
+            const double E11_3 = D11 + 0.5*h*k2_11;
+            double k3_00, k3_01, k3_10, k3_11;
+            if (!deriv(rB, zB, ph + 0.5*h, E00_3, E01_3, E10_3, E11_3,
+                       k3_00, k3_01, k3_10, k3_11)) return;
+
+            const double E00_4 = D00 + h*k3_00;
+            const double E01_4 = D01 + h*k3_01;
+            const double E10_4 = D10 + h*k3_10;
+            const double E11_4 = D11 + h*k3_11;
+            double k4_00, k4_01, k4_10, k4_11;
+            if (!deriv(rC, zC, ph + h, E00_4, E01_4, E10_4, E11_4,
+                       k4_00, k4_01, k4_10, k4_11)) return;
+
+            const double h6 = h / 6.0;
+            D00 += h6 * (k1_00 + 2.0*k2_00 + 2.0*k3_00 + k4_00);
+            D01 += h6 * (k1_01 + 2.0*k2_01 + 2.0*k3_01 + k4_01);
+            D10 += h6 * (k1_10 + 2.0*k2_10 + 2.0*k3_10 + k4_10);
+            D11 += h6 * (k1_11 + 2.0*k2_11 + 2.0*k3_11 + k4_11);
+
+            if (!std::isfinite(D00) || !std::isfinite(D01) ||
+                !std::isfinite(D10) || !std::isfinite(D11)) {
+                return;
+            }
+            ph += h;
+        }
+
+        DX_out[4*k+0] = D00; DX_out[4*k+1] = D01;
+        DX_out[4*k+2] = D10; DX_out[4*k+3] = D11;
+    }
+}
+
+
 
 static inline FixedPointResult newton_fixed_point(
     double R0, double Z0,

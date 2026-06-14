@@ -105,6 +105,9 @@ Important exported functions:
 - `trace_orbit_along_phi`: field-line trace with DPm samples.
 - `compute_A_matrix_batch`: batch finite-difference Jacobian of
   `f=(R*BR/BPhi, R*BZ/BPhi)`.
+- `progress_DX_pol_along_orbit`: tangent-map progression along any sampled
+  orbit, returning `DX_pol(phi_e, phi0)` for every sampled `phi_e`;
+  periodicity is not required.
 - `compute_cycle_perturbation_response`: integrates the FPT response equation
   and returns both `delta_X_pol` and periodic `delta_X_cyc`.
 
