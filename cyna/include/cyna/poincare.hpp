@@ -965,6 +965,128 @@ void trace_poincare_dpk_growth(
     }
 }
 
+void trace_poincare_dpk_growth_twall(
+    double R0, double Z0, double phi0,
+    int max_returns,
+    double return_period,
+    int record_stride,
+    double DPhi,
+    const double* BR, const double* BZ, const double* BPhi,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi,
+    const double* wall_phi_centers,
+    const double* wall_R,
+    const double* wall_Z,
+    int n_phi_wall,
+    int n_theta_wall,
+    bool stop_at_wall,
+    int n_out,
+    int* k_out,
+    double* R_out, double* Z_out, double* phi_out,
+    double* DPk_out,
+    double* eig_abs_out,
+    int* alive_out,
+    double* hit_out,
+    int* term_type_out)
+{
+    constexpr double NAN_V = std::numeric_limits<double>::quiet_NaN();
+    for (int i = 0; i < n_out; ++i) {
+        k_out[i] = 0;
+        R_out[i] = NAN_V; Z_out[i] = NAN_V; phi_out[i] = NAN_V;
+        DPk_out[4*i+0] = NAN_V; DPk_out[4*i+1] = NAN_V;
+        DPk_out[4*i+2] = NAN_V; DPk_out[4*i+3] = NAN_V;
+        eig_abs_out[2*i+0] = NAN_V; eig_abs_out[2*i+1] = NAN_V;
+        alive_out[i] = 0;
+    }
+    hit_out[0] = NAN_V; hit_out[1] = NAN_V; hit_out[2] = NAN_V; hit_out[3] = NAN_V;
+    *term_type_out = 0;  // 0=no termination/hit, 1=wall hit, 2=grid/nonfinite
+
+    if (max_returns <= 0 || record_stride <= 0 ||
+        !std::isfinite(return_period) || std::abs(return_period) <= 1e-14 ||
+        !std::isfinite(DPhi) || std::abs(DPhi) <= 1e-14)
+        return;
+
+    double R = R0, Z = Z0, phi = phi0;
+    double D00 = 1.0, D01 = 0.0, D10 = 0.0, D11 = 1.0;
+    int out_idx = 0;
+    bool inside_wall = point_in_toroidal_wall(
+        R, Z, phi, wall_phi_centers, wall_R, wall_Z, n_phi_wall, n_theta_wall);
+    if (!inside_wall) {
+        hit_out[0] = R; hit_out[1] = Z; hit_out[2] = phi; hit_out[3] = 0.0;
+        *term_type_out = 1;
+        if (stop_at_wall) return;
+    }
+
+    for (int ret = 1; ret <= max_returns; ++ret) {
+        const double target = phi0 + ret * return_period;
+        const double dir = (target >= phi) ? 1.0 : -1.0;
+        while (dir > 0.0 ? phi < target - 1e-12 : phi > target + 1e-12) {
+            const double R_prev = R, Z_prev = Z, phi_prev = phi;
+            const bool inside_prev = inside_wall;
+            const double step_abs = std::min(std::abs(DPhi), std::abs(target - phi));
+            const double step = dir * step_abs;
+            if (!rk4_step_DX_pol(R, Z, D00,D01,D10,D11, phi, step,
+                                 BR, BZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi)) {
+                *term_type_out = 2;
+                return;
+            }
+            phi += step;
+            if (!std::isfinite(R) || !std::isfinite(Z) ||
+                R < R_grid[0] || R > R_grid[nR-1] ||
+                Z < Z_grid[0] || Z > Z_grid[nZ-1]) {
+                *term_type_out = 2;
+                return;
+            }
+            if (!std::isfinite(D00) || !std::isfinite(D01) ||
+                !std::isfinite(D10) || !std::isfinite(D11)) {
+                *term_type_out = 2;
+                return;
+            }
+
+            inside_wall = point_in_toroidal_wall(
+                R, Z, phi, wall_phi_centers, wall_R, wall_Z, n_phi_wall, n_theta_wall);
+            if (*term_type_out == 0 && inside_prev && !inside_wall) {
+                double rA = R_prev, zA = Z_prev, pA = phi_prev;
+                double rB = R,      zB = Z,      pB = phi;
+                for (int b = 0; b < 16; ++b) {
+                    const double rM = 0.5 * (rA + rB);
+                    const double zM = 0.5 * (zA + zB);
+                    const double pM = 0.5 * (pA + pB);
+                    const bool inside_M = point_in_toroidal_wall(
+                        rM, zM, pM, wall_phi_centers, wall_R, wall_Z,
+                        n_phi_wall, n_theta_wall);
+                    if (inside_M) {
+                        rA = rM; zA = zM; pA = pM;
+                    } else {
+                        rB = rM; zB = zM; pB = pM;
+                    }
+                }
+                hit_out[0] = 0.5 * (rA + rB);
+                hit_out[1] = 0.5 * (zA + zB);
+                hit_out[2] = 0.5 * (pA + pB);
+                hit_out[3] = (hit_out[2] - phi0) / return_period;
+                *term_type_out = 1;
+                if (stop_at_wall) return;
+            }
+        }
+
+        if (ret % record_stride == 0 && out_idx < n_out) {
+            k_out[out_idx] = ret;
+            R_out[out_idx] = R;
+            Z_out[out_idx] = Z;
+            phi_out[out_idx] = target;
+            DPk_out[4*out_idx+0] = D00; DPk_out[4*out_idx+1] = D01;
+            DPk_out[4*out_idx+2] = D10; DPk_out[4*out_idx+3] = D11;
+            eig_abs_2x2(D00, D01, D10, D11,
+                        eig_abs_out[2*out_idx+0],
+                        eig_abs_out[2*out_idx+1]);
+            alive_out[out_idx] = 1;
+            out_idx++;
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Evolve DPm(phi) along a cycle orbit using the commutator ODE.
 // ---------------------------------------------------------------------------

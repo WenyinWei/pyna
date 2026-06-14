@@ -65,6 +65,7 @@ if _available:
     find_fixed_points_batch       = getattr(_cyna_ext, "find_fixed_points_batch",       None)
     trace_orbit_along_phi         = getattr(_cyna_ext, "trace_orbit_along_phi",         None)
     trace_poincare_dpk_growth     = getattr(_cyna_ext, "trace_poincare_dpk_growth",     None)
+    trace_poincare_dpk_growth_twall = getattr(_cyna_ext, "trace_poincare_dpk_growth_twall", None)
     compute_cycle_perturbation_response = getattr(_cyna_ext, "compute_cycle_perturbation_response", None)
     compute_A_matrix_batch        = getattr(_cyna_ext, "compute_A_matrix_batch",        None)
     evolve_DPm_along_cycle        = getattr(_cyna_ext, "evolve_DPm_along_cycle",        None)
@@ -84,6 +85,7 @@ else:
     find_fixed_points_batch       = None
     trace_orbit_along_phi         = None
     trace_poincare_dpk_growth     = None
+    trace_poincare_dpk_growth_twall = None
     compute_cycle_perturbation_response = None
     compute_A_matrix_batch        = None
     evolve_DPm_along_cycle        = None
@@ -104,6 +106,7 @@ __all__ = [
     "find_fixed_points_batch",
     "trace_orbit_along_phi",
     "trace_poincare_dpk_growth",
+    "trace_poincare_dpk_growth_twall",
     "compute_cycle_perturbation_response",
     "compute_A_matrix_batch",
     "evolve_DPm_along_cycle",

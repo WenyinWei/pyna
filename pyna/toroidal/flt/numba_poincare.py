@@ -14,6 +14,7 @@ from pyna._cyna import (
     find_fixed_points_batch as _cyna_find_fixed_points_batch,
     trace_orbit_along_phi as _cyna_trace_orbit_along_phi,
     trace_poincare_dpk_growth as _cyna_trace_poincare_dpk_growth,
+    trace_poincare_dpk_growth_twall as _cyna_trace_poincare_dpk_growth_twall,
 )
 
 
@@ -480,6 +481,97 @@ def trace_poincare_dpk_growth_field(
     )
 
 
+def trace_poincare_dpk_growth_twall(
+    R0,
+    Z0,
+    phi_start,
+    max_returns,
+    DPhi,
+    R_grid,
+    Z_grid,
+    Phi_grid,
+    BR_flat,
+    BZ_flat,
+    BPhi_flat,
+    wall_phi,
+    wall_R_all,
+    wall_Z_all,
+    *,
+    return_period: float = 2.0 * np.pi,
+    record_stride: int = 1,
+    stop_at_wall: bool = True,
+):
+    """Wall-aware cumulative ``DP^k`` tracing.
+
+    Returns the same trajectory data as :func:`trace_poincare_dpk_growth`,
+    plus ``hit=[R, Z, phi, k_float]`` for the first wall crossing and
+    ``term`` where 0 means no hit, 1 means wall hit, and 2 means grid/nonfinite
+    termination.  If ``stop_at_wall`` is false, tracing continues after the
+    first wall hit so topology can be inspected without wall truncation.
+    """
+    if not _cyna_available() or _cyna_trace_poincare_dpk_growth_twall is None:
+        raise ImportError("pyna._cyna.trace_poincare_dpk_growth_twall is unavailable. Build cyna first.")
+    return _cyna_trace_poincare_dpk_growth_twall(
+        float(R0),
+        float(Z0),
+        float(phi_start),
+        int(max_returns),
+        float(return_period),
+        int(record_stride),
+        float(DPhi),
+        np.ascontiguousarray(BR_flat, dtype=np.float64),
+        np.ascontiguousarray(BZ_flat, dtype=np.float64),
+        np.ascontiguousarray(BPhi_flat, dtype=np.float64),
+        np.ascontiguousarray(R_grid, dtype=np.float64),
+        np.ascontiguousarray(Z_grid, dtype=np.float64),
+        np.ascontiguousarray(Phi_grid, dtype=np.float64),
+        np.ascontiguousarray(wall_phi, dtype=np.float64),
+        np.ascontiguousarray(wall_R_all, dtype=np.float64),
+        np.ascontiguousarray(wall_Z_all, dtype=np.float64),
+        bool(stop_at_wall),
+    )
+
+
+def trace_poincare_dpk_growth_twall_field(
+    field,
+    R0,
+    Z0,
+    phi_start,
+    max_returns,
+    DPhi,
+    wall_phi,
+    wall_R_all,
+    wall_Z_all,
+    *,
+    extend_phi: bool = True,
+    return_period: float = 2.0 * np.pi,
+    record_stride: int = 1,
+    stop_at_wall: bool = True,
+):
+    """Object-first wrapper for wall-aware cumulative Poincare ``DP^k``."""
+
+    arrays = field_arrays_from_field(field, extend_phi=extend_phi)
+    return trace_poincare_dpk_growth_twall(
+        R0,
+        Z0,
+        phi_start,
+        max_returns,
+        DPhi,
+        arrays.R_grid,
+        arrays.Z_grid,
+        arrays.Phi_grid,
+        arrays.BR_flat,
+        arrays.BZ_flat,
+        arrays.BPhi_flat,
+        wall_phi,
+        wall_R_all,
+        wall_Z_all,
+        return_period=return_period,
+        record_stride=record_stride,
+        stop_at_wall=stop_at_wall,
+    )
+
+
 __all__ = [
     "field_arrays_from_interpolators",
     "field_arrays_from_field",
@@ -496,4 +588,6 @@ __all__ = [
     "trace_orbit_along_phi_field",
     "trace_poincare_dpk_growth",
     "trace_poincare_dpk_growth_field",
+    "trace_poincare_dpk_growth_twall",
+    "trace_poincare_dpk_growth_twall_field",
 ]
