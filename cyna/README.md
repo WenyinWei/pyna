@@ -4,6 +4,10 @@
 high-performance implementations of the computationally intensive operations
 that are bottlenecks in pure Python.
 
+Production field-line and Poincare tracing should land here or behind the
+`pyna._cyna`/`pyna.toroidal.flt` wrappers, not in downstream Python hot loops.
+See [../FIELD_LINE_TRACING_POLICY.md](../FIELD_LINE_TRACING_POLICY.md).
+
 ## Trilingual array
 
 ```

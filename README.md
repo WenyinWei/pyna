@@ -13,6 +13,10 @@
 
 > **Author:** [Wenyin Wei](https://github.com/WenyinWei) · **PyPI:** `pyna-chaos` · **Julia companion:** [Juna.jl](https://github.com/WenyinWei/Juna.jl)
 
+Production magnetic-field-line tracing belongs in `pyna`/`cyna`; downstream
+projects should call these tracing APIs instead of adding Python RK4 hot loops.
+See [FIELD_LINE_TRACING_POLICY.md](FIELD_LINE_TRACING_POLICY.md).
+
 ---
 
 ## ✨ Highlights
