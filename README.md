@@ -17,6 +17,11 @@ Production magnetic-field-line tracing belongs in `pyna`/`cyna`; downstream
 projects should call these tracing APIs instead of adding Python RK4 hot loops.
 See [FIELD_LINE_TRACING_POLICY.md](FIELD_LINE_TRACING_POLICY.md).
 
+FPT naming convention: `progress_*` means a fixed source phase `phi_s` and a
+moving endpoint `phi_e`; `evolve_*_cycle_*` means a cycle-attached object whose
+base phase moves, with `phi_s` and `phi_e = phi_s + 2*pi*m` moving together.
+This distinction is part of the public API vocabulary.
+
 ---
 
 ## ✨ Highlights

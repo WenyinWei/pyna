@@ -78,7 +78,19 @@ def test_insert_axis_core_surfaces_interpolates_to_first_reliable_surface():
     )
 
     np.testing.assert_allclose(result.radial_labels, [0.15, 0.3, 0.6, 0.9])
-    np.testing.assert_allclose(result.R_surf[:, 0, :], axis_R[:, None] + 0.5)
-    np.testing.assert_allclose(result.Z_surf[:, 0, :], axis_Z[:, None] + 1.0)
-    np.testing.assert_allclose(result.R_surf[:, 1, :], axis_R[:, None] + 1.0)
-    np.testing.assert_allclose(result.Z_surf[:, 1, :], axis_Z[:, None] + 2.0)
+    np.testing.assert_allclose(
+        result.R_surf[:, 0, :],
+        np.repeat(axis_R[:, None] + 0.5, theta.size, axis=1),
+    )
+    np.testing.assert_allclose(
+        result.Z_surf[:, 0, :],
+        np.repeat(axis_Z[:, None] + 1.0, theta.size, axis=1),
+    )
+    np.testing.assert_allclose(
+        result.R_surf[:, 1, :],
+        np.repeat(axis_R[:, None] + 1.0, theta.size, axis=1),
+    )
+    np.testing.assert_allclose(
+        result.Z_surf[:, 1, :],
+        np.repeat(axis_Z[:, None] + 2.0, theta.size, axis=1),
+    )

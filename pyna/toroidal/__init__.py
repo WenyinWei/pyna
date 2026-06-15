@@ -13,6 +13,7 @@ _SUBMODULES = {
     "control",
     "diagnostics",
     "flt",
+    "minor_radius",
     "optimize",
     "perturbation",
     "surface_coordinates",
@@ -23,8 +24,10 @@ _SUBMODULES = {
 _SYMBOL_MODULES = {
     "EquilibriumSolovev": "pyna.toroidal.equilibrium.Solovev",
     "EquilibriumAxisym": "pyna.toroidal.equilibrium.axisymmetric",
+    "GeometricMinorRadiusProvider": "pyna.toroidal.minor_radius",
     "TorusDeformationSpectrum": "pyna.toroidal.torus_deformation",
     "RadialPerturbationSplit": "pyna.toroidal.torus_deformation",
+    "minor_radius_label": "pyna.toroidal.minor_radius",
     "split_radial_perturbation_spectrum": "pyna.toroidal.torus_deformation",
     "non_resonant_deformation_spectrum": "pyna.toroidal.torus_deformation",
     "poincare_section_deformation": "pyna.toroidal.torus_deformation",
