@@ -14,6 +14,8 @@ from pyna._cyna import (
     find_fixed_points_batch as _cyna_find_fixed_points_batch,
     trace_orbit_along_phi as _cyna_trace_orbit_along_phi,
     progress_DX_pol_along_orbit as _cyna_progress_DX_pol_along_orbit,
+    progress_delta_X_along_orbit as _cyna_progress_delta_X_along_orbit,
+    evolve_delta_X_cycle_along_orbit as _cyna_evolve_delta_X_cycle_along_orbit,
     trace_poincare_dpk_growth as _cyna_trace_poincare_dpk_growth,
     trace_poincare_dpk_growth_twall as _cyna_trace_poincare_dpk_growth_twall,
 )
@@ -469,6 +471,159 @@ def progress_DX_pol_along_orbit_field(
     )
 
 
+def progress_delta_X_along_orbit(
+    R_traj,
+    Z_traj,
+    phi_traj,
+    delta_X0,
+    R_grid,
+    Z_grid,
+    Phi_grid,
+    BR_flat,
+    BZ_flat,
+    BPhi_flat,
+    dBR_flat,
+    dBZ_flat,
+    dBPhi_flat,
+    *,
+    max_step: float = 0.005,
+):
+    """Progress first-order ``delta_X(phi_s, phi_e)`` along a sampled orbit.
+
+    ``progress`` means the source point ``phi_s`` is fixed and only ``phi_e``
+    advances.  This is the correct verb for ``delta_X_pol`` and other open
+    trajectory responses.  The returned array has shape ``(N, 2)``.
+    """
+    if not _cyna_available() or _cyna_progress_delta_X_along_orbit is None:
+        raise ImportError("pyna._cyna.progress_delta_X_along_orbit is unavailable. Build cyna first.")
+    return _cyna_progress_delta_X_along_orbit(
+        np.ascontiguousarray(R_traj, dtype=np.float64),
+        np.ascontiguousarray(Z_traj, dtype=np.float64),
+        np.ascontiguousarray(phi_traj, dtype=np.float64),
+        np.ascontiguousarray(delta_X0, dtype=np.float64),
+        np.ascontiguousarray(BR_flat, dtype=np.float64),
+        np.ascontiguousarray(BZ_flat, dtype=np.float64),
+        np.ascontiguousarray(BPhi_flat, dtype=np.float64),
+        np.ascontiguousarray(dBR_flat, dtype=np.float64),
+        np.ascontiguousarray(dBZ_flat, dtype=np.float64),
+        np.ascontiguousarray(dBPhi_flat, dtype=np.float64),
+        np.ascontiguousarray(R_grid, dtype=np.float64),
+        np.ascontiguousarray(Z_grid, dtype=np.float64),
+        np.ascontiguousarray(Phi_grid, dtype=np.float64),
+        float(max_step),
+    )
+
+
+def evolve_delta_X_cycle_along_orbit(
+    R_traj,
+    Z_traj,
+    phi_traj,
+    delta_X_cyc0,
+    R_grid,
+    Z_grid,
+    Phi_grid,
+    BR_flat,
+    BZ_flat,
+    BPhi_flat,
+    dBR_flat,
+    dBZ_flat,
+    dBPhi_flat,
+    *,
+    max_step: float = 0.005,
+):
+    """Evolve periodic-cycle displacement ``delta_X_cyc(phi)``.
+
+    ``evolve`` means ``phi_s`` and ``phi_e = phi_s + 2*pi*m`` move together
+    along a periodic orbit.  The ODE is the same inhomogeneous response equation
+    used by :func:`progress_delta_X_along_orbit`, but ``delta_X_cyc0`` must
+    already be the periodic initial displacement from the cycle closure solve.
+    """
+    if not _cyna_available() or _cyna_evolve_delta_X_cycle_along_orbit is None:
+        raise ImportError("pyna._cyna.evolve_delta_X_cycle_along_orbit is unavailable. Build cyna first.")
+    return _cyna_evolve_delta_X_cycle_along_orbit(
+        np.ascontiguousarray(R_traj, dtype=np.float64),
+        np.ascontiguousarray(Z_traj, dtype=np.float64),
+        np.ascontiguousarray(phi_traj, dtype=np.float64),
+        np.ascontiguousarray(delta_X_cyc0, dtype=np.float64),
+        np.ascontiguousarray(BR_flat, dtype=np.float64),
+        np.ascontiguousarray(BZ_flat, dtype=np.float64),
+        np.ascontiguousarray(BPhi_flat, dtype=np.float64),
+        np.ascontiguousarray(dBR_flat, dtype=np.float64),
+        np.ascontiguousarray(dBZ_flat, dtype=np.float64),
+        np.ascontiguousarray(dBPhi_flat, dtype=np.float64),
+        np.ascontiguousarray(R_grid, dtype=np.float64),
+        np.ascontiguousarray(Z_grid, dtype=np.float64),
+        np.ascontiguousarray(Phi_grid, dtype=np.float64),
+        float(max_step),
+    )
+
+
+def progress_delta_X_along_orbit_field(
+    field,
+    delta_field,
+    R_traj,
+    Z_traj,
+    phi_traj,
+    delta_X0=(0.0, 0.0),
+    *,
+    extend_phi: bool = True,
+    max_step: float = 0.005,
+):
+    """Object-first wrapper for ``progress_delta_X_along_orbit``."""
+
+    arrays = field_arrays_from_field(field, extend_phi=extend_phi)
+    d_arrays = field_arrays_from_field(delta_field, extend_phi=extend_phi)
+    return progress_delta_X_along_orbit(
+        R_traj,
+        Z_traj,
+        phi_traj,
+        delta_X0,
+        arrays.R_grid,
+        arrays.Z_grid,
+        arrays.Phi_grid,
+        arrays.BR_flat,
+        arrays.BZ_flat,
+        arrays.BPhi_flat,
+        d_arrays.BR_flat,
+        d_arrays.BZ_flat,
+        d_arrays.BPhi_flat,
+        max_step=max_step,
+    )
+
+
+def evolve_delta_X_cycle_along_orbit_field(
+    field,
+    delta_field,
+    R_traj,
+    Z_traj,
+    phi_traj,
+    delta_X_cyc0,
+    *,
+    extend_phi: bool = True,
+    max_step: float = 0.005,
+):
+    """Object-first wrapper for ``evolve_delta_X_cycle_along_orbit``."""
+
+    arrays = field_arrays_from_field(field, extend_phi=extend_phi)
+    d_arrays = field_arrays_from_field(delta_field, extend_phi=extend_phi)
+    return evolve_delta_X_cycle_along_orbit(
+        R_traj,
+        Z_traj,
+        phi_traj,
+        delta_X_cyc0,
+        arrays.R_grid,
+        arrays.Z_grid,
+        arrays.Phi_grid,
+        arrays.BR_flat,
+        arrays.BZ_flat,
+        arrays.BPhi_flat,
+        d_arrays.BR_flat,
+        d_arrays.BZ_flat,
+        d_arrays.BPhi_flat,
+        max_step=max_step,
+    )
+
+
 def trace_poincare_dpk_growth(
     R0,
     Z0,
@@ -650,6 +805,10 @@ __all__ = [
     "trace_orbit_along_phi_field",
     "progress_DX_pol_along_orbit",
     "progress_DX_pol_along_orbit_field",
+    "progress_delta_X_along_orbit",
+    "progress_delta_X_along_orbit_field",
+    "evolve_delta_X_cycle_along_orbit",
+    "evolve_delta_X_cycle_along_orbit_field",
     "trace_poincare_dpk_growth",
     "trace_poincare_dpk_growth_field",
     "trace_poincare_dpk_growth_twall",

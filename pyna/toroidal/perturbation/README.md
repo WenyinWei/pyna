@@ -23,6 +23,17 @@ that landing zone without overbuilding or moving stable implementations.
 - Keep solver-heavy modules in their existing homes until they naturally need
   consolidation.
 
+## FPT verb convention
+
+Use `progress_*` only when the source phase `phi_s` is fixed and an endpoint
+`phi_e` is advanced.  Examples are `DX_pol(phi_s, phi_e)` and
+`delta_X_pol(phi_s, phi_e)`.
+
+Use `evolve_*_cycle_*` when the object is attached to a periodic orbit and is
+followed as the cycle phase changes.  In that case `phi_s` and
+`phi_e = phi_s + 2*pi*m` move together; examples are `DPm(phi)` and
+`delta_X_cyc(phi)`.
+
 ## Planned buckets
 
 - `equilibrium`

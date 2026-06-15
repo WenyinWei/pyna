@@ -1,6 +1,6 @@
-"""Functional perturbation theory response hierarchy for field-line topology.
+"""Functional perturbation theory shift hierarchy for field-line topology.
 
-This module is the public landing zone for perturbative responses of orbits,
+This module is the public landing zone for perturbative shifts of orbits,
 trajectories, cycles, invariant tori, and invariant manifolds under a global
 magnetic-field change.  The C++ backend lives in :mod:`pyna._cyna`; this module
 keeps the mathematical names and the field-cache convention visible.
@@ -9,7 +9,7 @@ For a toroidal field-line ODE
 
     dX/dphi = f(X, phi) = (R * BR / BPhi, R * BZ / BPhi),
 
-the first-order response to a full-field perturbation is
+the first-order shift under a full-field perturbation is
 
     d(delta_X)/dphi = A(X, phi) delta_X + delta_f(X, phi),
 
@@ -33,24 +33,24 @@ import numpy as np
 from pyna._cyna.utils import prepare_field_cache
 
 try:
-    from pyna._cyna import compute_cycle_perturbation_response as _cyna_cycle_response
+    from pyna._cyna import compute_cycle_perturbation_shift as _cyna_cycle_shift
 except ImportError:  # pragma: no cover - import guard for source-only installs
-    _cyna_cycle_response = None
+    _cyna_cycle_shift = None
 
 __all__ = [
-    "OrbitPerturbationResponse",
-    "TrajectoryPerturbationResponse",
-    "CyclePerturbationResponse",
-    "InvariantTorusPerturbationResponse",
-    "StableManifoldPerturbationResponse",
-    "compute_cycle_response",
-    "compute_cycle_response_from_cache",
+    "OrbitPerturbationShift",
+    "TrajectoryPerturbationShift",
+    "CyclePerturbationShift",
+    "InvariantTorusPerturbationShift",
+    "StableManifoldPerturbationShift",
+    "compute_cycle_shift",
+    "compute_cycle_shift_from_cache",
 ]
 
 
 @dataclass(frozen=True)
-class OrbitPerturbationResponse:
-    """First-order response data along a traced field-line orbit."""
+class OrbitPerturbationShift:
+    """First-order shift data along a traced field-line orbit."""
 
     R: np.ndarray
     Z: np.ndarray
@@ -61,13 +61,13 @@ class OrbitPerturbationResponse:
 
 
 @dataclass(frozen=True)
-class TrajectoryPerturbationResponse(OrbitPerturbationResponse):
-    """Response of an open trajectory with a specified initial displacement."""
+class TrajectoryPerturbationShift(OrbitPerturbationShift):
+    """Shift of an open trajectory with a specified initial displacement."""
 
 
 @dataclass(frozen=True)
-class CyclePerturbationResponse(OrbitPerturbationResponse):
-    """Response of a periodic cycle under a full magnetic-field change.
+class CyclePerturbationShift(OrbitPerturbationShift):
+    """Shift of a periodic cycle under a full magnetic-field change.
 
     ``delta_X_pol`` is the particular solution with zero initial displacement.
     ``delta_X_cyc`` is the periodic physical cycle shift.  For an Nfp-periodic
@@ -85,20 +85,20 @@ class CyclePerturbationResponse(OrbitPerturbationResponse):
         return self.delta_X_cyc[-1] - self.delta_X_cyc[0]
 
 
-class InvariantTorusPerturbationResponse:
-    """Placeholder for invariant-torus response solvers.
+class InvariantTorusPerturbationShift:
+    """Placeholder for invariant-torus shift solvers.
 
     The public class is reserved here so callers can discover the intended FPT
-    hierarchy.  Fourier/KAM torus-response implementations should land behind
+    hierarchy.  Fourier/KAM torus-shift implementations should land behind
     this name instead of creating ad-hoc modules.
     """
 
     def __init__(self, *args, **kwargs) -> None:
-        raise NotImplementedError("Invariant torus FPT response is not implemented yet.")
+        raise NotImplementedError("Invariant torus FPT shift is not implemented yet.")
 
 
-class StableManifoldPerturbationResponse:
-    """Placeholder for stable/unstable manifold response solvers.
+class StableManifoldPerturbationShift:
+    """Placeholder for stable/unstable manifold shift solvers.
 
     Planned implementation:
     compute the X-cycle shift, perturb the DPm eigenvalue/eigenvector that
@@ -110,7 +110,7 @@ class StableManifoldPerturbationResponse:
     """
 
     def __init__(self, *args, **kwargs) -> None:
-        raise NotImplementedError("Stable manifold FPT response is not implemented yet.")
+        raise NotImplementedError("Stable manifold FPT shift is not implemented yet.")
 
 
 def _cache_array(cache: Mapping[str, np.ndarray], key: str) -> np.ndarray:
@@ -120,7 +120,7 @@ def _cache_array(cache: Mapping[str, np.ndarray], key: str) -> np.ndarray:
     return np.ascontiguousarray(arr, dtype=np.float64)
 
 
-def compute_cycle_response(
+def compute_cycle_shift(
     R0: float,
     Z0: float,
     phi0: float,
@@ -131,14 +131,14 @@ def compute_cycle_response(
     dphi_out: float = 0.01,
     DPhi: float = 0.01,
     fd_eps: float = 1e-4,
-) -> CyclePerturbationResponse:
-    """Compute cycle FPT response from cylindrical vector-field objects.
+) -> CyclePerturbationShift:
+    """Compute cycle FPT shift from cylindrical vector-field objects.
 
     ``base_field`` and ``pert_field`` may be :class:`VectorFieldCylind`
     instances, compatible field-like objects, or legacy field-cache dicts.
     """
 
-    return compute_cycle_response_from_cache(
+    return compute_cycle_shift_from_cache(
         R0,
         Z0,
         phi0,
@@ -151,7 +151,7 @@ def compute_cycle_response(
     )
 
 
-def compute_cycle_response_from_cache(
+def compute_cycle_shift_from_cache(
     R0: float,
     Z0: float,
     phi0: float,
@@ -162,7 +162,7 @@ def compute_cycle_response_from_cache(
     dphi_out: float = 0.01,
     DPhi: float = 0.01,
     fd_eps: float = 1e-4,
-) -> CyclePerturbationResponse:
+) -> CyclePerturbationShift:
     """Compute ``delta_X_pol`` and periodic ``delta_X_cyc`` using cyna.
 
     ``base_field_cache`` and ``pert_field_cache`` may be
@@ -172,13 +172,13 @@ def compute_cycle_response_from_cache(
     canonical ``BR, BZ, BPhi``.
     """
 
-    if _cyna_cycle_response is None:
-        raise RuntimeError("pyna._cyna.compute_cycle_perturbation_response is unavailable.")
+    if _cyna_cycle_shift is None:
+        raise RuntimeError("pyna._cyna.compute_cycle_perturbation_shift is unavailable.")
 
     base_fc = prepare_field_cache(base_field_cache, extend_phi=True)
     pert_fc = prepare_field_cache(pert_field_cache, extend_phi=True)
 
-    R, Z, phi, DP, dXpol, dXcyc, dXcyc0, alive = _cyna_cycle_response(
+    R, Z, phi, DP, dXpol, dXcyc, dXcyc0, alive = _cyna_cycle_shift(
         float(R0), float(Z0), float(phi0),
         float(phi_span), float(dphi_out), float(DPhi), float(fd_eps),
         _cache_array(base_fc, "BR"),
@@ -192,7 +192,7 @@ def compute_cycle_response_from_cache(
         _cache_array(base_fc, "Phi_grid"),
     )
 
-    return CyclePerturbationResponse(
+    return CyclePerturbationShift(
         R=np.asarray(R),
         Z=np.asarray(Z),
         phi=np.asarray(phi),

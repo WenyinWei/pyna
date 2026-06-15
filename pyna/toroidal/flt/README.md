@@ -1,0 +1,38 @@
+# `pyna.toroidal.flt` — cyna-backed toroidal field-line tools
+
+This package is the Python-facing wrapper layer for cyna field-line tracing,
+Poincare maps, fixed-point searches, and variational/FPT shift helpers.
+
+## FPT verb convention
+
+- `progress_*` fixes `phi_s` and advances only `phi_e`.  Use these functions
+  for endpoint objects such as `DX_pol(phi_s, phi_e)` and
+  `delta_X_pol(phi_s, phi_e)`.
+- `evolve_*_cycle_*` follows a cycle-attached object as the periodic-orbit
+  phase moves.  For cycle shift, `phi_s` and `phi_e = phi_s + 2*pi*m` move
+  together.  Use these functions for quantities such as `DPm(phi)` and
+  `delta_X_cyc(phi)`.
+
+The underlying nonhomogeneous FPT ODE is shared:
+
+```text
+d(delta_X)/dphi = d(R B_pol / B_phi)/d(R,Z) * delta_X
+                + delta(R B_pol / B_phi)
+```
+
+The verb encodes the boundary condition and interpretation, not a different
+formula.
+
+## Cycle shifts
+
+- `cycle_shift_from_fields` computes the first-order `delta_X_cyc` response of a
+  periodic cycle for `B0 -> B0 + delta_B`.
+- `axis_cycle_shift_from_fields` samples that same shift on an O-cycle axis
+  profile.
+- `cycle_points_shift_from_fields` applies it to a set of O/X periodic-cycle
+  seed points and returns their shifted section points.
+
+These functions are pure geometry/FPT utilities over cylindrical vector fields
+or compatible field caches.  They do not implement beta-ramp acceptance,
+topology gates, amplitude trust regions, or fallback axis models; those policies
+belong to the caller.

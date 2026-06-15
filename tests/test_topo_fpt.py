@@ -3,10 +3,10 @@ import pytest
 
 from pyna._cyna.utils import prepare_field_cache
 from pyna.topo.fpt import (
-    InvariantTorusPerturbationResponse,
-    StableManifoldPerturbationResponse,
-    compute_cycle_response,
-    compute_cycle_response_from_cache,
+    InvariantTorusPerturbationShift,
+    StableManifoldPerturbationShift,
+    compute_cycle_shift,
+    compute_cycle_shift_from_cache,
 )
 
 
@@ -29,11 +29,11 @@ def _constant_toroidal_cache():
 def test_cycle_response_zero_perturbation_if_cyna_available():
     import pyna._cyna as cyna
 
-    if not cyna.is_available() or cyna.compute_cycle_perturbation_response is None:
-        pytest.skip("cyna cycle perturbation response is unavailable")
+    if not cyna.is_available() or cyna.compute_cycle_perturbation_shift is None:
+        pytest.skip("cyna cycle perturbation shift is unavailable")
 
     base = _constant_toroidal_cache()
-    response = compute_cycle_response_from_cache(
+    cycle_shift = compute_cycle_shift_from_cache(
         1.0,
         0.0,
         0.0,
@@ -45,19 +45,19 @@ def test_cycle_response_zero_perturbation_if_cyna_available():
         fd_eps=1e-4,
     )
 
-    assert response.R.shape == response.Z.shape == response.phi.shape
-    assert response.DP.shape[1:] == (2, 2)
-    np.testing.assert_allclose(response.delta_X_pol, 0.0, atol=1e-13)
-    np.testing.assert_allclose(response.delta_X_cyc, 0.0, atol=1e-13)
-    np.testing.assert_allclose(response.periodic_residual, 0.0, atol=1e-13)
+    assert cycle_shift.R.shape == cycle_shift.Z.shape == cycle_shift.phi.shape
+    assert cycle_shift.DP.shape[1:] == (2, 2)
+    np.testing.assert_allclose(cycle_shift.delta_X_pol, 0.0, atol=1e-13)
+    np.testing.assert_allclose(cycle_shift.delta_X_cyc, 0.0, atol=1e-13)
+    np.testing.assert_allclose(cycle_shift.periodic_residual, 0.0, atol=1e-13)
 
 
 def test_cycle_response_accepts_vector_field_if_cyna_available():
     import pyna._cyna as cyna
     from pyna.fields import VectorFieldCylind
 
-    if not cyna.is_available() or cyna.compute_cycle_perturbation_response is None:
-        pytest.skip("cyna cycle perturbation response is unavailable")
+    if not cyna.is_available() or cyna.compute_cycle_perturbation_shift is None:
+        pytest.skip("cyna cycle perturbation shift is unavailable")
 
     R = np.linspace(0.8, 1.2, 5)
     Z = np.linspace(-0.2, 0.2, 5)
@@ -72,7 +72,7 @@ def test_cycle_response_accepts_vector_field_if_cyna_available():
         BPhi=np.ones(shape),
     )
 
-    response = compute_cycle_response(
+    cycle_shift = compute_cycle_shift(
         1.0,
         0.0,
         0.0,
@@ -84,12 +84,12 @@ def test_cycle_response_accepts_vector_field_if_cyna_available():
         fd_eps=1e-4,
     )
 
-    np.testing.assert_allclose(response.delta_X_pol, 0.0, atol=1e-13)
-    np.testing.assert_allclose(response.delta_X_cyc, 0.0, atol=1e-13)
+    np.testing.assert_allclose(cycle_shift.delta_X_pol, 0.0, atol=1e-13)
+    np.testing.assert_allclose(cycle_shift.delta_X_cyc, 0.0, atol=1e-13)
 
 
 def test_fpt_placeholders_are_explicit():
     with pytest.raises(NotImplementedError):
-        InvariantTorusPerturbationResponse()
+        InvariantTorusPerturbationShift()
     with pytest.raises(NotImplementedError):
-        StableManifoldPerturbationResponse()
+        StableManifoldPerturbationShift()

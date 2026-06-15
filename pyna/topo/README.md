@@ -26,7 +26,7 @@ Core capabilities:
 | `island_extract.py` | `detect_islands()`, `island_halfwidth()` |
 | `monodromy.py` | `MonodromyAnalysis`: `DPm`, `eigenvalues`, `stability_index`, `Greene_residue` |
 | `variational.py` | `PoincareMapVariationalEquations`, `tangent_map()` |
-| `fpt.py` | `compute_cycle_response_from_cache()`, `CyclePerturbationResponse` |
+| `fpt.py` | `compute_cycle_shift_from_cache()`, `CyclePerturbationShift` |
 | `manifold_improve.py` | `StableManifold`, `UnstableManifold` (arc-length parameterised extraction; accelerated backend by default) |
 | `manifold.py` | `grow_manifold_from_Xcycle()` |
 | `topology_analysis.py` | `analyse_topology()`, `TopologyReport` |
@@ -52,13 +52,13 @@ Never use `J` or `M` for these.
 
 ---
 
-## Functional perturbation theory response hierarchy
+## Functional perturbation theory shift hierarchy
 
-Use `pyna.topo.fpt` for perturbative responses under a global magnetic-field
+Use `pyna.topo.fpt` for perturbative shifts under a global magnetic-field
 change.  This is the canonical landing zone for:
 
 - orbit / trajectory response
-- periodic cycle response
+- periodic cycle shift
 - invariant-torus response
 - stable / unstable manifold response
 
@@ -67,6 +67,15 @@ For the field-line ODE `dX/dphi = f(X, phi)`, the response equation is:
 ```
 d(delta_X)/dphi = A(X, phi) delta_X + delta_f(X, phi)
 ```
+
+Verb convention:
+
+- `progress_*` fixes the source angle `phi_s` and advances only `phi_e`.
+  Use it for endpoint/tangent objects such as `DX_pol(phi_s, phi_e)` and
+  zero-initial `delta_X_pol(phi_s, phi_e)`.
+- `evolve_*_cycle_*` moves the base phase along a periodic orbit.  In this
+  case `phi_s` and `phi_e = phi_s + 2*pi*m` move together, and the object is a
+  cycle-attached quantity such as `DPm(phi)` or `delta_X_cyc(phi)`.
 
 `delta_X_pol` is the zero-initial particular solution.  It measures endpoint
 motion along a traced orbit and is not itself the periodic cycle shift.
@@ -84,9 +93,9 @@ Then `delta_X_cyc(phi + T)` should match `delta_X_cyc(phi)`.
 The accelerated entry point is:
 
 ```python
-from pyna.topo.fpt import compute_cycle_response_from_cache
+from pyna.topo.fpt import compute_cycle_shift_from_cache
 
-resp = compute_cycle_response_from_cache(
+resp = compute_cycle_shift_from_cache(
     R0, Z0, phi0, 2*np.pi/Nfp,
     base_field_cache, perturbed_field_cache,
 )

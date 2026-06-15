@@ -134,6 +134,47 @@ static py::array_t<double> py_progress_DX_pol_along_orbit(
     return out;
 }
 
+// ---------------------------------------------------------------------------
+// progress_delta_X_along_orbit
+// ---------------------------------------------------------------------------
+static py::array_t<double> py_progress_delta_X_along_orbit(
+    py::array_t<double> R_traj,
+    py::array_t<double> Z_traj,
+    py::array_t<double> phi_traj,
+    py::array_t<double> delta_X0,
+    py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
+    py::array_t<double> dBR, py::array_t<double> dBZ, py::array_t<double> dBPhi,
+    py::array_t<double> R_grid,
+    py::array_t<double> Z_grid,
+    py::array_t<double> Phi_grid,
+    double max_step)
+{
+    const int n_pts = (int)R_traj.size();
+    if ((int)Z_traj.size() != n_pts || (int)phi_traj.size() != n_pts) {
+        throw std::runtime_error("R_traj, Z_traj and phi_traj must have the same length");
+    }
+    if ((int)delta_X0.size() != 2) {
+        throw std::runtime_error("delta_X0 must have length 2");
+    }
+    if (max_step <= 0.0 || !std::isfinite(max_step)) {
+        throw std::runtime_error("max_step must be finite and positive");
+    }
+
+    py::array_t<double> out({n_pts, 2});
+    cyna::progress_delta_X_along_orbit(
+        buf(R_traj, "R_traj"), buf(Z_traj, "Z_traj"), buf(phi_traj, "phi_traj"),
+        n_pts,
+        buf(delta_X0, "delta_X0"),
+        out.mutable_data(),
+        buf(BR,"BR"), buf(BZ,"BZ"), buf(BPhi,"BPhi"),
+        buf(dBR,"dBR"), buf(dBZ,"dBZ"), buf(dBPhi,"dBPhi"),
+        buf(R_grid,"R_grid"), (int)R_grid.size(),
+        buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
+        buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size(),
+        max_step);
+    return out;
+}
+
 static py::tuple py_trace_poincare_batch(
     py::array_t<double> R_seeds,
     py::array_t<double> Z_seeds,
@@ -400,7 +441,7 @@ static py::tuple py_summarize_profile_objectives(
                           D_Merc_proxy);
 }
 
-static py::tuple py_compute_cycle_perturbation_response(
+static py::tuple py_compute_cycle_perturbation_shift(
     double R0, double Z0, double phi0,
     double phi_span, double dphi_out, double DPhi, double fd_eps,
     py::array_t<double> BR_base, py::array_t<double> BZ_base, py::array_t<double> BPhi_base,
@@ -445,21 +486,50 @@ static py::tuple py_compute_cycle_perturbation_response(
     };
 
     auto A_eval = [&](double R, double Z, double phi, double A[4]) {
-        double g0p, g1p, g0m, g1m;
-        f_eval(br0, bz0, bp0, R + fd_eps, Z, phi, g0p, g1p);
-        f_eval(br0, bz0, bp0, R - fd_eps, Z, phi, g0m, g1m);
-        A[0] = (g0p - g0m) / (2.0 * fd_eps);
-        A[2] = (g1p - g1m) / (2.0 * fd_eps);
-        f_eval(br0, bz0, bp0, R, Z + fd_eps, phi, g0p, g1p);
-        f_eval(br0, bz0, bp0, R, Z - fd_eps, phi, g0m, g1m);
-        A[1] = (g0p - g0m) / (2.0 * fd_eps);
-        A[3] = (g1p - g1m) / (2.0 * fd_eps);
+        double BRv, dBR_dR, dBR_dZ;
+        double BZv, dBZ_dR, dBZ_dZ;
+        double BPv, dBP_dR, dBP_dZ;
+        if (!cyna::interp3d_grad(BRv, dBR_dR, dBR_dZ, br0, Rg,nR,Zg,nZ,Pg,nPhi, R,Z,phi) ||
+            !cyna::interp3d_grad(BZv, dBZ_dR, dBZ_dZ, bz0, Rg,nR,Zg,nZ,Pg,nPhi, R,Z,phi) ||
+            !cyna::interp3d_grad(BPv, dBP_dR, dBP_dZ, bp0, Rg,nR,Zg,nZ,Pg,nPhi, R,Z,phi) ||
+            std::abs(BPv) < 1e-30) {
+            A[0] = A[1] = A[2] = A[3] = std::numeric_limits<double>::quiet_NaN();
+            return;
+        }
+        const double invBp = 1.0 / BPv;
+        const double invBp2 = invBp / BPv;
+        A[0] = BRv * invBp + R * (dBR_dR * invBp - BRv * invBp2 * dBP_dR);
+        A[1] = R * (dBR_dZ * invBp - BRv * invBp2 * dBP_dZ);
+        A[2] = BZv * invBp + R * (dBZ_dR * invBp - BZv * invBp2 * dBP_dR);
+        A[3] = R * (dBZ_dZ * invBp - BZv * invBp2 * dBP_dZ);
+    };
+
+    auto delta_f_eval = [&](double R, double Z, double phi, double& dF0, double& dF1) {
+        double bp_base = cyna::interp3d(bp0, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi);
+        double br_base = cyna::interp3d(br0, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi);
+        double bz_base = cyna::interp3d(bz0, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi);
+        double bp_pert = cyna::interp3d(bp1, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi);
+        double br_pert = cyna::interp3d(br1, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi);
+        double bz_pert = cyna::interp3d(bz1, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi);
+        if (!std::isfinite(bp_base) || std::abs(bp_base) < 1e-30 ||
+            !std::isfinite(br_base) || !std::isfinite(bz_base) ||
+            !std::isfinite(bp_pert) || !std::isfinite(br_pert) || !std::isfinite(bz_pert)) {
+            dF0 = std::numeric_limits<double>::quiet_NaN();
+            dF1 = std::numeric_limits<double>::quiet_NaN();
+            return;
+        }
+        const double dBRv = br_pert - br_base;
+        const double dBZv = bz_pert - bz_base;
+        const double dBPv = bp_pert - bp_base;
+        const double invBp2 = 1.0 / (bp_base * bp_base);
+        dF0 = R * (dBRv * bp_base - br_base * dBPv) * invBp2;
+        dF1 = R * (dBZv * bp_base - bz_base * dBPv) * invBp2;
     };
 
     auto rhs = [&](const double y[8], double phi, double out[8]) {
-        double fR0, fZ0, fR1, fZ1;
+        double fR0, fZ0, dF0, dF1;
         f_eval(br0, bz0, bp0, y[0], y[1], phi, fR0, fZ0);
-        f_eval(br1, bz1, bp1, y[0], y[1], phi, fR1, fZ1);
+        delta_f_eval(y[0], y[1], phi, dF0, dF1);
         double A[4];
         A_eval(y[0], y[1], phi, A);
         out[0] = fR0;
@@ -469,8 +539,8 @@ static py::tuple py_compute_cycle_perturbation_response(
         out[3] = A[0] * y[3] + A[1] * y[5];
         out[4] = A[2] * y[2] + A[3] * y[4];
         out[5] = A[2] * y[3] + A[3] * y[5];
-        out[6] = A[0] * y[6] + A[1] * y[7] + (fR1 - fR0);
-        out[7] = A[2] * y[6] + A[3] * y[7] + (fZ1 - fZ0);
+        out[6] = A[0] * y[6] + A[1] * y[7] + dF0;
+        out[7] = A[2] * y[6] + A[3] * y[7] + dF1;
     };
 
     auto rk4 = [&](double y[8], double phi, double h) {
@@ -940,6 +1010,29 @@ PYBIND11_MODULE(_cyna_ext, m) {
         "Returns ndarray of shape (N, 2, 2), with DX_pol[0] = identity.\n"
         "The orbit samples are used as the path; this does not retrace field lines.");
 
+    m.def("progress_delta_X_along_orbit", &py_progress_delta_X_along_orbit,
+        py::arg("R_traj"), py::arg("Z_traj"), py::arg("phi_traj"),
+        py::arg("delta_X0"),
+        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
+        py::arg("dBR"), py::arg("dBZ"), py::arg("dBPhi"),
+        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+        py::arg("max_step") = 0.005,
+        "Progress delta_X along an already sampled orbit using\n"
+        "d(delta_X)/dphi = d(RBpol/Bphi)/d(R,Z) delta_X + delta(RBpol/Bphi).\n"
+        "dBR, dBZ and dBPhi are first-order delta-B component arrays.");
+
+    m.def("evolve_delta_X_cycle_along_orbit", &py_progress_delta_X_along_orbit,
+        py::arg("R_traj"), py::arg("Z_traj"), py::arg("phi_traj"),
+        py::arg("delta_X_cyc0"),
+        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
+        py::arg("dBR"), py::arg("dBZ"), py::arg("dBPhi"),
+        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+        py::arg("max_step") = 0.005,
+        "Evolve an already closed periodic cycle displacement delta_X_cyc(phi).\n"
+        "This uses the same inhomogeneous ODE as progress_delta_X_along_orbit,\n"
+        "but delta_X_cyc0 must be the periodic initial displacement from the\n"
+        "cycle closure solve.");
+
     m.def("trace_surface_metrics_batch_twall", &py_trace_surface_metrics_batch_twall,
         py::arg("R_seeds"), py::arg("Z_seeds"),
         py::arg("R_axis"), py::arg("Z_axis"),
@@ -1037,7 +1130,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         "hit=[R,Z,phi,k_float] records first wall crossing. term: 0=none, 1=wall, 2=grid/nonfinite.\n"
         "With stop_at_wall=False, tracing continues after the first wall hit.");
 
-    m.def("compute_cycle_perturbation_response", &py_compute_cycle_perturbation_response,
+    m.def("compute_cycle_perturbation_shift", &py_compute_cycle_perturbation_shift,
         py::arg("R0"), py::arg("Z0"), py::arg("phi0"),
         py::arg("phi_span"), py::arg("dphi_out"),
         py::arg("DPhi") = 0.05, py::arg("fd_eps") = 1e-4,

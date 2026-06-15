@@ -30,7 +30,7 @@ bottlenecks:
 | Field-line tracing (RK4 / Ascent ODE) | `pyna.flt` | `cyna/flt.hpp` |
 | Regular-grid interpolation | `pyna.coord` | `cyna/interpolate.hpp` |
 | NumPy `.npz` I/O | `numpy` | `cyna/io.hpp` |
-| FPT cycle response `delta_X_pol`, `delta_X_cyc` | `pyna.topo.fpt` | `cyna/poincare.hpp` |
+| FPT cycle shift `delta_X_pol`, `delta_X_cyc` | `pyna.topo.fpt` | `cyna/poincare.hpp` |
 
 Everything else stays in Python — there is no benefit in rewriting it.
 
@@ -108,10 +108,25 @@ Important exported functions:
 - `progress_DX_pol_along_orbit`: tangent-map progression along any sampled
   orbit, returning `DX_pol(phi_e, phi0)` for every sampled `phi_e`;
   periodicity is not required.
-- `compute_cycle_perturbation_response`: integrates the FPT response equation
+- `progress_delta_X_along_orbit`: inhomogeneous FPT response with fixed
+  source angle `phi_s`; only `phi_e` advances.  Use this for `delta_X_pol`.
+- `evolve_delta_X_cycle_along_orbit`: semantic alias for the same
+  inhomogeneous ODE when the supplied initial condition is already the closed
+  periodic displacement `delta_X_cyc(phi0)`.  Use this when `phi_s` and
+  `phi_e = phi_s + 2*pi*m` move together along a cycle.
+- `compute_cycle_perturbation_shift`: integrates the FPT response equation
   and returns both `delta_X_pol` and periodic `delta_X_cyc`.
 
-Prefer the high-level wrapper `pyna.topo.fpt.compute_cycle_response_from_cache`
+Naming convention for FPT APIs:
+
+- `progress_*` means a fixed source section `phi_s` and a moving endpoint
+  `phi_e`.  These functions produce open-orbit / endpoint responses such as
+  `DX_pol(phi_s, phi_e)` or `delta_X_pol(phi_s, phi_e)`.
+- `evolve_*_cycle_*` means the object is attached to a periodic orbit and is
+  evaluated as the base phase `phi` moves; for cycle shift, `phi_s` and
+  `phi_e = phi_s + 2*pi*m` move together.
+
+Prefer the high-level wrapper `pyna.topo.fpt.compute_cycle_shift_from_cache`
 in application code.  Use the `_cyna` functions only at bridge boundaries or
 for low-level diagnostics.
 

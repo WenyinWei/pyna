@@ -79,10 +79,65 @@ from pyna.topo._rk4 import rk4_integrate
 from pyna.topo.variational import PoincareMapVariationalEquations
 
 __all__ = [
+    "CyclePerturbationShift",
     "DPm_finite_difference",
     "DPm_shift_under_field_perturbation",
     "eigenvalue_perturbation",
 ]
+
+
+class CyclePerturbationShift:
+    """Compatibility wrapper for DPm and periodic-cycle shift calculations."""
+
+    def __init__(self, *, orbit, delta_B_func, propagator) -> None:
+        self.orbit = orbit
+        self.delta_B_func = delta_B_func
+        self.propagator = propagator
+        self._result: dict[str, Any] | None = None
+
+    def _field_func(self, R: float, Z: float, phi: float) -> np.ndarray:
+        if hasattr(self.propagator, "field"):
+            return np.asarray(self.propagator.field(R, Z, phi), dtype=float)
+        if hasattr(self.propagator, "field_func"):
+            return np.asarray(self.propagator.field_func(R, Z, phi), dtype=float)
+        if hasattr(self.propagator, "__call__"):
+            return np.asarray(self.propagator(R, Z, phi), dtype=float)
+        raise AttributeError("propagator must expose field, field_func, or __call__")
+
+    def _cycle_data(self):
+        class _CycleData:
+            pass
+
+        data = _CycleData()
+        data.trajectory = np.asarray([np.asarray(self.orbit.rzphi0[:2], dtype=float)])
+        data.DPm = np.asarray(self.orbit.DPm, dtype=float)
+        return data
+
+    def _delta_f(self, R: float, Z: float, phi: float) -> np.ndarray:
+        value = np.asarray(self.delta_B_func(R, Z, phi), dtype=float).ravel()
+        if value.size == 2:
+            return value
+        if value.size >= 3:
+            return value[[0, 2]]
+        raise ValueError("delta_B_func must return two field-line components or three cylindrical B components")
+
+    def _compute(self, dphi: float = 0.05) -> dict[str, Any]:
+        if self._result is None:
+            self._result = DPm_shift_under_field_perturbation(
+                self._cycle_data(),
+                self._delta_f,
+                self._field_func,
+                phi_start=float(self.orbit.rzphi0[2]),
+                island_period=1,
+                DPhi=float(dphi),
+            )
+        return self._result
+
+    def compute_delta_Pm(self, dphi: float = 0.05) -> np.ndarray:
+        return np.asarray(self._compute(dphi)["delta_DPm"], dtype=float)
+
+    def compute_delta_x_cyc(self, dphi: float = 0.05) -> np.ndarray:
+        return np.asarray(self._compute(dphi)["delta_X_cyc"], dtype=float)
 
 
 # ---------------------------------------------------------------------------

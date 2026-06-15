@@ -75,13 +75,13 @@ from pyna.topo.monodromy import (
     monodromy_matrix,
 )
 from pyna.topo.fpt import (
-    OrbitPerturbationResponse,
-    TrajectoryPerturbationResponse,
-    CyclePerturbationResponse,
-    InvariantTorusPerturbationResponse,
-    StableManifoldPerturbationResponse,
-    compute_cycle_response,
-    compute_cycle_response_from_cache,
+    OrbitPerturbationShift,
+    TrajectoryPerturbationShift,
+    CyclePerturbationShift,
+    InvariantTorusPerturbationShift,
+    StableManifoldPerturbationShift,
+    compute_cycle_shift,
+    compute_cycle_shift_from_cache,
 )
 from pyna.topo.identity import ResonanceID, TubeID, IslandID
 from pyna.topo.toroidal_section_view import (
@@ -248,13 +248,13 @@ __all__ = [
     "second_order_orbit_variation",
     "monodromy_matrix",
     # Functional perturbation theory response hierarchy
-    "OrbitPerturbationResponse",
-    "TrajectoryPerturbationResponse",
-    "CyclePerturbationResponse",
-    "InvariantTorusPerturbationResponse",
-    "StableManifoldPerturbationResponse",
-    "compute_cycle_response",
-    "compute_cycle_response_from_cache",
+    "OrbitPerturbationShift",
+    "TrajectoryPerturbationShift",
+    "CyclePerturbationShift",
+    "InvariantTorusPerturbationShift",
+    "StableManifoldPerturbationShift",
+    "compute_cycle_shift",
+    "compute_cycle_shift_from_cache",
     # Identity / bridge layer
     "ResonanceID",
     "TubeID",
