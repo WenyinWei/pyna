@@ -1317,6 +1317,170 @@ static inline void progress_DX_pol_along_orbit(
     }
 }
 
+// ---------------------------------------------------------------------------
+// Progress delta_X along an already sampled orbit.
+// ---------------------------------------------------------------------------
+// Integrates the inhomogeneous first-order response equation
+//
+//   d(delta_X)/dphi = A(R,Z,phi) * delta_X + delta_f(R,Z,phi),
+//
+// where A = d(R*B_pol/B_phi)/d(R,Z) is evaluated from the base field and
+// delta_f is the first-order variation of the field-line RHS at fixed (R,Z):
+//
+//   delta_f_R = R * (delta_BR * B_phi - BR * delta_B_phi) / B_phi^2
+//   delta_f_Z = R * (delta_BZ * B_phi - BZ * delta_B_phi) / B_phi^2.
+//
+// The orbit samples are treated as the authoritative path and linearly
+// interpolated inside each output segment; no field-line retracing is performed.
+static inline void progress_delta_X_along_orbit(
+    const double* R_traj, const double* Z_traj, const double* phi_traj,
+    int n_pts,
+    const double* delta_X0,
+    double* delta_X_out,
+    const double* BR, const double* BZ, const double* BPhi,
+    const double* dBR, const double* dBZ, const double* dBPhi,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi,
+    double max_step)
+{
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    if (n_pts < 1) return;
+    std::fill(delta_X_out, delta_X_out + 2 * n_pts, nan);
+
+    if (!(max_step > 0.0) || !std::isfinite(max_step)) {
+        max_step = 0.005;
+    }
+
+    double xR = delta_X0 ? delta_X0[0] : 0.0;
+    double xZ = delta_X0 ? delta_X0[1] : 0.0;
+    delta_X_out[0] = xR;
+    delta_X_out[1] = xZ;
+
+    auto eval_A_and_delta_f = [&](double R, double Z, double phi,
+                                  double& A00, double& A01,
+                                  double& A10, double& A11,
+                                  double& dF0, double& dF1) -> bool {
+        double BRv, dBR_dR, dBR_dZ;
+        double BPhiv, dBPhi_dR, dBPhi_dZ;
+        double BZv, dBZ_dR, dBZ_dZ;
+        if (!interp3d_grad(BRv, dBR_dR, dBR_dZ, BR, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi)) return false;
+        if (!interp3d_grad(BPhiv, dBPhi_dR, dBPhi_dZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi)) return false;
+        if (!interp3d_grad(BZv, dBZ_dR, dBZ_dZ, BZ, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi)) return false;
+        if (std::abs(BPhiv) <= 1e-12) return false;
+
+        const double invBp = 1.0 / BPhiv;
+        const double invBp2 = invBp / BPhiv;
+        A00 = BRv*invBp + R*(dBR_dR*invBp - BRv*invBp2*dBPhi_dR);
+        A01 = R*(dBR_dZ*invBp - BRv*invBp2*dBPhi_dZ);
+        A10 = BZv*invBp + R*(dBZ_dR*invBp - BZv*invBp2*dBPhi_dR);
+        A11 = R*(dBZ_dZ*invBp - BZv*invBp2*dBPhi_dZ);
+
+        const double dBRv = interp3d(dBR, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi);
+        const double dBZv = interp3d(dBZ, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi);
+        const double dBPhiv = interp3d(dBPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi);
+        if (!std::isfinite(dBRv) || !std::isfinite(dBZv) || !std::isfinite(dBPhiv)) return false;
+        dF0 = R * (dBRv * BPhiv - BRv * dBPhiv) * invBp2;
+        dF1 = R * (dBZv * BPhiv - BZv * dBPhiv) * invBp2;
+        return std::isfinite(A00) && std::isfinite(A01) &&
+               std::isfinite(A10) && std::isfinite(A11) &&
+               std::isfinite(dF0) && std::isfinite(dF1);
+    };
+
+    auto segment_position = [](double R0, double Z0, double p0,
+                               double R1, double Z1, double p1,
+                               double p, double& R, double& Z) {
+        const double ds = p1 - p0;
+        double t = 0.0;
+        if (std::abs(ds) > 1e-30) {
+            t = (p - p0) / ds;
+        }
+        R = R0 + t * (R1 - R0);
+        Z = Z0 + t * (Z1 - Z0);
+    };
+
+    auto deriv = [&](double R, double Z, double phi,
+                     double xr, double xz,
+                     double& dxr, double& dxz) -> bool {
+        double A00, A01, A10, A11, dF0, dF1;
+        if (!eval_A_and_delta_f(R, Z, phi, A00, A01, A10, A11, dF0, dF1)) return false;
+        dxr = A00 * xr + A01 * xz + dF0;
+        dxz = A10 * xr + A11 * xz + dF1;
+        return std::isfinite(dxr) && std::isfinite(dxz);
+    };
+
+    for (int k = 1; k < n_pts; ++k) {
+        const double R0 = R_traj[k-1], Z0 = Z_traj[k-1], p0 = phi_traj[k-1];
+        const double R1 = R_traj[k],   Z1 = Z_traj[k],   p1 = phi_traj[k];
+        const double ds = p1 - p0;
+
+        if (!std::isfinite(R0) || !std::isfinite(Z0) || !std::isfinite(p0) ||
+            !std::isfinite(R1) || !std::isfinite(Z1) || !std::isfinite(p1)) {
+            return;
+        }
+
+        if (std::abs(ds) <= 1e-30) {
+            delta_X_out[2*k+0] = xR;
+            delta_X_out[2*k+1] = xZ;
+            continue;
+        }
+
+        int ns = (int)std::ceil(std::abs(ds) / max_step);
+        if (ns < 1) ns = 1;
+        const double h = ds / (double)ns;
+        double ph = p0;
+
+        for (int s = 0; s < ns; ++s) {
+            double rA, zA, rB, zB, rC, zC;
+            segment_position(R0, Z0, p0, R1, Z1, p1, ph, rA, zA);
+            segment_position(R0, Z0, p0, R1, Z1, p1, ph + 0.5*h, rB, zB);
+            segment_position(R0, Z0, p0, R1, Z1, p1, ph + h, rC, zC);
+
+            double k1R, k1Z;
+            if (!deriv(rA, zA, ph, xR, xZ, k1R, k1Z)) return;
+            double k2R, k2Z;
+            if (!deriv(rB, zB, ph + 0.5*h, xR + 0.5*h*k1R, xZ + 0.5*h*k1Z, k2R, k2Z)) return;
+            double k3R, k3Z;
+            if (!deriv(rB, zB, ph + 0.5*h, xR + 0.5*h*k2R, xZ + 0.5*h*k2Z, k3R, k3Z)) return;
+            double k4R, k4Z;
+            if (!deriv(rC, zC, ph + h, xR + h*k3R, xZ + h*k3Z, k4R, k4Z)) return;
+
+            const double h6 = h / 6.0;
+            xR += h6 * (k1R + 2.0*k2R + 2.0*k3R + k4R);
+            xZ += h6 * (k1Z + 2.0*k2Z + 2.0*k3Z + k4Z);
+            if (!std::isfinite(xR) || !std::isfinite(xZ)) return;
+            ph += h;
+        }
+
+        delta_X_out[2*k+0] = xR;
+        delta_X_out[2*k+1] = xZ;
+    }
+}
+
+// Semantic alias for periodic-cycle displacement evolution.
+//
+// Use this when delta_X0 is already the closed-cycle initial displacement
+// delta_X_cyc(phi0).  The ODE is identical to progress_delta_X_along_orbit,
+// but the naming records that phi_s and phi_e = phi_s + 2*pi*m move together
+// along a periodic orbit.
+static inline void evolve_delta_X_cycle_along_orbit(
+    const double* R_traj, const double* Z_traj, const double* phi_traj,
+    int n_pts,
+    const double* delta_X0,
+    double* delta_X_out,
+    const double* BR, const double* BZ, const double* BPhi,
+    const double* dBR, const double* dBZ, const double* dBPhi,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi,
+    double max_step)
+{
+    progress_delta_X_along_orbit(
+        R_traj, Z_traj, phi_traj, n_pts, delta_X0, delta_X_out,
+        BR, BZ, BPhi, dBR, dBZ, dBPhi,
+        R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, max_step);
+}
+
 
 
 static inline FixedPointResult newton_fixed_point(
@@ -1343,17 +1507,48 @@ static inline FixedPointResult newton_fixed_point(
 
     double phi0 = mod2pi(phi_section);
     double R = R0, Z = Z0;
+    const double seed_R = R0;
+    const double seed_Z = Z0;
+    const double grid_h = std::min(
+        (nR > 1 ? std::abs(R_grid[1] - R_grid[0]) : 1.0),
+        (nZ > 1 ? std::abs(Z_grid[1] - Z_grid[0]) : 1.0));
+    const double trust_radius0 = std::max(8.0 * grid_h, 5.0e-4);
+    double trust_radius = trust_radius0;
+    const double min_R = R_grid[0], max_R = R_grid[nR - 1];
+    const double min_Z = Z_grid[0], max_Z = Z_grid[nZ - 1];
+
+    auto eval_residual = [&](double Rq, double Zq,
+                             double& F0, double& F1,
+                             double* DP_out) -> bool {
+        if (!std::isfinite(Rq) || !std::isfinite(Zq) ||
+            Rq < min_R || Rq > max_R || Zq < min_Z || Zq > max_Z) {
+            return false;
+        }
+        double Rf = Rq, Zf = Zq;
+        double DP_cur[4];
+        if (!DX_pol_m_turns(Rf, Zf, DP_cur, phi0, m_turns, DPhi,
+                            BR, BZ, BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi)) {
+            return false;
+        }
+        F0 = Rf - Rq;
+        F1 = Zf - Zq;
+        if (!std::isfinite(F0) || !std::isfinite(F1)) {
+            return false;
+        }
+        if (DP_out) {
+            DP_out[0] = DP_cur[0]; DP_out[1] = DP_cur[1];
+            DP_out[2] = DP_cur[2]; DP_out[3] = DP_cur[3];
+        }
+        return true;
+    };
 
     for (int iter = 0; iter < max_iter; ++iter) {
         // Evaluate F(x) = P^m(x) - x  and compute DPm = DX_pol(φ, φ+2πm)
         // via analytic DX_pol evolution (DX_pol_m_turns).
-        double Rf = R, Zf = Z;
         double DP_cur[4];
-        if (!DX_pol_m_turns(Rf, Zf, DP_cur, phi0, m_turns, DPhi,
-                            BR, BZ, BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi))
+        double F0 = 0.0, F1 = 0.0;
+        if (!eval_residual(R, Z, F0, F1, DP_cur))
             return res;
-        double F0 = Rf - R;
-        double F1 = Zf - Z;
 
         res.residual = std::sqrt(F0*F0 + F1*F1);
         if (res.residual < tol) {
@@ -1373,12 +1568,72 @@ static inline FixedPointResult newton_fixed_point(
         // Newton step: dx = -DF^{-1} * F
         double dR = -(DF11*F0 - DF01*F1) / det;
         double dZ = -(-DF10*F0 + DF00*F1) / det;
+        double step_norm = std::sqrt(dR*dR + dZ*dZ);
+        if (!std::isfinite(step_norm)) return res;
+        if (step_norm > trust_radius) {
+            const double scale = trust_radius / std::max(step_norm, 1e-300);
+            dR *= scale;
+            dZ *= scale;
+            step_norm = trust_radius;
+        }
 
-        R += dR; Z += dZ;
+        // Accept only residual-decreasing steps, with a seed-centred trust
+        // region.  This prevents a near-correct O/X-cycle seed (e.g. X_old +
+        // first-order delta_X_cyc) from being thrown to a different cycle by a
+        // locally ill-conditioned full Newton step.
+        bool accepted = false;
+        double best_R = R, best_Z = Z, best_res = res.residual;
+        for (int ls = 0; ls < 12; ++ls) {
+            const double alpha = std::ldexp(1.0, -ls);
+            const double cand_R = R + alpha * dR;
+            const double cand_Z = Z + alpha * dZ;
+            const double seed_dist = std::sqrt(
+                (cand_R - seed_R) * (cand_R - seed_R) +
+                (cand_Z - seed_Z) * (cand_Z - seed_Z));
+            if (seed_dist > trust_radius0) continue;
+            double cF0 = 0.0, cF1 = 0.0;
+            if (!eval_residual(cand_R, cand_Z, cF0, cF1, nullptr)) continue;
+            const double cand_res = std::sqrt(cF0*cF0 + cF1*cF1);
+            if (std::isfinite(cand_res) && cand_res < best_res) {
+                best_R = cand_R;
+                best_Z = cand_Z;
+                best_res = cand_res;
+                accepted = true;
+                break;
+            }
+        }
 
-        if (R < R_grid[0] || R > R_grid[nR-1] ||
-            Z < Z_grid[0] || Z > Z_grid[nZ-1])
+        if (!accepted) {
+            // Picard fallback: x <- P^m(x) = x + F.  This is also damped and
+            // residual-tested, so it cannot degrade a good first-order seed.
+            for (int ls = 0; ls < 12; ++ls) {
+                const double alpha = std::ldexp(1.0, -ls);
+                const double cand_R = R + alpha * F0;
+                const double cand_Z = Z + alpha * F1;
+                const double seed_dist = std::sqrt(
+                    (cand_R - seed_R) * (cand_R - seed_R) +
+                    (cand_Z - seed_Z) * (cand_Z - seed_Z));
+                if (seed_dist > trust_radius0) continue;
+                double cF0 = 0.0, cF1 = 0.0;
+                if (!eval_residual(cand_R, cand_Z, cF0, cF1, nullptr)) continue;
+                const double cand_res = std::sqrt(cF0*cF0 + cF1*cF1);
+                if (std::isfinite(cand_res) && cand_res < best_res) {
+                    best_R = cand_R;
+                    best_Z = cand_Z;
+                    best_res = cand_res;
+                    accepted = true;
+                    break;
+                }
+            }
+        }
+
+        if (!accepted) {
             return res;
+        }
+        R = best_R;
+        Z = best_Z;
+        res.residual = best_res;
+        trust_radius = std::min(trust_radius0, std::max(2.0 * step_norm, 2.0 * grid_h));
     }
 
     if (!res.converged) return res;
