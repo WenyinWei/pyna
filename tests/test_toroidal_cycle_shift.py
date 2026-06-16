@@ -67,6 +67,40 @@ def test_axis_cycle_shift_zero_delta_if_cyna_available():
     assert shifted.diagnostics["method"] == "cyna_evolve_delta_X_cycle_along_orbit"
 
 
+def test_axis_cycle_shift_adds_delta_to_each_query_axis_sample(monkeypatch):
+    import pyna.toroidal.flt.cycle_shift as mod
+
+    class FakeCycleShift:
+        phi = np.linspace(0.0, 2.0 * np.pi / 3.0, 5)
+        R = np.linspace(1.0, 1.1, 5)
+        Z = np.linspace(-0.2, 0.2, 5)
+        delta_X_cyc = np.column_stack([
+            np.full(5, 0.01),
+            np.full(5, -0.02),
+        ])
+        delta_X_cyc0 = np.asarray([0.01, -0.02])
+        periodic_residual = np.asarray([0.0, 0.0])
+        alive = np.ones(5, dtype=bool)
+
+    monkeypatch.setattr(mod, "cycle_shift_from_fields", lambda *args, **kwargs: FakeCycleShift())
+    phi = np.linspace(0.0, 2.0 * np.pi, 9, endpoint=False)
+    axis_R = 1.5 + 0.2 * np.cos(phi)
+    axis_Z = -0.1 + 0.05 * np.sin(phi)
+
+    shifted = mod.axis_cycle_shift_from_fields(
+        axis_R,
+        axis_Z,
+        phi,
+        object(),
+        object(),
+        n_fp=3,
+    )
+
+    np.testing.assert_allclose(shifted.axis_R, axis_R + 0.01)
+    np.testing.assert_allclose(shifted.axis_Z, axis_Z - 0.02)
+    assert shifted.diagnostics["axis_shift_norm_max_m"] == pytest.approx(np.hypot(0.01, 0.02))
+
+
 def test_cycle_points_shift_zero_delta_if_cyna_available():
     import pyna._cyna as cyna
 

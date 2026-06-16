@@ -143,11 +143,13 @@ def axis_cycle_shift_from_fields(
         DPhi=dphi,
         fd_eps=float(fd_eps),
     )
-    shifted_R, shifted_Z, finite_fraction = _shifted_orbit_on_queries(
+    delta_R, delta_Z, finite_fraction = _delta_cycle_shift_on_queries(
         cycle_shift,
         seed_phi,
         np.mod(phi_native - seed_phi, period),
     )
+    shifted_R = axis_R_arr + delta_R
+    shifted_Z = axis_Z_arr + delta_Z
     dXcyc = np.asarray(cycle_shift.delta_X_cyc, dtype=np.float64)
     dXcyc0 = np.asarray(cycle_shift.delta_X_cyc0, dtype=np.float64)
     periodic_residual = cycle_shift.periodic_residual
@@ -312,6 +314,30 @@ def _shifted_orbit_on_queries(
     return (
         np.asarray([float(np.interp(q, rel, r_vals)) for q in rel_queries], dtype=np.float64),
         np.asarray([float(np.interp(q, rel, z_vals)) for q in rel_queries], dtype=np.float64),
+        float(np.mean(finite)),
+    )
+
+
+def _delta_cycle_shift_on_queries(
+    cycle_shift: CyclePerturbationShift,
+    seed_phi: float,
+    rel_queries: NDArray[np.float64],
+) -> tuple[NDArray[np.float64], NDArray[np.float64], float]:
+    rel_phi = np.asarray(cycle_shift.phi, dtype=np.float64) - float(seed_phi)
+    dX = np.asarray(cycle_shift.delta_X_cyc, dtype=np.float64)
+    if dX.ndim != 2 or dX.shape[1] != 2:
+        raise ValueError("delta_X_cyc must have shape (n, 2)")
+    finite = np.isfinite(rel_phi) & np.isfinite(dX[:, 0]) & np.isfinite(dX[:, 1])
+    if int(np.count_nonzero(finite)) < 2:
+        raise ValueError("cycle shift produced fewer than two finite delta samples")
+    rel = rel_phi[finite]
+    order = np.argsort(rel)
+    rel = rel[order]
+    dR_vals = dX[finite, 0][order]
+    dZ_vals = dX[finite, 1][order]
+    return (
+        np.asarray([float(np.interp(q, rel, dR_vals)) for q in rel_queries], dtype=np.float64),
+        np.asarray([float(np.interp(q, rel, dZ_vals)) for q in rel_queries], dtype=np.float64),
         float(np.mean(finite)),
     )
 
