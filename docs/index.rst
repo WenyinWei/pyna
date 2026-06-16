@@ -69,4 +69,5 @@ tokamak visualizations.
 
    zh/installation
    zh/quickstart
+   zh/straight_theta_surface_coordinates
    zh/api/index
