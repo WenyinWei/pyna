@@ -40,8 +40,13 @@ if not _available:
         import importlib
         _cyna_ext = importlib.import_module("pyna._cyna._cyna_ext")
         _available = True
-    except Exception:
-        pass
+    except Exception as _exc:
+        raise ImportError(
+            "pyna._cyna requires the compiled cyna extension, but _cyna_ext "
+            "could not be loaded. Install a platform wheel from PyPI or build "
+            "from source with xmake and a C++17 compiler, for example "
+            "`pip install -e .` from the pyna repository."
+        ) from _exc
 
 
 def is_available() -> bool:
@@ -54,50 +59,26 @@ def get_version() -> str:
     return _cyna_ext.__version__ if _available else "not available"
 
 
-if _available:
-    coil_circular_field           = getattr(_cyna_ext, "coil_circular_field", None)
-    coil_biot_savart              = getattr(_cyna_ext, "coil_biot_savart",     None)
-    trace_poincare_batch = _cyna_ext.trace_poincare_batch
-    trace_poincare_multi = _cyna_ext.trace_poincare_multi
-    trace_poincare_batch_twall    = getattr(_cyna_ext, "trace_poincare_batch_twall",    None)
-    trace_connection_length_twall = getattr(_cyna_ext, "trace_connection_length_twall", None)
-    trace_wall_hits_twall         = getattr(_cyna_ext, "trace_wall_hits_twall",         None)
-    find_fixed_points_batch       = getattr(_cyna_ext, "find_fixed_points_batch",       None)
-    trace_orbit_along_phi         = getattr(_cyna_ext, "trace_orbit_along_phi",         None)
-    trace_poincare_dpk_growth     = getattr(_cyna_ext, "trace_poincare_dpk_growth",     None)
-    trace_poincare_dpk_growth_twall = getattr(_cyna_ext, "trace_poincare_dpk_growth_twall", None)
-    compute_cycle_perturbation_shift = getattr(_cyna_ext, "compute_cycle_perturbation_shift", None)
-    compute_A_matrix_batch        = getattr(_cyna_ext, "compute_A_matrix_batch",        None)
-    progress_DX_pol_along_orbit   = getattr(_cyna_ext, "progress_DX_pol_along_orbit",   None)
-    progress_delta_X_along_orbit  = getattr(_cyna_ext, "progress_delta_X_along_orbit",  None)
-    evolve_delta_X_cycle_along_orbit = getattr(_cyna_ext, "evolve_delta_X_cycle_along_orbit", None)
-    evolve_DPm_along_cycle        = getattr(_cyna_ext, "evolve_DPm_along_cycle",        None)
-    trace_surface_metrics_batch_twall = getattr(_cyna_ext, "trace_surface_metrics_batch_twall", None)
-    summarize_profile_objectives  = getattr(_cyna_ext, "summarize_profile_objectives",  None)
-    trace_poincare_beta_sweep     = getattr(_cyna_ext, "trace_poincare_beta_sweep",     None)
-else:
-    # Fallback stubs so ``from pyna._cyna import X`` always succeeds;
-    # callers receive None and are expected to guard with is_available().
-    coil_circular_field           = None
-    coil_biot_savart              = None
-    trace_poincare_batch          = None
-    trace_poincare_multi          = None
-    trace_poincare_batch_twall    = None
-    trace_connection_length_twall = None
-    trace_wall_hits_twall         = None
-    find_fixed_points_batch       = None
-    trace_orbit_along_phi         = None
-    trace_poincare_dpk_growth     = None
-    trace_poincare_dpk_growth_twall = None
-    compute_cycle_perturbation_shift = None
-    compute_A_matrix_batch        = None
-    progress_DX_pol_along_orbit   = None
-    progress_delta_X_along_orbit  = None
-    evolve_delta_X_cycle_along_orbit = None
-    evolve_DPm_along_cycle        = None
-    trace_surface_metrics_batch_twall = None
-    summarize_profile_objectives  = None
-    trace_poincare_beta_sweep     = None
+coil_circular_field           = getattr(_cyna_ext, "coil_circular_field", None)
+coil_biot_savart              = getattr(_cyna_ext, "coil_biot_savart",     None)
+trace_poincare_batch = _cyna_ext.trace_poincare_batch
+trace_poincare_multi = _cyna_ext.trace_poincare_multi
+trace_poincare_batch_twall    = getattr(_cyna_ext, "trace_poincare_batch_twall",    None)
+trace_connection_length_twall = getattr(_cyna_ext, "trace_connection_length_twall", None)
+trace_wall_hits_twall         = getattr(_cyna_ext, "trace_wall_hits_twall",         None)
+find_fixed_points_batch       = getattr(_cyna_ext, "find_fixed_points_batch",       None)
+trace_orbit_along_phi         = getattr(_cyna_ext, "trace_orbit_along_phi",         None)
+trace_poincare_dpk_growth     = getattr(_cyna_ext, "trace_poincare_dpk_growth",     None)
+trace_poincare_dpk_growth_twall = getattr(_cyna_ext, "trace_poincare_dpk_growth_twall", None)
+compute_cycle_perturbation_shift = getattr(_cyna_ext, "compute_cycle_perturbation_shift", None)
+compute_A_matrix_batch        = getattr(_cyna_ext, "compute_A_matrix_batch",        None)
+progress_DX_pol_along_orbit   = getattr(_cyna_ext, "progress_DX_pol_along_orbit",   None)
+progress_delta_X_along_orbit  = getattr(_cyna_ext, "progress_delta_X_along_orbit",  None)
+evolve_delta_X_cycle_along_orbit = getattr(_cyna_ext, "evolve_delta_X_cycle_along_orbit", None)
+evolve_DPm_along_cycle        = getattr(_cyna_ext, "evolve_DPm_along_cycle",        None)
+trace_surface_metrics_batch_twall = getattr(_cyna_ext, "trace_surface_metrics_batch_twall", None)
+summarize_profile_objectives  = getattr(_cyna_ext, "summarize_profile_objectives",  None)
+trace_poincare_beta_sweep     = getattr(_cyna_ext, "trace_poincare_beta_sweep",     None)
 
 __all__ = [
     "is_available",

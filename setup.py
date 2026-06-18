@@ -1,4 +1,4 @@
-"""pyna setup.py — auto-builds the cyna C++ extension via xmake.
+"""pyna setup.py - auto-builds the required cyna C++ extension via xmake.
 
 Strategy
 --------
@@ -7,10 +7,10 @@ Strategy
 3. Run ``xmake build`` inside the ``cyna/`` subdirectory.
 4. Copy the built ``_cyna_ext.{pyd,so}`` into ``pyna/_cyna/``.
 
-The build is entirely opt-in with graceful degradation: if anything fails,
-pyna still installs but cyna (the C++ accelerator) is simply unavailable,
-and ``pyna._cyna.is_available()`` returns False.  All hot paths in pyna fall
-back to pure-Python implementations in that case.
+The build is mandatory for binary wheels and source installs. If a prebuilt
+wheel is not available for the current platform, pip builds from the sdist;
+that path requires xmake, a C++17 compiler, and pybind11 headers. ``setup.py``
+can bootstrap xmake and a minimal compiler toolchain on common platforms.
 
 CUDA support is auto-detected: if ``nvcc`` is on PATH the CUDA path is
 compiled in automatically; no user action required.
@@ -35,7 +35,7 @@ from setuptools import setup, Extension
 _CYNA_STUB = Extension(
     name="pyna._cyna._cyna_ext",
     sources=[],          # xmake handles sources; setuptools touches nothing
-    optional=True,       # build failure is non-fatal
+    optional=False,      # cyna is part of the supported runtime surface
 )
 from setuptools.command.build_ext import build_ext as _build_ext
 from setuptools.command.develop import develop as _develop
@@ -412,17 +412,12 @@ class BuildCynaExt(_build_ext):
         try:
             ok = _build_cyna()
             if not ok:
-                print(
-                    "[cyna-build] cyna C++ extension was not built.  "
-                    "pyna will work in pure-Python fallback mode (slower).",
-                    flush=True,
+                raise RuntimeError(
+                    "cyna C++ extension was not built. Install xmake and a C++17 "
+                    "compiler, then retry the pyna install."
                 )
         except Exception as exc:
-            print(
-                f"[cyna-build] Exception during cyna build: {exc}\n"
-                "  pyna will work in pure-Python fallback mode.",
-                flush=True,
-            )
+            raise RuntimeError(f"cyna build failed: {exc}") from exc
         # The only extension declared in pyproject is a marker stub.  xmake has
         # already produced the real binary, so letting setuptools compile the
         # empty stub would create an unusable _cyna_ext ABI-tagged library.
@@ -431,19 +426,15 @@ class BuildCynaExt(_build_ext):
 
 class DevelopWithCyna(_develop):
     def run(self):
-        try:
-            _build_cyna()
-        except Exception as exc:
-            print(f"[cyna-build] build skipped in develop mode: {exc}", flush=True)
+        if not _build_cyna():
+            raise RuntimeError("cyna build failed in develop mode")
         super().run()
 
 
 class InstallWithCyna(_install):
     def run(self):
-        try:
-            _build_cyna()
-        except Exception as exc:
-            print(f"[cyna-build] build skipped in install mode: {exc}", flush=True)
+        if not _build_cyna():
+            raise RuntimeError("cyna build failed in install mode")
         super().run()
 
 

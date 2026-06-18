@@ -34,7 +34,7 @@ This distinction is part of the public API vocabulary.
 | 🧲 **Toroidal geometry** | Coordinates, coils, diagnostics, and field-line tooling |
 | 📐 **Magnetic coordinates** | PEST, Boozer, Hamada, Equal-arc transformations |
 | 📡 **Torus deformation** | Non-resonant BNF-derived analytic spectral theory (Wei 2025) |
-| ⚡ **C++ acceleration** | Optional `cyna` backend for performance-critical ops |
+| ⚡ **C++ tracing core** | Required `cyna` backend for production field-line and Poincare tracing |
 
 ---
 
@@ -53,21 +53,36 @@ pip install -e ".[dev]"
 pip install "pyna-chaos[cuda]"
 ```
 
-### cyna C++ accelerator
+### cyna C++ tracing core
 
-Source installs build the local `cyna` extension with xmake by default:
+`pyna._cyna` is part of the supported runtime surface, not an optional extra.
+PyPI releases are built as platform wheels for Linux, Windows, and macOS across
+CPython 3.9, 3.10, 3.11, 3.12, and 3.13. On those platforms, `pip install
+pyna-chaos` should install a wheel with `_cyna_ext` already included.
+
+If no wheel matches your platform, pip falls back to the source distribution and
+builds `cyna` locally with xmake:
 
 ```bash
-pip install -e .
+pip install pyna-chaos
 python -c "import pyna._cyna as c; print(c.is_available())"
 ```
 
-If xmake or a C++17 compiler is missing, `setup.py` tries to install a minimal
-toolchain for Windows, macOS, and Linux before building.  CI builds platform
-wheels for Linux, Windows, and macOS through `cibuildwheel`, so normal PyPI
-installs should receive a prebuilt wheel with `_cyna_ext` already included.
-Set `CYNA_SKIP_TOOL_INSTALL=1` in controlled CI images where xmake/compiler
-provisioning is handled externally.
+For development installs:
+
+```bash
+git clone https://github.com/WenyinWei/pyna.git
+cd pyna
+pip install -e ".[dev]"
+python -c "import pyna._cyna as c; assert c.is_available(); print(c.get_version())"
+```
+
+Source builds require a C++17 compiler, pybind11 headers, and xmake. If xmake or
+a compiler is missing, `setup.py` attempts to bootstrap a minimal toolchain on
+Windows, macOS, and Linux before building. Set `CYNA_SKIP_TOOL_INSTALL=1` in
+controlled CI images where xmake/compiler provisioning is handled externally.
+An install that cannot build or load `_cyna_ext` fails; this prevents downstream
+projects from silently running without the production tracing backend.
 
 ---
 

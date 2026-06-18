@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyna-chaos"
-version = "0.8.13"
+version = "0.8.14"
 description = "Python library for dynamical systems and magnetic confinement fusion analysis"
 readme = "README.md"
 license = "GPL-3.0-or-later"
@@ -14,7 +14,9 @@ keywords = ["dynamical systems", "chaos", "plasma physics", "MHD", "Poincaré ma
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",
-    "Operating System :: OS Independent",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
     "Topic :: Scientific/Engineering :: Physics",
 ]
 dependencies = [

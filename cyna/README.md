@@ -55,8 +55,8 @@ cyna/
 ```
 
 The Python-facing glue lives in `pyna/_cyna/` (a subpackage of pyna).
-It tries to import the compiled extension `_cyna_ext` and falls back
-silently to pure Python if the extension is not installed.
+It requires the compiled extension `_cyna_ext`; missing binaries are treated as
+packaging or local-build errors, not as an optional runtime mode.
 
 ## Building
 
@@ -77,10 +77,8 @@ xmake run flt3d
 ### Python extension
 
 ```bash
-cd cyna/
-xmake build cyna_python
-# Copy the resulting _cyna_ext.* into pyna/_cyna/
-xmake install -o ../pyna/_cyna/
+cd ..
+pip install -e .
 ```
 
 Then from Python:
@@ -90,6 +88,19 @@ from pyna._cyna import is_available, get_version
 print(is_available())   # True if compiled extension is present
 print(get_version())
 ```
+
+For manual low-level builds:
+
+```bash
+cd cyna/
+xmake config --yes --mode=release --require=no --with-cuda=n
+xmake build cyna_python
+```
+
+The xmake `after_build` hook copies `_cyna_ext.*` into `../pyna/_cyna/`.
+PyPI wheels are built for Linux, Windows, and macOS across CPython 3.9-3.13.
+Platforms not covered by those wheels build from the source distribution and
+therefore need xmake plus a C++17 compiler locally.
 
 ## Python acceleration surface
 
@@ -134,8 +145,8 @@ for low-level diagnostics.
 
 1. **Header-only core** — `include/cyna/*.hpp` can be dropped into any C++
    project with no CMake / xmake required.
-2. **Optional Python bindings** — pyna works without cyna.  If cyna is
-   present it is used automatically; if not, pure-Python fallbacks run.
+2. **Required Python bindings** — production pyna installs include `_cyna_ext`.
+   A missing extension is a build/install failure.
 3. **No Python runtime dependency** — the C++ core never calls back into
    Python.  Bindings are one-way (C++ → Python).
 4. **Minimal surface area** — expose only what's measurably slow in Python.
