@@ -68,7 +68,7 @@ exclude = ["notebooks*"]
 # so it builds a platform-specific wheel (not a universal py3-none-any).
 [tool.cibuildwheel]
 build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
-skip = ["*-win32", "*-musllinux_i686"]
+skip = ["*-win32", "*-musllinux*", "*-manylinux_i686"]
 before-build = "pip install pybind11"
 environment = { CYNA_WITH_CUDA = "0" }
 test-command = "python -c \"import pyna._cyna as c; assert c.is_available()\""

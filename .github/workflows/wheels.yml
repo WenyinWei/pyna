@@ -61,7 +61,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.22
         env:
           CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
-          CIBW_SKIP:  "*-win32 *-musllinux*"
+          CIBW_SKIP:  "*-win32 *-musllinux* *-manylinux_i686"
 
           # ── Linux (manylinux2014 container) ───────────────────────────────
           # Install xmake inside the container once; expose via CIBW_ENVIRONMENT.
