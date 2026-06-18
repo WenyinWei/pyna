@@ -64,8 +64,6 @@ jobs:
           CIBW_BEFORE_ALL_LINUX: |
             curl -fsSL https://xmake.io/shget.text | bash || true
             ls ~/.local/bin/xmake 2>/dev/null && echo "xmake ok" || echo "xmake install failed"
-          CIBW_ENVIRONMENT_LINUX: "PATH=/root/.local/bin:$PATH"
-
           # ── macOS ─────────────────────────────────────────────────────────
           # xmake already installed on the runner via brew above;
           # CIBW_BEFORE_ALL is not needed.
