@@ -38,6 +38,7 @@ jobs:
           curl -fsSL https://github.com/xmake-io/xmake/releases/download/v3.0.8/xmake-v3.0.8.gz.run -o /tmp/xmake.run
           rm -rf /tmp/xmake-src
           sh /tmp/xmake.run --noexec --quiet --target /tmp/xmake-src
+          (cd /tmp/xmake-src && ./configure)
           make -C /tmp/xmake-src --no-print-directory -j4
           make -C /tmp/xmake-src --no-print-directory install PREFIX="$HOME/.local"
           echo "$HOME/.local/bin" >> $GITHUB_PATH
@@ -70,6 +71,7 @@ jobs:
             curl -fsSL https://github.com/xmake-io/xmake/releases/download/v3.0.8/xmake-v3.0.8.gz.run -o /tmp/xmake.run
             rm -rf /tmp/xmake-src
             sh /tmp/xmake.run --noexec --quiet --target /tmp/xmake-src
+            (cd /tmp/xmake-src && ./configure)
             make -C /tmp/xmake-src --no-print-directory -j4
             make -C /tmp/xmake-src --no-print-directory install PREFIX="$HOME/.local"
             python -m pip install --upgrade patchelf
