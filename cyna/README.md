@@ -99,8 +99,14 @@ xmake build cyna_python
 
 The xmake `after_build` hook copies `_cyna_ext.*` into `../pyna/_cyna/`.
 PyPI wheels are built for Linux, Windows, and macOS across CPython 3.9-3.13.
-Platforms not covered by those wheels build from the source distribution and
-therefore need xmake plus a C++17 compiler locally.
+Those published wheels are CPU-only and do not depend on CUDA. Platforms not
+covered by those wheels build from the source distribution and therefore need
+xmake plus a C++17 compiler locally.
+
+CUDA support is a local source-build option, not the PyPI wheel default. To
+compile `coil_field_cuda.cu`, set `CYNA_WITH_CUDA=1` before running `pip install`
+or pass `--with-cuda=y` in a manual xmake build. With `CYNA_WITH_CUDA` unset, the
+Python package build stays CPU-only even if `nvcc` is present.
 
 ## Python acceleration surface
 

@@ -28,7 +28,7 @@ This distinction is part of the public API vocabulary.
 
 | Feature | Details |
 |---------|---------|
-| 🔀 **Field-line tracing** | RK4 integrator, parallel CPU, optional CUDA (118× speedup) |
+| 🔀 **Field-line tracing** | RK4 integrator with required `cyna` CPU backend; CUDA builds are local opt-in |
 | 🌀 **Poincaré sections & island chains** | Multi-section crossing accumulation, island-chain extraction, X/O-point analysis |
 | 🗺️ **Manifold visualization** | Publication-quality stable/unstable manifold plots for tokamaks |
 | 🧲 **Toroidal geometry** | Coordinates, coils, diagnostics, and field-line tooling |
@@ -49,7 +49,7 @@ git clone https://github.com/WenyinWei/pyna.git
 cd pyna
 pip install -e ".[dev]"
 
-# With GPU support (CUDA 12)
+# Optional Python-side GPU dependencies (CUDA 12 CuPy stack)
 pip install "pyna-chaos[cuda]"
 ```
 
@@ -83,6 +83,12 @@ Windows, macOS, and Linux before building. Set `CYNA_SKIP_TOOL_INSTALL=1` in
 controlled CI images where xmake/compiler provisioning is handled externally.
 An install that cannot build or load `_cyna_ext` fails; this prevents downstream
 projects from silently running without the production tracing backend.
+
+Published PyPI wheels are CPU-only and do not link against CUDA. The CUDA path
+inside `cyna` is a local source-build option for developer machines; enable it
+explicitly with `CYNA_WITH_CUDA=1` when building from source. Leaving this unset,
+or setting `CYNA_WITH_CUDA=0`, produces a CPU-only `_cyna_ext` even when `nvcc`
+is available on the build host.
 
 ---
 
@@ -190,7 +196,7 @@ print(f"Mean radial displacement: {mean_dr:.4f} m")
 | Module | Description |
 |--------|-------------|
 | `pyna.system` | Abstract dynamical system hierarchy (`DynamicalSystem`, `VectorField*D`) |
-| `pyna.flt` | Field-line tracer: RK4, parallel CPU, CUDA/OpenCL backends |
+| `pyna.flt` | Field-line tracer: RK4 and parallel CPU production backend |
 | `pyna.topo.toroidal_island` | Rational surface location, theoretical island half-width |
 | `pyna.topo.poincare` | Multi-section crossing accumulation and section helpers |
 | `pyna.topo.manifold` | Stable/unstable manifold computation |

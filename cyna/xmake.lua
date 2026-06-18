@@ -7,7 +7,7 @@ set_version("0.6.0")
 
 set_languages("c++17")
 
--- Optional CUDA (off by default; setup.py enables when nvcc is present)
+-- Optional CUDA (off by default; setup.py enables only when CYNA_WITH_CUDA=1)
 option("with-cuda")
     set_default(false)
     set_showmenu(true)

@@ -92,8 +92,8 @@ jobs:
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
             python -m pip install --upgrade patchelf &&
             auditwheel repair -w {dest_dir} {wheel}
-          CIBW_ENVIRONMENT: CYNA_SKIP_TOOL_INSTALL=0
-          CIBW_ENVIRONMENT_LINUX: "PATH=/root/.local/bin:$PATH CYNA_SKIP_TOOL_INSTALL=0"
+          CIBW_ENVIRONMENT: "CYNA_SKIP_TOOL_INSTALL=0 CYNA_WITH_CUDA=0"
+          CIBW_ENVIRONMENT_LINUX: "PATH=/root/.local/bin:$PATH CYNA_SKIP_TOOL_INSTALL=0 CYNA_WITH_CUDA=0"
           CIBW_ENVIRONMENT_PASS_MACOS: "PATH CYNA_OPENMP_PREFIX"
           CIBW_ENVIRONMENT_PASS_WINDOWS: "PATH"
 

@@ -12,8 +12,8 @@ wheel is not available for the current platform, pip builds from the sdist;
 that path requires xmake, a C++17 compiler, and pybind11 headers. ``setup.py``
 can bootstrap xmake and a minimal compiler toolchain on common platforms.
 
-CUDA support is auto-detected: if ``nvcc`` is on PATH the CUDA path is
-compiled in automatically; no user action required.
+CUDA support is opt-in. Binary wheels and normal source builds are CPU-only;
+set ``CYNA_WITH_CUDA=1`` explicitly when building a local CUDA-enabled cyna.
 """
 
 from __future__ import annotations
@@ -160,12 +160,55 @@ def _install_xmake() -> bool:
 
 # ── C++ compiler ──────────────────────────────────────────────────────────────
 
+def _vswhere_paths() -> list[Path]:
+    """Return Visual Studio installations that include the x64 MSVC toolchain."""
+
+    candidates = [
+        Path(os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)"))
+        / "Microsoft Visual Studio"
+        / "Installer"
+        / "vswhere.exe",
+        Path(os.environ.get("ProgramFiles", r"C:\Program Files"))
+        / "Microsoft Visual Studio"
+        / "Installer"
+        / "vswhere.exe",
+    ]
+    vswhere = next((p for p in candidates if p.is_file()), None)
+    if vswhere is None:
+        return []
+    try:
+        out = subprocess.check_output(
+            [
+                str(vswhere),
+                "-products",
+                "*",
+                "-requires",
+                "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+                "-property",
+                "installationPath",
+            ],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+    except Exception:
+        return []
+    return [Path(line.strip()) for line in out.splitlines() if line.strip()]
+
+
 def _has_cxx_compiler() -> bool:
     """Return True if a usable C++ compiler is on PATH or in a standard VS install."""
     if _is_windows():
         # Check PATH first
         if any(shutil.which(c) for c in ["cl", "clang-cl", "g++", "c++"]):
             return True
+        # Ask the Visual Studio installer first; VS is often installed outside C:.
+        for install in _vswhere_paths():
+            msvc_root = install / "VC" / "Tools" / "MSVC"
+            if any(
+                (version / "bin" / "Hostx64" / "x64" / "cl.exe").is_file()
+                for version in msvc_root.glob("*")
+            ):
+                return True
         # Search standard VS install locations (VS 2019/2022/2026)
         import glob
         for pattern in [
@@ -178,6 +221,39 @@ def _has_cxx_compiler() -> bool:
         return False
     else:
         return any(shutil.which(c) for c in ["g++", "clang++", "c++"])
+
+
+def _python_import_library_windows() -> str:
+    """Find pythonXY.lib for Windows extension linking, including venv builds."""
+
+    if not _is_windows():
+        return ""
+    names = [
+        f"python{sys.version_info.major}{sys.version_info.minor}.lib",
+        "python3.lib",
+    ]
+    roots = [
+        Path(sys.prefix),
+        Path(sys.base_prefix),
+        Path(sys.exec_prefix),
+        Path(getattr(sys, "base_exec_prefix", sys.base_prefix)),
+        Path(sys.executable).parent,
+        Path(sys.executable).parent.parent,
+    ]
+    cfg_libdir = sysconfig.get_config_var("LIBDIR")
+    if cfg_libdir:
+        roots.append(Path(str(cfg_libdir)))
+    checked: set[Path] = set()
+    for root in roots:
+        for directory in (root, root / "libs", root / "Libs"):
+            if directory in checked:
+                continue
+            checked.add(directory)
+            for name in names:
+                candidate = directory / name
+                if candidate.is_file():
+                    return str(candidate)
+    return ""
 
 
 def _install_cxx_compiler() -> bool:
@@ -250,7 +326,8 @@ def _install_cxx_compiler() -> bool:
 # ── CUDA (optional) ───────────────────────────────────────────────────────────
 
 def _has_cuda() -> bool:
-    return shutil.which("nvcc") is not None
+    override = os.environ.get("CYNA_WITH_CUDA")
+    return override is not None and override.strip().lower() in {"1", "true", "yes", "on", "y"}
 
 
 # ── pybind11 (Python-side, for include path) ──────────────────────────────────
@@ -346,27 +423,27 @@ def _build_cyna() -> bool:
         env["CYNA_PYBIND11_INC"] = ""
     # Windows: find pythonXY.lib
     if _is_windows():
-        import glob as _glob
-        libs_dir = Path(sys.exec_prefix) / "libs"
-        py_libs = list(libs_dir.glob("python*.lib"))
-        env["CYNA_PY_LIB_WIN"] = str(py_libs[0]) if py_libs else ""
+        env["CYNA_PY_LIB_WIN"] = _python_import_library_windows()
     else:
         env["CYNA_PY_LIB_WIN"] = ""
 
     # CUDA option: xmake custom option uses --with-cuda=y / n
-    cuda_flag = ["--with-cuda=y"] if _has_cuda() else ["--with-cuda=n"]
+    cuda_enabled = _has_cuda()
+    cuda_flag = ["--with-cuda=y"] if cuda_enabled else ["--with-cuda=n"]
 
     print(f"[cyna-build] Building cyna in {CYNA_DIR} …", flush=True)
     print(f"[cyna-build]   Python include : {py_inc}", flush=True)
-    print(f"[cyna-build]   CUDA           : {'yes' if _has_cuda() else 'no'}", flush=True)
+    if _is_windows():
+        print(f"[cyna-build]   Python lib     : {env['CYNA_PY_LIB_WIN']}", flush=True)
+    print(f"[cyna-build]   CUDA           : {'yes' if cuda_enabled else 'no'}", flush=True)
 
     # --require=no: skip all package-manager network access (pybind11 comes from pip)
     base_cfg = [xmake, "config", "--yes", "--mode=release", "--require=no"]
     rc = _run(base_cfg + cuda_flag, cwd=str(CYNA_DIR), env=env)
     if rc != 0:
-        if cuda_flag:
+        if cuda_enabled:
             print("[cyna-build] Config with CUDA failed, retrying without ...", flush=True)
-            rc = _run(base_cfg, cwd=str(CYNA_DIR), env=env)
+            rc = _run(base_cfg + ["--with-cuda=n"], cwd=str(CYNA_DIR), env=env)
 
     # Build
     rc = _run([xmake, "build", "cyna_python"], cwd=str(CYNA_DIR), env=env)
