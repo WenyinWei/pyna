@@ -39,7 +39,11 @@ jobs:
 
       - name: Install xmake (macOS host)
         if: runner.os == 'macOS'
-        run: brew install xmake
+        run: |
+          brew install xmake libomp
+          echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
+          echo "/usr/local/bin" >> "$GITHUB_PATH"
+          echo "CYNA_OPENMP_PREFIX=$(brew --prefix libomp)" >> "$GITHUB_ENV"
 
       - name: Install xmake (Windows host)
         if: runner.os == 'Windows'
@@ -71,11 +75,13 @@ jobs:
           # it adds itself to the machine PATH so cibuildwheel subprocess sees it.
 
           # ── All platforms: pybind11 headers before each wheel build ───────
-          # Also set CYNA_SKIP_TOOL_INSTALL=1 so setup.py does not try to
-          # install xmake/compiler (they are already present in CI).
+          # Allow setup.py to bootstrap xmake/compiler if a cibuildwheel
+          # subprocess loses the host PATH on Windows/macOS.
           CIBW_BEFORE_BUILD: pip install pybind11
-          CIBW_ENVIRONMENT_PASS_LINUX: CYNA_SKIP_TOOL_INSTALL
-          CIBW_ENVIRONMENT: CYNA_SKIP_TOOL_INSTALL=1
+          CIBW_ENVIRONMENT: CYNA_SKIP_TOOL_INSTALL=0
+          CIBW_ENVIRONMENT_LINUX: "PATH=/root/.local/bin:$PATH CYNA_SKIP_TOOL_INSTALL=0"
+          CIBW_ENVIRONMENT_PASS_MACOS: "PATH CYNA_OPENMP_PREFIX"
+          CIBW_ENVIRONMENT_PASS_WINDOWS: "PATH"
 
           # ── Test each wheel immediately after building ────────────────────
           CIBW_TEST_COMMAND: >

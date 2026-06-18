@@ -28,6 +28,7 @@ end
 local PY_INC     = os.getenv("CYNA_PY_INC")     or ""
 local PY_LIBDIR  = os.getenv("CYNA_PY_LIBDIR")  or ""
 local PY_LIB_WIN = os.getenv("CYNA_PY_LIB_WIN") or ""
+local OMP_PREFIX = os.getenv("CYNA_OPENMP_PREFIX") or ""
 
 if PY_INC ~= "" then
     print("cyna: Python include  : " .. PY_INC)
@@ -88,10 +89,19 @@ target("cyna_python")
     set_languages("c++17")
     add_cxxflags("/O2", "/openmp",  {tools = {"cl"}})
     add_cxxflags("-O3", "-fopenmp", {tools = {"gcc"}})
-    add_cxxflags("-O3",             {tools = {"clang"}})
+    if is_plat("macosx") then
+        add_cxxflags("-O3", "-Xpreprocessor", "-fopenmp", {tools = {"clang"}})
+    else
+        add_cxxflags("-O3", {tools = {"clang"}})
+    end
     if is_plat("linux") then
         add_syslinks("gomp")
     elseif is_plat("macosx") then
+        if OMP_PREFIX ~= "" then
+            add_includedirs(path.join(OMP_PREFIX, "include"))
+            add_linkdirs(path.join(OMP_PREFIX, "lib"))
+            add_rpathdirs(path.join(OMP_PREFIX, "lib"))
+        end
         add_syslinks("omp")
     end
 

@@ -25,6 +25,10 @@ jobs:
         run: |
           curl -fsSL https://xmake.io/shget.text | bash
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            brew install libomp
+            echo "CYNA_OPENMP_PREFIX=$(brew --prefix libomp)" >> "$GITHUB_ENV"
+          fi
 
       - name: Install xmake (Windows)
         if: runner.os == 'Windows'
@@ -53,8 +57,6 @@ jobs:
         run: pip install build pybind11
 
       - name: Build wheel
-        env:
-          CYNA_SKIP_TOOL_INSTALL: "1"
         run: python -m build
 
       - uses: actions/upload-artifact@v4
