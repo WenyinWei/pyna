@@ -421,6 +421,11 @@ class BuildCynaExt(_build_ext):
         # The only extension declared in pyproject is a marker stub.  xmake has
         # already produced the real binary, so letting setuptools compile the
         # empty stub would create an unusable _cyna_ext ABI-tagged library.
+        build_dest = Path(self.build_lib) / "pyna" / "_cyna"
+        build_dest.mkdir(parents=True, exist_ok=True)
+        ext_files = list(DEST_DIR.glob("_cyna_ext*.pyd")) + list(DEST_DIR.glob("_cyna_ext*.so"))
+        for ext_file in ext_files:
+            shutil.copy2(ext_file, build_dest / ext_file.name)
         return
 
 
