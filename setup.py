@@ -408,6 +408,8 @@ def _build_cyna() -> bool:
     ext_sfx = sysconfig.get_config_var("EXT_SUFFIX") or ".so"
 
     env = os.environ.copy()
+    if _is_macos():
+        env["MACOSX_DEPLOYMENT_TARGET"] = env.get("MACOSX_DEPLOYMENT_TARGET", "11.0")
     # xmake refuses to run as root by default.  That is sensible for normal
     # development, but many CI/docker/WSL scientific images intentionally build
     # wheels as root.  Keep the permission explicit and local to this subprocess.

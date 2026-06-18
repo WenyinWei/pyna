@@ -73,5 +73,8 @@ before-build = "pip install pybind11"
 environment = { CYNA_WITH_CUDA = "0" }
 test-command = "python -c \"import pyna._cyna as c; assert c.is_available()\""
 
+[tool.cibuildwheel.macos]
+environment = { CYNA_WITH_CUDA = "0", MACOSX_DEPLOYMENT_TARGET = "11.0" }
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
