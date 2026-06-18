@@ -114,9 +114,6 @@ target("cyna_python")
             add_linkdirs(libdir)
             add_links(libname)
         end
-    elseif PY_LIBDIR ~= "" then
-        add_linkdirs(PY_LIBDIR)
-        add_rpathdirs(PY_LIBDIR)
     end
 
     -- CUDA (optional): compile coil_field_cuda.cu and link cudart
