@@ -46,10 +46,9 @@ jobs:
       - name: Install xmake (macOS host)
         if: runner.os == 'macOS'
         run: |
-          brew install xmake libomp
+          brew install xmake
           echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
           echo "/usr/local/bin" >> "$GITHUB_PATH"
-          echo "CYNA_OPENMP_PREFIX=$(brew --prefix libomp)" >> "$GITHUB_ENV"
 
       - name: Install xmake (Windows host)
         if: runner.os == 'Windows'
@@ -94,7 +93,7 @@ jobs:
             auditwheel repair -w {dest_dir} {wheel}
           CIBW_ENVIRONMENT: "CYNA_SKIP_TOOL_INSTALL=0 CYNA_WITH_CUDA=0"
           CIBW_ENVIRONMENT_LINUX: "PATH=/root/.local/bin:$PATH CYNA_SKIP_TOOL_INSTALL=0 CYNA_WITH_CUDA=0"
-          CIBW_ENVIRONMENT_PASS_MACOS: "PATH CYNA_OPENMP_PREFIX"
+          CIBW_ENVIRONMENT_PASS_MACOS: "PATH"
           CIBW_ENVIRONMENT_PASS_WINDOWS: "PATH"
 
           # ── Test each wheel immediately after building ────────────────────

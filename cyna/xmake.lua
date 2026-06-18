@@ -7,7 +7,8 @@ set_version("0.6.0")
 
 set_languages("c++17")
 
--- Optional CUDA (off by default; setup.py enables only when CYNA_WITH_CUDA=1)
+-- Optional CUDA (off by default in xmake; setup.py enables it when nvcc is
+-- present unless CYNA_WITH_CUDA=0 is set).
 option("with-cuda")
     set_default(false)
     set_showmenu(true)
@@ -28,7 +29,6 @@ end
 local PY_INC     = os.getenv("CYNA_PY_INC")     or ""
 local PY_LIBDIR  = os.getenv("CYNA_PY_LIBDIR")  or ""
 local PY_LIB_WIN = os.getenv("CYNA_PY_LIB_WIN") or ""
-local OMP_PREFIX = os.getenv("CYNA_OPENMP_PREFIX") or ""
 
 if PY_INC ~= "" then
     print("cyna: Python include  : " .. PY_INC)
@@ -88,21 +88,14 @@ target("cyna_python")
     -- Compiler flags
     set_languages("c++17")
     add_cxxflags("/O2", "/openmp",  {tools = {"cl"}})
-    add_cxxflags("-O3", "-fopenmp", {tools = {"gcc"}})
     if is_plat("macosx") then
-        add_cxxflags("-O3", "-Xpreprocessor", "-fopenmp", {tools = {"clang"}})
+        add_cxxflags("-O3", {tools = {"gcc"}})
     else
-        add_cxxflags("-O3", {tools = {"clang"}})
+        add_cxxflags("-O3", "-fopenmp", {tools = {"gcc"}})
     end
+    add_cxxflags("-O3", {tools = {"clang"}})
     if is_plat("linux") then
         add_syslinks("gomp")
-    elseif is_plat("macosx") then
-        if OMP_PREFIX ~= "" then
-            add_includedirs(path.join(OMP_PREFIX, "include"))
-            add_linkdirs(path.join(OMP_PREFIX, "lib"))
-            add_rpathdirs(path.join(OMP_PREFIX, "lib"))
-        end
-        add_syslinks("omp")
     end
 
     -- Link Python runtime

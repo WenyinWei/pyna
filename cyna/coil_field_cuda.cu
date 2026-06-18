@@ -2,8 +2,8 @@
 // ==================
 // CUDA kernels for magnetic field computation (circular coil + Biot-Savart).
 //
-// Compiled when CYNA_CUDA_ENABLED is defined (xmake --with-cuda=y, normally
-// requested by setting CYNA_WITH_CUDA=1 for a local source build).
+// Compiled when CYNA_CUDA_ENABLED is defined (xmake --with-cuda=y; setup.py
+// enables this for local source builds when nvcc is present unless disabled).
 //
 // Host-callable entry points (extern "C"):
 //   cyna_coil_circular_field_cuda  — analytic ring-coil field on GPU

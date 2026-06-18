@@ -84,11 +84,11 @@ controlled CI images where xmake/compiler provisioning is handled externally.
 An install that cannot build or load `_cyna_ext` fails; this prevents downstream
 projects from silently running without the production tracing backend.
 
-Published PyPI wheels are CPU-only and do not link against CUDA. The CUDA path
-inside `cyna` is a local source-build option for developer machines; enable it
-explicitly with `CYNA_WITH_CUDA=1` when building from source. Leaving this unset,
-or setting `CYNA_WITH_CUDA=0`, produces a CPU-only `_cyna_ext` even when `nvcc`
-is available on the build host.
+Published PyPI wheels are CPU-only and do not link against CUDA; the wheel CI
+sets `CYNA_WITH_CUDA=0` explicitly. For local source builds, leaving
+`CYNA_WITH_CUDA` unset auto-enables the CUDA path when `nvcc` is available. Set
+`CYNA_WITH_CUDA=0` to force a CPU-only local build, or `CYNA_WITH_CUDA=1` to
+require a CUDA build.
 
 ---
 

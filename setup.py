@@ -12,8 +12,9 @@ wheel is not available for the current platform, pip builds from the sdist;
 that path requires xmake, a C++17 compiler, and pybind11 headers. ``setup.py``
 can bootstrap xmake and a minimal compiler toolchain on common platforms.
 
-CUDA support is opt-in. Binary wheels and normal source builds are CPU-only;
-set ``CYNA_WITH_CUDA=1`` explicitly when building a local CUDA-enabled cyna.
+CUDA support is controlled by ``CYNA_WITH_CUDA``. Binary wheel CI sets it to
+``0`` for CPU-only wheels; local source builds auto-enable CUDA when ``nvcc`` is
+on PATH unless ``CYNA_WITH_CUDA=0`` is set explicitly.
 """
 
 from __future__ import annotations
@@ -327,7 +328,9 @@ def _install_cxx_compiler() -> bool:
 
 def _has_cuda() -> bool:
     override = os.environ.get("CYNA_WITH_CUDA")
-    return override is not None and override.strip().lower() in {"1", "true", "yes", "on", "y"}
+    if override is not None:
+        return override.strip().lower() in {"1", "true", "yes", "on", "y"}
+    return shutil.which("nvcc") is not None
 
 
 # ── pybind11 (Python-side, for include path) ──────────────────────────────────
