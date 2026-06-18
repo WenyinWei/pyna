@@ -8,7 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class ResonanceID:
     """Identity of a resonance family."""
 
@@ -25,7 +25,7 @@ class ResonanceID:
         return self.label or f"{self.m}/{self.n}@Np{self.Np}"
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class TubeID:
     """Identity of one tube inside a resonance family."""
 
@@ -38,7 +38,7 @@ class TubeID:
         return f"{kind}-tube[{self.tube_index}]@{self.resonance.short_label()}"
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class IslandID:
     """Identity of one discrete island in one section view."""
 

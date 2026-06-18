@@ -14,7 +14,7 @@ from pyna.fields.properties import FieldProperty
 from pyna.fields.coords import Coords3DCylindrical as _CylCoords3D
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class CylindricalFieldArrays:
     """Contiguous cylindrical field arrays for low-level backends.
 
