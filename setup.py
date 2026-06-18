@@ -444,6 +444,8 @@ def _build_cyna() -> bool:
 
     # --require=no: skip all package-manager network access (pybind11 comes from pip)
     base_cfg = [xmake, "config", "--yes", "--mode=release", "--require=no"]
+    if _is_macos():
+        base_cfg.append(f"--target_minver={env['MACOSX_DEPLOYMENT_TARGET']}")
     rc = _run(base_cfg + cuda_flag, cwd=str(CYNA_DIR), env=env)
     if rc != 0:
         if cuda_enabled:
