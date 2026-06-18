@@ -61,6 +61,7 @@ def get_version() -> str:
 
 coil_circular_field           = getattr(_cyna_ext, "coil_circular_field", None)
 coil_biot_savart              = getattr(_cyna_ext, "coil_biot_savart",     None)
+cuda_backend_available        = getattr(_cyna_ext, "cuda_backend_available", lambda: False)
 trace_poincare_batch = _cyna_ext.trace_poincare_batch
 trace_poincare_multi = _cyna_ext.trace_poincare_multi
 trace_poincare_batch_twall    = getattr(_cyna_ext, "trace_poincare_batch_twall",    None)
@@ -85,6 +86,7 @@ __all__ = [
     "get_version",
     "coil_circular_field",
     "coil_biot_savart",
+    "cuda_backend_available",
     "trace_poincare_batch",
     "trace_poincare_multi",
     "trace_poincare_batch_twall",

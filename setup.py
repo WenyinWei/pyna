@@ -333,6 +333,17 @@ def _has_cuda() -> bool:
     return shutil.which("nvcc") is not None
 
 
+def _cuda_explicitly_enabled() -> bool:
+    override = os.environ.get("CYNA_WITH_CUDA")
+    return override is not None and override.strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+        "y",
+    }
+
+
 # ── pybind11 (Python-side, for include path) ──────────────────────────────────
 
 def _ensure_pybind11(skip_install: bool = False) -> None:
@@ -449,14 +460,30 @@ def _build_cyna() -> bool:
     rc = _run(base_cfg + cuda_flag, cwd=str(CYNA_DIR), env=env)
     if rc != 0:
         if cuda_enabled:
+            if _cuda_explicitly_enabled():
+                print("[cyna-build] CUDA config failed.", flush=True)
+                return False
             print("[cyna-build] Config with CUDA failed, retrying without ...", flush=True)
             rc = _run(base_cfg + ["--with-cuda=n"], cwd=str(CYNA_DIR), env=env)
+            cuda_enabled = False
+    if rc != 0:
+        print("[cyna-build] xmake config failed.", flush=True)
+        return False
 
-    # Build
+    # Build the mandatory CPU core extension first.  The optional CUDA backend
+    # is built separately below so _cyna_ext never links against cudart.
     rc = _run([xmake, "build", "cyna_python"], cwd=str(CYNA_DIR), env=env)
     if rc != 0:
         print("[cyna-build] xmake build failed.", flush=True)
         return False
+    if cuda_enabled:
+        rc = _run([xmake, "build", "cyna_cuda_backend"], cwd=str(CYNA_DIR), env=env)
+        if rc != 0:
+            message = "[cyna-build] optional CUDA backend build failed."
+            if _cuda_explicitly_enabled():
+                print(message, flush=True)
+                return False
+            print(message + " Continuing with CPU-only cyna.", flush=True)
 
     # The xmake after_build hook copies _cyna_ext.{pyd,so} into pyna/_cyna/.
     # Verify the file landed there.

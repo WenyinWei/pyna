@@ -104,9 +104,11 @@ covered by those wheels build from the source distribution and therefore need
 xmake plus a C++17 compiler locally.
 
 CUDA support is not the PyPI wheel default. The wheel CI sets
-`CYNA_WITH_CUDA=0`; local source builds auto-enable `coil_field_cuda.cu` when
-`nvcc` is available unless `CYNA_WITH_CUDA=0` is set. Set `CYNA_WITH_CUDA=1` to
-require CUDA, or pass `--with-cuda=y` in a manual xmake build.
+`CYNA_WITH_CUDA=0`; local source builds try to build `_cyna_cuda_backend.*` when
+`nvcc` is available unless `CYNA_WITH_CUDA=0` is set. The main `_cyna_ext`
+module does not link against CUDA and loads that backend only when a CUDA-capable
+coil-field call is made. Set `CYNA_WITH_CUDA=1` to require the backend build, or
+pass `--with-cuda=y` in a manual xmake build.
 
 ## Python acceleration surface
 

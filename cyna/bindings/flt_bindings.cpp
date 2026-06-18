@@ -6,20 +6,118 @@
 #include <cmath>
 #include <limits>
 #include <vector>
+#include <string>
+#include <filesystem>
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <dlfcn.h>
+#endif
 #include "cyna/poincare.hpp"
 #include "cyna/objectives.hpp"
 #include "cyna/coil_field.hpp"
 
-#ifdef CYNA_CUDA_ENABLED
-extern "C" bool cyna_coil_circular_field_cuda(
+namespace py = pybind11;
+
+namespace {
+
+using cuda_circular_fn = bool (*)(
     float,float,float, float,float,float, float,float,
     const float*,int, float*,float*,float*);
-extern "C" bool cyna_coil_biot_savart_cuda(
+using cuda_biot_fn = bool (*)(
     const float*,const float*,int,float,
     const float*,int, float*,float*,float*);
-#endif
 
-namespace py = pybind11;
+struct CudaBackend {
+    bool attempted = false;
+    void* handle = nullptr;
+    cuda_circular_fn circular = nullptr;
+    cuda_biot_fn biot = nullptr;
+};
+
+static std::filesystem::path _current_module_dir() {
+#ifdef _WIN32
+    HMODULE module = nullptr;
+    char path[MAX_PATH] = {0};
+    if (GetModuleHandleExA(
+            GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+            GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+            reinterpret_cast<LPCSTR>(&_current_module_dir),
+            &module) &&
+        GetModuleFileNameA(module, path, MAX_PATH) > 0) {
+        return std::filesystem::path(path).parent_path();
+    }
+#else
+    Dl_info info;
+    if (dladdr(reinterpret_cast<void*>(&_current_module_dir), &info) && info.dli_fname) {
+        return std::filesystem::path(info.dli_fname).parent_path();
+    }
+#endif
+    return std::filesystem::current_path();
+}
+
+static void* _open_cuda_backend(const std::filesystem::path& path) {
+#ifdef _WIN32
+    return reinterpret_cast<void*>(LoadLibraryA(path.string().c_str()));
+#else
+    return dlopen(path.string().c_str(), RTLD_LAZY | RTLD_LOCAL);
+#endif
+}
+
+static void* _cuda_symbol(void* handle, const char* name) {
+#ifdef _WIN32
+    return reinterpret_cast<void*>(
+        GetProcAddress(reinterpret_cast<HMODULE>(handle), name));
+#else
+    return dlsym(handle, name);
+#endif
+}
+
+static CudaBackend& _cuda_backend() {
+    static CudaBackend backend;
+    if (backend.attempted) {
+        return backend;
+    }
+    backend.attempted = true;
+
+    const auto dir = _current_module_dir();
+#ifdef _WIN32
+    const std::vector<std::string> names = {"_cyna_cuda_backend.dll"};
+#elif defined(__APPLE__)
+    const std::vector<std::string> names = {
+        "_cyna_cuda_backend.so", "_cyna_cuda_backend.dylib"};
+#else
+    const std::vector<std::string> names = {"_cyna_cuda_backend.so"};
+#endif
+    for (const auto& name : names) {
+        auto candidate = dir / name;
+        if (!std::filesystem::exists(candidate)) {
+            continue;
+        }
+        void* handle = _open_cuda_backend(candidate);
+        if (!handle) {
+            continue;
+        }
+        auto circular = reinterpret_cast<cuda_circular_fn>(
+            _cuda_symbol(handle, "cyna_coil_circular_field_cuda"));
+        auto biot = reinterpret_cast<cuda_biot_fn>(
+            _cuda_symbol(handle, "cyna_coil_biot_savart_cuda"));
+        if (circular && biot) {
+            backend.handle = handle;
+            backend.circular = circular;
+            backend.biot = biot;
+            break;
+        }
+    }
+    return backend;
+}
+
+static bool _cuda_backend_available() {
+    auto& backend = _cuda_backend();
+    return backend.circular != nullptr && backend.biot != nullptr;
+}
+
+}  // namespace
 
 // Helper: assert contiguous double array
 static const double* buf(const py::array_t<double>& a, const char* name) {
@@ -1198,27 +1296,22 @@ PYBIND11_MODULE(_cyna_ext, m) {
             float* pBZ   = BZ.mutable_data();
             float* pBPhi = BPhi.mutable_data();
 
-#ifdef CYNA_CUDA_ENABLED
-            bool ok = cyna_coil_circular_field_cuda(
-                (float)cx,(float)cy,(float)cz,
-                (float)nx,(float)ny,(float)nz,
-                (float)radius,(float)current,
-                pxyz, N, pBR, pBZ, pBPhi);
+            auto& cuda = _cuda_backend();
+            bool ok = false;
+            if (cuda.circular) {
+                ok = cuda.circular(
+                    (float)cx,(float)cy,(float)cz,
+                    (float)nx,(float)ny,(float)nz,
+                    (float)radius,(float)current,
+                    pxyz, N, pBR, pBZ, pBPhi);
+            }
             if (!ok) {
-                // CUDA failed — fall back to CPU
                 cyna::circular_coil_field_cpu(
                     (float)cx,(float)cy,(float)cz,
                     (float)nx,(float)ny,(float)nz,
                     (float)radius,(float)current,
                     pxyz, N, pBR, pBZ, pBPhi);
             }
-#else
-            cyna::circular_coil_field_cpu(
-                (float)cx,(float)cy,(float)cz,
-                (float)nx,(float)ny,(float)nz,
-                (float)radius,(float)current,
-                pxyz, N, pBR, pBZ, pBPhi);
-#endif
             return py::make_tuple(BR, BZ, BPhi);
         },
         py::arg("cx"),py::arg("cy"),py::arg("cz"),
@@ -1226,8 +1319,8 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("radius"),py::arg("current"),
         py::arg("xyz"),
         "Compute the magnetic field of one circular ring coil at N Cartesian\n"
-        "field points.  Uses CUDA kernel when compiled with --with-cuda=y,\n"
-        "otherwise falls back to OpenMP CPU implementation.\n"
+        "field points. Uses a runtime CUDA backend when available, otherwise\n"
+        "falls back to the OpenMP CPU implementation.\n"
         "Returns (BR, BZ, BPhi) — three (N,) float32 arrays in Tesla.");
 
     // -----------------------------------------------------------------------
@@ -1262,23 +1355,25 @@ PYBIND11_MODULE(_cyna_ext, m) {
             float* pBZ   = BZ.mutable_data();
             float* pBPhi = BPhi.mutable_data();
 
-#ifdef CYNA_CUDA_ENABLED
-            bool ok = cyna_coil_biot_savart_cuda(
-                pss, pse, N_seg, (float)current,
-                pxyz, N, pBR, pBZ, pBPhi);
+            auto& cuda = _cuda_backend();
+            bool ok = false;
+            if (cuda.biot) {
+                ok = cuda.biot(
+                    pss, pse, N_seg, (float)current,
+                    pxyz, N, pBR, pBZ, pBPhi);
+            }
             if (!ok) {
                 cyna::biot_savart_field_cpu(pss, pse, N_seg, (float)current,
                                             pxyz, N, pBR, pBZ, pBPhi);
             }
-#else
-            cyna::biot_savart_field_cpu(pss, pse, N_seg, (float)current,
-                                        pxyz, N, pBR, pBZ, pBPhi);
-#endif
             return py::make_tuple(BR, BZ, BPhi);
         },
         py::arg("seg_starts"),py::arg("seg_ends"),py::arg("current"),py::arg("xyz"),
         "Compute Biot-Savart field for one arbitrary filamentary coil.\n"
         "seg_starts/seg_ends: (N_seg,3) float32 Cartesian segment endpoints (m).\n"
         "Returns (BR, BZ, BPhi) — three (N,) float32 arrays in Tesla.\n"
-        "Uses CUDA kernel when compiled with --with-cuda=y.");
+        "Uses a runtime CUDA backend when available.");
+
+    m.def("cuda_backend_available", []() { return _cuda_backend_available(); },
+          "Return True when the optional runtime CUDA backend is loadable.");
 }

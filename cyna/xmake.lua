@@ -110,21 +110,38 @@ target("cyna_python")
         end
     end
 
-    -- CUDA (optional): compile coil_field_cuda.cu and link cudart
-    if has_config("with-cuda") then
-        add_defines("CYNA_CUDA_ENABLED")
-        add_rules("cuda")
-        add_files("coil_field_cuda.cu")
-        -- sm_86 = Ampere (RTX 3060/3070/3080/A40 …); adjust for other GPUs
-        add_cuflags("-arch=sm_86", "--use_fast_math", "-allow-unsupported-compiler", {force = true})
-        if is_plat("windows") then
-            add_links("cudart_static", "cuda")
-        else
-            add_links("cudart")
-        end
+    -- After build: copy _cyna_ext.pyd/.so into pyna/_cyna/
+    after_build(function(target)
+        local dest = path.join(os.scriptdir(), "..", "pyna", "_cyna")
+        os.mkdir(dest)
+        local src = target:targetfile()
+        os.cp(src, dest)
+        print("cyna: installed " .. path.filename(src) .. " -> " .. dest)
+    end)
+
+-- Optional runtime CUDA backend.  This target is deliberately separate from
+-- cyna_python so the main Python extension never links against cudart.
+target("cyna_cuda_backend")
+    set_kind("shared")
+    set_enabled(has_config("with-cuda"))
+    add_rules("cuda")
+    add_files("coil_field_cuda.cu")
+    add_defines("CYNA_CUDA_ENABLED")
+    set_basename("_cyna_cuda_backend")
+    if is_plat("windows") then
+        set_extension(".dll")
+    else
+        set_prefixname("")
+        set_extension(".so")
+    end
+    -- sm_86 = Ampere (RTX 3060/3070/3080/A40 …); adjust for other GPUs
+    add_cuflags("-arch=sm_86", "--use_fast_math", "-allow-unsupported-compiler", {force = true})
+    if is_plat("windows") then
+        add_links("cudart_static", "cuda")
+    else
+        add_links("cudart")
     end
 
-    -- After build: copy _cyna_ext.pyd/.so into pyna/_cyna/
     after_build(function(target)
         local dest = path.join(os.scriptdir(), "..", "pyna", "_cyna")
         os.mkdir(dest)

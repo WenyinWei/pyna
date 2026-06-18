@@ -15,6 +15,12 @@
 
 #ifdef CYNA_CUDA_ENABLED
 
+#if defined(_WIN32)
+#define CYNA_CUDA_API extern "C" __declspec(dllexport)
+#else
+#define CYNA_CUDA_API extern "C" __attribute__((visibility("default")))
+#endif
+
 #include <cuda_runtime.h>
 #include <cstdio>
 #include <cstdint>
@@ -182,7 +188,7 @@ __global__ void _biot_savart_kernel(
 /// Compute circular coil field on GPU.
 /// xyz_cpu : (N,3) float32 host array
 /// BR/BZ/BPhi_cpu : (N,) float32 host output arrays (pre-allocated)
-extern "C"
+CYNA_CUDA_API
 bool cyna_coil_circular_field_cuda(
     float cx, float cy, float cz,
     float nx, float ny, float nz,
@@ -219,7 +225,7 @@ bool cyna_coil_circular_field_cuda(
 /// seg_starts_cpu, seg_ends_cpu : (N_seg,3) float32 host arrays
 /// xyz_cpu : (N,3) float32 host array
 /// BR/BZ/BPhi_cpu : (N,) float32 host output arrays (pre-allocated)
-extern "C"
+CYNA_CUDA_API
 bool cyna_coil_biot_savart_cuda(
     const float* seg_starts_cpu, const float* seg_ends_cpu,
     int N_seg, float current,
