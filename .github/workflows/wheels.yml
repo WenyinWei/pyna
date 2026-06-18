@@ -35,7 +35,11 @@ jobs:
       - name: Install xmake (Linux host)
         if: runner.os == 'Linux'
         run: |
-          curl -fsSL https://xmake.io/shget.text | bash
+          curl -fsSL https://github.com/xmake-io/xmake/releases/download/v3.0.8/xmake-v3.0.8.gz.run -o /tmp/xmake.run
+          rm -rf /tmp/xmake-src
+          sh /tmp/xmake.run --noexec --quiet --target /tmp/xmake-src
+          make -C /tmp/xmake-src --no-print-directory -j4
+          make -C /tmp/xmake-src --no-print-directory install PREFIX="$HOME/.local"
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install xmake (macOS host)
@@ -63,7 +67,11 @@ jobs:
           # Install xmake inside the container once; expose via CIBW_ENVIRONMENT.
           # xmake installs to ~/.local/bin which is /root/.local/bin in the container.
           CIBW_BEFORE_ALL_LINUX: |
-            curl -fsSL https://xmake.io/shget.text | bash || true
+            curl -fsSL https://github.com/xmake-io/xmake/releases/download/v3.0.8/xmake-v3.0.8.gz.run -o /tmp/xmake.run
+            rm -rf /tmp/xmake-src
+            sh /tmp/xmake.run --noexec --quiet --target /tmp/xmake-src
+            make -C /tmp/xmake-src --no-print-directory -j4
+            make -C /tmp/xmake-src --no-print-directory install PREFIX="$HOME/.local"
             python -m pip install --upgrade patchelf
             ls ~/.local/bin/xmake 2>/dev/null && echo "xmake ok" || echo "xmake install failed"
           # ── macOS ─────────────────────────────────────────────────────────
