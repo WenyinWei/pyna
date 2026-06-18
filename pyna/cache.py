@@ -816,7 +816,7 @@ def _memoize_impl(
 
 
 # ╔══════════════════════════════════════════════════════════════════════════╗
-# ║  6. HDF5 large-data backend (optional, from anabranch.backends_hdf5)    ║
+# ║  6. HDF5 large-data backend (optional h5py-backed storage)              ║
 # ╚══════════════════════════════════════════════════════════════════════════╝
 
 # The basic HDF5 backend is registered above in §2.  When h5py is available,
