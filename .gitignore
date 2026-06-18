@@ -15,6 +15,9 @@ _cyna_ext.*
 .xmake/
 cyna/.xmake/
 
+# Local code intelligence indexes (regenerable; do not commit)
+.codegraph/
+
 # Data files (大文件，敏感，不入库)
 *.pkl
 *.h5
