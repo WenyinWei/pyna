@@ -82,8 +82,8 @@ target("cyna_python")
         -- Suppress .exp and .lib side outputs
         add_ldflags("/NOEXP", {force = true, tools = {"link"}})
     elseif is_plat("macosx") then
-        add_ldflags("-bundle", "-undefined", "dynamic_lookup", {force = true})
-        add_shflags("-bundle", "-undefined", "dynamic_lookup", {force = true})
+        add_ldflags("-undefined", "dynamic_lookup", {force = true})
+        add_shflags("-undefined", "dynamic_lookup", {force = true})
     end
 
     -- Compiler flags
