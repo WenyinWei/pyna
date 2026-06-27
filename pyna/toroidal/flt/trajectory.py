@@ -16,7 +16,20 @@ import tempfile
 from typing import Any
 
 import numpy as np
-from prefect import flow, task
+
+try:
+    from prefect import flow, task
+except ModuleNotFoundError:  # pragma: no cover - exercised only in slim envs
+    def _identity_decorator(*args, **_kwargs):
+        if args and callable(args[0]):
+            return args[0]
+
+        def _wrap(fn):
+            return fn
+
+        return _wrap
+
+    flow = task = _identity_decorator
 
 from pyna.toroidal.flt.numba_poincare import field_arrays_from_field, trace_orbit_along_phi
 
