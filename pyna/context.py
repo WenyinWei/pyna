@@ -64,7 +64,11 @@ class DynamicsContext:
         O_points: Optional[List[FixedPoint]] = None,
         X_points: Optional[List[FixedPoint]] = None,
     ) -> IslandChain:
-        return IslandChain(islands=[])
+        return IslandChain.from_fixed_points(
+            O_points=O_points or [],
+            X_points=X_points or [],
+            ambient_dim=self.section_dim,
+        )
 
     def tube(self, O_cycle: Cycle, X_cycles: Optional[List[Cycle]] = None) -> Tube:
         return Tube(O_cycle=O_cycle, X_cycles=X_cycles or [])

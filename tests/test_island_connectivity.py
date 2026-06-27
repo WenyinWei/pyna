@@ -59,7 +59,7 @@ class TestIslandChainConnectivity:
         assert sum(len(g) for g in groups) == 1
 
     def test_generic_6_4_orbit_groups(self):
-        chain = make_chain(m=6, n=4)
+        chain = make_chain(m=6, n=4, n_islands=6)
         groups = chain.orbit_groups
         assert len(groups) == 2
         assert len(groups[0]) == 3
@@ -67,7 +67,7 @@ class TestIslandChainConnectivity:
 
     def test_orbit_groups_all_islands_covered(self):
         """Every island should appear in exactly one orbit group."""
-        chain = make_chain(m=6, n=4)
+        chain = make_chain(m=6, n=4, n_islands=6)
         groups = chain.orbit_groups
         flat = [isl for grp in groups for isl in grp]
         assert len(flat) == len(chain.islands)

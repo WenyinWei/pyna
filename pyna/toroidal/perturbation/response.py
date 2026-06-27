@@ -16,4 +16,16 @@ warnings.warn(
     DeprecationWarning, stacklevel=2,
 )
 
-from topoquest.analysis.response import *  # noqa: F401, F403, E402
+try:
+    from topoquest.analysis.response import *  # noqa: F401, F403, E402
+except ModuleNotFoundError as exc:
+    if exc.name != "topoquest":
+        raise
+    __all__ = []
+    _TOPOQUEST_IMPORT_ERROR = exc
+
+    def __getattr__(name):
+        raise ModuleNotFoundError(
+            "pyna.toroidal.perturbation.response requires the optional "
+            "topoquest package for response symbols"
+        ) from _TOPOQUEST_IMPORT_ERROR

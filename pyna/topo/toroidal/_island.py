@@ -163,7 +163,7 @@ class Island(_ToriMixin, _Island):
         }
 
 
-@dataclass(eq=False)
+@dataclass(eq=False, init=False)
 class IslandChain(_IslandChain):
     """Toroidal island chain: all islands of a resonance on one section."""
 
@@ -171,10 +171,53 @@ class IslandChain(_IslandChain):
     n: int = 0
     parent_tube: Optional[Any] = None
     role: Optional[ChainRole] = None
+    _ambient_dim: Optional[int] = field(default=None, repr=False)
+
+    def __init__(
+        self,
+        islands: Optional[Sequence[Island]] = None,
+        period: Optional[int] = None,
+        label: Optional[str] = None,
+        parent_island: Optional[Island] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        *,
+        m: int = 0,
+        n: int = 0,
+        winding: Optional[Sequence[int]] = None,
+        parent_tube: Optional[Any] = None,
+        role: Optional[ChainRole] = None,
+        ambient_dim: Optional[int] = None,
+    ):
+        if winding is not None:
+            w = tuple(int(v) for v in winding)
+            if len(w) >= 1:
+                m = w[0]
+            if len(w) >= 2:
+                n = w[1]
+        self.islands = list(islands or [])
+        self.period = period
+        self.label = label
+        self.parent_island = parent_island
+        self.metadata = dict(metadata or {})
+        self.m = int(m)
+        self.n = int(n)
+        self.parent_tube = parent_tube
+        self.role = role
+        self._ambient_dim = ambient_dim
+        self.__post_init__()
 
     @property
     def winding(self) -> Tuple[int, ...]:
         return (self.m, self.n) if self.n else (self.m,)
+
+    @property
+    def ambient_dim(self) -> Optional[int]:
+        if self._ambient_dim is not None:
+            return self._ambient_dim
+        points = self.O_points or self.X_points
+        if points:
+            return points[0].ambient_dim
+        return None
 
     @property
     def expected_n_islands(self) -> int:
@@ -233,6 +276,7 @@ class IslandChain(_IslandChain):
         m: int = 1,
         n: int = 1,
         proximity_tol: float = 1.0,
+        ambient_dim: Optional[int] = None,
     ) -> "IslandChain":
         def _to_fp(pt, phi=0.0):
             if isinstance(pt, FixedPoint):
@@ -259,12 +303,51 @@ class IslandChain(_IslandChain):
                 X_orbits=[PeriodicOrbit(points=[xfp]) for xfp in nearby_x],
             ))
 
-        return cls(m=m, n=n, islands=islands,
+        if ambient_dim is None and o_fps:
+            ambient_dim = o_fps[0].ambient_dim
+
+        return cls(m=m, n=n, islands=islands, ambient_dim=ambient_dim,
                    metadata={'n_tubes_included': len(islands) // max(1, (m // gcd(m, n))) if islands else 0})
 
     @classmethod
-    def from_seed_points(cls, O_points=None, X_points=None, *, m=1, n=1, proximity_tol=1.0) -> "IslandChain":
-        return cls.from_O_X_points(O_points=O_points, X_points=X_points, m=m, n=n, proximity_tol=proximity_tol)
+    def from_fixed_points(
+        cls,
+        O_points=None,
+        X_points=None,
+        *,
+        m=1,
+        n=1,
+        proximity_tol=1.0,
+        ambient_dim: Optional[int] = None,
+    ) -> "IslandChain":
+        return cls.from_O_X_points(
+            O_points=O_points,
+            X_points=X_points,
+            m=m,
+            n=n,
+            proximity_tol=proximity_tol,
+            ambient_dim=ambient_dim,
+        )
+
+    @classmethod
+    def from_seed_points(
+        cls,
+        O_points=None,
+        X_points=None,
+        *,
+        m=1,
+        n=1,
+        proximity_tol=1.0,
+        ambient_dim: Optional[int] = None,
+    ) -> "IslandChain":
+        return cls.from_O_X_points(
+            O_points=O_points,
+            X_points=X_points,
+            m=m,
+            n=n,
+            proximity_tol=proximity_tol,
+            ambient_dim=ambient_dim,
+        )
 
     def summary(self) -> str:
         return f"IslandChain(m={self.m}, n={self.n}, islands={self.n_islands}/{self.expected_n_islands}, connected={self.is_connected})"

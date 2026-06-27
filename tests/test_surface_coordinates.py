@@ -1,6 +1,12 @@
 import numpy as np
+import pytest
 
-from pyna.toroidal.surface_coordinates import (
+from pyna.toroidal.boozer_coords import build_Boozer_coordinates
+from pyna.toroidal.perturbation_spectrum import (
+    radial_perturbation_Fourier_spectrum,
+    radial_perturbation_component,
+)
+from pyna.toroidal.pest_coords import (
     circle_map_lift_iota,
     insert_axis_core_surfaces,
     periodic_shift_theta,
@@ -94,3 +100,93 @@ def test_insert_axis_core_surfaces_interpolates_to_first_reliable_surface():
         result.Z_surf[:, 1, :],
         np.repeat(axis_Z[:, None] + 2.0, theta.size, axis=1),
     )
+
+
+def test_build_Boozer_coordinates_equalizes_B2_jacobian():
+    phi = np.linspace(0.0, 2.0 * np.pi, 8, endpoint=False)
+    theta = np.linspace(0.0, 2.0 * np.pi, 64, endpoint=False)
+    radial = np.array([0.2, 0.4, 0.6])
+    R0 = 3.0
+    R = np.empty((phi.size, radial.size, theta.size), dtype=np.float64)
+    Z = np.empty_like(R)
+    for i_r, r in enumerate(radial):
+        R[:, i_r, :] = R0 + r * np.cos(theta)[None, :]
+        Z[:, i_r, :] = r * np.sin(theta)[None, :]
+
+    B_abs = np.sqrt(1.0 + 0.25 * np.cos(theta))[None, None, :] * np.ones_like(R)
+    boozer = build_Boozer_coordinates(
+        R,
+        Z,
+        phi,
+        theta,
+        radial_labels=radial,
+        B_abs=B_abs,
+        n_theta=32,
+    )
+
+    assert boozer.R_surf.shape == (phi.size, radial.size, 32)
+    assert boozer.Z_surf.shape == (phi.size, radial.size, 32)
+    assert boozer.theta_B.shape == (32,)
+    assert np.all(np.diff(boozer.theta_B_of_theta[0, 1]) > 0.0)
+    weighted_jac = boozer.B2_jacobian_B[0, 1]
+    assert np.nanstd(weighted_jac) / abs(np.nanmean(weighted_jac)) < 1.0e-12
+
+
+def test_radial_perturbation_projection_and_Fourier_spectrum():
+    phi = np.linspace(0.0, 2.0 * np.pi, 32, endpoint=False)
+    theta = np.linspace(0.0, 2.0 * np.pi, 64, endpoint=False)
+    R0 = 3.0
+    r = 0.5
+    theta_grid = theta[None, :]
+    phi_grid = phi[:, None]
+    R = R0 + r * np.cos(theta_grid) * np.ones_like(phi_grid)
+    Z = r * np.sin(theta_grid) * np.ones_like(phi_grid)
+
+    m_val = 2
+    n_val = -3
+    phase = 0.37
+    dBr_true = np.cos(m_val * theta_grid + n_val * phi_grid + phase)
+    delta_B_R = dBr_true * np.cos(theta_grid)
+    delta_B_Z = dBr_true * np.sin(theta_grid)
+
+    dBr_grid = radial_perturbation_component(
+        R,
+        Z,
+        phi,
+        theta,
+        delta_B_R,
+        delta_B_Z,
+    )
+    np.testing.assert_allclose(dBr_grid, dBr_true, atol=2.0e-3)
+
+    spec = radial_perturbation_Fourier_spectrum(
+        dBr_grid,
+        theta,
+        phi,
+        m_max=3,
+        n_max=4,
+        min_amplitude=1.0e-10,
+    )
+    idx = np.where((spec.m == m_val) & (spec.n == n_val))[0]
+    assert idx.size == 1
+    np.testing.assert_allclose(spec.dBr[idx[0]], 0.5 * np.exp(1j * phase), atol=2.0e-3)
+
+    stack = dBr_grid[:, np.newaxis, :] * np.array([1.0, 2.0])[np.newaxis, :, np.newaxis]
+    stack_spec = radial_perturbation_Fourier_spectrum(
+        stack,
+        theta,
+        phi,
+        m_max=3,
+        n_max=4,
+        min_amplitude=1.0e-10,
+    )
+    stack_idx = np.where((stack_spec.m == m_val) & (stack_spec.n == n_val))[0]
+    assert stack_idx.size == 1
+    assert stack_spec.dBr.shape[0] == 2
+    np.testing.assert_allclose(
+        stack_spec.dBr[:, stack_idx[0]],
+        [0.5 * np.exp(1j * phase), np.exp(1j * phase)],
+        atol=2.0e-3,
+    )
+    with pytest.raises(ValueError, match="radial_index"):
+        stack_spec.split(iota=0.31)

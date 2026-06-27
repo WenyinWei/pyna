@@ -8,7 +8,7 @@ Analytic models   → stays here (Solov'ev, stellarator)
 from importlib import import_module
 
 from pyna.toroidal.equilibrium.axisymmetric import EquilibriumAxisym, EquilibriumTokamakCircularSynthetic
-from pyna.toroidal.equilibrium.Solovev import EquilibriumSolovev
+from pyna.toroidal.equilibrium.Solovev import EquilibriumSolovev, solovev_iter_like
 from pyna.toroidal.equilibrium.GradShafranov import recover_pressure_simplest, solve_GS_perturbed
 from pyna.toroidal.equilibrium.stellarator import StellaratorSimple, simple_stellarator
 
@@ -32,6 +32,7 @@ __all__ = [
     "EquilibriumAxisym",
     "EquilibriumTokamakCircularSynthetic",
     "EquilibriumSolovev",
+    "solovev_iter_like",
     "recover_pressure_simplest",
     "solve_GS_perturbed",
     "StellaratorSimple",

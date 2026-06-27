@@ -8,9 +8,8 @@ topo      : Topological analysis (generic + toroidal specializations)
 toroidal  : Toroidal geometry and field-line utilities
 
 .. deprecated:: 0.8.6
-    ``pyna.coord`` and ``pyna.mag`` have been removed.
-    Use ``pyna.toroidal.coords`` and the relevant ``pyna.toroidal.*``
-    submodules directly.
+    ``pyna.coord`` has been removed. ``pyna.mag`` remains as a
+    compatibility facade; prefer ``pyna.toroidal.control`` in new code.
 """
 __version__ = "0.8.14"
 

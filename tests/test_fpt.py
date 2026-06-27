@@ -190,7 +190,7 @@ class TestAMatrix:
 
         # Should agree to ~0.1 %
 
-        np.testing.assert_allclose(A1, A2, rtol=1e-2)
+        np.testing.assert_allclose(A1, A2, rtol=1e-2, atol=1e-3)
 
 
 

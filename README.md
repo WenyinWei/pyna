@@ -3,7 +3,7 @@
 <p align="center">
   <a href="https://pypi.org/project/pyna-chaos/"><img src="https://img.shields.io/pypi/v/pyna-chaos?color=blue&label=PyPI" alt="PyPI"></a>
   <a href="https://pypi.org/project/pyna-chaos/"><img src="https://img.shields.io/pypi/pyversions/pyna-chaos" alt="Python"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-green" alt="License"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-LGPL--3.0-green" alt="License"></a>
   <a href="https://wenyinwei.github.io/pyna/"><img src="https://img.shields.io/badge/docs-online-blue" alt="Docs"></a>
   <a href="https://github.com/WenyinWei/pyna/actions"><img src="https://github.com/WenyinWei/pyna/actions/workflows/docs.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/WenyinWei/pyna/actions/workflows/notebook-tests.yml"><img src="https://github.com/WenyinWei/pyna/actions/workflows/notebook-tests.yml/badge.svg" alt="Notebook Tests"></a>
@@ -270,4 +270,4 @@ Contributions are welcome! Please open an issue or pull request on [GitHub](http
 
 ## 📄 License
 
-[GPL-3.0-or-later](LICENSE) © 2024-2026 Wenyin Wei
+[LGPL-3.0-or-later](LICENSE) © 2024-2026 Wenyin Wei

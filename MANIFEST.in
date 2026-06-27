@@ -1,4 +1,5 @@
 include README.md
+include LICENSE
 include FIELD_LINE_TRACING_POLICY.md
 recursive-include cyna *.lua *.md *.cpp *.cu *.hpp *.h
 exclude pyna/_cyna/_cyna_ext*.so

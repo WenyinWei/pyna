@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from pyna.topo.core import PeriodicOrbit as _PeriodicOrbit, Cycle as _Cycle
+from pyna.topo.core import PeriodicOrbit as _PeriodicOrbit, Cycle as _Cycle, Stability
 from ._monodromy import MonodromyData
 from ._fixed_point import FixedPoint
 
@@ -48,6 +48,15 @@ class Cycle(_Cycle):
     monodromy: Optional[MonodromyData] = None
     ambient_dim: Optional[int] = None
 
+    @property
+    def stability(self) -> Stability:
+        if self.monodromy is not None:
+            return self.monodromy.stability
+        for fp in self.section_points():
+            if isinstance(fp, FixedPoint):
+                return fp.stability
+        return Stability.UNKNOWN
+
     def section_points(self, phi: Optional[float] = None, tol: float = 1e-9) -> List[FixedPoint]:
         if not self.sections:
             return []
@@ -69,9 +78,33 @@ class Cycle(_Cycle):
         if section is None:
             fps = self.section_points()
             return PeriodicOrbit(points=list(fps)) if fps else PeriodicOrbit(points=[])
-        phi = float(getattr(section, 'phi', section) if not isinstance(section, (int, float)) else section)
+        from pyna.topo.section import coerce_toroidal_section
+        phi = float(coerce_toroidal_section(section).phi)
         fps = self.section_points(phi)
         return PeriodicOrbit(points=list(fps))
+
+    def unstable_seeds(
+        self,
+        phi: Optional[float] = None,
+        *,
+        n_seeds: int = 8,
+        init_length: float = 1e-4,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        fps = self.section_points(phi)
+        if not fps:
+            raise ValueError("cannot generate unstable seeds without a section fixed point")
+        fp = fps[0]
+        DPm = self.monodromy.DPm if self.monodromy is not None else fp.DPm
+        eigvals, eigvecs = np.linalg.eig(np.asarray(DPm, dtype=float))
+        idx = int(np.argmax(np.abs(eigvals)))
+        direction = np.real(eigvecs[:, idx])
+        if np.linalg.norm(direction) < 1e-14:
+            direction = np.imag(eigvecs[:, idx])
+        if np.linalg.norm(direction) < 1e-14:
+            direction = np.array([1.0, 0.0])
+        direction = direction[:2] / np.linalg.norm(direction[:2])
+        offsets = np.linspace(-float(init_length), float(init_length), int(n_seeds))
+        return fp.R + offsets * direction[0], fp.Z + offsets * direction[1]
 
     def diagnostics(self) -> Dict[str, Any]:
         return {

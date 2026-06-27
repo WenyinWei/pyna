@@ -82,7 +82,9 @@ def _xmake_path() -> str | None:
     if _is_windows():
         extra += [
             Path(os.environ.get("USERPROFILE", "")) / ".xmake" / "bin" / "xmake.exe",
+            Path(os.environ.get("USERPROFILE", "")) / "xmake" / "xmake.exe",
             Path("C:/Users") / os.environ.get("USERNAME", "") / ".xmake" / "bin" / "xmake.exe",
+            Path("C:/Users") / os.environ.get("USERNAME", "") / "xmake" / "xmake.exe",
         ]
     else:
         extra += [
@@ -344,6 +346,33 @@ def _cuda_explicitly_enabled() -> bool:
     }
 
 
+def _extension_artifacts(directory: Path) -> list[Path]:
+    artifacts: dict[Path, None] = {}
+    for pattern in ("_cyna_ext*.pyd", "_cyna_ext*.so", "_cyna_ext*.so.*"):
+        for path in directory.glob(pattern):
+            if path.is_file():
+                artifacts[path] = None
+    return list(artifacts)
+
+
+def _remove_extension_artifacts(directory: Path) -> None:
+    for path in _extension_artifacts(directory):
+        path.unlink()
+
+
+def _current_platform_extension_artifacts(directory: Path) -> list[Path]:
+    if _is_windows():
+        patterns = ("_cyna_ext*.pyd",)
+    else:
+        patterns = ("_cyna_ext*.so", "_cyna_ext*.so.*")
+    artifacts: dict[Path, None] = {}
+    for pattern in patterns:
+        for path in directory.glob(pattern):
+            if path.is_file():
+                artifacts[path] = None
+    return list(artifacts)
+
+
 # ── pybind11 (Python-side, for include path) ──────────────────────────────────
 
 def _ensure_pybind11(skip_install: bool = False) -> None:
@@ -411,6 +440,7 @@ def _build_cyna() -> bool:
             print("[cyna-build] WARNING: proceeding without C++ compiler — may fail.", flush=True)
 
     _ensure_pybind11(skip_install=_skip_tool_install)
+    _remove_extension_artifacts(DEST_DIR)
 
     # Determine Python info for xmake
     py_inc  = sysconfig.get_path("include")
@@ -534,7 +564,10 @@ class BuildCynaExt(_build_ext):
         # empty stub would create an unusable _cyna_ext ABI-tagged library.
         build_dest = Path(self.build_lib) / "pyna" / "_cyna"
         build_dest.mkdir(parents=True, exist_ok=True)
-        ext_files = list(DEST_DIR.glob("_cyna_ext*.pyd")) + list(DEST_DIR.glob("_cyna_ext*.so"))
+        _remove_extension_artifacts(build_dest)
+        ext_files = _current_platform_extension_artifacts(DEST_DIR)
+        if not ext_files:
+            raise RuntimeError("cyna build finished but no current-platform extension was found")
         for ext_file in ext_files:
             shutil.copy2(ext_file, build_dest / ext_file.name)
         return

@@ -48,7 +48,7 @@ class TubeCutPoint:
         return np.array([self.R, self.Z], dtype=float)
 
 
-@dataclass(eq=False)
+@dataclass(eq=False, init=False)
 class Tube(_Tube):
     """Toroidal magnetic island: a nested family of invariant tori."""
 
@@ -57,6 +57,67 @@ class Tube(_Tube):
     _orbit_phi: Optional[np.ndarray] = field(default=None, repr=False)
     _orbit_alive: Optional[np.ndarray] = field(default=None, repr=False)
     _tube_chain_ref: Optional["TubeChain"] = field(default=None, repr=False, init=False)
+
+    def __init__(
+        self,
+        O_cycle: Optional[Cycle] = None,
+        X_cycles: Optional[Sequence[Cycle]] = None,
+        label: Optional[str] = None,
+        debug_info: Optional[Dict[str, Any]] = None,
+        *,
+        o_cycle: Optional[Cycle] = None,
+        x_cycles: Optional[Sequence[Cycle]] = None,
+        _orbit_R: Optional[np.ndarray] = None,
+        _orbit_Z: Optional[np.ndarray] = None,
+        _orbit_phi: Optional[np.ndarray] = None,
+        _orbit_alive: Optional[np.ndarray] = None,
+        parent_chain: Optional[Any] = None,
+    ):
+        if O_cycle is None:
+            O_cycle = o_cycle
+        if X_cycles is None:
+            X_cycles = x_cycles
+        if O_cycle is None:
+            raise TypeError("Tube requires O_cycle or o_cycle")
+        self.O_cycle = O_cycle
+        self.X_cycles = list(X_cycles or [])
+        self.label = label
+        self.debug_info = dict(debug_info or {})
+        self._orbit_R = _orbit_R
+        self._orbit_Z = _orbit_Z
+        self._orbit_phi = _orbit_phi
+        self._orbit_alive = _orbit_alive
+        self._tube_chain_ref = None
+        self.parent_chain = parent_chain
+        self.child_chains: List["TubeChain"] = []
+
+    @property
+    def ambient_dim(self) -> Optional[int]:
+        if self.O_cycle is not None:
+            dim = self.O_cycle.ambient_dim
+            if dim is not None:
+                return dim
+        for cycle in self.X_cycles:
+            dim = cycle.ambient_dim
+            if dim is not None:
+                return dim
+        return None
+
+    def add_child_chain(self, chain: "TubeChain") -> None:
+        chain.parent_tube = self
+        self.child_chains.append(chain)
+
+    def root_tube(self) -> "Tube":
+        tube = self
+        seen = set()
+        while id(tube) not in seen:
+            seen.add(id(tube))
+            parent_chain = getattr(tube, "parent_chain", None)
+            parent_tube = getattr(parent_chain, "parent_tube", None)
+            if parent_tube is None:
+                break
+            tube = parent_tube
+        return tube
 
     @property
     def m(self) -> int:
@@ -144,8 +205,14 @@ class Tube(_Tube):
             idx = int(np.argmin(dists))
             x_groups[idx].append(xfp)
 
+        paired = list(zip(fps, x_groups))
+        root = self.root_tube()
+        axis_R, axis_Z = root.seed_RZ if root is not self else (float("nan"), float("nan"))
+        if np.isfinite(axis_R) and np.isfinite(axis_Z):
+            paired.sort(key=lambda item: np.arctan2(item[0].Z - axis_Z, item[0].R - axis_R))
+
         islands: List[Island] = []
-        for fp, x_fp_list in zip(fps, x_groups):
+        for fp, x_fp_list in paired:
             isl = Island(
                 O_orbit=PeriodicOrbit(points=[fp]),
                 X_orbits=[PeriodicOrbit(points=[xfp]) for xfp in x_fp_list],
@@ -166,6 +233,44 @@ class Tube(_Tube):
         for isl in islands:
             chain.add_island(isl)
         return chain
+
+    def to_island(self, phi: float, *, x_points: Optional[Sequence[Any]] = None,
+                  proximity_tol: float = 1.0) -> Island:
+        o_points = self.at_section(float(phi))
+        if not o_points:
+            raise ValueError(f"no O-point found at phi={float(phi)!r}")
+        o_fp = o_points[0]
+
+        if x_points is None:
+            x_fps = self.x_at_section(float(phi))
+        else:
+            x_fps = []
+            for pt in x_points:
+                if isinstance(pt, FixedPoint):
+                    x_fps.append(pt)
+                    continue
+                arr = np.asarray(pt, dtype=float).ravel()
+                x_fps.append(FixedPoint(
+                    phi=float(phi),
+                    R=float(arr[0]),
+                    Z=float(arr[1]),
+                    DPm=np.array([[2.0, 0.0], [0.0, 0.5]]),
+                    kind='X',
+                ))
+
+        x_fps = [
+            fp for fp in x_fps
+            if np.hypot(fp.R - o_fp.R, fp.Z - o_fp.Z) <= float(proximity_tol)
+        ]
+        island = Island(
+            O_orbit=PeriodicOrbit(points=[o_fp]),
+            X_orbits=[PeriodicOrbit(points=[fp]) for fp in x_fps],
+            label=self.label,
+        )
+        island.tube = self
+        if self._tube_chain_ref is not None:
+            island.tube_chain = self._tube_chain_ref
+        return island
 
     def _general_section_fps(self, section) -> list:
         if not self.orbit_debug_available:
@@ -217,9 +322,35 @@ class Tube(_Tube):
         if section_reconstructor is None:
             return None
         try:
-            return section_reconstructor(phi, self, list(existing_points or []), reason)
+            point = section_reconstructor(phi, self, list(existing_points or []), reason)
         except Exception:
             return None
+        if point is None:
+            return None
+        if isinstance(point, TubeCutPoint):
+            return point
+        if isinstance(point, FixedPoint):
+            return TubeCutPoint(
+                tube_index=tube_index,
+                phi=float(phi),
+                R=float(point.R),
+                Z=float(point.Z),
+                kind=point.kind,
+                fixed_point=point,
+                source=f"reconstructed-{reason}",
+            )
+        arr = np.asarray(point, dtype=float).ravel()
+        if arr.size < 2:
+            return None
+        return TubeCutPoint(
+            tube_index=tube_index,
+            phi=float(phi),
+            R=float(arr[0]),
+            Z=float(arr[1]),
+            kind=None,
+            source=f"reconstructed-{reason}",
+            raw_center=(float(arr[0]), float(arr[1])),
+        )
 
     def diagnostics(self) -> Dict[str, Any]:
         return {
@@ -259,6 +390,12 @@ class Tube(_Tube):
 @dataclass(eq=False)
 class TubeChain(_TubeChain):
     """Toroidal resonance family: all Tubes sharing one rational surface."""
+
+    def __post_init__(self):
+        for tube in self.tubes:
+            tube._tube_chain_ref = self
+            if getattr(tube, "parent_chain", None) is None:
+                tube.parent_chain = self
 
     @property
     def m(self) -> int:
@@ -482,10 +619,8 @@ class TubeChain(_TubeChain):
             curr._set_last(lst)
 
     def section_cut(self, section, tol: float = 1e-6) -> IslandChain:
-        from pyna.topo.section import ToroidalSection, coerce_section
+        from pyna.topo.section import coerce_section
         section = coerce_section(section)
-        if isinstance(section, ToroidalSection):
-            return self.to_island_chain_connected(section.phi, tol=tol)
         chain = IslandChain(m=self.m, n=self.n, parent_tube=self, label=self.label,
                             metadata={'n_tubes_included': self.n_tubes,
                                       'section_object': section.__class__.__name__})

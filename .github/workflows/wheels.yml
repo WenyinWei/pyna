@@ -67,6 +67,9 @@ jobs:
           # Install xmake inside the container once; expose via CIBW_ENVIRONMENT.
           # xmake installs to ~/.local/bin which is /root/.local/bin in the container.
           CIBW_BEFORE_ALL_LINUX: |
+            if [ ! -x /usr/bin/gcc ] && command -v gcc >/dev/null 2>&1; then ln -s "$(command -v gcc)" /usr/bin/gcc; fi
+            if [ ! -x /usr/bin/g++ ] && command -v g++ >/dev/null 2>&1; then ln -s "$(command -v g++)" /usr/bin/g++; fi
+            if [ ! -x /usr/bin/c++ ] && command -v c++ >/dev/null 2>&1; then ln -s "$(command -v c++)" /usr/bin/c++; fi
             curl -fsSL https://github.com/xmake-io/xmake/releases/download/v3.0.8/xmake-v3.0.8.gz.run -o /tmp/xmake.run
             rm -rf /tmp/xmake-src
             sh /tmp/xmake.run --noexec --quiet --target /tmp/xmake-src
@@ -157,3 +160,5 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true

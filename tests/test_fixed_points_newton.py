@@ -37,8 +37,20 @@ _WALL_PATH = Path(r"D:\haodata\hao_1stwall_inner.txt")
 def hao_tracer():
     """Build a FieldlineTracer from the HAO field cache."""
     from scipy.interpolate import RegularGridInterpolator
-    from topoquest.tracing import FieldlineTracer, WallGeometry
-    from explore_hao_divertor_configs import load_field_cache
+    topoquest_tracing = pytest.importorskip(
+        "topoquest.tracing",
+        reason="requires optional topoquest package and private HAO field cache",
+    )
+    explore_hao = pytest.importorskip(
+        "explore_hao_divertor_configs",
+        reason="requires private HAO field cache loader",
+    )
+    if not _WALL_PATH.exists():
+        pytest.skip(f"requires private HAO wall file at {_WALL_PATH}")
+
+    FieldlineTracer = topoquest_tracing.FieldlineTracer
+    WallGeometry = topoquest_tracing.WallGeometry
+    load_field_cache = explore_hao.load_field_cache
 
     print("\nLoading HAO field cache ...", flush=True)
     t0 = time.time()

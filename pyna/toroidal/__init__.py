@@ -7,6 +7,7 @@ visualisation helpers used by pyna.
 from importlib import import_module
 
 _SUBMODULES = {
+    "boozer_coords",
     "coords",
     "equilibrium",
     "coils",
@@ -15,7 +16,9 @@ _SUBMODULES = {
     "flt",
     "minor_radius",
     "optimize",
+    "pest_coords",
     "perturbation",
+    "perturbation_spectrum",
     "surface_coordinates",
     "torus_deformation",
     "visual",
@@ -27,7 +30,13 @@ _SYMBOL_MODULES = {
     "GeometricMinorRadiusProvider": "pyna.toroidal.minor_radius",
     "TorusDeformationSpectrum": "pyna.toroidal.torus_deformation",
     "RadialPerturbationSplit": "pyna.toroidal.torus_deformation",
+    "BoozerCoordinateMesh": "pyna.toroidal.boozer_coords",
+    "RadialPerturbationFourierSpectrum": "pyna.toroidal.perturbation_spectrum",
+    "build_Boozer_coordinates": "pyna.toroidal.boozer_coords",
     "minor_radius_label": "pyna.toroidal.minor_radius",
+    "radial_perturbation_Fourier_spectrum": "pyna.toroidal.perturbation_spectrum",
+    "radial_perturbation_component": "pyna.toroidal.perturbation_spectrum",
+    "surface_unit_normal_cylindrical": "pyna.toroidal.perturbation_spectrum",
     "split_radial_perturbation_spectrum": "pyna.toroidal.torus_deformation",
     "non_resonant_deformation_spectrum": "pyna.toroidal.torus_deformation",
     "poincare_section_deformation": "pyna.toroidal.torus_deformation",
