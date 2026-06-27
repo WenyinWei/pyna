@@ -15,6 +15,7 @@ from pyna.toroidal.flt import (
     trace_boundary_island_shapes_field,
     trace_boundary_island_chain_sections_span_field,
     trace_boundary_island_chain_dense_span_field,
+    trace_poincare_sections_from_same_orbits_field,
     trace_fixed_point_cycle_sections_span_field,
     trace_fixed_point_cycle_dense_span_field,
     trace_fixed_point_cycles_span_field,
@@ -191,6 +192,49 @@ def test_trace_fixed_point_cycles_span_field_uses_batch_outputs(monkeypatch):
     assert cycles[0].closure_residual == pytest.approx(0.0)
     assert cycles[0].alive is True
     assert cycles[0].points[1].metadata["map_span"] == pytest.approx(np.pi)
+
+
+def test_trace_poincare_sections_from_same_orbits_uses_multi_trace(monkeypatch):
+    calls = []
+
+    def fake_multi(field, R0, Z0, phi_sections, N_turns, DPhi, wall_R, wall_Z, **kwargs):
+        calls.append((np.asarray(R0).copy(), np.asarray(phi_sections).copy(), int(N_turns), kwargs))
+        n_seed = len(R0)
+        n_sec = len(phi_sections)
+        counts = np.full((n_seed, n_sec), int(N_turns), dtype=int)
+        flat_R = []
+        flat_Z = []
+        for i in range(n_seed):
+            for j in range(n_sec):
+                for k in range(int(N_turns)):
+                    flat_R.append(100.0 * i + 10.0 * j + k)
+                    flat_Z.append(-100.0 * i - 10.0 * j - k)
+        return counts, np.asarray(flat_R), np.asarray(flat_Z)
+
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain.trace_poincare_multi_batch_field",
+        fake_multi,
+    )
+
+    traces = trace_poincare_sections_from_same_orbits_field(
+        object(),
+        [1.0, 2.0],
+        [0.0, 0.1],
+        [0.0, 0.5, 1.0],
+        N_turns=2,
+        DPhi=0.1,
+        wall_R=[0.0, 3.0, 3.0, 0.0],
+        wall_Z=[-1.0, -1.0, 1.0, 1.0],
+    )
+
+    assert len(calls) == 1
+    np.testing.assert_allclose(calls[0][1], [0.0, 0.5, 1.0])
+    assert traces.metadata["trace_source"] == "same_orbit_multi_section"
+    np.testing.assert_array_equal(traces.counts, np.full((2, 3), 2))
+    R_sec, Z_sec, seed_index = traces.section_points(1)
+    np.testing.assert_allclose(R_sec, [10.0, 11.0, 110.0, 111.0])
+    np.testing.assert_allclose(Z_sec, [-10.0, -11.0, -110.0, -111.0])
+    np.testing.assert_array_equal(seed_index, [0, 0, 1, 1])
 
 
 def test_trace_fixed_point_cycle_sections_uses_one_orbit(monkeypatch):

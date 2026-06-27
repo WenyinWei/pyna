@@ -14,6 +14,7 @@ from pyna.toroidal.flt.numba_poincare import (
     find_fixed_points_batch_span_field,
     trace_map_batch_span_field,
     trace_poincare_batch_field,
+    trace_poincare_multi_batch_field,
     trace_poincare_batch_twall_field,
     trace_orbit_along_phi_field,
 )
@@ -115,6 +116,77 @@ class BoundaryIslandSearchResult:
     @property
     def o_points(self) -> list[BoundaryIslandFixedPoint]:
         return [fp for fp in self.fixed_points if fp.kind == "O"]
+
+
+@dataclass(frozen=True)
+class PoincareSectionTraces:
+    """Multi-section Poincare traces from one shared batch of seed orbits."""
+
+    phi_sections: np.ndarray
+    seed_R: np.ndarray
+    seed_Z: np.ndarray
+    counts: np.ndarray
+    R_flat: np.ndarray
+    Z_flat: np.ndarray
+    N_turns: int
+    direction: str = "+"
+    metadata: dict = field(default_factory=dict, compare=False, repr=False)
+
+    def __post_init__(self):
+        phi = np.asarray(self.phi_sections, dtype=float).ravel()
+        seed_R = np.asarray(self.seed_R, dtype=float).ravel()
+        seed_Z = np.asarray(self.seed_Z, dtype=float).ravel()
+        counts = np.asarray(self.counts, dtype=int)
+        object.__setattr__(self, "phi_sections", phi)
+        object.__setattr__(self, "seed_R", seed_R)
+        object.__setattr__(self, "seed_Z", seed_Z)
+        object.__setattr__(self, "counts", counts.reshape(seed_R.size, phi.size))
+        object.__setattr__(self, "R_flat", np.asarray(self.R_flat, dtype=float).ravel())
+        object.__setattr__(self, "Z_flat", np.asarray(self.Z_flat, dtype=float).ravel())
+        object.__setattr__(self, "N_turns", int(self.N_turns))
+
+    @property
+    def n_seed(self) -> int:
+        return int(self.seed_R.size)
+
+    @property
+    def n_section(self) -> int:
+        return int(self.phi_sections.size)
+
+    def seed_section_points(self, seed_index: int, section_index: int) -> tuple[np.ndarray, np.ndarray]:
+        """Return the points for one seed at one recorded section."""
+
+        i = int(seed_index)
+        j = int(section_index)
+        if not (0 <= i < self.n_seed and 0 <= j < self.n_section):
+            raise IndexError("seed_index or section_index out of range")
+        n = max(0, min(int(self.counts[i, j]), int(self.N_turns)))
+        base = (i * self.n_section + j) * int(self.N_turns)
+        stop = base + n
+        return self.R_flat[base:stop].copy(), self.Z_flat[base:stop].copy()
+
+    def section_points(self, section: int | float) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Return ``(R, Z, seed_index)`` for one section."""
+
+        if isinstance(section, (int, np.integer)):
+            section_index = int(section)
+        else:
+            phi = float(section)
+            section_index = int(np.argmin(np.abs(self.phi_sections - phi)))
+        R_parts: list[np.ndarray] = []
+        Z_parts: list[np.ndarray] = []
+        seed_parts: list[np.ndarray] = []
+        for i in range(self.n_seed):
+            R_i, Z_i = self.seed_section_points(i, section_index)
+            if R_i.size == 0:
+                continue
+            R_parts.append(R_i)
+            Z_parts.append(Z_i)
+            seed_parts.append(np.full(R_i.size, i, dtype=int))
+        if not R_parts:
+            empty = np.empty(0, dtype=float)
+            return empty, empty, np.empty(0, dtype=int)
+        return np.concatenate(R_parts), np.concatenate(Z_parts), np.concatenate(seed_parts)
 
 
 @dataclass(frozen=True)
@@ -1561,6 +1633,70 @@ def _trace_poincare_points_field(
         stop = start + n
         traces.append((R_flat[start:stop].copy(), Z_flat[start:stop].copy()))
     return traces
+
+
+def trace_poincare_sections_from_same_orbits_field(
+    field,
+    seed_R: Sequence[float],
+    seed_Z: Sequence[float],
+    phi_sections: Sequence[float],
+    *,
+    N_turns: int,
+    DPhi: float,
+    wall_R: Sequence[float] | None = None,
+    wall_Z: Sequence[float] | None = None,
+    extend_phi: bool = True,
+    direction: str = "+",
+) -> PoincareSectionTraces:
+    """Trace one seed batch once and record all requested sections.
+
+    This is the plotting-safe helper for multi-section Poincare backgrounds:
+    every section is populated from the same physical seed orbits, not from
+    independent per-section seed grids or separate map traces.
+    """
+
+    R0 = np.asarray(seed_R, dtype=float).ravel()
+    Z0 = np.asarray(seed_Z, dtype=float).ravel()
+    phi = np.asarray(phi_sections, dtype=float).ravel()
+    if R0.size != Z0.size:
+        raise ValueError("seed_R and seed_Z must have the same length")
+    if R0.size == 0:
+        raise ValueError("seed arrays must not be empty")
+    if phi.size == 0:
+        raise ValueError("phi_sections must not be empty")
+    if int(N_turns) <= 0:
+        raise ValueError("N_turns must be positive")
+    if wall_R is None or wall_Z is None:
+        wall_R, wall_Z = _field_grid_wall(field)
+    counts, flat_R, flat_Z = trace_poincare_multi_batch_field(
+        field,
+        R0,
+        Z0,
+        phi,
+        int(N_turns),
+        float(DPhi),
+        np.asarray(wall_R, dtype=float),
+        np.asarray(wall_Z, dtype=float),
+        extend_phi=extend_phi,
+        direction=direction,
+    )
+    return PoincareSectionTraces(
+        phi_sections=phi,
+        seed_R=R0,
+        seed_Z=Z0,
+        counts=np.asarray(counts, dtype=int),
+        R_flat=np.asarray(flat_R, dtype=float),
+        Z_flat=np.asarray(flat_Z, dtype=float),
+        N_turns=int(N_turns),
+        direction=str(direction),
+        metadata={
+            "trace_source": "same_orbit_multi_section",
+            "n_seed": int(R0.size),
+            "n_section": int(phi.size),
+            "N_turns": int(N_turns),
+            "DPhi": float(DPhi),
+        },
+    )
 
 
 def _trace_map_sequence_field(
@@ -3036,6 +3172,7 @@ __all__ = [
     "BoundaryIslandFixedPoint",
     "BoundaryIslandSeedCandidates",
     "BoundaryIslandSearchResult",
+    "PoincareSectionTraces",
     "assemble_boundary_island_chains",
     "assemble_boundary_island_chains_field",
     "boundary_island_edge_state_payload",
@@ -3049,6 +3186,7 @@ __all__ = [
     "trace_boundary_island_shapes_multi_section_field",
     "trace_boundary_island_chain_sections_span_field",
     "trace_boundary_island_chain_dense_span_field",
+    "trace_poincare_sections_from_same_orbits_field",
     "trace_fixed_point_cycle_span_field",
     "trace_fixed_point_cycle_sections_span_field",
     "trace_fixed_point_cycle_dense_span_field",
