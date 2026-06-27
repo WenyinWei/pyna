@@ -659,28 +659,59 @@ def _interp_dense_cycle_at_phi(
     return R_out, Z_out, ok
 
 
-def _deduplicate_section_crossings(
+def _select_complete_section_crossings(
     R: Sequence[float],
     Z: Sequence[float],
     target_phi: Sequence[float],
     *,
     tol: float,
+    expected_count: int,
+    require_complete: bool,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Select one complete ordered tube crossing set for a section.
+
+    Spatial de-duplication is intentionally limited to the closing endpoint of
+    the same periodic orbit.  Distinct fixed points in a tube can be close on a
+    section; dropping them by an all-pairs distance test changes the visible
+    X/O count from section to section.
+    """
+
     R_arr = np.asarray(R, dtype=float).ravel()
     Z_arr = np.asarray(Z, dtype=float).ravel()
     phi_arr = np.asarray(target_phi, dtype=float).ravel()
+    expected = max(1, int(expected_count))
     finite = np.isfinite(R_arr) & np.isfinite(Z_arr) & np.isfinite(phi_arr)
     R_arr = R_arr[finite]
     Z_arr = Z_arr[finite]
     phi_arr = phi_arr[finite]
     source_index = np.flatnonzero(finite)
     if R_arr.size == 0:
+        if require_complete:
+            raise ValueError(
+                f"section has no finite crossings; expected {expected} for a complete cycle"
+            )
         return R_arr, Z_arr, phi_arr, source_index.astype(int)
-    keep: list[int] = []
-    for i, (r, z) in enumerate(zip(R_arr, Z_arr)):
-        if any(np.hypot(r - R_arr[j], z - Z_arr[j]) <= float(tol) for j in keep):
-            continue
-        keep.append(i)
+
+    keep: list[int] = list(range(int(R_arr.size)))
+    if len(keep) > expected:
+        while len(keep) > expected:
+            first = keep[0]
+            last = keep[-1]
+            if np.hypot(R_arr[first] - R_arr[last], Z_arr[first] - Z_arr[last]) <= float(tol):
+                keep.pop()
+                continue
+            break
+
+    if len(keep) < expected and require_complete:
+        raise ValueError(
+            f"section has {len(keep)} crossings after endpoint selection; expected {expected}"
+        )
+    if len(keep) > expected:
+        if require_complete:
+            raise ValueError(
+                f"section has {len(keep)} crossings after endpoint selection; expected {expected}"
+            )
+        keep = keep[:expected]
     keep_arr = np.asarray(keep, dtype=int)
     return R_arr[keep_arr], Z_arr[keep_arr], phi_arr[keep_arr], source_index[keep_arr].astype(int)
 
@@ -694,6 +725,7 @@ def _section_cycle_from_dense_cycle(
     wall_R: Sequence[float] | None = None,
     wall_Z: Sequence[float] | None = None,
     section_dedup_tol: float = 5.0e-4,
+    require_complete: bool = True,
 ) -> BoundaryIslandCycle:
     section_period = abs(float(dense.map_span))
     target_phi = _target_phis_for_section(
@@ -710,11 +742,14 @@ def _section_cycle_from_dense_cycle(
             np.asarray(wall_R, dtype=float),
             np.asarray(wall_Z, dtype=float),
         )
-    R_keep, Z_keep, phi_keep, source_index = _deduplicate_section_crossings(
+    expected_count = int(base_cycle.period)
+    R_keep, Z_keep, phi_keep, source_index = _select_complete_section_crossings(
         R_raw[ok],
         Z_raw[ok],
         target_phi[ok],
         tol=float(section_dedup_tol),
+        expected_count=expected_count,
+        require_complete=bool(require_complete),
     )
     if base_cycle.points:
         source_points = tuple(
@@ -733,7 +768,7 @@ def _section_cycle_from_dense_cycle(
         Z_values=Z_keep,
         source_points=source_points,
         point_indices=point_indices,
-        alive=bool(R_keep.size >= min(int(base_cycle.period), max(1, int(base_cycle.period)))),
+        alive=bool(R_keep.size == expected_count),
         map_count=int(R_keep.size),
     )
     metadata = dict(section_cycle.metadata)
@@ -741,6 +776,8 @@ def _section_cycle_from_dense_cycle(
         "section_cycle_source": "dense_orbit_crossings",
         "raw_crossing_count": int(np.count_nonzero(ok)),
         "dedup_crossing_count": int(R_keep.size),
+        "expected_crossing_count": int(expected_count),
+        "complete_crossing_count": bool(R_keep.size == expected_count),
         "section_dedup_tol": float(section_dedup_tol),
         "target_phi_min": float(np.min(phi_keep)) if phi_keep.size else None,
         "target_phi_max": float(np.max(phi_keep)) if phi_keep.size else None,
@@ -949,6 +986,7 @@ def trace_fixed_point_cycle_sections_span_field(
     dphi_out: float | None = None,
     fd_eps: float = 1.0e-4,
     section_dedup_tol: float = 5.0e-4,
+    require_complete_sections: bool = True,
     wall_by_section: Sequence[tuple[Sequence[float], Sequence[float]]] | None = None,
     extend_phi: bool = True,
     n_threads: int = -1,
@@ -1000,8 +1038,51 @@ def trace_fixed_point_cycle_sections_span_field(
             wall_R=wall_R,
             wall_Z=wall_Z,
             section_dedup_tol=float(section_dedup_tol),
+            require_complete=bool(require_complete_sections),
         )
     return out
+
+
+def _section_cycle_count_key(cycle: BoundaryIslandCycle) -> tuple[int | None, int | None, str, int]:
+    return (
+        cycle.chain_id,
+        cycle.cycle_id,
+        str(cycle.kind).upper(),
+        int(cycle.source_index),
+    )
+
+
+def _validate_section_cycle_counts(
+    section_cycles: dict[float, list[BoundaryIslandCycle]],
+    section_phis: Sequence[float],
+) -> dict[str, dict[str, int]]:
+    counts: dict[tuple[int | None, int | None, str, int], dict[str, int]] = {}
+    expected: dict[tuple[int | None, int | None, str, int], int] = {}
+    for phi in section_phis:
+        phi_key = float(phi)
+        for cycle in section_cycles.get(phi_key, []):
+            key = _section_cycle_count_key(cycle)
+            count = int(len(cycle.points))
+            expected_count = int(cycle.metadata.get("expected_crossing_count", cycle.period))
+            if count != expected_count:
+                raise ValueError(
+                    "incomplete section cycle: "
+                    f"phi={phi_key}, kind={cycle.kind}, cycle_id={cycle.cycle_id}, "
+                    f"count={count}, expected={expected_count}"
+                )
+            if key in expected and expected[key] != count:
+                raise ValueError(
+                    "section cycle count changed across sections: "
+                    f"kind={cycle.kind}, cycle_id={cycle.cycle_id}, "
+                    f"previous={expected[key]}, current={count}, phi={phi_key}"
+                )
+            expected[key] = count
+            counts.setdefault(key, {})[f"{phi_key:.17g}"] = count
+
+    return {
+        f"chain={key[0]} cycle={key[1]} kind={key[2]} source={key[3]}": value
+        for key, value in counts.items()
+    }
 
 
 def trace_boundary_island_chain_sections_span_field(
@@ -1013,6 +1094,7 @@ def trace_boundary_island_chain_sections_span_field(
     dphi_out: float | None = None,
     fd_eps: float = 1.0e-4,
     section_dedup_tol: float = 5.0e-4,
+    require_complete_sections: bool = True,
     wall_by_section: Sequence[tuple[Sequence[float], Sequence[float]]] | None = None,
     extend_phi: bool = True,
     n_threads: int = -1,
@@ -1031,6 +1113,7 @@ def trace_boundary_island_chain_sections_span_field(
             dphi_out=dphi_out,
             fd_eps=fd_eps,
             section_dedup_tol=section_dedup_tol,
+            require_complete_sections=bool(require_complete_sections),
             wall_by_section=wall_by_section,
             extend_phi=extend_phi,
             n_threads=n_threads,
@@ -1038,6 +1121,11 @@ def trace_boundary_island_chain_sections_span_field(
         for phi, section_cycle in traced.items():
             section_cycles[float(phi)].append(section_cycle)
 
+    count_by_cycle = (
+        _validate_section_cycle_counts(section_cycles, section_phis)
+        if require_complete_sections
+        else {}
+    )
     out: dict[float, BoundaryIslandChain] = {}
     for phi in section_phis:
         phi_key = float(phi)
@@ -1045,6 +1133,8 @@ def trace_boundary_island_chain_sections_span_field(
         metadata.update({
             "section_phi": phi_key,
             "section_cycle_source": "orbit_trace",
+            "section_cycle_count_by_cycle": count_by_cycle,
+            "require_complete_sections": bool(require_complete_sections),
         })
         out[phi_key] = replace(
             chain,

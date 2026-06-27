@@ -13,6 +13,7 @@ from pyna.toroidal.flt import (
     find_boundary_island_fixed_points_field,
     trace_map_batch_span_field,
     trace_boundary_island_shapes_field,
+    trace_boundary_island_chain_sections_span_field,
     trace_boundary_island_chain_dense_span_field,
     trace_fixed_point_cycle_sections_span_field,
     trace_fixed_point_cycle_dense_span_field,
@@ -260,6 +261,107 @@ def test_trace_fixed_point_cycle_sections_uses_one_orbit(monkeypatch):
     assert [fp.metadata["orbit_point_index"] for fp in sections[0.25 * np.pi].points] == [0, 1, 2]
     assert sections[0.0].metadata["raw_crossing_count"] == 4
     assert sections[0.0].metadata["dedup_crossing_count"] == 3
+    assert sections[0.0].metadata["expected_crossing_count"] == 3
+    assert sections[0.0].metadata["complete_crossing_count"] is True
+
+
+def test_section_cycle_keeps_close_distinct_period_points(monkeypatch):
+    def fake_orbit(field, R0, Z0, phi_start, phi_end, DPhi, **kwargs):
+        phi = np.asarray([
+            0.0,
+            0.5 * np.pi,
+            np.pi,
+            1.5 * np.pi,
+            2.0 * np.pi,
+            2.5 * np.pi,
+            3.0 * np.pi,
+        ])
+        R = np.asarray([2.0, 1.0000, 3.0, 1.0002, 4.0, 1.0004, 2.00001])
+        Z = np.asarray([0.0, 0.0, 0.1, 0.0002, 0.2, 0.0004, 0.0])
+        DP = np.repeat(np.eye(2)[None, :, :], len(phi), axis=0)
+        alive = np.ones(len(phi), dtype=bool)
+        return R, Z, phi, DP, alive
+
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain.trace_orbit_along_phi_field",
+        fake_orbit,
+    )
+    base = _cycle_from_coords(
+        [(2.0, 0.0), (3.0, 0.1), (4.0, 0.2)],
+        kind="O",
+        map_span=np.pi,
+    )
+    base = BoundaryIslandCycle(
+        points=base.points,
+        period=base.period,
+        kind=base.kind,
+        map_span=base.map_span,
+        source_index=base.source_index,
+        closure_residual=base.closure_residual,
+        map_count=base.map_count,
+        alive=True,
+        metadata={"source_phi": 0.0},
+    )
+
+    sections = trace_fixed_point_cycle_sections_span_field(
+        object(),
+        base,
+        [0.0, 0.5 * np.pi],
+        DPhi=0.1,
+        dphi_out=0.05,
+        section_dedup_tol=1.0e-3,
+    )
+
+    np.testing.assert_allclose(sections[0.0].R, [2.0, 3.0, 4.0])
+    np.testing.assert_allclose(sections[0.5 * np.pi].R, [1.0000, 1.0002, 1.0004])
+    assert len(sections[0.0].points) == 3
+    assert len(sections[0.5 * np.pi].points) == 3
+    assert sections[0.5 * np.pi].metadata["raw_crossing_count"] == 3
+    assert sections[0.5 * np.pi].metadata["dedup_crossing_count"] == 3
+
+
+def test_boundary_chain_section_counts_are_consistent(monkeypatch):
+    def fake_orbit(field, R0, Z0, phi_start, phi_end, DPhi, **kwargs):
+        phi = np.asarray([
+            0.0,
+            0.25 * np.pi,
+            np.pi,
+            1.25 * np.pi,
+            2.0 * np.pi,
+            2.25 * np.pi,
+            3.0 * np.pi,
+        ])
+        R = np.asarray([R0, R0 + 0.1, R0 + 1.0, R0 + 1.1, R0 + 2.0, R0 + 2.1, R0])
+        Z = np.asarray([Z0, Z0 + 0.1, Z0, Z0 + 0.1, Z0, Z0 + 0.1, Z0])
+        DP = np.repeat(np.eye(2)[None, :, :], len(phi), axis=0)
+        alive = np.ones(len(phi), dtype=bool)
+        return R, Z, phi, DP, alive
+
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain.trace_orbit_along_phi_field",
+        fake_orbit,
+    )
+    chains = assemble_boundary_island_chains(
+        [
+            _cycle_from_coords([(1.0, 0.0), (2.0, 0.0), (3.0, 0.0)], kind="O"),
+            _cycle_from_coords([(1.2, 0.0), (2.2, 0.0), (3.2, 0.0)], kind="X"),
+        ],
+        m=3,
+        n=1,
+    )
+
+    sections = trace_boundary_island_chain_sections_span_field(
+        object(),
+        chains[0],
+        [0.0, 0.25 * np.pi],
+        DPhi=0.1,
+        dphi_out=0.05,
+    )
+
+    for section_chain in sections.values():
+        assert [len(cycle.points) for cycle in section_chain.cycles] == [3, 3]
+        assert section_chain.metadata["require_complete_sections"] is True
+        assert section_chain.metadata["section_cycle_count_by_cycle"]
 
 
 def test_trace_fixed_point_cycle_dense_span_outputs_continuous_geometry(monkeypatch, tmp_path):
