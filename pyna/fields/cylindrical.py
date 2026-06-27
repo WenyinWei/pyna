@@ -21,28 +21,117 @@ def _extend_endpoint_false_periodic_phi(
 ) -> tuple[np.ndarray, np.ndarray]:
     """Close a uniform endpoint=False field-period grid for interpolation."""
 
-    phi_arr = np.asarray(phi, dtype=np.float64)
-    value_arr = np.asarray(values, dtype=np.float64)
-    if phi_arr.size <= 1:
-        return phi_arr, value_arr
-    if not np.isfinite(period) or period <= 0.0:
-        return phi_arr, value_arr
-    if abs(float(phi_arr[0])) > 1.0e-12:
-        return phi_arr, value_arr
+    phi_ext, value_ext = close_periodic_phi_grid(phi, values, period=period)
+    return phi_ext, value_ext
 
-    tol = max(1.0e-10, 1.0e-10 * abs(float(period)))
-    if abs(float(phi_arr[-1]) - float(period)) <= tol:
-        return phi_arr, value_arr
+
+def _span_is_twopi_fraction(span: float) -> bool:
+    if not np.isfinite(span) or span <= 0.0:
+        return False
+    nfp = (2.0 * np.pi) / span
+    nfp_round = round(nfp)
+    if nfp_round < 1:
+        return False
+    return abs(nfp - nfp_round) <= max(1.0e-8, 1.0e-8 * abs(nfp_round))
+
+
+def _periodic_endpoint_values_match(values: tuple[np.ndarray, ...]) -> bool:
+    if not values:
+        return False
+    for arr in values:
+        val = np.asarray(arr)
+        if val.ndim < 3 or val.shape[2] < 2:
+            return False
+        if not np.allclose(val[:, :, 0], val[:, :, -1], rtol=1.0e-8, atol=1.0e-10):
+            return False
+    return True
+
+
+def close_periodic_phi_grid(
+    phi: np.ndarray,
+    *values: np.ndarray,
+    period: Optional[float] = None,
+) -> tuple[np.ndarray, ...]:
+    """Return a phi grid closed by a duplicate first slice.
+
+    If *period* is not supplied, the period is inferred as ``phi[-1] + dphi`` for
+    endpoint=False grids.  A grid that already spans ``2*pi/Nfp`` and whose
+    endpoint values match the first slice is treated as already closed.
+    """
+
+    phi_arr = np.asarray(phi, dtype=np.float64)
+    value_arrs = tuple(np.asarray(v, dtype=np.float64) for v in values)
+    if phi_arr.ndim != 1:
+        raise ValueError("phi grid must be one-dimensional")
+    if phi_arr.size == 0:
+        return (np.ascontiguousarray(phi_arr, dtype=np.float64), *value_arrs)
+    if phi_arr.size == 1:
+        if period is None or not np.isfinite(period) or period <= 0.0:
+            return (np.ascontiguousarray(phi_arr, dtype=np.float64), *value_arrs)
+        phi_ext = np.ascontiguousarray(
+            [float(phi_arr[0]), float(phi_arr[0]) + float(period)],
+            dtype=np.float64,
+        )
+        extended = [phi_ext]
+        for val in value_arrs:
+            if val.ndim < 3 or val.shape[2] != 1:
+                raise ValueError("periodic field values must have phi on axis 2")
+            extended.append(np.concatenate([val, val], axis=2))
+        return tuple(extended)
 
     dphi = float(phi_arr[1] - phi_arr[0])
-    endpoint = float(phi_arr[-1]) + dphi
-    if abs(endpoint - float(period)) > max(tol, 10.0 * abs(dphi) * np.finfo(float).eps):
-        return phi_arr, value_arr
+    if not np.isfinite(dphi) or dphi <= 0.0:
+        return (np.ascontiguousarray(phi_arr, dtype=np.float64), *value_arrs)
 
-    return (
-        np.ascontiguousarray(np.append(phi_arr, float(period)), dtype=np.float64),
-        np.concatenate([value_arr, value_arr[:, :, :1]], axis=2),
+    if period is not None and np.isfinite(period) and period > 0.0:
+        endpoint = float(phi_arr[0]) + float(period)
+        tol = max(1.0e-10, 1.0e-10 * abs(float(period)))
+        already_closed = abs(float(phi_arr[-1]) - endpoint) <= tol
+    else:
+        span = float(phi_arr[-1] - phi_arr[0])
+        already_closed = (
+            _span_is_twopi_fraction(span)
+            and _periodic_endpoint_values_match(value_arrs)
+        )
+        endpoint = float(phi_arr[-1]) + dphi
+
+    if already_closed:
+        return (np.ascontiguousarray(phi_arr, dtype=np.float64), *value_arrs)
+
+    phi_ext = np.ascontiguousarray(np.append(phi_arr, endpoint), dtype=np.float64)
+    extended = [phi_ext]
+    for val in value_arrs:
+        if val.ndim < 3 or val.shape[2] != phi_arr.size:
+            raise ValueError("periodic field values must have phi on axis 2")
+        extended.append(np.concatenate([val, val[:, :, :1]], axis=2))
+    return tuple(extended)
+
+
+def close_periodic_field_cache_phi(field_cache: Mapping[str, Any]) -> dict[str, Any]:
+    """Return a field-cache copy whose ``Phi_grid`` is closed periodically."""
+
+    out = dict(field_cache)
+    phi_raw = np.asarray(field_cache["Phi_grid"], dtype=np.float64)
+    field_periods = int(field_cache.get("field_periods", 1))
+    period = (
+        2.0 * np.pi / max(field_periods, 1)
+        if "field_periods" in field_cache or phi_raw.size <= 1
+        else None
     )
+    Phi, BR, BZ, BPhi = close_periodic_phi_grid(
+        phi_raw,
+        field_cache["BR"],
+        field_cache["BZ"],
+        field_cache["BPhi"],
+        period=period,
+    )
+    out["Phi_grid"] = np.ascontiguousarray(Phi, dtype=np.float64)
+    out["BR"] = np.ascontiguousarray(BR, dtype=np.float64)
+    out["BZ"] = np.ascontiguousarray(BZ, dtype=np.float64)
+    out["BPhi"] = np.ascontiguousarray(BPhi, dtype=np.float64)
+    out["R_grid"] = np.ascontiguousarray(field_cache["R_grid"], dtype=np.float64)
+    out["Z_grid"] = np.ascontiguousarray(field_cache["Z_grid"], dtype=np.float64)
+    return out
 
 
 @dataclass(frozen=True)
@@ -748,13 +837,9 @@ class VectorFieldCylind(VectorField3D):
 
         if extend_phi and Pg.size > 0:
             period = 2.0 * np.pi / max(int(self.field_periods), 1)
-            endpoint = period if Pg.size == 1 else float(Pg[-1] + (Pg[1] - Pg[0]))
-            already_closed = Pg.size > 1 and abs(float(Pg[-1]) - period) <= 1e-10
-            if not already_closed:
-                Pg = np.ascontiguousarray(np.append(Pg, endpoint), dtype=np.float64)
-                BR3 = np.concatenate([BR3, BR3[:, :, :1]], axis=2)
-                BZ3 = np.concatenate([BZ3, BZ3[:, :, :1]], axis=2)
-                BP3 = np.concatenate([BP3, BP3[:, :, :1]], axis=2)
+            Pg, BR3, BZ3, BP3 = close_periodic_phi_grid(
+                Pg, BR3, BZ3, BP3, period=period
+            )
 
         return CylindricalFieldArrays(
             R_grid=Rg,

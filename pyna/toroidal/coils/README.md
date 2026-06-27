@@ -7,7 +7,8 @@
 - Abstract base classes for external vacuum magnetic fields (`CoilFieldVacuum`, `CoilFieldSuperposition`)
 - Analytic field formulas for finite-length solenoids and current loops
 - Biot-Savart integration for arbitrary filamentary coil sets (`Biot_Savart_field`)
-- RMP (Resonant Magnetic Perturbation) spectral analysis
+- Vacuum coil fields.  Magnetic-spectrum island-chain analysis lives in
+  `pyna.toroidal.perturbation_spectrum`.
 
 ---
 
@@ -18,7 +19,6 @@
 | `base.py` | `CoilFieldVacuum` (abstract), `CoilFieldSuperposition`, `CoilFieldScaled` |
 | `coil.py` | `BRBZ_induced_by_current_loop`, `BRBZ_induced_by_thick_finitelen_solenoid`, `CoilFieldAnalyticCircular`, `CoilFieldAnalyticRectangularSection` |
 | `coil_system.py` | `CoilSet`, `Biot_Savart_field` |
-| `RMP.py` | `normalize_b`, `RMP_spectrum_2d`, `island_width_at_rational_surfaces` |
 | `vector_potential.py` | `vector_potential_axisymmetric` for ψ reconstruction |
 | `field.py` | Thin re-export layer → `pyna.fields` |
 
@@ -60,16 +60,20 @@ are proper names).
 
 ---
 
-## RMP spectrum
+## Magnetic perturbation spectrum
 
 ```python
-from pyna.toroidal.coils.RMP import RMP_spectrum_2d, island_width_at_rational_surfaces
+from pyna import toroidal
 
-# Compute (m, n) spectrum of RMP field on flux surfaces
-spectrum = RMP_spectrum_2d(equilibrium, coil_field_func, m_max=10, n_max=5)
-
-# Estimate island widths at each rational surface
-widths = island_width_at_rational_surfaces(equilibrium, spectrum)
+tilde_b1 = toroidal.nardon_radial_perturbation(
+    R_surf, Z_surf, phi_vals, theta_vals,
+    delta_BR, delta_BZ, delta_Bphi, radial_labels,
+    denominator_B_phi=B0_phi,
+)
+spectrum = toroidal.radial_perturbation_Fourier_spectrum(
+    tilde_b1, theta_vals, phi_vals, radial_labels=radial_labels,
+)
+chains = toroidal.analyze_resonant_island_chains(spectrum, q_profile, n=2)
 ```
 
 ---

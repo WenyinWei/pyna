@@ -5,7 +5,7 @@ bridge from raw cyna output arrays to the pyna invariant-object hierarchy.
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Tuple
 
 import numpy as np
 
@@ -58,7 +58,22 @@ def prepare_field_cache(
     dict with keys 'BR', 'BZ', 'BPhi', 'R_grid', 'Z_grid', 'Phi_grid',
     all C-contiguous float64.
     """
-    from pyna.fields.cylindrical import as_vector_field_cylindrical
+    from pyna.fields.cylindrical import (
+        as_vector_field_cylindrical,
+        close_periodic_field_cache_phi,
+    )
+
+    if isinstance(field_cache, Mapping):
+        if extend_phi:
+            return close_periodic_field_cache_phi(field_cache)
+        return {
+            "BR": ensure_c_double(np.asarray(field_cache["BR"], dtype=np.float64)),
+            "BZ": ensure_c_double(np.asarray(field_cache["BZ"], dtype=np.float64)),
+            "BPhi": ensure_c_double(np.asarray(field_cache["BPhi"], dtype=np.float64)),
+            "R_grid": ensure_c_double(np.asarray(field_cache["R_grid"], dtype=np.float64)),
+            "Z_grid": ensure_c_double(np.asarray(field_cache["Z_grid"], dtype=np.float64)),
+            "Phi_grid": ensure_c_double(np.asarray(field_cache["Phi_grid"], dtype=np.float64)),
+        }
 
     field = as_vector_field_cylindrical(field_cache)
     arrays = field.cyna_arrays(extend_phi=extend_phi)

@@ -3,15 +3,23 @@
 This package is the Python-facing wrapper layer for cyna field-line tracing,
 Poincare maps, fixed-point searches, and variational/FPT shift helpers.
 
+## Interface convention
+
+New high-level utilities should accept a `VectorFieldCylind`-compatible field
+object as the first argument.  Low-level wrappers that take
+`R_grid, Z_grid, Phi_grid, BR, BZ, BPhi` are retained for cyna ABI boundaries and
+legacy hot-path callers, but should not be the preferred user-facing API.
+
 ## FPT verb convention
 
 - `progress_*` fixes `phi_s` and advances only `phi_e`.  Use these functions
   for endpoint objects such as `DX_pol(phi_s, phi_e)` and
   `delta_X_pol(phi_s, phi_e)`.
-- `evolve_*_cycle_*` follows a cycle-attached object as the periodic-orbit
+- `evolve_*_cycle_*` follows a cycle-attached object as the periodic-cycle
   phase moves.  For cycle shift, `phi_s` and `phi_e = phi_s + 2*pi*m` move
   together.  Use these functions for quantities such as `DPm(phi)` and
-  `delta_X_cyc(phi)`.
+  `delta_X_cyc(phi)`.  Prefer `evolve_delta_X_cycle_along_cycle`; the older
+  `evolve_delta_X_cycle_along_orbit` spelling is a compatibility alias.
 
 The underlying nonhomogeneous FPT ODE is shared:
 
@@ -21,7 +29,9 @@ d(delta_X)/dphi = d(R B_pol / B_phi)/d(R,Z) * delta_X
 ```
 
 The verb encodes the boundary condition and interpretation, not a different
-formula.
+formula.  `delta_X_pol` progress uses an open-trajectory initial condition at a
+chosen source point; `delta_X_cyc` evolution uses the closed-cycle initial
+displacement returned by the cycle closure solve.
 
 ## Cycle shifts
 

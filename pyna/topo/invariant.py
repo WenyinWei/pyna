@@ -174,35 +174,39 @@ class InvariantTorus(InvariantManifold):
 
         if fc is not None:
             try:
-                import pyna._cyna as _cyna
-                # Use trace_poincare_multi for multi-section tracing
-                Phi_grid = fc['Phi_grid']
-                if abs(Phi_grid[-1] - 2 * np.pi) > 1e-6:
-                    Phi_ext = np.append(Phi_grid, 2 * np.pi)
-                else:
-                    Phi_ext = np.asarray(Phi_grid, dtype=np.float64)
-
-                def _ext(a):
-                    return np.concatenate([a, a[:, :, :1]], axis=2)
-
-                BR_c   = np.ascontiguousarray(_ext(fc['BR']),   dtype=np.float64)
-                BPhi_c = np.ascontiguousarray(_ext(fc['BPhi']), dtype=np.float64)
-                BZ_c   = np.ascontiguousarray(_ext(fc['BZ']),   dtype=np.float64)
+                from pyna.fields.cylindrical import close_periodic_phi_grid
+                from pyna.toroidal.flt import trace_poincare_batch
+                # Trace each requested section with a grid-boundary virtual wall.
+                Phi_ext, BR_c, BZ_c, BPhi_c = close_periodic_phi_grid(
+                    fc['Phi_grid'], fc['BR'], fc['BZ'], fc['BPhi']
+                )
+                BR_flat = np.ascontiguousarray(BR_c, dtype=np.float64).ravel()
+                BZ_flat = np.ascontiguousarray(BZ_c, dtype=np.float64).ravel()
+                BPhi_flat = np.ascontiguousarray(BPhi_c, dtype=np.float64).ravel()
                 Rg = np.ascontiguousarray(fc['R_grid'], dtype=np.float64)
                 Zg = np.ascontiguousarray(fc['Z_grid'], dtype=np.float64)
                 Pg = np.ascontiguousarray(Phi_ext, dtype=np.float64)
+                wall_R = np.ascontiguousarray(
+                    [Rg[0], Rg[-1], Rg[-1], Rg[0], Rg[0]], dtype=np.float64
+                )
+                wall_Z = np.ascontiguousarray(
+                    [Zg[0], Zg[0], Zg[-1], Zg[-1], Zg[0]], dtype=np.float64
+                )
 
                 for phi_s in section_phis:
-                    result = _cyna.trace_poincare_batch(
+                    counts, R_flat, Z_flat = trace_poincare_batch(
                         np.array([R0], dtype=np.float64),
                         np.array([Z0], dtype=np.float64),
                         float(phi_s),
                         int(n_turns),
-                        BR=BR_c, BZ=BZ_c, BPhi=BPhi_c,
-                        R_grid=Rg, Z_grid=Zg, Phi_grid=Pg,
+                        0.05,
+                        Rg, Zg, Pg,
+                        BR_flat, BZ_flat, BPhi_flat,
+                        wall_R, wall_Z,
                     )
-                    R_arr = np.asarray(result[0][0], dtype=float)
-                    Z_arr = np.asarray(result[1][0], dtype=float)
+                    cnt = int(np.asarray(counts)[0])
+                    R_arr = np.asarray(R_flat[:cnt], dtype=float)
+                    Z_arr = np.asarray(Z_flat[:cnt], dtype=float)
                     mask = np.isfinite(R_arr) & np.isfinite(Z_arr)
                     pts = np.column_stack([R_arr[mask], Z_arr[mask]])
                     crossings[float(phi_s)] = pts

@@ -1,5 +1,5 @@
 from mimetypes import init
-from pyna.fields.cylindrical import VectorFieldCylind
+from pyna.fields.cylindrical import VectorFieldCylind, close_periodic_phi_grid
 # bundle_tracing_with_t_as_DeltaPhi was removed in batch-1 legacy cleanup.
 # pyna.topo.manifold is a legacy module; only accumulate_s_from_RZ_arr is
 # still referenced externally by legacy toroidal visualisation helpers.
@@ -167,8 +167,10 @@ def grow_manifold_from_Xcycle_eig_interp(afield:VectorFieldCylind, Xcycle_RZdiff
 
     RBRdBPhi = R[:,None,None]*BR/BPhi
     RBZdBPhi = R[:,None,None]*BZ/BPhi
-    RBRdBPhi_field = _FieldDifferenatiableRZ(RBRdBPhi, R, Z, Phi)
-    RBZdBPhi_field = _FieldDifferenatiableRZ(RBZdBPhi, R, Z, Phi)
+    Phi_ext, RBRdBPhi, RBZdBPhi = close_periodic_phi_grid(Phi, RBRdBPhi, RBZdBPhi)
+    phi_period = float(Phi_ext[-1] - Phi_ext[0])
+    RBRdBPhi_field = _FieldDifferenatiableRZ(RBRdBPhi, R, Z, Phi_ext)
+    RBZdBPhi_field = _FieldDifferenatiableRZ(RBZdBPhi, R, Z, Phi_ext)
 
     def manifold_growth_ODE(t,y):
         
@@ -177,8 +179,9 @@ def grow_manifold_from_Xcycle_eig_interp(afield:VectorFieldCylind, Xcycle_RZdiff
         pXZpPhi = _central_finite_difference_first_derivative(XZ_each_phi, W_dPhi)
         
         try:
-            RBRdBPhi_oncycle = RBRdBPhi_field.diff_RZ_interpolator(0,0)( np.vstack( (XR_each_phi, XZ_each_phi, W_Phi[:-1]%(2*np.pi) ) ).T )
-            RBZdBPhi_oncycle = RBZdBPhi_field.diff_RZ_interpolator(0,0)( np.vstack( (XR_each_phi, XZ_each_phi, W_Phi[:-1]%(2*np.pi) ) ).T )
+            phi_w = Phi_ext[0] + np.mod(W_Phi[:-1] - Phi_ext[0], phi_period)
+            RBRdBPhi_oncycle = RBRdBPhi_field.diff_RZ_interpolator(0,0)( np.vstack( (XR_each_phi, XZ_each_phi, phi_w) ).T )
+            RBZdBPhi_oncycle = RBZdBPhi_field.diff_RZ_interpolator(0,0)( np.vstack( (XR_each_phi, XZ_each_phi, phi_w) ).T )
         except Exception as e:
             raise RuntimeError(f"Error when growing the manifold from X cycle at {t}. The error is {e}")
         dsdPhi = np.sqrt(  (RBRdBPhi_oncycle-pXRpPhi)**2 + (RBZdBPhi_oncycle-pXZpPhi)**2 ) # as denominator of pXRps and pXZps expressions
@@ -324,13 +327,16 @@ def create_W1d_interpolator_s_to_RZdRZds(
 
     RBRoBPhi = R[:,None,None]*BR/BPhi
     RBZoBPhi = R[:,None,None]*BZ/BPhi
-    RBRoBPhi_field = _FieldDifferenatiableRZ(RBRoBPhi, R, Z, Phi)
-    RBZoBPhi_field = _FieldDifferenatiableRZ(RBZoBPhi, R, Z, Phi)
+    Phi_ext, RBRoBPhi, RBZoBPhi = close_periodic_phi_grid(Phi, RBRoBPhi, RBZoBPhi)
+    phi_period = float(Phi_ext[-1] - Phi_ext[0])
+    RBRoBPhi_field = _FieldDifferenatiableRZ(RBRoBPhi, R, Z, Phi_ext)
+    RBZoBPhi_field = _FieldDifferenatiableRZ(RBZoBPhi, R, Z, Phi_ext)
     
     def _interpolator(s:ndarray):
         x, y = W1d_phi0_s_interp_R(s), W1d_phi0_s_interp_Z(s)
-        dx = RBRoBPhi_field.diff_RZ_interpolator(0,0)( np.stack([x, y, phi*np.ones_like(x) % (2*np.pi) ], axis=-1) ) - (W1d_phip_s_interp_R(s)-W1d_phim_s_interp_R(s))/(2*phi_epsilon)
-        dy = RBZoBPhi_field.diff_RZ_interpolator(0,0)( np.stack([x, y, phi*np.ones_like(x) % (2*np.pi) ], axis=-1) ) - (W1d_phip_s_interp_Z(s)-W1d_phim_s_interp_Z(s))/(2*phi_epsilon)
+        phi_w = Phi_ext[0] + np.mod(phi*np.ones_like(x) - Phi_ext[0], phi_period)
+        dx = RBRoBPhi_field.diff_RZ_interpolator(0,0)( np.stack([x, y, phi_w ], axis=-1) ) - (W1d_phip_s_interp_R(s)-W1d_phim_s_interp_R(s))/(2*phi_epsilon)
+        dy = RBZoBPhi_field.diff_RZ_interpolator(0,0)( np.stack([x, y, phi_w ], axis=-1) ) - (W1d_phip_s_interp_Z(s)-W1d_phim_s_interp_Z(s))/(2*phi_epsilon)
         dl = (dx**2+dy**2)**(1/2)
         dx/= dl
         dy/= dl

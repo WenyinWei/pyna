@@ -27,6 +27,7 @@ from typing import Optional, List, Tuple
 
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
+from pyna.fields.cylindrical import close_periodic_phi_grid
 
 warnings.filterwarnings("ignore")
 
@@ -174,18 +175,15 @@ class _FC:
     def __init__(self, fc: dict):
         self.Rg  = np.ascontiguousarray(fc["R_grid"], dtype=np.float64)
         self.Zg  = np.ascontiguousarray(fc["Z_grid"], dtype=np.float64)
-        Pg = np.asarray(fc["Phi_grid"])
-        self.dphi = float(Pg[1] - Pg[0])
-        self.Pg_ext = np.ascontiguousarray(
-            np.append(Pg, Pg[-1] + self.dphi), dtype=np.float64
+        Pg, BR, BZ, BPhi = close_periodic_phi_grid(
+            fc["Phi_grid"], fc["BR"], fc["BZ"], fc["BPhi"]
         )
-        def _ext(a):
-            return np.ascontiguousarray(
-                np.concatenate([a, a[:, :, :1]], axis=2), dtype=np.float64
-            )
-        self._BR_3d   = _ext(fc["BR"])
-        self._BPhi_3d = _ext(fc["BPhi"])
-        self._BZ_3d   = _ext(fc["BZ"])
+        self.dphi = float(Pg[1] - Pg[0]) if len(Pg) > 1 else 0.0
+        self.Pg_ext = np.ascontiguousarray(Pg, dtype=np.float64)
+        self.phi_period = float(self.Pg_ext[-1] - self.Pg_ext[0]) if len(self.Pg_ext) > 1 else 2.0 * np.pi
+        self._BR_3d   = np.ascontiguousarray(BR, dtype=np.float64)
+        self._BPhi_3d = np.ascontiguousarray(BPhi, dtype=np.float64)
+        self._BZ_3d   = np.ascontiguousarray(BZ, dtype=np.float64)
         # flat ravel for cyna (C-order, same as ravel())
         self.BR   = self._BR_3d.ravel()
         self.BPhi = self._BPhi_3d.ravel()
@@ -214,10 +212,11 @@ class _FC:
 
     def field_func_py(self, rzphi):
         """Python field_func: rzphi -> (dR/dl, dZ/dl, dphi/dl)."""
-        pt = np.array([[rzphi[0], rzphi[1], rzphi[2] % (2 * np.pi)]])
-        BR = float(self.itp_BR(pt))
-        BP = float(self.itp_BPhi(pt))
-        BZ = float(self.itp_BZ(pt))
+        phi = self.Pg_ext[0] + np.mod(float(rzphi[2]) - self.Pg_ext[0], self.phi_period)
+        pt = np.array([[rzphi[0], rzphi[1], phi]])
+        BR = float(self.itp_BR(pt)[0])
+        BP = float(self.itp_BPhi(pt)[0])
+        BZ = float(self.itp_BZ(pt)[0])
         R  = float(rzphi[0])
         Bmod = np.sqrt(BR**2 + BP**2 + BZ**2)
         if Bmod < 1e-12:
@@ -525,11 +524,12 @@ def _compute_DPm_py(R_xpt, Z_xpt, fc: _FC, island_period=3, DPhi=0.05):
     n_steps = int(phi_span / h)
 
     def g(R_, Z_, phi_):
-        pt = np.array([[R_, Z_, phi_ % (2 * np.pi)]])
-        BP = float(fc.itp_BPhi(pt))
+        phi_w = fc.Pg_ext[0] + np.mod(float(phi_) - fc.Pg_ext[0], fc.phi_period)
+        pt = np.array([[R_, Z_, phi_w]])
+        BP = float(fc.itp_BPhi(pt)[0])
         if abs(BP) < 1e-20:
             return 0.0, 0.0
-        return R_ * float(fc.itp_BR(pt)) / BP, R_ * float(fc.itp_BZ(pt)) / BP
+        return R_ * float(fc.itp_BR(pt)[0]) / BP, R_ * float(fc.itp_BZ(pt)[0]) / BP
 
     for _ in range(n_steps):
         dR1, dZ1 = g(R, Z, phi)

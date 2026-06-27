@@ -19,6 +19,15 @@ def test_removed_mcf_namespace_no_longer_imports():
         raise AssertionError("pyna.MCF should not remain importable")
 
 
+def test_removed_legacy_coils_rmp_fft_namespace_no_longer_imports():
+    try:
+        importlib.import_module("pyna.toroidal.coils.RMP")
+    except ModuleNotFoundError:
+        pass
+    else:
+        raise AssertionError("pyna.toroidal.coils.RMP should not remain importable")
+
+
 def test_mag_namespace_uses_toroidal_owned_island_exports():
     mag = importlib.import_module("pyna.mag")
     toroidal_control = importlib.import_module("pyna.toroidal.control")

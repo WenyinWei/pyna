@@ -46,6 +46,53 @@ followed as the cycle phase changes.  In that case `phi_s` and
   - vacuum-to-plasma transfer operators
   - response diagnostics and validity checks
 
+## Classical magnetic-spectrum island chains
+
+Use `pyna.toroidal.perturbation_spectrum` when the question is about island-chain
+phase, width, or Chirikov overlap under a radial magnetic-perturbation Fourier
+spectrum.  This is deliberately separate from FPT cycle-shift APIs: FPT gives
+the linear shift of an already identified X/O cycle under one global
+perturbation, while the complex resonant coefficient `tilde_b^1_{m,-n}` gives
+the natural island-chain phase response:
+
+```python
+from pyna import toroidal
+
+tilde_b1 = toroidal.nardon_radial_perturbation(
+    R_surf, Z_surf, phi_vals, theta_vals,
+    delta_BR, delta_BZ, delta_Bphi, radial_labels,
+    denominator_B_phi=B0_phi,
+)
+spec = toroidal.radial_perturbation_Fourier_spectrum(
+    tilde_b1, theta_vals, phi_vals, radial_labels=radial_labels,
+)
+chains = toroidal.analyze_resonant_island_chains(spec, q_profile, n=2)
+theta_O = chains[0].with_phase_shift(phase_shift).fixed_points(phi=0.0)["theta_O"]
+```
+
+For the NCSX beta-ramp artifact layout under `/home/wenyin/MCFdata/NCSX`, run:
+
+```bash
+python3 scripts/ncsx_magnetic_spectrum_case.py
+```
+
+By default, the script writes all generated data under
+`/home/wenyin/MCFdata/NCSX/ncsx_magnetic_spectrum_case_20260627_v1/`, not inside
+the code repository.
+
+The case script also writes PNG diagnostics by default:
+
+- spectrum heatmap with resonant `(m,-n)` cells highlighted
+- radial profiles of `2|tilde_b^1_{m,-n}|`
+- PEST-section island-width bars drawn at O-points, with X-points marked
+- the same island bars across four toroidal sections
+- O-point phase-control scan
+- Chirikov overlap bar chart
+- a wall/VMEC-LCFS/Poincare overview for NCSX (`Nfp=3`) with island bars
+
+The old `pyna.toroidal.coils.RMP` `rfft2` path has been removed; keep new island
+design work on `pyna.toroidal.perturbation_spectrum`.
+
 ## Anti-patterns
 
 Avoid placing toroidal perturbative-equilibrium code in:

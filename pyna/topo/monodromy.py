@@ -1350,6 +1350,8 @@ def monodromy_matrix(
 
 
 
+    from pyna.fields.cylindrical import close_periodic_phi_grid
+
     # Extract grid
 
     BR, BZ, BPhi = cache['BR'], cache['BZ'], cache['BPhi']
@@ -1358,17 +1360,11 @@ def monodromy_matrix(
 
 
 
-    # Extend Phi_grid for periodicity (matches FieldlineTracer convention)
+    # Close Phi_grid by the actual cache period, which may be one field period.
 
-    Phi_ext = np.append(Phi_grid, 2 * np.pi)
-
-    BR_ext  = np.concatenate([BR,   BR[:, :, :1]],  axis=2)
-
-    BZ_ext  = np.concatenate([BZ,   BZ[:, :, :1]],  axis=2)
-
-    BPhi_ext= np.concatenate([BPhi, BPhi[:, :, :1]], axis=2)
-
-
+    Phi_ext, BR_ext, BZ_ext, BPhi_ext = close_periodic_phi_grid(
+        Phi_grid, BR, BZ, BPhi
+    )
 
     # Flatten to 1-D (required by cyna C++ API)
 
@@ -1408,7 +1404,7 @@ def monodromy_matrix(
 
             R_seeds, Z_seeds, float(phi_section), int(m_turns), float(DPhi),
 
-            BR_flat, BZ_flat, BPhi_flat, R_g, Z_g, Phi_g,
+            R_g, Z_g, Phi_g, BR_flat, BZ_flat, BPhi_flat,
 
             np.ascontiguousarray(wall._phi_centers, dtype=np.float64),
 
@@ -1426,7 +1422,7 @@ def monodromy_matrix(
 
             R_seeds, Z_seeds, float(phi_section), int(m_turns), float(DPhi),
 
-            BR_flat, BZ_flat, BPhi_flat, R_g, Z_g, Phi_g,
+            R_g, Z_g, Phi_g, BR_flat, BZ_flat, BPhi_flat,
 
             np.ascontiguousarray(wR, dtype=np.float64),
 

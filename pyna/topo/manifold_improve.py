@@ -9,6 +9,7 @@ result.
 """
 
 import numpy as np
+from pyna.fields.cylindrical import close_periodic_phi_grid
 from pyna.topo._rk4 import rk4_integrate as solve_ivp
 
 
@@ -346,15 +347,18 @@ class _AcceleratedManifoldBase(_ManifoldBase):
 
         BR, BZ_arr, BPhi_arr = cache['BR'], cache['BZ'], cache['BPhi']
         R_grid, Z_grid, Phi_grid = cache['R_grid'], cache['Z_grid'], cache['Phi_grid']
-        Phi_ext = np.append(Phi_grid, 2 * np.pi)
-        _ext = lambda X: np.concatenate([X, X[:, :, :1]], axis=2)
+        Phi_ext, BR_ext, BZ_ext, BPhi_ext = close_periodic_phi_grid(
+            Phi_grid, BR, BZ_arr, BPhi_arr
+        )
+        phi0 = float(Phi_ext[0])
+        phi_period = float(Phi_ext[-1] - Phi_ext[0])
         kwi = dict(method='linear', bounds_error=False, fill_value=np.nan)
-        itp_BR   = RegularGridInterpolator((R_grid, Z_grid, Phi_ext), _ext(BR),     **kwi)
-        itp_BZ   = RegularGridInterpolator((R_grid, Z_grid, Phi_ext), _ext(BZ_arr),  **kwi)
-        itp_BPhi = RegularGridInterpolator((R_grid, Z_grid, Phi_ext), _ext(BPhi_arr), **kwi)
+        itp_BR   = RegularGridInterpolator((R_grid, Z_grid, Phi_ext), BR_ext,   **kwi)
+        itp_BZ   = RegularGridInterpolator((R_grid, Z_grid, Phi_ext), BZ_ext,   **kwi)
+        itp_BPhi = RegularGridInterpolator((R_grid, Z_grid, Phi_ext), BPhi_ext, **kwi)
 
         def field_func_2d(R, Z, phi):
-            phi_w = phi % (2 * np.pi)
+            phi_w = phi0 + np.mod(float(phi) - phi0, phi_period)
             B_R   = float(itp_BR([[R, Z, phi_w]])[0])
             B_Phi = float(itp_BPhi([[R, Z, phi_w]])[0])
             B_Z   = float(itp_BZ([[R, Z, phi_w]])[0])
@@ -381,11 +385,10 @@ class _AcceleratedManifoldBase(_ManifoldBase):
             self._cyna_batch = None
 
         # Flat 1-D arrays (required by cyna C++ API)
-        Phi_ext2 = np.append(Phi_grid, 2 * np.pi)
-        self._Phi_ext  = np.ascontiguousarray(Phi_ext2, dtype=np.float64)
-        self._BR_flat   = np.ascontiguousarray(_ext(BR),     dtype=np.float64).ravel()
-        self._BZ_flat   = np.ascontiguousarray(_ext(BZ_arr),  dtype=np.float64).ravel()
-        self._BPhi_flat = np.ascontiguousarray(_ext(BPhi_arr), dtype=np.float64).ravel()
+        self._Phi_ext  = np.ascontiguousarray(Phi_ext, dtype=np.float64)
+        self._BR_flat   = np.ascontiguousarray(BR_ext,   dtype=np.float64).ravel()
+        self._BZ_flat   = np.ascontiguousarray(BZ_ext,   dtype=np.float64).ravel()
+        self._BPhi_flat = np.ascontiguousarray(BPhi_ext, dtype=np.float64).ravel()
 
         # Wall arrays
         self._wall_phi  = np.ascontiguousarray(wall._phi_centers, dtype=np.float64) if hasattr(wall, '_phi_centers') else None

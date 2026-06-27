@@ -75,7 +75,14 @@ compute_cycle_perturbation_shift = getattr(_cyna_ext, "compute_cycle_perturbatio
 compute_A_matrix_batch        = getattr(_cyna_ext, "compute_A_matrix_batch",        None)
 progress_DX_pol_along_orbit   = getattr(_cyna_ext, "progress_DX_pol_along_orbit",   None)
 progress_delta_X_along_orbit  = getattr(_cyna_ext, "progress_delta_X_along_orbit",  None)
-evolve_delta_X_cycle_along_orbit = getattr(_cyna_ext, "evolve_delta_X_cycle_along_orbit", None)
+evolve_delta_X_cycle_along_cycle = getattr(
+    _cyna_ext,
+    "evolve_delta_X_cycle_along_cycle",
+    getattr(_cyna_ext, "evolve_delta_X_cycle_along_orbit", None),
+)
+evolve_delta_X_cycle_along_orbit = getattr(
+    _cyna_ext, "evolve_delta_X_cycle_along_orbit", evolve_delta_X_cycle_along_cycle
+)
 evolve_DPm_along_cycle        = getattr(_cyna_ext, "evolve_DPm_along_cycle",        None)
 trace_surface_metrics_batch_twall = getattr(_cyna_ext, "trace_surface_metrics_batch_twall", None)
 summarize_profile_objectives  = getattr(_cyna_ext, "summarize_profile_objectives",  None)
@@ -100,6 +107,7 @@ __all__ = [
     "compute_A_matrix_batch",
     "progress_DX_pol_along_orbit",
     "progress_delta_X_along_orbit",
+    "evolve_delta_X_cycle_along_cycle",
     "evolve_delta_X_cycle_along_orbit",
     "evolve_DPm_along_cycle",
     "trace_surface_metrics_batch_twall",

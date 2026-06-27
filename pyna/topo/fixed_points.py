@@ -36,6 +36,7 @@ from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 
+from pyna.fields.cylindrical import close_periodic_field_cache_phi
 from pyna.topo.variational import PoincareMapVariationalEquations
 
 from pyna.topo.toroidal import FixedPoint
@@ -332,6 +333,7 @@ def find_magnetic_axis(
     if _CYNA_AVAILABLE:
         fc = field_cache or _extract_field_cache(tracer)
         if fc is not None:
+            fc = close_periodic_field_cache_phi(fc)
             if verbose:
                 print(f"find_magnetic_axis [cyna]: seed (R={R_guess:.4f}, Z={Z_guess:.4f}), phi={phi_sec:.4f}")
             R_out, Z_out, res, conv, DPm_flat, eig_r, eig_i, ptype = _cyna_find_fixed_points_batch(
@@ -418,6 +420,7 @@ def find_fixed_point_newton(
     if _CYNA_AVAILABLE:
         fc = field_cache or _extract_field_cache(tracer)
         if fc is not None:
+            fc = close_periodic_field_cache_phi(fc)
             if verbose:
                 print(f"find_fixed_point_newton [cyna]: m={period}, seed (R={R_guess:.4f}, Z={Z_guess:.4f}), phi={phi_sec:.4f}")
             R_out, Z_out, res, conv, DPm_flat, eig_r, eig_i, ptype = _cyna_find_fixed_points_batch(
@@ -915,6 +918,8 @@ def find_island_chain_fixed_points(
 
     # --- Fast coarse scan via cyna batch (replaces slow Python _trace_one loop) ---
     fc = _extract_field_cache(tracer) if _CYNA_AVAILABLE else None
+    if fc is not None:
+        fc = close_periodic_field_cache_phi(fc)
     if _CYNA_AVAILABLE and fc is not None:
         # Build all seed points
         R_seeds_all, Z_seeds_all = [], []

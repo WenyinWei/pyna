@@ -276,6 +276,47 @@ static py::array_t<double> py_progress_delta_X_along_orbit(
         buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
         buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size(),
         max_step);
+	    return out;
+	}
+
+// ---------------------------------------------------------------------------
+// evolve_delta_X_cycle_along_cycle
+// ---------------------------------------------------------------------------
+static py::array_t<double> py_evolve_delta_X_cycle_along_cycle(
+    py::array_t<double> R_traj,
+    py::array_t<double> Z_traj,
+    py::array_t<double> phi_traj,
+    py::array_t<double> delta_X0,
+    py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
+    py::array_t<double> dBR, py::array_t<double> dBZ, py::array_t<double> dBPhi,
+    py::array_t<double> R_grid,
+    py::array_t<double> Z_grid,
+    py::array_t<double> Phi_grid,
+    double max_step)
+{
+    const int n_pts = (int)R_traj.size();
+    if ((int)Z_traj.size() != n_pts || (int)phi_traj.size() != n_pts) {
+        throw std::runtime_error("R_traj, Z_traj and phi_traj must have the same length");
+    }
+    if ((int)delta_X0.size() != 2) {
+        throw std::runtime_error("delta_X0 must have length 2");
+    }
+    if (max_step <= 0.0 || !std::isfinite(max_step)) {
+        throw std::runtime_error("max_step must be finite and positive");
+    }
+
+    py::array_t<double> out({n_pts, 2});
+    cyna::evolve_delta_X_cycle_along_cycle(
+        buf(R_traj, "R_traj"), buf(Z_traj, "Z_traj"), buf(phi_traj, "phi_traj"),
+        n_pts,
+        buf(delta_X0, "delta_X0"),
+        out.mutable_data(),
+        buf(BR,"BR"), buf(BZ,"BZ"), buf(BPhi,"BPhi"),
+        buf(dBR,"dBR"), buf(dBZ,"dBZ"), buf(dBPhi,"dBPhi"),
+        buf(R_grid,"R_grid"), (int)R_grid.size(),
+        buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
+        buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size(),
+        max_step);
     return out;
 }
 
@@ -291,7 +332,8 @@ static py::tuple py_trace_poincare_batch(
     py::array_t<double> Phi_grid,
     py::array_t<double> wall_R,
     py::array_t<double> wall_Z,
-    int n_threads)
+    int n_threads,
+    int direction)
 {
     if (n_threads <= 0)
         n_threads = (int)std::thread::hardware_concurrency();
@@ -322,7 +364,8 @@ static py::tuple py_trace_poincare_batch(
         n_threads,
         poi_counts.mutable_data(),
         poi_R_flat.mutable_data(),
-        poi_Z_flat.mutable_data());
+        poi_Z_flat.mutable_data(),
+        direction);
 
     return py::make_tuple(poi_counts, poi_R_flat, poi_Z_flat);
 }
@@ -340,7 +383,8 @@ static py::tuple py_trace_poincare_batch_twall(
     py::array_t<double> wall_phi_centers,
     py::array_t<double> wall_R,
     py::array_t<double> wall_Z,
-    int n_threads)
+    int n_threads,
+    int direction)
 {
     if (n_threads <= 0)
         n_threads = (int)std::thread::hardware_concurrency();
@@ -379,7 +423,8 @@ static py::tuple py_trace_poincare_batch_twall(
         n_threads,
         poi_counts.mutable_data(),
         poi_R_flat.mutable_data(),
-        poi_Z_flat.mutable_data());
+        poi_Z_flat.mutable_data(),
+        direction);
 
     return py::make_tuple(poi_counts, poi_R_flat, poi_Z_flat);
 }
@@ -396,7 +441,8 @@ static py::tuple py_trace_poincare_multi(
     py::array_t<double> Phi_grid,
     py::array_t<double> wall_R,
     py::array_t<double> wall_Z,
-    int n_threads)
+    int n_threads,
+    int direction)
 {
     if (n_threads <= 0)
         n_threads = (int)std::thread::hardware_concurrency();
@@ -438,7 +484,8 @@ static py::tuple py_trace_poincare_multi(
                 buf(wall_R, "wall_R"), buf(wall_Z, "wall_Z"), n_wall,
                 poi_counts.mutable_data(),
                 poi_R_flat.mutable_data(),
-                poi_Z_flat.mutable_data());
+                poi_Z_flat.mutable_data(),
+                direction);
         }
     }).wait();
 
@@ -911,35 +958,41 @@ PYBIND11_MODULE(_cyna_ext, m) {
             R, Z, Phi);
     });
 
-    m.def("trace_poincare_batch", &py_trace_poincare_batch,
-        py::arg("R_seeds"), py::arg("Z_seeds"), py::arg("phi_section"),
-        py::arg("N_turns"), py::arg("DPhi"),
-        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
-        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
-        py::arg("wall_R"), py::arg("wall_Z"),
-        py::arg("n_threads") = -1,
-        "Trace Poincaré section for multiple seeds against a fixed 2-D wall slice.\n"
-        "Returns (poi_counts, poi_R_flat, poi_Z_flat).");
+	    m.def("trace_poincare_batch", &py_trace_poincare_batch,
+	        py::arg("R_seeds"), py::arg("Z_seeds"), py::arg("phi_section"),
+	        py::arg("N_turns"), py::arg("DPhi"),
+	        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
+	        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+	        py::arg("wall_R"), py::arg("wall_Z"),
+	        py::arg("n_threads") = -1,
+	        py::arg("direction") = +1,
+	        "Trace Poincaré section for multiple seeds against a fixed 2-D wall slice.\n"
+	        "direction=+1 traces phi-increasing; direction=-1 traces phi-decreasing.\n"
+	        "Returns (poi_counts, poi_R_flat, poi_Z_flat).");
 
-    m.def("trace_poincare_batch_twall", &py_trace_poincare_batch_twall,
-        py::arg("R_seeds"), py::arg("Z_seeds"), py::arg("phi_section"),
-        py::arg("N_turns"), py::arg("DPhi"),
-        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
-        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
-        py::arg("wall_phi_centers"), py::arg("wall_R"), py::arg("wall_Z"),
-        py::arg("n_threads") = -1,
-        "Trace Poincaré section for multiple seeds against a toroidally varying wall.\n"
-        "Returns (poi_counts, poi_R_flat, poi_Z_flat).");
+	    m.def("trace_poincare_batch_twall", &py_trace_poincare_batch_twall,
+	        py::arg("R_seeds"), py::arg("Z_seeds"), py::arg("phi_section"),
+	        py::arg("N_turns"), py::arg("DPhi"),
+	        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
+	        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+	        py::arg("wall_phi_centers"), py::arg("wall_R"), py::arg("wall_Z"),
+	        py::arg("n_threads") = -1,
+	        py::arg("direction") = +1,
+	        "Trace Poincaré section for multiple seeds against a toroidally varying wall.\n"
+	        "direction=+1 traces phi-increasing; direction=-1 traces phi-decreasing.\n"
+	        "Returns (poi_counts, poi_R_flat, poi_Z_flat).");
 
-    m.def("trace_poincare_multi", &py_trace_poincare_multi,
-        py::arg("R_seeds"), py::arg("Z_seeds"), py::arg("phi_sections"),
-        py::arg("N_turns"), py::arg("DPhi"),
-        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
-        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
-        py::arg("wall_R"), py::arg("wall_Z"),
-        py::arg("n_threads") = -1,
-        "Trace Poincaré sections for multiple seeds and multiple phi sections.\n"
-        "Returns (poi_counts [N_seeds x n_sec], poi_R_flat, poi_Z_flat).");
+	    m.def("trace_poincare_multi", &py_trace_poincare_multi,
+	        py::arg("R_seeds"), py::arg("Z_seeds"), py::arg("phi_sections"),
+	        py::arg("N_turns"), py::arg("DPhi"),
+	        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
+	        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+	        py::arg("wall_R"), py::arg("wall_Z"),
+	        py::arg("n_threads") = -1,
+	        py::arg("direction") = +1,
+	        "Trace Poincaré sections for multiple seeds and multiple phi sections.\n"
+	        "direction=+1 traces phi-increasing; direction=-1 traces phi-decreasing.\n"
+	        "Returns (poi_counts [N_seeds x n_sec], poi_R_flat, poi_Z_flat).");
 
     m.def("trace_connection_length_twall",
         [](py::array_t<double> R_seeds, py::array_t<double> Z_seeds,
@@ -1125,17 +1178,26 @@ PYBIND11_MODULE(_cyna_ext, m) {
         "d(delta_X)/dphi = d(RBpol/Bphi)/d(R,Z) delta_X + delta(RBpol/Bphi).\n"
         "dBR, dBZ and dBPhi are first-order delta-B component arrays.");
 
-    m.def("evolve_delta_X_cycle_along_orbit", &py_progress_delta_X_along_orbit,
-        py::arg("R_traj"), py::arg("Z_traj"), py::arg("phi_traj"),
-        py::arg("delta_X_cyc0"),
-        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
+	    m.def("evolve_delta_X_cycle_along_cycle", &py_evolve_delta_X_cycle_along_cycle,
+	        py::arg("R_traj"), py::arg("Z_traj"), py::arg("phi_traj"),
+	        py::arg("delta_X_cyc0"),
+	        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
         py::arg("dBR"), py::arg("dBZ"), py::arg("dBPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         py::arg("max_step") = 0.005,
-        "Evolve an already closed periodic cycle displacement delta_X_cyc(phi).\n"
-        "This uses the same inhomogeneous ODE as progress_delta_X_along_orbit,\n"
-        "but delta_X_cyc0 must be the periodic initial displacement from the\n"
-        "cycle closure solve.");
+	        "Evolve an already closed periodic cycle displacement delta_X_cyc(phi).\n"
+	        "This intentionally uses the same inhomogeneous ODE as\n"
+	        "progress_delta_X_along_orbit; the difference is semantic: delta_X_cyc0\n"
+	        "is the periodic initial displacement from the cycle closure solve.");
+
+	    m.def("evolve_delta_X_cycle_along_orbit", &py_evolve_delta_X_cycle_along_cycle,
+	        py::arg("R_traj"), py::arg("Z_traj"), py::arg("phi_traj"),
+	        py::arg("delta_X_cyc0"),
+	        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
+	        py::arg("dBR"), py::arg("dBZ"), py::arg("dBPhi"),
+	        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+	        py::arg("max_step") = 0.005,
+	        "Compatibility alias for evolve_delta_X_cycle_along_cycle.");
 
     m.def("trace_surface_metrics_batch_twall", &py_trace_surface_metrics_batch_twall,
         py::arg("R_seeds"), py::arg("Z_seeds"),
@@ -1179,14 +1241,21 @@ PYBIND11_MODULE(_cyna_ext, m) {
            py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
            py::array_t<double> R_grid, py::array_t<double> Z_grid,
            py::array_t<double> Phi_grid) -> py::tuple
-        {
-            int n_out = (int)std::ceil(std::abs(phi_span) / dphi_out) + 1;
-            py::array_t<double> R_t({n_out}), Z_t({n_out}), phi_t({n_out});
-            py::array_t<double> DPm_t({n_out, 4});
-            py::array_t<int>    alive_t({n_out});
+	        {
+	            if (!std::isfinite(dphi_out) || std::abs(dphi_out) <= 1e-14)
+	                throw std::runtime_error("dphi_out must be finite and non-zero");
+	            if (!std::isfinite(DPhi) || std::abs(DPhi) <= 1e-14)
+	                throw std::runtime_error("DPhi must be finite and non-zero");
+	            const double dphi_out_eff = (phi_span < 0.0)
+	                ? -std::abs(dphi_out)
+	                :  std::abs(dphi_out);
+	            int n_out = (int)std::ceil(std::abs(phi_span) / std::abs(dphi_out_eff)) + 1;
+	            py::array_t<double> R_t({n_out}), Z_t({n_out}), phi_t({n_out});
+	            py::array_t<double> DPm_t({n_out, 4});
+	            py::array_t<int>    alive_t({n_out});
 
-            cyna::trace_orbit_along_phi(
-                R0, Z0, phi0, phi_span, dphi_out, m_turns_DPm, DPhi, fd_eps,
+	            cyna::trace_orbit_along_phi(
+	                R0, Z0, phi0, phi_span, dphi_out_eff, m_turns_DPm, DPhi, fd_eps,
                 buf(BR,"BR"), buf(BZ,"BZ"), buf(BPhi,"BPhi"),
                 buf(R_grid,"R_grid"), (int)R_grid.size(),
                 buf(Z_grid,"Z_grid"), (int)Z_grid.size(),

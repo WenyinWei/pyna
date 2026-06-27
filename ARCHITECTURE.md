@@ -297,9 +297,12 @@ legacy `pyna.MCF` compatibility tree has been removed.
 | `base.py` | `CoilFieldVacuum` (abstract), `CoilFieldSuperposition`, `CoilFieldScaled` |
 | `coil.py` | `BRBZ_induced_by_current_loop`, `BRBZ_induced_by_thick_finitelen_solenoid` |
 | `coil_system.py` | `CoilSet`, `Biot_Savart_field` |
-| `RMP.py` | `normalize_b`, `RMP_spectrum_2d`, `island_width_at_rational_surfaces` |
 | `vector_potential.py` | Vector potential computation for coil fields |
 | `field.py` | Thin canonical re-export layer |
+
+Classical magnetic perturbation spectra, island-width estimates, O/X phase
+prediction, and Chirikov overlap now live in
+`pyna.toroidal.perturbation_spectrum`.
 
 ### `toroidal/coords/`
 

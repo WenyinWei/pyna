@@ -387,17 +387,20 @@ void trace_one_seed(
     const double* wall_R, const double* wall_Z, int n_wall,
     int* poi_counts,
     double* poi_R_flat,
-    double* poi_Z_flat)
+    double* poi_Z_flat,
+    int direction = +1)
 {
     double R = R0, Z = Z0;
-    double phi = phi_start;         // unwrapped (grows monotonically)
-    double phi_end = phi_start + N_turns * 2.0 * M_PI;
+    double phi = phi_start;         // unwrapped
+    const double dir = (direction >= 0) ? 1.0 : -1.0;
+    double phi_end = phi_start + dir * N_turns * 2.0 * M_PI;
+    const double step_abs = std::abs(DPhi);
 
     int cnt_base = seed_idx * n_sec;
     int poi_base = seed_idx * N_turns * n_sec;
 
-    while (phi < phi_end - 1e-12) {
-        double step = std::min(DPhi, phi_end - phi);
+    while ((dir > 0.0 ? phi < phi_end - 1e-12 : phi > phi_end + 1e-12)) {
+        double step = dir * std::min(step_abs, std::abs(phi_end - phi));
 
         double R_old = R, Z_old = Z, phi_old = phi;
 
@@ -419,15 +422,23 @@ void trace_one_seed(
             if (cnt >= N_turns) continue;
 
             double sec = phi_sections[s]; // in [0, 2pi)
-            // Find the crossing target phi_cross = sec + k*2pi that falls in (phi_old, phi]
-            // k = ceil((phi_old - sec) / 2pi)
-            double k_raw = (phi_old - sec) / (2.0 * M_PI);
-            int k = (int)std::ceil(k_raw);
-            // guard: k_raw might be exactly an integer (on section), skip those
-            if (k_raw == (double)k) k++;
-            double phi_cross = sec + k * 2.0 * M_PI;
+            double phi_cross;
+            if (dir > 0.0) {
+                // Find section crossing in (phi_old, phi].
+                double k_raw = (phi_old - sec) / (2.0 * M_PI);
+                int k = (int)std::ceil(k_raw);
+                if (k_raw == (double)k) k++;
+                phi_cross = sec + k * 2.0 * M_PI;
+            } else {
+                // Find section crossing in [phi, phi_old), skipping the start section.
+                double k_raw = (phi_old - sec) / (2.0 * M_PI);
+                int k = (int)std::floor(k_raw);
+                if (k_raw == (double)k) k--;
+                phi_cross = sec + k * 2.0 * M_PI;
+            }
 
-            if (phi_cross > phi_old && phi_cross <= phi) {
+            if ((dir > 0.0 && phi_cross > phi_old && phi_cross <= phi) ||
+                (dir < 0.0 && phi_cross < phi_old && phi_cross >= phi)) {
                 // Linear interpolation for R, Z at phi_cross
                 double t = (phi_cross - phi_old) / (phi - phi_old);
                 double R_c = R_old + t * (R - R_old);
@@ -455,7 +466,8 @@ void trace_poincare_batch(
     int n_threads,
     int* poi_counts,
     double* poi_R_flat,
-    double* poi_Z_flat)
+    double* poi_Z_flat,
+    int direction = +1)
 {
     if (n_threads <= 0)
         n_threads = (int)std::thread::hardware_concurrency();
@@ -473,7 +485,8 @@ void trace_poincare_batch(
                 BR, BZ, BPhi,
                 R_grid, nR, Z_grid, nZ, Phi_grid, nPhi,
                 wall_R, wall_Z, n_wall,
-                poi_counts, poi_R_flat, poi_Z_flat);
+                poi_counts, poi_R_flat, poi_Z_flat,
+                direction);
         }
     }).wait();
 }
@@ -494,12 +507,15 @@ void trace_poincare_batch_twall(
     int n_threads,
     int* poi_counts,
     double* poi_R_flat,
-    double* poi_Z_flat)
+    double* poi_Z_flat,
+    int direction = +1)
 {
     if (n_threads <= 0)
         n_threads = (int)std::thread::hardware_concurrency();
 
     double phi_sec[1] = { mod2pi(phi_section) };
+    const double dir = (direction >= 0) ? 1.0 : -1.0;
+    const double step_abs = std::abs(DPhi);
 
     BS::thread_pool pool((unsigned int)n_threads);
     pool.parallelize_loop(0, N_seeds, [&](int i_start, int i_end) {
@@ -511,9 +527,9 @@ void trace_poincare_batch_twall(
             bool alive = true;
 
             for (int turn = 0; turn < N_turns && alive; ++turn) {
-                double phi_end_turn = phi + 2.0 * M_PI;
-                while (phi < phi_end_turn - 1e-12) {
-                    double step = std::min(DPhi, phi_end_turn - phi);
+                double phi_end_turn = phi + dir * 2.0 * M_PI;
+                while (dir > 0.0 ? phi < phi_end_turn - 1e-12 : phi > phi_end_turn + 1e-12) {
+                    double step = dir * std::min(step_abs, std::abs(phi_end_turn - phi));
 
                     rk4_step(R, Z, phi, step,
                              BR, BZ, BPhi,
@@ -1486,12 +1502,31 @@ static inline void progress_delta_X_along_orbit(
     }
 }
 
-// Semantic alias for periodic-cycle displacement evolution.
+// Periodic-cycle displacement evolution.
 //
 // Use this when delta_X0 is already the closed-cycle initial displacement
 // delta_X_cyc(phi0).  The ODE is identical to progress_delta_X_along_orbit,
 // but the naming records that phi_s and phi_e = phi_s + 2*pi*m move together
-// along a periodic orbit.
+// along a periodic cycle.
+static inline void evolve_delta_X_cycle_along_cycle(
+    const double* R_traj, const double* Z_traj, const double* phi_traj,
+    int n_pts,
+    const double* delta_X0,
+    double* delta_X_out,
+    const double* BR, const double* BZ, const double* BPhi,
+    const double* dBR, const double* dBZ, const double* dBPhi,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi,
+    double max_step)
+{
+	    progress_delta_X_along_orbit(
+	        R_traj, Z_traj, phi_traj, n_pts, delta_X0, delta_X_out,
+	        BR, BZ, BPhi, dBR, dBZ, dBPhi,
+	        R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, max_step);
+	}
+
+// Compatibility alias for older callers.
 static inline void evolve_delta_X_cycle_along_orbit(
     const double* R_traj, const double* Z_traj, const double* phi_traj,
     int n_pts,
@@ -1504,7 +1539,7 @@ static inline void evolve_delta_X_cycle_along_orbit(
     const double* Phi_grid, int nPhi,
     double max_step)
 {
-    progress_delta_X_along_orbit(
+    evolve_delta_X_cycle_along_cycle(
         R_traj, Z_traj, phi_traj, n_pts, delta_X0, delta_X_out,
         BR, BZ, BPhi, dBR, dBZ, dBPhi,
         R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, max_step);
@@ -1780,10 +1815,15 @@ void trace_orbit_along_phi(
         alive_out[i] = 0;
     }
 
-    double R = R0, Z = Z0;
-    double phi = phi0;          // unwrapped
-    double phi_next_out = phi0; // next output checkpoint
-    int    out_idx = 0;
+	    double R = R0, Z = Z0;
+	    double phi = phi0;          // unwrapped
+	    double phi_next_out = phi0; // next output checkpoint
+	    int    out_idx = 0;
+	    double phi_end = phi0 + phi_span;
+	    const double dir = (phi_span >= 0.0) ? 1.0 : -1.0;
+	    const double step_abs = std::abs(DPhi);
+	    const double out_abs = std::abs(dphi_out);
+	    const double dphi_out_signed = dir * out_abs;
 
     // Helper: compute DPm(φ) = DX_pol(φ, φ+2π·m_turns_DPm) at the
     // current trajectory point.  Uses DX_pol_m_turns which integrates the
@@ -1802,38 +1842,41 @@ void trace_orbit_along_phi(
         double DPm[4];
         if (compute_DPm(R, Z, phi, DPm)) {
             for (int k=0;k<4;k++) DPm_traj[4*out_idx+k] = DPm[k];
+	        }
+	        alive_out[out_idx] = 1;
+	        out_idx++;
+	        phi_next_out += dphi_out_signed;
+	    }
+
+	    while (out_idx < n_out &&
+	           (dir > 0.0 ? phi < phi_end - 1e-12 : phi > phi_end + 1e-12)) {
+        double target = phi_next_out;
+        if (dir > 0.0) target = std::min(target, phi_end);
+        else           target = std::max(target, phi_end);
+
+        while (dir > 0.0 ? phi < target - 1e-12 : phi > target + 1e-12) {
+            double step = dir * std::min(step_abs, std::abs(target - phi));
+            rk4_step(R, Z, phi, step, BR, BZ, BPhi,
+                     R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+            phi += step;
+
+            if (!std::isfinite(R) || !std::isfinite(Z) ||
+                R < R_grid[0] || R > R_grid[nR-1] ||
+                Z < Z_grid[0] || Z > Z_grid[nZ-1])
+                return;
+        }
+
+        R_traj[out_idx] = R; Z_traj[out_idx] = Z; phi_traj[out_idx] = target;
+        double DPm[4];
+        if (compute_DPm(R, Z, mod2pi(target), DPm)) {
+            for (int k=0;k<4;k++) DPm_traj[4*out_idx+k] = DPm[k];
         }
         alive_out[out_idx] = 1;
         out_idx++;
-        phi_next_out += dphi_out;
-    }
-
-    double phi_end = phi0 + phi_span;
-
-    while ((phi_end > phi0 ? phi < phi_end - 1e-12 : phi > phi_end + 1e-12) && out_idx < n_out) {
-        double step_raw = (phi_end > phi0 ? std::min(DPhi, phi_end - phi) : std::max(-DPhi, phi_end - phi));
-        double step = step_raw;
-        // Integrate one step
-        rk4_step(R, Z, phi, step, BR, BZ, BPhi,
-                 R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
-        phi += step;
-
-        if (!std::isfinite(R) || !std::isfinite(Z) ||
-            R < R_grid[0] || R > R_grid[nR-1] ||
-            Z < Z_grid[0] || Z > Z_grid[nZ-1])
+        if (std::abs(target - phi_end) <= 1e-12) {
             break;
-
-        // Check if we passed an output checkpoint (forward or backward)
-        while (out_idx < n_out && (dphi_out>0 ? phi >= phi_next_out - 1e-12 : phi <= phi_next_out + 1e-12)) {
-            R_traj[out_idx] = R; Z_traj[out_idx] = Z; phi_traj[out_idx] = phi_next_out;
-            double DPm[4];
-            if (compute_DPm(R, Z, mod2pi(phi_next_out), DPm)) {
-                for (int k=0;k<4;k++) DPm_traj[4*out_idx+k] = DPm[k];
-            }
-            alive_out[out_idx] = 1;
-            out_idx++;
-            phi_next_out += dphi_out;
         }
+        phi_next_out += dphi_out_signed;
     }
 }
 
