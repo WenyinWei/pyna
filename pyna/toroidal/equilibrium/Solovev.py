@@ -768,18 +768,19 @@ class EquilibriumSolovev:
         (R_xpt, Z_xpt) : tuple of float
             X-point location in metres.
         """
-        from scipy.optimize import minimize
+        from scipy.optimize import root
         if R0_guess is None:
             R0_guess = self.R0 - 0.3 * self.a
         if Z0_guess is None:
             Z0_guess = -self.a * self.kappa * 0.95
 
-        def Bpol2(rz):
+        def residual(rz):
             BR, BZ = self.BR_BZ(rz[0], rz[1])
-            return float(BR ** 2 + BZ ** 2)
+            return np.array([float(BR), float(BZ)], dtype=float)
 
-        res = minimize(Bpol2, [R0_guess, Z0_guess], method='Nelder-Mead',
-                       options={'xatol': 1e-7, 'fatol': 1e-20, 'maxiter': 10000})
+        res = root(residual, [R0_guess, Z0_guess], method="hybr")
+        if not res.success:
+            raise RuntimeError(f"X-point root solve failed: {res.message}")
         return tuple(res.x)
 
     def find_opoint(self):

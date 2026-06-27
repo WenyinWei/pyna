@@ -501,6 +501,86 @@ void trace_poincare_batch(
 }
 
 // ---------------------------------------------------------------------------
+// Batch arbitrary-span map trace.
+//
+// Records P_span(x), P_span^2(x), ..., P_span^N(x) for each seed.  This is
+// the field-period counterpart of trace_poincare_batch and avoids launching
+// one C++ single-orbit trace per seed from Python.
+// ---------------------------------------------------------------------------
+void trace_map_batch_span(
+    const double* R_seeds, const double* Z_seeds, int N_seeds,
+    double phi_section,
+    double map_span,
+    int N_steps, double DPhi,
+    const double* BR, const double* BZ, const double* BPhi,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi,
+    const double* wall_R, const double* wall_Z, int n_wall,
+    int n_threads,
+    int* map_counts,
+    double* map_R_flat,
+    double* map_Z_flat)
+{
+    if (n_threads <= 0)
+        n_threads = (int)std::thread::hardware_concurrency();
+    if (N_steps <= 0 || !std::isfinite(map_span) || std::abs(map_span) <= 1e-14 ||
+        !std::isfinite(DPhi) || std::abs(DPhi) <= 1e-14)
+        return;
+
+    const double step_abs = std::abs(DPhi);
+    BS::thread_pool pool((unsigned int)n_threads);
+    pool.parallelize_loop(0, N_seeds, [&](int i_start, int i_end) {
+        for (int i = i_start; i < i_end; ++i) {
+            double R = R_seeds[i];
+            double Z = Z_seeds[i];
+            double phi = phi_section;
+            bool alive = true;
+            const int base = i * N_steps;
+
+            if (!std::isfinite(R) || !std::isfinite(Z) ||
+                R < R_grid[0] || R > R_grid[nR - 1] ||
+                Z < Z_grid[0] || Z > Z_grid[nZ - 1]) {
+                continue;
+            }
+            if (n_wall > 0 && !point_in_wall(R, Z, wall_R, wall_Z, n_wall)) {
+                continue;
+            }
+
+            for (int step_idx = 0; step_idx < N_steps && alive; ++step_idx) {
+                const double target = phi_section + (step_idx + 1) * map_span;
+                const double dir = (target >= phi) ? 1.0 : -1.0;
+                while (dir > 0.0 ? phi < target - 1e-12 : phi > target + 1e-12) {
+                    const double h = dir * std::min(step_abs, std::abs(target - phi));
+                    rk4_step(R, Z, phi, h,
+                             BR, BZ, BPhi,
+                             R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+                    phi += h;
+
+                    if (!std::isfinite(R) || !std::isfinite(Z) ||
+                        R < R_grid[0] || R > R_grid[nR - 1] ||
+                        Z < Z_grid[0] || Z > Z_grid[nZ - 1]) {
+                        alive = false;
+                        break;
+                    }
+                }
+                if (!alive)
+                    break;
+                if (n_wall > 0 && !point_in_wall(R, Z, wall_R, wall_Z, n_wall))
+                    break;
+
+                const int cnt = map_counts[i];
+                if (cnt < N_steps) {
+                    map_R_flat[base + cnt] = R;
+                    map_Z_flat[base + cnt] = Z;
+                    map_counts[i]++;
+                }
+            }
+        }
+    }).wait();
+}
+
+// ---------------------------------------------------------------------------
 // Toroidally varying wall version: matches topoquest.wall.WallGeometry.is_inside
 // ---------------------------------------------------------------------------
 void trace_poincare_batch_twall(
@@ -837,7 +917,8 @@ void trace_wall_hits_twall(
 // For each initial guess (R0, Z0), run Newton iterations on P^n(x) - x = 0
 // using finite-difference Jacobian (4 extra field-line integrations per step).
 // On convergence, also returns the full 2×2 DPm = DP^m at the fixed point,
-// eigenvalues, and a classification: 1=X-point (|Tr|>2), 0=O-point (|Tr|<2).
+// eigenvalues, and a classification: 1=X-point with a real stable/unstable
+// eigen-pair, 0=not X, -1=failed.
 //
 // Outputs (length N_seeds each):
 //   R_out, Z_out          - converged position (NaN if not converged)
@@ -845,7 +926,7 @@ void trace_wall_hits_twall(
 //   converged_out         - 1 if converged, 0 otherwise
 //   DPm_out               — flattened 2×2 DPm row-major (length 4*N_seeds)
 //   eig_r_out, eig_i_out  - real/imag parts of eigenvalues (length 2*N_seeds)
-//   point_type_out        - 1=X-point, 0=O-point, -1=not converged
+//   point_type_out        - 1=X-point, 0=not X, -1=not converged
 // ---------------------------------------------------------------------------
 struct FixedPointResult {
     double R, Z;
@@ -853,7 +934,7 @@ struct FixedPointResult {
     int    converged;   // 0 or 1
     double DPm[4];      // row-major: [00,01,10,11]
     double eig_r[2], eig_i[2];
-    int    point_type;  // 1=X, 0=O, -1=failed
+    int    point_type;  // 1=X, 0=not X, -1=failed
 };
 
 // Integrate m_turns starting from (R, Z, phi_start); return final (R, Z).
@@ -911,6 +992,42 @@ static inline bool DX_pol_m_turns(
     double phi_end = phi_start + m_turns * 2.0 * M_PI;
     while (phi < phi_end - 1e-12) {
         double step = std::min(DPhi, phi_end - phi);
+        if (!rk4_step_DX_pol(R, Z, D00,D01,D10,D11, phi, step,
+                             BR, BZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi))
+            return false;
+        phi += step;
+        if (!std::isfinite(R) || !std::isfinite(Z) ||
+            R < R_grid[0] || R > R_grid[nR-1] ||
+            Z < Z_grid[0] || Z > Z_grid[nZ-1])
+            return false;
+    }
+    DX_out[0]=D00; DX_out[1]=D01; DX_out[2]=D10; DX_out[3]=D11;
+    return true;
+}
+
+// Evolve DX_pol over an arbitrary toroidal span.  This is the Nfp-safe
+// variant used for field-period maps P_{2π/Nfp}^m; the legacy m-turn helper
+// above is the special case map_span = 2πm.
+static inline bool DX_pol_span(
+    double& R, double& Z,
+    double DX_out[4],
+    double phi_start, double phi_span, double DPhi,
+    const double* BR, const double* BZ, const double* BPhi,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi)
+{
+    if (!std::isfinite(phi_span) || std::abs(phi_span) <= 1e-14 ||
+        !std::isfinite(DPhi) || std::abs(DPhi) <= 1e-14) {
+        return false;
+    }
+    double D00=1.0,D01=0.0,D10=0.0,D11=1.0;
+    double phi = phi_start;
+    const double phi_end = phi_start + phi_span;
+    const double dir = (phi_span >= 0.0) ? 1.0 : -1.0;
+    const double step_abs = std::abs(DPhi);
+    while (dir > 0.0 ? phi < phi_end - 1e-12 : phi > phi_end + 1e-12) {
+        const double step = dir * std::min(step_abs, std::abs(phi_end - phi));
         if (!rk4_step_DX_pol(R, Z, D00,D01,D10,D11, phi, step,
                              BR, BZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi))
             return false;
@@ -1556,10 +1673,10 @@ static inline void evolve_delta_X_cycle_along_orbit(
 
 
 
-static inline FixedPointResult newton_fixed_point(
+static inline FixedPointResult newton_fixed_point_span(
     double R0, double Z0,
     double phi_section,     // Poincare section angle [rad]
-    int    m_turns,         // P^m: m toroidal turns (poloidal mode number)
+    double map_span,        // total map span [rad], e.g. m * 2π/Nfp
     double DPhi,
     double fd_eps,          // finite-difference step [m]
     int    max_iter,
@@ -1599,8 +1716,8 @@ static inline FixedPointResult newton_fixed_point(
         }
         double Rf = Rq, Zf = Zq;
         double DP_cur[4];
-        if (!DX_pol_m_turns(Rf, Zf, DP_cur, phi0, m_turns, DPhi,
-                            BR, BZ, BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi)) {
+        if (!DX_pol_span(Rf, Zf, DP_cur, phi0, map_span, DPhi,
+                         BR, BZ, BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi)) {
             return false;
         }
         F0 = Rf - Rq;
@@ -1616,8 +1733,8 @@ static inline FixedPointResult newton_fixed_point(
     };
 
     for (int iter = 0; iter < max_iter; ++iter) {
-        // Evaluate F(x) = P^m(x) - x  and compute DPm = DX_pol(φ, φ+2πm)
-        // via analytic DX_pol evolution (DX_pol_m_turns).
+        // Evaluate F(x) = P_span(x) - x and compute DPm via analytic DX_pol
+        // evolution over the requested toroidal map span.
         double DP_cur[4];
         double F0 = 0.0, F1 = 0.0;
         if (!eval_residual(R, Z, F0, F1, DP_cur))
@@ -1626,7 +1743,7 @@ static inline FixedPointResult newton_fixed_point(
         res.residual = std::sqrt(F0*F0 + F1*F1);
         if (res.residual < tol) {
             res.converged = 1;
-            // Store DPm(φ_s) = DX_pol(φ_s, φ_s+2πm) from analytic evolution
+            // Store DPm(φ_s) = DX_pol(φ_s, φ_s+map_span) from analytic evolution
             res.DPm[0]=DP_cur[0]; res.DPm[1]=DP_cur[1];
             res.DPm[2]=DP_cur[2]; res.DPm[3]=DP_cur[3];
             break;
@@ -1636,19 +1753,6 @@ static inline FixedPointResult newton_fixed_point(
         double DF00 = DP_cur[0] - 1.0, DF01 = DP_cur[1];
         double DF10 = DP_cur[2],        DF11 = DP_cur[3] - 1.0;
         double det = DF00*DF11 - DF01*DF10;
-        if (std::abs(det) < 1e-20) return res;
-
-        // Newton step: dx = -DF^{-1} * F
-        double dR = -(DF11*F0 - DF01*F1) / det;
-        double dZ = -(-DF10*F0 + DF00*F1) / det;
-        double step_norm = std::sqrt(dR*dR + dZ*dZ);
-        if (!std::isfinite(step_norm)) return res;
-        if (step_norm > trust_radius) {
-            const double scale = trust_radius / std::max(step_norm, 1e-300);
-            dR *= scale;
-            dZ *= scale;
-            step_norm = trust_radius;
-        }
 
         // Accept only residual-decreasing steps, with a seed-centred trust
         // region.  This prevents a near-correct O/X-cycle seed (e.g. X_old +
@@ -1656,33 +1760,22 @@ static inline FixedPointResult newton_fixed_point(
         // locally ill-conditioned full Newton step.
         bool accepted = false;
         double best_R = R, best_Z = Z, best_res = res.residual;
-        for (int ls = 0; ls < 12; ++ls) {
-            const double alpha = std::ldexp(1.0, -ls);
-            const double cand_R = R + alpha * dR;
-            const double cand_Z = Z + alpha * dZ;
-            const double seed_dist = std::sqrt(
-                (cand_R - seed_R) * (cand_R - seed_R) +
-                (cand_Z - seed_Z) * (cand_Z - seed_Z));
-            if (seed_dist > trust_radius0) continue;
-            double cF0 = 0.0, cF1 = 0.0;
-            if (!eval_residual(cand_R, cand_Z, cF0, cF1, nullptr)) continue;
-            const double cand_res = std::sqrt(cF0*cF0 + cF1*cF1);
-            if (std::isfinite(cand_res) && cand_res < best_res) {
-                best_R = cand_R;
-                best_Z = cand_Z;
-                best_res = cand_res;
-                accepted = true;
-                break;
+        double accepted_step_norm = grid_h;
+        auto try_step = [&](double dR_in, double dZ_in, double& step_norm_out) -> bool {
+            double dR = dR_in;
+            double dZ = dZ_in;
+            double step_norm = std::sqrt(dR*dR + dZ*dZ);
+            if (!std::isfinite(step_norm) || step_norm <= 0.0) return false;
+            if (step_norm > trust_radius) {
+                const double scale = trust_radius / std::max(step_norm, 1e-300);
+                dR *= scale;
+                dZ *= scale;
+                step_norm = trust_radius;
             }
-        }
-
-        if (!accepted) {
-            // Picard fallback: x <- P^m(x) = x + F.  This is also damped and
-            // residual-tested, so it cannot degrade a good first-order seed.
             for (int ls = 0; ls < 12; ++ls) {
                 const double alpha = std::ldexp(1.0, -ls);
-                const double cand_R = R + alpha * F0;
-                const double cand_Z = Z + alpha * F1;
+                const double cand_R = R + alpha * dR;
+                const double cand_Z = Z + alpha * dZ;
                 const double seed_dist = std::sqrt(
                     (cand_R - seed_R) * (cand_R - seed_R) +
                     (cand_Z - seed_Z) * (cand_Z - seed_Z));
@@ -1694,10 +1787,56 @@ static inline FixedPointResult newton_fixed_point(
                     best_R = cand_R;
                     best_Z = cand_Z;
                     best_res = cand_res;
+                    step_norm_out = alpha * step_norm;
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        if (std::abs(det) >= 1e-20) {
+            // Newton step: dx = -DF^{-1} * F
+            const double dR = -(DF11*F0 - DF01*F1) / det;
+            const double dZ = -(-DF10*F0 + DF00*F1) / det;
+            accepted = try_step(dR, dZ, accepted_step_norm);
+        }
+
+        if (!accepted) {
+            // Damped least-squares fallback for singular or ill-conditioned
+            // DF=DPm-I.  It preserves the same line-search and seed-centred
+            // trust region as Newton, so a bad local inverse cannot jump to a
+            // different periodic orbit.
+            auto dls_direction = [&](double lambda, double& dR, double& dZ) -> bool {
+                const double g0 = DF00*F0 + DF10*F1;
+                const double g1 = DF01*F0 + DF11*F1;
+                const double l2 = lambda * lambda;
+                const double A00 = DF00*DF00 + DF10*DF10 + l2;
+                const double A01 = DF00*DF01 + DF10*DF11;
+                const double A11 = DF01*DF01 + DF11*DF11 + l2;
+                const double den = A00*A11 - A01*A01;
+                if (!std::isfinite(den) || std::abs(den) < 1e-300) return false;
+                dR = -( A11*g0 - A01*g1) / den;
+                dZ = -(-A01*g0 + A00*g1) / den;
+                return std::isfinite(dR) && std::isfinite(dZ);
+            };
+            const double jnorm = std::sqrt(
+                DF00*DF00 + DF01*DF01 + DF10*DF10 + DF11*DF11);
+            const double base_lambda = std::max(1.0, jnorm);
+            const double scales[] = {1e-10, 1e-8, 1e-6, 1e-4, 1e-2, 1e0, 1e2};
+            for (double scale : scales) {
+                double dR = 0.0, dZ = 0.0;
+                if (dls_direction(scale * base_lambda, dR, dZ) &&
+                    try_step(dR, dZ, accepted_step_norm)) {
                     accepted = true;
                     break;
                 }
             }
+        }
+
+        if (!accepted) {
+            // Picard fallback: x <- P^m(x) = x + F.  This is also damped and
+            // residual-tested, so it cannot degrade a good first-order seed.
+            accepted = try_step(F0, F1, accepted_step_norm);
         }
 
         if (!accepted) {
@@ -1706,7 +1845,7 @@ static inline FixedPointResult newton_fixed_point(
         R = best_R;
         Z = best_Z;
         res.residual = best_res;
-        trust_radius = std::min(trust_radius0, std::max(2.0 * step_norm, 2.0 * grid_h));
+        trust_radius = std::min(trust_radius0, std::max(2.0 * accepted_step_norm, 2.0 * grid_h));
     }
 
     if (!res.converged) return res;
@@ -1729,8 +1868,41 @@ static inline FixedPointResult newton_fixed_point(
         res.eig_i[1] = -0.5*std::sqrt(-disc);
     }
 
-    res.point_type = (std::abs(tr) > 2.0) ? 1 : 0;
+    if (disc >= 0.0) {
+        const double ev0 = std::abs(res.eig_r[0]);
+        const double ev1 = std::abs(res.eig_r[1]);
+        const double eps = 1.0e-8;
+        const bool area_like = std::isfinite(det2) && std::abs(det2 - 1.0) <= 5.0e-2;
+        res.point_type = (
+            area_like && (
+                (ev0 > 1.0 + eps && ev1 < 1.0 - eps) ||
+                (ev1 > 1.0 + eps && ev0 < 1.0 - eps)
+            )
+        ) ? 1 : 0;
+    } else {
+        res.point_type = 0;
+    }
     return res;
+}
+
+static inline FixedPointResult newton_fixed_point(
+    double R0, double Z0,
+    double phi_section,
+    int    m_turns,
+    double DPhi,
+    double fd_eps,
+    int    max_iter,
+    double tol,
+    const double* BR, const double* BZ, const double* BPhi,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi)
+{
+    return newton_fixed_point_span(
+        R0, Z0, phi_section, double(m_turns) * 2.0 * M_PI,
+        DPhi, fd_eps, max_iter, tol,
+        BR, BZ, BPhi,
+        R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
 }
 
 void find_fixed_points_batch(
@@ -1763,6 +1935,56 @@ void find_fixed_points_batch(
             auto r = newton_fixed_point(
                 R_seeds[i], Z_seeds[i],
                 phi_section, m_turns, DPhi, fd_eps, max_iter, tol,
+                BR, BZ, BPhi,
+                R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+
+            R_out[i]          = r.R;
+            Z_out[i]          = r.Z;
+            residual_out[i]   = r.residual;
+            converged_out[i]  = r.converged;
+            DPm_out[4*i+0]    = r.DPm[0];
+            DPm_out[4*i+1]    = r.DPm[1];
+            DPm_out[4*i+2]    = r.DPm[2];
+            DPm_out[4*i+3]    = r.DPm[3];
+            eig_r_out[2*i+0]  = r.eig_r[0];
+            eig_r_out[2*i+1]  = r.eig_r[1];
+            eig_i_out[2*i+0]  = r.eig_i[0];
+            eig_i_out[2*i+1]  = r.eig_i[1];
+            point_type_out[i] = r.point_type;
+        }
+    }).wait();
+}
+
+void find_fixed_points_batch_span(
+    const double* R_seeds, const double* Z_seeds, int N_seeds,
+    double phi_section,
+    double map_span,
+    double DPhi,
+    double fd_eps,
+    int    max_iter,
+    double tol,
+    const double* BR, const double* BZ, const double* BPhi,
+    const double* R_grid, int nR,
+    const double* Z_grid, int nZ,
+    const double* Phi_grid, int nPhi,
+    int n_threads,
+    double* R_out, double* Z_out,
+    double* residual_out,
+    int*    converged_out,
+    double* DPm_out,
+    double* eig_r_out,
+    double* eig_i_out,
+    int*    point_type_out)
+{
+    if (n_threads <= 0)
+        n_threads = (int)std::thread::hardware_concurrency();
+
+    BS::thread_pool pool((unsigned int)n_threads);
+    pool.parallelize_loop(0, N_seeds, [&](int i_start, int i_end) {
+        for (int i = i_start; i < i_end; ++i) {
+            auto r = newton_fixed_point_span(
+                R_seeds[i], Z_seeds[i],
+                phi_section, map_span, DPhi, fd_eps, max_iter, tol,
                 BR, BZ, BPhi,
                 R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
 

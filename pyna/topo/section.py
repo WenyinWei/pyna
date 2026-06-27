@@ -261,6 +261,6 @@ def toroidal_sections(phi_list: Sequence[float]) -> list[ToroidalSection]:
     return [ToroidalSection(float(phi)) for phi in phi_list]
 
 
-HAO_SECTIONS = toroidal_sections([0.0, __import__('math').pi/4,
+TWO_PERIOD_SECTIONS = toroidal_sections([0.0, __import__('math').pi/4,
                                   __import__('math').pi/2,
                                   3*__import__('math').pi/4])

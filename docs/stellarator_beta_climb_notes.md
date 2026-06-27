@@ -1,7 +1,7 @@
-# Stellarator β Climb — Specialised Notes for HAO (Np=2, 3D Field)
+# Stellarator β Climb — Specialised Notes for reference stellarator (Np=2, 3D Field)
 
 > **Scope:** This document covers why β climbing in a stellarator (specifically the
-> HAO device with field-period number Np=2) is harder than in a tokamak, the
+> reference stellarator device with field-period number Np=2) is harder than in a tokamak, the
 > limitations of the current pyna implementation, recommended numerical settings,
 > and the interface with Optuna optimisation loops.
 
@@ -52,7 +52,7 @@ In a stellarator:
   strongly with φ.
 - Using only the φ=0 slice of J₀ as if it were axisymmetric introduces O(ε)
   errors per β step (where ε is the helical ripple amplitude, typically 5–20%
-  for HAO).
+  for reference stellarator).
 
 ---
 
@@ -68,11 +68,11 @@ The current implementation in `fenicsx_corrector.py::fpt_fenicsx_beta_step`:
 
 This is the **axisymmetric approximation**: it assumes the correction is
 the same at every toroidal angle. For a quasi-axisymmetric or near-tokamak
-device this may be acceptable at low β; for HAO it introduces systematic error.
+device this may be acceptable at low β; for reference stellarator it introduces systematic error.
 
-### 2.2 Two-slice average for HAO (Np=2)
+### 2.2 Two-slice average for reference stellarator (Np=2)
 
-HAO has field-period Np=2, meaning the magnetic field repeats every π radians.
+reference stellarator has field-period Np=2, meaning the magnetic field repeats every π radians.
 A better approximation is to:
 
 1. Solve the 2D system at φ=0 → correction `δB₀(R, Z)`.
@@ -106,7 +106,7 @@ The fully correct treatment requires either:
   can be wrapped for gradient-based optimisation.
 
 Until 3D FEniCSx is available in pyna, the two-slice average is the recommended
-operational workaround for HAO.
+operational workaround for reference stellarator.
 
 ---
 
@@ -138,7 +138,7 @@ regularised to be physically meaningful).
 
 ### 3.2 Anderson acceleration depth
 
-Anderson depth m=3 is recommended for HAO:
+Anderson depth m=3 is recommended for reference stellarator:
 
 - The 3D field varies slowly with φ (helical ripple ~10%), so the fixed-point
   iteration converges with modest history depth.
@@ -147,12 +147,12 @@ Anderson depth m=3 is recommended for HAO:
 
 ### 3.3 β step size
 
-HAO operates at β ratios around **1% total beta** (β_total ~ 0.01 at full
+reference stellarator operates at β ratios around **1% total beta** (β_total ~ 0.01 at full
 pressure). Recommended step size:
 
 - **Δβ < 0.5% per step** to keep the linearisation error small.
 - At Δβ = 0.5%, the pressure increment is about 50% of the total, which is
-  within the linear regime for HAO-scale ripple.
+  within the linear regime for reference stellarator-scale ripple.
 - If Newton diverges (residual grows), halve the step size and retry.
 
 Example β schedule for 0→1%:
@@ -205,10 +205,10 @@ quality of the best coil designs.
 ### 4.3 `--with-beta` flag
 
 The `--with-beta` command-line flag (implemented by Agent B in
-`hao_optuna_v4.py`) triggers the post-analysis β climb. Usage:
+`private_stellarator_optuna_v4.py`) triggers the post-analysis β climb. Usage:
 
 ```bash
-python hao_optuna_v4.py --with-beta --pareto-top 20 --beta-max 0.01 --beta-steps 20
+python private_stellarator_optuna_v4.py --with-beta --pareto-top 20 --beta-max 0.01 --beta-steps 20
 ```
 
 This loads the Optuna study from the database, filters to Pareto-front trials,
@@ -226,7 +226,7 @@ These can be stored as Optuna trial user attributes for later analysis.
 
 ---
 
-## 5. Summary Checklist for HAO β Climbing
+## 5. Summary Checklist for reference stellarator β Climbing
 
 - [ ] Use **two-slice average** (φ=0 and φ=π) instead of single-slice broadcast
 - [ ] Set `anderson_depth=3` (not 5; saves memory with similar convergence)

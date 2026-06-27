@@ -62,12 +62,15 @@ def get_version() -> str:
 coil_circular_field           = getattr(_cyna_ext, "coil_circular_field", None)
 coil_biot_savart              = getattr(_cyna_ext, "coil_biot_savart",     None)
 cuda_backend_available        = getattr(_cyna_ext, "cuda_backend_available", lambda: False)
+VectorFieldCylind             = getattr(_cyna_ext, "VectorFieldCylind",             None)
 trace_poincare_batch = _cyna_ext.trace_poincare_batch
 trace_poincare_multi = _cyna_ext.trace_poincare_multi
 trace_poincare_batch_twall    = getattr(_cyna_ext, "trace_poincare_batch_twall",    None)
+trace_map_batch_span          = getattr(_cyna_ext, "trace_map_batch_span",          None)
 trace_connection_length_twall = getattr(_cyna_ext, "trace_connection_length_twall", None)
 trace_wall_hits_twall         = getattr(_cyna_ext, "trace_wall_hits_twall",         None)
 find_fixed_points_batch       = getattr(_cyna_ext, "find_fixed_points_batch",       None)
+find_fixed_points_batch_span  = getattr(_cyna_ext, "find_fixed_points_batch_span",  None)
 trace_orbit_along_phi         = getattr(_cyna_ext, "trace_orbit_along_phi",         None)
 trace_poincare_dpk_growth     = getattr(_cyna_ext, "trace_poincare_dpk_growth",     None)
 trace_poincare_dpk_growth_twall = getattr(_cyna_ext, "trace_poincare_dpk_growth_twall", None)
@@ -94,12 +97,15 @@ __all__ = [
     "coil_circular_field",
     "coil_biot_savart",
     "cuda_backend_available",
+    "VectorFieldCylind",
     "trace_poincare_batch",
     "trace_poincare_multi",
     "trace_poincare_batch_twall",
+    "trace_map_batch_span",
     "trace_connection_length_twall",
     "trace_wall_hits_twall",
     "find_fixed_points_batch",
+    "find_fixed_points_batch_span",
     "trace_orbit_along_phi",
     "trace_poincare_dpk_growth",
     "trace_poincare_dpk_growth_twall",

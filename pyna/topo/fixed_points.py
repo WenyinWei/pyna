@@ -37,6 +37,7 @@ from typing import Callable, List, Optional, Tuple
 import numpy as np
 
 from pyna.fields.cylindrical import close_periodic_field_cache_phi
+from pyna.topo._monodromy_classification import monodromy_kind
 from pyna.topo.variational import PoincareMapVariationalEquations
 
 from pyna.topo.toroidal import FixedPoint
@@ -135,9 +136,8 @@ def _compute_DPm(tracer, R0: float, Z0: float, phi_sec: float, m: int):
 
 
 def _classify(DPm: np.ndarray) -> str:
-    """Return 'X' for hyperbolic (|Tr| > 2) or 'O' for elliptic (|Tr| <= 2)."""
-    tr = np.trace(DPm)
-    return 'X' if abs(tr) > 2.0 else 'O'
+    """Return a determinant-checked monodromy kind: X, O, P, or U."""
+    return monodromy_kind(DPm)
 
 
 def _in_bounds(R: float, Z: float) -> bool:
@@ -181,7 +181,7 @@ def _cyna_result_to_fp(R_out, Z_out, res, conv, DPm_flat, eig_r, eig_i, ptype, i
     pt = int(ptype[idx])
     if not converged or pt == -1:
         return None, None, None, None
-    kind = 'X' if pt == 1 else 'O'
+    kind = _classify(DPm)
     return R, Z, DPm, kind
 
 
@@ -410,7 +410,8 @@ def find_fixed_point_newton(
     DPm : ndarray, shape (2, 2)
         Monodromy matrix DP^m at the converged point.
     kind : str
-        ``'X'`` for hyperbolic (|Tr(DP^m)| > 2) or ``'O'`` for elliptic.
+        ``'X'`` for hyperbolic, ``'O'`` for elliptic, ``'P'`` for parabolic,
+        or ``'U'`` when the monodromy matrix fails determinant/spectral checks.
 
     Raises
     ------
@@ -466,7 +467,7 @@ def refine_fixed_points_from_pkl(
     """Refine all fixed points in a pickle file with Newton's method.
 
     Reads a pickle file containing fixed-point data in the format produced
-    by ``topoquest.hao_starting_cfg_v4.load_fp_pkl()``, uses each stored
+    by ``topoquest.private_stellarator_starting_cfg_v4.load_fp_pkl()``, uses each stored
     point as an initial guess for Newton iteration, and returns a refined
     dictionary in the same format.
 

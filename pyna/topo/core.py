@@ -35,6 +35,8 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 
+from pyna.topo._monodromy_classification import classify_monodromy_2x2
+
 from pyna.topo._base import GeometricObject, InvariantManifold
 
 
@@ -75,12 +77,14 @@ class LinearStabilityData(GeometricObject):
     @property
     def classification(self) -> Stability:
         if self.jacobian.shape == (2, 2):
-            tr = self.trace
-            if abs(tr) < 2.0 - 1e-10:
+            kind = classify_monodromy_2x2(self.jacobian).kind
+            if kind == "O":
                 return Stability.ELLIPTIC
-            if abs(tr) > 2.0 + 1e-10:
+            if kind == "X":
                 return Stability.HYPERBOLIC
-            return Stability.PARABOLIC
+            if kind == "P":
+                return Stability.PARABOLIC
+            return Stability.UNKNOWN
 
         if self.eigenvalues is None or len(self.eigenvalues) == 0:
             return Stability.UNKNOWN

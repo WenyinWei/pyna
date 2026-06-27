@@ -1,6 +1,6 @@
 """batch_eval.py
 ================
-批量并行磁拓扑位型评估框架，用于 HAO 仿星器 dipole/TF 线圈 Optuna 优化。
+批量并行磁拓扑位型评估框架，用于 reference stellarator 仿星器 dipole/TF 线圈 Optuna 优化。
 
 规模：344 个线圈（332 dipole + 12 TF），目标单次 fast eval < 0.1 s/trial。
 
@@ -40,25 +40,25 @@ for _p in (str(TOPOQUEST), str(PYNA)):
 
 # ── default data paths ────────────────────────────────────────────────────────
 _RESP_PATHS = [
-    Path(r"C:\Users\Legion\Nutstore\1\haodata\vacuum_fields\vacuum_field_dipole_all_332.npz"),
-    Path(r"D:\haodata\coilsys\vacuum_fields\vacuum_field_dipole_all_332.npz"),
+    Path(r"C:\Users\Legion\Nutstore\1\private_stellarator_data\vacuum_fields\vacuum_field_dipole_all_332.npz"),
+    Path(r"D:\private_stellarator_data\coilsys\vacuum_fields\vacuum_field_dipole_all_332.npz"),
 ]
 _TF_RESP_PATHS = [
-    Path(r"C:\Users\Legion\Nutstore\1\haodata\vacuum_fields\vacuum_field_tf_all_12.npz"),
-    Path(r"D:\haodata\coilsys\vacuum_fields\vacuum_field_tf_all_12.npz"),
+    Path(r"C:\Users\Legion\Nutstore\1\private_stellarator_data\vacuum_fields\vacuum_field_tf_all_12.npz"),
+    Path(r"D:\private_stellarator_data\coilsys\vacuum_fields\vacuum_field_tf_all_12.npz"),
 ]
 _FP_PKL_PATHS = [
-    Path(r"D:\haodata\fixed_points_all_sections.pkl"),
-    Path(r"D:\2026Spring\haodata\fixed_points_all_sections.pkl"),
+    Path(r"D:\private_stellarator_data\fixed_points_all_sections.pkl"),
+    Path(r"D:\2026Spring\private_stellarator_data\fixed_points_all_sections.pkl"),
     TOPOQUEST / "data" / "fixed_points_all_sections.pkl",
 ]
 _WALL_PATHS = [
-    Path(r"D:\haodata\hao_1stwall_inner.txt"),
-    Path(r"D:\2026Spring\haodata\hao_1stwall_inner.txt"),
-    TOPOQUEST / "data" / "hao_1stwall_inner.txt",
+    Path(r"D:\private_stellarator_data\private_wall_inner.txt"),
+    Path(r"D:\2026Spring\private_stellarator_data\private_wall_inner.txt"),
+    TOPOQUEST / "data" / "private_wall_inner.txt",
 ]
 _CACHE_PKL_PATHS = [
-    Path(r"D:\2026Spring\haodata\bluestar_starting_config_field_cache.pkl"),
+    Path(r"D:\2026Spring\private_stellarator_data\bluestar_starting_config_field_cache.pkl"),
     TOPOQUEST / "data" / "bluestar_starting_config_field_cache.pkl",
 ]
 
@@ -68,7 +68,7 @@ def _find_path(candidates: list[Path]) -> Optional[Path]:
             return p
     return None
 
-# HAO 参考值
+# reference stellarator 参考值
 R_AX_REF = 0.85235
 Z_AX_REF = -0.000073
 A0 = 0.30  # 近似小半径 [m]
@@ -421,11 +421,11 @@ class TopologyCache:
         schemes : list of str, optional
             分组方案名称列表，如 ['A', 'B', 'C']。
             若为 None，则使用已在 _group_cache 中存在的所有方案。
-            若 _group_cache 为空，尝试从 explore_hao_divertor_configs 自动注册 A/B/C。
+            若 _group_cache 为空，尝试从 private_stellarator_divertor_configs 自动注册 A/B/C。
         xpt_phi : float
             X 点所在截面的环向角（弧度），默认 0.0。
         island_period : int
-            Poincaré 映射的追踪圈数（HAO m/n=10/3，m=10）。
+            Poincaré 映射的追踪圈数（reference stellarator m/n=10/3，m=10）。
         eps_current : float
             有限差分电流扰动（A），相对于实际运行电流（~kA）很小。
 
@@ -736,7 +736,7 @@ def fast_evaluate_single(
                     BR=fc_obj.BR, BZ=fc_obj.BZ, BPhi=fc_obj.BPhi,
                     R_grid=fc_obj.Rg, Z_grid=fc_obj.Zg, Phi_grid=fc_obj.Pg_ext,
                 )
-                # ptype=1 means X-point (|Tr|>2, hyperbolic) — only use those
+                # ptype=1 means the cyna monodromy check found a real stable/unstable X-point.
                 candidates = []
                 for i in range(len(outer_xpts)):
                     if conv_out[i] and ptype[i] == 1:  # X-point confirmed
@@ -952,7 +952,7 @@ def batch_evaluate_topology(
 # optuna_objective_factory
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# 内置分组方案注册表（与 explore_hao_divertor_configs.py 一致）
+# 内置分组方案注册表（与 private_stellarator_divertor_configs.py 一致）
 _SCHEME_REGISTRY: dict[str, Callable] = {}
 
 def _register_schemes():
@@ -960,7 +960,7 @@ def _register_schemes():
     if _SCHEME_REGISTRY:
         return
     try:
-        from explore_hao_divertor_configs import (
+        from private_stellarator_divertor_configs import (
             make_grouping_scheme_A,
             make_grouping_scheme_B,
             make_grouping_scheme_C,
@@ -1098,7 +1098,7 @@ def create_optuna_study(
     coil_Z:   Optional[np.ndarray] = None,
     scheme_names: list[str] = ("A", "B", "C"),
     storage: Optional[str] = None,
-    study_name: str = "hao_divertor_opt",
+    study_name: str = "private_stellarator_divertor_opt",
     n_trials: int = 1000,
     n_jobs: int = 1,
     **objective_kwargs,
@@ -1125,7 +1125,7 @@ def create_optuna_study(
 
     _register_schemes()
     if not _SCHEME_REGISTRY:
-        raise ImportError("无法导入 explore_hao_divertor_configs，"
+        raise ImportError("无法导入 private_stellarator_divertor_configs，"
                           "请手动传入 schemes 参数并调用 optuna_objective_factory()")
 
     phi = coil_phi if coil_phi is not None else topo_cache.coil_phi

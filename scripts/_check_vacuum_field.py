@@ -3,7 +3,7 @@ import numpy as np
 import glob
 import os
 
-VACUUM_DIR = "/mnt/c/Users/28105/Nutstore/1/haodata/coilsys/vacuum_fields"
+VACUUM_DIR = "/mnt/c/Users/28105/Nutstore/1/private_stellarator_data/coilsys/vacuum_fields"
 
 # Find one file
 files = glob.glob(os.path.join(VACUUM_DIR, "dipole_coil_*.npz"))

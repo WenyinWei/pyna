@@ -1,6 +1,6 @@
 """Tests for pyna.topo.invariant -- InvariantObject class hierarchy.
 
-All tests use synthetic/analytic data only (no real HAO data files).
+All tests use synthetic/analytic data only (no real reference stellarator data files).
 Updated to use the new class hierarchy:
   - FixedPoint (replaces ChainFixedPoint)
   - Cycle (replaces IslandChainOrbit)

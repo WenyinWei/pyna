@@ -31,8 +31,12 @@ from pyna.toroidal.perturbation_spectrum import (
 
 
 DEFAULT_NCSX_ROOT = Path("/home/wenyin/MCFdata/NCSX")
-DEFAULT_COORDS = DEFAULT_NCSX_ROOT / "ncsx_redo_fieldline_coords_20260620_v1" / "ncsx_redo_pest_coords.npz"
-DEFAULT_OUT_DIR = DEFAULT_NCSX_ROOT / "ncsx_magnetic_spectrum_case_20260627_v1"
+DEFAULT_COORDS = (
+    DEFAULT_NCSX_ROOT
+    / "ncsx_beta_jfree_retrace_diag_nosmooth_beta003_fullres_20260614_v1"
+    / "ncsx_qa_beta_pest_topology_coords.npz"
+)
+DEFAULT_OUT_DIR = DEFAULT_NCSX_ROOT / "ncsx_magnetic_spectrum_case_20260627_v2"
 DEFAULT_MGRID = DEFAULT_NCSX_ROOT / "mgrid_c09r00.nc"
 DEFAULT_WOUT = DEFAULT_NCSX_ROOT / "wout_ncsx_c09r00_free.nc"
 DEFAULT_VESSEL = DEFAULT_NCSX_ROOT / "ncsx_vessel_3D.dat"
@@ -179,7 +183,103 @@ def periodic_curve_interp(angle_src: np.ndarray, values: np.ndarray, angle_dst: 
     return np.interp(dst, src_ext, vals_ext)
 
 
-def poincare_seed_grid(
+def _coords_iota_profile(data, radial_labels: np.ndarray) -> np.ndarray | None:
+    for key in ("iota", "iota_profile"):
+        if key not in data.files:
+            continue
+        iota = np.asarray(data[key], dtype=np.float64)
+        if iota.shape == radial_labels.shape and np.all(np.isfinite(iota)):
+            return iota.copy()
+    return None
+
+
+def vmec_iota_profile_from_wout(path: Path, radial_labels: np.ndarray) -> np.ndarray:
+    """Read VMEC iota and interpolate it to ``s = sqrt(psi_norm)`` labels."""
+
+    from netCDF4 import Dataset
+
+    labels = np.asarray(radial_labels, dtype=np.float64)
+    if np.nanmin(labels) < -1.0e-12 or np.nanmax(labels) > 1.0 + 1.0e-12:
+        raise ValueError("VMEC iota interpolation expects normalized radial labels in [0, 1]")
+    with Dataset(str(path), "r") as ds:
+        if "iotaf" in ds.variables:
+            iota = np.asarray(ds.variables["iotaf"][:], dtype=np.float64)
+        elif "iotas" in ds.variables:
+            iota = np.asarray(ds.variables["iotas"][:], dtype=np.float64)
+        else:
+            raise ValueError(f"{path} does not contain iotaf or iotas")
+        if "phi" in ds.variables:
+            flux = np.asarray(ds.variables["phi"][:], dtype=np.float64)
+            scale = float(np.nanmax(np.abs(flux)))
+            flux = np.abs(flux) / scale if scale > 0.0 else np.linspace(0.0, 1.0, iota.size)
+        else:
+            flux = np.linspace(0.0, 1.0, iota.size, dtype=np.float64)
+    order = np.argsort(flux)
+    flux = flux[order]
+    iota = iota[order]
+    return np.interp(np.clip(labels, 0.0, 1.0) ** 2, flux, iota)
+
+
+def load_surface_coordinates(
+    path: Path,
+    *,
+    wout_path: Path | None,
+    iota_source: str,
+    radial_min: float,
+    radial_max: float,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, str]:
+    with np.load(path, allow_pickle=False) as coords:
+        R_surf = np.asarray(coords["R_surf"], dtype=np.float64).copy()
+        Z_surf = np.asarray(coords["Z_surf"], dtype=np.float64).copy()
+        phi_vals = np.asarray(coords["phi_vals"], dtype=np.float64).copy()
+        theta_vals = np.asarray(coords["theta_vals"], dtype=np.float64).copy()
+        if "radial_labels" in coords.files:
+            radial_labels = np.asarray(coords["radial_labels"], dtype=np.float64).copy()
+        elif "r_vals" in coords.files:
+            radial_labels = np.asarray(coords["r_vals"], dtype=np.float64).copy()
+        else:
+            raise ValueError(f"{path} contains neither radial_labels nor r_vals")
+
+        source = iota_source
+        iota = None
+        if iota_source == "auto":
+            iota = _coords_iota_profile(coords, radial_labels)
+            if iota is not None:
+                source = "coords"
+            elif wout_path is not None and radial_labels[0] >= -1.0e-12 and radial_labels[-1] <= 1.0 + 1.0e-12:
+                iota = vmec_iota_profile_from_wout(wout_path, radial_labels)
+                source = "wout"
+        elif iota_source == "coords":
+            iota = _coords_iota_profile(coords, radial_labels)
+        elif iota_source == "wout":
+            if wout_path is None:
+                raise ValueError("--iota-source=wout requires --wout")
+            iota = vmec_iota_profile_from_wout(wout_path, radial_labels)
+        else:
+            raise ValueError(f"unsupported iota_source={iota_source!r}")
+
+    if iota is None:
+        raise ValueError(f"could not determine iota profile for {path}; pass --iota-source wout/coords explicitly")
+    mask = (
+        np.isfinite(radial_labels)
+        & np.isfinite(iota)
+        & (radial_labels >= float(radial_min))
+        & (radial_labels <= float(radial_max))
+    )
+    if np.count_nonzero(mask) < 3:
+        raise ValueError("radial filter leaves fewer than three surfaces")
+    return (
+        R_surf[:, mask, :],
+        Z_surf[:, mask, :],
+        phi_vals,
+        theta_vals,
+        radial_labels[mask],
+        np.asarray(iota, dtype=np.float64)[mask],
+        source,
+    )
+
+
+def poincare_seed_grid_from_vmec_lcfs(
     wout_path: Path,
     *,
     fractions: list[float],
@@ -201,6 +301,42 @@ def poincare_seed_grid(
             seeds_Z.append(axis_Z[0] + float(frac) * (z_edge - axis_Z[0]))
             seed_fraction.append(float(frac))
     return np.asarray(seeds_R), np.asarray(seeds_Z), np.asarray(seed_fraction)
+
+
+def poincare_seed_grid_from_coordinates(
+    R_surf: np.ndarray,
+    Z_surf: np.ndarray,
+    phi_vals: np.ndarray,
+    theta_vals: np.ndarray,
+    radial_labels: np.ndarray,
+    *,
+    labels: list[float],
+    n_angles: int,
+    phi0: float = 0.0,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    phi = np.asarray(phi_vals, dtype=np.float64)
+    theta = np.asarray(theta_vals, dtype=np.float64)
+    radial = np.asarray(radial_labels, dtype=np.float64)
+    iphi = int(np.argmin(np.abs(np.angle(np.exp(1j * (phi - float(phi0)))))))
+    angles = np.linspace(0.0, 2.0 * np.pi, int(n_angles), endpoint=False, dtype=np.float64)
+    seeds_R = []
+    seeds_Z = []
+    seed_label = []
+    for label in labels:
+        target = float(label)
+        if target < radial[0] or target > radial[-1]:
+            continue
+        for angle in angles:
+            R_theta = np.array(
+                [periodic_curve_interp(theta, R_surf[iphi, ir], np.asarray([angle]))[0] for ir in range(radial.size)]
+            )
+            Z_theta = np.array(
+                [periodic_curve_interp(theta, Z_surf[iphi, ir], np.asarray([angle]))[0] for ir in range(radial.size)]
+            )
+            seeds_R.append(float(np.interp(target, radial, R_theta)))
+            seeds_Z.append(float(np.interp(target, radial, Z_theta)))
+            seed_label.append(target)
+    return np.asarray(seeds_R, dtype=np.float64), np.asarray(seeds_Z, dtype=np.float64), np.asarray(seed_label)
 
 
 def cyna_field_cache(R: np.ndarray, Z: np.ndarray, Phi: np.ndarray, BR: np.ndarray, BPhi: np.ndarray, BZ: np.ndarray) -> dict:
@@ -348,6 +484,7 @@ def save_plots(
     phase_shifts_deg,
     poincare=None,
     poincare_seed_fraction=None,
+    poincare_seed_label="seed radial label",
     vessel_phi=None,
     vessel_sections=None,
     vessel_nfp=None,
@@ -410,7 +547,7 @@ def save_plots(
     plt.close(fig)
     written.append(path)
 
-    section_phis = np.linspace(0.0, 2.0 * np.pi, 4, endpoint=False)
+    section_phis = np.radians([0.0, 30.0, 60.0, 90.0])
     fig, axes = plt.subplots(2, 2, figsize=(10.5, 10.0), constrained_layout=True)
     for ax, phi_section in zip(axes.ravel(), section_phis):
         plot_island_chains_on_section(
@@ -495,7 +632,7 @@ def save_plots(
                 ax.legend(loc="upper right", fontsize=7)
         if "sc" in locals():
             cbar = fig.colorbar(sc, ax=axes.ravel()[:n_panels], shrink=0.78, pad=0.01)
-            cbar.set_label("seed fraction to VMEC LCFS")
+            cbar.set_label(poincare_seed_label)
         fig.suptitle(f"NCSX wall, Poincare traces, and magnetic-spectrum island bars ({poincare_label})", fontsize=13)
         path = plot_dir / "07_wall_poincare_island_design_overview.png"
         fig.savefig(path, dpi=210, bbox_inches="tight")
@@ -528,6 +665,9 @@ def main() -> None:
     parser.add_argument("--wout", type=Path, default=DEFAULT_WOUT)
     parser.add_argument("--vessel", type=Path, default=DEFAULT_VESSEL)
     parser.add_argument("--state", type=Path, default=None)
+    parser.add_argument("--iota-source", choices=("auto", "coords", "wout"), default="auto")
+    parser.add_argument("--radial-min", type=float, default=0.04)
+    parser.add_argument("--radial-max", type=float, default=1.0)
     parser.add_argument("--n-values", type=parse_ints, default=parse_ints("2,3,4"))
     parser.add_argument("--m-max", type=int, default=24)
     parser.add_argument("--spectrum-n-max", type=int, default=12)
@@ -540,9 +680,14 @@ def main() -> None:
     parser.add_argument("--no-plots", action="store_true")
     parser.add_argument("--no-poincare", action="store_true")
     parser.add_argument("--poincare-field", choices=("total", "vacuum-state", "mgrid"), default="total")
+    parser.add_argument("--poincare-seed-source", choices=("coords", "vmec-lcfs"), default="coords")
     parser.add_argument("--poincare-sections-deg", type=parse_floats, default=parse_floats("0,30,60,90"))
-    parser.add_argument("--seed-fractions", type=parse_floats, default=parse_floats("0.08,0.16,0.24,0.32,0.40,0.50,0.60,0.70,0.80,0.88,0.94,1.00,1.04"))
-    parser.add_argument("--seed-angles", type=int, default=16)
+    parser.add_argument(
+        "--seed-fractions",
+        type=parse_floats,
+        default=parse_floats("0.05,0.10,0.15,0.20,0.25,0.30,0.35,0.40,0.45,0.50,0.55,0.60,0.65,0.70,0.75,0.80,0.85,0.90,0.95"),
+    )
+    parser.add_argument("--seed-angles", type=int, default=8)
     parser.add_argument("--poincare-turns", type=int, default=90)
     parser.add_argument("--poincare-dphi", type=float, default=0.035)
     parser.add_argument("--poincare-threads", type=int, default=-1)
@@ -555,13 +700,13 @@ def main() -> None:
         args.plot_dir = args.out_dir / "figures"
     state_path = args.state if args.state is not None else latest_beta_state(args.ncsx_root)
 
-    with np.load(args.coords, allow_pickle=False) as coords:
-        R_surf = coords["R_surf"]
-        Z_surf = coords["Z_surf"]
-        phi_vals = coords["phi_vals"]
-        theta_vals = coords["theta_vals"]
-        radial_labels = coords["radial_labels"]
-        iota = coords["iota"]
+    R_surf, Z_surf, phi_vals, theta_vals, radial_labels, iota, iota_source = load_surface_coordinates(
+        args.coords,
+        wout_path=args.wout,
+        iota_source=args.iota_source,
+        radial_min=args.radial_min,
+        radial_max=args.radial_max,
+    )
 
     poincare_grid = None
     with np.load(state_path, allow_pickle=False) as state:
@@ -672,14 +817,30 @@ def main() -> None:
         print(f"vessel: {args.vessel}  Nfp={vessel_nfp} sections={len(vessel_phi)}")
         if int(vessel_nfp) != 3:
             print(f"warning: expected NCSX Nfp=3, vessel file reports {vessel_nfp}")
-        seeds_R, seeds_Z, seed_fraction = poincare_seed_grid(
-            args.wout,
-            fractions=args.seed_fractions,
-            n_angles=args.seed_angles,
-            phi0=0.0,
-        )
+        if args.poincare_seed_source == "coords":
+            seeds_R, seeds_Z, seed_fraction = poincare_seed_grid_from_coordinates(
+                R_surf,
+                Z_surf,
+                phi_vals,
+                theta_vals,
+                radial_labels,
+                labels=args.seed_fractions,
+                n_angles=args.seed_angles,
+                phi0=0.0,
+            )
+            seed_label_name = "seed radial label s"
+        else:
+            seeds_R, seeds_Z, seed_fraction = poincare_seed_grid_from_vmec_lcfs(
+                args.wout,
+                fractions=args.seed_fractions,
+                n_angles=args.seed_angles,
+                phi0=0.0,
+            )
+            seed_label_name = "seed fraction to VMEC LCFS"
+        if seeds_R.size == 0:
+            raise RuntimeError("no valid Poincare seeds after radial filtering")
         print(
-            f"tracing Poincare: field={poincare_grid['label']} seeds={seeds_R.size} "
+            f"tracing Poincare: field={poincare_grid['label']} seed_source={args.poincare_seed_source} seeds={seeds_R.size} "
             f"turns={args.poincare_turns} sections={args.poincare_sections_deg}"
         )
         field = cyna_field_cache(
@@ -718,6 +879,7 @@ def main() -> None:
     print(f"coords: {args.coords}")
     print(f"state:  {state_path}")
     print(f"beta:   {beta}")
+    print(f"iota:   {iota_source}")
     print(
         f"surfaces: n_phi={phi_vals.size} n_s={radial_labels.size} n_theta={theta_vals.size} "
         f"s=[{radial_labels[0]:.4g}, {radial_labels[-1]:.4g}] "
@@ -742,7 +904,10 @@ def main() -> None:
         base_o = strongest.fixed_points(0.0)["theta_O"][0, 0]
         for shift_deg in args.phase_shifts_deg:
             shifted = strongest.with_phase_shift(np.radians(shift_deg))
-            theta_o = shifted.fixed_points(0.0)["theta_O"][0, 0]
+            candidates = shifted.fixed_points(0.0)["theta_O"][0]
+            expected_o = base_o - np.radians(shift_deg) / float(strongest.m)
+            candidate_idx = int(np.argmin(np.abs(np.angle(np.exp(1j * (candidates - expected_o))))))
+            theta_o = candidates[candidate_idx]
             dtheta = np.degrees(np.angle(np.exp(1j * (theta_o - base_o))))
             print(
                 f"  dphase={shift_deg:8.3f} deg -> theta_O0={np.degrees(theta_o):9.3f} deg "
@@ -765,6 +930,9 @@ def main() -> None:
             "wout": str(args.wout),
             "vessel": str(args.vessel),
             "beta": beta,
+            "iota_source": iota_source,
+            "radial_min": float(args.radial_min),
+            "radial_max": float(args.radial_max),
             "finite_tilde_b1_fraction": finite_fraction,
             "radial_labels": radial_labels.tolist(),
             "iota": np.asarray(iota).tolist(),
@@ -779,6 +947,7 @@ def main() -> None:
                 "n_turns": int(args.poincare_turns),
                 "n_seeds": int(len(seed_fraction)),
                 "seed_fractions": [float(x) for x in args.seed_fractions],
+                "seed_source": args.poincare_seed_source,
             },
         }
         args.out.parent.mkdir(parents=True, exist_ok=True)
@@ -799,6 +968,7 @@ def main() -> None:
             phase_shifts_deg=args.phase_shifts_deg,
             poincare=poincare,
             poincare_seed_fraction=seed_fraction,
+            poincare_seed_label=seed_label_name if seed_fraction is not None else "seed radial label",
             vessel_phi=vessel_phi,
             vessel_sections=vessel_sections,
             vessel_nfp=vessel_nfp,

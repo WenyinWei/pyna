@@ -2,7 +2,7 @@
 
 Runs in two modes:
 1. Synthetic data (always runs) — verifies the interface without any real field.
-2. Real field cache (skipped if D:\\haodata\\data\\bluestar_starting_config_field_cache_200x190x128.pkl
+2. Real field cache (skipped if D:\\private_stellarator_data\\data\\bluestar_starting_config_field_cache_200x190x128.pkl
    does not exist) — verifies that the new hierarchy wires correctly with actual physics data.
 """
 
@@ -20,8 +20,8 @@ from pyna.topo.toroidal import Tube, TubeChain
 # Paths
 # ---------------------------------------------------------------------------
 
-FIELD_CACHE_PATH = r"D:\haodata\data\bluestar_starting_config_field_cache_200x190x128.pkl"
-FP_PKL_PATH = r"D:\haodata\fixed_points_all_sections.pkl"
+FIELD_CACHE_PATH = r"D:\private_stellarator_data\data\bluestar_starting_config_field_cache_200x190x128.pkl"
+FP_PKL_PATH = r"D:\private_stellarator_data\fixed_points_all_sections.pkl"
 
 FIELD_CACHE_EXISTS = os.path.isfile(FIELD_CACHE_PATH)
 

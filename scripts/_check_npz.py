@@ -3,7 +3,7 @@ import numpy as np
 import glob
 import re
 
-files = sorted(glob.glob("/mnt/c/Users/28105/Nutstore/1/haodata/coilsys/vacuum_fields/dipole_coil_*.npz"))
+files = sorted(glob.glob("/mnt/c/Users/28105/Nutstore/1/private_stellarator_data/coilsys/vacuum_fields/dipole_coil_*.npz"))
 f = files[0]
 d = np.load(f)
 print("Keys:", list(d.keys()))

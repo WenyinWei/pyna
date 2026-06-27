@@ -132,6 +132,130 @@ static const double* buf(const py::array_t<double>& a, const char* name) {
     return a.data();
 }
 
+struct VectorFieldCylindHandle {
+    py::array_t<double> R;
+    py::array_t<double> Z;
+    py::array_t<double> Phi;
+    py::array_t<double> BR;
+    py::array_t<double> BZ;
+    py::array_t<double> BPhi;
+    int nR = 0;
+    int nZ = 0;
+    int nPhi = 0;
+
+    VectorFieldCylindHandle(
+        py::array_t<double> R_in,
+        py::array_t<double> Z_in,
+        py::array_t<double> Phi_in,
+        py::array_t<double> BR_in,
+        py::array_t<double> BZ_in,
+        py::array_t<double> BPhi_in)
+        : R(std::move(R_in)),
+          Z(std::move(Z_in)),
+          Phi(std::move(Phi_in)),
+          BR(std::move(BR_in)),
+          BZ(std::move(BZ_in)),
+          BPhi(std::move(BPhi_in))
+    {
+        buf(R, "R");
+        buf(Z, "Z");
+        buf(Phi, "Phi");
+        buf(BR, "BR");
+        buf(BZ, "BZ");
+        buf(BPhi, "BPhi");
+        nR = (int)R.size();
+        nZ = (int)Z.size();
+        nPhi = (int)Phi.size();
+        if (nR < 2 || nZ < 2 || nPhi < 1)
+            throw std::runtime_error("R_grid, Z_grid and Phi_grid have invalid lengths");
+        const py::ssize_t expected = (py::ssize_t)nR * (py::ssize_t)nZ * (py::ssize_t)nPhi;
+        if (BR.size() != expected || BZ.size() != expected || BPhi.size() != expected)
+            throw std::runtime_error("BR, BZ and BPhi must each have size nR*nZ*nPhi");
+    }
+
+    py::tuple trace_map_batch_span(
+        py::array_t<double> R_seeds,
+        py::array_t<double> Z_seeds,
+        double phi_section,
+        double map_span,
+        int N_steps,
+        double DPhi,
+        py::array_t<double> wall_R,
+        py::array_t<double> wall_Z,
+        int n_threads) const
+    {
+        if (n_threads <= 0)
+            n_threads = (int)std::thread::hardware_concurrency();
+        if (!std::isfinite(map_span) || std::abs(map_span) <= 1e-14)
+            throw std::runtime_error("map_span must be finite and non-zero");
+        if (N_steps <= 0)
+            throw std::runtime_error("N_steps must be positive");
+        const int N_seeds = (int)R_seeds.size();
+        if ((int)Z_seeds.size() != N_seeds)
+            throw std::runtime_error("R_seeds and Z_seeds must have the same length");
+        const int n_wall = (int)wall_R.size();
+        if ((int)wall_Z.size() != n_wall)
+            throw std::runtime_error("wall_R and wall_Z must have the same length");
+
+        py::array_t<int> counts({N_seeds});
+        py::array_t<double> R_out({N_seeds * N_steps});
+        py::array_t<double> Z_out({N_seeds * N_steps});
+        std::fill(counts.mutable_data(), counts.mutable_data() + N_seeds, 0);
+        std::fill(R_out.mutable_data(), R_out.mutable_data() + N_seeds * N_steps, 0.0);
+        std::fill(Z_out.mutable_data(), Z_out.mutable_data() + N_seeds * N_steps, 0.0);
+
+        cyna::trace_map_batch_span(
+            buf(R_seeds, "R_seeds"), buf(Z_seeds, "Z_seeds"), N_seeds,
+            phi_section, map_span, N_steps, DPhi,
+            buf(BR, "BR"), buf(BZ, "BZ"), buf(BPhi, "BPhi"),
+            buf(R, "R"), nR,
+            buf(Z, "Z"), nZ,
+            buf(Phi, "Phi"), nPhi,
+            buf(wall_R, "wall_R"), buf(wall_Z, "wall_Z"), n_wall,
+            n_threads,
+            counts.mutable_data(), R_out.mutable_data(), Z_out.mutable_data());
+        return py::make_tuple(counts, R_out, Z_out);
+    }
+
+    py::tuple find_fixed_points_batch_span(
+        py::array_t<double> R_seeds,
+        py::array_t<double> Z_seeds,
+        double phi_section,
+        double map_span,
+        double DPhi,
+        double fd_eps,
+        int max_iter,
+        double tol,
+        int n_threads) const
+    {
+        if (n_threads <= 0)
+            n_threads = (int)std::thread::hardware_concurrency();
+        const int N = (int)R_seeds.size();
+        if ((int)Z_seeds.size() != N)
+            throw std::runtime_error("R_seeds and Z_seeds must have the same length");
+
+        py::array_t<double> R_out({N}), Z_out({N}), res_out({N});
+        py::array_t<int> conv_out({N}), ptype_out({N});
+        py::array_t<double> DPm_out({N, 4});
+        py::array_t<double> eigr_out({N, 2}), eigi_out({N, 2});
+
+        cyna::find_fixed_points_batch_span(
+            buf(R_seeds, "R_seeds"), buf(Z_seeds, "Z_seeds"), N,
+            phi_section, map_span, DPhi, fd_eps, max_iter, tol,
+            buf(BR, "BR"), buf(BZ, "BZ"), buf(BPhi, "BPhi"),
+            buf(R, "R"), nR,
+            buf(Z, "Z"), nZ,
+            buf(Phi, "Phi"), nPhi,
+            n_threads,
+            R_out.mutable_data(), Z_out.mutable_data(),
+            res_out.mutable_data(), conv_out.mutable_data(),
+            DPm_out.mutable_data(),
+            eigr_out.mutable_data(), eigi_out.mutable_data(),
+            ptype_out.mutable_data());
+        return py::make_tuple(R_out, Z_out, res_out, conv_out, DPm_out, eigr_out, eigi_out, ptype_out);
+    }
+};
+
 // ---------------------------------------------------------------------------
 // compute_A_matrix_batch
 // ---------------------------------------------------------------------------
@@ -368,6 +492,63 @@ static py::tuple py_trace_poincare_batch(
         direction);
 
     return py::make_tuple(poi_counts, poi_R_flat, poi_Z_flat);
+}
+
+static py::tuple py_trace_map_batch_span(
+    py::array_t<double> R_seeds,
+    py::array_t<double> Z_seeds,
+    double phi_section,
+    double map_span,
+    int N_steps,
+    double DPhi,
+    py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
+    py::array_t<double> R_grid,
+    py::array_t<double> Z_grid,
+    py::array_t<double> Phi_grid,
+    py::array_t<double> wall_R,
+    py::array_t<double> wall_Z,
+    int n_threads)
+{
+    if (n_threads <= 0)
+        n_threads = (int)std::thread::hardware_concurrency();
+    if (!std::isfinite(map_span) || std::abs(map_span) <= 1e-14)
+        throw std::runtime_error("map_span must be finite and non-zero");
+    if (N_steps <= 0)
+        throw std::runtime_error("N_steps must be positive");
+
+    int N_seeds = (int)R_seeds.size();
+    int nR      = (int)R_grid.size();
+    int nZ      = (int)Z_grid.size();
+    int nPhi    = (int)Phi_grid.size();
+    int n_wall  = (int)wall_R.size();
+
+    if ((int)Z_seeds.size() != N_seeds)
+        throw std::runtime_error("R_seeds and Z_seeds must have the same length");
+    if ((int)wall_Z.size() != n_wall)
+        throw std::runtime_error("wall_R and wall_Z must have the same length");
+
+    py::array_t<int>    map_counts({ N_seeds });
+    py::array_t<double> map_R_flat({ N_seeds * N_steps });
+    py::array_t<double> map_Z_flat({ N_seeds * N_steps });
+
+    std::fill(map_counts.mutable_data(), map_counts.mutable_data() + N_seeds, 0);
+    std::fill(map_R_flat.mutable_data(), map_R_flat.mutable_data() + N_seeds * N_steps, 0.0);
+    std::fill(map_Z_flat.mutable_data(), map_Z_flat.mutable_data() + N_seeds * N_steps, 0.0);
+
+    cyna::trace_map_batch_span(
+        buf(R_seeds, "R_seeds"), buf(Z_seeds, "Z_seeds"), N_seeds,
+        phi_section, map_span, N_steps, DPhi,
+        buf(BR,"BR"), buf(BZ,"BZ"), buf(BPhi,"BPhi"),
+        buf(R_grid, "R_grid"), nR,
+        buf(Z_grid, "Z_grid"), nZ,
+        buf(Phi_grid, "Phi_grid"), nPhi,
+        buf(wall_R, "wall_R"), buf(wall_Z, "wall_Z"), n_wall,
+        n_threads,
+        map_counts.mutable_data(),
+        map_R_flat.mutable_data(),
+        map_Z_flat.mutable_data());
+
+    return py::make_tuple(map_counts, map_R_flat, map_Z_flat);
 }
 
 static py::tuple py_trace_poincare_batch_twall(
@@ -928,6 +1109,36 @@ PYBIND11_MODULE(_cyna_ext, m) {
     m.attr("__version__") = "0.2.0";
     m.attr("available")   = true;
 
+    py::class_<VectorFieldCylindHandle>(m, "VectorFieldCylind")
+        .def(py::init<
+                py::array_t<double>, py::array_t<double>, py::array_t<double>,
+                py::array_t<double>, py::array_t<double>, py::array_t<double>>(),
+             py::arg("R"), py::arg("Z"), py::arg("Phi"),
+             py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
+             "C-contiguous VectorFieldCylind handle for cyna tracing kernels.")
+        .def_property_readonly("nR", [](const VectorFieldCylindHandle& f) { return f.nR; })
+        .def_property_readonly("nZ", [](const VectorFieldCylindHandle& f) { return f.nZ; })
+        .def_property_readonly("nPhi", [](const VectorFieldCylindHandle& f) { return f.nPhi; })
+        .def("trace_map_batch_span",
+             &VectorFieldCylindHandle::trace_map_batch_span,
+             py::arg("R_seeds"), py::arg("Z_seeds"),
+             py::arg("phi_section"), py::arg("map_span"),
+             py::arg("N_steps"), py::arg("DPhi"),
+             py::arg("wall_R") = py::array_t<double>({0}),
+             py::arg("wall_Z") = py::array_t<double>({0}),
+             py::arg("n_threads") = -1,
+             "Trace arbitrary toroidal-span map iterates using this field handle.")
+        .def("find_fixed_points_batch_span",
+             &VectorFieldCylindHandle::find_fixed_points_batch_span,
+             py::arg("R_seeds"), py::arg("Z_seeds"),
+             py::arg("phi_section"), py::arg("map_span"),
+             py::arg("DPhi") = 0.05,
+             py::arg("fd_eps") = 1e-4,
+             py::arg("max_iter") = 40,
+             py::arg("tol") = 1e-9,
+             py::arg("n_threads") = -1,
+             "Parallel arbitrary-span fixed-point Newton using this field handle.");
+
     // Debug: expose point_in_wall directly
     m.def("point_in_wall", [](double R, double Z,
                                py::array_t<double> wR, py::array_t<double> wZ) {
@@ -958,7 +1169,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
             R, Z, Phi);
     });
 
-	    m.def("trace_poincare_batch", &py_trace_poincare_batch,
+		    m.def("trace_poincare_batch", &py_trace_poincare_batch,
 	        py::arg("R_seeds"), py::arg("Z_seeds"), py::arg("phi_section"),
 	        py::arg("N_turns"), py::arg("DPhi"),
 	        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
@@ -967,10 +1178,21 @@ PYBIND11_MODULE(_cyna_ext, m) {
 	        py::arg("n_threads") = -1,
 	        py::arg("direction") = +1,
 	        "Trace Poincaré section for multiple seeds against a fixed 2-D wall slice.\n"
-	        "direction=+1 traces phi-increasing; direction=-1 traces phi-decreasing.\n"
-	        "Returns (poi_counts, poi_R_flat, poi_Z_flat).");
+		        "direction=+1 traces phi-increasing; direction=-1 traces phi-decreasing.\n"
+		        "Returns (poi_counts, poi_R_flat, poi_Z_flat).");
 
-	    m.def("trace_poincare_batch_twall", &py_trace_poincare_batch_twall,
+		    m.def("trace_map_batch_span", &py_trace_map_batch_span,
+		        py::arg("R_seeds"), py::arg("Z_seeds"), py::arg("phi_section"),
+		        py::arg("map_span"), py::arg("N_steps"), py::arg("DPhi"),
+		        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
+		        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+		        py::arg("wall_R"), py::arg("wall_Z"),
+		        py::arg("n_threads") = -1,
+		        "Trace arbitrary toroidal-span map iterates for multiple seeds.\n"
+		        "Use map_span=2*pi/Nfp for field-period Poincare maps.\n"
+		        "Returns (map_counts, map_R_flat, map_Z_flat).");
+
+		    m.def("trace_poincare_batch_twall", &py_trace_poincare_batch_twall,
 	        py::arg("R_seeds"), py::arg("Z_seeds"), py::arg("phi_section"),
 	        py::arg("N_turns"), py::arg("DPhi"),
 	        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
@@ -1147,7 +1369,51 @@ PYBIND11_MODULE(_cyna_ext, m) {
         "Each seed is refined independently in its own thread.\n"
         "Returns (R_out, Z_out, residual, converged, DPm[N,4],\n"
         "         eig_r[N,2], eig_i[N,2], point_type[N]).\n"
-        "point_type: 1=X-point (|Tr|>2), 0=O-point, -1=not converged.");
+        "point_type: 1=real stable/unstable X-point, 0=not X, -1=not converged.");
+
+    m.def("find_fixed_points_batch_span",
+        [](py::array_t<double> R_seeds, py::array_t<double> Z_seeds,
+           double phi_section, double map_span, double DPhi,
+           double fd_eps, int max_iter, double tol,
+           py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
+           py::array_t<double> R_grid, py::array_t<double> Z_grid,
+           py::array_t<double> Phi_grid,
+           int n_threads) -> py::tuple
+        {
+            if (n_threads <= 0) n_threads = (int)std::thread::hardware_concurrency();
+            int N = (int)R_seeds.size();
+
+            py::array_t<double> R_out({N}), Z_out({N}), res_out({N});
+            py::array_t<int>    conv_out({N}), ptype_out({N});
+            py::array_t<double> DPm_out({N, 4});
+            py::array_t<double> eigr_out({N, 2}), eigi_out({N, 2});
+
+            cyna::find_fixed_points_batch_span(
+                buf(R_seeds,"R_seeds"), buf(Z_seeds,"Z_seeds"), N,
+                phi_section, map_span, DPhi, fd_eps, max_iter, tol,
+                buf(BR,"BR"), buf(BZ,"BZ"), buf(BPhi,"BPhi"),
+                buf(R_grid,"R_grid"), (int)R_grid.size(),
+                buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
+                buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size(),
+                n_threads,
+                R_out.mutable_data(), Z_out.mutable_data(),
+                res_out.mutable_data(), conv_out.mutable_data(),
+                DPm_out.mutable_data(),
+                eigr_out.mutable_data(), eigi_out.mutable_data(),
+                ptype_out.mutable_data());
+
+            return py::make_tuple(R_out, Z_out, res_out, conv_out,
+                                  DPm_out, eigr_out, eigi_out, ptype_out);
+        },
+        py::arg("R_seeds"), py::arg("Z_seeds"),
+        py::arg("phi_section"), py::arg("map_span"), py::arg("DPhi") = 0.05,
+        py::arg("fd_eps") = 1e-4, py::arg("max_iter") = 40, py::arg("tol") = 1e-9,
+        py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
+        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+        py::arg("n_threads") = -1,
+        "Parallel Newton search for fixed points of an arbitrary toroidal-span map.\n"
+        "Use map_span=m*2*pi/Nfp for stellarator field-period island chains.\n"
+        "Returns the same tuple layout as find_fixed_points_batch.");
 
     m.def("compute_A_matrix_batch", &py_compute_A_matrix_batch,
         py::arg("R_arr"), py::arg("Z_arr"), py::arg("phi_arr"),

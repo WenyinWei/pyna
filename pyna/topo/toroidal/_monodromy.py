@@ -8,6 +8,7 @@ from typing import List, Optional
 import numpy as np
 
 from pyna.topo.core import Stability
+from pyna.topo._monodromy_classification import classify_monodromy_2x2
 
 
 @dataclass(eq=False)
@@ -23,13 +24,14 @@ class MonodromyData:
 
     @cached_property
     def stability(self) -> Stability:
-        tr = self.trace
-        if abs(tr) < 2.0 - 1e-10:
+        kind = classify_monodromy_2x2(self.DPm).kind
+        if kind == "O":
             return Stability.ELLIPTIC
-        elif abs(tr) > 2.0 + 1e-10:
+        if kind == "X":
             return Stability.HYPERBOLIC
-        else:
+        if kind == "P":
             return Stability.PARABOLIC
+        return Stability.UNKNOWN
 
     @cached_property
     def greene_residue(self) -> float:

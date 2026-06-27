@@ -154,7 +154,7 @@ from pyna.topo.invariant import InvariantTorus
 # Layer 3: Sections
 from pyna.topo.section import (
     Section, ToroidalSection, HyperplaneSection, ParametricSection,
-    toroidal_sections, HAO_SECTIONS,
+    toroidal_sections, TWO_PERIOD_SECTIONS,
 )
 # Layer 2: Resonance
 from pyna.topo.resonance import ResonanceNumber
@@ -335,7 +335,7 @@ __all__ = [
     "HyperplaneSection",
     "ParametricSection",
     "toroidal_sections",
-    "HAO_SECTIONS",
+    "TWO_PERIOD_SECTIONS",
     # Resonance
     "ResonanceNumber",
     # Field

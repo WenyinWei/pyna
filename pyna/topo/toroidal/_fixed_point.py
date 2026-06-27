@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional, Tuple
 import numpy as np
 
 from pyna.topo.core import SectionPoint as _SectionPoint, Stability
+from pyna.topo._monodromy_classification import classify_monodromy_2x2
 from ._monodromy import MonodromyData
 
 
@@ -53,8 +54,7 @@ class FixedPoint(_SectionPoint):
 
         # Auto-derive kind from DPm
         if not self.kind:
-            tr = float(np.trace(self.DPm))
-            self.kind = 'O' if abs(tr) < 2.0 - 1e-10 else 'X'
+            self.kind = classify_monodromy_2x2(self.DPm).kind
 
     @property
     def intrinsic_dim(self) -> int:
@@ -94,6 +94,7 @@ class FixedPoint(_SectionPoint):
             'phi': self.phi,
             'kind': self.kind,
             'greene_residue': self.greene_residue,
+            'determinant': float(np.linalg.det(self.DPm)),
             'coords': self.coords.tolist(),
         }
         if len(self.coords) >= 2:

@@ -2,7 +2,7 @@
 ==================
 Fast single-config magnetic topology evaluator — device-agnostic.
 
-Supports HAO, EAST, W7X and any arbitrary MCF device via DeviceConfig.
+Supports reference stellarator, EAST, W7X and any arbitrary MCF device via DeviceConfig.
 
 All heavy numerics go through the cyna C++ extension:
   – trace_poincare_batch_twall    – single-section Poincare (with twall)
@@ -13,7 +13,7 @@ All heavy numerics go through the cyna C++ extension:
 
 Python / scipy are used only as fallbacks when cyna is unavailable.
 
-Target: < 10 s on HAO baseline config.
+Target: < 10 s on reference stellarator baseline config.
 """
 from __future__ import annotations
 
@@ -74,7 +74,7 @@ class DeviceConfig:
     fp_pkl_path : str or None
         Path to pre-computed fixed-point pkl. None → live search.
     n_sym : int
-        Toroidal symmetry number (W7X=5, HAO=2, EAST=1).
+        Toroidal symmetry number (W7X=5, reference stellarator=2, EAST=1).
     island_period : int
         Period of outermost island chain (used for X-point DPm integration).
     R_search_min : float
@@ -97,19 +97,19 @@ class DeviceConfig:
     name: str = "unknown"
 
 
-# ── HAO preset ────────────────────────────────────────────────────────────────
-HAO_CONFIG = DeviceConfig(
+# ── reference stellarator preset ────────────────────────────────────────────────────────────────
+REFERENCE_STELLARATOR_CONFIG = DeviceConfig(
     R_ax_guess=0.85235,
     Z_ax_guess=-0.000073,
     a_minor=0.30,
     phi_sections=[0.0, np.pi / 4, np.pi / 2, 3 * np.pi / 4],
-    wall_file=r'D:\haodata\hao_1stwall_inner.txt',
-    fp_pkl_path=r'D:\haodata\fixed_points_all_sections.pkl',
+    wall_file=r'D:\private_stellarator_data\private_wall_inner.txt',
+    fp_pkl_path=r'D:\private_stellarator_data\fixed_points_all_sections.pkl',
     n_sym=2,
     island_period=3,
     R_search_min=0.7,
     R_search_max=1.2,
-    name="HAO",
+    name="reference stellarator",
 )
 
 # ── EAST preset (placeholder — fill in later) ─────────────────────────────────
@@ -234,7 +234,7 @@ def _find_wall_file_for_device(device: DeviceConfig):
         p = Path(device.wall_file)
         if p.exists():
             return str(p)
-        # HAO fallback path
+        # reference stellarator fallback path
         fallback = TOPOQUEST / "data" / p.name
         if fallback.exists():
             return str(fallback)
@@ -244,8 +244,8 @@ def _find_wall_file_for_device(device: DeviceConfig):
 
 
 def _find_wall_file():
-    """Legacy backward-compat: find HAO wall file using HAO_CONFIG defaults."""
-    return _find_wall_file_for_device(HAO_CONFIG)
+    """Legacy backward-compat: find reference stellarator wall file using REFERENCE_STELLARATOR_CONFIG defaults."""
+    return _find_wall_file_for_device(REFERENCE_STELLARATOR_CONFIG)
 
 
 def _load_wall(wall_file: str):
@@ -570,7 +570,7 @@ def _shoelace_area(R, Z):
 
 def evaluate_topology(
     field_cache: dict,
-    device: DeviceConfig = HAO_CONFIG,
+    device: DeviceConfig = REFERENCE_STELLARATOR_CONFIG,
     # Fine-grained quantity control
     compute_iota: bool = True,          # ι profile
     compute_xpt_DPm: bool = True,       # boundary X-point DPm (incl. λ_u)
@@ -594,7 +594,7 @@ def evaluate_topology(
     field_cache : dict
         Field cache dict with keys BR, BZ, BPhi, R_grid, Z_grid, Phi_grid.
     device : DeviceConfig
-        Device configuration. Defaults to HAO_CONFIG for backward compat.
+        Device configuration. Defaults to REFERENCE_STELLARATOR_CONFIG for backward compat.
     compute_iota : bool
         Whether to compute the ι profile. Default True.
     compute_xpt_DPm : bool

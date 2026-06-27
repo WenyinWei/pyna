@@ -5,7 +5,7 @@ Tests for FluxSurface, FluxSurfaceMap, XPointOrbit, and Island extensions.
 These tests are designed to:
 1. Build a FluxSurfaceMap from synthetic Poincaré data (no field cache required).
 2. Verify round-trip accuracy: to_RZ(to_rtheta(R, Z, phi)) ≈ (R, Z) < 1 mm.
-3. (Optional, HAO field_cache) Trace X-point orbit and verify closure < 1 mm.
+3. (Optional, reference stellarator field_cache) Trace X-point orbit and verify closure < 1 mm.
 4. Project external "coil" positions and verify r > 1 (outside LCFS).
 
 Run with: pytest tests/test_flux_surface.py -v
@@ -193,32 +193,32 @@ class TestXPointOrbit:
 
 
 # ---------------------------------------------------------------------------
-# Optional HAO integration test (skipped if field_cache unavailable)
+# Optional reference stellarator integration test (skipped if field_cache unavailable)
 # ---------------------------------------------------------------------------
 
-def _try_load_hao_field_cache():
+def _try_load_private_stellarator_field_cache():
     try:
         import pickle
-        with open(r"D:\haodata\field_cache.pkl", "rb") as f:
+        with open(r"D:\private_stellarator_data\field_cache.pkl", "rb") as f:
             return pickle.load(f)
     except Exception:
         return None
 
 
 @pytest.mark.skipif(
-    _try_load_hao_field_cache() is None,
-    reason="HAO field_cache.pkl not found",
+    _try_load_private_stellarator_field_cache() is None,
+    reason="reference stellarator field_cache.pkl not found",
 )
-class TestHAOIntegration:
+class TestPrivateStellaratorIntegration:
     @pytest.fixture(scope="class")
     def field_cache(self):
         import pickle
-        with open(r"D:\haodata\field_cache.pkl", "rb") as f:
+        with open(r"D:\private_stellarator_data\field_cache.pkl", "rb") as f:
             return pickle.load(f)
 
     def test_x_orbit_closure(self, field_cache):
         """X-point orbit should close to < 1 mm after period turns."""
-        # Use known HAO X-point coordinates (m/n=10/3 island)
+        # Use known reference stellarator X-point coordinates (m/n=10/3 island)
         R_xpt, Z_xpt = 1.08, 0.0  # approximate — replace with actual value
         orbit = XPointOrbit.trace(R_xpt, Z_xpt, phi0=0.0, period=10,
                                    field_cache=field_cache, dphi_out=0.05)

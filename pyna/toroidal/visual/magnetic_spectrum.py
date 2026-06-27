@@ -377,7 +377,13 @@ def plot_island_phase_scan(
 
     shifts = np.asarray(phase_shifts, dtype=float)
     base = chain.fixed_points(phi_section)["theta_O"][0, 0]
-    theta = np.array([chain.with_phase_shift(shift).fixed_points(phi_section)["theta_O"][0, 0] for shift in shifts])
+    tracked = []
+    for shift in shifts:
+        theta_o = chain.with_phase_shift(shift).fixed_points(phi_section)["theta_O"][0]
+        expected = base - float(shift) / float(chain.m)
+        idx = int(np.argmin(np.abs(np.angle(np.exp(1j * (theta_o - expected))))))
+        tracked.append(float(theta_o[idx]))
+    theta = np.asarray(tracked, dtype=float)
     dtheta = np.angle(np.exp(1j * (theta - base)))
     if ax is None:
         fig, ax = plt.subplots(figsize=(6.4, 4.2))

@@ -4,7 +4,7 @@ Integration tests for pyna.topo.fixed_points Newton-method fixed-point locator.
 
 Requires:
   - topoquest installed / importable
-  - HAO field cache present at D:\\haodata\\hao_field_cache_*.pkl
+  - reference stellarator field cache present at D:\\private_stellarator_data\\private_field_cache_*.pkl
   - pyna _cyna extension (optional for faster tracing)
 
 Run with:
@@ -27,32 +27,32 @@ for _p in (_TOPOQUEST, _PYNA):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
-_WALL_PATH = Path(r"D:\haodata\hao_1stwall_inner.txt")
+_WALL_PATH = Path(r"D:\private_stellarator_data\private_wall_inner.txt")
 
 # ---------------------------------------------------------------------------
 # Module-level fixtures  (heavy, session-scoped)
 # ---------------------------------------------------------------------------
 
 @pytest.fixture(scope="module")
-def hao_tracer():
-    """Build a FieldlineTracer from the HAO field cache."""
+def private_stellarator_tracer():
+    """Build a FieldlineTracer from the reference stellarator field cache."""
     from scipy.interpolate import RegularGridInterpolator
     topoquest_tracing = pytest.importorskip(
         "topoquest.tracing",
-        reason="requires optional topoquest package and private HAO field cache",
+        reason="requires optional topoquest package and private reference stellarator field cache",
     )
-    explore_hao = pytest.importorskip(
-        "explore_hao_divertor_configs",
-        reason="requires private HAO field cache loader",
+    private_loader = pytest.importorskip(
+        "private_stellarator_divertor_configs",
+        reason="requires private reference stellarator field cache loader",
     )
     if not _WALL_PATH.exists():
-        pytest.skip(f"requires private HAO wall file at {_WALL_PATH}")
+        pytest.skip(f"requires private reference stellarator wall file at {_WALL_PATH}")
 
     FieldlineTracer = topoquest_tracing.FieldlineTracer
     WallGeometry = topoquest_tracing.WallGeometry
-    load_field_cache = explore_hao.load_field_cache
+    load_field_cache = private_loader.load_field_cache
 
-    print("\nLoading HAO field cache ...", flush=True)
+    print("\nLoading reference stellarator field cache ...", flush=True)
     t0 = time.time()
     fc = load_field_cache()
     print(f"  Loaded in {time.time()-t0:.1f}s  BR shape={fc['BR'].shape}", flush=True)
@@ -102,11 +102,11 @@ def _residual(tracer, R, Z, phi_sec, period):
 # Test 1 -- Magnetic axis (m=1 O-point)
 # ---------------------------------------------------------------------------
 
-def test_magnetic_axis(hao_tracer):
+def test_magnetic_axis(private_stellarator_tracer):
     """Newton method should converge to the magnetic axis from (0.85, 0.0)."""
     from pyna.topo.fixed_points import find_magnetic_axis
 
-    tracer = hao_tracer
+    tracer = private_stellarator_tracer
     R_guess, Z_guess = 0.85, 0.0
     phi_sec = 0.0
     tol = 1e-8
@@ -149,7 +149,7 @@ def test_magnetic_axis(hao_tracer):
 # Test 2 -- m=3 periodic fixed point (X or O from LFS island chain)
 # ---------------------------------------------------------------------------
 
-def test_period3_fixed_point(hao_tracer):
+def test_period3_fixed_point(private_stellarator_tracer):
     """Newton method should converge for a period-3 fixed point.
 
     We start from an approximate LFS island position and check that the
@@ -158,14 +158,14 @@ def test_period3_fixed_point(hao_tracer):
     """
     from pyna.topo.fixed_points import find_fixed_point_newton
 
-    tracer = hao_tracer
+    tracer = private_stellarator_tracer
     phi_sec = 0.0
     period  = 3
     tol     = 1e-8
 
     # Try to load from pkl
     R_guess, Z_guess = None, None
-    for pkl_name in ("hao_fp.pkl", "hao_fp_fallback.pkl"):
+    for pkl_name in ("private_fp.pkl", "private_fp_fallback.pkl"):
         pkl_path = _TOPOQUEST / pkl_name
         if pkl_path.exists():
             import pickle
@@ -187,7 +187,7 @@ def test_period3_fixed_point(hao_tracer):
             break
 
     if R_guess is None:
-        # Hard-coded approximate LFS position for HAO
+        # Hard-coded approximate LFS position for reference stellarator
         R_guess, Z_guess = 0.88, 0.06
         print(f"\n  No pkl found; using hard-coded guess (R={R_guess}, Z={Z_guess})")
     else:
@@ -238,10 +238,10 @@ def test_period3_fixed_point(hao_tracer):
 if __name__ == "__main__":
     import traceback
 
-    print("Building HAO tracer ...")
+    print("Building reference stellarator tracer ...")
     from scipy.interpolate import RegularGridInterpolator
     from topoquest.tracing import FieldlineTracer, WallGeometry
-    from explore_hao_divertor_configs import load_field_cache
+    from private_stellarator_divertor_configs import load_field_cache
 
     fc = load_field_cache()
     R_grid   = fc['R_grid']

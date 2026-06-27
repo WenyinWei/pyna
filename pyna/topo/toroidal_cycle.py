@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import warnings
 import numpy as np
+
+from pyna.topo._monodromy_classification import monodromy_kind
 from typing import Optional, Tuple, Callable
 from dataclasses import dataclass
 from pyna.topo._rk4 import rk4_integrate
@@ -66,8 +68,8 @@ class ToroidalPeriodicOrbitTrace:
 
     @property
     def kind(self) -> str:
-        """'O' if elliptic (stable), 'X' if hyperbolic."""
-        return 'O' if self.is_stable else 'X'
+        """Return determinant-checked monodromy kind: X, O, P, or U."""
+        return monodromy_kind(self.DPm)
 
     # ── InvariantSet-style interface ───────────────────────────────────────
 

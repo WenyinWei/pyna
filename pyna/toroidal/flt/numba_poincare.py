@@ -8,12 +8,15 @@ import numpy as np
 from pyna.fields.cylindrical import CylindricalFieldArrays, as_vector_field_cylindrical
 from pyna._cyna import (
     is_available as _cyna_available,
+    VectorFieldCylind as _cyna_VectorFieldCylind,
     trace_poincare_batch as _cyna_trace_poincare_batch,
     trace_poincare_multi as _cyna_trace_poincare_multi,
     trace_poincare_batch_twall as _cyna_trace_poincare_batch_twall,
+    trace_map_batch_span as _cyna_trace_map_batch_span,
     trace_connection_length_twall as _cyna_trace_connection_length_twall,
     trace_wall_hits_twall as _cyna_trace_wall_hits_twall,
     find_fixed_points_batch as _cyna_find_fixed_points_batch,
+    find_fixed_points_batch_span as _cyna_find_fixed_points_batch_span,
     trace_orbit_along_phi as _cyna_trace_orbit_along_phi,
     progress_DX_pol_along_orbit as _cyna_progress_DX_pol_along_orbit,
     progress_delta_X_along_orbit as _cyna_progress_delta_X_along_orbit,
@@ -41,6 +44,22 @@ def field_arrays_from_field(field, *, extend_phi: bool = False) -> CylindricalFi
     """Return a named cyna-array view from a cylindrical vector field object."""
 
     return as_vector_field_cylindrical(field).cyna_arrays(extend_phi=extend_phi)
+
+
+def vector_field_cylind_from_field(field, *, extend_phi: bool = True):
+    """Build a cyna ``VectorFieldCylind`` handle from a pyna VectorFieldCylind."""
+
+    if not _cyna_available() or _cyna_VectorFieldCylind is None:
+        raise ImportError("pyna._cyna.VectorFieldCylind is unavailable. Build cyna first.")
+    arrays = field_arrays_from_field(field, extend_phi=extend_phi)
+    return _cyna_VectorFieldCylind(
+        arrays.R_grid,
+        arrays.Z_grid,
+        arrays.Phi_grid,
+        arrays.BR_flat,
+        arrays.BZ_flat,
+        arrays.BPhi_flat,
+    )
 
 
 
@@ -873,6 +892,180 @@ def find_fixed_points_batch_field(
     )
 
 
+def find_fixed_points_batch_span(
+    R_seeds,
+    Z_seeds,
+    phi_start,
+    map_span,
+    DPhi,
+    R_grid,
+    Z_grid,
+    Phi_grid,
+    BR_flat,
+    BZ_flat,
+    BPhi_flat,
+    **kwargs,
+):
+    """Batch search for fixed points of an arbitrary toroidal-span map."""
+    if not _cyna_available() or _cyna_find_fixed_points_batch_span is None:
+        raise ImportError("pyna._cyna.find_fixed_points_batch_span is unavailable. Build cyna first.")
+    if not np.isfinite(float(map_span)) or abs(float(map_span)) <= 1.0e-14:
+        raise ValueError("map_span must be a nonzero finite toroidal angle")
+    fd_eps = float(kwargs.pop("fd_eps", 1.0e-4))
+    max_iter = int(kwargs.pop("max_iter", 40))
+    tol = float(kwargs.pop("tol", 1.0e-9))
+    n_threads = int(kwargs.pop("n_threads", -1))
+    if kwargs:
+        unknown = ", ".join(sorted(kwargs))
+        raise TypeError(f"unexpected keyword argument(s): {unknown}")
+    return _cyna_find_fixed_points_batch_span(
+        np.ascontiguousarray(R_seeds, dtype=np.float64),
+        np.ascontiguousarray(Z_seeds, dtype=np.float64),
+        float(phi_start),
+        float(map_span),
+        float(DPhi),
+        fd_eps,
+        max_iter,
+        tol,
+        np.ascontiguousarray(BR_flat, dtype=np.float64),
+        np.ascontiguousarray(BZ_flat, dtype=np.float64),
+        np.ascontiguousarray(BPhi_flat, dtype=np.float64),
+        np.ascontiguousarray(R_grid, dtype=np.float64),
+        np.ascontiguousarray(Z_grid, dtype=np.float64),
+        np.ascontiguousarray(Phi_grid, dtype=np.float64),
+        n_threads,
+    )
+
+
+def find_fixed_points_batch_span_field(
+    field,
+    R_seeds,
+    Z_seeds,
+    phi_start,
+    map_span,
+    DPhi,
+    *,
+    extend_phi: bool = True,
+    **kwargs,
+):
+    """Object-first arbitrary-span fixed-point search wrapper."""
+
+    try:
+        fd_eps = float(kwargs.pop("fd_eps", 1.0e-4))
+        max_iter = int(kwargs.pop("max_iter", 40))
+        tol = float(kwargs.pop("tol", 1.0e-9))
+        n_threads = int(kwargs.pop("n_threads", -1))
+        if kwargs:
+            unknown = ", ".join(sorted(kwargs))
+            raise TypeError(f"unexpected keyword argument(s): {unknown}")
+        handle = vector_field_cylind_from_field(field, extend_phi=extend_phi)
+        return handle.find_fixed_points_batch_span(
+            np.ascontiguousarray(R_seeds, dtype=np.float64),
+            np.ascontiguousarray(Z_seeds, dtype=np.float64),
+            float(phi_start),
+            float(map_span),
+            float(DPhi),
+            fd_eps,
+            max_iter,
+            tol,
+            n_threads,
+        )
+    except ImportError:
+        arrays = field_arrays_from_field(field, extend_phi=extend_phi)
+    return find_fixed_points_batch_span(
+        R_seeds,
+        Z_seeds,
+        phi_start,
+        map_span,
+        DPhi,
+        arrays.R_grid,
+        arrays.Z_grid,
+        arrays.Phi_grid,
+        arrays.BR_flat,
+        arrays.BZ_flat,
+        arrays.BPhi_flat,
+        **kwargs,
+    )
+
+
+def trace_map_batch_span(
+    R_seeds,
+    Z_seeds,
+    phi_start,
+    map_span,
+    N_steps,
+    DPhi,
+    R_grid,
+    Z_grid,
+    Phi_grid,
+    BR_flat,
+    BZ_flat,
+    BPhi_flat,
+    wall_R,
+    wall_Z,
+    *,
+    n_threads: int = -1,
+):
+    """Batch trace iterates of an arbitrary toroidal-span map."""
+
+    if not _cyna_available() or _cyna_trace_map_batch_span is None:
+        raise ImportError("pyna._cyna.trace_map_batch_span is unavailable. Build cyna first.")
+    if not np.isfinite(float(map_span)) or abs(float(map_span)) <= 1.0e-14:
+        raise ValueError("map_span must be a nonzero finite toroidal angle")
+    if int(N_steps) <= 0:
+        raise ValueError("N_steps must be positive")
+    return _cyna_trace_map_batch_span(
+        np.ascontiguousarray(R_seeds, dtype=np.float64),
+        np.ascontiguousarray(Z_seeds, dtype=np.float64),
+        float(phi_start),
+        float(map_span),
+        int(N_steps),
+        float(DPhi),
+        np.ascontiguousarray(BR_flat, dtype=np.float64),
+        np.ascontiguousarray(BZ_flat, dtype=np.float64),
+        np.ascontiguousarray(BPhi_flat, dtype=np.float64),
+        np.ascontiguousarray(R_grid, dtype=np.float64),
+        np.ascontiguousarray(Z_grid, dtype=np.float64),
+        np.ascontiguousarray(Phi_grid, dtype=np.float64),
+        np.ascontiguousarray(wall_R, dtype=np.float64),
+        np.ascontiguousarray(wall_Z, dtype=np.float64),
+        int(n_threads),
+    )
+
+
+def trace_map_batch_span_field(
+    field,
+    R_seeds,
+    Z_seeds,
+    phi_start,
+    map_span,
+    N_steps,
+    DPhi,
+    wall_R=None,
+    wall_Z=None,
+    *,
+    extend_phi: bool = True,
+    n_threads: int = -1,
+):
+    """Object-first wrapper for arbitrary-span map iterates."""
+
+    if wall_R is None or wall_Z is None:
+        wall_R = np.empty(0, dtype=np.float64)
+        wall_Z = np.empty(0, dtype=np.float64)
+    handle = vector_field_cylind_from_field(field, extend_phi=extend_phi)
+    return handle.trace_map_batch_span(
+        np.ascontiguousarray(R_seeds, dtype=np.float64),
+        np.ascontiguousarray(Z_seeds, dtype=np.float64),
+        phi_start,
+        map_span,
+        N_steps,
+        DPhi,
+        np.ascontiguousarray(wall_R, dtype=np.float64),
+        np.ascontiguousarray(wall_Z, dtype=np.float64),
+        n_threads=n_threads,
+    )
+
+
 
 def trace_orbit_along_phi(
     R0,
@@ -1450,6 +1643,7 @@ def trace_poincare_dpk_growth_twall_field(
 __all__ = [
     "field_arrays_from_interpolators",
     "field_arrays_from_field",
+    "vector_field_cylind_from_field",
     "precompile_tracer",
     "trace_poincare_batch",
     "trace_poincare_batch_field",
@@ -1472,6 +1666,10 @@ __all__ = [
     "trace_strike_line_twall_field",
     "find_fixed_points_batch",
     "find_fixed_points_batch_field",
+    "find_fixed_points_batch_span",
+    "find_fixed_points_batch_span_field",
+    "trace_map_batch_span",
+    "trace_map_batch_span_field",
     "trace_orbit_along_phi",
     "trace_orbit_along_phi_field",
     "trace_orbit_bidirectional_along_phi",
