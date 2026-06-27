@@ -1,7 +1,8 @@
 """Boundary island-chain search utilities for toroidal field-line maps."""
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+from math import gcd
 from typing import Iterable, Sequence
 
 import numpy as np
@@ -33,6 +34,14 @@ class BoundaryIslandFixedPoint:
     seed_R: float
     seed_Z: float
     lower_period_residual: float = np.inf
+    chain_id: int | None = None
+    cycle_id: int | None = None
+    point_index: int | None = None
+    map_span: float | None = None
+    winding: tuple[int, int] | None = None
+    reduced_winding: tuple[int, int] | None = None
+    section_phi: float | None = None
+    metadata: dict = field(default_factory=dict, compare=False, repr=False)
 
     def as_fixed_point(self) -> FixedPoint:
         kind = str(self.kind).upper()
@@ -51,6 +60,23 @@ class BoundaryIslandFixedPoint:
         fp.determinant = cls.determinant
         fp.discriminant = cls.discriminant
         fp.monodromy_classification_reason = cls.reason
+        fp.metadata.update({
+            "period": int(self.period),
+            "residual": float(self.residual),
+            "lower_period_residual": float(self.lower_period_residual),
+            **dict(self.metadata),
+        })
+        for key, value in (
+            ("chain_id", self.chain_id),
+            ("cycle_id", self.cycle_id),
+            ("point_index", self.point_index),
+            ("map_span", self.map_span),
+            ("winding", self.winding),
+            ("reduced_winding", self.reduced_winding),
+            ("section_phi", self.section_phi),
+        ):
+            if value is not None:
+                fp.metadata[key] = value
         if kind == "X":
             stable, unstable = _stable_unstable_eigenvectors(self.DPm)
             fp.stable_eigenvec = stable
@@ -91,6 +117,243 @@ class BoundaryIslandSearchResult:
         return [fp for fp in self.fixed_points if fp.kind == "O"]
 
 
+@dataclass(frozen=True)
+class BoundaryIslandCycle:
+    """One ordered fixed-point cycle under a toroidal-span map.
+
+    ``points`` are ordered by repeated application of ``P_span``.  For a
+    period-m point this is the m distinct points of the cycle; the closing
+    endpoint ``P_span^m(x0)`` is summarized by ``closure_residual`` instead of
+    being stored as a duplicate point.
+    """
+
+    points: tuple[FixedPoint, ...]
+    period: int
+    kind: str
+    map_span: float
+    source_index: int = -1
+    cycle_id: int | None = None
+    chain_id: int | None = None
+    closure_residual: float = np.inf
+    map_count: int = 0
+    alive: bool = False
+    winding: tuple[int, int] | None = None
+    reduced_winding: tuple[int, int] | None = None
+    metadata: dict = field(default_factory=dict, compare=False, repr=False)
+
+    @property
+    def R(self) -> np.ndarray:
+        return np.asarray([float(fp.R) for fp in self.points], dtype=float)
+
+    @property
+    def Z(self) -> np.ndarray:
+        return np.asarray([float(fp.Z) for fp in self.points], dtype=float)
+
+    @property
+    def phi(self) -> np.ndarray:
+        return np.asarray([float(fp.phi) for fp in self.points], dtype=float)
+
+    @property
+    def seed_point(self) -> FixedPoint | None:
+        return self.points[0] if self.points else None
+
+    @property
+    def is_closed(self) -> bool:
+        return bool(self.alive and np.isfinite(self.closure_residual))
+
+
+@dataclass(frozen=True)
+class BoundaryIslandChain:
+    """Connected boundary-island topology assembled from ordered cycles."""
+
+    cycles: tuple[BoundaryIslandCycle, ...]
+    period: int
+    map_span: float
+    chain_id: int
+    winding: tuple[int, int]
+    reduced_winding: tuple[int, int]
+    metadata: dict = field(default_factory=dict, compare=False, repr=False)
+
+    @property
+    def x_cycles(self) -> list[BoundaryIslandCycle]:
+        return [cyc for cyc in self.cycles if str(cyc.kind).upper() == "X"]
+
+    @property
+    def o_cycles(self) -> list[BoundaryIslandCycle]:
+        return [cyc for cyc in self.cycles if str(cyc.kind).upper() == "O"]
+
+    @property
+    def fixed_points(self) -> tuple[FixedPoint, ...]:
+        points: list[FixedPoint] = []
+        for cycle in self.cycles:
+            points.extend(cycle.points)
+        return tuple(points)
+
+    @property
+    def connected_component_count(self) -> int:
+        return max(1, gcd(abs(int(self.winding[0])), abs(int(self.winding[1]))))
+
+    @property
+    def points_per_connected_component(self) -> int:
+        return max(1, abs(int(self.winding[0])) // self.connected_component_count)
+
+    @property
+    def map_advance_per_component(self) -> int:
+        return int(self.reduced_winding[1])
+
+    def as_fp_by_section(self, phi_sections: Sequence[float] | None = None) -> dict[float, dict[str, list[FixedPoint]]]:
+        """Return a plotting payload with the same shape as ``fp_by_sec``."""
+
+        if phi_sections is None:
+            keys = sorted({float(fp.phi) for fp in self.fixed_points})
+        else:
+            keys = [float(p) for p in phi_sections]
+        payload = {float(phi): {"xpts": [], "opts": []} for phi in keys}
+        for fp in self.fixed_points:
+            phi_key = min(payload, key=lambda p: abs(p - float(fp.phi))) if payload else float(fp.phi)
+            payload.setdefault(phi_key, {"xpts": [], "opts": []})
+            kind = str(getattr(fp, "kind", "")).upper()
+            bucket = "xpts" if kind == "X" else "opts" if kind == "O" else "unknown"
+            payload[phi_key].setdefault(bucket, [])
+            payload[phi_key][bucket].append(fp)
+        return payload
+
+    def to_island_chain(self, *, proximity_tol: float = 1.0):
+        """Convert this semantic chain to the existing toroidal ``IslandChain``."""
+
+        from pyna.topo.toroidal import IslandChain
+
+        return IslandChain.from_fixed_points(
+            O_points=[fp for fp in self.fixed_points if str(fp.kind).upper() == "O"],
+            X_points=[fp for fp in self.fixed_points if str(fp.kind).upper() == "X"],
+            m=int(self.winding[0]),
+            n=int(self.winding[1]),
+            proximity_tol=float(proximity_tol),
+            ambient_dim=2,
+        )
+
+
+@dataclass(frozen=True)
+class BoundaryIslandDenseCycle:
+    """Continuous sampled 3-D geometry for one periodic field-line cycle."""
+
+    phi: np.ndarray
+    R: np.ndarray
+    Z: np.ndarray
+    alive: np.ndarray
+    period: int
+    kind: str
+    map_span: float
+    source_phi: float
+    cycle_id: int | None = None
+    chain_id: int | None = None
+    closure_residual: float = np.inf
+    winding: tuple[int, int] | None = None
+    reduced_winding: tuple[int, int] | None = None
+    section_points: tuple[FixedPoint, ...] = field(default_factory=tuple, compare=False, repr=False)
+    metadata: dict = field(default_factory=dict, compare=False, repr=False)
+
+    def __post_init__(self):
+        object.__setattr__(self, "phi", np.asarray(self.phi, dtype=float))
+        object.__setattr__(self, "R", np.asarray(self.R, dtype=float))
+        object.__setattr__(self, "Z", np.asarray(self.Z, dtype=float))
+        object.__setattr__(self, "alive", np.asarray(self.alive, dtype=bool))
+        if not (self.phi.shape == self.R.shape == self.Z.shape == self.alive.shape):
+            raise ValueError("phi, R, Z, and alive must have identical shapes")
+
+    @property
+    def n_samples(self) -> int:
+        return int(self.phi.size)
+
+    @property
+    def xyz(self) -> np.ndarray:
+        return np.column_stack([
+            self.R * np.cos(self.phi),
+            self.R * np.sin(self.phi),
+            self.Z,
+        ])
+
+    @property
+    def complete(self) -> bool:
+        return bool(self.alive.size > 0 and bool(self.alive[-1]))
+
+    def as_arrays(self, *, include_xyz: bool = False) -> dict[str, np.ndarray]:
+        arrays = {
+            "phi": self.phi.copy(),
+            "R": self.R.copy(),
+            "Z": self.Z.copy(),
+            "alive": self.alive.copy(),
+        }
+        if include_xyz:
+            xyz = self.xyz
+            arrays.update({"x": xyz[:, 0], "y": xyz[:, 1], "z": xyz[:, 2]})
+        return arrays
+
+    def save_npz(self, path, *, include_xyz: bool = True) -> None:
+        arrays = self.as_arrays(include_xyz=include_xyz)
+        arrays.update({
+            "period": np.asarray(self.period, dtype=int),
+            "kind": np.asarray(str(self.kind)),
+            "map_span": np.asarray(float(self.map_span)),
+            "source_phi": np.asarray(float(self.source_phi)),
+            "cycle_id": np.asarray(-1 if self.cycle_id is None else int(self.cycle_id), dtype=int),
+            "chain_id": np.asarray(-1 if self.chain_id is None else int(self.chain_id), dtype=int),
+            "closure_residual": np.asarray(float(self.closure_residual)),
+        })
+        np.savez(str(path), **arrays)
+
+
+@dataclass(frozen=True)
+class BoundaryIslandDenseChain:
+    """Continuous sampled 3-D geometry for all cycles in one island chain."""
+
+    dense_cycles: tuple[BoundaryIslandDenseCycle, ...]
+    period: int
+    map_span: float
+    chain_id: int
+    winding: tuple[int, int]
+    reduced_winding: tuple[int, int]
+    metadata: dict = field(default_factory=dict, compare=False, repr=False)
+
+    @property
+    def x_cycles(self) -> list[BoundaryIslandDenseCycle]:
+        return [cyc for cyc in self.dense_cycles if str(cyc.kind).upper() == "X"]
+
+    @property
+    def o_cycles(self) -> list[BoundaryIslandDenseCycle]:
+        return [cyc for cyc in self.dense_cycles if str(cyc.kind).upper() == "O"]
+
+    @property
+    def connected_component_count(self) -> int:
+        return max(1, gcd(abs(int(self.winding[0])), abs(int(self.winding[1]))))
+
+    @property
+    def points_per_connected_component(self) -> int:
+        return max(1, abs(int(self.winding[0])) // self.connected_component_count)
+
+    def as_arrays(self, *, include_xyz: bool = True) -> dict[str, np.ndarray]:
+        arrays: dict[str, np.ndarray] = {}
+        for i, cycle in enumerate(self.dense_cycles):
+            for key, value in cycle.as_arrays(include_xyz=include_xyz).items():
+                arrays[f"cycle{i}_{key}"] = value
+            arrays[f"cycle{i}_kind"] = np.asarray(str(cycle.kind))
+            arrays[f"cycle{i}_cycle_id"] = np.asarray(
+                -1 if cycle.cycle_id is None else int(cycle.cycle_id),
+                dtype=int,
+            )
+        arrays.update({
+            "period": np.asarray(self.period, dtype=int),
+            "map_span": np.asarray(float(self.map_span)),
+            "chain_id": np.asarray(int(self.chain_id), dtype=int),
+            "winding": np.asarray(self.winding, dtype=int),
+            "reduced_winding": np.asarray(self.reduced_winding, dtype=int),
+        })
+        return arrays
+
+    def save_npz(self, path, *, include_xyz: bool = True) -> None:
+        np.savez(str(path), **self.as_arrays(include_xyz=include_xyz))
+
+
 def _as_periods(periods: int | Iterable[int]) -> tuple[int, ...]:
     if isinstance(periods, (int, np.integer)):
         periods_tuple = (int(periods),)
@@ -100,6 +363,955 @@ def _as_periods(periods: int | Iterable[int]) -> tuple[int, ...]:
     if not periods_tuple:
         raise ValueError("periods must contain at least one positive integer")
     return tuple(sorted(set(periods_tuple)))
+
+
+def _reduced_winding(m: int, n: int) -> tuple[int, int]:
+    m_i = int(m)
+    n_i = int(n)
+    g = gcd(abs(m_i), abs(n_i))
+    if g <= 0:
+        return m_i, n_i
+    return m_i // g, n_i // g
+
+
+def _cycle_sort_angle(cycle: BoundaryIslandCycle) -> float:
+    R = cycle.R
+    Z = cycle.Z
+    if R.size == 0:
+        return 0.0
+    return float(np.arctan2(np.nanmean(Z), np.nanmean(R)))
+
+
+def _fixed_point_period(fp: BoundaryIslandFixedPoint | FixedPoint, default: int | None = None) -> int:
+    value = getattr(fp, "period", None)
+    if value is None:
+        value = getattr(fp, "metadata", {}).get("period") if hasattr(fp, "metadata") else None
+    if value is None:
+        value = default
+    if value is None:
+        raise ValueError("fixed point period is missing; pass period=...")
+    period = int(value)
+    if period <= 0:
+        raise ValueError("fixed point period must be positive")
+    return period
+
+
+def _fixed_point_kind(fp: BoundaryIslandFixedPoint | FixedPoint) -> str:
+    return str(getattr(fp, "kind", "")).upper()
+
+
+def _fixed_point_residual(fp: BoundaryIslandFixedPoint | FixedPoint) -> float:
+    value = getattr(fp, "residual", None)
+    if value is None:
+        value = getattr(fp, "metadata", {}).get("residual") if hasattr(fp, "metadata") else None
+    try:
+        return float(value)
+    except Exception:
+        return np.inf
+
+
+def _clone_cycle_fixed_point(
+    source: BoundaryIslandFixedPoint | FixedPoint,
+    *,
+    R: float,
+    Z: float,
+    phi: float,
+    point_index: int,
+    period: int,
+    map_span: float,
+    closure_residual: float,
+    cycle_id: int | None = None,
+    chain_id: int | None = None,
+    winding: tuple[int, int] | None = None,
+    reduced_winding: tuple[int, int] | None = None,
+    source_index: int | None = None,
+) -> FixedPoint:
+    kind = _fixed_point_kind(source)
+    DPm = np.asarray(getattr(source, "DPm", np.eye(2)), dtype=float).reshape(2, 2).copy()
+    fp = FixedPoint(phi=float(phi), R=float(R), Z=float(Z), DPm=DPm, kind=kind)
+    fp.period = int(period)
+    fp.residual = _fixed_point_residual(source)
+    eig = getattr(source, "eigenvalues", None)
+    if eig is not None:
+        fp.eigenvalues = np.asarray(eig).copy()
+    cls = classify_monodromy_2x2(DPm)
+    fp.trace = cls.trace
+    fp.determinant = cls.determinant
+    fp.discriminant = cls.discriminant
+    fp.monodromy_classification_reason = cls.reason
+    metadata = dict(getattr(source, "metadata", {}) or {})
+    metadata.update({
+        "period": int(period),
+        "map_span": float(map_span),
+        "point_index": int(point_index),
+        "closure_residual": float(closure_residual),
+    })
+    if source_index is not None:
+        metadata["source_index"] = int(source_index)
+    for key, value in (
+        ("chain_id", chain_id),
+        ("cycle_id", cycle_id),
+        ("winding", winding),
+        ("reduced_winding", reduced_winding),
+        ("section_phi", float(getattr(source, "phi", phi))),
+    ):
+        if value is not None:
+            metadata[key] = value
+    fp.metadata.update(metadata)
+    if kind == "X":
+        stable, unstable = _stable_unstable_eigenvectors(DPm)
+        fp.stable_eigenvec = stable
+        fp.unstable_eigenvec = unstable
+    return fp
+
+
+def _annotate_cycle(
+    cycle: BoundaryIslandCycle,
+    *,
+    cycle_id: int | None = None,
+    chain_id: int | None = None,
+    winding: tuple[int, int] | None = None,
+    reduced_winding: tuple[int, int] | None = None,
+) -> BoundaryIslandCycle:
+    cycle_id = cycle.cycle_id if cycle_id is None else int(cycle_id)
+    chain_id = cycle.chain_id if chain_id is None else int(chain_id)
+    winding = cycle.winding if winding is None else tuple(map(int, winding))
+    reduced_winding = (
+        cycle.reduced_winding
+        if reduced_winding is None
+        else tuple(map(int, reduced_winding))
+    )
+    points = tuple(
+        _clone_cycle_fixed_point(
+            fp,
+            R=float(fp.R),
+            Z=float(fp.Z),
+            phi=float(fp.phi),
+            point_index=i,
+            period=int(cycle.period),
+            map_span=float(cycle.map_span),
+            closure_residual=float(cycle.closure_residual),
+            cycle_id=cycle_id,
+            chain_id=chain_id,
+            winding=winding,
+            reduced_winding=reduced_winding,
+            source_index=cycle.source_index,
+        )
+        for i, fp in enumerate(cycle.points)
+    )
+    metadata = dict(cycle.metadata)
+    metadata.update({
+        "cycle_id": cycle_id,
+        "chain_id": chain_id,
+    })
+    if winding is not None:
+        metadata["winding"] = winding
+    if reduced_winding is not None:
+        metadata["reduced_winding"] = reduced_winding
+    return replace(
+        cycle,
+        points=points,
+        cycle_id=cycle_id,
+        chain_id=chain_id,
+        winding=winding,
+        reduced_winding=reduced_winding,
+        metadata=metadata,
+    )
+
+
+def _cycle_distance(a: BoundaryIslandCycle, b: BoundaryIslandCycle) -> float:
+    if len(a.points) != len(b.points) or len(a.points) == 0:
+        return np.inf
+    A = np.column_stack([a.R, a.Z])
+    B = np.column_stack([b.R, b.Z])
+    best = np.inf
+    for shift in range(len(a.points)):
+        rolled = np.roll(B, -shift, axis=0)
+        dist = float(np.max(np.linalg.norm(A - rolled, axis=1)))
+        if dist < best:
+            best = dist
+    return best
+
+
+def _deduplicate_cycles(
+    cycles: Sequence[BoundaryIslandCycle],
+    *,
+    tol: float,
+) -> tuple[BoundaryIslandCycle, ...]:
+    kept: list[BoundaryIslandCycle] = []
+    ordered = sorted(
+        cycles,
+        key=lambda c: (
+            int(c.period),
+            str(c.kind).upper(),
+            float(c.closure_residual),
+            int(c.source_index),
+        ),
+    )
+    for cycle in ordered:
+        duplicate_index = -1
+        for i, old in enumerate(kept):
+            if int(cycle.period) != int(old.period):
+                continue
+            if str(cycle.kind).upper() != str(old.kind).upper():
+                continue
+            if _cycle_distance(cycle, old) <= float(tol):
+                duplicate_index = i
+                break
+        if duplicate_index < 0:
+            kept.append(cycle)
+            continue
+        old = kept[duplicate_index]
+        if float(cycle.closure_residual) < float(old.closure_residual):
+            kept[duplicate_index] = cycle
+    return tuple(sorted(kept, key=lambda c: (int(c.period), str(c.kind).upper(), _cycle_sort_angle(c))))
+
+
+def _cycle_source_phi(cycle: BoundaryIslandCycle) -> float:
+    if "section_phi" in cycle.metadata:
+        return float(cycle.metadata["section_phi"])
+    if "source_phi" in cycle.metadata:
+        return float(cycle.metadata["source_phi"])
+    if cycle.points:
+        fp = cycle.points[0]
+        metadata = getattr(fp, "metadata", {}) or {}
+        if "section_phi" in metadata:
+            return float(metadata["section_phi"])
+        return float(fp.phi)
+    return 0.0
+
+
+def _section_delta_phi(source_phi: float, section_phi: float, period: float) -> float:
+    period = abs(float(period))
+    if period <= 0.0 or not np.isfinite(period):
+        raise ValueError("section period must be positive and finite")
+    delta = float(np.mod(float(section_phi) - float(source_phi), period))
+    if delta <= 1.0e-12 or abs(delta - period) <= 1.0e-12:
+        return 0.0
+    return delta
+
+
+def _target_phis_for_section(
+    *,
+    source_phi: float,
+    phi_end: float,
+    section_phi: float,
+    section_period: float,
+) -> np.ndarray:
+    period = abs(float(section_period))
+    if period <= 0.0 or not np.isfinite(period):
+        raise ValueError("section_period must be positive and finite")
+    start = float(source_phi)
+    end = float(phi_end)
+    if end < start:
+        start, end = end, start
+    delta = _section_delta_phi(float(source_phi), float(section_phi), period)
+    first = float(source_phi) + delta
+    while first < start - 1.0e-10:
+        first += period
+    targets: list[float] = []
+    val = first
+    while val <= end + 1.0e-10:
+        targets.append(float(val))
+        val += period
+    return np.asarray(targets, dtype=float)
+
+
+def _interp_dense_cycle_at_phi(
+    dense: BoundaryIslandDenseCycle,
+    target_phi: Sequence[float],
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    targets = np.asarray(target_phi, dtype=float).ravel()
+    if targets.size == 0 or dense.n_samples < 2:
+        return np.empty(0), np.empty(0), np.zeros(targets.size, dtype=bool)
+    phi = np.asarray(dense.phi, dtype=float)
+    R = np.asarray(dense.R, dtype=float)
+    Z = np.asarray(dense.Z, dtype=float)
+    alive = np.asarray(dense.alive, dtype=bool)
+    if phi[0] > phi[-1]:
+        phi = phi[::-1]
+        R = R[::-1]
+        Z = Z[::-1]
+        alive = alive[::-1]
+    order = np.argsort(phi)
+    phi = phi[order]
+    R = R[order]
+    Z = Z[order]
+    alive = alive[order]
+
+    ok = (targets >= phi[0] - 1.0e-10) & (targets <= phi[-1] + 1.0e-10)
+    R_out = np.full(targets.shape, np.nan, dtype=float)
+    Z_out = np.full(targets.shape, np.nan, dtype=float)
+    if np.any(ok):
+        clipped = np.clip(targets[ok], phi[0], phi[-1])
+        R_out[ok] = np.interp(clipped, phi, R)
+        Z_out[ok] = np.interp(clipped, phi, Z)
+        idx = np.searchsorted(phi, clipped, side="right") - 1
+        idx = np.clip(idx, 0, len(phi) - 2)
+        ok_alive = alive[idx] & alive[idx + 1]
+        # Exact last-sample hits use the last alive flag.
+        last = np.isclose(clipped, phi[-1], rtol=0.0, atol=1.0e-10)
+        if np.any(last):
+            ok_alive[last] = alive[-1]
+        ok_indices = np.flatnonzero(ok)
+        ok[ok_indices] &= ok_alive
+    ok &= np.isfinite(R_out) & np.isfinite(Z_out)
+    return R_out, Z_out, ok
+
+
+def _deduplicate_section_crossings(
+    R: Sequence[float],
+    Z: Sequence[float],
+    target_phi: Sequence[float],
+    *,
+    tol: float,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    R_arr = np.asarray(R, dtype=float).ravel()
+    Z_arr = np.asarray(Z, dtype=float).ravel()
+    phi_arr = np.asarray(target_phi, dtype=float).ravel()
+    finite = np.isfinite(R_arr) & np.isfinite(Z_arr) & np.isfinite(phi_arr)
+    R_arr = R_arr[finite]
+    Z_arr = Z_arr[finite]
+    phi_arr = phi_arr[finite]
+    source_index = np.flatnonzero(finite)
+    if R_arr.size == 0:
+        return R_arr, Z_arr, phi_arr, source_index.astype(int)
+    keep: list[int] = []
+    for i, (r, z) in enumerate(zip(R_arr, Z_arr)):
+        if any(np.hypot(r - R_arr[j], z - Z_arr[j]) <= float(tol) for j in keep):
+            continue
+        keep.append(i)
+    keep_arr = np.asarray(keep, dtype=int)
+    return R_arr[keep_arr], Z_arr[keep_arr], phi_arr[keep_arr], source_index[keep_arr].astype(int)
+
+
+def _section_cycle_from_dense_cycle(
+    dense: BoundaryIslandDenseCycle,
+    base_cycle: BoundaryIslandCycle,
+    *,
+    section_phi: float,
+    section_index: int,
+    wall_R: Sequence[float] | None = None,
+    wall_Z: Sequence[float] | None = None,
+    section_dedup_tol: float = 5.0e-4,
+) -> BoundaryIslandCycle:
+    section_period = abs(float(dense.map_span))
+    target_phi = _target_phis_for_section(
+        source_phi=float(dense.source_phi),
+        phi_end=float(dense.phi[-1]) if dense.n_samples else float(dense.source_phi),
+        section_phi=float(section_phi),
+        section_period=section_period,
+    )
+    R_raw, Z_raw, ok = _interp_dense_cycle_at_phi(dense, target_phi)
+    if wall_R is not None and wall_Z is not None and ok.size:
+        ok &= _points_in_polygon(
+            R_raw,
+            Z_raw,
+            np.asarray(wall_R, dtype=float),
+            np.asarray(wall_Z, dtype=float),
+        )
+    R_keep, Z_keep, phi_keep, source_index = _deduplicate_section_crossings(
+        R_raw[ok],
+        Z_raw[ok],
+        target_phi[ok],
+        tol=float(section_dedup_tol),
+    )
+    if base_cycle.points:
+        source_points = tuple(
+            base_cycle.points[int(i) % len(base_cycle.points)]
+            for i in source_index
+        )
+    else:
+        source_points = ()
+    point_indices = tuple(int(i) % max(1, int(base_cycle.period)) for i in source_index)
+    section_cycle = _clone_section_cycle(
+        base_cycle,
+        section_phi=float(section_phi),
+        section_index=int(section_index),
+        delta_phi=_section_delta_phi(dense.source_phi, section_phi, section_period),
+        R_values=R_keep,
+        Z_values=Z_keep,
+        source_points=source_points,
+        point_indices=point_indices,
+        alive=bool(R_keep.size >= min(int(base_cycle.period), max(1, int(base_cycle.period)))),
+        map_count=int(R_keep.size),
+    )
+    metadata = dict(section_cycle.metadata)
+    metadata.update({
+        "section_cycle_source": "dense_orbit_crossings",
+        "raw_crossing_count": int(np.count_nonzero(ok)),
+        "dedup_crossing_count": int(R_keep.size),
+        "section_dedup_tol": float(section_dedup_tol),
+        "target_phi_min": float(np.min(phi_keep)) if phi_keep.size else None,
+        "target_phi_max": float(np.max(phi_keep)) if phi_keep.size else None,
+    })
+    return replace(section_cycle, metadata=metadata)
+
+
+def _clone_section_cycle(
+    cycle: BoundaryIslandCycle,
+    *,
+    section_phi: float,
+    section_index: int,
+    delta_phi: float,
+    R_values: Sequence[float],
+    Z_values: Sequence[float],
+    source_points: Sequence[FixedPoint] | None = None,
+    point_indices: Sequence[int] | None = None,
+    alive: bool,
+    map_count: int,
+) -> BoundaryIslandCycle:
+    points = []
+    if source_points is None:
+        source_points = cycle.points
+    if point_indices is None:
+        point_indices = tuple(range(len(source_points)))
+    for local_i, (source_fp, point_index, R, Z) in enumerate(
+        zip(source_points, point_indices, R_values, Z_values)
+    ):
+        fp = _clone_cycle_fixed_point(
+            source_fp,
+            R=float(R),
+            Z=float(Z),
+            phi=float(section_phi),
+            point_index=int(point_index),
+            period=int(cycle.period),
+            map_span=float(cycle.map_span),
+            closure_residual=float(cycle.closure_residual),
+            cycle_id=cycle.cycle_id,
+            chain_id=cycle.chain_id,
+            winding=cycle.winding,
+            reduced_winding=cycle.reduced_winding,
+            source_index=cycle.source_index,
+        )
+        fp.metadata.update({
+            "section_phi": float(section_phi),
+            "section_index": int(section_index),
+            "section_delta_phi": float(delta_phi),
+            "orbit_point_index": int(point_index),
+            "section_local_index": int(local_i),
+        })
+        points.append(fp)
+    metadata = dict(cycle.metadata)
+    metadata.update({
+        "section_phi": float(section_phi),
+        "section_index": int(section_index),
+        "section_delta_phi": float(delta_phi),
+    })
+    return replace(
+        cycle,
+        points=tuple(points),
+        map_count=int(map_count),
+        alive=bool(alive),
+        metadata=metadata,
+    )
+
+
+def trace_fixed_point_cycles_span_field(
+    field,
+    fixed_points: Sequence[BoundaryIslandFixedPoint | FixedPoint],
+    *,
+    map_span: float = 2.0 * np.pi,
+    period: int | None = None,
+    DPhi: float = 0.01,
+    wall_R: Sequence[float] | None = None,
+    wall_Z: Sequence[float] | None = None,
+    extend_phi: bool = True,
+    n_threads: int = -1,
+) -> tuple[BoundaryIslandCycle, ...]:
+    """Trace ordered cycles from converged fixed points using ``P_span``.
+
+    This is a batch wrapper around the existing cyna arbitrary-span map tracer.
+    For each source point it stores the m distinct cycle points and summarizes
+    the closing endpoint with ``closure_residual``.
+    """
+
+    if not np.isfinite(float(map_span)) or abs(float(map_span)) <= 1.0e-14:
+        raise ValueError("map_span must be a nonzero finite toroidal angle")
+    if not fixed_points:
+        return ()
+
+    by_period_phi: dict[tuple[int, float], list[tuple[int, BoundaryIslandFixedPoint | FixedPoint]]] = {}
+    for source_index, fp in enumerate(fixed_points):
+        p = _fixed_point_period(fp, default=period)
+        phi = float(getattr(fp, "phi", 0.0))
+        by_period_phi.setdefault((p, phi), []).append((source_index, fp))
+
+    cycles: list[BoundaryIslandCycle] = []
+    for p, phi_start in sorted(by_period_phi):
+        items = by_period_phi[(p, phi_start)]
+        R0 = np.asarray([float(getattr(fp, "R")) for _idx, fp in items], dtype=float)
+        Z0 = np.asarray([float(getattr(fp, "Z")) for _idx, fp in items], dtype=float)
+        phi0 = np.asarray([float(getattr(fp, "phi", 0.0)) for _idx, fp in items], dtype=float)
+        counts, flat_R, flat_Z = trace_map_batch_span_field(
+            field,
+            R0,
+            Z0,
+            float(phi_start),
+            float(map_span),
+            int(p),
+            float(DPhi),
+            wall_R=wall_R,
+            wall_Z=wall_Z,
+            extend_phi=extend_phi,
+            n_threads=n_threads,
+        )
+        counts_arr = np.asarray(counts, dtype=int).ravel()
+        R_flat = np.asarray(flat_R, dtype=float).ravel()
+        Z_flat = np.asarray(flat_Z, dtype=float).ravel()
+        for local_index, (source_index, source_fp) in enumerate(items):
+            base = local_index * int(p)
+            count = int(counts_arr[local_index]) if local_index < counts_arr.size else 0
+            if count >= int(p):
+                endpoint_R = float(R_flat[base + int(p) - 1])
+                endpoint_Z = float(Z_flat[base + int(p) - 1])
+                closure = float(np.hypot(endpoint_R - R0[local_index], endpoint_Z - Z0[local_index]))
+            else:
+                closure = np.inf
+
+            point_R = [float(R0[local_index])]
+            point_Z = [float(Z0[local_index])]
+            for step_index in range(1, int(p)):
+                if count < step_index:
+                    break
+                point_R.append(float(R_flat[base + step_index - 1]))
+                point_Z.append(float(Z_flat[base + step_index - 1]))
+
+            points = tuple(
+                _clone_cycle_fixed_point(
+                    source_fp,
+                    R=r,
+                    Z=z,
+                    phi=float(phi0[local_index]) + i * float(map_span),
+                    point_index=i,
+                    period=int(p),
+                    map_span=float(map_span),
+                    closure_residual=float(closure),
+                    source_index=source_index,
+                )
+                for i, (r, z) in enumerate(zip(point_R, point_Z))
+            )
+            cycles.append(BoundaryIslandCycle(
+                points=points,
+                period=int(p),
+                kind=_fixed_point_kind(source_fp),
+                map_span=float(map_span),
+                source_index=int(source_index),
+                closure_residual=float(closure),
+                map_count=int(count),
+                alive=bool(count >= int(p)),
+                metadata={
+                    "source_index": int(source_index),
+                    "source_phi": float(phi0[local_index]),
+                },
+            ))
+    return tuple(cycles)
+
+
+def trace_fixed_point_cycle_span_field(
+    field,
+    fixed_point: BoundaryIslandFixedPoint | FixedPoint,
+    *,
+    map_span: float = 2.0 * np.pi,
+    period: int | None = None,
+    DPhi: float = 0.01,
+    wall_R: Sequence[float] | None = None,
+    wall_Z: Sequence[float] | None = None,
+    extend_phi: bool = True,
+    n_threads: int = -1,
+) -> BoundaryIslandCycle:
+    """Trace one ordered fixed-point cycle under an arbitrary-span map."""
+
+    cycles = trace_fixed_point_cycles_span_field(
+        field,
+        [fixed_point],
+        map_span=map_span,
+        period=period,
+        DPhi=DPhi,
+        wall_R=wall_R,
+        wall_Z=wall_Z,
+        extend_phi=extend_phi,
+        n_threads=n_threads,
+    )
+    if not cycles:
+        raise ValueError("no cycle was traced")
+    return cycles[0]
+
+
+def trace_fixed_point_cycle_sections_span_field(
+    field,
+    fixed_point_or_cycle: BoundaryIslandFixedPoint | FixedPoint | BoundaryIslandCycle,
+    section_phis: Sequence[float],
+    *,
+    map_span: float = 2.0 * np.pi,
+    period: int | None = None,
+    DPhi: float = 0.01,
+    dphi_out: float | None = None,
+    fd_eps: float = 1.0e-4,
+    section_dedup_tol: float = 5.0e-4,
+    wall_by_section: Sequence[tuple[Sequence[float], Sequence[float]]] | None = None,
+    extend_phi: bool = True,
+    n_threads: int = -1,
+) -> dict[float, BoundaryIslandCycle]:
+    """Trace one periodic orbit to multiple toroidal sections.
+
+    The fixed point is solved once on its reference section.  The returned
+    cycles are extracted from one continuous dense field-line orbit, preserving
+    Poincare-map ordering and removing near-duplicate closure hits.
+    """
+
+    if isinstance(fixed_point_or_cycle, BoundaryIslandCycle):
+        base_cycle = fixed_point_or_cycle
+    else:
+        base_cycle = trace_fixed_point_cycle_span_field(
+            field,
+            fixed_point_or_cycle,
+            map_span=map_span,
+            period=period,
+            DPhi=DPhi,
+            extend_phi=extend_phi,
+            n_threads=n_threads,
+        )
+    if not base_cycle.points:
+        return {}
+    if wall_by_section is not None and len(wall_by_section) != len(section_phis):
+        raise ValueError("wall_by_section and section_phis must have the same length")
+
+    dense = trace_fixed_point_cycle_dense_span_field(
+        field,
+        base_cycle,
+        DPhi=DPhi,
+        dphi_out=dphi_out,
+        extend_phi=extend_phi,
+        fd_eps=fd_eps,
+        n_threads=n_threads,
+    )
+    out: dict[float, BoundaryIslandCycle] = {}
+    for section_index, section_phi_raw in enumerate(section_phis):
+        section_phi = float(section_phi_raw)
+        wall_R = wall_Z = None
+        if wall_by_section is not None:
+            wall_R, wall_Z = wall_by_section[section_index]
+        out[section_phi] = _section_cycle_from_dense_cycle(
+            dense,
+            base_cycle,
+            section_phi=section_phi,
+            section_index=section_index,
+            wall_R=wall_R,
+            wall_Z=wall_Z,
+            section_dedup_tol=float(section_dedup_tol),
+        )
+    return out
+
+
+def trace_boundary_island_chain_sections_span_field(
+    field,
+    chain: BoundaryIslandChain,
+    section_phis: Sequence[float],
+    *,
+    DPhi: float = 0.01,
+    dphi_out: float | None = None,
+    fd_eps: float = 1.0e-4,
+    section_dedup_tol: float = 5.0e-4,
+    wall_by_section: Sequence[tuple[Sequence[float], Sequence[float]]] | None = None,
+    extend_phi: bool = True,
+    n_threads: int = -1,
+) -> dict[float, BoundaryIslandChain]:
+    """Trace every cycle in one boundary island chain to multiple sections."""
+
+    section_cycles: dict[float, list[BoundaryIslandCycle]] = {
+        float(phi): [] for phi in section_phis
+    }
+    for cycle in chain.cycles:
+        traced = trace_fixed_point_cycle_sections_span_field(
+            field,
+            cycle,
+            section_phis,
+            DPhi=DPhi,
+            dphi_out=dphi_out,
+            fd_eps=fd_eps,
+            section_dedup_tol=section_dedup_tol,
+            wall_by_section=wall_by_section,
+            extend_phi=extend_phi,
+            n_threads=n_threads,
+        )
+        for phi, section_cycle in traced.items():
+            section_cycles[float(phi)].append(section_cycle)
+
+    out: dict[float, BoundaryIslandChain] = {}
+    for phi in section_phis:
+        phi_key = float(phi)
+        metadata = dict(chain.metadata)
+        metadata.update({
+            "section_phi": phi_key,
+            "section_cycle_source": "orbit_trace",
+        })
+        out[phi_key] = replace(
+            chain,
+            cycles=tuple(section_cycles.get(phi_key, [])),
+            metadata=metadata,
+        )
+    return out
+
+
+def trace_fixed_point_cycle_dense_span_field(
+    field,
+    fixed_point_or_cycle: BoundaryIslandFixedPoint | FixedPoint | BoundaryIslandCycle,
+    *,
+    map_span: float = 2.0 * np.pi,
+    period: int | None = None,
+    DPhi: float = 0.01,
+    dphi_out: float | None = None,
+    extend_phi: bool = True,
+    fd_eps: float = 1.0e-4,
+    n_threads: int = -1,
+) -> BoundaryIslandDenseCycle:
+    """Trace the continuous 3-D geometry of one periodic cycle.
+
+    The dense output follows one representative field line through the full
+    ``period * map_span`` orbit.  The section fixed points remain attached in
+    ``section_points`` for plotting and indexing.
+    """
+
+    _ = n_threads  # kept for API symmetry; single-orbit cyna tracing is serial.
+    if isinstance(fixed_point_or_cycle, BoundaryIslandCycle):
+        base_cycle = fixed_point_or_cycle
+    else:
+        base_cycle = trace_fixed_point_cycle_span_field(
+            field,
+            fixed_point_or_cycle,
+            map_span=map_span,
+            period=period,
+            DPhi=DPhi,
+            extend_phi=extend_phi,
+            n_threads=n_threads,
+        )
+    if not base_cycle.points:
+        raise ValueError("cannot trace dense output for an empty cycle")
+    if not np.isfinite(float(base_cycle.map_span)) or abs(float(base_cycle.map_span)) <= 1.0e-14:
+        raise ValueError("cycle map_span must be a nonzero finite toroidal angle")
+
+    seed = base_cycle.points[0]
+    source_phi = float(seed.phi)
+    phi_end = source_phi + int(base_cycle.period) * float(base_cycle.map_span)
+    if dphi_out is None:
+        dphi_out = abs(float(DPhi))
+    if not np.isfinite(float(dphi_out)) or abs(float(dphi_out)) <= 0.0:
+        raise ValueError("dphi_out must be positive and finite")
+    R_t, Z_t, phi_t, _DP_t, alive_t = trace_orbit_along_phi_field(
+        field,
+        float(seed.R),
+        float(seed.Z),
+        source_phi,
+        phi_end,
+        float(DPhi),
+        extend_phi=extend_phi,
+        dphi_out=abs(float(dphi_out)),
+        fd_eps=float(fd_eps),
+    )
+    R_arr = np.asarray(R_t, dtype=float)
+    Z_arr = np.asarray(Z_t, dtype=float)
+    phi_arr = np.asarray(phi_t, dtype=float)
+    alive_arr = np.asarray(alive_t, dtype=bool)
+    if R_arr.size and Z_arr.size and alive_arr.size and bool(alive_arr[-1]):
+        closure = float(np.hypot(R_arr[-1] - float(seed.R), Z_arr[-1] - float(seed.Z)))
+    else:
+        closure = np.inf
+    metadata = dict(base_cycle.metadata)
+    metadata.update({
+        "dense_output": True,
+        "source_phi": float(source_phi),
+        "phi_end": float(phi_end),
+        "dphi_out": float(dphi_out),
+        "n_samples": int(R_arr.size),
+    })
+    return BoundaryIslandDenseCycle(
+        phi=phi_arr,
+        R=R_arr,
+        Z=Z_arr,
+        alive=alive_arr,
+        period=int(base_cycle.period),
+        kind=str(base_cycle.kind).upper(),
+        map_span=float(base_cycle.map_span),
+        source_phi=float(source_phi),
+        cycle_id=base_cycle.cycle_id,
+        chain_id=base_cycle.chain_id,
+        closure_residual=float(closure),
+        winding=base_cycle.winding,
+        reduced_winding=base_cycle.reduced_winding,
+        section_points=tuple(base_cycle.points),
+        metadata=metadata,
+    )
+
+
+def trace_boundary_island_chain_dense_span_field(
+    field,
+    chain: BoundaryIslandChain,
+    *,
+    DPhi: float = 0.01,
+    dphi_out: float | None = None,
+    extend_phi: bool = True,
+    fd_eps: float = 1.0e-4,
+    n_threads: int = -1,
+) -> BoundaryIslandDenseChain:
+    """Trace continuous 3-D geometry for every cycle in a boundary chain."""
+
+    dense_cycles = tuple(
+        trace_fixed_point_cycle_dense_span_field(
+            field,
+            cycle,
+            DPhi=DPhi,
+            dphi_out=dphi_out,
+            extend_phi=extend_phi,
+            fd_eps=fd_eps,
+            n_threads=n_threads,
+        )
+        for cycle in chain.cycles
+    )
+    metadata = dict(chain.metadata)
+    metadata.update({
+        "dense_output": True,
+        "n_dense_cycles": int(len(dense_cycles)),
+    })
+    return BoundaryIslandDenseChain(
+        dense_cycles=dense_cycles,
+        period=int(chain.period),
+        map_span=float(chain.map_span),
+        chain_id=int(chain.chain_id),
+        winding=tuple(map(int, chain.winding)),
+        reduced_winding=tuple(map(int, chain.reduced_winding)),
+        metadata=metadata,
+    )
+
+
+def assemble_boundary_island_chains(
+    cycles: Sequence[BoundaryIslandCycle],
+    *,
+    m: int | None = None,
+    n: int = 1,
+    cycle_dedup_tol: float = 5.0e-4,
+    pairing_tol: float | None = None,
+) -> tuple[BoundaryIslandChain, ...]:
+    """Deduplicate ordered cycles and assemble O/X boundary island chains."""
+
+    if not cycles:
+        return ()
+    unique_cycles = _deduplicate_cycles(cycles, tol=float(cycle_dedup_tol))
+    by_period: dict[int, list[BoundaryIslandCycle]] = {}
+    for cycle in unique_cycles:
+        by_period.setdefault(int(cycle.period), []).append(cycle)
+
+    chains: list[BoundaryIslandChain] = []
+    next_chain_id = 0
+    next_cycle_id = 0
+    for period_value in sorted(by_period):
+        period_cycles = sorted(
+            by_period[period_value],
+            key=lambda c: (0 if str(c.kind).upper() == "O" else 1, _cycle_sort_angle(c)),
+        )
+        winding = (int(period_value if m is None else m), int(n))
+        reduced = _reduced_winding(*winding)
+        o_cycles = [c for c in period_cycles if str(c.kind).upper() == "O"]
+        x_cycles = [c for c in period_cycles if str(c.kind).upper() == "X"]
+        other_cycles = [c for c in period_cycles if str(c.kind).upper() not in {"O", "X"}]
+        used_x: set[int] = set()
+
+        def _new_chain(raw_cycles: list[BoundaryIslandCycle]) -> None:
+            nonlocal next_chain_id, next_cycle_id
+            annotated: list[BoundaryIslandCycle] = []
+            for raw in raw_cycles:
+                annotated.append(_annotate_cycle(
+                    raw,
+                    cycle_id=next_cycle_id,
+                    chain_id=next_chain_id,
+                    winding=winding,
+                    reduced_winding=reduced,
+                ))
+                next_cycle_id += 1
+            chains.append(BoundaryIslandChain(
+                cycles=tuple(annotated),
+                period=int(period_value),
+                map_span=float(annotated[0].map_span if annotated else period_cycles[0].map_span),
+                chain_id=int(next_chain_id),
+                winding=winding,
+                reduced_winding=reduced,
+                metadata={
+                    "period": int(period_value),
+                    "m": int(winding[0]),
+                    "n": int(winding[1]),
+                    "reduced_mn": reduced,
+                    "connected_component_count": max(1, gcd(abs(int(winding[0])), abs(int(winding[1])))),
+                    "points_per_connected_component": max(
+                        1,
+                        abs(int(winding[0])) // max(1, gcd(abs(int(winding[0])), abs(int(winding[1])))),
+                    ),
+                    "map_advance_per_component": int(reduced[1]),
+                    "n_cycles": int(len(annotated)),
+                },
+            ))
+            next_chain_id += 1
+
+        for o_cycle in o_cycles:
+            raw_group = [o_cycle]
+            if x_cycles:
+                distances = [
+                    (_cycle_distance(o_cycle, x_cycle), i, x_cycle)
+                    for i, x_cycle in enumerate(x_cycles)
+                    if i not in used_x
+                ]
+                distances = [row for row in distances if np.isfinite(row[0])]
+                if distances:
+                    distance, idx, x_cycle = min(distances, key=lambda row: row[0])
+                    if pairing_tol is None or distance <= float(pairing_tol):
+                        raw_group.append(x_cycle)
+                        used_x.add(idx)
+            _new_chain(raw_group)
+
+        for i, x_cycle in enumerate(x_cycles):
+            if i not in used_x:
+                _new_chain([x_cycle])
+        for cycle in other_cycles:
+            _new_chain([cycle])
+
+    return tuple(chains)
+
+
+def assemble_boundary_island_chains_field(
+    field,
+    fixed_points: Sequence[BoundaryIslandFixedPoint | FixedPoint],
+    *,
+    map_span: float = 2.0 * np.pi,
+    period: int | None = None,
+    m: int | None = None,
+    n: int = 1,
+    DPhi: float = 0.01,
+    wall_R: Sequence[float] | None = None,
+    wall_Z: Sequence[float] | None = None,
+    extend_phi: bool = True,
+    n_threads: int = -1,
+    cycle_dedup_tol: float = 5.0e-4,
+    pairing_tol: float | None = None,
+) -> tuple[BoundaryIslandChain, ...]:
+    """Trace fixed-point cycles and assemble semantic boundary island chains."""
+
+    cycles = trace_fixed_point_cycles_span_field(
+        field,
+        fixed_points,
+        map_span=map_span,
+        period=period,
+        DPhi=DPhi,
+        wall_R=wall_R,
+        wall_Z=wall_Z,
+        extend_phi=extend_phi,
+        n_threads=n_threads,
+    )
+    return assemble_boundary_island_chains(
+        cycles,
+        m=m,
+        n=n,
+        cycle_dedup_tol=cycle_dedup_tol,
+        pairing_tol=pairing_tol,
+    )
 
 
 def _field_grid_wall(field, *, inset: float = 1.0e-10) -> tuple[np.ndarray, np.ndarray]:
@@ -1727,9 +2939,15 @@ def boundary_island_topology_payload_field(
 
 
 __all__ = [
+    "BoundaryIslandChain",
+    "BoundaryIslandDenseChain",
+    "BoundaryIslandDenseCycle",
+    "BoundaryIslandCycle",
     "BoundaryIslandFixedPoint",
     "BoundaryIslandSeedCandidates",
     "BoundaryIslandSearchResult",
+    "assemble_boundary_island_chains",
+    "assemble_boundary_island_chains_field",
     "boundary_island_edge_state_payload",
     "boundary_island_topology_payload_field",
     "boundary_recurrence_seed_candidates_field",
@@ -1739,6 +2957,12 @@ __all__ = [
     "find_boundary_island_fixed_points_multi_section_field",
     "trace_boundary_island_shapes_field",
     "trace_boundary_island_shapes_multi_section_field",
+    "trace_boundary_island_chain_sections_span_field",
+    "trace_boundary_island_chain_dense_span_field",
+    "trace_fixed_point_cycle_span_field",
+    "trace_fixed_point_cycle_sections_span_field",
+    "trace_fixed_point_cycle_dense_span_field",
+    "trace_fixed_point_cycles_span_field",
     "trace_fixed_point_manifolds_field",
     "trace_fixed_point_manifolds_multi_section_field",
 ]

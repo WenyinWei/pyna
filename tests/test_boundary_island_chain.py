@@ -4,6 +4,8 @@ import pytest
 from pyna.fields import VectorFieldCylind
 from pyna.topo.toroidal import FixedPoint
 from pyna.toroidal.flt import (
+    BoundaryIslandCycle,
+    assemble_boundary_island_chains,
     boundary_island_edge_state_payload,
     boundary_recurrence_seed_candidates_field,
     boundary_seed_grid,
@@ -11,6 +13,10 @@ from pyna.toroidal.flt import (
     find_boundary_island_fixed_points_field,
     trace_map_batch_span_field,
     trace_boundary_island_shapes_field,
+    trace_boundary_island_chain_dense_span_field,
+    trace_fixed_point_cycle_sections_span_field,
+    trace_fixed_point_cycle_dense_span_field,
+    trace_fixed_point_cycles_span_field,
     trace_fixed_point_manifolds_field,
 )
 
@@ -69,6 +75,34 @@ def _rotation_field():
     )
 
 
+def _cycle_fp(phi, R, Z, kind, period):
+    if kind == "X":
+        dpm = np.array([[2.0, 0.0], [0.0, 0.5]])
+    else:
+        dpm = np.array([[0.0, -1.0], [1.0, 0.0]])
+    fp = FixedPoint(phi=float(phi), R=float(R), Z=float(Z), kind=kind, DPm=dpm)
+    fp.period = int(period)
+    fp.residual = 1.0e-9
+    return fp
+
+
+def _cycle_from_coords(coords, *, kind, source_index=0, map_span=np.pi):
+    points = tuple(
+        _cycle_fp(i * map_span, r, z, kind, len(coords))
+        for i, (r, z) in enumerate(coords)
+    )
+    return BoundaryIslandCycle(
+        points=points,
+        period=len(points),
+        kind=kind,
+        map_span=float(map_span),
+        source_index=int(source_index),
+        closure_residual=1.0e-9,
+        map_count=len(points),
+        alive=True,
+    )
+
+
 def test_boundary_seed_grid_tracks_wall_fraction():
     theta = np.linspace(0.0, 2.0 * np.pi, 128, endpoint=False)
     wall_R = 1.0 + 0.2 * np.cos(theta)
@@ -91,6 +125,222 @@ def test_boundary_seed_grid_tracks_wall_fraction():
     assert np.all(seed_R <= wall_R.max() + 1.0e-12)
     assert np.all(seed_Z >= wall_Z.min() - 1.0e-12)
     assert np.all(seed_Z <= wall_Z.max() + 1.0e-12)
+
+
+def test_boundary_chain_assembly_deduplicates_cycles_and_pairs_xo():
+    o_coords = [(1.00, 0.00), (0.20, 0.30), (0.20, -0.30)]
+    x_coords = [(1.10, 0.00), (0.25, 0.36), (0.25, -0.36)]
+    shifted_o = [o_coords[1], o_coords[2], o_coords[0]]
+
+    chains = assemble_boundary_island_chains(
+        [
+            _cycle_from_coords(o_coords, kind="O", source_index=0),
+            _cycle_from_coords(shifted_o, kind="O", source_index=1),
+            _cycle_from_coords(x_coords, kind="X", source_index=2),
+        ],
+        m=6,
+        n=2,
+        cycle_dedup_tol=1.0e-8,
+    )
+
+    assert len(chains) == 1
+    chain = chains[0]
+    assert chain.winding == (6, 2)
+    assert chain.reduced_winding == (3, 1)
+    assert len(chain.o_cycles) == 1
+    assert len(chain.x_cycles) == 1
+    assert len(chain.fixed_points) == 6
+    assert chain.connected_component_count == 2
+    assert chain.points_per_connected_component == 3
+    assert chain.metadata["connected_component_count"] == 2
+    assert chain.metadata["points_per_connected_component"] == 3
+    assert {fp.metadata["chain_id"] for fp in chain.fixed_points} == {0}
+    assert {fp.metadata["reduced_winding"] for fp in chain.fixed_points} == {(3, 1)}
+    assert sorted(fp.metadata["point_index"] for fp in chain.o_cycles[0].points) == [0, 1, 2]
+
+
+def test_trace_fixed_point_cycles_span_field_uses_batch_outputs(monkeypatch):
+    calls = []
+
+    def fake_trace(field, R0, Z0, phi_start, map_span, N_steps, DPhi, **kwargs):
+        calls.append((float(phi_start), np.asarray(R0).copy(), np.asarray(Z0).copy()))
+        assert N_steps == 3
+        flat_R = np.asarray([2.0, 3.0, 1.0] * len(R0), dtype=float)
+        flat_Z = np.asarray([0.0, 0.0, 0.0] * len(R0), dtype=float)
+        return np.full(len(R0), 3, dtype=int), flat_R, flat_Z
+
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain.trace_map_batch_span_field",
+        fake_trace,
+    )
+    fp0 = _cycle_fp(0.0, 1.0, 0.0, "O", 3)
+    fp1 = _cycle_fp(0.25, 1.0, 0.0, "O", 3)
+
+    cycles = trace_fixed_point_cycles_span_field(
+        object(),
+        [fp0, fp1],
+        map_span=np.pi,
+        DPhi=0.1,
+    )
+
+    assert len(cycles) == 2
+    assert [call[0] for call in calls] == [0.0, 0.25]
+    np.testing.assert_allclose(cycles[0].R, [1.0, 2.0, 3.0])
+    np.testing.assert_allclose(cycles[0].phi, [0.0, np.pi, 2.0 * np.pi])
+    assert cycles[0].closure_residual == pytest.approx(0.0)
+    assert cycles[0].alive is True
+    assert cycles[0].points[1].metadata["map_span"] == pytest.approx(np.pi)
+
+
+def test_trace_fixed_point_cycle_sections_uses_one_orbit(monkeypatch):
+    orbit_calls = []
+
+    def fail_map_trace(*args, **kwargs):
+        raise AssertionError("section cuts should come from one dense orbit, not per-section map traces")
+
+    def fake_orbit(field, R0, Z0, phi_start, phi_end, DPhi, **kwargs):
+        orbit_calls.append((float(phi_start), float(phi_end), kwargs))
+        phi = np.asarray([
+            0.0,
+            0.25 * np.pi,
+            np.pi,
+            1.25 * np.pi,
+            2.0 * np.pi,
+            2.25 * np.pi,
+            3.0 * np.pi,
+        ])
+        R = np.asarray([1.0, 1.1, 2.0, 2.1, 3.0, 3.1, 1.00001])
+        Z = np.zeros_like(R)
+        DP = np.repeat(np.eye(2)[None, :, :], len(phi), axis=0)
+        alive = np.ones(len(phi), dtype=bool)
+        return R, Z, phi, DP, alive
+
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain.trace_map_batch_span_field",
+        fail_map_trace,
+    )
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain.trace_orbit_along_phi_field",
+        fake_orbit,
+    )
+    base = _cycle_from_coords(
+        [(1.0, 0.0), (2.0, 0.0), (3.0, 0.0)],
+        kind="X",
+        map_span=np.pi,
+    )
+    base = BoundaryIslandCycle(
+        points=base.points,
+        period=base.period,
+        kind=base.kind,
+        map_span=base.map_span,
+        source_index=base.source_index,
+        closure_residual=base.closure_residual,
+        map_count=base.map_count,
+        alive=True,
+        metadata={"source_phi": 0.0},
+    )
+
+    sections = trace_fixed_point_cycle_sections_span_field(
+        object(),
+        base,
+        [0.0, 0.25 * np.pi],
+        DPhi=0.1,
+        dphi_out=0.05,
+        section_dedup_tol=1.0e-3,
+    )
+
+    assert list(sections) == [0.0, 0.25 * np.pi]
+    assert len(orbit_calls) == 1
+    assert orbit_calls[0][0] == pytest.approx(0.0)
+    assert orbit_calls[0][1] == pytest.approx(3.0 * np.pi)
+    assert orbit_calls[0][2]["dphi_out"] == pytest.approx(0.05)
+    np.testing.assert_allclose(sections[0.0].R, [1.0, 2.0, 3.0])
+    np.testing.assert_allclose(sections[0.25 * np.pi].R, [1.1, 2.1, 3.1])
+    assert [fp.phi for fp in sections[0.25 * np.pi].points] == [0.25 * np.pi] * 3
+    assert [fp.metadata["orbit_point_index"] for fp in sections[0.25 * np.pi].points] == [0, 1, 2]
+    assert sections[0.0].metadata["raw_crossing_count"] == 4
+    assert sections[0.0].metadata["dedup_crossing_count"] == 3
+
+
+def test_trace_fixed_point_cycle_dense_span_outputs_continuous_geometry(monkeypatch, tmp_path):
+    calls = []
+
+    def fake_orbit(field, R0, Z0, phi_start, phi_end, DPhi, **kwargs):
+        calls.append((float(R0), float(Z0), float(phi_start), float(phi_end), kwargs))
+        phi = np.linspace(float(phi_start), float(phi_end), 5)
+        R = np.asarray([R0, R0 + 0.1, R0 + 0.2, R0 + 0.1, R0], dtype=float)
+        Z = np.asarray([Z0, Z0 + 0.2, Z0, Z0 - 0.2, Z0], dtype=float)
+        DP = np.repeat(np.eye(2)[None, :, :], len(phi), axis=0)
+        alive = np.ones(len(phi), dtype=bool)
+        return R, Z, phi, DP, alive
+
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain.trace_orbit_along_phi_field",
+        fake_orbit,
+    )
+    base = _cycle_from_coords(
+        [(1.0, 0.0), (2.0, 0.0), (3.0, 0.0)],
+        kind="O",
+        map_span=0.5,
+    )
+
+    dense = trace_fixed_point_cycle_dense_span_field(
+        object(),
+        base,
+        DPhi=0.1,
+        dphi_out=0.05,
+    )
+
+    assert calls[0][2] == pytest.approx(0.0)
+    assert calls[0][3] == pytest.approx(1.5)
+    assert calls[0][4]["dphi_out"] == pytest.approx(0.05)
+    assert dense.n_samples == 5
+    assert dense.complete is True
+    assert dense.closure_residual == pytest.approx(0.0)
+    assert dense.xyz.shape == (5, 3)
+    assert len(dense.section_points) == 3
+    arrays = dense.as_arrays(include_xyz=True)
+    assert set(["phi", "R", "Z", "alive", "x", "y", "z"]).issubset(arrays)
+
+    path = tmp_path / "dense_cycle.npz"
+    dense.save_npz(path)
+    saved = np.load(path)
+    np.testing.assert_allclose(saved["R"], dense.R)
+    assert int(saved["period"]) == 3
+
+
+def test_trace_boundary_island_chain_dense_span_traces_each_cycle(monkeypatch):
+    def fake_orbit(field, R0, Z0, phi_start, phi_end, DPhi, **kwargs):
+        phi = np.linspace(float(phi_start), float(phi_end), 3)
+        R = np.asarray([R0, R0 + 0.1, R0], dtype=float)
+        Z = np.asarray([Z0, Z0 + 0.1, Z0], dtype=float)
+        DP = np.repeat(np.eye(2)[None, :, :], len(phi), axis=0)
+        alive = np.ones(len(phi), dtype=bool)
+        return R, Z, phi, DP, alive
+
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain.trace_orbit_along_phi_field",
+        fake_orbit,
+    )
+    chains = assemble_boundary_island_chains(
+        [
+            _cycle_from_coords([(1.0, 0.0), (2.0, 0.0)], kind="O"),
+            _cycle_from_coords([(1.1, 0.0), (2.1, 0.0)], kind="X"),
+        ],
+        m=2,
+        n=1,
+    )
+
+    dense_chain = trace_boundary_island_chain_dense_span_field(
+        object(),
+        chains[0],
+        DPhi=0.1,
+    )
+
+    assert len(dense_chain.dense_cycles) == 2
+    assert len(dense_chain.o_cycles) == 1
+    assert len(dense_chain.x_cycles) == 1
+    assert dense_chain.as_arrays()["chain_id"] == 0
 
 
 def test_cyna_field_handle_traces_span_map_like_object_wrapper():
