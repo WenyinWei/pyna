@@ -4,6 +4,7 @@ import pytest
 from pyna.fields import VectorFieldCylind
 from pyna.toroidal.flt import (
     trace_fieldline_trajectory,
+    trace_fieldline_trajectory_bidirectional,
     trace_orbit_along_phi_field,
     trace_poincare_bidirectional_batch_field,
     trace_strike_line_twall_field,
@@ -37,10 +38,10 @@ def _rotation_field(omega=0.25):
     )
 
 
-def _outward_field():
+def _outward_field(nfp=1):
     R = np.linspace(0.7, 1.3, 33)
     Z = np.linspace(-0.3, 0.3, 17)
-    Phi = np.linspace(0.0, 2.0 * np.pi, 8, endpoint=False)
+    Phi = np.linspace(0.0, 2.0 * np.pi / int(nfp), 8, endpoint=False)
     RR, ZZ, PP = np.meshgrid(R, Z, Phi, indexing="ij")
     fR = np.full_like(RR, 0.05)
     return VectorFieldCylind(
@@ -50,6 +51,25 @@ def _outward_field():
         BR=fR / RR,
         BZ=np.zeros_like(RR),
         BPhi=np.ones_like(RR),
+        field_periods=int(nfp),
+    )
+
+
+def _field_period_modulated_radial_field(nfp=2):
+    R = np.linspace(0.82, 1.18, 33)
+    Z = np.linspace(-0.18, 0.18, 17)
+    period = 2.0 * np.pi / int(nfp)
+    Phi = np.linspace(0.0, period, 32, endpoint=False)
+    RR, ZZ, PP = np.meshgrid(R, Z, Phi, indexing="ij")
+    dR_dphi = 0.012 * np.cos(int(nfp) * PP)
+    return VectorFieldCylind(
+        R=R,
+        Z=Z,
+        Phi=Phi,
+        BR=dR_dphi / RR,
+        BZ=np.zeros_like(RR),
+        BPhi=np.ones_like(RR),
+        field_periods=int(nfp),
     )
 
 
@@ -173,6 +193,124 @@ def test_toroidal_wall_period_wraps_for_field_period_wall():
 
     assert int(hits["term_plus"][0]) == 1
     np.testing.assert_allclose(hits["hit_plus"][0, 0], 1.10, atol=2.0e-3)
+
+
+def test_backward_trace_crosses_field_period_phi_seam():
+    _skip_without_cyna()
+    field = _field_period_modulated_radial_field(nfp=2)
+    phi0 = 0.85 * np.pi
+
+    R_t, Z_t, phi_t, _DP_t, alive = trace_orbit_along_phi_field(
+        field,
+        1.0,
+        0.0,
+        phi0,
+        phi0 - 2.0 * np.pi,
+        0.01,
+        dphi_out=0.05,
+    )
+
+    assert bool(alive[-1])
+    assert np.all(np.diff(phi_t) <= 1.0e-13)
+    np.testing.assert_allclose(R_t[-1], 1.0, atol=5.0e-4)
+    np.testing.assert_allclose(Z_t[-1], 0.0, atol=1.0e-12)
+
+
+def test_field_period_wall_wraps_for_backward_wall_hit():
+    _skip_without_cyna()
+    field = _outward_field(nfp=2)
+    wall_phi = np.linspace(0.0, np.pi, 4, endpoint=False)
+    theta = np.linspace(0.0, 2.0 * np.pi, 128, endpoint=False)
+    wall_R = 1.0 + 0.10 * np.cos(theta)[None, :] * np.ones((wall_phi.size, 1))
+    wall_Z = 0.10 * np.sin(theta)[None, :] * np.ones((wall_phi.size, 1))
+
+    hits = trace_wall_hits_twall_field(
+        field,
+        np.array([0.905]),
+        np.array([0.0]),
+        np.pi + 0.01,
+        1,
+        0.002,
+        wall_phi,
+        wall_R,
+        wall_Z,
+    )
+
+    assert int(hits["term_minus"][0]) == 1
+    np.testing.assert_allclose(hits["hit_minus"][0, 0], 0.90, atol=2.0e-3)
+
+
+def test_bidirectional_dense_trajectory_crosses_field_period_seam():
+    _skip_without_cyna()
+    field = _field_period_modulated_radial_field(nfp=2)
+    phi0 = 0.85 * np.pi
+
+    out = trace_fieldline_trajectory_bidirectional(
+        field,
+        1.0,
+        0.0,
+        phi0,
+        2.0 * np.pi,
+        0.01,
+        dphi_out=0.05,
+        chunk_phi_span=0.4,
+        storage="memory",
+    )
+
+    assert out["forward"].status == "complete"
+    assert out["backward"].status == "complete"
+    assert out["forward"].phi[0] < out["forward"].phi[-1]
+    assert out["backward"].phi[0] > out["backward"].phi[-1]
+    assert np.all(np.isfinite(out["forward"].sol([phi0 + 0.2, phi0 + 1.1 * np.pi])))
+    assert np.all(np.isfinite(out["backward"].sol([phi0 - 0.2, phi0 - 1.1 * np.pi])))
+
+
+def test_restart_resume_crosses_field_period_phi_seam(tmp_path):
+    _skip_without_cyna()
+    field = _field_period_modulated_radial_field(nfp=2)
+    phi0 = 0.85 * np.pi
+
+    full = trace_fieldline_trajectory(
+        field,
+        1.0,
+        0.0,
+        phi0,
+        phi0 - 2.0 * np.pi,
+        0.01,
+        dphi_out=0.05,
+        chunk_phi_span=0.35,
+        storage="memory",
+    )
+    partial = trace_fieldline_trajectory(
+        field,
+        1.0,
+        0.0,
+        phi0,
+        phi0 - 2.0 * np.pi,
+        0.01,
+        dphi_out=0.05,
+        chunk_phi_span=0.35,
+        checkpoint_dir=tmp_path,
+        stop_after_chunks=3,
+    )
+    assert partial.status == "incomplete"
+
+    resumed = trace_fieldline_trajectory(
+        field,
+        1.0,
+        0.0,
+        phi0,
+        phi0 - 2.0 * np.pi,
+        0.01,
+        dphi_out=0.05,
+        chunk_phi_span=0.35,
+        checkpoint_dir=tmp_path,
+    )
+
+    assert resumed.status == "complete"
+    np.testing.assert_allclose(resumed.phi, full.phi, atol=1.0e-14)
+    np.testing.assert_allclose(resumed.R, full.R, atol=1.0e-12)
+    np.testing.assert_allclose(resumed.Z, full.Z, atol=1.0e-12)
 
 
 def test_restartable_dense_trajectory_matches_unchunked(tmp_path):
