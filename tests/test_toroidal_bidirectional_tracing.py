@@ -150,6 +150,31 @@ def test_toroidal_wall_hits_and_strike_line_object_api():
     np.testing.assert_allclose(strike["R"], np.array([1.2]), atol=2.0e-3)
 
 
+def test_toroidal_wall_period_wraps_for_field_period_wall():
+    _skip_without_cyna()
+    field = _outward_field()
+    wall_phi = np.linspace(0.0, np.pi, 4, endpoint=False)
+    theta = np.linspace(0.0, 2.0 * np.pi, 128, endpoint=False)
+    minor_radius = np.array([0.10, 0.14, 0.18, 0.22])
+    wall_R = 1.0 + minor_radius[:, None] * np.cos(theta)[None, :]
+    wall_Z = minor_radius[:, None] * np.sin(theta)[None, :]
+
+    hits = trace_wall_hits_twall_field(
+        field,
+        np.array([1.095]),
+        np.array([0.0]),
+        np.pi + 0.01,
+        1,
+        0.002,
+        wall_phi,
+        wall_R,
+        wall_Z,
+    )
+
+    assert int(hits["term_plus"][0]) == 1
+    np.testing.assert_allclose(hits["hit_plus"][0, 0], 1.10, atol=2.0e-3)
+
+
 def test_restartable_dense_trajectory_matches_unchunked(tmp_path):
     _skip_without_cyna()
     field = _rotation_field()

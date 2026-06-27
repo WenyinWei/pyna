@@ -94,12 +94,21 @@ static inline bool point_in_wall(double R, double Z,
 static inline int nearest_phi_idx(double phi,
                                   const double* phi_centers,
                                   int n_phi_wall) {
-    double phi_mod = mod2pi(phi);
+    double phi0 = phi_centers[0];
+    double period = 2.0 * M_PI;
+    if (n_phi_wall > 1) {
+        double span = phi_centers[n_phi_wall - 1] - phi_centers[0];
+        double dphi = span / (double)(n_phi_wall - 1);
+        double inferred = span + dphi;
+        if (std::isfinite(inferred) && inferred > 0.0 && inferred <= 2.0 * M_PI * (1.0 + 1e-8))
+            period = inferred;
+    }
+    double phi_mod = phi0 + mod_period(phi - phi0, period);
     double best_d = 1e300;
     int best_i = 0;
     for (int i = 0; i < n_phi_wall; ++i) {
         double d = std::abs(phi_centers[i] - phi_mod);
-        d = std::min(d, 2.0 * M_PI - d);
+        d = std::min(d, period - d);
         if (d < best_d) {
             best_d = d;
             best_i = i;
