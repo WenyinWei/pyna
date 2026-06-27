@@ -25,6 +25,59 @@ static inline double mod2pi(double x) {
     return x;
 }
 
+static inline double mod_period(double x, double period) {
+    x = std::fmod(x, period);
+    if (x < 0.0) x += period;
+    return x;
+}
+
+static inline bool locate_phi_cell(
+    const double* Phi_grid, int nPhi,
+    double& Phi,
+    int& iPhi, int& iPhi1,
+    double& tP)
+{
+    if (nPhi <= 0 || !std::isfinite(Phi))
+        return false;
+    if (nPhi == 1) {
+        iPhi = 0;
+        iPhi1 = 0;
+        tP = 0.0;
+        Phi = Phi_grid[0];
+        return true;
+    }
+
+    const double phi0 = Phi_grid[0];
+    const double phi1 = Phi_grid[nPhi - 1];
+    const double period = phi1 - phi0;
+    if (!std::isfinite(period) || period <= 0.0)
+        return false;
+
+    // Phi_grid is expected to be a closed periodic grid:
+    // [phi0, ..., phi0 + period], where the last data plane is a copy of
+    // the first.  The period may be either 2*pi or one stellarator field
+    // period, e.g. 2*pi/Nfp.
+    Phi = phi0 + mod_period(Phi - phi0, period);
+    if (Phi >= phi1)
+        Phi = phi0;
+
+    int lo = 0, hi = nPhi - 2;     // nPhi-2 is the last valid left index
+    while (lo < hi) {
+        int mid = (lo + hi) / 2;
+        if (Phi >= Phi_grid[mid + 1]) lo = mid + 1;
+        else                          hi = mid;
+    }
+    iPhi = lo;
+    iPhi1 = iPhi + 1;
+
+    double phiLo = Phi_grid[iPhi];
+    double phiHi = Phi_grid[iPhi1];
+    tP = (phiHi > phiLo) ? (Phi - phiLo) / (phiHi - phiLo) : 0.0;
+    if (tP < 0.0) tP = 0.0;
+    if (tP > 1.0) tP = 1.0;
+    return true;
+}
+
 // Ray-casting point-in-polygon (2D, R-Z plane)
 static inline bool point_in_wall(double R, double Z,
                                   const double* wR, const double* wZ, int n) {
@@ -71,15 +124,15 @@ static inline bool point_in_toroidal_wall(double R, double Z, double phi,
 // ---------------------------------------------------------------------------
 // Trilinear interpolation on regular 3D grid [iR][iZ][iPhi]
 //
-// Phi convention - matches topoquest's scipy setup exactly:
-//   Phi_grid is Phi_ext = np.append(linspace(0, 2pi, N, endpoint=False), 2pi)
-//   so it has length N+1, Phi_grid[0]=0, Phi_grid[N]=2pi,
-//   and data[:,:,N] is a copy of data[:,:,0]  (the _ext() wrap).
+// Phi convention:
+//   Phi_grid is a closed periodic grid
+//     np.append(linspace(phi0, phi0 + period, N, endpoint=False),
+//               phi0 + period)
+//   and data[:, :, N] is a copy of data[:, :, 0].
 //
-// We never call mod2pi on phi before the binary search: the binary search
-// works directly on the extended grid [0, 2pi], and the caller wraps phi
-// into [0, 2pi) before calling.  The last interval [Phi_grid[N-1], 2pi]
-// is handled naturally because Phi_grid[N]=2pi is in the grid.
+// The period is inferred from Phi_grid[-1] - Phi_grid[0].  This supports
+// full-torus grids and one-field-period stellarator grids without requiring
+// Nfp in the C++ ABI.
 //
 // Out-of-bounds R or Z → NaN  (matches scipy fill_value=np.nan)
 // ---------------------------------------------------------------------------
@@ -96,9 +149,6 @@ inline double interp3d(
         Z < Z_grid[0] || Z > Z_grid[nZ - 1])
         return std::numeric_limits<double>::quiet_NaN();
 
-    // Wrap phi into [0, 2pi) then handle the seam at 2pi
-    Phi = mod2pi(Phi);  // now in [0, 2pi)
-
     // ── find iR (uniform grid assumed → O(1)) ──────────────────────────
     double tR_raw = (R - R_grid[0]) / (R_grid[nR-1] - R_grid[0]) * (nR - 1);
     int iR = (int)tR_raw;
@@ -113,29 +163,10 @@ inline double interp3d(
     if (iZ >= nZ - 1) iZ = nZ - 2;
     double tZ = tZ_raw - iZ;
 
-    // ── find iPhi via binary search on extended grid ────────────────────
-    // Phi_grid has nPhi points: [0, ..., phi_{N-1}, 2pi]
-    // Valid cell index range: [0, nPhi-2]
-    int iPhi;
-    {
-        int lo = 0, hi = nPhi - 2;     // nPhi-2 is the last valid left index
-        while (lo < hi) {
-            int mid = (lo + hi) / 2;
-            if (Phi >= Phi_grid[mid + 1]) lo = mid + 1;
-            else                          hi = mid;
-        }
-        iPhi = lo;
-    }
-    // iPhi1 is the right cell index in the extended grid (never needs %wrap
-    // because the last valid iPhi = nPhi-2 and iPhi1 = nPhi-1 = the 2pi copy)
-    int iPhi1 = iPhi + 1;   // always valid: iPhi1 <= nPhi-1
-
-    double phiLo = Phi_grid[iPhi];
-    double phiHi = Phi_grid[iPhi1];
-    double tP = (phiHi > phiLo) ? (Phi - phiLo) / (phiHi - phiLo) : 0.0;
-    // Clamp numerical noise
-    if (tP < 0.0) tP = 0.0;
-    if (tP > 1.0) tP = 1.0;
+    int iPhi = 0, iPhi1 = 0;
+    double tP = 0.0;
+    if (!locate_phi_cell(Phi_grid, nPhi, Phi, iPhi, iPhi1, tP))
+        return std::numeric_limits<double>::quiet_NaN();
 
     // ── trilinear interpolation ─────────────────────────────────────────
     // data layout: [iR][iZ][iPhi_ext],  stride = nZ * nPhi
@@ -183,7 +214,6 @@ static inline bool interp3d_grad(
     if (R < R_grid[0] || R > R_grid[nR - 1] ||
         Z < Z_grid[0] || Z > Z_grid[nZ - 1])
         return false;
-    Phi = mod2pi(Phi);
     double dRg = (R_grid[nR-1] - R_grid[0]) / (nR - 1);
     double dZg = (Z_grid[nZ-1] - Z_grid[0]) / (nZ - 1);
     double inv_dR = 1.0 / dRg, inv_dZ = 1.0 / dZg;
@@ -196,11 +226,10 @@ static inline bool interp3d_grad(
     int iZ = (int)tZ_raw; if (iZ < 0) iZ = 0; if (iZ >= nZ-1) iZ = nZ-2;
     double tZ = tZ_raw - iZ;
 
-    int iPhi; { int lo=0,hi=nPhi-2; while(lo<hi){int mid=(lo+hi)/2; if(Phi>=Phi_grid[mid+1])lo=mid+1;else hi=mid;} iPhi=lo; }
-    int iPhi1 = iPhi + 1;
-    double phiLo=Phi_grid[iPhi], phiHi=Phi_grid[iPhi1];
-    double tP = (phiHi > phiLo) ? (Phi - phiLo) / (phiHi - phiLo) : 0.0;
-    if (tP < 0.0) tP = 0.0; if (tP > 1.0) tP = 1.0;
+    int iPhi = 0, iPhi1 = 0;
+    double tP = 0.0;
+    if (!locate_phi_cell(Phi_grid, nPhi, Phi, iPhi, iPhi1, tP))
+        return false;
 
     auto v = [&](int r,int z,int p){return data[r*nZ*nPhi+z*nPhi+p];};
     double c000=v(iR,iZ,iPhi),c001=v(iR,iZ,iPhi1),c010=v(iR,iZ+1,iPhi),c011=v(iR,iZ+1,iPhi1);

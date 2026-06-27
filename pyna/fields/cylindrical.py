@@ -14,6 +14,37 @@ from pyna.fields.properties import FieldProperty
 from pyna.fields.coords import Coords3DCylindrical as _CylCoords3D
 
 
+def _extend_endpoint_false_periodic_phi(
+    phi: np.ndarray,
+    values: np.ndarray,
+    period: float,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Close a uniform endpoint=False field-period grid for interpolation."""
+
+    phi_arr = np.asarray(phi, dtype=np.float64)
+    value_arr = np.asarray(values, dtype=np.float64)
+    if phi_arr.size <= 1:
+        return phi_arr, value_arr
+    if not np.isfinite(period) or period <= 0.0:
+        return phi_arr, value_arr
+    if abs(float(phi_arr[0])) > 1.0e-12:
+        return phi_arr, value_arr
+
+    tol = max(1.0e-10, 1.0e-10 * abs(float(period)))
+    if abs(float(phi_arr[-1]) - float(period)) <= tol:
+        return phi_arr, value_arr
+
+    dphi = float(phi_arr[1] - phi_arr[0])
+    endpoint = float(phi_arr[-1]) + dphi
+    if abs(endpoint - float(period)) > max(tol, 10.0 * abs(dphi) * np.finfo(float).eps):
+        return phi_arr, value_arr
+
+    return (
+        np.ascontiguousarray(np.append(phi_arr, float(period)), dtype=np.float64),
+        np.concatenate([value_arr, value_arr[:, :, :1]], axis=2),
+    )
+
+
 @dataclass(frozen=True)
 class CylindricalFieldArrays:
     """Contiguous cylindrical field arrays for low-level backends.
@@ -148,8 +179,13 @@ class ScalarFieldCylind(ScalarField3D):
 
     def _build_interp(self):
         if self._interp is None:
+            phi = self._Phi
+            value = self._value
+            if self.field_periods > 1:
+                period = 2.0 * np.pi / max(int(self.field_periods), 1)
+                phi, value = _extend_endpoint_false_periodic_phi(phi, value, period)
             self._interp = RegularGridInterpolator(
-                (self._R, self._Z, self._Phi), self._value,
+                (self._R, self._Z, phi), value,
                 method='linear', bounds_error=False, fill_value=np.nan)
 
     def __call__(self, coords: np.ndarray, **kwargs) -> np.ndarray:
@@ -485,10 +521,19 @@ class VectorFieldCylind(VectorField3D):
     def _build_interps(self):
         if self._interp_VR is None:
             kw = dict(method='linear', bounds_error=False, fill_value=np.nan)
-            axes = (self._R, self._Z, self._Phi)
-            self._interp_VR   = RegularGridInterpolator(axes, self._VR,   **kw)
-            self._interp_VZ   = RegularGridInterpolator(axes, self._VZ,   **kw)
-            self._interp_VPhi = RegularGridInterpolator(axes, self._VPhi, **kw)
+            phi = self._Phi
+            vr = self._VR
+            vz = self._VZ
+            vphi = self._VPhi
+            if self.field_periods > 1:
+                period = 2.0 * np.pi / max(int(self.field_periods), 1)
+                phi, vr = _extend_endpoint_false_periodic_phi(phi, vr, period)
+                _, vz = _extend_endpoint_false_periodic_phi(self._Phi, vz, period)
+                _, vphi = _extend_endpoint_false_periodic_phi(self._Phi, vphi, period)
+            axes = (self._R, self._Z, phi)
+            self._interp_VR   = RegularGridInterpolator(axes, vr,   **kw)
+            self._interp_VZ   = RegularGridInterpolator(axes, vz,   **kw)
+            self._interp_VPhi = RegularGridInterpolator(axes, vphi, **kw)
 
     def __call__(self, coords_or_R: np.ndarray, Z=None, Phi=None, **kwargs) -> np.ndarray:
         """Evaluate field.

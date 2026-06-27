@@ -6,6 +6,8 @@ from pyna.toroidal.flt import (
     axis_cycle_shift_from_fields,
     cycle_points_shift_from_fields,
     field_period_cache_from_components,
+    find_fixed_points_batch_field,
+    trace_orbit_along_phi_field,
 )
 
 
@@ -35,6 +37,87 @@ def test_field_period_cache_requires_explicit_nfp():
 
     with pytest.raises(TypeError):
         field_period_cache_from_components(R, Z, Phi, BR=arr, BZ=arr, BPhi=arr)
+
+
+def test_cyna_trace_uses_field_period_phi_grid_period():
+    import pyna._cyna as cyna
+
+    if not cyna.is_available() or cyna.trace_orbit_along_phi is None:
+        pytest.skip("cyna orbit tracing is unavailable")
+
+    nfp = 2
+    period = 2.0 * np.pi / nfp
+    R = np.linspace(0.8, 1.2, 9)
+    Z = np.linspace(-0.2, 0.2, 5)
+    Phi = np.linspace(0.0, period, 32, endpoint=False)
+    RR, ZZ, PP = np.meshgrid(R, Z, Phi, indexing="ij")
+    eps = 0.01
+    base = VectorFieldCylind(
+        R=R,
+        Z=Z,
+        Phi=Phi,
+        BR=eps * np.cos(2.0 * PP),
+        BZ=np.zeros_like(RR),
+        BPhi=np.ones_like(RR),
+        field_periods=nfp,
+    )
+
+    R_t, Z_t, _phi_t, _DP_t, alive = trace_orbit_along_phi_field(
+        base,
+        1.0,
+        0.0,
+        0.0,
+        2.0 * np.pi,
+        0.01,
+        dphi_out=2.0 * np.pi,
+    )
+
+    assert bool(alive[-1])
+    np.testing.assert_allclose(R_t[-1], 1.0, atol=5.0e-4)
+    np.testing.assert_allclose(Z_t[-1], 0.0, atol=1.0e-12)
+
+
+def test_find_fixed_points_batch_field_matches_current_cyna_abi():
+    import pyna._cyna as cyna
+
+    if not cyna.is_available() or cyna.find_fixed_points_batch is None:
+        pytest.skip("cyna fixed-point search is unavailable")
+
+    R0 = 1.0
+    Z0 = 0.0
+    omega = 0.25
+    R = np.linspace(0.8, 1.2, 17)
+    Z = np.linspace(-0.2, 0.2, 17)
+    Phi = np.array([0.0])
+    RR, ZZ, PP = np.meshgrid(R, Z, Phi, indexing="ij")
+    field = VectorFieldCylind(
+        R=R,
+        Z=Z,
+        Phi=Phi,
+        BR=-omega * (ZZ - Z0) / RR,
+        BZ=omega * (RR - R0) / RR,
+        BPhi=np.ones_like(RR),
+    )
+
+    R_out, Z_out, residual, converged, _DPm, _eig_r, _eig_i, point_type = (
+        find_fixed_points_batch_field(
+            field,
+            np.array([1.04]),
+            np.array([0.03]),
+            0.0,
+            1,
+            1,
+            0.02,
+            max_iter=40,
+            tol=1.0e-10,
+            n_threads=1,
+        )
+    )
+
+    assert bool(converged[0])
+    assert int(point_type[0]) == 0
+    assert residual[0] < 1.0e-10
+    np.testing.assert_allclose([R_out[0], Z_out[0]], [R0, Z0], atol=1.0e-8)
 
 
 def test_axis_cycle_shift_zero_delta_if_cyna_available():

@@ -153,6 +153,54 @@ def test_vector_field_fast_cached_accessors(grid_3d):
     np.testing.assert_allclose(f.poloidal_abs, np.sqrt(5.0))
 
 
+def test_vector_field_periodic_endpoint_false_field_period_wraps():
+    from pyna.fields import VectorFieldCylind
+
+    nfp = 2
+    period = 2.0 * np.pi / nfp
+    R = np.linspace(0.8, 1.2, 5)
+    Z = np.linspace(-0.1, 0.1, 4)
+    Phi = np.linspace(0.0, period, 16, endpoint=False)
+    RR, ZZ, PP = np.meshgrid(R, Z, Phi, indexing="ij")
+    BR = np.cos(2.0 * PP)
+    field = VectorFieldCylind(
+        R=R,
+        Z=Z,
+        Phi=Phi,
+        BR=BR,
+        BZ=np.zeros_like(BR),
+        BPhi=np.ones_like(BR),
+        field_periods=nfp,
+    )
+
+    phis = np.array([period - 1.0e-8, period + 0.5 * period])
+    pts = np.column_stack([np.ones_like(phis), np.zeros_like(phis), phis])
+    values = field(pts)
+
+    assert np.all(np.isfinite(values))
+    np.testing.assert_allclose(values[:, 0], [1.0, -1.0], atol=1.0e-6)
+
+
+def test_scalar_field_periodic_endpoint_false_field_period_wraps():
+    from pyna.fields import ScalarFieldCylind
+
+    nfp = 2
+    period = 2.0 * np.pi / nfp
+    R = np.linspace(0.8, 1.2, 5)
+    Z = np.linspace(-0.1, 0.1, 4)
+    Phi = np.linspace(0.0, period, 16, endpoint=False)
+    _, _, PP = np.meshgrid(R, Z, Phi, indexing="ij")
+    value = np.cos(2.0 * PP)
+    field = ScalarFieldCylind(R=R, Z=Z, Phi=Phi, value=value, field_periods=nfp)
+
+    phis = np.array([period - 1.0e-8, period + 0.5 * period])
+    pts = np.column_stack([np.ones_like(phis), np.zeros_like(phis), phis])
+    values = field(pts)
+
+    assert np.all(np.isfinite(values))
+    np.testing.assert_allclose(values, [1.0, -1.0], atol=1.0e-6)
+
+
 # ── Group 3: ScalarFieldCylind ─────────────────────────────────────────
 
 def test_scalar_construction(linear_scalar_field, grid_3d):

@@ -279,20 +279,32 @@ def find_fixed_points_batch(
     """Batch search for Poincaré-map fixed points starting from seed points."""
     if not _cyna_available() or _cyna_find_fixed_points_batch is None:
         raise ImportError("pyna._cyna.find_fixed_points_batch is unavailable. Build cyna first.")
+    m_turns = int(period) * int(N_periods)
+    if m_turns <= 0:
+        raise ValueError("period * N_periods must be positive")
+    fd_eps = float(kwargs.pop("fd_eps", 1.0e-4))
+    max_iter = int(kwargs.pop("max_iter", 40))
+    tol = float(kwargs.pop("tol", 1.0e-9))
+    n_threads = int(kwargs.pop("n_threads", -1))
+    if kwargs:
+        unknown = ", ".join(sorted(kwargs))
+        raise TypeError(f"unexpected keyword argument(s): {unknown}")
     return _cyna_find_fixed_points_batch(
         np.ascontiguousarray(R_seeds, dtype=np.float64),
         np.ascontiguousarray(Z_seeds, dtype=np.float64),
         float(phi_start),
-        int(period),
-        int(N_periods),
+        m_turns,
         float(DPhi),
+        fd_eps,
+        max_iter,
+        tol,
         np.ascontiguousarray(BR_flat, dtype=np.float64),
         np.ascontiguousarray(BZ_flat, dtype=np.float64),
         np.ascontiguousarray(BPhi_flat, dtype=np.float64),
         np.ascontiguousarray(R_grid, dtype=np.float64),
         np.ascontiguousarray(Z_grid, dtype=np.float64),
         np.ascontiguousarray(Phi_grid, dtype=np.float64),
-        **kwargs,
+        n_threads,
     )
 
 
