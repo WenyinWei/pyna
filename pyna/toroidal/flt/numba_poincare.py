@@ -104,10 +104,15 @@ def vector_field_cylind_from_field(field, *, extend_phi: bool = True):
         )
     except TypeError as exc:
         # Local editable installs can have a stale cyna extension before the
-        # new nfp-aware binding is rebuilt.  The six-array constructor keeps
-        # tracing usable; rebuilt wheels expose nfp on the handle.
+        # new nfp-aware binding is rebuilt.  For nfp > 1 this must fail rather
+        # than silently changing the field-period wrapping semantics.
         if "nfp" not in str(exc):
             raise
+        if int(normalized.nfp) != 1:
+            raise ImportError(
+                "pyna._cyna.VectorFieldCylind lacks the nfp-aware constructor; "
+                "rebuild cyna before tracing field-period data"
+            ) from exc
         return _cyna_VectorFieldCylind(
             arrays.R_grid,
             arrays.Z_grid,
@@ -170,6 +175,14 @@ def trace_poincare_batch(
     """Trace field lines and record a single Poincaré section in batch."""
     if not _cyna_available():
         raise ImportError("pyna._cyna C++ extension is unavailable. Build cyna first.")
+    R_grid, Z_grid, Phi_grid, BR_flat, BZ_flat, BPhi_flat = _close_raw_field_arrays_for_cyna(
+        R_grid,
+        Z_grid,
+        Phi_grid,
+        BR_flat,
+        BZ_flat,
+        BPhi_flat,
+    )
     return _cyna_trace_poincare_batch(
         np.ascontiguousarray(R_seeds, dtype=np.float64),
         np.ascontiguousarray(Z_seeds, dtype=np.float64),
@@ -315,6 +328,14 @@ def trace_poincare_multi_batch(
     """Trace field lines and record multiple Poincaré sections in batch."""
     if not _cyna_available():
         raise ImportError("pyna._cyna C++ extension is unavailable. Build cyna first.")
+    R_grid, Z_grid, Phi_grid, BR_flat, BZ_flat, BPhi_flat = _close_raw_field_arrays_for_cyna(
+        R_grid,
+        Z_grid,
+        Phi_grid,
+        BR_flat,
+        BZ_flat,
+        BPhi_flat,
+    )
     counts, pR, pZ = _cyna_trace_poincare_multi(
         np.ascontiguousarray(R_seeds, dtype=np.float64),
         np.ascontiguousarray(Z_seeds, dtype=np.float64),
@@ -454,6 +475,14 @@ def trace_poincare_batch_twall(
     """Trace field lines against a toroidal 3-D wall and record a section."""
     if not _cyna_available() or _cyna_trace_poincare_batch_twall is None:
         raise ImportError("pyna._cyna.trace_poincare_batch_twall is unavailable. Build cyna first.")
+    R_grid, Z_grid, Phi_grid, BR_flat, BZ_flat, BPhi_flat = _close_raw_field_arrays_for_cyna(
+        R_grid,
+        Z_grid,
+        Phi_grid,
+        BR_flat,
+        BZ_flat,
+        BPhi_flat,
+    )
     return _cyna_trace_poincare_batch_twall(
         np.ascontiguousarray(R_seeds, dtype=np.float64),
         np.ascontiguousarray(Z_seeds, dtype=np.float64),
@@ -600,6 +629,14 @@ def trace_connection_length_twall(
 
     if not _cyna_available() or _cyna_trace_connection_length_twall is None:
         raise ImportError("pyna._cyna.trace_connection_length_twall is unavailable. Build cyna first.")
+    R_grid, Z_grid, Phi_grid, BR_flat, BZ_flat, BPhi_flat = _close_raw_field_arrays_for_cyna(
+        R_grid,
+        Z_grid,
+        Phi_grid,
+        BR_flat,
+        BZ_flat,
+        BPhi_flat,
+    )
     L_fwd, L_bwd = _cyna_trace_connection_length_twall(
         np.ascontiguousarray(R_seeds, dtype=np.float64),
         np.ascontiguousarray(Z_seeds, dtype=np.float64),
@@ -692,6 +729,14 @@ def trace_wall_hits_twall(
 
     if not _cyna_available() or _cyna_trace_wall_hits_twall is None:
         raise ImportError("pyna._cyna.trace_wall_hits_twall is unavailable. Build cyna first.")
+    R_grid, Z_grid, Phi_grid, BR_flat, BZ_flat, BPhi_flat = _close_raw_field_arrays_for_cyna(
+        R_grid,
+        Z_grid,
+        Phi_grid,
+        BR_flat,
+        BZ_flat,
+        BPhi_flat,
+    )
     (
         L_fwd,
         L_bwd,
@@ -902,6 +947,14 @@ def find_fixed_points_batch(
     if kwargs:
         unknown = ", ".join(sorted(kwargs))
         raise TypeError(f"unexpected keyword argument(s): {unknown}")
+    R_grid, Z_grid, Phi_grid, BR_flat, BZ_flat, BPhi_flat = _close_raw_field_arrays_for_cyna(
+        R_grid,
+        Z_grid,
+        Phi_grid,
+        BR_flat,
+        BZ_flat,
+        BPhi_flat,
+    )
     return _cyna_find_fixed_points_batch(
         np.ascontiguousarray(R_seeds, dtype=np.float64),
         np.ascontiguousarray(Z_seeds, dtype=np.float64),
@@ -1021,14 +1074,20 @@ def find_fixed_points_batch_span_field(
 ):
     """Object-first arbitrary-span fixed-point search wrapper."""
 
+    fd_eps = float(kwargs.pop("fd_eps", 1.0e-4))
+    max_iter = int(kwargs.pop("max_iter", 40))
+    tol = float(kwargs.pop("tol", 1.0e-9))
+    n_threads = int(kwargs.pop("n_threads", -1))
+    if kwargs:
+        unknown = ", ".join(sorted(kwargs))
+        raise TypeError(f"unexpected keyword argument(s): {unknown}")
+    solver_kwargs = {
+        "fd_eps": fd_eps,
+        "max_iter": max_iter,
+        "tol": tol,
+        "n_threads": n_threads,
+    }
     try:
-        fd_eps = float(kwargs.pop("fd_eps", 1.0e-4))
-        max_iter = int(kwargs.pop("max_iter", 40))
-        tol = float(kwargs.pop("tol", 1.0e-9))
-        n_threads = int(kwargs.pop("n_threads", -1))
-        if kwargs:
-            unknown = ", ".join(sorted(kwargs))
-            raise TypeError(f"unexpected keyword argument(s): {unknown}")
         handle = vector_field_cylind_from_field(field, extend_phi=extend_phi)
         return handle.find_fixed_points_batch_span(
             np.ascontiguousarray(R_seeds, dtype=np.float64),
@@ -1055,7 +1114,7 @@ def find_fixed_points_batch_span_field(
         arrays.BR_flat,
         arrays.BZ_flat,
         arrays.BPhi_flat,
-        **kwargs,
+        **solver_kwargs,
     )
 
 
@@ -1179,6 +1238,14 @@ def trace_orbit_along_phi(
         dphi_out = DPhi
     if phi_span != 0.0:
         dphi_out = np.copysign(abs(float(dphi_out)), phi_span)
+    R_grid, Z_grid, Phi_grid, BR_flat, BZ_flat, BPhi_flat = _close_raw_field_arrays_for_cyna(
+        R_grid,
+        Z_grid,
+        Phi_grid,
+        BR_flat,
+        BZ_flat,
+        BPhi_flat,
+    )
     return _cyna_trace_orbit_along_phi(
         float(R0),
         float(Z0),

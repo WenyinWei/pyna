@@ -150,6 +150,88 @@ static void validate_grid_axis(const py::array_t<double>& a, const char* name, b
     }
 }
 
+static void validate_uniform_grid_axis(const py::array_t<double>& a, const char* name) {
+    validate_grid_axis(a, name, true);
+    const auto n = a.size();
+    if (n <= 2)
+        return;
+    const double* p = a.data();
+    const double d0 = p[1] - p[0];
+    const double tol = 1e-12 * std::max(1.0, std::abs(p[n - 1] - p[0]));
+    for (py::ssize_t i = 2; i < n; ++i) {
+        const double di = p[i] - p[i - 1];
+        if (std::abs(di - d0) > tol)
+            throw std::runtime_error(std::string(name) + " must be uniformly spaced for cyna interpolation");
+    }
+}
+
+static void validate_periodic_endpoint_planes(
+    const py::array_t<double>& a,
+    const char* name,
+    int nR,
+    int nZ,
+    int nPhi)
+{
+    if (nPhi <= 1)
+        return;
+    const double* p = a.data();
+    const double rtol = 1e-8;
+    const double atol = 1e-10;
+    for (int iR = 0; iR < nR; ++iR) {
+        for (int iZ = 0; iZ < nZ; ++iZ) {
+            const py::ssize_t base =
+                ((py::ssize_t)iR * (py::ssize_t)nZ + (py::ssize_t)iZ) * (py::ssize_t)nPhi;
+            const double first = p[base];
+            const double last = p[base + nPhi - 1];
+            const double scale = std::max({1.0, std::abs(first), std::abs(last)});
+            if (!std::isfinite(first) || !std::isfinite(last) ||
+                std::abs(first - last) > atol + rtol * scale) {
+                throw std::runtime_error(
+                    std::string(name) +
+                    " must duplicate its first phi plane at the closed periodic endpoint");
+            }
+        }
+    }
+}
+
+static bool span_is_twopi_fraction(double span) {
+    if (!std::isfinite(span) || span <= 0.0)
+        return false;
+    const double nfp = 2.0 * std::acos(-1.0) / span;
+    const double nfp_round = std::round(nfp);
+    if (nfp_round < 1.0)
+        return false;
+    return std::abs(nfp - nfp_round) <= std::max(1.0e-8, 1.0e-8 * std::abs(nfp_round));
+}
+
+static void validate_cyna_raw_field_arrays(
+    const py::array_t<double>& BR,
+    const py::array_t<double>& BZ,
+    const py::array_t<double>& BPhi,
+    const py::array_t<double>& R_grid,
+    const py::array_t<double>& Z_grid,
+    const py::array_t<double>& Phi_grid)
+{
+    validate_uniform_grid_axis(R_grid, "R_grid");
+    validate_uniform_grid_axis(Z_grid, "Z_grid");
+    validate_grid_axis(Phi_grid, "Phi_grid", false);
+    const int nR = (int)R_grid.size();
+    const int nZ = (int)Z_grid.size();
+    const int nPhi = (int)Phi_grid.size();
+    if (nPhi > 1) {
+        const double* phi = Phi_grid.data();
+        const double span = phi[nPhi - 1] - phi[0];
+        if (!span_is_twopi_fraction(span))
+            throw std::runtime_error("Phi_grid must be a closed periodic grid spanning 2*pi/nfp");
+    }
+    const py::ssize_t expected = (py::ssize_t)nR * (py::ssize_t)nZ * (py::ssize_t)nPhi;
+    if (BR.size() != expected || BZ.size() != expected || BPhi.size() != expected)
+        throw std::runtime_error("BR, BZ and BPhi must each have size len(R_grid)*len(Z_grid)*len(Phi_grid)");
+    validate_periodic_endpoint_planes(BR, "BR", nR, nZ, nPhi);
+    validate_periodic_endpoint_planes(BZ, "BZ", nR, nZ, nPhi);
+    validate_periodic_endpoint_planes(BPhi, "BPhi", nR, nZ, nPhi);
+}
+
 struct VectorFieldCylindHandle {
     py::array_t<double> R;
     py::array_t<double> Z;
@@ -191,8 +273,8 @@ struct VectorFieldCylindHandle {
         nPhi = (int)Phi.size();
         if (nR < 2 || nZ < 2 || nPhi < 1)
             throw std::runtime_error("R_grid, Z_grid and Phi_grid have invalid lengths");
-        validate_grid_axis(R, "R");
-        validate_grid_axis(Z, "Z");
+        validate_uniform_grid_axis(R, "R");
+        validate_uniform_grid_axis(Z, "Z");
         validate_grid_axis(Phi, "Phi", false);
         if (nPhi > 1) {
             const double* phi = Phi.data();
@@ -201,10 +283,15 @@ struct VectorFieldCylindHandle {
             const double tol = 1e-12 * std::max(1.0, std::abs(field_period));
             if (span > field_period + tol)
                 throw std::runtime_error("Phi must stay within one field period 2*pi/nfp");
+            if (std::abs(span - field_period) > tol)
+                throw std::runtime_error("Phi must be a closed periodic grid spanning one field period");
         }
         const py::ssize_t expected = (py::ssize_t)nR * (py::ssize_t)nZ * (py::ssize_t)nPhi;
         if (BR.size() != expected || BZ.size() != expected || BPhi.size() != expected)
             throw std::runtime_error("BR, BZ and BPhi must each have size nR*nZ*nPhi");
+        validate_periodic_endpoint_planes(BR, "BR", nR, nZ, nPhi);
+        validate_periodic_endpoint_planes(BZ, "BZ", nR, nZ, nPhi);
+        validate_periodic_endpoint_planes(BPhi, "BPhi", nR, nZ, nPhi);
     }
 
     py::tuple trace_map_batch_span(
@@ -492,11 +579,12 @@ static py::tuple py_trace_poincare_batch(
     py::array_t<double> wall_Z,
     int n_threads,
     int direction)
-{
-    if (n_threads <= 0)
-        n_threads = (int)std::thread::hardware_concurrency();
+    {
+        if (n_threads <= 0)
+            n_threads = (int)std::thread::hardware_concurrency();
+        validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid);
 
-    int N_seeds = (int)R_seeds.size();
+        int N_seeds = (int)R_seeds.size();
     int nR      = (int)R_grid.size();
     int nZ      = (int)Z_grid.size();
     int nPhi    = (int)Phi_grid.size();
@@ -542,11 +630,12 @@ static py::tuple py_trace_map_batch_span(
     py::array_t<double> wall_R,
     py::array_t<double> wall_Z,
     int n_threads)
-{
-    if (n_threads <= 0)
-        n_threads = (int)std::thread::hardware_concurrency();
-    if (!std::isfinite(map_span) || std::abs(map_span) <= 1e-14)
-        throw std::runtime_error("map_span must be finite and non-zero");
+    {
+        if (n_threads <= 0)
+            n_threads = (int)std::thread::hardware_concurrency();
+        validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid);
+        if (!std::isfinite(map_span) || std::abs(map_span) <= 1e-14)
+            throw std::runtime_error("map_span must be finite and non-zero");
     if (N_steps <= 0)
         throw std::runtime_error("N_steps must be positive");
 
@@ -600,11 +689,12 @@ static py::tuple py_trace_poincare_batch_twall(
     py::array_t<double> wall_Z,
     int n_threads,
     int direction)
-{
-    if (n_threads <= 0)
-        n_threads = (int)std::thread::hardware_concurrency();
+    {
+        if (n_threads <= 0)
+            n_threads = (int)std::thread::hardware_concurrency();
+        validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid);
 
-    if (wall_R.ndim() != 2 || wall_Z.ndim() != 2)
+        if (wall_R.ndim() != 2 || wall_Z.ndim() != 2)
         throw std::runtime_error("wall_R and wall_Z must be 2-D arrays [n_phi_wall, n_theta_wall]");
     if (wall_R.shape(0) != wall_Z.shape(0) || wall_R.shape(1) != wall_Z.shape(1))
         throw std::runtime_error("wall_R and wall_Z shapes must match");
@@ -658,11 +748,12 @@ static py::tuple py_trace_poincare_multi(
     py::array_t<double> wall_Z,
     int n_threads,
     int direction)
-{
-    if (n_threads <= 0)
-        n_threads = (int)std::thread::hardware_concurrency();
+    {
+        if (n_threads <= 0)
+            n_threads = (int)std::thread::hardware_concurrency();
+        validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid);
 
-    int N_seeds = (int)R_seeds.size();
+        int N_seeds = (int)R_seeds.size();
     int n_sec   = (int)phi_sections.size();
     int nR      = (int)R_grid.size();
     int nZ      = (int)Z_grid.size();
@@ -1268,6 +1359,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
            int n_threads) -> py::tuple
         {
             if (n_threads <= 0) n_threads = (int)std::thread::hardware_concurrency();
+            validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid);
             if (wall_R.ndim() != 2 || wall_Z.ndim() != 2)
                 throw std::runtime_error("wall_R and wall_Z must be 2-D");
             if (wall_R.shape(0) != wall_Z.shape(0) || wall_R.shape(1) != wall_Z.shape(1))
@@ -1317,6 +1409,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
            int n_threads) -> py::tuple
         {
             if (n_threads <= 0) n_threads = (int)std::thread::hardware_concurrency();
+            validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid);
             if (wall_R.ndim() != 2 || wall_Z.ndim() != 2)
                 throw std::runtime_error("wall_R and wall_Z must be 2-D");
             if (wall_R.shape(0) != wall_Z.shape(0) || wall_R.shape(1) != wall_Z.shape(1))
@@ -1376,6 +1469,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
            int n_threads) -> py::tuple
         {
             if (n_threads <= 0) n_threads = (int)std::thread::hardware_concurrency();
+            validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid);
             int N = (int)R_seeds.size();
 
             py::array_t<double> R_out({N}), Z_out({N}), res_out({N});
@@ -1422,6 +1516,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
            int n_threads) -> py::tuple
         {
             if (n_threads <= 0) n_threads = (int)std::thread::hardware_concurrency();
+            validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid);
             int N = (int)R_seeds.size();
 
             py::array_t<double> R_out({N}), Z_out({N}), res_out({N});

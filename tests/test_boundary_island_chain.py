@@ -735,6 +735,267 @@ def test_raw_trace_map_batch_span_closes_endpoint_false_phi_grid():
     np.testing.assert_allclose(Z_raw, Z_obj, rtol=1.0e-12, atol=1.0e-12)
 
 
+def test_raw_find_fixed_points_batch_closes_endpoint_false_phi_grid(monkeypatch):
+    import pyna.toroidal.flt.numba_poincare as mod
+
+    field = _phi_dependent_field_period_field(nfp=2)
+    arrays = field.cyna_arrays(extend_phi=False)
+    captured = {}
+
+    def fake_find(
+        R_seeds,
+        Z_seeds,
+        phi_start,
+        m_turns,
+        DPhi,
+        fd_eps,
+        max_iter,
+        tol,
+        BR_flat,
+        BZ_flat,
+        BPhi_flat,
+        R_grid,
+        Z_grid,
+        Phi_grid,
+        n_threads,
+    ):
+        captured["Phi_grid"] = np.asarray(Phi_grid)
+        captured["BR"] = np.asarray(BR_flat).reshape(len(R_grid), len(Z_grid), len(Phi_grid))
+        n = len(R_seeds)
+        return (
+            np.asarray(R_seeds, dtype=float),
+            np.asarray(Z_seeds, dtype=float),
+            np.zeros(n),
+            np.ones(n, dtype=int),
+            np.broadcast_to(np.eye(2), (n, 2, 2)).copy(),
+            np.ones((n, 2)),
+            np.zeros((n, 2)),
+            np.zeros(n, dtype=int),
+        )
+
+    monkeypatch.setattr(mod, "_cyna_available", lambda: True)
+    monkeypatch.setattr(mod, "_cyna_find_fixed_points_batch", fake_find)
+
+    mod.find_fixed_points_batch(
+        np.asarray([1.0]),
+        np.asarray([0.0]),
+        0.0,
+        1,
+        1,
+        0.01,
+        arrays.R_grid,
+        arrays.Z_grid,
+        arrays.Phi_grid,
+        arrays.BR_flat,
+        arrays.BZ_flat,
+        arrays.BPhi_flat,
+        fd_eps=2.0e-5,
+        max_iter=7,
+        tol=3.0e-8,
+        n_threads=1,
+    )
+
+    assert captured["Phi_grid"][-1] == pytest.approx(np.pi)
+    assert captured["Phi_grid"].size == arrays.Phi_grid.size + 1
+    np.testing.assert_allclose(captured["BR"][:, :, -1], captured["BR"][:, :, 0])
+
+
+def test_find_fixed_points_batch_span_field_fallback_preserves_solver_kwargs(monkeypatch):
+    import pyna.toroidal.flt.numba_poincare as mod
+
+    field = _phi_dependent_field_period_field(nfp=2)
+    captured = {}
+
+    def fake_handle(*args, **kwargs):
+        raise ImportError("forced raw fallback")
+
+    def fake_raw(
+        field_R,
+        field_Z,
+        phi_start,
+        map_span,
+        DPhi,
+        R_grid,
+        Z_grid,
+        Phi_grid,
+        BR_flat,
+        BZ_flat,
+        BPhi_flat,
+        **kwargs,
+    ):
+        captured.update(kwargs)
+        n = len(field_R)
+        return (
+            np.asarray(field_R, dtype=float),
+            np.asarray(field_Z, dtype=float),
+            np.zeros(n),
+            np.ones(n, dtype=int),
+            np.broadcast_to(np.eye(2), (n, 2, 2)).copy(),
+            np.ones((n, 2)),
+            np.zeros((n, 2)),
+            np.zeros(n, dtype=int),
+        )
+
+    monkeypatch.setattr(mod, "vector_field_cylind_from_field", fake_handle)
+    monkeypatch.setattr(mod, "find_fixed_points_batch_span", fake_raw)
+
+    mod.find_fixed_points_batch_span_field(
+        field,
+        np.asarray([1.0]),
+        np.asarray([0.0]),
+        0.0,
+        np.pi,
+        0.01,
+        fd_eps=2.0e-5,
+        max_iter=17,
+        tol=3.0e-8,
+        n_threads=5,
+    )
+
+    assert captured == {
+        "fd_eps": pytest.approx(2.0e-5),
+        "max_iter": 17,
+        "tol": pytest.approx(3.0e-8),
+        "n_threads": 5,
+    }
+
+
+def test_vector_field_cylind_from_field_rejects_stale_nfp_handle(monkeypatch):
+    import pyna.toroidal.flt.numba_poincare as mod
+
+    field = _phi_dependent_field_period_field(nfp=2)
+
+    def fake_ctor(*args, **kwargs):
+        if "nfp" in kwargs:
+            raise TypeError("unexpected keyword argument 'nfp'")
+        return object()
+
+    monkeypatch.setattr(mod, "_cyna_available", lambda: True)
+    monkeypatch.setattr(mod, "_cyna_VectorFieldCylind", fake_ctor)
+
+    with pytest.raises(ImportError, match="nfp-aware"):
+        mod.vector_field_cylind_from_field(field)
+
+
+def test_cyna_vector_field_handle_rejects_nonuniform_r_grid():
+    _skip_without_cyna_field_handle()
+    import pyna._cyna as cyna
+
+    R = np.asarray([0.8, 0.91, 1.2], dtype=float)
+    Z = np.linspace(-0.1, 0.1, 3)
+    Phi = np.asarray([0.0, 2.0 * np.pi], dtype=float)
+    shape = (R.size, Z.size, Phi.size)
+
+    with pytest.raises(RuntimeError, match="uniformly spaced"):
+        cyna.VectorFieldCylind(
+            R,
+            Z,
+            Phi,
+            np.zeros(shape),
+            np.zeros(shape),
+            np.ones(shape),
+            nfp=1,
+        )
+
+
+def test_cyna_vector_field_handle_rejects_mismatched_closed_phi_endpoint():
+    _skip_without_cyna_field_handle()
+    import pyna._cyna as cyna
+
+    R = np.linspace(0.8, 1.2, 3)
+    Z = np.linspace(-0.1, 0.1, 3)
+    Phi = np.asarray([0.0, np.pi], dtype=float)
+    shape = (R.size, Z.size, Phi.size)
+    BR = np.zeros(shape)
+    BZ = np.zeros(shape)
+    BPhi = np.ones(shape)
+    BR[:, :, -1] = 0.25
+
+    with pytest.raises(RuntimeError, match="closed periodic endpoint"):
+        cyna.VectorFieldCylind(R, Z, Phi, BR, BZ, BPhi, nfp=2)
+
+
+def test_direct_cyna_map_span_rejects_endpoint_false_phi_grid():
+    _skip_without_fixed_point_cyna()
+    import pyna._cyna as cyna
+
+    field = _phi_dependent_field_period_field(nfp=2)
+    arrays = field.cyna_arrays(extend_phi=False)
+
+    with pytest.raises(RuntimeError, match="closed periodic grid"):
+        cyna.trace_map_batch_span(
+            np.asarray([1.0]),
+            np.asarray([0.0]),
+            0.0,
+            np.pi,
+            1,
+            0.01,
+            arrays.BR_flat,
+            arrays.BZ_flat,
+            arrays.BPhi_flat,
+            arrays.R_grid,
+            arrays.Z_grid,
+            arrays.Phi_grid,
+            np.empty(0),
+            np.empty(0),
+            1,
+        )
+
+
+def test_direct_cyna_fixed_point_span_rejects_endpoint_false_phi_grid():
+    _skip_without_fixed_point_cyna()
+    import pyna._cyna as cyna
+
+    field = _phi_dependent_field_period_field(nfp=2)
+    arrays = field.cyna_arrays(extend_phi=False)
+
+    with pytest.raises(RuntimeError, match="closed periodic grid"):
+        cyna.find_fixed_points_batch_span(
+            np.asarray([1.0]),
+            np.asarray([0.0]),
+            0.0,
+            np.pi,
+            0.01,
+            1.0e-4,
+            5,
+            1.0e-9,
+            arrays.BR_flat,
+            arrays.BZ_flat,
+            arrays.BPhi_flat,
+            arrays.R_grid,
+            arrays.Z_grid,
+            arrays.Phi_grid,
+            1,
+        )
+
+
+def test_direct_cyna_fixed_point_full_turn_rejects_endpoint_false_phi_grid():
+    _skip_without_fixed_point_cyna()
+    import pyna._cyna as cyna
+
+    field = _phi_dependent_field_period_field(nfp=2)
+    arrays = field.cyna_arrays(extend_phi=False)
+
+    with pytest.raises(RuntimeError, match="closed periodic grid"):
+        cyna.find_fixed_points_batch(
+            np.asarray([1.0]),
+            np.asarray([0.0]),
+            0.0,
+            1,
+            0.01,
+            1.0e-4,
+            5,
+            1.0e-9,
+            arrays.BR_flat,
+            arrays.BZ_flat,
+            arrays.BPhi_flat,
+            arrays.R_grid,
+            arrays.Z_grid,
+            arrays.Phi_grid,
+            1,
+        )
+
+
 def test_boundary_fixed_point_search_returns_plot_payload():
     _skip_without_fixed_point_cyna()
     field = _hyperbolic_field(nfp=2)

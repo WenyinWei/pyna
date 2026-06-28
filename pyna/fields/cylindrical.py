@@ -223,6 +223,7 @@ class CylindricalFieldArrays:
     BR: np.ndarray
     BZ: np.ndarray
     BPhi: np.ndarray
+    field_periods: int = 1
 
     @property
     def BR_flat(self) -> np.ndarray:
@@ -248,6 +249,7 @@ class CylindricalFieldArrays:
             "R_grid": self.R_grid,
             "Z_grid": self.Z_grid,
             "Phi_grid": self.Phi_grid,
+            "field_periods": int(self.field_periods),
         }
 
     def cyna_component_args(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -944,6 +946,7 @@ class VectorFieldCylind(VectorField3D):
             BR=np.ascontiguousarray(BR3, dtype=np.float64),
             BZ=np.ascontiguousarray(BZ3, dtype=np.float64),
             BPhi=np.ascontiguousarray(BP3, dtype=np.float64),
+            field_periods=int(self.field_periods),
         )
 
     def to_field_cache(self, *, extend_phi: bool = False) -> dict[str, np.ndarray]:
