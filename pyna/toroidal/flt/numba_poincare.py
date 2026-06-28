@@ -5,7 +5,11 @@ Canonical toroidal ownership for the grid-backed batch tracing helpers.
 from __future__ import annotations
 
 import numpy as np
-from pyna.fields.cylindrical import CylindricalFieldArrays, as_vector_field_cylindrical
+from pyna.fields.cylindrical import (
+    CylindricalFieldArrays,
+    as_vector_field_cylindrical,
+    close_periodic_phi_grid,
+)
 from pyna.toroidal.geometry import coerce_toroidal_surface_arrays
 from pyna._cyna import (
     is_available as _cyna_available,
@@ -45,6 +49,40 @@ def field_arrays_from_field(field, *, extend_phi: bool = False) -> CylindricalFi
     """Return a named cyna-array view from a cylindrical vector field object."""
 
     return as_vector_field_cylindrical(field).cyna_arrays(extend_phi=extend_phi)
+
+
+def _close_raw_field_arrays_for_cyna(
+    R_grid,
+    Z_grid,
+    Phi_grid,
+    BR_flat,
+    BZ_flat,
+    BPhi_flat,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Close raw endpoint=False phi grids before passing arrays to cyna."""
+
+    Rg = np.ascontiguousarray(R_grid, dtype=np.float64)
+    Zg = np.ascontiguousarray(Z_grid, dtype=np.float64)
+    Pg = np.ascontiguousarray(Phi_grid, dtype=np.float64)
+    nR, nZ, nPhi = int(Rg.size), int(Zg.size), int(Pg.size)
+    expected = nR * nZ * nPhi
+    BR3 = np.ascontiguousarray(BR_flat, dtype=np.float64)
+    BZ3 = np.ascontiguousarray(BZ_flat, dtype=np.float64)
+    BP3 = np.ascontiguousarray(BPhi_flat, dtype=np.float64)
+    if BR3.size != expected or BZ3.size != expected or BP3.size != expected:
+        raise ValueError("BR_flat, BZ_flat and BPhi_flat must each have size len(R_grid)*len(Z_grid)*len(Phi_grid)")
+    BR3 = BR3.reshape(nR, nZ, nPhi)
+    BZ3 = BZ3.reshape(nR, nZ, nPhi)
+    BP3 = BP3.reshape(nR, nZ, nPhi)
+    Pg, BR3, BZ3, BP3 = close_periodic_phi_grid(Pg, BR3, BZ3, BP3)
+    return (
+        Rg,
+        Zg,
+        np.ascontiguousarray(Pg, dtype=np.float64),
+        np.ascontiguousarray(BR3, dtype=np.float64).ravel(),
+        np.ascontiguousarray(BZ3, dtype=np.float64).ravel(),
+        np.ascontiguousarray(BP3, dtype=np.float64).ravel(),
+    )
 
 
 def vector_field_cylind_from_field(field, *, extend_phi: bool = True):
@@ -934,6 +972,8 @@ def find_fixed_points_batch_span(
         raise ImportError("pyna._cyna.find_fixed_points_batch_span is unavailable. Build cyna first.")
     if not np.isfinite(float(map_span)) or abs(float(map_span)) <= 1.0e-14:
         raise ValueError("map_span must be a nonzero finite toroidal angle")
+    if not np.isfinite(float(DPhi)) or abs(float(DPhi)) <= 1.0e-14:
+        raise ValueError("DPhi must be a nonzero finite toroidal angle step")
     fd_eps = float(kwargs.pop("fd_eps", 1.0e-4))
     max_iter = int(kwargs.pop("max_iter", 40))
     tol = float(kwargs.pop("tol", 1.0e-9))
@@ -941,6 +981,14 @@ def find_fixed_points_batch_span(
     if kwargs:
         unknown = ", ".join(sorted(kwargs))
         raise TypeError(f"unexpected keyword argument(s): {unknown}")
+    R_grid, Z_grid, Phi_grid, BR_flat, BZ_flat, BPhi_flat = _close_raw_field_arrays_for_cyna(
+        R_grid,
+        Z_grid,
+        Phi_grid,
+        BR_flat,
+        BZ_flat,
+        BPhi_flat,
+    )
     return _cyna_find_fixed_points_batch_span(
         np.ascontiguousarray(R_seeds, dtype=np.float64),
         np.ascontiguousarray(Z_seeds, dtype=np.float64),
@@ -950,12 +998,12 @@ def find_fixed_points_batch_span(
         fd_eps,
         max_iter,
         tol,
-        np.ascontiguousarray(BR_flat, dtype=np.float64),
-        np.ascontiguousarray(BZ_flat, dtype=np.float64),
-        np.ascontiguousarray(BPhi_flat, dtype=np.float64),
-        np.ascontiguousarray(R_grid, dtype=np.float64),
-        np.ascontiguousarray(Z_grid, dtype=np.float64),
-        np.ascontiguousarray(Phi_grid, dtype=np.float64),
+        BR_flat,
+        BZ_flat,
+        BPhi_flat,
+        R_grid,
+        Z_grid,
+        Phi_grid,
         n_threads,
     )
 
@@ -1035,8 +1083,18 @@ def trace_map_batch_span(
         raise ImportError("pyna._cyna.trace_map_batch_span is unavailable. Build cyna first.")
     if not np.isfinite(float(map_span)) or abs(float(map_span)) <= 1.0e-14:
         raise ValueError("map_span must be a nonzero finite toroidal angle")
+    if not np.isfinite(float(DPhi)) or abs(float(DPhi)) <= 1.0e-14:
+        raise ValueError("DPhi must be a nonzero finite toroidal angle step")
     if int(N_steps) <= 0:
         raise ValueError("N_steps must be positive")
+    R_grid, Z_grid, Phi_grid, BR_flat, BZ_flat, BPhi_flat = _close_raw_field_arrays_for_cyna(
+        R_grid,
+        Z_grid,
+        Phi_grid,
+        BR_flat,
+        BZ_flat,
+        BPhi_flat,
+    )
     return _cyna_trace_map_batch_span(
         np.ascontiguousarray(R_seeds, dtype=np.float64),
         np.ascontiguousarray(Z_seeds, dtype=np.float64),
@@ -1044,12 +1102,12 @@ def trace_map_batch_span(
         float(map_span),
         int(N_steps),
         float(DPhi),
-        np.ascontiguousarray(BR_flat, dtype=np.float64),
-        np.ascontiguousarray(BZ_flat, dtype=np.float64),
-        np.ascontiguousarray(BPhi_flat, dtype=np.float64),
-        np.ascontiguousarray(R_grid, dtype=np.float64),
-        np.ascontiguousarray(Z_grid, dtype=np.float64),
-        np.ascontiguousarray(Phi_grid, dtype=np.float64),
+        BR_flat,
+        BZ_flat,
+        BPhi_flat,
+        R_grid,
+        Z_grid,
+        Phi_grid,
         np.ascontiguousarray(wall_R, dtype=np.float64),
         np.ascontiguousarray(wall_Z, dtype=np.float64),
         int(n_threads),

@@ -566,8 +566,8 @@ def _check_fixed_point_monodromy_span(
     if known_span is None:
         return
     if not np.isclose(
-        abs(float(known_span)),
-        abs(float(trace_map_span)),
+        float(known_span),
+        float(trace_map_span),
         rtol=2.0e-8,
         atol=1.0e-10,
     ):
@@ -585,6 +585,91 @@ def _check_fixed_point_local_monodromy(fp: BoundaryIslandFixedPoint | FixedPoint
             "fixed point DPm is marked non-local; refine this section point with "
             "refine_fixed_points_monodromy_span_field before tracing manifolds"
         )
+
+
+def _refine_inverse_manifold_anchor(
+    field,
+    *,
+    R0: float,
+    Z0: float,
+    phi: float,
+    map_span: float,
+    DPhi: float,
+    fd_eps: float,
+    tol: float,
+    max_iter: int,
+    residual_tol: float,
+    extend_phi: bool,
+) -> dict[str, object]:
+    """Return a local fixed-point anchor for the inverse numerical map."""
+
+    meta: dict[str, object] = {
+        "refined": False,
+        "residual": np.inf,
+        "origin_R": float(R0),
+        "origin_Z": float(Z0),
+        "origin_shift": np.nan,
+        "map_span": -float(map_span),
+        "error": None,
+    }
+    try:
+        result = find_fixed_points_batch_span_field(
+            field,
+            np.asarray([float(R0)], dtype=float),
+            np.asarray([float(Z0)], dtype=float),
+            float(phi),
+            -float(map_span),
+            float(DPhi),
+            extend_phi=extend_phi,
+            fd_eps=float(fd_eps),
+            max_iter=int(max_iter),
+            tol=float(tol),
+            n_threads=-1,
+        )
+    except Exception as exc:  # optional numerical guard; tracing can still proceed
+        meta["error"] = f"{type(exc).__name__}: {exc}"
+        return meta
+
+    try:
+        R_out, Z_out, residual, converged, DPm_flat, _eig_r, _eig_i, point_type = result
+        ok = bool(np.asarray(converged).astype(bool).ravel()[0])
+        res = float(np.asarray(residual, dtype=float).ravel()[0])
+        ptype = int(np.asarray(point_type).ravel()[0])
+        DPm_inv = np.asarray(DPm_flat, dtype=float).reshape(-1, 2, 2)[0]
+        eigpairs = _stable_unstable_eigenpairs(DPm_inv)
+        if (
+            not ok
+            or not np.isfinite(res)
+            or res > float(residual_tol)
+            or ptype != 1
+            or eigpairs is None
+        ):
+            meta.update({
+                "residual": res,
+                "point_type": ptype,
+                "error": "inverse fixed-point refinement did not converge to an X point",
+            })
+            return meta
+        inv_stable_eigval, inv_stable, inv_unstable_eigval, inv_unstable = eigpairs
+        anchor_R = float(np.asarray(R_out, dtype=float).ravel()[0])
+        anchor_Z = float(np.asarray(Z_out, dtype=float).ravel()[0])
+        meta.update({
+            "refined": True,
+            "origin_R": anchor_R,
+            "origin_Z": anchor_Z,
+            "origin_shift": float(np.hypot(anchor_R - float(R0), anchor_Z - float(Z0))),
+            "residual": res,
+            "point_type": ptype,
+            "DPm": DPm_inv,
+            "stable_eigenvalue": float(inv_stable_eigval),
+            "stable_eigenvector": inv_stable,
+            "unstable_eigenvalue": float(inv_unstable_eigval),
+            "unstable_eigenvector": inv_unstable,
+        })
+        return meta
+    except Exception as exc:
+        meta["error"] = f"{type(exc).__name__}: {exc}"
+        return meta
 
 
 def _fixed_point_kind(fp: BoundaryIslandFixedPoint | FixedPoint) -> str:
@@ -3649,12 +3734,19 @@ def trace_fixed_point_manifolds_field(
     include_arclength: bool = False,
     extend_phi: bool = True,
     require_local_monodromy: bool = True,
+    refine_stable_inverse_anchor: bool = True,
+    stable_inverse_anchor_tol: float = 1.0e-11,
+    stable_inverse_anchor_residual_tol: float = 1.0e-8,
+    stable_inverse_anchor_max_iter: int = 40,
 ) -> list[dict[str, np.ndarray]]:
     """Trace W^u/W^s point clouds from hyperbolic fixed points.
 
-    ``W^u`` is traced forward from the unstable eigendirection; ``W^s`` is
-    traced backward from the stable eigendirection.  Pass ``map_span`` when the
-    supplied ``DPm`` is already the monodromy of a complete return map.  If
+    ``W^u`` is traced forward from the unstable eigendirection.  ``W^s`` is
+    traced with the backward numerical map; by default its local anchor is
+    refined against that inverse map before seeds are generated.  This avoids
+    silently using a forward-map fixed point that is not also a fixed point of
+    the discrete backward RK map at finite step size.  Pass ``map_span`` when
+    the supplied ``DPm`` is already the monodromy of a complete return map.  If
     ``map_span`` is omitted, the traced span is inferred from fixed-point
     metadata as ``map_power * field_period``.
     """
@@ -3798,7 +3890,50 @@ def trace_fixed_point_manifolds_field(
             continue
         stable_eigval, stable, unstable_eigval, unstable = eigpairs
         unstable_expansion = float(abs(unstable_eigval))
+        phi = float(getattr(fp, "phi", 0.0) if phi_section is None else phi_section)
+        R0 = float(getattr(fp, "R"))
+        Z0 = float(getattr(fp, "Z"))
+        trace_map_span, trace_map_span_source = _fixed_point_monodromy_map_span(
+            fp,
+            explicit_field_period=field_period,
+            explicit_map_span=map_span,
+        )
+        _check_fixed_point_monodromy_span(fp, trace_map_span)
+
+        stable_origin_R = R0
+        stable_origin_Z = Z0
+        stable_trace_eigval = stable_eigval
+        stable_trace_vec = stable
         stable_backward_expansion = np.inf if stable_eigval == 0.0 else float(1.0 / abs(stable_eigval))
+        stable_inverse_anchor: dict[str, object] = {
+            "refined": False,
+            "residual": np.nan,
+            "origin_R": float(stable_origin_R),
+            "origin_Z": float(stable_origin_Z),
+            "origin_shift": 0.0,
+            "map_span": -float(trace_map_span),
+            "error": None,
+        }
+        if refine_stable_inverse_anchor:
+            stable_inverse_anchor = _refine_inverse_manifold_anchor(
+                field,
+                R0=R0,
+                Z0=Z0,
+                phi=phi,
+                map_span=float(trace_map_span),
+                DPhi=float(DPhi),
+                fd_eps=float(fd_eps),
+                tol=float(stable_inverse_anchor_tol),
+                max_iter=int(stable_inverse_anchor_max_iter),
+                residual_tol=float(stable_inverse_anchor_residual_tol),
+                extend_phi=extend_phi,
+            )
+            if bool(stable_inverse_anchor.get("refined", False)):
+                stable_origin_R = float(stable_inverse_anchor["origin_R"])
+                stable_origin_Z = float(stable_inverse_anchor["origin_Z"])
+                stable_trace_eigval = float(stable_inverse_anchor["unstable_eigenvalue"])
+                stable_trace_vec = np.asarray(stable_inverse_anchor["unstable_eigenvector"], dtype=float)
+                stable_backward_expansion = float(abs(stable_trace_eigval))
         if not np.isfinite(stable_backward_expansion) or stable_backward_expansion <= 1.0:
             continue
         if user_seed_distances:
@@ -3822,16 +3957,6 @@ def trace_fixed_point_manifolds_field(
             )
             seed_spacing = "eigenvalue_geometric"
 
-        phi = float(getattr(fp, "phi", 0.0) if phi_section is None else phi_section)
-        R0 = float(getattr(fp, "R"))
-        Z0 = float(getattr(fp, "Z"))
-        trace_map_span, trace_map_span_source = _fixed_point_monodromy_map_span(
-            fp,
-            explicit_field_period=field_period,
-            explicit_map_span=map_span,
-        )
-        _check_fixed_point_monodromy_span(fp, trace_map_span)
-
         def _signed_seed_offsets(seed_distances: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
             sign = np.asarray([-1.0, 1.0], dtype=float)
             offsets = (sign[:, None] * seed_distances[None, :]).ravel()
@@ -3845,8 +3970,8 @@ def trace_fixed_point_manifolds_field(
         ds, s_seed_order = _signed_seed_offsets(s_distances)
         seed_u_R = R0 + du * unstable[0]
         seed_u_Z = Z0 + du * unstable[1]
-        seed_s_R = R0 + ds * stable[0]
-        seed_s_Z = Z0 + ds * stable[1]
+        seed_s_R = stable_origin_R + ds * stable_trace_vec[0]
+        seed_s_Z = stable_origin_Z + ds * stable_trace_vec[1]
         seed_u_distance = np.abs(du)
         seed_s_distance = np.abs(ds)
         seed_u_side = np.sign(du)
@@ -3960,9 +4085,9 @@ def trace_fixed_point_manifolds_field(
             seed_distance=seed_s_distance,
             seed_side=seed_s_side,
             seed_order=s_seed_order,
-            eigenvalue_sign=np.sign(stable_eigval),
-            origin_R=R0,
-            origin_Z=Z0,
+            eigenvalue_sign=np.sign(stable_trace_eigval),
+            origin_R=stable_origin_R,
+            origin_Z=stable_origin_Z,
         )
         metadata = dict(getattr(fp, "metadata", {}) or {})
         map_order_index = metadata.get(
@@ -3980,11 +4105,20 @@ def trace_fixed_point_manifolds_field(
             "origin_R": R0,
             "origin_Z": Z0,
             "origin_phi": phi,
+            "stable_origin_R": stable_origin_R,
+            "stable_origin_Z": stable_origin_Z,
             "manifold_field_period": float(trace_map_span),
             "manifold_field_period_source": trace_map_span_source,
-            "stable_eigenvector": stable.copy(),
+            "forward_stable_eigenvector": stable.copy(),
+            "forward_stable_eigenvalue": stable_eigval,
+            "stable_eigenvector": stable_trace_vec.copy(),
             "unstable_eigenvector": unstable.copy(),
-            "stable_eigenvalue": stable_eigval,
+            "stable_eigenvalue": stable_trace_eigval,
+            "stable_inverse_anchor_refined": bool(stable_inverse_anchor.get("refined", False)),
+            "stable_inverse_anchor_residual": float(stable_inverse_anchor.get("residual", np.nan)),
+            "stable_inverse_anchor_origin_shift": float(stable_inverse_anchor.get("origin_shift", np.nan)),
+            "stable_inverse_anchor_map_span": float(stable_inverse_anchor.get("map_span", -float(trace_map_span))),
+            "stable_inverse_anchor_error": stable_inverse_anchor.get("error"),
             "unstable_eigenvalue": unstable_eigval,
             "stable_orientation_reversing": bool(stable_eigval < 0.0),
             "unstable_orientation_reversing": bool(unstable_eigval < 0.0),

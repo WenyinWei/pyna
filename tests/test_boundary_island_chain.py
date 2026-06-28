@@ -14,6 +14,7 @@ from pyna.toroidal.flt import (
     vector_field_cylind_from_field,
     find_boundary_island_fixed_points_field,
     refine_fixed_points_monodromy_span_field,
+    trace_map_batch_span,
     trace_map_batch_span_field,
     trace_boundary_island_shapes_field,
     trace_boundary_island_chain_sections_span_field,
@@ -71,6 +72,25 @@ def _rotation_field(*, nfp: int = 1):
     RR, ZZ, PP = np.meshgrid(R, Z, Phi, indexing="ij")
     dR_dphi = -omega * (ZZ - axis_Z)
     dZ_dphi = omega * (RR - axis_R)
+    return VectorFieldCylind(
+        R=R,
+        Z=Z,
+        Phi=Phi,
+        BR=dR_dphi,
+        BZ=dZ_dphi,
+        BPhi=np.ones_like(RR),
+        nfp=nfp,
+    )
+
+
+def _phi_dependent_field_period_field(*, nfp: int = 2):
+    R = np.linspace(0.82, 1.18, 33)
+    Z = np.linspace(-0.18, 0.18, 33)
+    period = 2.0 * np.pi / int(nfp)
+    Phi = np.linspace(0.0, period, 24, endpoint=False)
+    RR, ZZ, PP = np.meshgrid(R, Z, Phi, indexing="ij")
+    dR_dphi = 0.015 * np.cos(int(nfp) * PP) * (RR - 1.0) + 0.01 * np.sin(int(nfp) * PP) * ZZ
+    dZ_dphi = -0.013 * np.sin(int(nfp) * PP + 0.3) * (RR - 1.0) - 0.012 * np.cos(int(nfp) * PP) * ZZ
     return VectorFieldCylind(
         R=R,
         Z=Z,
@@ -674,6 +694,47 @@ def test_cyna_field_handle_traces_span_map_like_object_wrapper():
     np.testing.assert_allclose(Z_obj, Z_handle)
 
 
+def test_raw_trace_map_batch_span_closes_endpoint_false_phi_grid():
+    _skip_without_cyna_field_handle()
+    field = _phi_dependent_field_period_field(nfp=2)
+    arrays = field.cyna_arrays(extend_phi=False)
+    R0 = np.asarray([0.96, 1.04, 1.08], dtype=float)
+    Z0 = np.asarray([0.03, -0.02, 0.04], dtype=float)
+    map_span = -np.pi
+
+    counts_obj, R_obj, Z_obj = trace_map_batch_span_field(
+        field,
+        R0,
+        Z0,
+        0.0,
+        map_span,
+        3,
+        0.01,
+        n_threads=1,
+    )
+    counts_raw, R_raw, Z_raw = trace_map_batch_span(
+        R0,
+        Z0,
+        0.0,
+        map_span,
+        3,
+        0.01,
+        arrays.R_grid,
+        arrays.Z_grid,
+        arrays.Phi_grid,
+        arrays.BR_flat,
+        arrays.BZ_flat,
+        arrays.BPhi_flat,
+        np.empty(0),
+        np.empty(0),
+        n_threads=1,
+    )
+
+    np.testing.assert_array_equal(counts_raw, counts_obj)
+    np.testing.assert_allclose(R_raw, R_obj, rtol=1.0e-12, atol=1.0e-12)
+    np.testing.assert_allclose(Z_raw, Z_obj, rtol=1.0e-12, atol=1.0e-12)
+
+
 def test_boundary_fixed_point_search_returns_plot_payload():
     _skip_without_fixed_point_cyna()
     field = _hyperbolic_field(nfp=2)
@@ -966,6 +1027,7 @@ def test_trace_fixed_point_manifolds_uses_eigenvalue_geometric_seed_segment():
         eps_max=1.0e-3,
         n_eps=4,
         include_arclength=True,
+        refine_stable_inverse_anchor=False,
     )
 
     assert len(manifolds) == 1
@@ -1454,6 +1516,116 @@ def test_trace_fixed_point_manifolds_accepts_explicit_total_map_span(monkeypatch
     assert map_spans == [pytest.approx(2.0), pytest.approx(-2.0)]
 
 
+def test_trace_fixed_point_manifolds_refines_stable_inverse_anchor(monkeypatch):
+    origin_R = 1.0
+    origin_Z = 0.0
+    inverse_origin_R = 1.01
+    inverse_origin_Z = 0.02
+    expansion = 4.0
+    trace_calls = []
+
+    def fake_find_inverse(field, R, Z, phi_start, map_span, DPhi, **kwargs):
+        assert float(map_span) == pytest.approx(-2.0)
+        return (
+            np.asarray([inverse_origin_R]),
+            np.asarray([inverse_origin_Z]),
+            np.asarray([1.0e-12]),
+            np.asarray([1]),
+            np.asarray([[[1.0 / expansion, 0.0], [0.0, expansion]]]),
+            np.asarray([[1.0 / expansion, expansion]]),
+            np.zeros((1, 2)),
+            np.asarray([1]),
+        )
+
+    def fake_trace_map_points(
+        field,
+        seed_R,
+        seed_Z,
+        phi_section,
+        *,
+        N_turns,
+        map_span,
+        DPhi,
+        wall_R=None,
+        wall_Z=None,
+        extend_phi=True,
+        fd_eps=1.0e-4,
+    ):
+        seed_R = np.asarray(seed_R, dtype=float)
+        seed_Z = np.asarray(seed_Z, dtype=float)
+        trace_calls.append((float(map_span), seed_R.copy(), seed_Z.copy()))
+        traces = []
+        for r, z in zip(seed_R, seed_Z):
+            if float(map_span) > 0.0:
+                rr = origin_R + expansion * (float(r) - origin_R)
+                zz = origin_Z + (float(z) - origin_Z) / expansion
+            else:
+                rr = inverse_origin_R + (float(r) - inverse_origin_R) / expansion
+                zz = inverse_origin_Z + expansion * (float(z) - inverse_origin_Z)
+            traces.append((np.asarray([rr]), np.asarray([zz])))
+        return traces
+
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain.find_fixed_points_batch_span_field",
+        fake_find_inverse,
+    )
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain._trace_map_points_field",
+        fake_trace_map_points,
+    )
+
+    fp = FixedPoint(
+        phi=0.0,
+        R=origin_R,
+        Z=origin_Z,
+        kind="X",
+        DPm=np.diag([expansion, 1.0 / expansion]),
+    )
+    fp.metadata["monodromy_map_span"] = 2.0
+
+    manifolds = trace_fixed_point_manifolds_field(
+        object(),
+        [fp],
+        phi_section=0.0,
+        N_turns=1,
+        map_span=2.0,
+        DPhi=0.1,
+        eps_min=1.0e-5,
+        eps_max=1.0e-4,
+        n_eps=3,
+        include_arclength=True,
+    )
+
+    assert len(manifolds) == 1
+    man = manifolds[0]
+    assert man["stable_inverse_anchor_refined"] is True
+    assert man["stable_inverse_anchor_residual"] == pytest.approx(1.0e-12)
+    assert man["stable_inverse_anchor_origin_shift"] == pytest.approx(
+        np.hypot(inverse_origin_R - origin_R, inverse_origin_Z - origin_Z)
+    )
+    assert man["stable_origin_R"] == pytest.approx(inverse_origin_R)
+    assert man["stable_origin_Z"] == pytest.approx(inverse_origin_Z)
+    np.testing.assert_allclose(man["stable_eigenvector"], [0.0, 1.0])
+    assert [call[0] for call in trace_calls] == [pytest.approx(2.0), pytest.approx(-2.0)]
+    stable_seed_R = trace_calls[1][1]
+    stable_seed_Z = trace_calls[1][2]
+    np.testing.assert_allclose(stable_seed_R, inverse_origin_R)
+    assert np.all(np.abs(stable_seed_Z - inverse_origin_Z) > 0.0)
+
+    def stable_offsets(generation: int, side_sign: float) -> np.ndarray:
+        gen = np.asarray(man["s_generation"])
+        side = np.asarray(man["s_point_side"])
+        order = np.asarray(man["s_point_seed_order"])
+        mask = (gen == generation) & (side == side_sign)
+        idx = np.argsort(order[mask])
+        return np.asarray(man["s_Z"])[mask][idx] - inverse_origin_Z
+
+    for side_sign in (-1.0, 1.0):
+        s0 = stable_offsets(0, side_sign)
+        s1 = stable_offsets(1, side_sign)
+        np.testing.assert_allclose(s1, expansion * s0, rtol=1.0e-12, atol=1.0e-15)
+
+
 def test_trace_fixed_point_manifolds_rejects_monodromy_span_mismatch():
     fp = FixedPoint(phi=0.0, R=1.0, Z=0.0, kind="X", DPm=np.diag([3.0, 1.0 / 3.0]))
     fp.map_power = 2
@@ -1468,6 +1640,20 @@ def test_trace_fixed_point_manifolds_rejects_monodromy_span_mismatch():
             [fp],
             phi_section=0.0,
             field_period=3.0,
+            DPhi=0.1,
+        )
+
+
+def test_trace_fixed_point_manifolds_rejects_monodromy_span_sign_mismatch():
+    fp = FixedPoint(phi=0.0, R=1.0, Z=0.0, kind="X", DPm=np.diag([3.0, 1.0 / 3.0]))
+    fp.metadata["monodromy_map_span"] = 2.0
+
+    with pytest.raises(ValueError, match="DPm span metadata"):
+        trace_fixed_point_manifolds_field(
+            object(),
+            [fp],
+            phi_section=0.0,
+            map_span=-2.0,
             DPhi=0.1,
         )
 
