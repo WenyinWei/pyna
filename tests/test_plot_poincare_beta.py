@@ -8,6 +8,7 @@ from pyna.plot import (
     cycles_for_section,
     draw_axis_point,
     draw_cycle_points,
+    draw_manifold_origins,
     draw_manifold_points,
     draw_poincare_points,
     draw_wall_section,
@@ -70,6 +71,7 @@ def _section_cycle(phi, cycle_id):
         fp = FixedPoint(phi=float(phi), R=1.1 + 0.01 * i, Z=z, kind="X", DPm=np.eye(2))
         fp.metadata.update({
             "same_cycle_key": f"chain=0:cycle={cycle_id}:kind=X",
+            "map_order_index": i,
             "orbit_point_index": i,
         })
         pts.append(fp)
@@ -137,6 +139,11 @@ def test_section_geometry_primitives_compose_core_and_edge_plot(tmp_path):
             "s_R": np.asarray([1.13, 1.09, 1.05]),
             "s_Z": np.asarray([0.00, -0.04, -0.08]),
             "s_lpol": np.asarray([0.00, 0.05, 0.10]),
+            "origin_R": 1.10,
+            "origin_Z": 0.0,
+            "cycle_id": 2,
+            "map_order_index": 1,
+            "same_cycle_key": "chain=0:cycle=2:kind=X",
         }]
         for phi in phi_sections
     }
@@ -169,6 +176,12 @@ def test_section_geometry_primitives_compose_core_and_edge_plot(tmp_path):
             cycles_for_section(cycles, phi, idx),
             identity_to_color=identity_to_color,
             label_cycle_ids=True,
+            label_template="{cycle_id}:P{index}",
+        )
+        assert draw_manifold_origins(
+            ax,
+            manifolds_for_section(manifolds, phi, idx),
+            show_labels=True,
         )
         draw_axis_point(ax, 1.0, 0.0)
         format_section_axis(ax, section_phi=phi)

@@ -364,6 +364,8 @@ def test_trace_fixed_point_cycle_sections_uses_one_orbit(monkeypatch):
     np.testing.assert_allclose(sections[0.25 * np.pi].R, [1.1, 2.1, 3.1])
     assert [fp.phi for fp in sections[0.25 * np.pi].points] == [0.25 * np.pi] * 3
     assert [fp.metadata["orbit_point_index"] for fp in sections[0.25 * np.pi].points] == [0, 1, 2]
+    assert [fp.metadata["map_order_index"] for fp in sections[0.25 * np.pi].points] == [0, 1, 2]
+    assert [fp.metadata["poincare_map_power"] for fp in sections[0.25 * np.pi].points] == [0, 1, 2]
     assert sections[0.0].metadata["raw_crossing_count"] == 4
     assert sections[0.0].metadata["dedup_crossing_count"] == 3
     assert sections[0.0].metadata["expected_crossing_count"] == 3
@@ -862,11 +864,16 @@ def test_trace_fixed_point_manifolds_returns_plot_payload():
 
     assert len(manifolds) == 1
     man = manifolds[0]
-    assert set(man) == {"u_R", "u_Z", "s_R", "s_Z"}
+    assert {"u_R", "u_Z", "s_R", "s_Z"}.issubset(man)
     assert man["u_R"].size > 0
     assert man["s_R"].size > 0
     assert np.all(np.isfinite(man["u_R"]))
     assert np.all(np.isfinite(man["s_Z"]))
+    assert man["origin_R"] == pytest.approx(result.fp_by_sec[0.0]["xpts"][0].R)
+    assert man["origin_Z"] == pytest.approx(result.fp_by_sec[0.0]["xpts"][0].Z)
+    assert "map_order_index" in man
+    assert man["u_seed_R"].shape == man["u_seed_Z"].shape
+    assert man["s_seed_R"].shape == man["s_seed_Z"].shape
 
     manifolds_with_s = trace_fixed_point_manifolds_field(
         field,

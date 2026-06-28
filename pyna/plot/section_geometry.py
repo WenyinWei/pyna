@@ -313,6 +313,15 @@ def cycle_point_arrays(cycle) -> tuple[np.ndarray, np.ndarray]:
     )
 
 
+def _first_metadata_value(metadata: Mapping, keys, default=""):
+    if isinstance(keys, str):
+        keys = (keys,)
+    for key in keys:
+        if key in metadata and metadata[key] is not None:
+            return metadata[key]
+    return default
+
+
 def draw_cycle_points(
     ax,
     cycles,
@@ -321,6 +330,8 @@ def draw_cycle_points(
     colors: Sequence[str] = SECTION_CYCLE_COLORS,
     marker_size: float = 76.0,
     label_cycle_ids: bool = False,
+    label_index_key: str | Sequence[str] = ("map_order_index", "orbit_point_index", "point_index"),
+    label_template: str = "{cycle_id}:{index}",
     zorder: int = 8,
 ):
     """Draw X/O cycle intersection points without assuming boundary topology."""
@@ -353,11 +364,18 @@ def draw_cycle_points(
         if label_cycle_ids:
             for fp in getattr(cycle, "points", ()):
                 metadata = getattr(fp, "metadata", {})
-                idx = metadata.get("orbit_point_index", metadata.get("point_index", ""))
+                idx = _first_metadata_value(metadata, label_index_key)
+                label = label_template.format(
+                    cycle_id=cycle_id,
+                    index=idx,
+                    map_order_index=idx,
+                    kind=str(getattr(cycle, "kind", "")),
+                    identity=identity,
+                )
                 artists.append(ax.text(
                     float(fp.R),
                     float(fp.Z),
-                    f"{cycle_id}:{idx}",
+                    label,
                     color=color,
                     fontsize=5.6,
                     ha="left",
@@ -478,6 +496,93 @@ def draw_manifold_points(
     return artists
 
 
+def draw_manifold_origins(
+    ax,
+    manifolds,
+    *,
+    show_labels: bool = False,
+    label_template: str = "{cycle_id}:P{map_order_index}",
+    marker_size: float = 44.0,
+    origin_edge_color: str = "0.08",
+    origin_face_color: str = "white",
+    unstable_color: str = "#2e7d32",
+    stable_color: str = "#ef6c00",
+    draw_branch_anchors: bool = True,
+    zorder: int = 9,
+):
+    """Draw manifold origins and short branch anchors back to their X points."""
+
+    from matplotlib import patheffects as pe
+
+    artists = []
+    for manifold in manifold_list(manifolds):
+        if "origin_R" not in manifold or "origin_Z" not in manifold:
+            continue
+        R0 = float(manifold["origin_R"])
+        Z0 = float(manifold["origin_Z"])
+        if not (np.isfinite(R0) and np.isfinite(Z0)):
+            continue
+        if draw_branch_anchors:
+            for prefix, color in (("u", unstable_color), ("s", stable_color)):
+                R = np.asarray(manifold.get(f"{prefix}_R", []), dtype=float).ravel()
+                Z = np.asarray(manifold.get(f"{prefix}_Z", []), dtype=float).ravel()
+                finite = np.isfinite(R) & np.isfinite(Z)
+                if not np.any(finite):
+                    continue
+                R = R[finite]
+                Z = Z[finite]
+                lpol = np.asarray(manifold.get(f"{prefix}_lpol", []), dtype=float).ravel()
+                if lpol.shape == finite.shape:
+                    lpol = lpol[finite]
+                    order = np.argsort(np.where(np.isfinite(lpol), lpol, np.inf))
+                    pick = int(order[0]) if order.size else 0
+                else:
+                    pick = 0
+                artists.extend(ax.plot(
+                    [R0, float(R[pick])],
+                    [Z0, float(Z[pick])],
+                    color=color,
+                    lw=0.72,
+                    alpha=0.88,
+                    zorder=int(zorder) - 1,
+                ))
+        artists.append(ax.scatter(
+            [R0],
+            [Z0],
+            s=float(marker_size),
+            marker="o",
+            facecolors=origin_face_color,
+            edgecolors=origin_edge_color,
+            linewidths=0.8,
+            alpha=0.96,
+            zorder=int(zorder),
+        ))
+        if show_labels:
+            cycle_id = manifold.get("cycle_id", "?")
+            map_order_index = manifold.get(
+                "map_order_index",
+                manifold.get("orbit_point_index", manifold.get("point_index", "?")),
+            )
+            label = label_template.format(
+                cycle_id=cycle_id,
+                map_order_index=map_order_index,
+                index=map_order_index,
+                same_cycle_key=manifold.get("same_cycle_key", ""),
+            )
+            artists.append(ax.text(
+                R0,
+                Z0,
+                label,
+                color=origin_edge_color,
+                fontsize=5.4,
+                ha="right",
+                va="top",
+                zorder=int(zorder) + 1,
+                path_effects=[pe.withStroke(linewidth=1.4, foreground="white")],
+            ))
+    return artists
+
+
 def section_data_limits(
     *,
     section_phis: Sequence[float],
@@ -553,6 +658,7 @@ __all__ = [
     "cycles_for_section",
     "draw_axis_point",
     "draw_cycle_points",
+    "draw_manifold_origins",
     "draw_manifold_points",
     "draw_poincare_background",
     "draw_poincare_points",

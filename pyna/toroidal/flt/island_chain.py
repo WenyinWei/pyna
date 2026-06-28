@@ -516,6 +516,8 @@ def _clone_cycle_fixed_point(
         "period": int(period),
         "map_span": float(map_span),
         "point_index": int(point_index),
+        "map_order_index": int(point_index),
+        "poincare_map_power": int(point_index),
         "closure_residual": float(closure_residual),
     })
     if source_index is not None:
@@ -942,6 +944,8 @@ def _clone_section_cycle(
             "section_index": int(section_index),
             "section_delta_phi": float(delta_phi),
             "orbit_point_index": int(point_index),
+            "map_order_index": int(point_index),
+            "poincare_map_power": int(point_index),
             "section_local_index": int(local_i),
         })
         same_cycle_key = fp.metadata.get("same_cycle_key")
@@ -3304,14 +3308,22 @@ def trace_fixed_point_manifolds_field(
         seed_u_Z = Z0 + du * unstable[1]
         seed_s_R = R0 + ds * stable[0]
         seed_s_Z = Z0 + ds * stable[1]
+        seed_u_distance = np.abs(du)
+        seed_s_distance = np.abs(ds)
+        seed_u_side = np.sign(du)
+        seed_s_side = np.sign(ds)
 
         if wall_R is not None and wall_Z is not None:
             inside_u = _points_in_polygon(seed_u_R, seed_u_Z, np.asarray(wall_R), np.asarray(wall_Z))
             seed_u_R = seed_u_R[inside_u]
             seed_u_Z = seed_u_Z[inside_u]
+            seed_u_distance = seed_u_distance[inside_u]
+            seed_u_side = seed_u_side[inside_u]
             inside_s = _points_in_polygon(seed_s_R, seed_s_Z, np.asarray(wall_R), np.asarray(wall_Z))
             seed_s_R = seed_s_R[inside_s]
             seed_s_Z = seed_s_Z[inside_s]
+            seed_s_distance = seed_s_distance[inside_s]
+            seed_s_side = seed_s_side[inside_s]
 
         if np.isclose(float(map_period), 2.0 * np.pi, rtol=0.0, atol=1.0e-12):
             u_traces = _trace_poincare_points_field(
@@ -3373,11 +3385,46 @@ def trace_fixed_point_manifolds_field(
             )
         u_R, u_Z, u_lpol = _flatten(u_traces, origin_R=R0, origin_Z=Z0)
         s_R, s_Z, s_lpol = _flatten(s_traces, origin_R=R0, origin_Z=Z0)
+        metadata = dict(getattr(fp, "metadata", {}) or {})
+        map_order_index = metadata.get(
+            "map_order_index",
+            metadata.get("orbit_point_index", metadata.get("point_index")),
+        )
+        cycle_id = metadata.get("cycle_id")
+        if cycle_id is None:
+            cycle_id = "?"
         payload = {
             "u_R": u_R,
             "u_Z": u_Z,
             "s_R": s_R,
             "s_Z": s_Z,
+            "origin_R": R0,
+            "origin_Z": Z0,
+            "origin_phi": phi,
+            "stable_eigenvector": stable.copy(),
+            "unstable_eigenvector": unstable.copy(),
+            "u_seed_R": seed_u_R.copy(),
+            "u_seed_Z": seed_u_Z.copy(),
+            "u_seed_distance": seed_u_distance.copy(),
+            "u_seed_side": seed_u_side.copy(),
+            "s_seed_R": seed_s_R.copy(),
+            "s_seed_Z": seed_s_Z.copy(),
+            "s_seed_distance": seed_s_distance.copy(),
+            "s_seed_side": seed_s_side.copy(),
+            "cycle_id": cycle_id,
+            "chain_id": metadata.get("chain_id"),
+            "point_index": metadata.get("point_index"),
+            "orbit_point_index": metadata.get("orbit_point_index"),
+            "map_order_index": map_order_index,
+            "poincare_map_power": metadata.get("poincare_map_power", map_order_index),
+            "same_cycle_key": metadata.get("same_cycle_key"),
+            "cycle_point_key": metadata.get("cycle_point_key"),
+            "cycle_section_key": metadata.get("cycle_section_key"),
+            "cycle_section_point_key": metadata.get("cycle_section_point_key"),
+            "manifold_origin_label": (
+                None if map_order_index is None
+                else f"{cycle_id}:P{int(map_order_index)}"
+            ),
         }
         if include_arclength:
             payload.update({
