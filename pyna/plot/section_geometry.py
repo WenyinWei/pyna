@@ -27,6 +27,13 @@ _MAP_POWER_METADATA_KEYS = (
 )
 
 
+def _validate_aspect_ratio(aspect_ratio: float) -> float:
+    value = float(aspect_ratio)
+    if not np.isfinite(value) or value <= 0.0:
+        raise ValueError("aspect_ratio must be positive and finite")
+    return value
+
+
 def create_section_grid(
     section_phis: Sequence[float],
     *,
@@ -48,6 +55,7 @@ def create_section_grid(
     if phi.size == 0:
         raise ValueError("section_phis must not be empty")
     ncols = max(1, int(ncols))
+    aspect = _validate_aspect_ratio(aspect_ratio)
     nrows = int(np.ceil(phi.size / ncols))
     if figsize is None:
         if data_limits is None:
@@ -55,7 +63,7 @@ def create_section_grid(
         else:
             xspan = max(float(data_limits[1]) - float(data_limits[0]), 1.0e-12)
             yspan = max(float(data_limits[3]) - float(data_limits[2]), 1.0e-12)
-            panel_width = float(panel_height) * xspan / (yspan * max(float(aspect_ratio), 1.0e-12))
+            panel_width = float(panel_height) * xspan / (yspan * aspect)
         figsize = (panel_width * ncols, float(panel_height) * nrows)
     fig, axes = plt.subplots(
         nrows,
@@ -68,7 +76,7 @@ def create_section_grid(
     if compact:
         fig.subplots_adjust(left=0.055, right=0.995, bottom=0.055, top=0.965, wspace=0.0, hspace=0.0)
     for ax in axes.ravel():
-        ax.set_aspect(float(aspect_ratio), adjustable="box")
+        ax.set_aspect(aspect, adjustable="box")
     return fig, axes
 
 
@@ -103,7 +111,7 @@ def format_section_axis(
             )
         else:
             ax.set_title(title, fontsize=9, pad=2.0)
-    ax.set_aspect(float(aspect_ratio), adjustable="box")
+    ax.set_aspect(_validate_aspect_ratio(aspect_ratio), adjustable="box")
     if grid:
         ax.grid(True, lw=0.28, color="0.85", alpha=0.58)
     return ax
@@ -114,13 +122,14 @@ def trim_compact_tick_labels(axes, n_section: int, *, ncols: int) -> None:
 
     axes_arr = np.asarray(axes, dtype=object)
     nrows = axes_arr.shape[0]
+    ncols_eff = axes_arr.shape[1] if axes_arr.ndim >= 2 else max(1, int(ncols))
     for flat_idx, ax in enumerate(axes_arr.ravel()):
         if flat_idx >= int(n_section):
             ax.set_visible(False)
             continue
-        if flat_idx % int(ncols) != 0:
+        if flat_idx % int(ncols_eff) != 0:
             ax.tick_params(labelleft=False)
-        if flat_idx < (nrows - 1) * int(ncols):
+        if flat_idx < (nrows - 1) * int(ncols_eff):
             ax.tick_params(labelbottom=False)
 
 
@@ -330,6 +339,18 @@ def _first_metadata_value(metadata: Mapping, keys, default=""):
     return default
 
 
+def _first_metadata_or_attr(obj, metadata: Mapping, keys, default=""):
+    if isinstance(keys, str):
+        keys = (keys,)
+    for key in keys:
+        if key in metadata and metadata[key] is not None:
+            return metadata[key]
+        value = getattr(obj, key, None)
+        if value is not None:
+            return value
+    return default
+
+
 def draw_orbit_points(
     ax,
     orbits,
@@ -372,7 +393,7 @@ def draw_orbit_points(
         if label_orbit_ids:
             for fp in getattr(orbit, "points", ()):
                 metadata = getattr(fp, "metadata", {})
-                map_power = _first_metadata_value(metadata, label_map_power_key)
+                map_power = _first_metadata_or_attr(fp, metadata, label_map_power_key)
                 label = label_template.format(
                     orbit_id=orbit_id,
                     index=map_power,
@@ -540,6 +561,9 @@ def draw_manifold_lines(
             if R.size < 2 or Z.size < 2 or lpol.shape != R.shape:
                 continue
             finite = np.isfinite(R) & np.isfinite(Z) & np.isfinite(lpol)
+            point_side = np.asarray(manifold.get(f"{prefix}_point_side", []), dtype=float).ravel()
+            if point_side.shape != R.shape:
+                continue
             generation = np.asarray(manifold.get(f"{prefix}_generation", []), dtype=float).ravel()
             if max_generation is not None and generation.shape == R.shape:
                 finite &= generation <= float(max_generation)
@@ -552,10 +576,8 @@ def draw_manifold_lines(
             segment_finite = finite[:-1] & finite[1:]
             dl = np.diff(lpol)
             segment_finite &= dl >= -1.0e-12
-            point_side = np.asarray(manifold.get(f"{prefix}_point_side", []), dtype=float).ravel()
-            if point_side.shape == R.shape:
-                segment_finite &= np.isfinite(point_side[:-1]) & np.isfinite(point_side[1:])
-                segment_finite &= point_side[:-1] == point_side[1:]
+            segment_finite &= np.isfinite(point_side[:-1]) & np.isfinite(point_side[1:])
+            segment_finite &= point_side[:-1] == point_side[1:]
             if max_segment_length is not None:
                 length = np.hypot(np.diff(R), np.diff(Z))
                 segment_finite &= length <= float(max_segment_length)

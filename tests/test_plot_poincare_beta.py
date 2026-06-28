@@ -138,10 +138,12 @@ def test_section_geometry_primitives_compose_core_and_edge_plot(tmp_path):
             "u_Z": np.asarray([0.00, 0.04, 0.08]),
             "u_lpol": np.asarray([0.00, 0.05, 0.10]),
             "u_generation": np.asarray([0, 1, 2]),
+            "u_point_side": np.asarray([1.0, 1.0, 1.0]),
             "s_R": np.asarray([1.13, 1.09, 1.05]),
             "s_Z": np.asarray([0.00, -0.04, -0.08]),
             "s_lpol": np.asarray([0.00, 0.05, 0.10]),
             "s_generation": np.asarray([0, 1, 2]),
+            "s_point_side": np.asarray([-1.0, -1.0, -1.0]),
             "origin_R": 1.10,
             "origin_Z": 0.0,
             "orbit_id": 2,
@@ -229,6 +231,24 @@ def test_draw_manifold_lines_breaks_at_side_changes():
         plt.close(fig)
 
 
+def test_draw_manifold_lines_requires_branch_side_metadata():
+    import matplotlib.pyplot as plt
+
+    manifolds = [{
+        "u_R": np.asarray([0.0, 1.0, 2.0, 3.0]),
+        "u_Z": np.asarray([0.0, 0.0, 0.0, 0.0]),
+        "u_lpol": np.asarray([0.0, 0.1, 0.2, 0.3]),
+        "s_R": np.asarray([], dtype=float),
+        "s_Z": np.asarray([], dtype=float),
+        "s_lpol": np.asarray([], dtype=float),
+    }]
+    fig, ax = plt.subplots()
+    try:
+        assert draw_manifold_lines(ax, manifolds) == []
+    finally:
+        plt.close(fig)
+
+
 def test_draw_manifold_origin_labels_prefer_map_order_index():
     import matplotlib.pyplot as plt
 
@@ -254,5 +274,55 @@ def test_draw_manifold_origin_labels_prefer_map_order_index():
         )
         labels = [artist.get_text() for artist in artists if hasattr(artist, "get_text")]
         assert labels == ["X2:P4"]
+    finally:
+        plt.close(fig)
+
+
+def test_draw_orbit_point_labels_prefer_map_order_index():
+    import matplotlib.pyplot as plt
+
+    fp = FixedPoint(phi=0.0, R=1.0, Z=0.0, kind="X", DPm=np.eye(2))
+    fp.map_power = 15
+    fp.metadata.update({
+        "map_power": 15,
+        "map_order_index": 4,
+    })
+    orbit = BoundaryIslandOrbit(
+        points=(fp,),
+        orbit_size=1,
+        kind="X",
+        map_span=np.pi,
+        orbit_id=2,
+        chain_id=0,
+        closure_residual=1.0e-9,
+        alive=True,
+    )
+
+    fig, ax = plt.subplots()
+    try:
+        artists = draw_orbit_points(
+            ax,
+            [orbit],
+            label_orbit_ids=True,
+            label_template="{orbit_id}:P{map_power}",
+        )
+        labels = [artist.get_text() for artist in artists if hasattr(artist, "get_text")]
+        assert labels == ["2:P4"]
+    finally:
+        plt.close(fig)
+
+
+def test_section_grid_validates_aspect_ratio_and_trims_with_effective_columns():
+    import matplotlib.pyplot as plt
+    import pytest
+
+    with pytest.raises(ValueError):
+        create_section_grid([0.0], aspect_ratio=0.0)
+
+    fig, axes = create_section_grid([0.0, 1.0, 2.0], ncols=0)
+    try:
+        trim_compact_tick_labels(axes, 3, ncols=0)
+        assert axes.shape[1] == 1
+        assert axes.ravel()[-1].get_visible()
     finally:
         plt.close(fig)

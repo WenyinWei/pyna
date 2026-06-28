@@ -34,6 +34,14 @@ from scipy.integrate import cumulative_trapezoid
 from scipy.interpolate import interp1d
 
 
+def _trapezoid(y, x):
+    """Use NumPy's trapezoid integration across supported NumPy versions."""
+
+    if hasattr(np, "trapezoid"):
+        return np.trapezoid(y, x)
+    return np.trapz(y, x)
+
+
 def _compute_PEST_jacobian(S, TET, R_mesh, Z_mesh):
     """Compute the PEST Jacobian sqrt(g) on the (S, TET) mesh.
 
@@ -136,7 +144,7 @@ def build_Boozer_mesh(S, TET, R_mesh, Z_mesh, q_iS,
             continue
 
         # Flux-surface average of Jacobian
-        jac_avg = np.trapezoid(jac_s, TET) / (2 * np.pi)
+        jac_avg = _trapezoid(jac_s, TET) / (2 * np.pi)
         if abs(jac_avg) < 1e-30:
             continue
 

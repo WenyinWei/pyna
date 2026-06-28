@@ -518,7 +518,14 @@ def _fixed_point_monodromy_map_span(
     fp: BoundaryIslandFixedPoint | FixedPoint,
     *,
     explicit_field_period: float | None,
+    explicit_map_span: float | None = None,
 ) -> tuple[float, str]:
+    if explicit_map_span is not None:
+        span = float(explicit_map_span)
+        if not np.isfinite(span) or abs(span) <= 1.0e-14:
+            raise ValueError("map_span must be a nonzero finite toroidal angle")
+        return span, "explicit_map_span"
+
     if explicit_field_period is not None:
         base_span = float(explicit_field_period)
         if not np.isfinite(base_span) or abs(base_span) <= 1.0e-14:
@@ -537,6 +544,47 @@ def _fixed_point_monodromy_map_span(
     map_power = _fixed_point_map_power(fp, default=1)
     base_span = _fixed_point_base_map_span(fp)
     return float(map_power) * float(base_span), "map_power_times_field_period"
+
+
+def _known_fixed_point_monodromy_span(fp: BoundaryIslandFixedPoint | FixedPoint) -> float | None:
+    metadata = dict(getattr(fp, "metadata", {}) or {})
+    for key in ("monodromy_map_span", "monodromy_field_period", "monodromy_refine_total_span"):
+        value = metadata.get(key)
+        if value is None:
+            continue
+        span = float(value)
+        if np.isfinite(span) and abs(span) > 1.0e-14:
+            return span
+    return None
+
+
+def _check_fixed_point_monodromy_span(
+    fp: BoundaryIslandFixedPoint | FixedPoint,
+    trace_map_span: float,
+) -> None:
+    known_span = _known_fixed_point_monodromy_span(fp)
+    if known_span is None:
+        return
+    if not np.isclose(
+        abs(float(known_span)),
+        abs(float(trace_map_span)),
+        rtol=2.0e-8,
+        atol=1.0e-10,
+    ):
+        raise ValueError(
+            "fixed point DPm span metadata does not match requested manifold trace span; "
+            f"DPm span is {known_span}, trace span is {trace_map_span}. "
+            "Pass map_span=<total DPm span> or recompute/refine the fixed point."
+        )
+
+
+def _check_fixed_point_local_monodromy(fp: BoundaryIslandFixedPoint | FixedPoint) -> None:
+    metadata = dict(getattr(fp, "metadata", {}) or {})
+    if metadata.get("monodromy_local", True) is False and metadata.get("monodromy_refined") is not True:
+        raise ValueError(
+            "fixed point DPm is marked non-local; refine this section point with "
+            "refine_fixed_points_monodromy_span_field before tracing manifolds"
+        )
 
 
 def _fixed_point_kind(fp: BoundaryIslandFixedPoint | FixedPoint) -> str:
@@ -572,6 +620,17 @@ def _clone_orbit_fixed_point(
     kind = _fixed_point_kind(source)
     DPm = np.asarray(getattr(source, "DPm", np.eye(2)), dtype=float).reshape(2, 2).copy()
     fp = FixedPoint(phi=float(phi), R=float(R), Z=float(Z), DPm=DPm, kind=kind)
+    source_phi = float(getattr(source, "phi", phi))
+    source_R = float(getattr(source, "R", R))
+    source_Z = float(getattr(source, "Z", Z))
+    source_metadata = dict(getattr(source, "metadata", {}) or {})
+    source_local = bool(source_metadata.get("monodromy_local", source_metadata.get("monodromy_refined", True)))
+    cloned_same_point = (
+        np.isclose(source_phi, float(phi), rtol=0.0, atol=1.0e-12)
+        and np.isclose(source_R, float(R), rtol=0.0, atol=1.0e-10)
+        and np.isclose(source_Z, float(Z), rtol=0.0, atol=1.0e-10)
+    )
+    monodromy_local = bool(source_local and cloned_same_point)
     fp.orbit_size = int(orbit_size)
     fp.residual = _fixed_point_residual(source)
     eig = getattr(source, "eigenvalues", None)
@@ -582,15 +641,21 @@ def _clone_orbit_fixed_point(
     fp.determinant = cls.determinant
     fp.discriminant = cls.discriminant
     fp.monodromy_classification_reason = cls.reason
-    metadata = dict(getattr(source, "metadata", {}) or {})
+    map_power = _fixed_point_map_power(source, default=orbit_size)
+    metadata = source_metadata
     metadata.update({
+        "map_power": int(map_power),
         "orbit_size": int(orbit_size),
         "map_span": float(map_span),
+        "base_map_span": float(map_span),
         "point_index": int(point_index),
         "map_order_index": int(point_index),
-        "poincare_map_power": int(point_index),
+        "poincare_map_power": int(map_power),
         "closure_residual": float(closure_residual),
+        "monodromy_local": monodromy_local,
     })
+    if not monodromy_local:
+        metadata["monodromy_source"] = "cloned_from_nonlocal_orbit_point"
     if source_index is not None:
         metadata["source_index"] = int(source_index)
     for key, value in (
@@ -635,6 +700,10 @@ def _clone_refined_fixed_point(
     meta.update({
         "map_power": int(map_power),
         "map_span": float(map_span),
+        "base_map_span": float(map_span),
+        "monodromy_map_power": int(map_power),
+        "monodromy_map_span": float(map_power) * float(map_span),
+        "monodromy_local": True,
         "monodromy_refined": bool(converged),
         "monodromy_residual": float(residual),
         "monodromy_trace": cls.trace,
@@ -1193,7 +1262,7 @@ def _clone_section_orbit(
             "section_delta_phi": float(delta_phi),
             "orbit_point_index": int(point_index),
             "map_order_index": int(point_index),
-            "poincare_map_power": int(point_index),
+            "poincare_map_power": _fixed_point_map_power(fp, default=orbit.orbit_size),
             "section_local_index": int(local_i),
         })
         same_orbit_key = fp.metadata.get("same_orbit_key")
@@ -3352,10 +3421,17 @@ def find_boundary_island_fixed_points_multi_section_field(
 def _fixed_points_for_section(
     fp_by_sec: dict[float, dict[str, list[FixedPoint]]],
     phi: float,
+    *,
+    phi_tol: float = 1.0e-8,
 ) -> tuple[list[FixedPoint], list[FixedPoint]]:
     if not fp_by_sec:
         return [], []
     phi_key = min(fp_by_sec, key=lambda p: abs(float(p) - float(phi)))
+    if abs(float(phi_key) - float(phi)) > float(phi_tol):
+        raise KeyError(
+            f"fixed-point payload has no section matching phi={float(phi)} "
+            f"within {float(phi_tol)}"
+        )
     payload = fp_by_sec.get(phi_key, {})
     if isinstance(payload, dict):
         return list(payload.get("xpts", [])), list(payload.get("opts", []))
@@ -3557,6 +3633,7 @@ def trace_fixed_point_manifolds_field(
     phi_section: float | None = None,
     N_turns: int = 24,
     field_period: float | None = None,
+    map_span: float | None = None,
     DPhi: float = 0.01,
     fd_eps: float = 1.0e-4,
     seed_distances: Sequence[float] | None = None,
@@ -3571,14 +3648,15 @@ def trace_fixed_point_manifolds_field(
     RZlimit: tuple[float, float, float, float] | None = None,
     include_arclength: bool = False,
     extend_phi: bool = True,
+    require_local_monodromy: bool = True,
 ) -> list[dict[str, np.ndarray]]:
     """Trace W^u/W^s point clouds from hyperbolic fixed points.
 
     ``W^u`` is traced forward from the unstable eigendirection; ``W^s`` is
-    traced backward from the stable eigendirection.  If ``field_period`` is not
-    supplied, the traced span is inferred from the fixed point monodromy:
-    ``map_power * field_period`` when that metadata is available.  Pass
-    ``field_period`` explicitly to override this.
+    traced backward from the stable eigendirection.  Pass ``map_span`` when the
+    supplied ``DPm`` is already the monodromy of a complete return map.  If
+    ``map_span`` is omitted, the traced span is inferred from fixed-point
+    metadata as ``map_power * field_period``.
     """
 
     if N_turns <= 0:
@@ -3712,6 +3790,8 @@ def trace_fixed_point_manifolds_field(
     for fp in fixed_points:
         if str(getattr(fp, "kind", "")).upper() != "X":
             continue
+        if require_local_monodromy:
+            _check_fixed_point_local_monodromy(fp)
         DPm = np.asarray(getattr(fp, "DPm", np.eye(2)), dtype=float).reshape(2, 2)
         eigpairs = _stable_unstable_eigenpairs(DPm)
         if eigpairs is None:
@@ -3748,7 +3828,9 @@ def trace_fixed_point_manifolds_field(
         trace_map_span, trace_map_span_source = _fixed_point_monodromy_map_span(
             fp,
             explicit_field_period=field_period,
+            explicit_map_span=map_span,
         )
+        _check_fixed_point_monodromy_span(fp, trace_map_span)
 
         def _signed_seed_offsets(seed_distances: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
             sign = np.asarray([-1.0, 1.0], dtype=float)

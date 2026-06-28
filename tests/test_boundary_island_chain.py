@@ -23,6 +23,7 @@ from pyna.toroidal.flt import (
     trace_fixed_point_orbit_dense_span_field,
     trace_fixed_point_orbits_span_field,
     trace_fixed_point_manifolds_field,
+    trace_fixed_point_manifolds_multi_section_field,
 )
 
 
@@ -367,7 +368,7 @@ def test_trace_fixed_point_orbit_sections_uses_one_orbit(monkeypatch):
     assert [fp.phi for fp in sections[0.25 * np.pi].points] == [0.25 * np.pi] * 3
     assert [fp.metadata["orbit_point_index"] for fp in sections[0.25 * np.pi].points] == [0, 1, 2]
     assert [fp.metadata["map_order_index"] for fp in sections[0.25 * np.pi].points] == [0, 1, 2]
-    assert [fp.metadata["poincare_map_power"] for fp in sections[0.25 * np.pi].points] == [0, 1, 2]
+    assert [fp.metadata["poincare_map_power"] for fp in sections[0.25 * np.pi].points] == [3, 3, 3]
     assert sections[0.0].metadata["raw_crossing_count"] == 4
     assert sections[0.0].metadata["dedup_crossing_count"] == 3
     assert sections[0.0].metadata["expected_crossing_count"] == 3
@@ -1107,6 +1108,118 @@ def test_trace_fixed_point_manifolds_exact_linear_map_orders_branches(monkeypatc
             assert np.all(np.diff(branch_lpol) > 0.0)
 
 
+def test_trace_fixed_point_manifolds_handles_orientation_reversing_saddle(monkeypatch):
+    expansion = 3.0
+    origin_R = 1.0
+    origin_Z = 0.0
+
+    def fake_trace_map_points(
+        field,
+        seed_R,
+        seed_Z,
+        phi_section,
+        *,
+        N_turns,
+        map_span,
+        DPhi,
+        wall_R=None,
+        wall_Z=None,
+        extend_phi=True,
+        fd_eps=1.0e-4,
+    ):
+        traces = []
+        forward = float(map_span) > 0.0
+        for r, z in zip(np.asarray(seed_R, dtype=float), np.asarray(seed_Z, dtype=float)):
+            dR = float(r) - origin_R
+            dZ = float(z) - origin_Z
+            R_vals = []
+            Z_vals = []
+            for _generation in range(1, int(N_turns) + 1):
+                if forward:
+                    dR, dZ = -expansion * dR, -dZ / expansion
+                else:
+                    dR, dZ = -dR / expansion, -expansion * dZ
+                R_vals.append(origin_R + dR)
+                Z_vals.append(origin_Z + dZ)
+            traces.append((np.asarray(R_vals, dtype=float), np.asarray(Z_vals, dtype=float)))
+        return traces
+
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain._trace_map_points_field",
+        fake_trace_map_points,
+    )
+    fp = FixedPoint(
+        phi=0.0,
+        R=origin_R,
+        Z=origin_Z,
+        kind="X",
+        DPm=np.diag([-expansion, -1.0 / expansion]),
+    )
+
+    manifolds = trace_fixed_point_manifolds_field(
+        object(),
+        [fp],
+        phi_section=0.0,
+        N_turns=3,
+        field_period=1.0,
+        DPhi=0.1,
+        eps_min=1.0e-5,
+        eps_max=1.0e-3,
+        n_eps=4,
+        include_arclength=True,
+    )
+
+    assert len(manifolds) == 1
+    man = manifolds[0]
+    assert man["unstable_orientation_reversing"] is True
+    assert man["stable_orientation_reversing"] is True
+    expected_dist = np.unique(np.round(man["u_seed_distance"], decimals=14))
+
+    def branch_offsets(prefix: str, coord: str, generation: int, side_sign: float) -> np.ndarray:
+        gen = np.asarray(man[f"{prefix}_generation"])
+        side = np.asarray(man[f"{prefix}_point_side"])
+        order = np.asarray(man[f"{prefix}_point_seed_order"])
+        values = np.asarray(man[coord])
+        mask = (gen == generation) & (side == side_sign)
+        idx = np.argsort(order[mask])
+        base = origin_R if coord.endswith("_R") else origin_Z
+        return values[mask][idx] - base
+
+    for generation in range(4):
+        factor = expansion ** generation
+        np.testing.assert_allclose(
+            branch_offsets("u", "u_R", generation, 1.0),
+            factor * expected_dist,
+            rtol=1.0e-9,
+            atol=1.0e-15,
+        )
+        np.testing.assert_allclose(
+            branch_offsets("u", "u_R", generation, -1.0),
+            -factor * expected_dist,
+            rtol=1.0e-9,
+            atol=1.0e-15,
+        )
+        np.testing.assert_allclose(
+            branch_offsets("s", "s_Z", generation, 1.0),
+            factor * expected_dist,
+            rtol=1.0e-9,
+            atol=1.0e-15,
+        )
+        np.testing.assert_allclose(
+            branch_offsets("s", "s_Z", generation, -1.0),
+            -factor * expected_dist,
+            rtol=1.0e-9,
+            atol=1.0e-15,
+        )
+
+    for prefix in ("u", "s"):
+        side = np.asarray(man[f"{prefix}_point_side"])
+        lpol = np.asarray(man[f"{prefix}_lpol"])
+        for side_sign in (-1.0, 1.0):
+            branch_lpol = lpol[side == side_sign]
+            assert np.all(np.diff(branch_lpol) > 0.0)
+
+
 def test_trace_fixed_point_manifolds_exact_nonlinear_area_preserving_map(monkeypatch):
     origin_R = 1.0
     origin_Z = 0.0
@@ -1289,6 +1402,103 @@ def test_trace_fixed_point_manifolds_defaults_to_monodromy_return_map():
     np.testing.assert_allclose(s1, (lambda_step**2) * s0, rtol=8.0e-3, atol=1.0e-8)
 
 
+def test_trace_fixed_point_manifolds_accepts_explicit_total_map_span(monkeypatch):
+    map_spans = []
+
+    def fake_trace_map_points(
+        field,
+        seed_R,
+        seed_Z,
+        phi_section,
+        *,
+        N_turns,
+        map_span,
+        DPhi,
+        wall_R=None,
+        wall_Z=None,
+        extend_phi=True,
+        fd_eps=1.0e-4,
+    ):
+        map_spans.append(float(map_span))
+        return [
+            (np.asarray([float(r) + 0.01]), np.asarray([float(z)]))
+            for r, z in zip(np.asarray(seed_R), np.asarray(seed_Z))
+        ]
+
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain._trace_map_points_field",
+        fake_trace_map_points,
+    )
+    fp = FixedPoint(phi=0.0, R=1.0, Z=0.0, kind="X", DPm=np.diag([3.0, 1.0 / 3.0]))
+    fp.map_power = 5
+    fp.metadata.update({
+        "map_power": 5,
+        "monodromy_map_span": 2.0,
+    })
+
+    manifolds = trace_fixed_point_manifolds_field(
+        object(),
+        [fp],
+        phi_section=0.0,
+        N_turns=1,
+        map_span=2.0,
+        DPhi=0.1,
+        eps_min=1.0e-5,
+        eps_max=1.0e-4,
+        n_eps=2,
+    )
+
+    assert len(manifolds) == 1
+    assert manifolds[0]["manifold_field_period"] == pytest.approx(2.0)
+    assert manifolds[0]["manifold_field_period_source"] == "explicit_map_span"
+    assert map_spans == [pytest.approx(2.0), pytest.approx(-2.0)]
+
+
+def test_trace_fixed_point_manifolds_rejects_monodromy_span_mismatch():
+    fp = FixedPoint(phi=0.0, R=1.0, Z=0.0, kind="X", DPm=np.diag([3.0, 1.0 / 3.0]))
+    fp.map_power = 2
+    fp.metadata.update({
+        "map_power": 2,
+        "monodromy_map_span": 4.0,
+    })
+
+    with pytest.raises(ValueError, match="DPm span metadata"):
+        trace_fixed_point_manifolds_field(
+            object(),
+            [fp],
+            phi_section=0.0,
+            field_period=3.0,
+            DPhi=0.1,
+        )
+
+
+def test_trace_fixed_point_manifolds_rejects_nonlocal_cloned_monodromy():
+    fp = FixedPoint(phi=0.0, R=1.0, Z=0.0, kind="X", DPm=np.diag([3.0, 1.0 / 3.0]))
+    fp.metadata.update({"monodromy_local": False})
+
+    with pytest.raises(ValueError, match="non-local"):
+        trace_fixed_point_manifolds_field(
+            object(),
+            [fp],
+            phi_section=0.0,
+            map_span=1.0,
+            DPhi=0.1,
+        )
+
+
+def test_trace_fixed_point_manifolds_multi_section_rejects_missing_section_key():
+    fp = FixedPoint(phi=0.0, R=1.0, Z=0.0, kind="X", DPm=np.diag([3.0, 1.0 / 3.0]))
+
+    with pytest.raises(KeyError, match="no section matching"):
+        trace_fixed_point_manifolds_multi_section_field(
+            object(),
+            {0.0: {"xpts": [fp], "opts": []}},
+            [0.5],
+            map_span=1.0,
+            DPhi=0.1,
+        )
+
+
 def test_refine_fixed_points_monodromy_span_field_refreshes_local_eigenvectors(monkeypatch):
     def fake_fixed_points(field, R, Z, phi_start, field_period, DPhi, **kwargs):
         assert field == "field"
@@ -1338,7 +1548,9 @@ def test_refine_fixed_points_monodromy_span_field_refreshes_local_eigenvectors(m
     np.testing.assert_allclose(refined[1].unstable_eigenvec, [0.0, 1.0])
     assert refined[1].metadata["orbit_id"] == 7
     assert refined[1].metadata["map_order_index"] == 1
+    assert refined[1].metadata["monodromy_local"] is True
     assert refined[1].metadata["monodromy_refined"] is True
+    assert refined[1].metadata["monodromy_map_span"] == pytest.approx(6.0)
     assert refined[1].metadata["monodromy_refine_total_span"] == pytest.approx(6.0)
 
 
