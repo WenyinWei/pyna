@@ -10,6 +10,7 @@ from pyna.toroidal.flt import (
     trace_toroidal_wall_data_field,
     trace_fieldline_trajectory,
     trace_fieldline_trajectory_bidirectional,
+    trace_map_batch_span_field,
     trace_orbit_along_phi_field,
     trace_poincare_bidirectional_batch_field,
     trace_strike_line_twall_field,
@@ -73,6 +74,37 @@ def _field_period_modulated_radial_field(nfp=2):
         Phi=Phi,
         BR=dR_dphi / RR,
         BZ=np.zeros_like(RR),
+        BPhi=np.ones_like(RR),
+        field_periods=int(nfp),
+    )
+
+
+def _field_period_strong_phi_field(nfp=2):
+    R = np.linspace(0.45, 1.55, 65)
+    Z = np.linspace(-0.55, 0.55, 65)
+    period = 2.0 * np.pi / int(nfp)
+    Phi = np.linspace(0.0, period, 97, endpoint=False)
+    RR, ZZ, PP = np.meshgrid(R, Z, Phi, indexing="ij")
+    x = RR - 1.0
+    y = ZZ
+    fR = (
+        0.25 * np.sin(int(nfp) * PP + 0.2)
+        + 0.35 * np.cos(2 * int(nfp) * PP - 0.1) * x
+        + 0.28 * np.sin(3 * int(nfp) * PP + 0.4) * y
+        + 0.22 * np.cos(int(nfp) * PP) * (x * x - 0.7 * y * y)
+    )
+    fZ = (
+        -0.18 * np.cos(int(nfp) * PP - 0.3)
+        + 0.31 * np.sin(2 * int(nfp) * PP + 0.5) * x
+        - 0.24 * np.cos(3 * int(nfp) * PP - 0.2) * y
+        + 0.18 * np.sin(int(nfp) * PP + 0.1) * x * y
+    )
+    return VectorFieldCylind(
+        R=R,
+        Z=Z,
+        Phi=Phi,
+        BR=fR / RR,
+        BZ=fZ / RR,
         BPhi=np.ones_like(RR),
         field_periods=int(nfp),
     )
@@ -355,6 +387,73 @@ def test_backward_trace_crosses_field_period_phi_seam():
     assert np.all(np.diff(phi_t) <= 1.0e-13)
     np.testing.assert_allclose(R_t[-1], 1.0, atol=5.0e-4)
     np.testing.assert_allclose(Z_t[-1], 0.0, atol=1.0e-12)
+
+
+def test_forward_backward_roundtrip_keeps_rk4_order_across_field_period_seam():
+    _skip_without_cyna()
+    field = _field_period_strong_phi_field(nfp=2)
+    period = field.field_period
+    phi_crossing = period - 0.137
+    phi_no_seam = 0.645
+    span = 0.384
+    steps = span / np.asarray([4, 8, 16, 32], dtype=float)
+    R0 = np.asarray([0.98, 1.05, 1.12], dtype=float)
+    Z0 = np.asarray([0.03, -0.025, 0.055], dtype=float)
+
+    def roundtrip_error(phi0, dphi):
+        _counts, Rf, Zf = trace_map_batch_span_field(
+            field, R0, Z0, phi0, span, 1, dphi, n_threads=1
+        )
+        Rf = np.asarray(Rf[: R0.size], dtype=float)
+        Zf = np.asarray(Zf[: Z0.size], dtype=float)
+        _counts, Rb, Zb = trace_map_batch_span_field(
+            field, Rf, Zf, phi0 + span, -span, 1, dphi, n_threads=1
+        )
+        Rb = np.asarray(Rb[: R0.size], dtype=float)
+        Zb = np.asarray(Zb[: Z0.size], dtype=float)
+        return float(np.max(np.hypot(Rb - R0, Zb - Z0)))
+
+    seam_error = np.asarray([roundtrip_error(phi_crossing, h) for h in steps])
+    no_seam_error = np.asarray([roundtrip_error(phi_no_seam, h) for h in steps])
+    seam_slope = np.polyfit(np.log(steps), np.log(seam_error), 1)[0]
+
+    assert phi_crossing < period < phi_crossing + span
+    assert seam_slope > 3.0
+    assert seam_error[-1] < 1.0e-3 * seam_error[0]
+    assert np.max(seam_error / no_seam_error) < 10.0
+
+
+def test_cyna_interpolation_wraps_at_field_period_seam():
+    _skip_without_cyna()
+    import pyna._cyna as cyna
+
+    ext = getattr(cyna, "_cyna_ext", None)
+    interp = getattr(ext, "interp3d_test", None)
+    if interp is None:
+        pytest.skip("cyna interpolation test hook is unavailable")
+
+    field = _field_period_strong_phi_field(nfp=2)
+    arrays = field.cyna_arrays(extend_phi=True)
+    period = field.field_period
+    sample_rz = [(0.97, 0.04), (1.13, -0.07), (1.24, 0.09)]
+    eps_values = (1.0e-1, 1.0e-2, 1.0e-4, 1.0e-8)
+
+    for values in (arrays.BR, arrays.BZ, arrays.BPhi):
+        for R0, Z0 in sample_rz:
+            args = (arrays.R_grid, arrays.Z_grid, arrays.Phi_grid, values)
+            for eps in eps_values:
+                np.testing.assert_allclose(
+                    interp(R0, Z0, period + eps, *args),
+                    interp(R0, Z0, eps, *args),
+                    rtol=0.0,
+                    atol=5.0e-14,
+                )
+                np.testing.assert_allclose(
+                    interp(R0, Z0, -eps, *args),
+                    interp(R0, Z0, period - eps, *args),
+                    rtol=0.0,
+                    atol=5.0e-14,
+                )
 
 
 def test_field_period_wall_wraps_for_backward_wall_hit():
