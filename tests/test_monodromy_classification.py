@@ -47,7 +47,7 @@ def test_boundary_payload_keeps_unknown_out_of_xo_buckets():
         phi=0.0,
         R=1.0,
         Z=0.0,
-        period=3,
+        map_power=3,
         kind="U",
         DPm=np.array([[1.1, 1.0], [-0.09, 1.1]]),
         residual=1e-12,

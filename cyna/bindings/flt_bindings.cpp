@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <filesystem>
+#include <algorithm>
 #ifdef _WIN32
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -132,6 +133,23 @@ static const double* buf(const py::array_t<double>& a, const char* name) {
     return a.data();
 }
 
+static void validate_grid_axis(const py::array_t<double>& a, const char* name, bool require_two = true) {
+    if (a.ndim() != 1)
+        throw std::runtime_error(std::string(name) + " must be a 1-D array");
+    const auto n = a.size();
+    if (require_two && n < 2)
+        throw std::runtime_error(std::string(name) + " must contain at least two points");
+    if (n < 1)
+        throw std::runtime_error(std::string(name) + " must contain at least one point");
+    const double* p = a.data();
+    for (py::ssize_t i = 0; i < n; ++i) {
+        if (!std::isfinite(p[i]))
+            throw std::runtime_error(std::string(name) + " must contain only finite values");
+        if (i > 0 && !(p[i] > p[i - 1]))
+            throw std::runtime_error(std::string(name) + " must be strictly increasing");
+    }
+}
+
 struct VectorFieldCylindHandle {
     py::array_t<double> R;
     py::array_t<double> Z;
@@ -142,6 +160,7 @@ struct VectorFieldCylindHandle {
     int nR = 0;
     int nZ = 0;
     int nPhi = 0;
+    int nfp = 1;
 
     VectorFieldCylindHandle(
         py::array_t<double> R_in,
@@ -149,14 +168,18 @@ struct VectorFieldCylindHandle {
         py::array_t<double> Phi_in,
         py::array_t<double> BR_in,
         py::array_t<double> BZ_in,
-        py::array_t<double> BPhi_in)
+        py::array_t<double> BPhi_in,
+        int nfp_in = 1)
         : R(std::move(R_in)),
           Z(std::move(Z_in)),
           Phi(std::move(Phi_in)),
           BR(std::move(BR_in)),
           BZ(std::move(BZ_in)),
-          BPhi(std::move(BPhi_in))
+          BPhi(std::move(BPhi_in)),
+          nfp(nfp_in)
     {
+        if (nfp < 1)
+            throw std::runtime_error("nfp must be a positive integer");
         buf(R, "R");
         buf(Z, "Z");
         buf(Phi, "Phi");
@@ -168,6 +191,17 @@ struct VectorFieldCylindHandle {
         nPhi = (int)Phi.size();
         if (nR < 2 || nZ < 2 || nPhi < 1)
             throw std::runtime_error("R_grid, Z_grid and Phi_grid have invalid lengths");
+        validate_grid_axis(R, "R");
+        validate_grid_axis(Z, "Z");
+        validate_grid_axis(Phi, "Phi", false);
+        if (nPhi > 1) {
+            const double* phi = Phi.data();
+            const double span = phi[nPhi - 1] - phi[0];
+            const double field_period = 2.0 * std::acos(-1.0) / (double)nfp;
+            const double tol = 1e-12 * std::max(1.0, std::abs(field_period));
+            if (span > field_period + tol)
+                throw std::runtime_error("Phi must stay within one field period 2*pi/nfp");
+        }
         const py::ssize_t expected = (py::ssize_t)nR * (py::ssize_t)nZ * (py::ssize_t)nPhi;
         if (BR.size() != expected || BZ.size() != expected || BPhi.size() != expected)
             throw std::runtime_error("BR, BZ and BPhi must each have size nR*nZ*nPhi");
@@ -1112,13 +1146,20 @@ PYBIND11_MODULE(_cyna_ext, m) {
     py::class_<VectorFieldCylindHandle>(m, "VectorFieldCylind")
         .def(py::init<
                 py::array_t<double>, py::array_t<double>, py::array_t<double>,
-                py::array_t<double>, py::array_t<double>, py::array_t<double>>(),
+                py::array_t<double>, py::array_t<double>, py::array_t<double>,
+                int>(),
              py::arg("R"), py::arg("Z"), py::arg("Phi"),
              py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
+             py::arg("nfp") = 1,
              "C-contiguous VectorFieldCylind handle for cyna tracing kernels.")
         .def_property_readonly("nR", [](const VectorFieldCylindHandle& f) { return f.nR; })
         .def_property_readonly("nZ", [](const VectorFieldCylindHandle& f) { return f.nZ; })
         .def_property_readonly("nPhi", [](const VectorFieldCylindHandle& f) { return f.nPhi; })
+        .def_property_readonly("nfp", [](const VectorFieldCylindHandle& f) { return f.nfp; })
+        .def_property_readonly("field_periods", [](const VectorFieldCylindHandle& f) { return f.nfp; })
+        .def_property_readonly("field_period", [](const VectorFieldCylindHandle& f) {
+            return 2.0 * std::acos(-1.0) / (double)f.nfp;
+        })
         .def("trace_map_batch_span",
              &VectorFieldCylindHandle::trace_map_batch_span,
              py::arg("R_seeds"), py::arg("Z_seeds"),

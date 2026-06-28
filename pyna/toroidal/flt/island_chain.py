@@ -27,14 +27,14 @@ class BoundaryIslandFixedPoint:
     phi: float
     R: float
     Z: float
-    period: int
+    map_power: int
     kind: str
     DPm: np.ndarray
     residual: float
     eigenvalues: np.ndarray
     seed_R: float
     seed_Z: float
-    lower_period_residual: float = np.inf
+    lower_map_power_residual: float = np.inf
     chain_id: int | None = None
     cycle_id: int | None = None
     point_index: int | None = None
@@ -43,6 +43,13 @@ class BoundaryIslandFixedPoint:
     reduced_winding: tuple[int, int] | None = None
     section_phi: float | None = None
     metadata: dict = field(default_factory=dict, compare=False, repr=False)
+
+    @property
+    def field_period(self) -> float | None:
+        if self.map_span is not None:
+            return float(self.map_span)
+        value = self.metadata.get("field_period")
+        return None if value is None else float(value)
 
     def as_fixed_point(self) -> FixedPoint:
         kind = str(self.kind).upper()
@@ -53,7 +60,9 @@ class BoundaryIslandFixedPoint:
             DPm=np.asarray(self.DPm, dtype=float).reshape(2, 2).copy(),
             kind=kind,
         )
-        fp.period = int(self.period)
+        fp.map_power = int(self.map_power)
+        if self.field_period is not None:
+            fp.field_period = float(self.field_period)
         fp.residual = float(self.residual)
         fp.eigenvalues = np.asarray(self.eigenvalues).copy()
         cls = classify_monodromy_2x2(self.DPm)
@@ -62,9 +71,9 @@ class BoundaryIslandFixedPoint:
         fp.discriminant = cls.discriminant
         fp.monodromy_classification_reason = cls.reason
         fp.metadata.update({
-            "period": int(self.period),
+            "map_power": int(self.map_power),
             "residual": float(self.residual),
-            "lower_period_residual": float(self.lower_period_residual),
+            "lower_map_power_residual": float(self.lower_map_power_residual),
             **dict(self.metadata),
         })
         for key, value in (
@@ -72,6 +81,7 @@ class BoundaryIslandFixedPoint:
             ("cycle_id", self.cycle_id),
             ("point_index", self.point_index),
             ("map_span", self.map_span),
+            ("field_period", self.field_period),
             ("winding", self.winding),
             ("reduced_winding", self.reduced_winding),
             ("section_phi", self.section_phi),
@@ -89,12 +99,12 @@ class BoundaryIslandFixedPoint:
 class BoundaryIslandSeedCandidates:
     """Poincare-recurrence seeds for a boundary island-chain search."""
 
-    seeds_by_period: dict[int, tuple[np.ndarray, np.ndarray]]
+    seeds_by_map_power: dict[int, tuple[np.ndarray, np.ndarray]]
     diagnostics: dict = field(default_factory=dict)
 
-    def seeds_for_period(self, period: int) -> tuple[np.ndarray, np.ndarray]:
-        return self.seeds_by_period.get(
-            int(period),
+    def seeds_for_map_power(self, map_power: int) -> tuple[np.ndarray, np.ndarray]:
+        return self.seeds_by_map_power.get(
+            int(map_power),
             (np.empty(0, dtype=float), np.empty(0, dtype=float)),
         )
 
@@ -194,13 +204,13 @@ class BoundaryIslandCycle:
     """One ordered fixed-point cycle under a toroidal-span map.
 
     ``points`` are ordered by repeated application of ``P_span``.  For a
-    period-m point this is the m distinct points of the cycle; the closing
+    cycle-length-m point this is the m distinct points of the cycle; the closing
     endpoint ``P_span^m(x0)`` is summarized by ``closure_residual`` instead of
     being stored as a duplicate point.
     """
 
     points: tuple[FixedPoint, ...]
-    period: int
+    cycle_length: int
     kind: str
     map_span: float
     source_index: int = -1
@@ -239,7 +249,7 @@ class BoundaryIslandChain:
     """Connected boundary-island topology assembled from ordered cycles."""
 
     cycles: tuple[BoundaryIslandCycle, ...]
-    period: int
+    cycle_length: int
     map_span: float
     chain_id: int
     winding: tuple[int, int]
@@ -313,7 +323,7 @@ class BoundaryIslandDenseCycle:
     R: np.ndarray
     Z: np.ndarray
     alive: np.ndarray
-    period: int
+    cycle_length: int
     kind: str
     map_span: float
     source_phi: float
@@ -364,7 +374,7 @@ class BoundaryIslandDenseCycle:
     def save_npz(self, path, *, include_xyz: bool = True) -> None:
         arrays = self.as_arrays(include_xyz=include_xyz)
         arrays.update({
-            "period": np.asarray(self.period, dtype=int),
+            "cycle_length": np.asarray(self.cycle_length, dtype=int),
             "kind": np.asarray(str(self.kind)),
             "map_span": np.asarray(float(self.map_span)),
             "source_phi": np.asarray(float(self.source_phi)),
@@ -380,7 +390,7 @@ class BoundaryIslandDenseChain:
     """Continuous sampled 3-D geometry for all cycles in one island chain."""
 
     dense_cycles: tuple[BoundaryIslandDenseCycle, ...]
-    period: int
+    cycle_length: int
     map_span: float
     chain_id: int
     winding: tuple[int, int]
@@ -414,7 +424,7 @@ class BoundaryIslandDenseChain:
                 dtype=int,
             )
         arrays.update({
-            "period": np.asarray(self.period, dtype=int),
+            "cycle_length": np.asarray(self.cycle_length, dtype=int),
             "map_span": np.asarray(float(self.map_span)),
             "chain_id": np.asarray(int(self.chain_id), dtype=int),
             "winding": np.asarray(self.winding, dtype=int),
@@ -426,15 +436,15 @@ class BoundaryIslandDenseChain:
         np.savez(str(path), **self.as_arrays(include_xyz=include_xyz))
 
 
-def _as_periods(periods: int | Iterable[int]) -> tuple[int, ...]:
-    if isinstance(periods, (int, np.integer)):
-        periods_tuple = (int(periods),)
+def _as_map_powers(map_powers: int | Iterable[int]) -> tuple[int, ...]:
+    if isinstance(map_powers, (int, np.integer)):
+        map_powers_tuple = (int(map_powers),)
     else:
-        periods_tuple = tuple(int(p) for p in periods)
-    periods_tuple = tuple(p for p in periods_tuple if p > 0)
-    if not periods_tuple:
-        raise ValueError("periods must contain at least one positive integer")
-    return tuple(sorted(set(periods_tuple)))
+        map_powers_tuple = tuple(int(p) for p in map_powers)
+    map_powers_tuple = tuple(p for p in map_powers_tuple if p > 0)
+    if not map_powers_tuple:
+        raise ValueError("map_powers must contain at least one positive integer")
+    return tuple(sorted(set(map_powers_tuple)))
 
 
 def _reduced_winding(m: int, n: int) -> tuple[int, int]:
@@ -454,18 +464,79 @@ def _cycle_sort_angle(cycle: BoundaryIslandCycle) -> float:
     return float(np.arctan2(np.nanmean(Z), np.nanmean(R)))
 
 
-def _fixed_point_period(fp: BoundaryIslandFixedPoint | FixedPoint, default: int | None = None) -> int:
-    value = getattr(fp, "period", None)
+def _fixed_point_map_power(fp: BoundaryIslandFixedPoint | FixedPoint, default: int | None = None) -> int:
+    value = getattr(fp, "map_power", None)
     if value is None:
-        value = getattr(fp, "metadata", {}).get("period") if hasattr(fp, "metadata") else None
+        value = getattr(fp, "metadata", {}).get("map_power") if hasattr(fp, "metadata") else None
     if value is None:
         value = default
     if value is None:
-        raise ValueError("fixed point period is missing; pass period=...")
-    period = int(value)
-    if period <= 0:
-        raise ValueError("fixed point period must be positive")
-    return period
+        raise ValueError("fixed point map_power is missing; pass map_power=...")
+    map_power = int(value)
+    if map_power <= 0:
+        raise ValueError("fixed point map_power must be positive")
+    return map_power
+
+
+def _fixed_point_base_map_span(
+    fp: BoundaryIslandFixedPoint | FixedPoint,
+    *,
+    default: float = 2.0 * np.pi,
+) -> float:
+    metadata = dict(getattr(fp, "metadata", {}) or {})
+    value = getattr(fp, "field_period", None)
+    if value is None:
+        value = getattr(fp, "map_span", None)
+    if value is None:
+        value = metadata.get("field_period")
+    if value is None:
+        value = metadata.get("map_span", metadata.get("base_map_span"))
+    if value is None:
+        value = default
+    span = float(value)
+    if not np.isfinite(span) or abs(span) <= 1.0e-14:
+        raise ValueError("fixed point map_span must be a nonzero finite toroidal angle")
+    return span
+
+
+def _resolve_field_period(field, field_period: float | None) -> float:
+    if field_period is not None:
+        span = float(field_period)
+    else:
+        value = getattr(field, "field_period", None)
+        if value is not None:
+            span = float(value)
+        else:
+            nfp = int(getattr(field, "nfp", 1))
+            span = 2.0 * np.pi / float(nfp)
+    if not np.isfinite(span) or abs(span) <= 1.0e-14:
+        raise ValueError("field_period must be a nonzero finite toroidal angle")
+    return span
+
+
+def _fixed_point_monodromy_map_span(
+    fp: BoundaryIslandFixedPoint | FixedPoint,
+    *,
+    explicit_field_period: float | None,
+) -> tuple[float, str]:
+    if explicit_field_period is not None:
+        base_span = float(explicit_field_period)
+        if not np.isfinite(base_span) or abs(base_span) <= 1.0e-14:
+            raise ValueError("field_period must be a nonzero finite toroidal angle")
+        map_power = _fixed_point_map_power(fp, default=1)
+        return float(map_power) * float(base_span), "map_power_times_field_period"
+
+    metadata = dict(getattr(fp, "metadata", {}) or {})
+    for key in ("monodromy_field_period", "monodromy_map_span", "monodromy_refine_total_span"):
+        value = metadata.get(key)
+        if value is not None:
+            span = float(value)
+            if np.isfinite(span) and abs(span) > 1.0e-14:
+                return span, key
+
+    map_power = _fixed_point_map_power(fp, default=1)
+    base_span = _fixed_point_base_map_span(fp)
+    return float(map_power) * float(base_span), "map_power_times_field_period"
 
 
 def _fixed_point_kind(fp: BoundaryIslandFixedPoint | FixedPoint) -> str:
@@ -489,7 +560,7 @@ def _clone_cycle_fixed_point(
     Z: float,
     phi: float,
     point_index: int,
-    period: int,
+    cycle_length: int,
     map_span: float,
     closure_residual: float,
     cycle_id: int | None = None,
@@ -501,7 +572,7 @@ def _clone_cycle_fixed_point(
     kind = _fixed_point_kind(source)
     DPm = np.asarray(getattr(source, "DPm", np.eye(2)), dtype=float).reshape(2, 2).copy()
     fp = FixedPoint(phi=float(phi), R=float(R), Z=float(Z), DPm=DPm, kind=kind)
-    fp.period = int(period)
+    fp.cycle_length = int(cycle_length)
     fp.residual = _fixed_point_residual(source)
     eig = getattr(source, "eigenvalues", None)
     if eig is not None:
@@ -513,7 +584,7 @@ def _clone_cycle_fixed_point(
     fp.monodromy_classification_reason = cls.reason
     metadata = dict(getattr(source, "metadata", {}) or {})
     metadata.update({
-        "period": int(period),
+        "cycle_length": int(cycle_length),
         "map_span": float(map_span),
         "point_index": int(point_index),
         "map_order_index": int(point_index),
@@ -539,6 +610,178 @@ def _clone_cycle_fixed_point(
     return fp
 
 
+def _clone_refined_fixed_point(
+    source: BoundaryIslandFixedPoint | FixedPoint,
+    *,
+    R: float,
+    Z: float,
+    phi: float,
+    map_power: int,
+    map_span: float,
+    DPm: np.ndarray,
+    residual: float,
+    point_type: int | None = None,
+    converged: bool,
+    metadata: dict | None = None,
+) -> BoundaryIslandFixedPoint | FixedPoint:
+    """Clone a fixed point with a freshly computed local monodromy matrix."""
+
+    DPm_arr = np.asarray(DPm, dtype=float).reshape(2, 2).copy()
+    eig = np.linalg.eigvals(DPm_arr)
+    kind = _classify_DPm_kind(DPm_arr, point_type)
+    cls = classify_monodromy_2x2(DPm_arr)
+    meta = dict(getattr(source, "metadata", {}) or {})
+    meta.update(metadata or {})
+    meta.update({
+        "map_power": int(map_power),
+        "map_span": float(map_span),
+        "monodromy_refined": bool(converged),
+        "monodromy_residual": float(residual),
+        "monodromy_trace": cls.trace,
+        "monodromy_determinant": cls.determinant,
+        "monodromy_discriminant": cls.discriminant,
+        "monodromy_classification_reason": cls.reason,
+    })
+
+    if isinstance(source, BoundaryIslandFixedPoint):
+        return replace(
+            source,
+            phi=float(phi),
+            R=float(R),
+            Z=float(Z),
+            map_power=int(map_power),
+            kind=kind,
+            DPm=DPm_arr,
+            residual=float(residual),
+            eigenvalues=eig,
+            map_span=float(map_span),
+            metadata=meta,
+        )
+
+    fp = FixedPoint(phi=float(phi), R=float(R), Z=float(Z), DPm=DPm_arr, kind=kind)
+    fp.map_power = int(map_power)
+    fp.residual = float(residual)
+    fp.eigenvalues = eig.copy()
+    fp.trace = cls.trace
+    fp.determinant = cls.determinant
+    fp.discriminant = cls.discriminant
+    fp.monodromy_classification_reason = cls.reason
+    fp.metadata.update(meta)
+    if kind == "X":
+        stable, unstable = _stable_unstable_eigenvectors(DPm_arr)
+        fp.stable_eigenvec = stable
+        fp.unstable_eigenvec = unstable
+    return fp
+
+
+def refine_fixed_points_monodromy_span_field(
+    field,
+    fixed_points: Sequence[BoundaryIslandFixedPoint | FixedPoint],
+    *,
+    field_period: float | None = None,
+    map_power: int | None = None,
+    DPhi: float = 0.01,
+    fd_eps: float = 1.0e-4,
+    max_iter: int = 20,
+    tol: float = 1.0e-10,
+    residual_tol: float | None = None,
+    keep_unconverged: bool = True,
+    extend_phi: bool = True,
+    n_threads: int = -1,
+) -> tuple[BoundaryIslandFixedPoint | FixedPoint, ...]:
+    """Recompute section-local ``DP^m`` for existing fixed points.
+
+    Cycle tracing can clone one source ``DPm`` onto every map-ordered point.
+    That preserves eigenvalues but not local eigenvectors.  This helper runs a
+    short Newton refinement at each supplied point using the same field-period
+    span, so manifold seeds can use the correct local stable/unstable
+    directions at every ``P^k`` point.
+    """
+
+    if not fixed_points:
+        return ()
+    field_period_value = _resolve_field_period(field, field_period)
+    if residual_tol is None:
+        residual_tol = max(20.0 * float(tol), 1.0e-8)
+
+    out: list[BoundaryIslandFixedPoint | FixedPoint | None] = [None] * len(fixed_points)
+    by_map_power_phi: dict[tuple[int, float], list[tuple[int, BoundaryIslandFixedPoint | FixedPoint]]] = {}
+    for idx, fp in enumerate(fixed_points):
+        p = _fixed_point_map_power(fp, default=map_power)
+        phi = float(getattr(fp, "phi", 0.0))
+        by_map_power_phi.setdefault((p, phi), []).append((idx, fp))
+
+    for (p, phi), items in sorted(by_map_power_phi.items()):
+        R0 = np.asarray([float(getattr(fp, "R")) for _idx, fp in items], dtype=float)
+        Z0 = np.asarray([float(getattr(fp, "Z")) for _idx, fp in items], dtype=float)
+        try:
+            result = find_fixed_points_batch_span_field(
+                field,
+                R0,
+                Z0,
+                float(phi),
+                float(p) * float(field_period_value),
+                float(DPhi),
+                extend_phi=extend_phi,
+                fd_eps=float(fd_eps),
+                max_iter=int(max_iter),
+                tol=float(tol),
+                n_threads=n_threads,
+            )
+        except ImportError:
+            result = None
+
+        if result is None:
+            for idx, fp in items:
+                if keep_unconverged:
+                    out[idx] = fp
+            continue
+
+        R_out, Z_out, residual, converged, DPm_flat, _eig_r, _eig_i, point_type = result
+        R_arr = np.asarray(R_out, dtype=float).ravel()
+        Z_arr = np.asarray(Z_out, dtype=float).ravel()
+        residual_arr = np.asarray(residual, dtype=float).ravel()
+        converged_arr = np.asarray(converged).astype(bool).ravel()
+        point_type_arr = np.asarray(point_type).ravel()
+        DPm_arr = np.asarray(DPm_flat, dtype=float).reshape(len(R_arr), 2, 2)
+        for local_i, (idx, fp) in enumerate(items):
+            ok = (
+                local_i < len(R_arr)
+                and local_i < len(residual_arr)
+                and local_i < len(converged_arr)
+                and bool(converged_arr[local_i])
+                and np.isfinite(residual_arr[local_i])
+                and float(residual_arr[local_i]) <= float(residual_tol)
+                and np.all(np.isfinite(DPm_arr[local_i]))
+            )
+            if not ok:
+                if keep_unconverged:
+                    out[idx] = fp
+                continue
+            ptype = int(point_type_arr[local_i]) if local_i < point_type_arr.size else None
+            out[idx] = _clone_refined_fixed_point(
+                fp,
+                R=float(R_arr[local_i]),
+                Z=float(Z_arr[local_i]),
+                phi=float(phi),
+                map_power=int(p),
+                map_span=float(field_period_value),
+                DPm=DPm_arr[local_i],
+                residual=float(residual_arr[local_i]),
+                point_type=ptype,
+                converged=True,
+                metadata={
+                    "monodromy_refine_source": "find_fixed_points_batch_span_field",
+                    "monodromy_refine_phi": float(phi),
+                    "monodromy_refine_total_span": float(p) * float(field_period_value),
+                },
+            )
+
+    if keep_unconverged:
+        return tuple(fp if fp is not None else fixed_points[i] for i, fp in enumerate(out))
+    return tuple(fp for fp in out if fp is not None)
+
+
 def _annotate_cycle(
     cycle: BoundaryIslandCycle,
     *,
@@ -562,7 +805,7 @@ def _annotate_cycle(
             Z=float(fp.Z),
             phi=float(fp.phi),
             point_index=i,
-            period=int(cycle.period),
+            cycle_length=int(cycle.cycle_length),
             map_span=float(cycle.map_span),
             closure_residual=float(cycle.closure_residual),
             cycle_id=cycle_id,
@@ -616,7 +859,7 @@ def _deduplicate_cycles(
     ordered = sorted(
         cycles,
         key=lambda c: (
-            int(c.period),
+            int(c.cycle_length),
             str(c.kind).upper(),
             float(c.closure_residual),
             int(c.source_index),
@@ -625,7 +868,7 @@ def _deduplicate_cycles(
     for cycle in ordered:
         duplicate_index = -1
         for i, old in enumerate(kept):
-            if int(cycle.period) != int(old.period):
+            if int(cycle.cycle_length) != int(old.cycle_length):
                 continue
             if str(cycle.kind).upper() != str(old.kind).upper():
                 continue
@@ -638,7 +881,7 @@ def _deduplicate_cycles(
         old = kept[duplicate_index]
         if float(cycle.closure_residual) < float(old.closure_residual):
             kept[duplicate_index] = cycle
-    return tuple(sorted(kept, key=lambda c: (int(c.period), str(c.kind).upper(), _cycle_sort_angle(c))))
+    return tuple(sorted(kept, key=lambda c: (int(c.cycle_length), str(c.kind).upper(), _cycle_sort_angle(c))))
 
 
 def deduplicate_boundary_island_cycles(
@@ -699,12 +942,12 @@ def _cycle_source_phi(cycle: BoundaryIslandCycle) -> float:
     return 0.0
 
 
-def _section_delta_phi(source_phi: float, section_phi: float, period: float) -> float:
-    period = abs(float(period))
-    if period <= 0.0 or not np.isfinite(period):
-        raise ValueError("section period must be positive and finite")
-    delta = float(np.mod(float(section_phi) - float(source_phi), period))
-    if delta <= 1.0e-12 or abs(delta - period) <= 1.0e-12:
+def _section_delta_phi(source_phi: float, section_phi: float, section_period: float) -> float:
+    section_period = abs(float(section_period))
+    if section_period <= 0.0 or not np.isfinite(section_period):
+        raise ValueError("section_period must be positive and finite")
+    delta = float(np.mod(float(section_phi) - float(source_phi), section_period))
+    if delta <= 1.0e-12 or abs(delta - section_period) <= 1.0e-12:
         return 0.0
     return delta
 
@@ -716,22 +959,22 @@ def _target_phis_for_section(
     section_phi: float,
     section_period: float,
 ) -> np.ndarray:
-    period = abs(float(section_period))
-    if period <= 0.0 or not np.isfinite(period):
+    section_period_value = abs(float(section_period))
+    if section_period_value <= 0.0 or not np.isfinite(section_period_value):
         raise ValueError("section_period must be positive and finite")
     start = float(source_phi)
     end = float(phi_end)
     if end < start:
         start, end = end, start
-    delta = _section_delta_phi(float(source_phi), float(section_phi), period)
+    delta = _section_delta_phi(float(source_phi), float(section_phi), section_period_value)
     first = float(source_phi) + delta
     while first < start - 1.0e-10:
-        first += period
+        first += section_period_value
     targets: list[float] = []
     val = first
     while val <= end + 1.0e-10:
         targets.append(float(val))
-        val += period
+        val += section_period_value
     return np.asarray(targets, dtype=float)
 
 
@@ -860,12 +1103,16 @@ def _section_cycle_from_dense_cycle(
             np.asarray(wall_R, dtype=float),
             np.asarray(wall_Z, dtype=float),
         )
-    expected_count = int(base_cycle.period)
+    expected_count = int(base_cycle.cycle_length)
+    effective_dedup_tol = float(section_dedup_tol)
+    closure_residual = float(getattr(base_cycle, "closure_residual", np.inf))
+    if np.isfinite(closure_residual) and closure_residual > 0.0:
+        effective_dedup_tol = max(effective_dedup_tol, 1.05 * closure_residual)
     R_keep, Z_keep, phi_keep, source_index = _select_complete_section_crossings(
         R_raw[ok],
         Z_raw[ok],
         target_phi[ok],
-        tol=float(section_dedup_tol),
+        tol=effective_dedup_tol,
         expected_count=expected_count,
         require_complete=bool(require_complete),
     )
@@ -876,7 +1123,7 @@ def _section_cycle_from_dense_cycle(
         )
     else:
         source_points = ()
-    point_indices = tuple(int(i) % max(1, int(base_cycle.period)) for i in source_index)
+    point_indices = tuple(int(i) % max(1, int(base_cycle.cycle_length)) for i in source_index)
     section_cycle = _clone_section_cycle(
         base_cycle,
         section_phi=float(section_phi),
@@ -897,6 +1144,7 @@ def _section_cycle_from_dense_cycle(
         "expected_crossing_count": int(expected_count),
         "complete_crossing_count": bool(R_keep.size == expected_count),
         "section_dedup_tol": float(section_dedup_tol),
+        "effective_section_dedup_tol": float(effective_dedup_tol),
         "target_phi_min": float(np.min(phi_keep)) if phi_keep.size else None,
         "target_phi_max": float(np.max(phi_keep)) if phi_keep.size else None,
     })
@@ -930,7 +1178,7 @@ def _clone_section_cycle(
             Z=float(Z),
             phi=float(section_phi),
             point_index=int(point_index),
-            period=int(cycle.period),
+            cycle_length=int(cycle.cycle_length),
             map_span=float(cycle.map_span),
             closure_residual=float(cycle.closure_residual),
             cycle_id=cycle.cycle_id,
@@ -975,7 +1223,7 @@ def trace_fixed_point_cycles_span_field(
     fixed_points: Sequence[BoundaryIslandFixedPoint | FixedPoint],
     *,
     map_span: float = 2.0 * np.pi,
-    period: int | None = None,
+    map_power: int | None = None,
     DPhi: float = 0.01,
     wall_R: Sequence[float] | None = None,
     wall_Z: Sequence[float] | None = None,
@@ -1002,15 +1250,15 @@ def trace_fixed_point_cycles_span_field(
     if not fixed_points:
         return ()
 
-    by_period_phi: dict[tuple[int, float], list[tuple[int, BoundaryIslandFixedPoint | FixedPoint]]] = {}
+    by_map_power_phi: dict[tuple[int, float], list[tuple[int, BoundaryIslandFixedPoint | FixedPoint]]] = {}
     for source_index, fp in enumerate(fixed_points):
-        p = _fixed_point_period(fp, default=period)
+        p = _fixed_point_map_power(fp, default=map_power)
         phi = float(getattr(fp, "phi", 0.0))
-        by_period_phi.setdefault((p, phi), []).append((source_index, fp))
+        by_map_power_phi.setdefault((p, phi), []).append((source_index, fp))
 
     cycles: list[BoundaryIslandCycle] = []
-    for p, phi_start in sorted(by_period_phi):
-        items = by_period_phi[(p, phi_start)]
+    for p, phi_start in sorted(by_map_power_phi):
+        items = by_map_power_phi[(p, phi_start)]
         R0 = np.asarray([float(getattr(fp, "R")) for _idx, fp in items], dtype=float)
         Z0 = np.asarray([float(getattr(fp, "Z")) for _idx, fp in items], dtype=float)
         phi0 = np.asarray([float(getattr(fp, "phi", 0.0)) for _idx, fp in items], dtype=float)
@@ -1055,7 +1303,7 @@ def trace_fixed_point_cycles_span_field(
                     Z=z,
                     phi=float(phi0[local_index]) + i * float(map_span),
                     point_index=i,
-                    period=int(p),
+                    cycle_length=int(p),
                     map_span=float(map_span),
                     closure_residual=float(closure),
                     source_index=source_index,
@@ -1064,7 +1312,7 @@ def trace_fixed_point_cycles_span_field(
             )
             cycles.append(BoundaryIslandCycle(
                 points=points,
-                period=int(p),
+                cycle_length=int(p),
                 kind=_fixed_point_kind(source_fp),
                 map_span=float(map_span),
                 source_index=int(source_index),
@@ -1094,7 +1342,7 @@ def trace_fixed_point_cycle_span_field(
     fixed_point: BoundaryIslandFixedPoint | FixedPoint,
     *,
     map_span: float = 2.0 * np.pi,
-    period: int | None = None,
+    map_power: int | None = None,
     DPhi: float = 0.01,
     wall_R: Sequence[float] | None = None,
     wall_Z: Sequence[float] | None = None,
@@ -1107,7 +1355,7 @@ def trace_fixed_point_cycle_span_field(
         field,
         [fixed_point],
         map_span=map_span,
-        period=period,
+        map_power=map_power,
         DPhi=DPhi,
         wall_R=wall_R,
         wall_Z=wall_Z,
@@ -1125,7 +1373,7 @@ def trace_fixed_point_cycle_sections_span_field(
     section_phis: Sequence[float],
     *,
     map_span: float = 2.0 * np.pi,
-    period: int | None = None,
+    map_power: int | None = None,
     DPhi: float = 0.01,
     dphi_out: float | None = None,
     fd_eps: float = 1.0e-4,
@@ -1149,7 +1397,7 @@ def trace_fixed_point_cycle_sections_span_field(
             field,
             fixed_point_or_cycle,
             map_span=map_span,
-            period=period,
+            map_power=map_power,
             DPhi=DPhi,
             extend_phi=extend_phi,
             n_threads=n_threads,
@@ -1207,7 +1455,7 @@ def _validate_section_cycle_counts(
         for cycle in section_cycles.get(phi_key, []):
             key = _section_cycle_count_key(cycle)
             count = int(len(cycle.points))
-            expected_count = int(cycle.metadata.get("expected_crossing_count", cycle.period))
+            expected_count = int(cycle.metadata.get("expected_crossing_count", cycle.cycle_length))
             if count != expected_count:
                 raise ValueError(
                     "incomplete section cycle: "
@@ -1293,7 +1541,7 @@ def trace_fixed_point_cycle_dense_span_field(
     fixed_point_or_cycle: BoundaryIslandFixedPoint | FixedPoint | BoundaryIslandCycle,
     *,
     map_span: float = 2.0 * np.pi,
-    period: int | None = None,
+    map_power: int | None = None,
     DPhi: float = 0.01,
     dphi_out: float | None = None,
     extend_phi: bool = True,
@@ -1303,7 +1551,7 @@ def trace_fixed_point_cycle_dense_span_field(
     """Trace the continuous 3-D geometry of one periodic cycle.
 
     The dense output follows one representative field line through the full
-    ``period * map_span`` orbit.  The section fixed points remain attached in
+    ``cycle_length * map_span`` orbit.  The section fixed points remain attached in
     ``section_points`` for plotting and indexing.
     """
 
@@ -1315,7 +1563,7 @@ def trace_fixed_point_cycle_dense_span_field(
             field,
             fixed_point_or_cycle,
             map_span=map_span,
-            period=period,
+            map_power=map_power,
             DPhi=DPhi,
             extend_phi=extend_phi,
             n_threads=n_threads,
@@ -1327,7 +1575,7 @@ def trace_fixed_point_cycle_dense_span_field(
 
     seed = base_cycle.points[0]
     source_phi = float(seed.phi)
-    phi_end = source_phi + int(base_cycle.period) * float(base_cycle.map_span)
+    phi_end = source_phi + int(base_cycle.cycle_length) * float(base_cycle.map_span)
     if dphi_out is None:
         dphi_out = abs(float(DPhi))
     if not np.isfinite(float(dphi_out)) or abs(float(dphi_out)) <= 0.0:
@@ -1364,7 +1612,7 @@ def trace_fixed_point_cycle_dense_span_field(
         R=R_arr,
         Z=Z_arr,
         alive=alive_arr,
-        period=int(base_cycle.period),
+        cycle_length=int(base_cycle.cycle_length),
         kind=str(base_cycle.kind).upper(),
         map_span=float(base_cycle.map_span),
         source_phi=float(source_phi),
@@ -1409,7 +1657,7 @@ def trace_boundary_island_chain_dense_span_field(
     })
     return BoundaryIslandDenseChain(
         dense_cycles=dense_cycles,
-        period=int(chain.period),
+        cycle_length=int(chain.cycle_length),
         map_span=float(chain.map_span),
         chain_id=int(chain.chain_id),
         winding=tuple(map(int, chain.winding)),
@@ -1431,19 +1679,19 @@ def assemble_boundary_island_chains(
     if not cycles:
         return ()
     unique_cycles = _deduplicate_cycles(cycles, tol=float(cycle_dedup_tol))
-    by_period: dict[int, list[BoundaryIslandCycle]] = {}
+    by_cycle_length: dict[int, list[BoundaryIslandCycle]] = {}
     for cycle in unique_cycles:
-        by_period.setdefault(int(cycle.period), []).append(cycle)
+        by_cycle_length.setdefault(int(cycle.cycle_length), []).append(cycle)
 
     chains: list[BoundaryIslandChain] = []
     next_chain_id = 0
     next_cycle_id = 0
-    for period_value in sorted(by_period):
+    for cycle_length_value in sorted(by_cycle_length):
         period_cycles = sorted(
-            by_period[period_value],
+            by_cycle_length[cycle_length_value],
             key=lambda c: (0 if str(c.kind).upper() == "O" else 1, _cycle_sort_angle(c)),
         )
-        winding = (int(period_value if m is None else m), int(n))
+        winding = (int(cycle_length_value if m is None else m), int(n))
         reduced = _reduced_winding(*winding)
         o_cycles = [c for c in period_cycles if str(c.kind).upper() == "O"]
         x_cycles = [c for c in period_cycles if str(c.kind).upper() == "X"]
@@ -1464,13 +1712,13 @@ def assemble_boundary_island_chains(
                 next_cycle_id += 1
             chains.append(BoundaryIslandChain(
                 cycles=tuple(annotated),
-                period=int(period_value),
+                cycle_length=int(cycle_length_value),
                 map_span=float(annotated[0].map_span if annotated else period_cycles[0].map_span),
                 chain_id=int(next_chain_id),
                 winding=winding,
                 reduced_winding=reduced,
                 metadata={
-                    "period": int(period_value),
+                    "cycle_length": int(cycle_length_value),
                     "m": int(winding[0]),
                     "n": int(winding[1]),
                     "reduced_mn": reduced,
@@ -1515,7 +1763,7 @@ def assemble_boundary_island_chains_field(
     fixed_points: Sequence[BoundaryIslandFixedPoint | FixedPoint],
     *,
     map_span: float = 2.0 * np.pi,
-    period: int | None = None,
+    map_power: int | None = None,
     m: int | None = None,
     n: int = 1,
     DPhi: float = 0.01,
@@ -1532,7 +1780,7 @@ def assemble_boundary_island_chains_field(
         field,
         fixed_points,
         map_span=map_span,
-        period=period,
+        map_power=map_power,
         DPhi=DPhi,
         wall_R=wall_R,
         wall_Z=wall_Z,
@@ -1626,6 +1874,79 @@ def _stable_unstable_eigenvectors(DPm: np.ndarray) -> tuple[np.ndarray | None, n
         return real_vec / norm
 
     return _real_unit(stable_idx), _real_unit(unstable_idx)
+
+
+def _stable_unstable_eigenpairs(
+    DPm: np.ndarray,
+) -> tuple[float, np.ndarray, float, np.ndarray] | None:
+    """Return real stable/unstable eigenvalues and unit eigenvectors."""
+
+    mat = np.asarray(DPm, dtype=float).reshape(2, 2)
+    if not np.all(np.isfinite(mat)):
+        return None
+    try:
+        eigvals, eigvecs = np.linalg.eig(mat)
+    except np.linalg.LinAlgError:
+        return None
+    if eigvals.size != 2:
+        return None
+    mod = np.abs(eigvals)
+    order = np.argsort(mod)
+    stable_idx = int(order[0])
+    unstable_idx = int(order[-1])
+    if not (mod[stable_idx] < 1.0 < mod[unstable_idx]):
+        return None
+
+    def _real_unit(idx: int) -> np.ndarray | None:
+        vec = np.asarray(eigvecs[:, idx], dtype=complex)
+        if np.max(np.abs(vec.imag)) > 1.0e-7 * max(1.0, float(np.max(np.abs(vec.real)))):
+            return None
+        real_vec = np.asarray(vec.real, dtype=float)
+        norm = float(np.linalg.norm(real_vec))
+        if not np.isfinite(norm) or norm <= 0.0:
+            return None
+        return real_vec / norm
+
+    stable = _real_unit(stable_idx)
+    unstable = _real_unit(unstable_idx)
+    if stable is None or unstable is None:
+        return None
+    stable_eval = eigvals[stable_idx]
+    unstable_eval = eigvals[unstable_idx]
+    if abs(stable_eval.imag) > 1.0e-8 * max(1.0, abs(stable_eval.real)):
+        return None
+    if abs(unstable_eval.imag) > 1.0e-8 * max(1.0, abs(unstable_eval.real)):
+        return None
+    return float(stable_eval.real), stable, float(unstable_eval.real), unstable
+
+
+def _manifold_seed_distances_from_expansion(
+    expansion: float,
+    *,
+    eps_min: float,
+    eps_max: float,
+    n_eps: int,
+) -> tuple[np.ndarray, float]:
+    """Build one fundamental geometric seed segment for a manifold branch."""
+
+    if n_eps <= 0:
+        raise ValueError("n_eps must be positive")
+    lam = float(abs(expansion))
+    if not np.isfinite(lam) or lam <= 1.0:
+        raise ValueError("manifold expansion must be finite and greater than 1")
+    first = float(eps_min)
+    if not np.isfinite(first) or first <= 0.0:
+        raise ValueError("eps_min must be positive and finite")
+    max_dist = float(eps_max)
+    if not np.isfinite(max_dist) or max_dist <= 0.0:
+        raise ValueError("eps_max must be positive and finite")
+
+    ratio = lam if int(n_eps) == 1 else lam ** (1.0 / float(n_eps))
+    last_factor = ratio ** max(0, int(n_eps) - 1)
+    if first * last_factor > max_dist:
+        first = max_dist / last_factor
+    distances = first * ratio ** np.arange(int(n_eps), dtype=float)
+    return distances, float(ratio)
 
 
 def _classify_DPm_kind(DPm: np.ndarray, point_type: int | None = None) -> str:
@@ -1778,18 +2099,18 @@ def _trace_map_sequence_field(
     phi_section: float,
     *,
     n_steps: int,
-    map_period: float,
+    map_span: float,
     DPhi: float,
     wall_R: Sequence[float] | None = None,
     wall_Z: Sequence[float] | None = None,
     extend_phi: bool = True,
     fd_eps: float = 1.0e-4,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Return section-equivalent map iterates for an arbitrary map period."""
+    """Return section-equivalent map iterates for an arbitrary map span."""
 
     if n_steps <= 0:
         return np.empty(0, dtype=float), np.empty(0, dtype=float)
-    phi_end = float(phi_section) + float(n_steps) * float(map_period)
+    phi_end = float(phi_section) + float(n_steps) * float(map_span)
     try:
         R_t, Z_t, _phi_t, _DP_t, alive = trace_orbit_along_phi_field(
             field,
@@ -1799,7 +2120,7 @@ def _trace_map_sequence_field(
             phi_end,
             float(DPhi),
             extend_phi=extend_phi,
-            dphi_out=abs(float(map_period)),
+            dphi_out=abs(float(map_span)),
             fd_eps=fd_eps,
         )
     except Exception:
@@ -1830,14 +2151,14 @@ def _trace_map_points_field(
     *,
     phi_section: float,
     N_turns: int,
-    map_period: float,
+    map_span: float,
     DPhi: float,
     wall_R: Sequence[float] | None = None,
     wall_Z: Sequence[float] | None = None,
     extend_phi: bool = True,
     fd_eps: float = 1.0e-4,
 ) -> list[tuple[np.ndarray, np.ndarray]]:
-    """Trace arbitrary-period map points for multiple seeds."""
+    """Trace arbitrary-span map points for multiple seeds."""
 
     R0 = np.asarray(seed_R, dtype=float).ravel()
     Z0 = np.asarray(seed_Z, dtype=float).ravel()
@@ -1849,7 +2170,7 @@ def _trace_map_points_field(
             R0,
             Z0,
             float(phi_section),
-            float(map_period),
+            float(map_span),
             int(N_turns),
             float(DPhi),
             wall_R=wall_R,
@@ -1876,7 +2197,7 @@ def _trace_map_points_field(
             float(z),
             float(phi_section),
             n_steps=int(N_turns),
-            map_period=float(map_period),
+            map_span=float(map_span),
             DPhi=float(DPhi),
             wall_R=wall_R,
             wall_Z=wall_Z,
@@ -1892,8 +2213,8 @@ def _map_endpoint_field(
     R: float,
     Z: float,
     phi: float,
-    period: int,
-    map_period: float,
+    map_power: int,
+    map_span: float,
     DPhi: float,
     *,
     extend_phi: bool,
@@ -1904,13 +2225,13 @@ def _map_endpoint_field(
         float(R),
         float(Z),
         float(phi),
-        n_steps=int(period),
-        map_period=float(map_period),
+        n_steps=int(map_power),
+        map_span=float(map_span),
         DPhi=float(DPhi),
         extend_phi=extend_phi,
         fd_eps=fd_eps,
     )
-    if R_map.size < period:
+    if R_map.size < map_power:
         return None
     return float(R_map[-1]), float(Z_map[-1])
 
@@ -1919,8 +2240,8 @@ def _map_residual_field(
     field,
     x: np.ndarray,
     phi: float,
-    period: int,
-    map_period: float,
+    map_power: int,
+    map_span: float,
     DPhi: float,
     *,
     extend_phi: bool,
@@ -1931,8 +2252,8 @@ def _map_residual_field(
         float(x[0]),
         float(x[1]),
         float(phi),
-        int(period),
-        float(map_period),
+        int(map_power),
+        float(map_span),
         float(DPhi),
         extend_phi=extend_phi,
         fd_eps=fd_eps,
@@ -1949,8 +2270,8 @@ def _finite_difference_DPm_field(
     field,
     x: np.ndarray,
     phi: float,
-    period: int,
-    map_period: float,
+    map_power: int,
+    map_span: float,
     DPhi: float,
     *,
     extend_phi: bool,
@@ -1965,8 +2286,8 @@ def _finite_difference_DPm_field(
             float(x[0] + step[0]),
             float(x[1] + step[1]),
             float(phi),
-            int(period),
-            float(map_period),
+            int(map_power),
+            float(map_span),
             float(DPhi),
             extend_phi=extend_phi,
             fd_eps=fd_eps,
@@ -1976,8 +2297,8 @@ def _finite_difference_DPm_field(
             float(x[0] - step[0]),
             float(x[1] - step[1]),
             float(phi),
-            int(period),
-            float(map_period),
+            int(map_power),
+            float(map_span),
             float(DPhi),
             extend_phi=extend_phi,
             fd_eps=fd_eps,
@@ -1990,13 +2311,13 @@ def _finite_difference_DPm_field(
     return mat
 
 
-def _newton_fixed_point_period_map_field(
+def _newton_fixed_point_map_power_field(
     field,
     seed_R: float,
     seed_Z: float,
     phi: float,
-    period: int,
-    map_period: float,
+    map_power: int,
+    map_span: float,
     DPhi: float,
     *,
     extend_phi: bool,
@@ -2005,7 +2326,7 @@ def _newton_fixed_point_period_map_field(
     tol: float,
     trust_radius: float,
 ) -> tuple[float, float, float, bool, np.ndarray, np.ndarray, int]:
-    """Damped Newton solve for arbitrary-period maps."""
+    """Damped Newton solve for arbitrary-span ``P^m`` maps."""
 
     x = np.asarray([float(seed_R), float(seed_Z)], dtype=float)
     best_res = np.inf
@@ -2014,8 +2335,8 @@ def _newton_fixed_point_period_map_field(
             field,
             x,
             float(phi),
-            int(period),
-            float(map_period),
+            int(map_power),
+            float(map_span),
             float(DPhi),
             extend_phi=extend_phi,
             fd_eps=fd_eps,
@@ -2029,8 +2350,8 @@ def _newton_fixed_point_period_map_field(
                 field,
                 x,
                 float(phi),
-                int(period),
-                float(map_period),
+                int(map_power),
+                float(map_span),
                 float(DPhi),
                 extend_phi=extend_phi,
                 fd_eps=fd_eps,
@@ -2046,11 +2367,11 @@ def _newton_fixed_point_period_map_field(
             step = np.zeros(2, dtype=float)
             step[j] = float(fd_eps)
             Fp = _map_residual_field(
-                field, x + step, float(phi), int(period), float(map_period), float(DPhi),
+                field, x + step, float(phi), int(map_power), float(map_span), float(DPhi),
                 extend_phi=extend_phi, fd_eps=fd_eps,
             )
             Fm = _map_residual_field(
-                field, x - step, float(phi), int(period), float(map_period), float(DPhi),
+                field, x - step, float(phi), int(map_power), float(map_span), float(DPhi),
                 extend_phi=extend_phi, fd_eps=fd_eps,
             )
             if Fp is None or Fm is None:
@@ -2075,8 +2396,8 @@ def _newton_fixed_point_period_map_field(
                 field,
                 trial,
                 float(phi),
-                int(period),
-                float(map_period),
+                int(map_power),
+                float(map_span),
                 float(DPhi),
                 extend_phi=extend_phi,
                 fd_eps=fd_eps,
@@ -2291,7 +2612,7 @@ def boundary_recurrence_seed_candidates_field(
     axis_Z: float,
     *,
     phi_section: float = 0.0,
-    periods: int | Iterable[int] = (2, 3, 4, 5, 6, 7, 8, 9, 10),
+    map_powers: int | Iterable[int] = (2, 3, 4, 5, 6, 7, 8, 9, 10),
     seed_R: Sequence[float] | None = None,
     seed_Z: Sequence[float] | None = None,
     radii: Sequence[float] | None = None,
@@ -2307,14 +2628,14 @@ def boundary_recurrence_seed_candidates_field(
     n_r: int = 6,
     n_theta: int = 96,
     N_turns: int = 120,
-    map_period: float = 2.0 * np.pi,
+    field_period: float | None = None,
     DPhi: float = 0.01,
     fd_eps: float = 1.0e-4,
     recurrence_tol: float | None = None,
     candidate_wall_fraction_min: float | None = None,
     candidate_wall_fraction_max: float | None = None,
     candidate_order: str = "residual",
-    candidates_per_period: int = 96,
+    candidates_per_map_power: int = 96,
     candidate_dedup_tol: float = 1.0e-3,
     extend_phi: bool = True,
     direction: str = "+",
@@ -2326,11 +2647,12 @@ def boundary_recurrence_seed_candidates_field(
     extrema are used.
     """
 
-    period_values = _as_periods(periods)
-    if N_turns <= max(period_values):
-        raise ValueError("N_turns must be larger than the largest requested period")
-    if candidates_per_period <= 0:
-        raise ValueError("candidates_per_period must be positive")
+    field_period_value = _resolve_field_period(field, field_period)
+    map_power_values = _as_map_powers(map_powers)
+    if N_turns <= max(map_power_values):
+        raise ValueError("N_turns must be larger than the largest requested map_power")
+    if candidates_per_map_power <= 0:
+        raise ValueError("candidates_per_map_power must be positive")
     order = str(candidate_order).strip().lower().replace("-", "_")
     if order in {"edge", "outer_edge", "outer_residual", "wall_fraction"}:
         order = "outer"
@@ -2381,7 +2703,7 @@ def boundary_recurrence_seed_candidates_field(
             wall_Z,
         )
 
-    if np.isclose(float(map_period), 2.0 * np.pi, rtol=0.0, atol=1.0e-12):
+    if np.isclose(float(field_period_value), 2.0 * np.pi, rtol=0.0, atol=1.0e-12):
         traces = _trace_poincare_points_field(
             field,
             base_R,
@@ -2405,7 +2727,7 @@ def boundary_recurrence_seed_candidates_field(
             base_Z,
             phi_section=float(phi_section),
             N_turns=int(N_turns),
-            map_period=period_sign * abs(float(map_period)),
+            map_span=period_sign * abs(float(field_period_value)),
             DPhi=float(DPhi),
             wall_R=wall_R,
             wall_Z=wall_Z,
@@ -2413,21 +2735,24 @@ def boundary_recurrence_seed_candidates_field(
             fd_eps=fd_eps,
         )
 
-    seeds_by_period: dict[int, tuple[np.ndarray, np.ndarray]] = {}
-    best_residual_by_period: dict[int, float] = {}
+    seeds_by_map_power: dict[int, tuple[np.ndarray, np.ndarray]] = {}
+    best_residual_by_map_power: dict[int, float] = {}
     raw_candidate_counts: dict[int, int] = {}
     accepted_counts: dict[int, int] = {}
-    raw_wall_fraction_by_period: dict[int, dict[str, float | int | None]] = {}
-    accepted_wall_fraction_by_period: dict[int, dict[str, float | int | None]] = {}
+    raw_wall_fraction_by_map_power: dict[int, dict[str, float | int | None]] = {}
+    accepted_wall_fraction_by_map_power: dict[int, dict[str, float | int | None]] = {}
     trace_lengths = [int(len(r)) for r, _ in traces]
 
-    for period in period_values:
+    for map_power in map_power_values:
         scored: list[tuple[float, float, float, int, int, float]] = []
         for seed_idx, (R_trace, Z_trace) in enumerate(traces):
             n = int(len(R_trace))
-            if n <= period:
+            if n <= map_power:
                 continue
-            d = np.hypot(R_trace[period:] - R_trace[:-period], Z_trace[period:] - Z_trace[:-period])
+            d = np.hypot(
+                R_trace[map_power:] - R_trace[:-map_power],
+                Z_trace[map_power:] - Z_trace[:-map_power],
+            )
             if d.size == 0:
                 continue
             finite_idx = np.flatnonzero(np.isfinite(d))
@@ -2459,11 +2784,11 @@ def boundary_recurrence_seed_candidates_field(
                     continue
                 scored.append((residual, r, z, seed_idx, int(k), wall_fraction))
 
-        raw_candidate_counts[int(period)] = int(len(scored))
-        best_residual_by_period[int(period)] = (
+        raw_candidate_counts[int(map_power)] = int(len(scored))
+        best_residual_by_map_power[int(map_power)] = (
             float(min(item[0] for item in scored)) if scored else np.inf
         )
-        raw_wall_fraction_by_period[int(period)] = _fraction_stats([item[5] for item in scored])
+        raw_wall_fraction_by_map_power[int(map_power)] = _fraction_stats([item[5] for item in scored])
         if order == "outer":
             scored.sort(key=lambda item: (
                 not np.isfinite(item[5]),
@@ -2481,20 +2806,20 @@ def boundary_recurrence_seed_candidates_field(
         for _residual, r, z, _seed_idx, _k, _wall_fraction in scored:
             keep_R.append(r)
             keep_Z.append(z)
-            if len(keep_R) >= int(candidates_per_period) * 4:
+            if len(keep_R) >= int(candidates_per_map_power) * 4:
                 break
         cand_R, cand_Z = _deduplicate_seed_points(
             keep_R,
             keep_Z,
             tol=float(candidate_dedup_tol),
         )
-        if cand_R.size > candidates_per_period:
-            cand_R = cand_R[:candidates_per_period]
-            cand_Z = cand_Z[:candidates_per_period]
-        seeds_by_period[int(period)] = (cand_R, cand_Z)
-        accepted_counts[int(period)] = int(cand_R.size)
+        if cand_R.size > candidates_per_map_power:
+            cand_R = cand_R[:candidates_per_map_power]
+            cand_Z = cand_Z[:candidates_per_map_power]
+        seeds_by_map_power[int(map_power)] = (cand_R, cand_Z)
+        accepted_counts[int(map_power)] = int(cand_R.size)
         if wall_R is not None and wall_Z is not None:
-            accepted_wall_fraction_by_period[int(period)] = _fraction_stats(
+            accepted_wall_fraction_by_map_power[int(map_power)] = _fraction_stats(
                 boundary_wall_fractions(
                     float(axis_R),
                     float(axis_Z),
@@ -2505,15 +2830,16 @@ def boundary_recurrence_seed_candidates_field(
                 )
             )
         else:
-            accepted_wall_fraction_by_period[int(period)] = _fraction_stats([])
+            accepted_wall_fraction_by_map_power[int(map_power)] = _fraction_stats([])
 
     return BoundaryIslandSeedCandidates(
-        seeds_by_period=seeds_by_period,
+        seeds_by_map_power=seeds_by_map_power,
         diagnostics={
-            "periods": list(period_values),
+            "map_powers": list(map_power_values),
             "n_base_seeds": int(base_R.size),
             "N_turns": int(N_turns),
-            "map_period": float(map_period),
+            "field_period": float(field_period_value),
+            "nfp": float(2.0 * np.pi / float(field_period_value)),
             "candidate_order": order,
             "candidate_wall_fraction_min": (
                 None if candidate_wall_fraction_min is None else float(candidate_wall_fraction_min)
@@ -2530,28 +2856,28 @@ def boundary_recurrence_seed_candidates_field(
             "trace_length_max": int(max(trace_lengths)) if trace_lengths else 0,
             "raw_candidate_counts": raw_candidate_counts,
             "accepted_counts": accepted_counts,
-            "raw_candidate_wall_fraction": raw_wall_fraction_by_period,
-            "accepted_candidate_wall_fraction": accepted_wall_fraction_by_period,
-            "best_residual_by_period": best_residual_by_period,
+            "raw_candidate_wall_fraction_by_map_power": raw_wall_fraction_by_map_power,
+            "accepted_candidate_wall_fraction_by_map_power": accepted_wall_fraction_by_map_power,
+            "best_residual_by_map_power": best_residual_by_map_power,
         },
     )
 
 
-def _lower_period_residual(
+def _lower_map_power_residual(
     field,
     R: float,
     Z: float,
     phi: float,
-    period: int,
-    map_period: float,
+    map_power: int,
+    field_period: float,
     DPhi: float,
     *,
     extend_phi: bool,
     fd_eps: float,
 ) -> float:
-    if period <= 1:
+    if map_power <= 1:
         return np.inf
-    divisors = [d for d in range(1, period) if period % d == 0]
+    divisors = [d for d in range(1, map_power) if map_power % d == 0]
     if not divisors:
         divisors = [1]
     best = np.inf
@@ -2562,10 +2888,10 @@ def _lower_period_residual(
                 R,
                 Z,
                 phi,
-                phi + float(map_period) * divisor,
+                phi + float(field_period) * divisor,
                 DPhi,
                 extend_phi=extend_phi,
-                dphi_out=abs(float(map_period) * divisor),
+                dphi_out=abs(float(field_period) * divisor),
                 fd_eps=fd_eps,
             )
         except Exception:
@@ -2584,7 +2910,7 @@ def _deduplicate_fixed_points(
     tol: float,
 ) -> tuple[BoundaryIslandFixedPoint, ...]:
     kept: list[BoundaryIslandFixedPoint] = []
-    for fp in sorted(fixed_points, key=lambda x: (x.period, x.kind, x.residual)):
+    for fp in sorted(fixed_points, key=lambda x: (x.map_power, x.kind, x.residual)):
         duplicate_index = -1
         for i, old in enumerate(kept):
             if fp.kind != old.kind:
@@ -2596,9 +2922,9 @@ def _deduplicate_fixed_points(
             kept.append(fp)
             continue
         old = kept[duplicate_index]
-        if (fp.period, fp.residual) < (old.period, old.residual):
+        if (fp.map_power, fp.residual) < (old.map_power, old.residual):
             kept[duplicate_index] = fp
-    return tuple(sorted(kept, key=lambda x: (x.period, x.kind, np.arctan2(x.Z, x.R))))
+    return tuple(sorted(kept, key=lambda x: (x.map_power, x.kind, np.arctan2(x.Z, x.R))))
 
 
 def fixed_points_by_section_payload(
@@ -2633,7 +2959,7 @@ def find_boundary_island_fixed_points_field(
     axis_Z: float,
     *,
     phi_section: float = 0.0,
-    periods: int | Iterable[int] = (2, 3, 4, 5, 6, 7, 8, 9, 10),
+    map_powers: int | Iterable[int] = (2, 3, 4, 5, 6, 7, 8, 9, 10),
     radii: Sequence[float] | None = None,
     r_min: float | None = None,
     r_max: float | None = None,
@@ -2652,9 +2978,9 @@ def find_boundary_island_fixed_points_field(
     recurrence_candidate_wall_fraction_min: float | None = None,
     recurrence_candidate_wall_fraction_max: float | None = None,
     recurrence_candidate_order: str = "residual",
-    recurrence_candidates_per_period: int = 96,
+    recurrence_candidates_per_map_power: int = 96,
     candidate_dedup_tol: float = 1.0e-3,
-    map_period: float = 2.0 * np.pi,
+    field_period: float | None = None,
     python_trust_radius: float = 0.08,
     DPhi: float = 0.01,
     fd_eps: float = 1.0e-4,
@@ -2662,14 +2988,15 @@ def find_boundary_island_fixed_points_field(
     tol: float = 1.0e-10,
     residual_tol: float | None = None,
     dedup_tol: float = 2.0e-3,
-    exclude_lower_periods: bool = True,
-    lower_period_tol: float = 2.0e-3,
+    exclude_lower_map_powers: bool = True,
+    lower_map_power_tol: float = 2.0e-3,
     extend_phi: bool = True,
     n_threads: int = -1,
 ) -> BoundaryIslandSearchResult:
     """Find X/O points of boundary island chains with a damped Newton backend."""
 
-    period_values = _as_periods(periods)
+    field_period_value = _resolve_field_period(field, field_period)
+    map_power_values = _as_map_powers(map_powers)
     strategy = str(candidate_strategy).strip().lower()
     if strategy not in {"grid", "recurrence", "both"}:
         raise ValueError("candidate_strategy must be 'grid', 'recurrence', or 'both'")
@@ -2711,7 +3038,7 @@ def find_boundary_island_fixed_points_field(
             float(axis_R),
             float(axis_Z),
             phi_section=float(phi_section),
-            periods=period_values,
+            map_powers=map_power_values,
             seed_R=seed_R,
             seed_Z=seed_Z,
             wall_R=wall_R,
@@ -2720,14 +3047,14 @@ def find_boundary_island_fixed_points_field(
             wall_R_all=wall_R_all,
             wall_Z_all=wall_Z_all,
             N_turns=int(recurrence_turns),
-            map_period=float(map_period),
+            field_period=float(field_period_value),
             DPhi=float(DPhi),
             fd_eps=float(fd_eps),
             recurrence_tol=recurrence_tol,
             candidate_wall_fraction_min=recurrence_candidate_wall_fraction_min,
             candidate_wall_fraction_max=recurrence_candidate_wall_fraction_max,
             candidate_order=recurrence_candidate_order,
-            candidates_per_period=int(recurrence_candidates_per_period),
+            candidates_per_map_power=int(recurrence_candidates_per_map_power),
             candidate_dedup_tol=float(candidate_dedup_tol),
             extend_phi=extend_phi,
         )
@@ -2739,54 +3066,54 @@ def find_boundary_island_fixed_points_field(
     raw_counts: dict[int, int] = {}
     converged_counts: dict[int, int] = {}
     accepted_counts: dict[int, int] = {}
-    period_seed_counts: dict[int, int] = {}
+    map_power_seed_counts: dict[int, int] = {}
     all_used_seed_R: list[np.ndarray] = []
     all_used_seed_Z: list[np.ndarray] = []
 
-    for period in period_values:
+    for map_power in map_power_values:
         if strategy == "grid":
-            period_seed_R, period_seed_Z = seed_R, seed_Z
+            map_power_seed_R, map_power_seed_Z = seed_R, seed_Z
         else:
             assert recurrence_candidates is not None
-            rec_R, rec_Z = recurrence_candidates.seeds_for_period(int(period))
+            rec_R, rec_Z = recurrence_candidates.seeds_for_map_power(int(map_power))
             if strategy == "recurrence":
-                period_seed_R, period_seed_Z = rec_R, rec_Z
+                map_power_seed_R, map_power_seed_Z = rec_R, rec_Z
             else:
-                period_seed_R = np.concatenate([seed_R, rec_R])
-                period_seed_Z = np.concatenate([seed_Z, rec_Z])
-                period_seed_R, period_seed_Z = _deduplicate_seed_points(
-                    period_seed_R,
-                    period_seed_Z,
+                map_power_seed_R = np.concatenate([seed_R, rec_R])
+                map_power_seed_Z = np.concatenate([seed_Z, rec_Z])
+                map_power_seed_R, map_power_seed_Z = _deduplicate_seed_points(
+                    map_power_seed_R,
+                    map_power_seed_Z,
                     tol=float(candidate_dedup_tol),
                 )
-        period_seed_R = np.asarray(period_seed_R, dtype=float).ravel()
-        period_seed_Z = np.asarray(period_seed_Z, dtype=float).ravel()
-        period_seed_counts[int(period)] = int(period_seed_R.size)
-        if period_seed_R.size == 0:
-            raw_counts[int(period)] = 0
-            converged_counts[int(period)] = 0
-            accepted_counts[int(period)] = 0
+        map_power_seed_R = np.asarray(map_power_seed_R, dtype=float).ravel()
+        map_power_seed_Z = np.asarray(map_power_seed_Z, dtype=float).ravel()
+        map_power_seed_counts[int(map_power)] = int(map_power_seed_R.size)
+        if map_power_seed_R.size == 0:
+            raw_counts[int(map_power)] = 0
+            converged_counts[int(map_power)] = 0
+            accepted_counts[int(map_power)] = 0
             continue
-        all_used_seed_R.append(period_seed_R.copy())
-        all_used_seed_Z.append(period_seed_Z.copy())
-        period_seed_wall_fraction = None
+        all_used_seed_R.append(map_power_seed_R.copy())
+        all_used_seed_Z.append(map_power_seed_Z.copy())
+        map_power_seed_wall_fraction = None
         if wall_R is not None and wall_Z is not None:
-            period_seed_wall_fraction = boundary_wall_fractions(
+            map_power_seed_wall_fraction = boundary_wall_fractions(
                 float(axis_R),
                 float(axis_Z),
-                period_seed_R,
-                period_seed_Z,
+                map_power_seed_R,
+                map_power_seed_Z,
                 wall_R,
                 wall_Z,
             )
 
-        if np.isclose(float(map_period), 2.0 * np.pi, rtol=0.0, atol=1.0e-12):
+        if np.isclose(float(field_period_value), 2.0 * np.pi, rtol=0.0, atol=1.0e-12):
             result = find_fixed_points_batch_field(
                 field,
-                period_seed_R,
-                period_seed_Z,
+                map_power_seed_R,
+                map_power_seed_Z,
                 float(phi_section),
-                int(period),
+                int(map_power),
                 1,
                 float(DPhi),
                 extend_phi=extend_phi,
@@ -2808,11 +3135,11 @@ def find_boundary_island_fixed_points_field(
         else:
             try:
                 result = find_fixed_points_batch_span_field(
-                    field,
-                    period_seed_R,
-                    period_seed_Z,
+                field,
+                    map_power_seed_R,
+                    map_power_seed_Z,
                     float(phi_section),
-                    float(period) * float(map_period),
+                    float(map_power) * float(field_period_value),
                     float(DPhi),
                     extend_phi=extend_phi,
                     fd_eps=float(fd_eps),
@@ -2832,13 +3159,13 @@ def find_boundary_island_fixed_points_field(
                     eig = eig.reshape(len(R_out), -1)
             except ImportError:
                 rows = [
-                    _newton_fixed_point_period_map_field(
+                    _newton_fixed_point_map_power_field(
                         field,
                         float(r),
                         float(z),
                         float(phi_section),
-                        int(period),
-                        float(map_period),
+                        int(map_power),
+                        float(field_period_value),
                         float(DPhi),
                         extend_phi=extend_phi,
                         fd_eps=float(fd_eps),
@@ -2846,7 +3173,7 @@ def find_boundary_island_fixed_points_field(
                         tol=float(tol),
                         trust_radius=float(python_trust_radius),
                     )
-                    for r, z in zip(period_seed_R, period_seed_Z)
+                    for r, z in zip(map_power_seed_R, map_power_seed_Z)
                 ]
                 R_out = np.asarray([row[0] for row in rows], dtype=float)
                 Z_out = np.asarray([row[1] for row in rows], dtype=float)
@@ -2856,8 +3183,8 @@ def find_boundary_island_fixed_points_field(
                 eig = np.asarray([row[5] for row in rows], dtype=complex)
                 point_type = np.asarray([row[6] for row in rows], dtype=int)
 
-        raw_counts[int(period)] = int(len(R_out))
-        converged_counts[int(period)] = int(np.count_nonzero(converged))
+        raw_counts[int(map_power)] = int(len(R_out))
+        converged_counts[int(map_power)] = int(np.count_nonzero(converged))
         accepted_before = len(candidates)
         for i in range(len(R_out)):
             if not converged[i]:
@@ -2877,18 +3204,18 @@ def find_boundary_island_fixed_points_field(
                     np.asarray(wall_Z),
                 )[0]):
                     continue
-            lower_res = _lower_period_residual(
+            lower_res = _lower_map_power_residual(
                 field,
                 float(R_out[i]),
                 float(Z_out[i]),
                 float(phi_section),
-                int(period),
-                float(map_period),
+                int(map_power),
+                float(field_period_value),
                 float(DPhi),
                 extend_phi=extend_phi,
                 fd_eps=fd_eps,
             )
-            if exclude_lower_periods and lower_res <= lower_period_tol:
+            if exclude_lower_map_powers and lower_res <= lower_map_power_tol:
                 continue
             kind = _classify_DPm_kind(DPm_arr[i], int(point_type[i]))
             fixed_wall_fraction = np.nan
@@ -2902,26 +3229,34 @@ def find_boundary_island_fixed_points_field(
                     wall_Z,
                 )[0])
             seed_fraction = np.nan
-            if period_seed_wall_fraction is not None and i < period_seed_wall_fraction.size:
-                seed_fraction = float(period_seed_wall_fraction[i])
+            if map_power_seed_wall_fraction is not None and i < map_power_seed_wall_fraction.size:
+                seed_fraction = float(map_power_seed_wall_fraction[i])
             candidates.append(BoundaryIslandFixedPoint(
                 phi=float(phi_section),
                 R=float(R_out[i]),
                 Z=float(Z_out[i]),
-                period=int(period),
+                map_power=int(map_power),
                 kind=kind,
                 DPm=DPm_arr[i].copy(),
                 residual=float(residual[i]),
                 eigenvalues=np.asarray(eig[i]).copy(),
-                seed_R=float(period_seed_R[i]),
-                seed_Z=float(period_seed_Z[i]),
-                lower_period_residual=float(lower_res),
+                seed_R=float(map_power_seed_R[i]),
+                seed_Z=float(map_power_seed_Z[i]),
+                lower_map_power_residual=float(lower_res),
+                map_span=float(field_period_value),
                 metadata={
+                    "map_power": int(map_power),
+                    "field_period": float(field_period_value),
+                    "nfp": float(2.0 * np.pi / float(field_period_value)),
+                    "map_span": float(field_period_value),
+                    "base_map_span": float(field_period_value),
+                    "monodromy_field_period": float(map_power) * float(field_period_value),
+                    "monodromy_map_span": float(map_power) * float(field_period_value),
                     "wall_fraction": fixed_wall_fraction,
                     "seed_wall_fraction": seed_fraction,
                 },
             ))
-        accepted_counts[int(period)] = int(len(candidates) - accepted_before)
+        accepted_counts[int(map_power)] = int(len(candidates) - accepted_before)
 
     fixed = _deduplicate_fixed_points(candidates, tol=float(dedup_tol))
     fp_by_sec = fixed_points_by_section_payload(fixed, [float(phi_section)])
@@ -2937,10 +3272,11 @@ def find_boundary_island_fixed_points_field(
         tol=float(candidate_dedup_tol),
     )
     diagnostics = {
-        "periods": list(period_values),
+        "map_powers": list(map_power_values),
         "n_seeds": int(seed_R.size),
         "candidate_strategy": strategy,
-        "map_period": float(map_period),
+        "field_period": float(field_period_value),
+        "nfp": float(2.0 * np.pi / float(field_period_value)),
         "seed_wall_fraction": (
             _fraction_stats(seed_wall_fraction)
             if seed_wall_fraction is not None
@@ -2950,7 +3286,7 @@ def find_boundary_island_fixed_points_field(
             fp.metadata.get("wall_fraction", np.nan)
             for fp in fixed
         ]),
-        "period_seed_counts": period_seed_counts,
+        "map_power_seed_counts": map_power_seed_counts,
         "raw_counts": raw_counts,
         "converged_counts": converged_counts,
         "accepted_counts": accepted_counts,
@@ -3049,11 +3385,11 @@ def trace_boundary_island_shapes_field(
     axis_Z: float,
     *,
     phi_section: float = 0.0,
-    periods: int | Iterable[int] | None = None,
+    map_powers: int | Iterable[int] | None = None,
     shape_radius_fractions: Sequence[float] = (0.55, 0.78, 0.92),
     n_shape_angles: int = 6,
     N_turns: int = 80,
-    map_period: float = 2.0 * np.pi,
+    field_period: float | None = None,
     DPhi: float = 0.01,
     fd_eps: float = 1.0e-4,
     min_points: int = 12,
@@ -3073,17 +3409,18 @@ def trace_boundary_island_shapes_field(
 
     if n_shape_angles <= 0:
         raise ValueError("n_shape_angles must be positive")
-    period_filter = None if periods is None else set(_as_periods(periods))
+    field_period_value = _resolve_field_period(field, field_period)
+    map_power_filter = None if map_powers is None else set(_as_map_powers(map_powers))
     fps = list(fixed_points)
     opts = [
         fp for fp in fps
         if str(getattr(fp, "kind", "")).upper() == "O"
-        and (period_filter is None or int(getattr(fp, "period", 1)) in period_filter)
+        and (map_power_filter is None or _fixed_point_map_power(fp, default=1) in map_power_filter)
     ]
     xpts = [
         fp for fp in fps
         if str(getattr(fp, "kind", "")).upper() == "X"
-        and (period_filter is None or int(getattr(fp, "period", 1)) in period_filter)
+        and (map_power_filter is None or _fixed_point_map_power(fp, default=1) in map_power_filter)
     ]
     if not opts:
         return []
@@ -3096,14 +3433,14 @@ def trace_boundary_island_shapes_field(
         raise ValueError("shape_radius_fractions must contain positive values")
 
     for opt in opts:
-        same_period_x = [
+        same_map_power_x = [
             x for x in xpts
-            if int(getattr(x, "period", 1)) == int(getattr(opt, "period", 1))
+            if _fixed_point_map_power(x, default=1) == _fixed_point_map_power(opt, default=1)
         ]
-        if same_period_x:
+        if same_map_power_x:
             distances = np.asarray([
                 np.hypot(float(x.R) - float(opt.R), float(x.Z) - float(opt.Z))
-                for x in same_period_x
+                for x in same_map_power_x
             ], dtype=float)
             scale = float(np.nanmin(distances))
         else:
@@ -3121,7 +3458,7 @@ def trace_boundary_island_shapes_field(
                 seed_Z = seed_Z[inside]
             if seed_R.size == 0:
                 continue
-            if np.isclose(float(map_period), 2.0 * np.pi, rtol=0.0, atol=1.0e-12):
+            if np.isclose(float(field_period_value), 2.0 * np.pi, rtol=0.0, atol=1.0e-12):
                 traces = _trace_poincare_points_field(
                     field,
                     seed_R,
@@ -3143,7 +3480,7 @@ def trace_boundary_island_shapes_field(
                     seed_Z,
                     phi_section=float(phi_section),
                     N_turns=int(N_turns),
-                    map_period=float(map_period),
+                    map_span=float(field_period_value),
                     DPhi=float(DPhi),
                     wall_R=wall_R,
                     wall_Z=wall_Z,
@@ -3219,7 +3556,7 @@ def trace_fixed_point_manifolds_field(
     *,
     phi_section: float | None = None,
     N_turns: int = 24,
-    map_period: float = 2.0 * np.pi,
+    field_period: float | None = None,
     DPhi: float = 0.01,
     fd_eps: float = 1.0e-4,
     seed_distances: Sequence[float] | None = None,
@@ -3238,72 +3575,192 @@ def trace_fixed_point_manifolds_field(
     """Trace W^u/W^s point clouds from hyperbolic fixed points.
 
     ``W^u`` is traced forward from the unstable eigendirection; ``W^s`` is
-    traced backward from the stable eigendirection.  The return format matches
-    ``topoquest.plot.poincare``.
+    traced backward from the stable eigendirection.  If ``field_period`` is not
+    supplied, the traced span is inferred from the fixed point monodromy:
+    ``map_power * field_period`` when that metadata is available.  Pass
+    ``field_period`` explicitly to override this.
     """
 
     if N_turns <= 0:
         raise ValueError("N_turns must be positive")
-    if seed_distances is None:
+    user_seed_distances = seed_distances is not None
+    if not user_seed_distances:
         if n_eps <= 0:
             raise ValueError("n_eps must be positive")
-        distances = np.logspace(np.log10(float(eps_min)), np.log10(float(eps_max)), int(n_eps))
+        distances = None
     else:
         distances = np.asarray(seed_distances, dtype=float).ravel()
-    distances = distances[np.isfinite(distances) & (distances > 0.0)]
-    if distances.size == 0:
-        raise ValueError("seed_distances must contain positive finite values")
+        distances = distances[np.isfinite(distances) & (distances > 0.0)]
+        if distances.size == 0:
+            raise ValueError("seed_distances must contain positive finite values")
 
-    def _flatten(
+    def _flatten_carousel(
         traces: list[tuple[np.ndarray, np.ndarray]],
         *,
+        seed_R: np.ndarray,
+        seed_Z: np.ndarray,
+        seed_distance: np.ndarray,
+        seed_side: np.ndarray,
+        seed_order: np.ndarray,
+        eigenvalue_sign: float,
         origin_R: float,
         origin_Z: float,
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        if not traces:
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        seed_R = np.asarray(seed_R, dtype=float).ravel()
+        seed_Z = np.asarray(seed_Z, dtype=float).ravel()
+        seed_distance = np.asarray(seed_distance, dtype=float).ravel()
+        seed_side = np.asarray(seed_side, dtype=float).ravel()
+        seed_order = np.asarray(seed_order, dtype=int).ravel()
+        if seed_R.size == 0:
             empty = np.empty(0, dtype=float)
-            return empty, empty, empty
-        R_parts: list[np.ndarray] = []
-        Z_parts: list[np.ndarray] = []
-        s_parts: list[np.ndarray] = []
-        for R, Z in traces:
-            R_trace = np.asarray(R, dtype=float).ravel()
-            Z_trace = np.asarray(Z, dtype=float).ravel()
-            if R_trace.size == 0:
-                continue
-            dR = np.diff(np.concatenate([[float(origin_R)], R_trace]))
-            dZ = np.diff(np.concatenate([[float(origin_Z)], Z_trace]))
-            s_trace = np.cumsum(np.hypot(dR, dZ))
-            R_parts.append(R_trace)
-            Z_parts.append(Z_trace)
-            s_parts.append(s_trace)
-        if not R_parts:
-            empty = np.empty(0, dtype=float)
-            return empty, empty, empty
-        R_arr = np.concatenate(R_parts)
-        Z_arr = np.concatenate(Z_parts)
-        s_arr = np.concatenate(s_parts)
-        finite = np.isfinite(R_arr) & np.isfinite(Z_arr)
-        if RZlimit is not None:
+            return empty, empty, empty, np.empty(0, dtype=int), np.empty(0, dtype=int), empty
+
+        def _inside_limits(r: float, z: float) -> bool:
+            if not (np.isfinite(r) and np.isfinite(z)):
+                return False
+            if RZlimit is None:
+                return True
             r_min, r_max, z_min, z_max = map(float, RZlimit)
-            finite &= (R_arr >= r_min) & (R_arr <= r_max) & (Z_arr >= z_min) & (Z_arr <= z_max)
-        return R_arr[finite], Z_arr[finite], s_arr[finite]
+            return r_min <= r <= r_max and z_min <= z <= z_max
+
+        R_out: list[float] = []
+        Z_out: list[float] = []
+        s_out: list[float] = []
+        generation_out: list[int] = []
+        seed_order_out: list[int] = []
+        side_out: list[float] = []
+        sign = -1.0 if float(eigenvalue_sign) < 0.0 else 1.0
+        max_turns = 0
+        for seed_i in range(seed_R.size):
+            if int(seed_i) >= len(traces):
+                continue
+            R_trace = np.asarray(traces[int(seed_i)][0], dtype=float).ravel()
+            Z_trace = np.asarray(traces[int(seed_i)][1], dtype=float).ravel()
+            max_turns = max(max_turns, min(R_trace.size, Z_trace.size))
+
+        for physical_side in (-1.0, 1.0):
+
+            last_R = float(origin_R)
+            last_Z = float(origin_Z)
+            arc = 0.0
+
+            def _append_point(seed_i: int, r: float, z: float, generation: int, side: float) -> bool:
+                nonlocal arc, last_R, last_Z
+                if not _inside_limits(r, z):
+                    return False
+                arc += float(np.hypot(r - last_R, z - last_Z))
+                R_out.append(float(r))
+                Z_out.append(float(z))
+                s_out.append(arc)
+                generation_out.append(int(generation))
+                seed_order_out.append(int(seed_order[int(seed_i)]))
+                side_out.append(float(side))
+                last_R = float(r)
+                last_Z = float(z)
+                return True
+
+            for generation in range(0, max_turns + 1):
+                generation_sign = sign ** generation
+                effective_side = seed_side * generation_sign
+                side_idx = (
+                    np.flatnonzero(effective_side < 0.0)
+                    if physical_side < 0.0
+                    else np.flatnonzero(effective_side > 0.0)
+                )
+                if side_idx.size == 0:
+                    continue
+                side_idx = side_idx[np.argsort(seed_distance[side_idx])]
+                for seed_i_raw in side_idx:
+                    seed_i = int(seed_i_raw)
+                    if generation == 0:
+                        _append_point(
+                            seed_i,
+                            float(seed_R[seed_i]),
+                            float(seed_Z[seed_i]),
+                            0,
+                            physical_side,
+                        )
+                        continue
+                    if seed_i >= len(traces):
+                        continue
+                    R_trace = np.asarray(traces[seed_i][0], dtype=float).ravel()
+                    Z_trace = np.asarray(traces[seed_i][1], dtype=float).ravel()
+                    trace_index = generation - 1
+                    if trace_index >= min(R_trace.size, Z_trace.size):
+                        continue
+                    _append_point(
+                        seed_i,
+                        float(R_trace[trace_index]),
+                        float(Z_trace[trace_index]),
+                        generation,
+                        physical_side,
+                    )
+
+        if not R_out:
+            empty = np.empty(0, dtype=float)
+            return empty, empty, empty, np.empty(0, dtype=int), np.empty(0, dtype=int), empty
+        return (
+            np.asarray(R_out, dtype=float),
+            np.asarray(Z_out, dtype=float),
+            np.asarray(s_out, dtype=float),
+            np.asarray(generation_out, dtype=int),
+            np.asarray(seed_order_out, dtype=int),
+            np.asarray(side_out, dtype=float),
+        )
 
     manifolds: list[dict[str, np.ndarray]] = []
     for fp in fixed_points:
         if str(getattr(fp, "kind", "")).upper() != "X":
             continue
         DPm = np.asarray(getattr(fp, "DPm", np.eye(2)), dtype=float).reshape(2, 2)
-        stable, unstable = _stable_unstable_eigenvectors(DPm)
-        if stable is None or unstable is None:
+        eigpairs = _stable_unstable_eigenpairs(DPm)
+        if eigpairs is None:
             continue
+        stable_eigval, stable, unstable_eigval, unstable = eigpairs
+        unstable_expansion = float(abs(unstable_eigval))
+        stable_backward_expansion = np.inf if stable_eigval == 0.0 else float(1.0 / abs(stable_eigval))
+        if not np.isfinite(stable_backward_expansion) or stable_backward_expansion <= 1.0:
+            continue
+        if user_seed_distances:
+            u_distances = np.asarray(distances, dtype=float)
+            s_distances = np.asarray(distances, dtype=float)
+            u_seed_ratio = np.nan
+            s_seed_ratio = np.nan
+            seed_spacing = "user"
+        else:
+            u_distances, u_seed_ratio = _manifold_seed_distances_from_expansion(
+                unstable_expansion,
+                eps_min=float(eps_min),
+                eps_max=float(eps_max),
+                n_eps=int(n_eps),
+            )
+            s_distances, s_seed_ratio = _manifold_seed_distances_from_expansion(
+                stable_backward_expansion,
+                eps_min=float(eps_min),
+                eps_max=float(eps_max),
+                n_eps=int(n_eps),
+            )
+            seed_spacing = "eigenvalue_geometric"
 
         phi = float(getattr(fp, "phi", 0.0) if phi_section is None else phi_section)
         R0 = float(getattr(fp, "R"))
         Z0 = float(getattr(fp, "Z"))
-        sign = np.asarray([-1.0, 1.0], dtype=float)
-        du = (sign[:, None] * distances[None, :]).ravel()
-        ds = du.copy()
+        trace_map_span, trace_map_span_source = _fixed_point_monodromy_map_span(
+            fp,
+            explicit_field_period=field_period,
+        )
+
+        def _signed_seed_offsets(seed_distances: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+            sign = np.asarray([-1.0, 1.0], dtype=float)
+            offsets = (sign[:, None] * seed_distances[None, :]).ravel()
+            order = np.broadcast_to(
+                np.arange(seed_distances.size, dtype=int),
+                (sign.size, seed_distances.size),
+            ).ravel()
+            return offsets, order
+
+        du, u_seed_order = _signed_seed_offsets(u_distances)
+        ds, s_seed_order = _signed_seed_offsets(s_distances)
         seed_u_R = R0 + du * unstable[0]
         seed_u_Z = Z0 + du * unstable[1]
         seed_s_R = R0 + ds * stable[0]
@@ -3319,72 +3776,112 @@ def trace_fixed_point_manifolds_field(
             seed_u_Z = seed_u_Z[inside_u]
             seed_u_distance = seed_u_distance[inside_u]
             seed_u_side = seed_u_side[inside_u]
+            u_seed_order = u_seed_order[inside_u]
             inside_s = _points_in_polygon(seed_s_R, seed_s_Z, np.asarray(wall_R), np.asarray(wall_Z))
             seed_s_R = seed_s_R[inside_s]
             seed_s_Z = seed_s_Z[inside_s]
             seed_s_distance = seed_s_distance[inside_s]
             seed_s_side = seed_s_side[inside_s]
+            s_seed_order = s_seed_order[inside_s]
 
-        if np.isclose(float(map_period), 2.0 * np.pi, rtol=0.0, atol=1.0e-12):
-            u_traces = _trace_poincare_points_field(
-                field,
-                seed_u_R,
-                seed_u_Z,
-                phi_section=phi,
-                N_turns=int(N_turns),
-                DPhi=float(DPhi),
-                wall_R=wall_R,
-                wall_Z=wall_Z,
-                wall_phi=wall_phi,
-                wall_R_all=wall_R_all,
-                wall_Z_all=wall_Z_all,
-                extend_phi=extend_phi,
-                direction="+",
+        if np.isclose(abs(float(trace_map_span)), 2.0 * np.pi, rtol=0.0, atol=1.0e-12):
+            forward_direction = "+" if trace_map_span > 0.0 else "-"
+            backward_direction = "-" if trace_map_span > 0.0 else "+"
+            u_traces = (
+                _trace_poincare_points_field(
+                    field,
+                    seed_u_R,
+                    seed_u_Z,
+                    phi_section=phi,
+                    N_turns=int(N_turns),
+                    DPhi=float(DPhi),
+                    wall_R=wall_R,
+                    wall_Z=wall_Z,
+                    wall_phi=wall_phi,
+                    wall_R_all=wall_R_all,
+                    wall_Z_all=wall_Z_all,
+                    extend_phi=extend_phi,
+                    direction=forward_direction,
+                )
+                if seed_u_R.size
+                else []
             )
-            s_traces = _trace_poincare_points_field(
-                field,
-                seed_s_R,
-                seed_s_Z,
-                phi_section=phi,
-                N_turns=int(N_turns),
-                DPhi=float(DPhi),
-                wall_R=wall_R,
-                wall_Z=wall_Z,
-                wall_phi=wall_phi,
-                wall_R_all=wall_R_all,
-                wall_Z_all=wall_Z_all,
-                extend_phi=extend_phi,
-                direction="-",
+            s_traces = (
+                _trace_poincare_points_field(
+                    field,
+                    seed_s_R,
+                    seed_s_Z,
+                    phi_section=phi,
+                    N_turns=int(N_turns),
+                    DPhi=float(DPhi),
+                    wall_R=wall_R,
+                    wall_Z=wall_Z,
+                    wall_phi=wall_phi,
+                    wall_R_all=wall_R_all,
+                    wall_Z_all=wall_Z_all,
+                    extend_phi=extend_phi,
+                    direction=backward_direction,
+                )
+                if seed_s_R.size
+                else []
             )
         else:
-            u_traces = _trace_map_points_field(
-                field,
-                seed_u_R,
-                seed_u_Z,
-                phi_section=phi,
-                N_turns=int(N_turns),
-                map_period=abs(float(map_period)),
-                DPhi=float(DPhi),
-                wall_R=wall_R,
-                wall_Z=wall_Z,
-                extend_phi=extend_phi,
-                fd_eps=fd_eps,
+            u_traces = (
+                _trace_map_points_field(
+                    field,
+                    seed_u_R,
+                    seed_u_Z,
+                    phi_section=phi,
+                    N_turns=int(N_turns),
+                    map_span=float(trace_map_span),
+                    DPhi=float(DPhi),
+                    wall_R=wall_R,
+                    wall_Z=wall_Z,
+                    extend_phi=extend_phi,
+                    fd_eps=fd_eps,
+                )
+                if seed_u_R.size
+                else []
             )
-            s_traces = _trace_map_points_field(
-                field,
-                seed_s_R,
-                seed_s_Z,
-                phi_section=phi,
-                N_turns=int(N_turns),
-                map_period=-abs(float(map_period)),
-                DPhi=float(DPhi),
-                wall_R=wall_R,
-                wall_Z=wall_Z,
-                extend_phi=extend_phi,
-                fd_eps=fd_eps,
+            s_traces = (
+                _trace_map_points_field(
+                    field,
+                    seed_s_R,
+                    seed_s_Z,
+                    phi_section=phi,
+                    N_turns=int(N_turns),
+                    map_span=-float(trace_map_span),
+                    DPhi=float(DPhi),
+                    wall_R=wall_R,
+                    wall_Z=wall_Z,
+                    extend_phi=extend_phi,
+                    fd_eps=fd_eps,
+                )
+                if seed_s_R.size
+                else []
             )
-        u_R, u_Z, u_lpol = _flatten(u_traces, origin_R=R0, origin_Z=Z0)
-        s_R, s_Z, s_lpol = _flatten(s_traces, origin_R=R0, origin_Z=Z0)
+        u_R, u_Z, u_lpol, u_generation, u_point_seed_order, u_point_side = _flatten_carousel(
+            u_traces,
+            seed_R=seed_u_R,
+            seed_Z=seed_u_Z,
+            seed_distance=seed_u_distance,
+            seed_side=seed_u_side,
+            seed_order=u_seed_order,
+            eigenvalue_sign=np.sign(unstable_eigval),
+            origin_R=R0,
+            origin_Z=Z0,
+        )
+        s_R, s_Z, s_lpol, s_generation, s_point_seed_order, s_point_side = _flatten_carousel(
+            s_traces,
+            seed_R=seed_s_R,
+            seed_Z=seed_s_Z,
+            seed_distance=seed_s_distance,
+            seed_side=seed_s_side,
+            seed_order=s_seed_order,
+            eigenvalue_sign=np.sign(stable_eigval),
+            origin_R=R0,
+            origin_Z=Z0,
+        )
         metadata = dict(getattr(fp, "metadata", {}) or {})
         map_order_index = metadata.get(
             "map_order_index",
@@ -3401,16 +3898,49 @@ def trace_fixed_point_manifolds_field(
             "origin_R": R0,
             "origin_Z": Z0,
             "origin_phi": phi,
+            "manifold_field_period": float(trace_map_span),
+            "manifold_field_period_source": trace_map_span_source,
             "stable_eigenvector": stable.copy(),
             "unstable_eigenvector": unstable.copy(),
+            "stable_eigenvalue": stable_eigval,
+            "unstable_eigenvalue": unstable_eigval,
+            "stable_orientation_reversing": bool(stable_eigval < 0.0),
+            "unstable_orientation_reversing": bool(unstable_eigval < 0.0),
+            "stable_backward_expansion": stable_backward_expansion,
+            "unstable_expansion": unstable_expansion,
             "u_seed_R": seed_u_R.copy(),
             "u_seed_Z": seed_u_Z.copy(),
             "u_seed_distance": seed_u_distance.copy(),
             "u_seed_side": seed_u_side.copy(),
+            "u_seed_order": u_seed_order.copy(),
+            "u_seed_ratio": u_seed_ratio,
+            "u_seed_next_distance": (
+                np.nan if seed_u_distance.size == 0
+                else unstable_expansion * float(np.min(seed_u_distance))
+            ),
+            "u_generation": u_generation,
+            "u_point_seed_order": u_point_seed_order,
+            "u_point_side": u_point_side,
             "s_seed_R": seed_s_R.copy(),
             "s_seed_Z": seed_s_Z.copy(),
             "s_seed_distance": seed_s_distance.copy(),
             "s_seed_side": seed_s_side.copy(),
+            "s_seed_order": s_seed_order.copy(),
+            "s_seed_ratio": s_seed_ratio,
+            "s_seed_next_distance": (
+                np.nan if seed_s_distance.size == 0
+                else stable_backward_expansion * float(np.min(seed_s_distance))
+            ),
+            "s_generation": s_generation,
+            "s_point_seed_order": s_point_seed_order,
+            "s_point_side": s_point_side,
+            "seed_spacing": seed_spacing,
+            "seed_generation_order": "side_then_generation_then_distance",
+            "seed_generation_semantics": (
+                "each generation contains the full geometric seed segment; "
+                "automatic spacing chooses q=lambda_expand^(1/n_eps) so "
+                "lambda_expand*s1 is the next point after sN"
+            ),
             "cycle_id": cycle_id,
             "chain_id": metadata.get("chain_id"),
             "point_index": metadata.get("point_index"),
@@ -3468,7 +3998,7 @@ def boundary_island_topology_payload_field(
     axis_by_sec: Sequence[tuple[float, float]],
     phi_sections: Sequence[float],
     *,
-    periods: int | Iterable[int] = (2, 3, 4, 5, 6, 7, 8, 9, 10),
+    map_powers: int | Iterable[int] = (2, 3, 4, 5, 6, 7, 8, 9, 10),
     wall_by_sec: Sequence[tuple[Sequence[float], Sequence[float]]] | None = None,
     search_kwargs: dict | None = None,
     shape_kwargs: dict | None = None,
@@ -3481,7 +4011,7 @@ def boundary_island_topology_payload_field(
         axis_by_sec,
         phi_sections,
         wall_by_sec=wall_by_sec,
-        periods=periods,
+        map_powers=map_powers,
         **(search_kwargs or {}),
     )
     edge_state_by_sec = trace_boundary_island_shapes_multi_section_field(
@@ -3490,7 +4020,7 @@ def boundary_island_topology_payload_field(
         axis_by_sec,
         phi_sections,
         wall_by_sec=wall_by_sec,
-        periods=periods,
+        map_powers=map_powers,
         **(shape_kwargs or {}),
     )
     manifolds_by_sec = trace_fixed_point_manifolds_multi_section_field(
@@ -3529,6 +4059,7 @@ __all__ = [
     "fixed_points_by_section_payload",
     "find_boundary_island_fixed_points_field",
     "find_boundary_island_fixed_points_multi_section_field",
+    "refine_fixed_points_monodromy_span_field",
     "trace_boundary_island_shapes_field",
     "trace_boundary_island_shapes_multi_section_field",
     "trace_boundary_island_chain_sections_span_field",

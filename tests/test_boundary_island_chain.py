@@ -13,6 +13,7 @@ from pyna.toroidal.flt import (
     deduplicate_boundary_island_cycles,
     vector_field_cylind_from_field,
     find_boundary_island_fixed_points_field,
+    refine_fixed_points_monodromy_span_field,
     trace_map_batch_span_field,
     trace_boundary_island_shapes_field,
     trace_boundary_island_chain_sections_span_field,
@@ -39,10 +40,9 @@ def _skip_without_cyna_field_handle():
         pytest.skip("cyna VectorFieldCylind handle is unavailable")
 
 
-def _hyperbolic_field():
+def _hyperbolic_field(rate: float = 0.18, *, nfp: int = 1):
     axis_R = 1.0
     axis_Z = 0.0
-    rate = 0.18
     R = np.linspace(0.82, 1.18, 33)
     Z = np.linspace(-0.18, 0.18, 33)
     Phi = np.array([0.0])
@@ -53,13 +53,14 @@ def _hyperbolic_field():
         R=R,
         Z=Z,
         Phi=Phi,
-        BR=dR_dphi / RR,
-        BZ=dZ_dphi / RR,
+        BR=dR_dphi,
+        BZ=dZ_dphi,
         BPhi=np.ones_like(RR),
+        nfp=nfp,
     )
 
 
-def _rotation_field():
+def _rotation_field(*, nfp: int = 1):
     axis_R = 1.0
     axis_Z = 0.0
     omega = 0.25
@@ -73,19 +74,20 @@ def _rotation_field():
         R=R,
         Z=Z,
         Phi=Phi,
-        BR=dR_dphi / RR,
-        BZ=dZ_dphi / RR,
+        BR=dR_dphi,
+        BZ=dZ_dphi,
         BPhi=np.ones_like(RR),
+        nfp=nfp,
     )
 
 
-def _cycle_fp(phi, R, Z, kind, period):
+def _cycle_fp(phi, R, Z, kind, map_power):
     if kind == "X":
         dpm = np.array([[2.0, 0.0], [0.0, 0.5]])
     else:
         dpm = np.array([[0.0, -1.0], [1.0, 0.0]])
     fp = FixedPoint(phi=float(phi), R=float(R), Z=float(Z), kind=kind, DPm=dpm)
-    fp.period = int(period)
+    fp.map_power = int(map_power)
     fp.residual = 1.0e-9
     return fp
 
@@ -97,7 +99,7 @@ def _cycle_from_coords(coords, *, kind, source_index=0, map_span=np.pi):
     )
     return BoundaryIslandCycle(
         points=points,
-        period=len(points),
+        cycle_length=len(points),
         kind=kind,
         map_span=float(map_span),
         source_index=int(source_index),
@@ -336,7 +338,7 @@ def test_trace_fixed_point_cycle_sections_uses_one_orbit(monkeypatch):
     )
     base = BoundaryIslandCycle(
         points=base.points,
-        period=base.period,
+        cycle_length=base.cycle_length,
         kind=base.kind,
         map_span=base.map_span,
         source_index=base.source_index,
@@ -372,7 +374,7 @@ def test_trace_fixed_point_cycle_sections_uses_one_orbit(monkeypatch):
     assert sections[0.0].metadata["complete_crossing_count"] is True
 
 
-def test_section_cycle_keeps_close_distinct_period_points(monkeypatch):
+def test_section_cycle_keeps_close_distinct_cycle_points(monkeypatch):
     def fake_orbit(field, R0, Z0, phi_start, phi_end, DPhi, **kwargs):
         phi = np.asarray([
             0.0,
@@ -400,7 +402,7 @@ def test_section_cycle_keeps_close_distinct_period_points(monkeypatch):
     )
     base = BoundaryIslandCycle(
         points=base.points,
-        period=base.period,
+        cycle_length=base.cycle_length,
         kind=base.kind,
         map_span=base.map_span,
         source_index=base.source_index,
@@ -425,6 +427,52 @@ def test_section_cycle_keeps_close_distinct_period_points(monkeypatch):
     assert len(sections[0.5 * np.pi].points) == 3
     assert sections[0.5 * np.pi].metadata["raw_crossing_count"] == 3
     assert sections[0.5 * np.pi].metadata["dedup_crossing_count"] == 3
+
+
+def test_section_cycle_dedups_closure_endpoint_using_cycle_residual(monkeypatch):
+    def fake_orbit(field, R0, Z0, phi_start, phi_end, DPhi, **kwargs):
+        phi = np.asarray([0.0, np.pi, 2.0 * np.pi, 3.0 * np.pi])
+        R = np.asarray([1.0, 2.0, 3.0, 1.015])
+        Z = np.zeros_like(R)
+        DP = np.repeat(np.eye(2)[None, :, :], len(phi), axis=0)
+        alive = np.ones(len(phi), dtype=bool)
+        return R, Z, phi, DP, alive
+
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain.trace_orbit_along_phi_field",
+        fake_orbit,
+    )
+    base = _cycle_from_coords(
+        [(1.0, 0.0), (2.0, 0.0), (3.0, 0.0)],
+        kind="X",
+        map_span=np.pi,
+    )
+    base = BoundaryIslandCycle(
+        points=base.points,
+        cycle_length=base.cycle_length,
+        kind=base.kind,
+        map_span=base.map_span,
+        source_index=base.source_index,
+        closure_residual=0.02,
+        map_count=base.map_count,
+        alive=True,
+        metadata={"source_phi": 0.0},
+    )
+
+    sections = trace_fixed_point_cycle_sections_span_field(
+        object(),
+        base,
+        [0.0],
+        DPhi=0.1,
+        dphi_out=0.05,
+        section_dedup_tol=1.0e-3,
+    )
+
+    np.testing.assert_allclose(sections[0.0].R, [1.0, 2.0, 3.0])
+    assert sections[0.0].metadata["raw_crossing_count"] == 4
+    assert sections[0.0].metadata["dedup_crossing_count"] == 3
+    assert sections[0.0].metadata["section_dedup_tol"] == pytest.approx(1.0e-3)
+    assert sections[0.0].metadata["effective_section_dedup_tol"] == pytest.approx(0.021)
 
 
 def test_boundary_chain_section_counts_are_consistent(monkeypatch):
@@ -515,7 +563,7 @@ def test_trace_fixed_point_cycle_dense_span_outputs_continuous_geometry(monkeypa
     dense.save_npz(path)
     saved = np.load(path)
     np.testing.assert_allclose(saved["R"], dense.R)
-    assert int(saved["period"]) == 3
+    assert int(saved["cycle_length"]) == 3
 
 
 def test_trace_boundary_island_chain_dense_span_traces_each_cycle(monkeypatch):
@@ -627,14 +675,14 @@ def test_cyna_field_handle_traces_span_map_like_object_wrapper():
 
 def test_boundary_fixed_point_search_returns_plot_payload():
     _skip_without_fixed_point_cyna()
-    field = _hyperbolic_field()
+    field = _hyperbolic_field(nfp=2)
 
     result = find_boundary_island_fixed_points_field(
         field,
         1.0,
         0.0,
         phi_section=0.0,
-        periods=(1,),
+        map_powers=(1,),
         radii=(0.04, 0.08, 0.12),
         n_theta=16,
         DPhi=0.02,
@@ -649,6 +697,9 @@ def test_boundary_fixed_point_search_returns_plot_payload():
     assert len(result.fixed_points) == 1
     fp = result.fixed_points[0]
     assert fp.kind == "X"
+    assert fp.field_period == pytest.approx(np.pi)
+    assert fp.metadata["field_period"] == pytest.approx(np.pi)
+    assert fp.metadata["monodromy_field_period"] == pytest.approx(np.pi)
     np.testing.assert_allclose([fp.R, fp.Z], [1.0, 0.0], atol=1.0e-7)
     assert fp.residual < 1.0e-8
     payload_fp = result.fp_by_sec[0.0]["xpts"][0]
@@ -660,7 +711,7 @@ def test_boundary_fixed_point_search_returns_plot_payload():
     np.testing.assert_allclose(payload_fp.DPm, fp.DPm)
 
 
-def test_lower_period_filter_removes_axis_from_higher_period_search():
+def test_lower_map_power_filter_removes_axis_from_higher_map_power_search():
     _skip_without_fixed_point_cyna()
     field = _hyperbolic_field()
 
@@ -669,7 +720,7 @@ def test_lower_period_filter_removes_axis_from_higher_period_search():
         1.0,
         0.0,
         phi_section=0.0,
-        periods=(2,),
+        map_powers=(2,),
         radii=(0.04, 0.08),
         n_theta=12,
         DPhi=0.02,
@@ -677,7 +728,7 @@ def test_lower_period_filter_removes_axis_from_higher_period_search():
         tol=1.0e-10,
         residual_tol=1.0e-8,
         dedup_tol=1.0e-4,
-        lower_period_tol=1.0e-7,
+        lower_map_power_tol=1.0e-7,
         n_threads=1,
     )
 
@@ -694,16 +745,16 @@ def test_recurrence_candidates_can_seed_fixed_point_search():
         1.0,
         0.0,
         phi_section=0.0,
-        periods=(1,),
+        map_powers=(1,),
         seed_R=np.array([1.0, 1.0]),
         seed_Z=np.array([0.12, -0.12]),
         N_turns=10,
         DPhi=0.02,
-        candidates_per_period=6,
+        candidates_per_map_power=6,
         candidate_dedup_tol=1.0e-5,
     )
 
-    seed_R, seed_Z = candidates.seeds_for_period(1)
+    seed_R, seed_Z = candidates.seeds_for_map_power(1)
     assert 0 < seed_R.size <= 6
     assert np.min(np.hypot(seed_R - 1.0, seed_Z)) < 1.0e-3
 
@@ -712,12 +763,12 @@ def test_recurrence_candidates_can_seed_fixed_point_search():
         1.0,
         0.0,
         phi_section=0.0,
-        periods=(1,),
+        map_powers=(1,),
         radii=(0.12,),
         n_theta=4,
         candidate_strategy="recurrence",
         recurrence_turns=10,
-        recurrence_candidates_per_period=6,
+        recurrence_candidates_per_map_power=6,
         candidate_dedup_tol=1.0e-5,
         DPhi=0.02,
         max_iter=50,
@@ -758,7 +809,7 @@ def test_recurrence_candidates_can_prefer_outer_wall_fraction(monkeypatch):
         0.0,
         0.0,
         phi_section=0.0,
-        periods=(1,),
+        map_powers=(1,),
         seed_R=np.asarray([0.9]),
         seed_Z=np.asarray([0.0]),
         wall_R=wall_R,
@@ -768,22 +819,22 @@ def test_recurrence_candidates_can_prefer_outer_wall_fraction(monkeypatch):
         recurrence_tol=0.03,
         candidate_order="outer",
         candidate_wall_fraction_min=0.9,
-        candidates_per_period=1,
+        candidates_per_map_power=1,
         candidate_dedup_tol=1.0e-6,
     )
 
-    seed_R, seed_Z = candidates.seeds_for_period(1)
+    seed_R, seed_Z = candidates.seeds_for_map_power(1)
     np.testing.assert_allclose(seed_R, [0.95], atol=2.0e-4)
     np.testing.assert_allclose(seed_Z, [0.0], atol=1.0e-12)
     assert candidates.diagnostics["candidate_order"] == "outer"
-    assert candidates.diagnostics["accepted_candidate_wall_fraction"][1]["min"] > 0.94
+    assert candidates.diagnostics["accepted_candidate_wall_fraction_by_map_power"][1]["min"] > 0.94
 
     unfiltered = boundary_recurrence_seed_candidates_field(
         object(),
         0.0,
         0.0,
         phi_section=0.0,
-        periods=(1,),
+        map_powers=(1,),
         seed_R=np.asarray([0.9]),
         seed_Z=np.asarray([0.0]),
         wall_R=wall_R,
@@ -792,15 +843,15 @@ def test_recurrence_candidates_can_prefer_outer_wall_fraction(monkeypatch):
         DPhi=0.02,
         recurrence_tol=0.03,
         candidate_order="outer",
-        candidates_per_period=1,
+        candidates_per_map_power=1,
         candidate_dedup_tol=1.0e-6,
     )
-    seed_R, _seed_Z = unfiltered.seeds_for_period(1)
+    seed_R, _seed_Z = unfiltered.seeds_for_map_power(1)
     np.testing.assert_allclose(seed_R, [0.95], atol=2.0e-4)
-    assert unfiltered.diagnostics["best_residual_by_period"][1] == pytest.approx(1.0e-4)
+    assert unfiltered.diagnostics["best_residual_by_map_power"][1] == pytest.approx(1.0e-4)
 
 
-def test_field_period_map_fixed_point_search_uses_arbitrary_phi_span():
+def test_field_period_fixed_point_search_uses_arbitrary_phi_span():
     _skip_without_fixed_point_cyna()
     field = _hyperbolic_field()
 
@@ -809,13 +860,13 @@ def test_field_period_map_fixed_point_search_uses_arbitrary_phi_span():
         1.0,
         0.0,
         phi_section=0.0,
-        periods=(1,),
+        map_powers=(1,),
         radii=(0.12,),
         n_theta=4,
         candidate_strategy="recurrence",
         recurrence_turns=10,
-        recurrence_candidates_per_period=6,
-        map_period=np.pi,
+        recurrence_candidates_per_map_power=6,
+        field_period=np.pi,
         python_trust_radius=0.04,
         DPhi=0.02,
         max_iter=40,
@@ -825,7 +876,7 @@ def test_field_period_map_fixed_point_search_uses_arbitrary_phi_span():
         n_threads=1,
     )
 
-    assert result.diagnostics["map_period"] == pytest.approx(np.pi)
+    assert result.diagnostics["field_period"] == pytest.approx(np.pi)
     assert len(result.fixed_points) == 1
     fp = result.fixed_points[0]
     assert fp.kind == "X"
@@ -840,7 +891,7 @@ def test_trace_fixed_point_manifolds_returns_plot_payload():
         1.0,
         0.0,
         phi_section=0.0,
-        periods=(1,),
+        map_powers=(1,),
         radii=(0.04,),
         n_theta=8,
         DPhi=0.02,
@@ -891,6 +942,158 @@ def test_trace_fixed_point_manifolds_returns_plot_payload():
     assert man_s["u_lpol"].shape == man_s["u_R"].shape
     assert man_s["s_lpol"].shape == man_s["s_R"].shape
     assert np.all(man_s["u_lpol"] >= 0.0)
+
+
+def test_trace_fixed_point_manifolds_uses_eigenvalue_geometric_seed_segment():
+    _skip_without_cyna_field_handle()
+    field = _hyperbolic_field()
+    fp = FixedPoint(
+        phi=0.0,
+        R=1.0,
+        Z=0.0,
+        kind="X",
+        DPm=np.diag([16.0, 1.0 / 16.0]),
+    )
+
+    manifolds = trace_fixed_point_manifolds_field(
+        field,
+        [fp],
+        phi_section=0.0,
+        N_turns=1,
+        DPhi=0.02,
+        eps_min=1.0e-5,
+        eps_max=1.0e-3,
+        n_eps=4,
+        include_arclength=True,
+    )
+
+    assert len(manifolds) == 1
+    man = manifolds[0]
+    assert man["seed_spacing"] == "eigenvalue_geometric"
+    assert man["unstable_expansion"] == pytest.approx(16.0)
+    assert man["stable_backward_expansion"] == pytest.approx(16.0)
+    assert man["u_seed_ratio"] == pytest.approx(2.0)
+    assert man["s_seed_ratio"] == pytest.approx(2.0)
+    u_dist = np.unique(np.round(man["u_seed_distance"], decimals=14))
+    s_dist = np.unique(np.round(man["s_seed_distance"], decimals=14))
+    np.testing.assert_allclose(u_dist, 1.0e-5 * 2.0 ** np.arange(4))
+    np.testing.assert_allclose(s_dist, 1.0e-5 * 2.0 ** np.arange(4))
+    assert man["u_seed_next_distance"] > float(np.max(man["u_seed_distance"]))
+    assert man["s_seed_next_distance"] > float(np.max(man["s_seed_distance"]))
+    assert man["u_seed_next_distance"] / float(np.max(man["u_seed_distance"])) == pytest.approx(2.0)
+    assert man["s_seed_next_distance"] / float(np.max(man["s_seed_distance"])) == pytest.approx(2.0)
+    assert man["u_generation"].shape == man["u_R"].shape
+    assert man["s_generation"].shape == man["s_R"].shape
+    assert set(np.unique(man["u_generation"][:4])) == {0}
+    assert np.all(np.diff(man["u_lpol"][:4]) > 0.0)
+    assert man["seed_generation_order"] == "side_then_generation_then_distance"
+    u_gen, u_counts = np.unique(man["u_generation"], return_counts=True)
+    s_gen, s_counts = np.unique(man["s_generation"], return_counts=True)
+    assert dict(zip(u_gen.tolist(), u_counts.tolist())) == {0: 8, 1: 8}
+    assert dict(zip(s_gen.tolist(), s_counts.tolist())) == {0: 8, 1: 8}
+    assert set(man["u_point_seed_order"][man["u_generation"] == 1]) == {0, 1, 2, 3}
+    assert set(man["s_point_seed_order"][man["s_generation"] == 1]) == {0, 1, 2, 3}
+
+
+def test_trace_fixed_point_manifolds_defaults_to_monodromy_return_map():
+    _skip_without_cyna_field_handle()
+    lambda_step = 4.0
+    field = _hyperbolic_field(rate=np.log(lambda_step) / (2.0 * np.pi))
+    fp = FixedPoint(
+        phi=0.0,
+        R=1.0,
+        Z=0.0,
+        kind="X",
+        DPm=np.diag([lambda_step**2, lambda_step**-2]),
+    )
+    fp.map_power = 2
+    fp.metadata.update({"map_power": 2, "field_period": 2.0 * np.pi})
+
+    manifolds = trace_fixed_point_manifolds_field(
+        field,
+        [fp],
+        phi_section=0.0,
+        N_turns=1,
+        DPhi=0.02,
+        eps_min=1.0e-6,
+        eps_max=1.0e-4,
+        n_eps=4,
+        include_arclength=True,
+    )
+
+    man = manifolds[0]
+    assert man["manifold_field_period"] == pytest.approx(4.0 * np.pi)
+    assert man["manifold_field_period_source"] == "map_power_times_field_period"
+
+    def offsets(prefix: str, coord_key: str, generation: int) -> np.ndarray:
+        gen = np.asarray(man[f"{prefix}_generation"])
+        side = np.asarray(man[f"{prefix}_point_side"])
+        order = np.asarray(man[f"{prefix}_point_seed_order"])
+        coord = np.asarray(man[coord_key])
+        mask = (gen == generation) & (side > 0.0)
+        idx = np.argsort(order[mask])
+        base = man["origin_R"] if coord_key.endswith("_R") else man["origin_Z"]
+        return coord[mask][idx] - float(base)
+
+    u0 = offsets("u", "u_R", 0)
+    u1 = offsets("u", "u_R", 1)
+    s0 = offsets("s", "s_Z", 0)
+    s1 = offsets("s", "s_Z", 1)
+    np.testing.assert_allclose(u1, (lambda_step**2) * u0, rtol=8.0e-3, atol=1.0e-8)
+    np.testing.assert_allclose(s1, (lambda_step**2) * s0, rtol=8.0e-3, atol=1.0e-8)
+
+
+def test_refine_fixed_points_monodromy_span_field_refreshes_local_eigenvectors(monkeypatch):
+    def fake_fixed_points(field, R, Z, phi_start, field_period, DPhi, **kwargs):
+        assert field == "field"
+        assert phi_start == pytest.approx(0.5)
+        assert field_period == pytest.approx(6.0)
+        R = np.asarray(R, dtype=float)
+        Z = np.asarray(Z, dtype=float)
+        DPm = np.asarray([
+            [[4.0, 0.0], [0.0, 0.25]],
+            [[0.25, 0.0], [0.0, 4.0]],
+        ])
+        return (
+            R + np.asarray([1.0e-4, -2.0e-4]),
+            Z + np.asarray([2.0e-4, 1.0e-4]),
+            np.asarray([2.0e-12, 3.0e-12]),
+            np.asarray([True, True]),
+            DPm.reshape(2, 4),
+            np.asarray([[4.0, 0.25], [0.25, 4.0]]),
+            np.zeros((2, 2)),
+            np.asarray([1, 1]),
+        )
+
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain.find_fixed_points_batch_span_field",
+        fake_fixed_points,
+    )
+    first = FixedPoint(phi=0.5, R=1.0, Z=0.0, DPm=np.diag([2.0, 0.5]), kind="X")
+    second = FixedPoint(phi=0.5, R=1.1, Z=0.1, DPm=np.diag([2.0, 0.5]), kind="X")
+    for idx, fp in enumerate((first, second)):
+        fp.map_power = 3
+        fp.metadata.update({
+            "cycle_id": 7,
+            "map_order_index": idx,
+            "same_cycle_key": "chain=0:cycle=7:kind=X",
+        })
+
+    refined = refine_fixed_points_monodromy_span_field(
+        "field",
+        [first, second],
+        field_period=2.0,
+        DPhi=0.1,
+        tol=1.0e-10,
+    )
+
+    assert len(refined) == 2
+    np.testing.assert_allclose(refined[0].unstable_eigenvec, [1.0, 0.0])
+    np.testing.assert_allclose(refined[1].unstable_eigenvec, [0.0, 1.0])
+    assert refined[1].metadata["cycle_id"] == 7
+    assert refined[1].metadata["map_order_index"] == 1
+    assert refined[1].metadata["monodromy_refined"] is True
+    assert refined[1].metadata["monodromy_refine_total_span"] == pytest.approx(6.0)
 
 
 def test_boundary_island_shape_payload_uses_traced_curves():

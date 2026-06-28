@@ -52,15 +52,32 @@ def vector_field_cylind_from_field(field, *, extend_phi: bool = True):
 
     if not _cyna_available() or _cyna_VectorFieldCylind is None:
         raise ImportError("pyna._cyna.VectorFieldCylind is unavailable. Build cyna first.")
-    arrays = field_arrays_from_field(field, extend_phi=extend_phi)
-    return _cyna_VectorFieldCylind(
-        arrays.R_grid,
-        arrays.Z_grid,
-        arrays.Phi_grid,
-        arrays.BR_flat,
-        arrays.BZ_flat,
-        arrays.BPhi_flat,
-    )
+    normalized = as_vector_field_cylindrical(field)
+    arrays = normalized.cyna_arrays(extend_phi=extend_phi)
+    try:
+        return _cyna_VectorFieldCylind(
+            arrays.R_grid,
+            arrays.Z_grid,
+            arrays.Phi_grid,
+            arrays.BR_flat,
+            arrays.BZ_flat,
+            arrays.BPhi_flat,
+            nfp=int(normalized.nfp),
+        )
+    except TypeError as exc:
+        # Local editable installs can have a stale cyna extension before the
+        # new nfp-aware binding is rebuilt.  The six-array constructor keeps
+        # tracing usable; rebuilt wheels expose nfp on the handle.
+        if "nfp" not in str(exc):
+            raise
+        return _cyna_VectorFieldCylind(
+            arrays.R_grid,
+            arrays.Z_grid,
+            arrays.Phi_grid,
+            arrays.BR_flat,
+            arrays.BZ_flat,
+            arrays.BPhi_flat,
+        )
 
 
 
@@ -823,8 +840,8 @@ def find_fixed_points_batch(
     R_seeds,
     Z_seeds,
     phi_start,
-    period,
-    N_periods,
+    map_power,
+    field_period_count,
     DPhi,
     R_grid,
     Z_grid,
@@ -837,9 +854,9 @@ def find_fixed_points_batch(
     """Batch search for Poincaré-map fixed points starting from seed points."""
     if not _cyna_available() or _cyna_find_fixed_points_batch is None:
         raise ImportError("pyna._cyna.find_fixed_points_batch is unavailable. Build cyna first.")
-    m_turns = int(period) * int(N_periods)
-    if m_turns <= 0:
-        raise ValueError("period * N_periods must be positive")
+    map_step_count = int(map_power) * int(field_period_count)
+    if map_step_count <= 0:
+        raise ValueError("map_power * field_period_count must be positive")
     fd_eps = float(kwargs.pop("fd_eps", 1.0e-4))
     max_iter = int(kwargs.pop("max_iter", 40))
     tol = float(kwargs.pop("tol", 1.0e-9))
@@ -851,7 +868,7 @@ def find_fixed_points_batch(
         np.ascontiguousarray(R_seeds, dtype=np.float64),
         np.ascontiguousarray(Z_seeds, dtype=np.float64),
         float(phi_start),
-        m_turns,
+        map_step_count,
         float(DPhi),
         fd_eps,
         max_iter,
@@ -871,8 +888,8 @@ def find_fixed_points_batch_field(
     R_seeds,
     Z_seeds,
     phi_start,
-    period,
-    N_periods,
+    map_power,
+    field_period_count,
     DPhi,
     *,
     extend_phi: bool = True,
@@ -885,8 +902,8 @@ def find_fixed_points_batch_field(
         R_seeds,
         Z_seeds,
         phi_start,
-        period,
-        N_periods,
+        map_power,
+        field_period_count,
         DPhi,
         arrays.R_grid,
         arrays.Z_grid,

@@ -8,6 +8,7 @@ from pyna.plot import (
     cycles_for_section,
     draw_axis_point,
     draw_cycle_points,
+    draw_manifold_lines,
     draw_manifold_origins,
     draw_manifold_points,
     draw_poincare_points,
@@ -77,7 +78,7 @@ def _section_cycle(phi, cycle_id):
         pts.append(fp)
     return BoundaryIslandCycle(
         points=tuple(pts),
-        period=2,
+        cycle_length=2,
         kind="X",
         map_span=np.pi,
         cycle_id=cycle_id,
@@ -136,9 +137,11 @@ def test_section_geometry_primitives_compose_core_and_edge_plot(tmp_path):
             "u_R": np.asarray([1.07, 1.12, 1.16]),
             "u_Z": np.asarray([0.00, 0.04, 0.08]),
             "u_lpol": np.asarray([0.00, 0.05, 0.10]),
+            "u_generation": np.asarray([0, 1, 2]),
             "s_R": np.asarray([1.13, 1.09, 1.05]),
             "s_Z": np.asarray([0.00, -0.04, -0.08]),
             "s_lpol": np.asarray([0.00, 0.05, 0.10]),
+            "s_generation": np.asarray([0, 1, 2]),
             "origin_R": 1.10,
             "origin_Z": 0.0,
             "cycle_id": 2,
@@ -170,7 +173,12 @@ def test_section_geometry_primitives_compose_core_and_edge_plot(tmp_path):
         Rb, Zb, seed_idx = _Background().section_points(idx)
         pc = draw_poincare_points(ax, Rb, Zb, seed_idx, point_size=3.0)
         assert pc is not None
-        assert draw_manifold_points(ax, manifolds_for_section(manifolds, phi, idx), vmax=vmax)
+        assert draw_manifold_points(
+            ax,
+            manifolds_for_section(manifolds, phi, idx),
+            vmax=vmax,
+            max_generation=2,
+        )
         assert draw_cycle_points(
             ax,
             cycles_for_section(cycles, phi, idx),
@@ -183,6 +191,12 @@ def test_section_geometry_primitives_compose_core_and_edge_plot(tmp_path):
             manifolds_for_section(manifolds, phi, idx),
             show_labels=True,
         )
+        assert draw_manifold_lines(
+            ax,
+            manifolds_for_section(manifolds, phi, idx),
+            vmax=0.1,
+            max_generation=1,
+        )
         draw_axis_point(ax, 1.0, 0.0)
         format_section_axis(ax, section_phi=phi)
 
@@ -192,3 +206,24 @@ def test_section_geometry_primitives_compose_core_and_edge_plot(tmp_path):
     assert save_figure(fig, out) == out
     assert out.exists()
     assert len(identity_to_color) == 1
+
+
+def test_draw_manifold_lines_breaks_at_side_changes():
+    import matplotlib.pyplot as plt
+
+    manifolds = [{
+        "u_R": np.asarray([0.0, 1.0, 2.0, 3.0]),
+        "u_Z": np.asarray([0.0, 0.0, 0.0, 0.0]),
+        "u_lpol": np.asarray([0.0, 0.1, 0.2, 0.3]),
+        "u_point_side": np.asarray([-1.0, -1.0, 1.0, 1.0]),
+        "s_R": np.asarray([], dtype=float),
+        "s_Z": np.asarray([], dtype=float),
+        "s_lpol": np.asarray([], dtype=float),
+    }]
+    fig, ax = plt.subplots()
+    try:
+        artists = draw_manifold_lines(ax, manifolds)
+        assert len(artists) == 1
+        assert len(artists[0].get_segments()) == 2
+    finally:
+        plt.close(fig)

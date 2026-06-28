@@ -18,6 +18,13 @@ SECTION_CYCLE_COLORS = (
     "#455a64",
 )
 
+_MAP_POWER_METADATA_KEYS = (
+    "map_power",
+    "poincare_map_power",
+    "orbit_point_index",
+    "point_index",
+)
+
 
 def create_section_grid(
     section_phis: Sequence[float],
@@ -330,8 +337,8 @@ def draw_cycle_points(
     colors: Sequence[str] = SECTION_CYCLE_COLORS,
     marker_size: float = 76.0,
     label_cycle_ids: bool = False,
-    label_index_key: str | Sequence[str] = ("map_order_index", "orbit_point_index", "point_index"),
-    label_template: str = "{cycle_id}:{index}",
+    label_map_power_key: str | Sequence[str] = _MAP_POWER_METADATA_KEYS,
+    label_template: str = "{cycle_id}:P{map_power}",
     zorder: int = 8,
 ):
     """Draw X/O cycle intersection points without assuming boundary topology."""
@@ -364,11 +371,12 @@ def draw_cycle_points(
         if label_cycle_ids:
             for fp in getattr(cycle, "points", ()):
                 metadata = getattr(fp, "metadata", {})
-                idx = _first_metadata_value(metadata, label_index_key)
+                map_power = _first_metadata_value(metadata, label_map_power_key)
                 label = label_template.format(
                     cycle_id=cycle_id,
-                    index=idx,
-                    map_order_index=idx,
+                    index=map_power,
+                    map_power=map_power,
+                    poincare_map_power=map_power,
                     kind=str(getattr(cycle, "kind", "")),
                     identity=identity,
                 )
@@ -453,6 +461,8 @@ def draw_manifold_points(
     vmax: float | None = None,
     unstable_color: str = "#43a047",
     stable_color: str = "#e64a19",
+    max_generation: int | None = None,
+    max_arclength: float | None = None,
     zorder: int = 5,
 ):
     """Draw stable/unstable manifold point clouds for one section."""
@@ -466,8 +476,13 @@ def draw_manifold_points(
                 continue
             lpol = np.asarray(manifold.get(f"{prefix}_lpol", []), dtype=float).ravel()
             finite = np.isfinite(R) & np.isfinite(Z)
+            generation = np.asarray(manifold.get(f"{prefix}_generation", []), dtype=float).ravel()
+            if max_generation is not None and generation.shape == R.shape:
+                finite &= generation <= float(max_generation)
             if lpol.shape == R.shape:
                 finite &= np.isfinite(lpol)
+                if max_arclength is not None:
+                    finite &= lpol <= float(max_arclength)
                 artists.append(ax.scatter(
                     R[finite],
                     Z[finite],
@@ -496,12 +511,76 @@ def draw_manifold_points(
     return artists
 
 
+def draw_manifold_lines(
+    ax,
+    manifolds,
+    *,
+    lw: float = 0.72,
+    alpha: float = 0.86,
+    cmap: str = "viridis",
+    vmax: float | None = None,
+    max_generation: int | None = None,
+    max_arclength: float | None = None,
+    max_segment_length: float | None = None,
+    zorder: int = 5,
+):
+    """Draw stable/unstable manifolds as arclength-colored line segments."""
+
+    from matplotlib.collections import LineCollection
+    from matplotlib import colors as mcolors
+
+    artists = []
+    norm = mcolors.Normalize(vmin=0.0, vmax=vmax)
+    for manifold in manifold_list(manifolds):
+        for prefix in ("u", "s"):
+            R = np.asarray(manifold.get(f"{prefix}_R", []), dtype=float).ravel()
+            Z = np.asarray(manifold.get(f"{prefix}_Z", []), dtype=float).ravel()
+            lpol = np.asarray(manifold.get(f"{prefix}_lpol", []), dtype=float).ravel()
+            if R.size < 2 or Z.size < 2 or lpol.shape != R.shape:
+                continue
+            finite = np.isfinite(R) & np.isfinite(Z) & np.isfinite(lpol)
+            generation = np.asarray(manifold.get(f"{prefix}_generation", []), dtype=float).ravel()
+            if max_generation is not None and generation.shape == R.shape:
+                finite &= generation <= float(max_generation)
+            if max_arclength is not None:
+                finite &= lpol <= float(max_arclength)
+            if np.count_nonzero(finite) < 2:
+                continue
+            points = np.column_stack([R, Z])
+            segments = np.stack([points[:-1], points[1:]], axis=1)
+            segment_finite = finite[:-1] & finite[1:]
+            dl = np.diff(lpol)
+            segment_finite &= dl >= -1.0e-12
+            point_side = np.asarray(manifold.get(f"{prefix}_point_side", []), dtype=float).ravel()
+            if point_side.shape == R.shape:
+                segment_finite &= np.isfinite(point_side[:-1]) & np.isfinite(point_side[1:])
+                segment_finite &= point_side[:-1] == point_side[1:]
+            if max_segment_length is not None:
+                length = np.hypot(np.diff(R), np.diff(Z))
+                segment_finite &= length <= float(max_segment_length)
+            if not np.any(segment_finite):
+                continue
+            values = 0.5 * (lpol[:-1] + lpol[1:])
+            lc = LineCollection(
+                segments[segment_finite],
+                linewidths=float(lw),
+                alpha=float(alpha),
+                cmap=cmap,
+                norm=norm,
+                zorder=int(zorder),
+            )
+            lc.set_array(values[segment_finite])
+            ax.add_collection(lc)
+            artists.append(lc)
+    return artists
+
+
 def draw_manifold_origins(
     ax,
     manifolds,
     *,
     show_labels: bool = False,
-    label_template: str = "{cycle_id}:P{map_order_index}",
+    label_template: str = "{cycle_id}:P{map_power}",
     marker_size: float = 44.0,
     origin_edge_color: str = "0.08",
     origin_face_color: str = "white",
@@ -559,14 +638,12 @@ def draw_manifold_origins(
         ))
         if show_labels:
             cycle_id = manifold.get("cycle_id", "?")
-            map_order_index = manifold.get(
-                "map_order_index",
-                manifold.get("orbit_point_index", manifold.get("point_index", "?")),
-            )
+            map_power = _first_metadata_value(manifold, _MAP_POWER_METADATA_KEYS, default="?")
             label = label_template.format(
                 cycle_id=cycle_id,
-                map_order_index=map_order_index,
-                index=map_order_index,
+                map_power=map_power,
+                poincare_map_power=map_power,
+                index=map_power,
                 same_cycle_key=manifold.get("same_cycle_key", ""),
             )
             artists.append(ax.text(
@@ -658,6 +735,7 @@ __all__ = [
     "cycles_for_section",
     "draw_axis_point",
     "draw_cycle_points",
+    "draw_manifold_lines",
     "draw_manifold_origins",
     "draw_manifold_points",
     "draw_poincare_background",
