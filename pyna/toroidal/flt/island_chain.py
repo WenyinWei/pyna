@@ -2060,6 +2060,64 @@ def _ray_polygon_radius(
     return min(radii)
 
 
+def boundary_wall_fractions(
+    axis_R: float,
+    axis_Z: float,
+    R: Sequence[float],
+    Z: Sequence[float],
+    wall_R: Sequence[float],
+    wall_Z: Sequence[float],
+) -> np.ndarray:
+    """Return each point's radial fraction of the wall radius from the axis.
+
+    A value near 1 means the point lies close to the supplied wall along its
+    ray from ``(axis_R, axis_Z)``.  ``nan`` is returned where the wall ray is
+    degenerate or does not intersect the polygon.
+    """
+
+    R_arr = np.asarray(R, dtype=float).ravel()
+    Z_arr = np.asarray(Z, dtype=float).ravel()
+    if R_arr.size != Z_arr.size:
+        raise ValueError("R and Z must have the same length")
+    wall_R_arr = np.asarray(wall_R, dtype=float).ravel()
+    wall_Z_arr = np.asarray(wall_Z, dtype=float).ravel()
+    out = np.full(R_arr.shape, np.nan, dtype=float)
+    for i, (r, z) in enumerate(zip(R_arr, Z_arr)):
+        dR = float(r) - float(axis_R)
+        dZ = float(z) - float(axis_Z)
+        rho = float(np.hypot(dR, dZ))
+        if not np.isfinite(rho):
+            continue
+        if rho <= 0.0:
+            out[i] = 0.0
+            continue
+        wall_rho = _ray_polygon_radius(
+            float(axis_R),
+            float(axis_Z),
+            float(np.arctan2(dZ, dR)),
+            wall_R_arr,
+            wall_Z_arr,
+        )
+        if np.isfinite(wall_rho) and wall_rho > 0.0:
+            out[i] = rho / float(wall_rho)
+    return out
+
+
+def _fraction_stats(values: Sequence[float]) -> dict[str, float | int | None]:
+    arr = np.asarray(values, dtype=float).ravel()
+    arr = arr[np.isfinite(arr)]
+    if arr.size == 0:
+        return {"n": 0, "min": None, "p05": None, "median": None, "p95": None, "max": None}
+    return {
+        "n": int(arr.size),
+        "min": float(np.min(arr)),
+        "p05": float(np.percentile(arr, 5.0)),
+        "median": float(np.median(arr)),
+        "p95": float(np.percentile(arr, 95.0)),
+        "max": float(np.max(arr)),
+    }
+
+
 def _points_in_polygon(
     R: np.ndarray,
     Z: np.ndarray,
@@ -2181,6 +2239,9 @@ def boundary_recurrence_seed_candidates_field(
     DPhi: float = 0.01,
     fd_eps: float = 1.0e-4,
     recurrence_tol: float | None = None,
+    candidate_wall_fraction_min: float | None = None,
+    candidate_wall_fraction_max: float | None = None,
+    candidate_order: str = "residual",
     candidates_per_period: int = 96,
     candidate_dedup_tol: float = 1.0e-3,
     extend_phi: bool = True,
@@ -2198,6 +2259,17 @@ def boundary_recurrence_seed_candidates_field(
         raise ValueError("N_turns must be larger than the largest requested period")
     if candidates_per_period <= 0:
         raise ValueError("candidates_per_period must be positive")
+    order = str(candidate_order).strip().lower().replace("-", "_")
+    if order in {"edge", "outer_edge", "outer_residual", "wall_fraction"}:
+        order = "outer"
+    if order not in {"residual", "outer"}:
+        raise ValueError("candidate_order must be 'residual' or 'outer'")
+    if (
+        candidate_wall_fraction_min is not None
+        or candidate_wall_fraction_max is not None
+        or order == "outer"
+    ) and (wall_R is None or wall_Z is None):
+        raise ValueError("wall_R and wall_Z are required for wall-fraction candidate selection")
 
     if seed_R is None or seed_Z is None:
         base_R, base_Z = boundary_seed_grid(
@@ -2226,6 +2298,16 @@ def boundary_recurrence_seed_candidates_field(
         base_Z = base_Z[inside]
     if base_R.size == 0:
         raise ValueError("boundary seed grid is empty")
+    base_wall_fraction = None
+    if wall_R is not None and wall_Z is not None:
+        base_wall_fraction = boundary_wall_fractions(
+            float(axis_R),
+            float(axis_Z),
+            base_R,
+            base_Z,
+            wall_R,
+            wall_Z,
+        )
 
     if np.isclose(float(map_period), 2.0 * np.pi, rtol=0.0, atol=1.0e-12):
         traces = _trace_poincare_points_field(
@@ -2263,10 +2345,12 @@ def boundary_recurrence_seed_candidates_field(
     best_residual_by_period: dict[int, float] = {}
     raw_candidate_counts: dict[int, int] = {}
     accepted_counts: dict[int, int] = {}
+    raw_wall_fraction_by_period: dict[int, dict[str, float | int | None]] = {}
+    accepted_wall_fraction_by_period: dict[int, dict[str, float | int | None]] = {}
     trace_lengths = [int(len(r)) for r, _ in traces]
 
     for period in period_values:
-        scored: list[tuple[float, float, float, int, int]] = []
+        scored: list[tuple[float, float, float, int, int, float]] = []
         for seed_idx, (R_trace, Z_trace) in enumerate(traces):
             n = int(len(R_trace))
             if n <= period:
@@ -2279,15 +2363,50 @@ def boundary_recurrence_seed_candidates_field(
                 residual = float(d[k])
                 if recurrence_tol is not None and residual > recurrence_tol:
                     continue
-                scored.append((residual, float(R_trace[k]), float(Z_trace[k]), seed_idx, int(k)))
+                r = float(R_trace[k])
+                z = float(Z_trace[k])
+                wall_fraction = np.nan
+                if wall_R is not None and wall_Z is not None:
+                    wall_fraction = float(boundary_wall_fractions(
+                        float(axis_R),
+                        float(axis_Z),
+                        [r],
+                        [z],
+                        wall_R,
+                        wall_Z,
+                    )[0])
+                if candidate_wall_fraction_min is not None and (
+                    not np.isfinite(wall_fraction)
+                    or wall_fraction < float(candidate_wall_fraction_min)
+                ):
+                    continue
+                if candidate_wall_fraction_max is not None and (
+                    not np.isfinite(wall_fraction)
+                    or wall_fraction > float(candidate_wall_fraction_max)
+                ):
+                    continue
+                scored.append((residual, r, z, seed_idx, int(k), wall_fraction))
 
-        scored.sort(key=lambda item: item[0])
         raw_candidate_counts[int(period)] = int(len(scored))
-        best_residual_by_period[int(period)] = float(scored[0][0]) if scored else np.inf
+        best_residual_by_period[int(period)] = (
+            float(min(item[0] for item in scored)) if scored else np.inf
+        )
+        raw_wall_fraction_by_period[int(period)] = _fraction_stats([item[5] for item in scored])
+        if order == "outer":
+            scored.sort(key=lambda item: (
+                not np.isfinite(item[5]),
+                -item[5] if np.isfinite(item[5]) else 0.0,
+                item[0],
+            ))
+        else:
+            scored.sort(key=lambda item: (
+                item[0],
+                -item[5] if np.isfinite(item[5]) else 0.0,
+            ))
 
         keep_R: list[float] = []
         keep_Z: list[float] = []
-        for _residual, r, z, _seed_idx, _k in scored:
+        for _residual, r, z, _seed_idx, _k, _wall_fraction in scored:
             keep_R.append(r)
             keep_Z.append(z)
             if len(keep_R) >= int(candidates_per_period) * 4:
@@ -2302,6 +2421,19 @@ def boundary_recurrence_seed_candidates_field(
             cand_Z = cand_Z[:candidates_per_period]
         seeds_by_period[int(period)] = (cand_R, cand_Z)
         accepted_counts[int(period)] = int(cand_R.size)
+        if wall_R is not None and wall_Z is not None:
+            accepted_wall_fraction_by_period[int(period)] = _fraction_stats(
+                boundary_wall_fractions(
+                    float(axis_R),
+                    float(axis_Z),
+                    cand_R,
+                    cand_Z,
+                    wall_R,
+                    wall_Z,
+                )
+            )
+        else:
+            accepted_wall_fraction_by_period[int(period)] = _fraction_stats([])
 
     return BoundaryIslandSeedCandidates(
         seeds_by_period=seeds_by_period,
@@ -2310,10 +2442,24 @@ def boundary_recurrence_seed_candidates_field(
             "n_base_seeds": int(base_R.size),
             "N_turns": int(N_turns),
             "map_period": float(map_period),
+            "candidate_order": order,
+            "candidate_wall_fraction_min": (
+                None if candidate_wall_fraction_min is None else float(candidate_wall_fraction_min)
+            ),
+            "candidate_wall_fraction_max": (
+                None if candidate_wall_fraction_max is None else float(candidate_wall_fraction_max)
+            ),
+            "base_seed_wall_fraction": (
+                _fraction_stats(base_wall_fraction)
+                if base_wall_fraction is not None
+                else _fraction_stats([])
+            ),
             "trace_length_min": int(min(trace_lengths)) if trace_lengths else 0,
             "trace_length_max": int(max(trace_lengths)) if trace_lengths else 0,
             "raw_candidate_counts": raw_candidate_counts,
             "accepted_counts": accepted_counts,
+            "raw_candidate_wall_fraction": raw_wall_fraction_by_period,
+            "accepted_candidate_wall_fraction": accepted_wall_fraction_by_period,
             "best_residual_by_period": best_residual_by_period,
         },
     )
@@ -2431,6 +2577,9 @@ def find_boundary_island_fixed_points_field(
     candidate_strategy: str = "grid",
     recurrence_turns: int = 120,
     recurrence_tol: float | None = None,
+    recurrence_candidate_wall_fraction_min: float | None = None,
+    recurrence_candidate_wall_fraction_max: float | None = None,
+    recurrence_candidate_order: str = "residual",
     recurrence_candidates_per_period: int = 96,
     candidate_dedup_tol: float = 1.0e-3,
     map_period: float = 2.0 * np.pi,
@@ -2472,6 +2621,16 @@ def find_boundary_island_fixed_points_field(
         seed_Z = seed_Z[inside]
     if seed_R.size == 0:
         raise ValueError("boundary seed grid is empty")
+    seed_wall_fraction = None
+    if wall_R is not None and wall_Z is not None:
+        seed_wall_fraction = boundary_wall_fractions(
+            float(axis_R),
+            float(axis_Z),
+            seed_R,
+            seed_Z,
+            wall_R,
+            wall_Z,
+        )
 
     recurrence_candidates: BoundaryIslandSeedCandidates | None = None
     if strategy in {"recurrence", "both"}:
@@ -2493,6 +2652,9 @@ def find_boundary_island_fixed_points_field(
             DPhi=float(DPhi),
             fd_eps=float(fd_eps),
             recurrence_tol=recurrence_tol,
+            candidate_wall_fraction_min=recurrence_candidate_wall_fraction_min,
+            candidate_wall_fraction_max=recurrence_candidate_wall_fraction_max,
+            candidate_order=recurrence_candidate_order,
             candidates_per_period=int(recurrence_candidates_per_period),
             candidate_dedup_tol=float(candidate_dedup_tol),
             extend_phi=extend_phi,
@@ -2535,6 +2697,16 @@ def find_boundary_island_fixed_points_field(
             continue
         all_used_seed_R.append(period_seed_R.copy())
         all_used_seed_Z.append(period_seed_Z.copy())
+        period_seed_wall_fraction = None
+        if wall_R is not None and wall_Z is not None:
+            period_seed_wall_fraction = boundary_wall_fractions(
+                float(axis_R),
+                float(axis_Z),
+                period_seed_R,
+                period_seed_Z,
+                wall_R,
+                wall_Z,
+            )
 
         if np.isclose(float(map_period), 2.0 * np.pi, rtol=0.0, atol=1.0e-12):
             result = find_fixed_points_batch_field(
@@ -2647,6 +2819,19 @@ def find_boundary_island_fixed_points_field(
             if exclude_lower_periods and lower_res <= lower_period_tol:
                 continue
             kind = _classify_DPm_kind(DPm_arr[i], int(point_type[i]))
+            fixed_wall_fraction = np.nan
+            if wall_R is not None and wall_Z is not None:
+                fixed_wall_fraction = float(boundary_wall_fractions(
+                    float(axis_R),
+                    float(axis_Z),
+                    [float(R_out[i])],
+                    [float(Z_out[i])],
+                    wall_R,
+                    wall_Z,
+                )[0])
+            seed_fraction = np.nan
+            if period_seed_wall_fraction is not None and i < period_seed_wall_fraction.size:
+                seed_fraction = float(period_seed_wall_fraction[i])
             candidates.append(BoundaryIslandFixedPoint(
                 phi=float(phi_section),
                 R=float(R_out[i]),
@@ -2659,6 +2844,10 @@ def find_boundary_island_fixed_points_field(
                 seed_R=float(period_seed_R[i]),
                 seed_Z=float(period_seed_Z[i]),
                 lower_period_residual=float(lower_res),
+                metadata={
+                    "wall_fraction": fixed_wall_fraction,
+                    "seed_wall_fraction": seed_fraction,
+                },
             ))
         accepted_counts[int(period)] = int(len(candidates) - accepted_before)
 
@@ -2680,6 +2869,15 @@ def find_boundary_island_fixed_points_field(
         "n_seeds": int(seed_R.size),
         "candidate_strategy": strategy,
         "map_period": float(map_period),
+        "seed_wall_fraction": (
+            _fraction_stats(seed_wall_fraction)
+            if seed_wall_fraction is not None
+            else _fraction_stats([])
+        ),
+        "fixed_point_wall_fraction": _fraction_stats([
+            fp.metadata.get("wall_fraction", np.nan)
+            for fp in fixed
+        ]),
         "period_seed_counts": period_seed_counts,
         "raw_counts": raw_counts,
         "converged_counts": converged_counts,
@@ -3179,6 +3377,7 @@ __all__ = [
     "boundary_island_topology_payload_field",
     "boundary_recurrence_seed_candidates_field",
     "boundary_seed_grid",
+    "boundary_wall_fractions",
     "fixed_points_by_section_payload",
     "find_boundary_island_fixed_points_field",
     "find_boundary_island_fixed_points_multi_section_field",

@@ -9,6 +9,7 @@ from pyna.toroidal.flt import (
     boundary_island_edge_state_payload,
     boundary_recurrence_seed_candidates_field,
     boundary_seed_grid,
+    boundary_wall_fractions,
     vector_field_cylind_from_field,
     find_boundary_island_fixed_points_field,
     trace_map_batch_span_field,
@@ -127,6 +128,23 @@ def test_boundary_seed_grid_tracks_wall_fraction():
     assert np.all(seed_R <= wall_R.max() + 1.0e-12)
     assert np.all(seed_Z >= wall_Z.min() - 1.0e-12)
     assert np.all(seed_Z <= wall_Z.max() + 1.0e-12)
+
+
+def test_boundary_wall_fractions_measure_axis_to_wall_radius():
+    theta = np.linspace(0.0, 2.0 * np.pi, 256, endpoint=False)
+    wall_R = np.cos(theta)
+    wall_Z = np.sin(theta)
+
+    fractions = boundary_wall_fractions(
+        0.0,
+        0.0,
+        [0.0, 0.5, -0.75, 0.0],
+        [0.0, 0.0, 0.0, 0.9],
+        wall_R,
+        wall_Z,
+    )
+
+    np.testing.assert_allclose(fractions, [0.0, 0.5, 0.75, 0.9], atol=2.0e-4)
 
 
 def test_boundary_chain_assembly_deduplicates_cycles_and_pairs_xo():
@@ -671,6 +689,70 @@ def test_recurrence_candidates_can_seed_fixed_point_search():
         [1.0, 0.0],
         atol=1.0e-7,
     )
+
+
+def test_recurrence_candidates_can_prefer_outer_wall_fraction(monkeypatch):
+    theta = np.linspace(0.0, 2.0 * np.pi, 256, endpoint=False)
+    wall_R = np.cos(theta)
+    wall_Z = np.sin(theta)
+
+    def fake_trace(*args, **kwargs):
+        _ = (args, kwargs)
+        return [(
+            np.asarray([0.20, 0.2001, 0.95, 0.97, 0.70, 0.705]),
+            np.zeros(6),
+        )]
+
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain._trace_poincare_points_field",
+        fake_trace,
+    )
+
+    candidates = boundary_recurrence_seed_candidates_field(
+        object(),
+        0.0,
+        0.0,
+        phi_section=0.0,
+        periods=(1,),
+        seed_R=np.asarray([0.9]),
+        seed_Z=np.asarray([0.0]),
+        wall_R=wall_R,
+        wall_Z=wall_Z,
+        N_turns=5,
+        DPhi=0.02,
+        recurrence_tol=0.03,
+        candidate_order="outer",
+        candidate_wall_fraction_min=0.9,
+        candidates_per_period=1,
+        candidate_dedup_tol=1.0e-6,
+    )
+
+    seed_R, seed_Z = candidates.seeds_for_period(1)
+    np.testing.assert_allclose(seed_R, [0.95], atol=2.0e-4)
+    np.testing.assert_allclose(seed_Z, [0.0], atol=1.0e-12)
+    assert candidates.diagnostics["candidate_order"] == "outer"
+    assert candidates.diagnostics["accepted_candidate_wall_fraction"][1]["min"] > 0.94
+
+    unfiltered = boundary_recurrence_seed_candidates_field(
+        object(),
+        0.0,
+        0.0,
+        phi_section=0.0,
+        periods=(1,),
+        seed_R=np.asarray([0.9]),
+        seed_Z=np.asarray([0.0]),
+        wall_R=wall_R,
+        wall_Z=wall_Z,
+        N_turns=5,
+        DPhi=0.02,
+        recurrence_tol=0.03,
+        candidate_order="outer",
+        candidates_per_period=1,
+        candidate_dedup_tol=1.0e-6,
+    )
+    seed_R, _seed_Z = unfiltered.seeds_for_period(1)
+    np.testing.assert_allclose(seed_R, [0.95], atol=2.0e-4)
+    assert unfiltered.diagnostics["best_residual_by_period"][1] == pytest.approx(1.0e-4)
 
 
 def test_field_period_map_fixed_point_search_uses_arbitrary_phi_span():
