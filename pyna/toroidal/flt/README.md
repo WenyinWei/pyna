@@ -11,8 +11,8 @@ object as the first argument.  Low-level wrappers that take
 legacy hot-path callers, but should not be the preferred user-facing API.
 
 Use `field_period` for a toroidal angular span.  Use `map_power` for an integer
-Poincare-map iterate count and `cycle_length` for the number of section points
-in one closed cycle.  New public APIs should avoid an unqualified `period`
+Poincare-map iterate count and `cycle_orbit_size` for the number of section points
+in one closed discrete orbit.  New public APIs should avoid an unqualified `period`
 because it conflates the angular span with the integer map power.
 
 ## FPT verb convention

@@ -99,7 +99,7 @@ def _cycle_from_coords(coords, *, kind, source_index=0, map_span=np.pi):
     )
     return BoundaryIslandCycle(
         points=points,
-        cycle_length=len(points),
+        cycle_orbit_size=len(points),
         kind=kind,
         map_span=float(map_span),
         source_index=int(source_index),
@@ -338,7 +338,7 @@ def test_trace_fixed_point_cycle_sections_uses_one_orbit(monkeypatch):
     )
     base = BoundaryIslandCycle(
         points=base.points,
-        cycle_length=base.cycle_length,
+        cycle_orbit_size=base.cycle_orbit_size,
         kind=base.kind,
         map_span=base.map_span,
         source_index=base.source_index,
@@ -402,7 +402,7 @@ def test_section_cycle_keeps_close_distinct_cycle_points(monkeypatch):
     )
     base = BoundaryIslandCycle(
         points=base.points,
-        cycle_length=base.cycle_length,
+        cycle_orbit_size=base.cycle_orbit_size,
         kind=base.kind,
         map_span=base.map_span,
         source_index=base.source_index,
@@ -449,7 +449,7 @@ def test_section_cycle_dedups_closure_endpoint_using_cycle_residual(monkeypatch)
     )
     base = BoundaryIslandCycle(
         points=base.points,
-        cycle_length=base.cycle_length,
+        cycle_orbit_size=base.cycle_orbit_size,
         kind=base.kind,
         map_span=base.map_span,
         source_index=base.source_index,
@@ -563,7 +563,7 @@ def test_trace_fixed_point_cycle_dense_span_outputs_continuous_geometry(monkeypa
     dense.save_npz(path)
     saved = np.load(path)
     np.testing.assert_allclose(saved["R"], dense.R)
-    assert int(saved["cycle_length"]) == 3
+    assert int(saved["cycle_orbit_size"]) == 3
 
 
 def test_trace_boundary_island_chain_dense_span_traces_each_cycle(monkeypatch):

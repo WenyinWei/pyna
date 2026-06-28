@@ -78,7 +78,7 @@ def _section_cycle(phi, cycle_id):
         pts.append(fp)
     return BoundaryIslandCycle(
         points=tuple(pts),
-        cycle_length=2,
+        cycle_orbit_size=2,
         kind="X",
         map_span=np.pi,
         cycle_id=cycle_id,
