@@ -7,7 +7,7 @@ from typing import Mapping, Sequence
 import numpy as np
 
 
-SECTION_CYCLE_COLORS = (
+SECTION_ORBIT_COLORS = (
     "#c62828",
     "#1565c0",
     "#2e7d32",
@@ -265,55 +265,55 @@ def draw_poincare_background(
     )
 
 
-def cycle_list(value) -> list:
-    """Normalize a cycle, chain, or sequence of cycles to a list."""
+def orbit_list(value) -> list:
+    """Normalize a orbit, chain, or sequence of orbits to a list."""
 
     if value is None:
         return []
-    if hasattr(value, "cycles"):
-        return list(value.cycles)
+    if hasattr(value, "orbits"):
+        return list(value.orbits)
     if hasattr(value, "points"):
         return [value]
     return list(value)
 
 
-def cycles_for_section(section_cycles, phi: float, section_index: int) -> list:
-    """Return cycles for one section from a mapping or indexable sequence."""
+def orbits_for_section(section_orbits, phi: float, section_index: int) -> list:
+    """Return orbits for one section from a mapping or indexable sequence."""
 
-    if section_cycles is None:
+    if section_orbits is None:
         return []
-    if isinstance(section_cycles, Mapping):
-        if phi in section_cycles:
-            return cycle_list(section_cycles[phi])
-        if section_cycles:
-            key = min(section_cycles, key=lambda p: abs(float(p) - float(phi)))
-            return cycle_list(section_cycles[key])
+    if isinstance(section_orbits, Mapping):
+        if phi in section_orbits:
+            return orbit_list(section_orbits[phi])
+        if section_orbits:
+            key = min(section_orbits, key=lambda p: abs(float(p) - float(phi)))
+            return orbit_list(section_orbits[key])
         return []
-    if len(section_cycles) == 0:
+    if len(section_orbits) == 0:
         return []
-    first = section_cycles[0]
-    if hasattr(first, "cycles") or hasattr(first, "points"):
-        return cycle_list(section_cycles)
-    return cycle_list(section_cycles[int(section_index)])
+    first = section_orbits[0]
+    if hasattr(first, "orbits") or hasattr(first, "points"):
+        return orbit_list(section_orbits)
+    return orbit_list(section_orbits[int(section_index)])
 
 
-def cycle_identity(cycle, fallback: int = 0) -> tuple[str, int]:
-    """Return a stable plot identity for one fixed-point cycle."""
+def orbit_identity(orbit, fallback: int = 0) -> tuple[str, int]:
+    """Return a stable plot identity for one fixed-point orbit."""
 
-    metadata = getattr(cycle, "metadata", {}) or {}
-    key = metadata.get("same_cycle_key")
-    cycle_id = getattr(cycle, "cycle_id", None)
+    metadata = getattr(orbit, "metadata", {}) or {}
+    key = metadata.get("same_orbit_key")
+    orbit_id = getattr(orbit, "orbit_id", None)
     if key is None:
-        key = f"cycle={cycle_id if cycle_id is not None else fallback}:kind={getattr(cycle, 'kind', '')}"
-    if cycle_id is None:
-        cycle_id = fallback
-    return str(key), int(cycle_id)
+        key = f"orbit={orbit_id if orbit_id is not None else fallback}:kind={getattr(orbit, 'kind', '')}"
+    if orbit_id is None:
+        orbit_id = fallback
+    return str(key), int(orbit_id)
 
 
-def cycle_point_arrays(cycle) -> tuple[np.ndarray, np.ndarray]:
-    """Return R/Z arrays for one fixed-point cycle-like object."""
+def orbit_point_arrays(orbit) -> tuple[np.ndarray, np.ndarray]:
+    """Return R/Z arrays for one fixed-point orbit-like object."""
 
-    points = tuple(getattr(cycle, "points", ()) or ())
+    points = tuple(getattr(orbit, "points", ()) or ())
     return (
         np.asarray([float(fp.R) for fp in points], dtype=float),
         np.asarray([float(fp.Z) for fp in points], dtype=float),
@@ -329,32 +329,32 @@ def _first_metadata_value(metadata: Mapping, keys, default=""):
     return default
 
 
-def draw_cycle_points(
+def draw_orbit_points(
     ax,
-    cycles,
+    orbits,
     *,
     identity_to_color: dict[str, str] | None = None,
-    colors: Sequence[str] = SECTION_CYCLE_COLORS,
+    colors: Sequence[str] = SECTION_ORBIT_COLORS,
     marker_size: float = 76.0,
-    label_cycle_ids: bool = False,
+    label_orbit_ids: bool = False,
     label_map_power_key: str | Sequence[str] = _MAP_POWER_METADATA_KEYS,
-    label_template: str = "{cycle_id}:P{map_power}",
+    label_template: str = "{orbit_id}:P{map_power}",
     zorder: int = 8,
 ):
-    """Draw X/O cycle intersection points without assuming boundary topology."""
+    """Draw X/O orbit intersection points without assuming boundary topology."""
 
     from matplotlib import patheffects as pe
 
     if identity_to_color is None:
         identity_to_color = {}
     artists = []
-    for cycle_index, cycle in enumerate(cycle_list(cycles)):
-        identity, cycle_id = cycle_identity(cycle, cycle_index)
+    for orbit_index, orbit in enumerate(orbit_list(orbits)):
+        identity, orbit_id = orbit_identity(orbit, orbit_index)
         if identity not in identity_to_color:
             identity_to_color[identity] = colors[len(identity_to_color) % len(colors)]
         color = identity_to_color[identity]
-        marker = "X" if str(getattr(cycle, "kind", "")).upper() == "X" else "o"
-        R, Z = cycle_point_arrays(cycle)
+        marker = "X" if str(getattr(orbit, "kind", "")).upper() == "X" else "o"
+        R, Z = orbit_point_arrays(orbit)
         if R.size == 0:
             continue
         artists.append(ax.scatter(
@@ -368,16 +368,16 @@ def draw_cycle_points(
             zorder=int(zorder),
             path_effects=[pe.withStroke(linewidth=2.0, foreground="white")],
         ))
-        if label_cycle_ids:
-            for fp in getattr(cycle, "points", ()):
+        if label_orbit_ids:
+            for fp in getattr(orbit, "points", ()):
                 metadata = getattr(fp, "metadata", {})
                 map_power = _first_metadata_value(metadata, label_map_power_key)
                 label = label_template.format(
-                    cycle_id=cycle_id,
+                    orbit_id=orbit_id,
                     index=map_power,
                     map_power=map_power,
                     poincare_map_power=map_power,
-                    kind=str(getattr(cycle, "kind", "")),
+                    kind=str(getattr(orbit, "kind", "")),
                     identity=identity,
                 )
                 artists.append(ax.text(
@@ -580,7 +580,7 @@ def draw_manifold_origins(
     manifolds,
     *,
     show_labels: bool = False,
-    label_template: str = "{cycle_id}:P{map_power}",
+    label_template: str = "{orbit_id}:P{map_power}",
     marker_size: float = 44.0,
     origin_edge_color: str = "0.08",
     origin_face_color: str = "white",
@@ -637,14 +637,14 @@ def draw_manifold_origins(
             zorder=int(zorder),
         ))
         if show_labels:
-            cycle_id = manifold.get("cycle_id", "?")
+            orbit_id = manifold.get("orbit_id", "?")
             map_power = _first_metadata_value(manifold, _MAP_POWER_METADATA_KEYS, default="?")
             label = label_template.format(
-                cycle_id=cycle_id,
+                orbit_id=orbit_id,
                 map_power=map_power,
                 poincare_map_power=map_power,
                 index=map_power,
-                same_cycle_key=manifold.get("same_cycle_key", ""),
+                same_orbit_key=manifold.get("same_orbit_key", ""),
             )
             artists.append(ax.text(
                 R0,
@@ -664,7 +664,7 @@ def section_data_limits(
     *,
     section_phis: Sequence[float],
     background=None,
-    section_cycles=None,
+    section_orbits=None,
     manifolds_by_section=None,
     walls=None,
     pad_fraction: float = 0.035,
@@ -679,8 +679,8 @@ def section_data_limits(
             if np.asarray(Rb).size:
                 R_parts.append(np.asarray(Rb, dtype=float).ravel())
                 Z_parts.append(np.asarray(Zb, dtype=float).ravel())
-        for cycle in cycles_for_section(section_cycles, float(phi), i):
-            R, Z = cycle_point_arrays(cycle)
+        for orbit in orbits_for_section(section_orbits, float(phi), i):
+            R, Z = orbit_point_arrays(orbit)
             if R.size:
                 R_parts.append(R)
                 Z_parts.append(Z)
@@ -726,15 +726,15 @@ def apply_section_limits(axes, limits: tuple[float, float, float, float] | None)
 
 
 __all__ = [
-    "SECTION_CYCLE_COLORS",
+    "SECTION_ORBIT_COLORS",
     "apply_section_limits",
     "create_section_grid",
-    "cycle_identity",
-    "cycle_list",
-    "cycle_point_arrays",
-    "cycles_for_section",
+    "orbit_identity",
+    "orbit_list",
+    "orbit_point_arrays",
+    "orbits_for_section",
     "draw_axis_point",
-    "draw_cycle_points",
+    "draw_orbit_points",
     "draw_manifold_lines",
     "draw_manifold_origins",
     "draw_manifold_points",

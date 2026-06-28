@@ -11,7 +11,7 @@ object as the first argument.  Low-level wrappers that take
 legacy hot-path callers, but should not be the preferred user-facing API.
 
 Use `field_period` for a toroidal angular span.  Use `map_power` for an integer
-Poincare-map iterate count and `cycle_orbit_size` for the number of section points
+Poincare-map iterate count and `orbit_size` for the number of section points
 in one closed discrete orbit.  New public APIs should avoid an unqualified `period`
 because it conflates the angular span with the integer map power.
 
@@ -20,8 +20,8 @@ because it conflates the angular span with the integer map power.
 - `progress_*` fixes `phi_s` and advances only `phi_e`.  Use these functions
   for endpoint objects such as `DX_pol(phi_s, phi_e)` and
   `delta_X_pol(phi_s, phi_e)`.
-- `evolve_*_cycle_*` follows a cycle-attached object as the closed-cycle phase
-  moves.  For cycle shift, `phi_s` and
+- `evolve_*_cycle_*` follows an orbit-attached object as the closed-orbit phase
+  moves.  For orbit shift, `phi_s` and
   `phi_e = phi_s + map_power * field_period` move together.  Use these
   functions for quantities such as `DPm(phi)` and
   `delta_X_cyc(phi)`.  Prefer `evolve_delta_X_cycle_along_cycle`; the older
@@ -36,16 +36,16 @@ d(delta_X)/dphi = d(R B_pol / B_phi)/d(R,Z) * delta_X
 
 The verb encodes the boundary condition and interpretation, not a different
 formula.  `delta_X_pol` progress uses an open-trajectory initial condition at a
-chosen source point; `delta_X_cyc` evolution uses the closed-cycle initial
-displacement returned by the cycle closure solve.
+chosen source point; `delta_X_cyc` evolution uses the closed-orbit initial
+displacement returned by the orbit closure solve.
 
-## Cycle shifts
+## Orbit shifts
 
 - `cycle_shift_from_fields` computes the first-order `delta_X_cyc` response of a
-  closed field-line cycle for `B0 -> B0 + delta_B`.
-- `axis_cycle_shift_from_fields` samples that same shift on an O-cycle axis
+  closed field-line orbit for `B0 -> B0 + delta_B`.
+- `axis_cycle_shift_from_fields` samples that same shift on an O-orbit axis
   profile.
-- `cycle_points_shift_from_fields` applies it to a set of O/X closed-cycle seed
+- `cycle_points_shift_from_fields` applies it to a set of O/X closed-orbit seed
   points and returns their shifted section points.
 
 These functions are pure geometry/FPT utilities over cylindrical vector fields

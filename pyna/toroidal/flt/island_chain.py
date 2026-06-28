@@ -36,7 +36,7 @@ class BoundaryIslandFixedPoint:
     seed_Z: float
     lower_map_power_residual: float = np.inf
     chain_id: int | None = None
-    cycle_id: int | None = None
+    orbit_id: int | None = None
     point_index: int | None = None
     map_span: float | None = None
     winding: tuple[int, int] | None = None
@@ -78,7 +78,7 @@ class BoundaryIslandFixedPoint:
         })
         for key, value in (
             ("chain_id", self.chain_id),
-            ("cycle_id", self.cycle_id),
+            ("orbit_id", self.orbit_id),
             ("point_index", self.point_index),
             ("map_span", self.map_span),
             ("field_period", self.field_period),
@@ -200,8 +200,8 @@ class PoincareSectionTraces:
 
 
 @dataclass(frozen=True)
-class BoundaryIslandCycle:
-    """One ordered fixed-point cycle under a toroidal-span map.
+class BoundaryIslandOrbit:
+    """One ordered fixed-point orbit under a toroidal-span map.
 
     ``points`` are ordered by repeated application of ``P_span``.  For a
     map-power-m fixed point this stores the m section points in the discrete
@@ -210,11 +210,11 @@ class BoundaryIslandCycle:
     """
 
     points: tuple[FixedPoint, ...]
-    cycle_orbit_size: int
+    orbit_size: int
     kind: str
     map_span: float
     source_index: int = -1
-    cycle_id: int | None = None
+    orbit_id: int | None = None
     chain_id: int | None = None
     closure_residual: float = np.inf
     map_count: int = 0
@@ -246,10 +246,10 @@ class BoundaryIslandCycle:
 
 @dataclass(frozen=True)
 class BoundaryIslandChain:
-    """Connected boundary-island topology assembled from ordered cycles."""
+    """Connected boundary-island topology assembled from ordered orbits."""
 
-    cycles: tuple[BoundaryIslandCycle, ...]
-    cycle_orbit_size: int
+    orbits: tuple[BoundaryIslandOrbit, ...]
+    orbit_size: int
     map_span: float
     chain_id: int
     winding: tuple[int, int]
@@ -257,18 +257,18 @@ class BoundaryIslandChain:
     metadata: dict = field(default_factory=dict, compare=False, repr=False)
 
     @property
-    def x_cycles(self) -> list[BoundaryIslandCycle]:
-        return [cyc for cyc in self.cycles if str(cyc.kind).upper() == "X"]
+    def x_orbits(self) -> list[BoundaryIslandOrbit]:
+        return [orbit for orbit in self.orbits if str(orbit.kind).upper() == "X"]
 
     @property
-    def o_cycles(self) -> list[BoundaryIslandCycle]:
-        return [cyc for cyc in self.cycles if str(cyc.kind).upper() == "O"]
+    def o_orbits(self) -> list[BoundaryIslandOrbit]:
+        return [orbit for orbit in self.orbits if str(orbit.kind).upper() == "O"]
 
     @property
     def fixed_points(self) -> tuple[FixedPoint, ...]:
         points: list[FixedPoint] = []
-        for cycle in self.cycles:
-            points.extend(cycle.points)
+        for orbit in self.orbits:
+            points.extend(orbit.points)
         return tuple(points)
 
     @property
@@ -316,18 +316,18 @@ class BoundaryIslandChain:
 
 
 @dataclass(frozen=True)
-class BoundaryIslandDenseCycle:
-    """Continuous sampled 3-D geometry for one periodic field-line cycle."""
+class BoundaryIslandDenseOrbit:
+    """Continuous sampled 3-D geometry for one periodic field-line orbit."""
 
     phi: np.ndarray
     R: np.ndarray
     Z: np.ndarray
     alive: np.ndarray
-    cycle_orbit_size: int
+    orbit_size: int
     kind: str
     map_span: float
     source_phi: float
-    cycle_id: int | None = None
+    orbit_id: int | None = None
     chain_id: int | None = None
     closure_residual: float = np.inf
     winding: tuple[int, int] | None = None
@@ -374,11 +374,11 @@ class BoundaryIslandDenseCycle:
     def save_npz(self, path, *, include_xyz: bool = True) -> None:
         arrays = self.as_arrays(include_xyz=include_xyz)
         arrays.update({
-            "cycle_orbit_size": np.asarray(self.cycle_orbit_size, dtype=int),
+            "orbit_size": np.asarray(self.orbit_size, dtype=int),
             "kind": np.asarray(str(self.kind)),
             "map_span": np.asarray(float(self.map_span)),
             "source_phi": np.asarray(float(self.source_phi)),
-            "cycle_id": np.asarray(-1 if self.cycle_id is None else int(self.cycle_id), dtype=int),
+            "orbit_id": np.asarray(-1 if self.orbit_id is None else int(self.orbit_id), dtype=int),
             "chain_id": np.asarray(-1 if self.chain_id is None else int(self.chain_id), dtype=int),
             "closure_residual": np.asarray(float(self.closure_residual)),
         })
@@ -387,10 +387,10 @@ class BoundaryIslandDenseCycle:
 
 @dataclass(frozen=True)
 class BoundaryIslandDenseChain:
-    """Continuous sampled 3-D geometry for all cycles in one island chain."""
+    """Continuous sampled 3-D geometry for all orbits in one island chain."""
 
-    dense_cycles: tuple[BoundaryIslandDenseCycle, ...]
-    cycle_orbit_size: int
+    dense_orbits: tuple[BoundaryIslandDenseOrbit, ...]
+    orbit_size: int
     map_span: float
     chain_id: int
     winding: tuple[int, int]
@@ -398,12 +398,12 @@ class BoundaryIslandDenseChain:
     metadata: dict = field(default_factory=dict, compare=False, repr=False)
 
     @property
-    def x_cycles(self) -> list[BoundaryIslandDenseCycle]:
-        return [cyc for cyc in self.dense_cycles if str(cyc.kind).upper() == "X"]
+    def x_orbits(self) -> list[BoundaryIslandDenseOrbit]:
+        return [orbit for orbit in self.dense_orbits if str(orbit.kind).upper() == "X"]
 
     @property
-    def o_cycles(self) -> list[BoundaryIslandDenseCycle]:
-        return [cyc for cyc in self.dense_cycles if str(cyc.kind).upper() == "O"]
+    def o_orbits(self) -> list[BoundaryIslandDenseOrbit]:
+        return [orbit for orbit in self.dense_orbits if str(orbit.kind).upper() == "O"]
 
     @property
     def connected_component_count(self) -> int:
@@ -415,16 +415,16 @@ class BoundaryIslandDenseChain:
 
     def as_arrays(self, *, include_xyz: bool = True) -> dict[str, np.ndarray]:
         arrays: dict[str, np.ndarray] = {}
-        for i, cycle in enumerate(self.dense_cycles):
-            for key, value in cycle.as_arrays(include_xyz=include_xyz).items():
-                arrays[f"cycle{i}_{key}"] = value
-            arrays[f"cycle{i}_kind"] = np.asarray(str(cycle.kind))
-            arrays[f"cycle{i}_cycle_id"] = np.asarray(
-                -1 if cycle.cycle_id is None else int(cycle.cycle_id),
+        for i, orbit in enumerate(self.dense_orbits):
+            for key, value in orbit.as_arrays(include_xyz=include_xyz).items():
+                arrays[f"orbit{i}_{key}"] = value
+            arrays[f"orbit{i}_kind"] = np.asarray(str(orbit.kind))
+            arrays[f"orbit{i}_orbit_id"] = np.asarray(
+                -1 if orbit.orbit_id is None else int(orbit.orbit_id),
                 dtype=int,
             )
         arrays.update({
-            "cycle_orbit_size": np.asarray(self.cycle_orbit_size, dtype=int),
+            "orbit_size": np.asarray(self.orbit_size, dtype=int),
             "map_span": np.asarray(float(self.map_span)),
             "chain_id": np.asarray(int(self.chain_id), dtype=int),
             "winding": np.asarray(self.winding, dtype=int),
@@ -456,9 +456,9 @@ def _reduced_winding(m: int, n: int) -> tuple[int, int]:
     return m_i // g, n_i // g
 
 
-def _cycle_sort_angle(cycle: BoundaryIslandCycle) -> float:
-    R = cycle.R
-    Z = cycle.Z
+def _orbit_sort_angle(orbit: BoundaryIslandOrbit) -> float:
+    R = orbit.R
+    Z = orbit.Z
     if R.size == 0:
         return 0.0
     return float(np.arctan2(np.nanmean(Z), np.nanmean(R)))
@@ -553,17 +553,17 @@ def _fixed_point_residual(fp: BoundaryIslandFixedPoint | FixedPoint) -> float:
         return np.inf
 
 
-def _clone_cycle_fixed_point(
+def _clone_orbit_fixed_point(
     source: BoundaryIslandFixedPoint | FixedPoint,
     *,
     R: float,
     Z: float,
     phi: float,
     point_index: int,
-    cycle_orbit_size: int,
+    orbit_size: int,
     map_span: float,
     closure_residual: float,
-    cycle_id: int | None = None,
+    orbit_id: int | None = None,
     chain_id: int | None = None,
     winding: tuple[int, int] | None = None,
     reduced_winding: tuple[int, int] | None = None,
@@ -572,7 +572,7 @@ def _clone_cycle_fixed_point(
     kind = _fixed_point_kind(source)
     DPm = np.asarray(getattr(source, "DPm", np.eye(2)), dtype=float).reshape(2, 2).copy()
     fp = FixedPoint(phi=float(phi), R=float(R), Z=float(Z), DPm=DPm, kind=kind)
-    fp.cycle_orbit_size = int(cycle_orbit_size)
+    fp.orbit_size = int(orbit_size)
     fp.residual = _fixed_point_residual(source)
     eig = getattr(source, "eigenvalues", None)
     if eig is not None:
@@ -584,7 +584,7 @@ def _clone_cycle_fixed_point(
     fp.monodromy_classification_reason = cls.reason
     metadata = dict(getattr(source, "metadata", {}) or {})
     metadata.update({
-        "cycle_orbit_size": int(cycle_orbit_size),
+        "orbit_size": int(orbit_size),
         "map_span": float(map_span),
         "point_index": int(point_index),
         "map_order_index": int(point_index),
@@ -595,7 +595,7 @@ def _clone_cycle_fixed_point(
         metadata["source_index"] = int(source_index)
     for key, value in (
         ("chain_id", chain_id),
-        ("cycle_id", cycle_id),
+        ("orbit_id", orbit_id),
         ("winding", winding),
         ("reduced_winding", reduced_winding),
         ("section_phi", float(getattr(source, "phi", phi))),
@@ -691,7 +691,7 @@ def refine_fixed_points_monodromy_span_field(
 ) -> tuple[BoundaryIslandFixedPoint | FixedPoint, ...]:
     """Recompute section-local ``DP^m`` for existing fixed points.
 
-    Cycle tracing can clone one source ``DPm`` onto every map-ordered point.
+    Orbit tracing can clone one source ``DPm`` onto every map-ordered point.
     That preserves eigenvalues but not local eigenvectors.  This helper runs a
     short Newton refinement at each supplied point using the same field-period
     span, so manifold seeds can use the correct local stable/unstable
@@ -782,43 +782,43 @@ def refine_fixed_points_monodromy_span_field(
     return tuple(fp for fp in out if fp is not None)
 
 
-def _annotate_cycle(
-    cycle: BoundaryIslandCycle,
+def _annotate_orbit(
+    orbit: BoundaryIslandOrbit,
     *,
-    cycle_id: int | None = None,
+    orbit_id: int | None = None,
     chain_id: int | None = None,
     winding: tuple[int, int] | None = None,
     reduced_winding: tuple[int, int] | None = None,
-) -> BoundaryIslandCycle:
-    cycle_id = cycle.cycle_id if cycle_id is None else int(cycle_id)
-    chain_id = cycle.chain_id if chain_id is None else int(chain_id)
-    winding = cycle.winding if winding is None else tuple(map(int, winding))
+) -> BoundaryIslandOrbit:
+    orbit_id = orbit.orbit_id if orbit_id is None else int(orbit_id)
+    chain_id = orbit.chain_id if chain_id is None else int(chain_id)
+    winding = orbit.winding if winding is None else tuple(map(int, winding))
     reduced_winding = (
-        cycle.reduced_winding
+        orbit.reduced_winding
         if reduced_winding is None
         else tuple(map(int, reduced_winding))
     )
     points = tuple(
-        _clone_cycle_fixed_point(
+        _clone_orbit_fixed_point(
             fp,
             R=float(fp.R),
             Z=float(fp.Z),
             phi=float(fp.phi),
             point_index=i,
-            cycle_orbit_size=int(cycle.cycle_orbit_size),
-            map_span=float(cycle.map_span),
-            closure_residual=float(cycle.closure_residual),
-            cycle_id=cycle_id,
+            orbit_size=int(orbit.orbit_size),
+            map_span=float(orbit.map_span),
+            closure_residual=float(orbit.closure_residual),
+            orbit_id=orbit_id,
             chain_id=chain_id,
             winding=winding,
             reduced_winding=reduced_winding,
-            source_index=cycle.source_index,
+            source_index=orbit.source_index,
         )
-        for i, fp in enumerate(cycle.points)
+        for i, fp in enumerate(orbit.points)
     )
-    metadata = dict(cycle.metadata)
+    metadata = dict(orbit.metadata)
     metadata.update({
-        "cycle_id": cycle_id,
+        "orbit_id": orbit_id,
         "chain_id": chain_id,
     })
     if winding is not None:
@@ -826,9 +826,9 @@ def _annotate_cycle(
     if reduced_winding is not None:
         metadata["reduced_winding"] = reduced_winding
     return replace(
-        cycle,
+        orbit,
         points=points,
-        cycle_id=cycle_id,
+        orbit_id=orbit_id,
         chain_id=chain_id,
         winding=winding,
         reduced_winding=reduced_winding,
@@ -836,7 +836,7 @@ def _annotate_cycle(
     )
 
 
-def _cycle_distance(a: BoundaryIslandCycle, b: BoundaryIslandCycle) -> float:
+def _orbit_distance(a: BoundaryIslandOrbit, b: BoundaryIslandOrbit) -> float:
     if len(a.points) != len(b.points) or len(a.points) == 0:
         return np.inf
     A = np.column_stack([a.R, a.Z])
@@ -850,91 +850,91 @@ def _cycle_distance(a: BoundaryIslandCycle, b: BoundaryIslandCycle) -> float:
     return best
 
 
-def _deduplicate_cycles(
-    cycles: Sequence[BoundaryIslandCycle],
+def _deduplicate_orbits(
+    orbits: Sequence[BoundaryIslandOrbit],
     *,
     tol: float,
-) -> tuple[BoundaryIslandCycle, ...]:
-    kept: list[BoundaryIslandCycle] = []
+) -> tuple[BoundaryIslandOrbit, ...]:
+    kept: list[BoundaryIslandOrbit] = []
     ordered = sorted(
-        cycles,
+        orbits,
         key=lambda c: (
-            int(c.cycle_orbit_size),
+            int(c.orbit_size),
             str(c.kind).upper(),
             float(c.closure_residual),
             int(c.source_index),
         ),
     )
-    for cycle in ordered:
+    for orbit in ordered:
         duplicate_index = -1
         for i, old in enumerate(kept):
-            if int(cycle.cycle_orbit_size) != int(old.cycle_orbit_size):
+            if int(orbit.orbit_size) != int(old.orbit_size):
                 continue
-            if str(cycle.kind).upper() != str(old.kind).upper():
+            if str(orbit.kind).upper() != str(old.kind).upper():
                 continue
-            if _cycle_distance(cycle, old) <= float(tol):
+            if _orbit_distance(orbit, old) <= float(tol):
                 duplicate_index = i
                 break
         if duplicate_index < 0:
-            kept.append(cycle)
+            kept.append(orbit)
             continue
         old = kept[duplicate_index]
-        if float(cycle.closure_residual) < float(old.closure_residual):
-            kept[duplicate_index] = cycle
-    return tuple(sorted(kept, key=lambda c: (int(c.cycle_orbit_size), str(c.kind).upper(), _cycle_sort_angle(c))))
+        if float(orbit.closure_residual) < float(old.closure_residual):
+            kept[duplicate_index] = orbit
+    return tuple(sorted(kept, key=lambda c: (int(c.orbit_size), str(c.kind).upper(), _orbit_sort_angle(c))))
 
 
-def deduplicate_boundary_island_cycles(
-    cycles: Sequence[BoundaryIslandCycle],
+def deduplicate_boundary_island_orbits(
+    orbits: Sequence[BoundaryIslandOrbit],
     *,
-    cycle_dedup_tol: float = 5.0e-4,
-    start_cycle_id: int = 0,
+    orbit_dedup_tol: float = 5.0e-4,
+    start_orbit_id: int = 0,
     chain_id: int | None = None,
     winding: tuple[int, int] | None = None,
     reduced_winding: tuple[int, int] | None = None,
-) -> tuple[BoundaryIslandCycle, ...]:
-    """Deduplicate equivalent fixed-point cycles and assign stable IDs.
+) -> tuple[BoundaryIslandOrbit, ...]:
+    """Deduplicate equivalent fixed-point orbits and assign stable IDs.
 
-    The equivalence test is phase-invariant along the map orbit: cycles with
+    The equivalence test is phase-invariant along the map orbit: orbits with
     the same ordered point set but different starting fixed points are treated
-    as one physical cycle.  Returned cycles are annotated with ``cycle_id`` and
-    their points carry matching ``cycle_id``, ``point_index`` and
-    ``same_cycle_key`` metadata so section cuts can be identified across plots.
+    as one physical orbit.  Returned orbits are annotated with ``orbit_id`` and
+    their points carry matching ``orbit_id``, ``point_index`` and
+    ``same_orbit_key`` metadata so section cuts can be identified across plots.
     """
 
-    unique = _deduplicate_cycles(cycles, tol=float(cycle_dedup_tol))
-    annotated: list[BoundaryIslandCycle] = []
-    for offset, cycle in enumerate(unique):
-        cycle_id = int(start_cycle_id) + offset
-        annotated_cycle = _annotate_cycle(
-            cycle,
-            cycle_id=cycle_id,
+    unique = _deduplicate_orbits(orbits, tol=float(orbit_dedup_tol))
+    annotated: list[BoundaryIslandOrbit] = []
+    for offset, orbit in enumerate(unique):
+        orbit_id = int(start_orbit_id) + offset
+        annotated_orbit = _annotate_orbit(
+            orbit,
+            orbit_id=orbit_id,
             chain_id=chain_id,
             winding=winding,
             reduced_winding=reduced_winding,
         )
-        same_cycle_key = f"chain={chain_id if chain_id is not None else 'none'}:cycle={cycle_id}:kind={annotated_cycle.kind}"
+        same_orbit_key = f"chain={chain_id if chain_id is not None else 'none'}:orbit={orbit_id}:kind={annotated_orbit.kind}"
         points = []
-        for fp in annotated_cycle.points:
-            fp.metadata["same_cycle_key"] = same_cycle_key
-            fp.metadata["cycle_point_key"] = f"{same_cycle_key}:point={fp.metadata.get('point_index')}"
+        for fp in annotated_orbit.points:
+            fp.metadata["same_orbit_key"] = same_orbit_key
+            fp.metadata["orbit_point_key"] = f"{same_orbit_key}:point={fp.metadata.get('point_index')}"
             points.append(fp)
-        metadata = dict(annotated_cycle.metadata)
+        metadata = dict(annotated_orbit.metadata)
         metadata.update({
-            "same_cycle_key": same_cycle_key,
-            "cycle_dedup_tol": float(cycle_dedup_tol),
+            "same_orbit_key": same_orbit_key,
+            "orbit_dedup_tol": float(orbit_dedup_tol),
         })
-        annotated.append(replace(annotated_cycle, points=tuple(points), metadata=metadata))
+        annotated.append(replace(annotated_orbit, points=tuple(points), metadata=metadata))
     return tuple(annotated)
 
 
-def _cycle_source_phi(cycle: BoundaryIslandCycle) -> float:
-    if "section_phi" in cycle.metadata:
-        return float(cycle.metadata["section_phi"])
-    if "source_phi" in cycle.metadata:
-        return float(cycle.metadata["source_phi"])
-    if cycle.points:
-        fp = cycle.points[0]
+def _orbit_source_phi(orbit: BoundaryIslandOrbit) -> float:
+    if "section_phi" in orbit.metadata:
+        return float(orbit.metadata["section_phi"])
+    if "source_phi" in orbit.metadata:
+        return float(orbit.metadata["source_phi"])
+    if orbit.points:
+        fp = orbit.points[0]
         metadata = getattr(fp, "metadata", {}) or {}
         if "section_phi" in metadata:
             return float(metadata["section_phi"])
@@ -978,8 +978,8 @@ def _target_phis_for_section(
     return np.asarray(targets, dtype=float)
 
 
-def _interp_dense_cycle_at_phi(
-    dense: BoundaryIslandDenseCycle,
+def _interp_dense_orbit_at_phi(
+    dense: BoundaryIslandDenseOrbit,
     target_phi: Sequence[float],
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     targets = np.asarray(target_phi, dtype=float).ravel()
@@ -1049,7 +1049,7 @@ def _select_complete_section_crossings(
     if R_arr.size == 0:
         if require_complete:
             raise ValueError(
-                f"section has no finite crossings; expected {expected} for a complete cycle"
+                f"section has no finite crossings; expected {expected} for a complete orbit"
             )
         return R_arr, Z_arr, phi_arr, source_index.astype(int)
 
@@ -1077,9 +1077,9 @@ def _select_complete_section_crossings(
     return R_arr[keep_arr], Z_arr[keep_arr], phi_arr[keep_arr], source_index[keep_arr].astype(int)
 
 
-def _section_cycle_from_dense_cycle(
-    dense: BoundaryIslandDenseCycle,
-    base_cycle: BoundaryIslandCycle,
+def _section_orbit_from_dense_orbit(
+    dense: BoundaryIslandDenseOrbit,
+    base_orbit: BoundaryIslandOrbit,
     *,
     section_phi: float,
     section_index: int,
@@ -1087,7 +1087,7 @@ def _section_cycle_from_dense_cycle(
     wall_Z: Sequence[float] | None = None,
     section_dedup_tol: float = 5.0e-4,
     require_complete: bool = True,
-) -> BoundaryIslandCycle:
+) -> BoundaryIslandOrbit:
     section_period = abs(float(dense.map_span))
     target_phi = _target_phis_for_section(
         source_phi=float(dense.source_phi),
@@ -1095,7 +1095,7 @@ def _section_cycle_from_dense_cycle(
         section_phi=float(section_phi),
         section_period=section_period,
     )
-    R_raw, Z_raw, ok = _interp_dense_cycle_at_phi(dense, target_phi)
+    R_raw, Z_raw, ok = _interp_dense_orbit_at_phi(dense, target_phi)
     if wall_R is not None and wall_Z is not None and ok.size:
         ok &= _points_in_polygon(
             R_raw,
@@ -1103,9 +1103,9 @@ def _section_cycle_from_dense_cycle(
             np.asarray(wall_R, dtype=float),
             np.asarray(wall_Z, dtype=float),
         )
-    expected_count = int(base_cycle.cycle_orbit_size)
+    expected_count = int(base_orbit.orbit_size)
     effective_dedup_tol = float(section_dedup_tol)
-    closure_residual = float(getattr(base_cycle, "closure_residual", np.inf))
+    closure_residual = float(getattr(base_orbit, "closure_residual", np.inf))
     if np.isfinite(closure_residual) and closure_residual > 0.0:
         effective_dedup_tol = max(effective_dedup_tol, 1.05 * closure_residual)
     R_keep, Z_keep, phi_keep, source_index = _select_complete_section_crossings(
@@ -1116,16 +1116,16 @@ def _section_cycle_from_dense_cycle(
         expected_count=expected_count,
         require_complete=bool(require_complete),
     )
-    if base_cycle.points:
+    if base_orbit.points:
         source_points = tuple(
-            base_cycle.points[int(i) % len(base_cycle.points)]
+            base_orbit.points[int(i) % len(base_orbit.points)]
             for i in source_index
         )
     else:
         source_points = ()
-    point_indices = tuple(int(i) % max(1, int(base_cycle.cycle_orbit_size)) for i in source_index)
-    section_cycle = _clone_section_cycle(
-        base_cycle,
+    point_indices = tuple(int(i) % max(1, int(base_orbit.orbit_size)) for i in source_index)
+    section_orbit = _clone_section_orbit(
+        base_orbit,
         section_phi=float(section_phi),
         section_index=int(section_index),
         delta_phi=_section_delta_phi(dense.source_phi, section_phi, section_period),
@@ -1136,9 +1136,9 @@ def _section_cycle_from_dense_cycle(
         alive=bool(R_keep.size == expected_count),
         map_count=int(R_keep.size),
     )
-    metadata = dict(section_cycle.metadata)
+    metadata = dict(section_orbit.metadata)
     metadata.update({
-        "section_cycle_source": "dense_orbit_crossings",
+        "section_orbit_source": "dense_orbit_crossings",
         "raw_crossing_count": int(np.count_nonzero(ok)),
         "dedup_crossing_count": int(R_keep.size),
         "expected_crossing_count": int(expected_count),
@@ -1148,11 +1148,11 @@ def _section_cycle_from_dense_cycle(
         "target_phi_min": float(np.min(phi_keep)) if phi_keep.size else None,
         "target_phi_max": float(np.max(phi_keep)) if phi_keep.size else None,
     })
-    return replace(section_cycle, metadata=metadata)
+    return replace(section_orbit, metadata=metadata)
 
 
-def _clone_section_cycle(
-    cycle: BoundaryIslandCycle,
+def _clone_section_orbit(
+    orbit: BoundaryIslandOrbit,
     *,
     section_phi: float,
     section_index: int,
@@ -1163,29 +1163,29 @@ def _clone_section_cycle(
     point_indices: Sequence[int] | None = None,
     alive: bool,
     map_count: int,
-) -> BoundaryIslandCycle:
+) -> BoundaryIslandOrbit:
     points = []
     if source_points is None:
-        source_points = cycle.points
+        source_points = orbit.points
     if point_indices is None:
         point_indices = tuple(range(len(source_points)))
     for local_i, (source_fp, point_index, R, Z) in enumerate(
         zip(source_points, point_indices, R_values, Z_values)
     ):
-        fp = _clone_cycle_fixed_point(
+        fp = _clone_orbit_fixed_point(
             source_fp,
             R=float(R),
             Z=float(Z),
             phi=float(section_phi),
             point_index=int(point_index),
-            cycle_orbit_size=int(cycle.cycle_orbit_size),
-            map_span=float(cycle.map_span),
-            closure_residual=float(cycle.closure_residual),
-            cycle_id=cycle.cycle_id,
-            chain_id=cycle.chain_id,
-            winding=cycle.winding,
-            reduced_winding=cycle.reduced_winding,
-            source_index=cycle.source_index,
+            orbit_size=int(orbit.orbit_size),
+            map_span=float(orbit.map_span),
+            closure_residual=float(orbit.closure_residual),
+            orbit_id=orbit.orbit_id,
+            chain_id=orbit.chain_id,
+            winding=orbit.winding,
+            reduced_winding=orbit.reduced_winding,
+            source_index=orbit.source_index,
         )
         fp.metadata.update({
             "section_phi": float(section_phi),
@@ -1196,21 +1196,21 @@ def _clone_section_cycle(
             "poincare_map_power": int(point_index),
             "section_local_index": int(local_i),
         })
-        same_cycle_key = fp.metadata.get("same_cycle_key")
-        if same_cycle_key is not None:
-            fp.metadata["cycle_section_key"] = f"{same_cycle_key}:section={int(section_index)}"
-            fp.metadata["cycle_section_point_key"] = (
-                f"{same_cycle_key}:section={int(section_index)}:point={int(point_index)}"
+        same_orbit_key = fp.metadata.get("same_orbit_key")
+        if same_orbit_key is not None:
+            fp.metadata["orbit_section_key"] = f"{same_orbit_key}:section={int(section_index)}"
+            fp.metadata["orbit_section_point_key"] = (
+                f"{same_orbit_key}:section={int(section_index)}:point={int(point_index)}"
             )
         points.append(fp)
-    metadata = dict(cycle.metadata)
+    metadata = dict(orbit.metadata)
     metadata.update({
         "section_phi": float(section_phi),
         "section_index": int(section_index),
         "section_delta_phi": float(delta_phi),
     })
     return replace(
-        cycle,
+        orbit,
         points=tuple(points),
         map_count=int(map_count),
         alive=bool(alive),
@@ -1218,7 +1218,7 @@ def _clone_section_cycle(
     )
 
 
-def trace_fixed_point_cycles_span_field(
+def trace_fixed_point_orbits_span_field(
     field,
     fixed_points: Sequence[BoundaryIslandFixedPoint | FixedPoint],
     *,
@@ -1230,19 +1230,19 @@ def trace_fixed_point_cycles_span_field(
     extend_phi: bool = True,
     n_threads: int = -1,
     deduplicate: bool = False,
-    cycle_dedup_tol: float = 5.0e-4,
-    start_cycle_id: int = 0,
+    orbit_dedup_tol: float = 5.0e-4,
+    start_orbit_id: int = 0,
     chain_id: int | None = None,
     winding: tuple[int, int] | None = None,
     reduced_winding: tuple[int, int] | None = None,
-) -> tuple[BoundaryIslandCycle, ...]:
-    """Trace ordered cycles from converged fixed points using ``P_span``.
+) -> tuple[BoundaryIslandOrbit, ...]:
+    """Trace ordered orbits from converged fixed points using ``P_span``.
 
     This is a batch wrapper around the existing cyna arbitrary-span map tracer.
-    For each source point it stores the m distinct cycle points and summarizes
+    For each source point it stores the m distinct orbit points and summarizes
     the closing endpoint with ``closure_residual``.  Set ``deduplicate=True``
-    to collapse equivalent cycles from different seeds and attach stable
-    same-cycle metadata for cross-section plotting.
+    to collapse equivalent orbits from different seeds and attach stable
+    same-orbit metadata for cross-section plotting.
     """
 
     if not np.isfinite(float(map_span)) or abs(float(map_span)) <= 1.0e-14:
@@ -1256,7 +1256,7 @@ def trace_fixed_point_cycles_span_field(
         phi = float(getattr(fp, "phi", 0.0))
         by_map_power_phi.setdefault((p, phi), []).append((source_index, fp))
 
-    cycles: list[BoundaryIslandCycle] = []
+    orbits: list[BoundaryIslandOrbit] = []
     for p, phi_start in sorted(by_map_power_phi):
         items = by_map_power_phi[(p, phi_start)]
         R0 = np.asarray([float(getattr(fp, "R")) for _idx, fp in items], dtype=float)
@@ -1297,22 +1297,22 @@ def trace_fixed_point_cycles_span_field(
                 point_Z.append(float(Z_flat[base + step_index - 1]))
 
             points = tuple(
-                _clone_cycle_fixed_point(
+                _clone_orbit_fixed_point(
                     source_fp,
                     R=r,
                     Z=z,
                     phi=float(phi0[local_index]) + i * float(map_span),
                     point_index=i,
-                    cycle_orbit_size=int(p),
+                    orbit_size=int(p),
                     map_span=float(map_span),
                     closure_residual=float(closure),
                     source_index=source_index,
                 )
                 for i, (r, z) in enumerate(zip(point_R, point_Z))
             )
-            cycles.append(BoundaryIslandCycle(
+            orbits.append(BoundaryIslandOrbit(
                 points=points,
-                cycle_orbit_size=int(p),
+                orbit_size=int(p),
                 kind=_fixed_point_kind(source_fp),
                 map_span=float(map_span),
                 source_index=int(source_index),
@@ -1324,20 +1324,20 @@ def trace_fixed_point_cycles_span_field(
                     "source_phi": float(phi0[local_index]),
                 },
             ))
-    raw_cycles = tuple(cycles)
+    raw_orbits = tuple(orbits)
     if not deduplicate:
-        return raw_cycles
-    return deduplicate_boundary_island_cycles(
-        raw_cycles,
-        cycle_dedup_tol=float(cycle_dedup_tol),
-        start_cycle_id=int(start_cycle_id),
+        return raw_orbits
+    return deduplicate_boundary_island_orbits(
+        raw_orbits,
+        orbit_dedup_tol=float(orbit_dedup_tol),
+        start_orbit_id=int(start_orbit_id),
         chain_id=chain_id,
         winding=winding,
         reduced_winding=reduced_winding,
     )
 
 
-def trace_fixed_point_cycle_span_field(
+def trace_fixed_point_orbit_span_field(
     field,
     fixed_point: BoundaryIslandFixedPoint | FixedPoint,
     *,
@@ -1348,10 +1348,10 @@ def trace_fixed_point_cycle_span_field(
     wall_Z: Sequence[float] | None = None,
     extend_phi: bool = True,
     n_threads: int = -1,
-) -> BoundaryIslandCycle:
-    """Trace one ordered fixed-point cycle under an arbitrary-span map."""
+) -> BoundaryIslandOrbit:
+    """Trace one ordered fixed-point orbit under an arbitrary-span map."""
 
-    cycles = trace_fixed_point_cycles_span_field(
+    orbits = trace_fixed_point_orbits_span_field(
         field,
         [fixed_point],
         map_span=map_span,
@@ -1362,14 +1362,14 @@ def trace_fixed_point_cycle_span_field(
         extend_phi=extend_phi,
         n_threads=n_threads,
     )
-    if not cycles:
-        raise ValueError("no cycle was traced")
-    return cycles[0]
+    if not orbits:
+        raise ValueError("no orbit was traced")
+    return orbits[0]
 
 
-def trace_fixed_point_cycle_sections_span_field(
+def trace_fixed_point_orbit_sections_span_field(
     field,
-    fixed_point_or_cycle: BoundaryIslandFixedPoint | FixedPoint | BoundaryIslandCycle,
+    fixed_point_or_orbit: BoundaryIslandFixedPoint | FixedPoint | BoundaryIslandOrbit,
     section_phis: Sequence[float],
     *,
     map_span: float = 2.0 * np.pi,
@@ -1382,49 +1382,49 @@ def trace_fixed_point_cycle_sections_span_field(
     wall_by_section: Sequence[tuple[Sequence[float], Sequence[float]]] | None = None,
     extend_phi: bool = True,
     n_threads: int = -1,
-) -> dict[float, BoundaryIslandCycle]:
+) -> dict[float, BoundaryIslandOrbit]:
     """Trace one periodic orbit to multiple toroidal sections.
 
     The fixed point is solved once on its reference section.  The returned
-    cycles are extracted from one continuous dense field-line orbit, preserving
+    orbits are extracted from one continuous dense field-line orbit, preserving
     Poincare-map ordering and removing near-duplicate closure hits.
     """
 
-    if isinstance(fixed_point_or_cycle, BoundaryIslandCycle):
-        base_cycle = fixed_point_or_cycle
+    if isinstance(fixed_point_or_orbit, BoundaryIslandOrbit):
+        base_orbit = fixed_point_or_orbit
     else:
-        base_cycle = trace_fixed_point_cycle_span_field(
+        base_orbit = trace_fixed_point_orbit_span_field(
             field,
-            fixed_point_or_cycle,
+            fixed_point_or_orbit,
             map_span=map_span,
             map_power=map_power,
             DPhi=DPhi,
             extend_phi=extend_phi,
             n_threads=n_threads,
         )
-    if not base_cycle.points:
+    if not base_orbit.points:
         return {}
     if wall_by_section is not None and len(wall_by_section) != len(section_phis):
         raise ValueError("wall_by_section and section_phis must have the same length")
 
-    dense = trace_fixed_point_cycle_dense_span_field(
+    dense = trace_fixed_point_orbit_dense_span_field(
         field,
-        base_cycle,
+        base_orbit,
         DPhi=DPhi,
         dphi_out=dphi_out,
         extend_phi=extend_phi,
         fd_eps=fd_eps,
         n_threads=n_threads,
     )
-    out: dict[float, BoundaryIslandCycle] = {}
+    out: dict[float, BoundaryIslandOrbit] = {}
     for section_index, section_phi_raw in enumerate(section_phis):
         section_phi = float(section_phi_raw)
         wall_R = wall_Z = None
         if wall_by_section is not None:
             wall_R, wall_Z = wall_by_section[section_index]
-        out[section_phi] = _section_cycle_from_dense_cycle(
+        out[section_phi] = _section_orbit_from_dense_orbit(
             dense,
-            base_cycle,
+            base_orbit,
             section_phi=section_phi,
             section_index=section_index,
             wall_R=wall_R,
@@ -1435,44 +1435,44 @@ def trace_fixed_point_cycle_sections_span_field(
     return out
 
 
-def _section_cycle_count_key(cycle: BoundaryIslandCycle) -> tuple[int | None, int | None, str, int]:
+def _section_orbit_count_key(orbit: BoundaryIslandOrbit) -> tuple[int | None, int | None, str, int]:
     return (
-        cycle.chain_id,
-        cycle.cycle_id,
-        str(cycle.kind).upper(),
-        int(cycle.source_index),
+        orbit.chain_id,
+        orbit.orbit_id,
+        str(orbit.kind).upper(),
+        int(orbit.source_index),
     )
 
 
-def _validate_section_cycle_counts(
-    section_cycles: dict[float, list[BoundaryIslandCycle]],
+def _validate_section_orbit_counts(
+    section_orbits: dict[float, list[BoundaryIslandOrbit]],
     section_phis: Sequence[float],
 ) -> dict[str, dict[str, int]]:
     counts: dict[tuple[int | None, int | None, str, int], dict[str, int]] = {}
     expected: dict[tuple[int | None, int | None, str, int], int] = {}
     for phi in section_phis:
         phi_key = float(phi)
-        for cycle in section_cycles.get(phi_key, []):
-            key = _section_cycle_count_key(cycle)
-            count = int(len(cycle.points))
-            expected_count = int(cycle.metadata.get("expected_crossing_count", cycle.cycle_orbit_size))
+        for orbit in section_orbits.get(phi_key, []):
+            key = _section_orbit_count_key(orbit)
+            count = int(len(orbit.points))
+            expected_count = int(orbit.metadata.get("expected_crossing_count", orbit.orbit_size))
             if count != expected_count:
                 raise ValueError(
-                    "incomplete section cycle: "
-                    f"phi={phi_key}, kind={cycle.kind}, cycle_id={cycle.cycle_id}, "
+                    "incomplete section orbit: "
+                    f"phi={phi_key}, kind={orbit.kind}, orbit_id={orbit.orbit_id}, "
                     f"count={count}, expected={expected_count}"
                 )
             if key in expected and expected[key] != count:
                 raise ValueError(
-                    "section cycle count changed across sections: "
-                    f"kind={cycle.kind}, cycle_id={cycle.cycle_id}, "
+                    "section orbit count changed across sections: "
+                    f"kind={orbit.kind}, orbit_id={orbit.orbit_id}, "
                     f"previous={expected[key]}, current={count}, phi={phi_key}"
                 )
             expected[key] = count
             counts.setdefault(key, {})[f"{phi_key:.17g}"] = count
 
     return {
-        f"chain={key[0]} cycle={key[1]} kind={key[2]} source={key[3]}": value
+        f"chain={key[0]} orbit={key[1]} kind={key[2]} source={key[3]}": value
         for key, value in counts.items()
     }
 
@@ -1491,15 +1491,15 @@ def trace_boundary_island_chain_sections_span_field(
     extend_phi: bool = True,
     n_threads: int = -1,
 ) -> dict[float, BoundaryIslandChain]:
-    """Trace every cycle in one boundary island chain to multiple sections."""
+    """Trace every orbit in one boundary island chain to multiple sections."""
 
-    section_cycles: dict[float, list[BoundaryIslandCycle]] = {
+    section_orbits: dict[float, list[BoundaryIslandOrbit]] = {
         float(phi): [] for phi in section_phis
     }
-    for cycle in chain.cycles:
-        traced = trace_fixed_point_cycle_sections_span_field(
+    for orbit in chain.orbits:
+        traced = trace_fixed_point_orbit_sections_span_field(
             field,
-            cycle,
+            orbit,
             section_phis,
             DPhi=DPhi,
             dphi_out=dphi_out,
@@ -1510,11 +1510,11 @@ def trace_boundary_island_chain_sections_span_field(
             extend_phi=extend_phi,
             n_threads=n_threads,
         )
-        for phi, section_cycle in traced.items():
-            section_cycles[float(phi)].append(section_cycle)
+        for phi, section_orbit in traced.items():
+            section_orbits[float(phi)].append(section_orbit)
 
-    count_by_cycle = (
-        _validate_section_cycle_counts(section_cycles, section_phis)
+    count_by_orbit = (
+        _validate_section_orbit_counts(section_orbits, section_phis)
         if require_complete_sections
         else {}
     )
@@ -1524,21 +1524,21 @@ def trace_boundary_island_chain_sections_span_field(
         metadata = dict(chain.metadata)
         metadata.update({
             "section_phi": phi_key,
-            "section_cycle_source": "orbit_trace",
-            "section_cycle_count_by_cycle": count_by_cycle,
+            "section_orbit_source": "orbit_trace",
+            "section_orbit_count_by_orbit": count_by_orbit,
             "require_complete_sections": bool(require_complete_sections),
         })
         out[phi_key] = replace(
             chain,
-            cycles=tuple(section_cycles.get(phi_key, [])),
+            orbits=tuple(section_orbits.get(phi_key, [])),
             metadata=metadata,
         )
     return out
 
 
-def trace_fixed_point_cycle_dense_span_field(
+def trace_fixed_point_orbit_dense_span_field(
     field,
-    fixed_point_or_cycle: BoundaryIslandFixedPoint | FixedPoint | BoundaryIslandCycle,
+    fixed_point_or_orbit: BoundaryIslandFixedPoint | FixedPoint | BoundaryIslandOrbit,
     *,
     map_span: float = 2.0 * np.pi,
     map_power: int | None = None,
@@ -1547,35 +1547,35 @@ def trace_fixed_point_cycle_dense_span_field(
     extend_phi: bool = True,
     fd_eps: float = 1.0e-4,
     n_threads: int = -1,
-) -> BoundaryIslandDenseCycle:
-    """Trace the continuous 3-D geometry of one periodic cycle.
+) -> BoundaryIslandDenseOrbit:
+    """Trace the continuous 3-D geometry of one periodic orbit.
 
     The dense output follows one representative field line through the full
-    ``cycle_orbit_size * map_span`` orbit.  The section fixed points remain attached in
+    ``orbit_size * map_span`` orbit.  The section fixed points remain attached in
     ``section_points`` for plotting and indexing.
     """
 
     _ = n_threads  # kept for API symmetry; single-orbit cyna tracing is serial.
-    if isinstance(fixed_point_or_cycle, BoundaryIslandCycle):
-        base_cycle = fixed_point_or_cycle
+    if isinstance(fixed_point_or_orbit, BoundaryIslandOrbit):
+        base_orbit = fixed_point_or_orbit
     else:
-        base_cycle = trace_fixed_point_cycle_span_field(
+        base_orbit = trace_fixed_point_orbit_span_field(
             field,
-            fixed_point_or_cycle,
+            fixed_point_or_orbit,
             map_span=map_span,
             map_power=map_power,
             DPhi=DPhi,
             extend_phi=extend_phi,
             n_threads=n_threads,
         )
-    if not base_cycle.points:
-        raise ValueError("cannot trace dense output for an empty cycle")
-    if not np.isfinite(float(base_cycle.map_span)) or abs(float(base_cycle.map_span)) <= 1.0e-14:
-        raise ValueError("cycle map_span must be a nonzero finite toroidal angle")
+    if not base_orbit.points:
+        raise ValueError("cannot trace dense output for an empty orbit")
+    if not np.isfinite(float(base_orbit.map_span)) or abs(float(base_orbit.map_span)) <= 1.0e-14:
+        raise ValueError("orbit map_span must be a nonzero finite toroidal angle")
 
-    seed = base_cycle.points[0]
+    seed = base_orbit.points[0]
     source_phi = float(seed.phi)
-    phi_end = source_phi + int(base_cycle.cycle_orbit_size) * float(base_cycle.map_span)
+    phi_end = source_phi + int(base_orbit.orbit_size) * float(base_orbit.map_span)
     if dphi_out is None:
         dphi_out = abs(float(DPhi))
     if not np.isfinite(float(dphi_out)) or abs(float(dphi_out)) <= 0.0:
@@ -1599,7 +1599,7 @@ def trace_fixed_point_cycle_dense_span_field(
         closure = float(np.hypot(R_arr[-1] - float(seed.R), Z_arr[-1] - float(seed.Z)))
     else:
         closure = np.inf
-    metadata = dict(base_cycle.metadata)
+    metadata = dict(base_orbit.metadata)
     metadata.update({
         "dense_output": True,
         "source_phi": float(source_phi),
@@ -1607,21 +1607,21 @@ def trace_fixed_point_cycle_dense_span_field(
         "dphi_out": float(dphi_out),
         "n_samples": int(R_arr.size),
     })
-    return BoundaryIslandDenseCycle(
+    return BoundaryIslandDenseOrbit(
         phi=phi_arr,
         R=R_arr,
         Z=Z_arr,
         alive=alive_arr,
-        cycle_orbit_size=int(base_cycle.cycle_orbit_size),
-        kind=str(base_cycle.kind).upper(),
-        map_span=float(base_cycle.map_span),
+        orbit_size=int(base_orbit.orbit_size),
+        kind=str(base_orbit.kind).upper(),
+        map_span=float(base_orbit.map_span),
         source_phi=float(source_phi),
-        cycle_id=base_cycle.cycle_id,
-        chain_id=base_cycle.chain_id,
+        orbit_id=base_orbit.orbit_id,
+        chain_id=base_orbit.chain_id,
         closure_residual=float(closure),
-        winding=base_cycle.winding,
-        reduced_winding=base_cycle.reduced_winding,
-        section_points=tuple(base_cycle.points),
+        winding=base_orbit.winding,
+        reduced_winding=base_orbit.reduced_winding,
+        section_points=tuple(base_orbit.points),
         metadata=metadata,
     )
 
@@ -1636,28 +1636,28 @@ def trace_boundary_island_chain_dense_span_field(
     fd_eps: float = 1.0e-4,
     n_threads: int = -1,
 ) -> BoundaryIslandDenseChain:
-    """Trace continuous 3-D geometry for every cycle in a boundary chain."""
+    """Trace continuous 3-D geometry for every orbit in a boundary chain."""
 
-    dense_cycles = tuple(
-        trace_fixed_point_cycle_dense_span_field(
+    dense_orbits = tuple(
+        trace_fixed_point_orbit_dense_span_field(
             field,
-            cycle,
+            orbit,
             DPhi=DPhi,
             dphi_out=dphi_out,
             extend_phi=extend_phi,
             fd_eps=fd_eps,
             n_threads=n_threads,
         )
-        for cycle in chain.cycles
+        for orbit in chain.orbits
     )
     metadata = dict(chain.metadata)
     metadata.update({
         "dense_output": True,
-        "n_dense_cycles": int(len(dense_cycles)),
+        "n_dense_orbits": int(len(dense_orbits)),
     })
     return BoundaryIslandDenseChain(
-        dense_cycles=dense_cycles,
-        cycle_orbit_size=int(chain.cycle_orbit_size),
+        dense_orbits=dense_orbits,
+        orbit_size=int(chain.orbit_size),
         map_span=float(chain.map_span),
         chain_id=int(chain.chain_id),
         winding=tuple(map(int, chain.winding)),
@@ -1667,58 +1667,58 @@ def trace_boundary_island_chain_dense_span_field(
 
 
 def assemble_boundary_island_chains(
-    cycles: Sequence[BoundaryIslandCycle],
+    orbits: Sequence[BoundaryIslandOrbit],
     *,
     m: int | None = None,
     n: int = 1,
-    cycle_dedup_tol: float = 5.0e-4,
+    orbit_dedup_tol: float = 5.0e-4,
     pairing_tol: float | None = None,
 ) -> tuple[BoundaryIslandChain, ...]:
-    """Deduplicate ordered cycles and assemble O/X boundary island chains."""
+    """Deduplicate ordered orbits and assemble O/X boundary island chains."""
 
-    if not cycles:
+    if not orbits:
         return ()
-    unique_cycles = _deduplicate_cycles(cycles, tol=float(cycle_dedup_tol))
-    by_cycle_orbit_size: dict[int, list[BoundaryIslandCycle]] = {}
-    for cycle in unique_cycles:
-        by_cycle_orbit_size.setdefault(int(cycle.cycle_orbit_size), []).append(cycle)
+    unique_orbits = _deduplicate_orbits(orbits, tol=float(orbit_dedup_tol))
+    by_orbit_size: dict[int, list[BoundaryIslandOrbit]] = {}
+    for orbit in unique_orbits:
+        by_orbit_size.setdefault(int(orbit.orbit_size), []).append(orbit)
 
     chains: list[BoundaryIslandChain] = []
     next_chain_id = 0
-    next_cycle_id = 0
-    for cycle_orbit_size_value in sorted(by_cycle_orbit_size):
-        orbit_size_cycles = sorted(
-            by_cycle_orbit_size[cycle_orbit_size_value],
-            key=lambda c: (0 if str(c.kind).upper() == "O" else 1, _cycle_sort_angle(c)),
+    next_orbit_id = 0
+    for orbit_size_value in sorted(by_orbit_size):
+        orbit_size_orbits = sorted(
+            by_orbit_size[orbit_size_value],
+            key=lambda c: (0 if str(c.kind).upper() == "O" else 1, _orbit_sort_angle(c)),
         )
-        winding = (int(cycle_orbit_size_value if m is None else m), int(n))
+        winding = (int(orbit_size_value if m is None else m), int(n))
         reduced = _reduced_winding(*winding)
-        o_cycles = [c for c in orbit_size_cycles if str(c.kind).upper() == "O"]
-        x_cycles = [c for c in orbit_size_cycles if str(c.kind).upper() == "X"]
-        other_cycles = [c for c in orbit_size_cycles if str(c.kind).upper() not in {"O", "X"}]
+        o_orbits = [c for c in orbit_size_orbits if str(c.kind).upper() == "O"]
+        x_orbits = [c for c in orbit_size_orbits if str(c.kind).upper() == "X"]
+        other_orbits = [c for c in orbit_size_orbits if str(c.kind).upper() not in {"O", "X"}]
         used_x: set[int] = set()
 
-        def _new_chain(raw_cycles: list[BoundaryIslandCycle]) -> None:
-            nonlocal next_chain_id, next_cycle_id
-            annotated: list[BoundaryIslandCycle] = []
-            for raw in raw_cycles:
-                annotated.append(_annotate_cycle(
+        def _new_chain(raw_orbits: list[BoundaryIslandOrbit]) -> None:
+            nonlocal next_chain_id, next_orbit_id
+            annotated: list[BoundaryIslandOrbit] = []
+            for raw in raw_orbits:
+                annotated.append(_annotate_orbit(
                     raw,
-                    cycle_id=next_cycle_id,
+                    orbit_id=next_orbit_id,
                     chain_id=next_chain_id,
                     winding=winding,
                     reduced_winding=reduced,
                 ))
-                next_cycle_id += 1
+                next_orbit_id += 1
             chains.append(BoundaryIslandChain(
-                cycles=tuple(annotated),
-                cycle_orbit_size=int(cycle_orbit_size_value),
-                map_span=float(annotated[0].map_span if annotated else orbit_size_cycles[0].map_span),
+                orbits=tuple(annotated),
+                orbit_size=int(orbit_size_value),
+                map_span=float(annotated[0].map_span if annotated else orbit_size_orbits[0].map_span),
                 chain_id=int(next_chain_id),
                 winding=winding,
                 reduced_winding=reduced,
                 metadata={
-                    "cycle_orbit_size": int(cycle_orbit_size_value),
+                    "orbit_size": int(orbit_size_value),
                     "m": int(winding[0]),
                     "n": int(winding[1]),
                     "reduced_mn": reduced,
@@ -1728,32 +1728,32 @@ def assemble_boundary_island_chains(
                         abs(int(winding[0])) // max(1, gcd(abs(int(winding[0])), abs(int(winding[1])))),
                     ),
                     "map_advance_per_component": int(reduced[1]),
-                    "n_cycles": int(len(annotated)),
+                    "n_orbits": int(len(annotated)),
                 },
             ))
             next_chain_id += 1
 
-        for o_cycle in o_cycles:
-            raw_group = [o_cycle]
-            if x_cycles:
+        for o_orbit in o_orbits:
+            raw_group = [o_orbit]
+            if x_orbits:
                 distances = [
-                    (_cycle_distance(o_cycle, x_cycle), i, x_cycle)
-                    for i, x_cycle in enumerate(x_cycles)
+                    (_orbit_distance(o_orbit, x_orbit), i, x_orbit)
+                    for i, x_orbit in enumerate(x_orbits)
                     if i not in used_x
                 ]
                 distances = [row for row in distances if np.isfinite(row[0])]
                 if distances:
-                    distance, idx, x_cycle = min(distances, key=lambda row: row[0])
+                    distance, idx, x_orbit = min(distances, key=lambda row: row[0])
                     if pairing_tol is None or distance <= float(pairing_tol):
-                        raw_group.append(x_cycle)
+                        raw_group.append(x_orbit)
                         used_x.add(idx)
             _new_chain(raw_group)
 
-        for i, x_cycle in enumerate(x_cycles):
+        for i, x_orbit in enumerate(x_orbits):
             if i not in used_x:
-                _new_chain([x_cycle])
-        for cycle in other_cycles:
-            _new_chain([cycle])
+                _new_chain([x_orbit])
+        for orbit in other_orbits:
+            _new_chain([orbit])
 
     return tuple(chains)
 
@@ -1771,12 +1771,12 @@ def assemble_boundary_island_chains_field(
     wall_Z: Sequence[float] | None = None,
     extend_phi: bool = True,
     n_threads: int = -1,
-    cycle_dedup_tol: float = 5.0e-4,
+    orbit_dedup_tol: float = 5.0e-4,
     pairing_tol: float | None = None,
 ) -> tuple[BoundaryIslandChain, ...]:
-    """Trace fixed-point cycles and assemble semantic boundary island chains."""
+    """Trace fixed-point orbits and assemble semantic boundary island chains."""
 
-    cycles = trace_fixed_point_cycles_span_field(
+    orbits = trace_fixed_point_orbits_span_field(
         field,
         fixed_points,
         map_span=map_span,
@@ -1788,10 +1788,10 @@ def assemble_boundary_island_chains_field(
         n_threads=n_threads,
     )
     return assemble_boundary_island_chains(
-        cycles,
+        orbits,
         m=m,
         n=n,
-        cycle_dedup_tol=cycle_dedup_tol,
+        orbit_dedup_tol=orbit_dedup_tol,
         pairing_tol=pairing_tol,
     )
 
@@ -3887,9 +3887,9 @@ def trace_fixed_point_manifolds_field(
             "map_order_index",
             metadata.get("orbit_point_index", metadata.get("point_index")),
         )
-        cycle_id = metadata.get("cycle_id")
-        if cycle_id is None:
-            cycle_id = "?"
+        orbit_id = metadata.get("orbit_id")
+        if orbit_id is None:
+            orbit_id = "?"
         payload = {
             "u_R": u_R,
             "u_Z": u_Z,
@@ -3941,19 +3941,19 @@ def trace_fixed_point_manifolds_field(
                 "automatic spacing chooses q=lambda_expand^(1/n_eps) so "
                 "lambda_expand*s1 is the next point after sN"
             ),
-            "cycle_id": cycle_id,
+            "orbit_id": orbit_id,
             "chain_id": metadata.get("chain_id"),
             "point_index": metadata.get("point_index"),
             "orbit_point_index": metadata.get("orbit_point_index"),
             "map_order_index": map_order_index,
             "poincare_map_power": metadata.get("poincare_map_power", map_order_index),
-            "same_cycle_key": metadata.get("same_cycle_key"),
-            "cycle_point_key": metadata.get("cycle_point_key"),
-            "cycle_section_key": metadata.get("cycle_section_key"),
-            "cycle_section_point_key": metadata.get("cycle_section_point_key"),
+            "same_orbit_key": metadata.get("same_orbit_key"),
+            "orbit_point_key": metadata.get("orbit_point_key"),
+            "orbit_section_key": metadata.get("orbit_section_key"),
+            "orbit_section_point_key": metadata.get("orbit_section_point_key"),
             "manifold_origin_label": (
                 None if map_order_index is None
-                else f"{cycle_id}:P{int(map_order_index)}"
+                else f"{orbit_id}:P{int(map_order_index)}"
             ),
         }
         if include_arclength:
@@ -4042,8 +4042,8 @@ def boundary_island_topology_payload_field(
 __all__ = [
     "BoundaryIslandChain",
     "BoundaryIslandDenseChain",
-    "BoundaryIslandDenseCycle",
-    "BoundaryIslandCycle",
+    "BoundaryIslandDenseOrbit",
+    "BoundaryIslandOrbit",
     "BoundaryIslandFixedPoint",
     "BoundaryIslandSeedCandidates",
     "BoundaryIslandSearchResult",
@@ -4055,7 +4055,7 @@ __all__ = [
     "boundary_recurrence_seed_candidates_field",
     "boundary_seed_grid",
     "boundary_wall_fractions",
-    "deduplicate_boundary_island_cycles",
+    "deduplicate_boundary_island_orbits",
     "fixed_points_by_section_payload",
     "find_boundary_island_fixed_points_field",
     "find_boundary_island_fixed_points_multi_section_field",
@@ -4065,10 +4065,10 @@ __all__ = [
     "trace_boundary_island_chain_sections_span_field",
     "trace_boundary_island_chain_dense_span_field",
     "trace_poincare_sections_from_same_orbits_field",
-    "trace_fixed_point_cycle_span_field",
-    "trace_fixed_point_cycle_sections_span_field",
-    "trace_fixed_point_cycle_dense_span_field",
-    "trace_fixed_point_cycles_span_field",
+    "trace_fixed_point_orbit_span_field",
+    "trace_fixed_point_orbit_sections_span_field",
+    "trace_fixed_point_orbit_dense_span_field",
+    "trace_fixed_point_orbits_span_field",
     "trace_fixed_point_manifolds_field",
     "trace_fixed_point_manifolds_multi_section_field",
 ]

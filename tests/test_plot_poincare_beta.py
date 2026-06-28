@@ -5,9 +5,9 @@ import numpy as np
 from pyna.plot import (
     apply_section_limits,
     create_section_grid,
-    cycles_for_section,
+    orbits_for_section,
     draw_axis_point,
-    draw_cycle_points,
+    draw_orbit_points,
     draw_manifold_lines,
     draw_manifold_origins,
     draw_manifold_points,
@@ -23,7 +23,7 @@ from pyna.plot import (
     trim_compact_tick_labels,
 )
 from pyna.topo.toroidal import FixedPoint
-from pyna.toroidal.flt import BoundaryIslandCycle
+from pyna.toroidal.flt import BoundaryIslandOrbit
 
 
 def test_plot_poincare_beta_grid_smoke(tmp_path):
@@ -66,26 +66,26 @@ class _Background:
         )
 
 
-def _section_cycle(phi, cycle_id):
+def _section_orbit(phi, orbit_id):
     pts = []
     for i, z in enumerate((-0.02, 0.02)):
         fp = FixedPoint(phi=float(phi), R=1.1 + 0.01 * i, Z=z, kind="X", DPm=np.eye(2))
         fp.metadata.update({
-            "same_cycle_key": f"chain=0:cycle={cycle_id}:kind=X",
+            "same_orbit_key": f"chain=0:orbit={orbit_id}:kind=X",
             "map_order_index": i,
             "orbit_point_index": i,
         })
         pts.append(fp)
-    return BoundaryIslandCycle(
+    return BoundaryIslandOrbit(
         points=tuple(pts),
-        cycle_orbit_size=2,
+        orbit_size=2,
         kind="X",
         map_span=np.pi,
-        cycle_id=cycle_id,
+        orbit_id=orbit_id,
         chain_id=0,
         closure_residual=1.0e-9,
         alive=True,
-        metadata={"same_cycle_key": f"chain=0:cycle={cycle_id}:kind=X"},
+        metadata={"same_orbit_key": f"chain=0:orbit={orbit_id}:kind=X"},
     )
 
 
@@ -93,7 +93,7 @@ def test_plot_boundary_island_sections_compact_shared_axes(tmp_path):
     phi_sections = [0.0, 0.5 * np.pi, np.pi, 1.5 * np.pi]
     theta = np.linspace(0.0, 2.0 * np.pi, 48, endpoint=False)
     walls = [(1.0 + 0.2 * np.cos(theta), 0.2 * np.sin(theta)) for _ in phi_sections]
-    cycles = {float(phi): [_section_cycle(phi, 4)] for phi in phi_sections}
+    orbits = {float(phi): [_section_orbit(phi, 4)] for phi in phi_sections}
     manifolds = [
         [{
             "u_R": np.asarray([1.05, 1.08, 1.12]),
@@ -110,7 +110,7 @@ def test_plot_boundary_island_sections_compact_shared_axes(tmp_path):
     fig, axes = plot_boundary_island_sections(
         phi_sections,
         background=_Background(),
-        section_cycles=cycles,
+        section_orbits=orbits,
         manifolds_by_section=manifolds,
         walls=walls,
         axis_by_section=[(1.0, 0.0)] * 4,
@@ -118,7 +118,7 @@ def test_plot_boundary_island_sections_compact_shared_axes(tmp_path):
         compact=True,
         share_axes=True,
         aspect_ratio=1.0,
-        label_cycle_ids=True,
+        label_orbit_ids=True,
     )
 
     assert out.exists()
@@ -131,7 +131,7 @@ def test_section_geometry_primitives_compose_core_and_edge_plot(tmp_path):
     phi_sections = [0.0, 0.5 * np.pi]
     theta = np.linspace(0.0, 2.0 * np.pi, 32, endpoint=False)
     walls = [(1.0 + 0.25 * np.cos(theta), 0.25 * np.sin(theta)) for _ in phi_sections]
-    cycles = {float(phi): [_section_cycle(phi, 2)] for phi in phi_sections}
+    orbits = {float(phi): [_section_orbit(phi, 2)] for phi in phi_sections}
     manifolds = {
         float(phi): [{
             "u_R": np.asarray([1.07, 1.12, 1.16]),
@@ -144,16 +144,16 @@ def test_section_geometry_primitives_compose_core_and_edge_plot(tmp_path):
             "s_generation": np.asarray([0, 1, 2]),
             "origin_R": 1.10,
             "origin_Z": 0.0,
-            "cycle_id": 2,
+            "orbit_id": 2,
             "map_order_index": 1,
-            "same_cycle_key": "chain=0:cycle=2:kind=X",
+            "same_orbit_key": "chain=0:orbit=2:kind=X",
         }]
         for phi in phi_sections
     }
     limits = section_data_limits(
         section_phis=phi_sections,
         background=_Background(),
-        section_cycles=cycles,
+        section_orbits=orbits,
         manifolds_by_section=manifolds,
         walls=walls,
     )
@@ -179,12 +179,12 @@ def test_section_geometry_primitives_compose_core_and_edge_plot(tmp_path):
             vmax=vmax,
             max_generation=2,
         )
-        assert draw_cycle_points(
+        assert draw_orbit_points(
             ax,
-            cycles_for_section(cycles, phi, idx),
+            orbits_for_section(orbits, phi, idx),
             identity_to_color=identity_to_color,
-            label_cycle_ids=True,
-            label_template="{cycle_id}:P{index}",
+            label_orbit_ids=True,
+            label_template="{orbit_id}:P{index}",
         )
         assert draw_manifold_origins(
             ax,

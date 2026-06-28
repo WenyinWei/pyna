@@ -9,9 +9,9 @@ import numpy as np
 from pyna.plot.section_geometry import (
     apply_section_limits,
     create_section_grid,
-    cycles_for_section,
+    orbits_for_section,
     draw_axis_point,
-    draw_cycle_points,
+    draw_orbit_points,
     draw_manifold_points,
     draw_poincare_background,
     draw_wall_section,
@@ -28,7 +28,7 @@ def plot_boundary_island_sections(
     section_phis: Sequence[float],
     *,
     background=None,
-    section_cycles=None,
+    section_orbits=None,
     manifolds_by_section=None,
     walls: Sequence[tuple[Sequence[float], Sequence[float]]] | None = None,
     axis_by_section: Sequence[tuple[float, float]] | None = None,
@@ -41,8 +41,8 @@ def plot_boundary_island_sections(
     aspect_ratio: float = 1.0,
     point_size: float = 4.0,
     point_alpha: float = 0.30,
-    cycle_marker_size: float = 76.0,
-    label_cycle_ids: bool = False,
+    orbit_marker_size: float = 76.0,
+    label_orbit_ids: bool = False,
     manifold_size: float = 5.0,
     manifold_alpha: float = 0.78,
     manifold_cmap: str = "viridis",
@@ -54,7 +54,7 @@ def plot_boundary_island_sections(
 
     This wrapper is intentionally thin.  Callers that need a different plot
     composition can use the primitives in :mod:`pyna.plot.section_geometry`
-    directly for core surfaces, edge traces, wall overlays, fixed-point cycles,
+    directly for core surfaces, edge traces, wall overlays, fixed-point orbits,
     and stable/unstable manifolds.
     """
 
@@ -71,7 +71,7 @@ def plot_boundary_island_sections(
         limits = section_data_limits(
             section_phis=phi,
             background=background,
-            section_cycles=section_cycles,
+            section_orbits=section_orbits,
             manifolds_by_section=manifolds_by_section,
             walls=walls,
             pad_fraction=pad_fraction,
@@ -119,12 +119,12 @@ def plot_boundary_island_sections(
             vmax=manifold_vmax,
         )
 
-        draw_cycle_points(
+        draw_orbit_points(
             ax,
-            cycles_for_section(section_cycles, section_phi, flat_idx),
+            orbits_for_section(section_orbits, section_phi, flat_idx),
             identity_to_color=identity_to_color,
-            marker_size=cycle_marker_size,
-            label_cycle_ids=label_cycle_ids,
+            marker_size=orbit_marker_size,
+            label_orbit_ids=label_orbit_ids,
         )
 
         if axis_by_section is not None:
