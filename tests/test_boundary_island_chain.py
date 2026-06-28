@@ -10,6 +10,7 @@ from pyna.toroidal.flt import (
     boundary_recurrence_seed_candidates_field,
     boundary_seed_grid,
     boundary_wall_fractions,
+    deduplicate_boundary_island_cycles,
     vector_field_cylind_from_field,
     find_boundary_island_fixed_points_field,
     trace_map_batch_span_field,
@@ -179,6 +180,31 @@ def test_boundary_chain_assembly_deduplicates_cycles_and_pairs_xo():
     assert sorted(fp.metadata["point_index"] for fp in chain.o_cycles[0].points) == [0, 1, 2]
 
 
+def test_deduplicate_boundary_island_cycles_assigns_cross_section_identity():
+    coords = [(1.00, 0.00), (0.20, 0.30), (0.20, -0.30)]
+    shifted = [coords[1], coords[2], coords[0]]
+
+    cycles = deduplicate_boundary_island_cycles(
+        [
+            _cycle_from_coords(coords, kind="X", source_index=0),
+            _cycle_from_coords(shifted, kind="X", source_index=1),
+        ],
+        cycle_dedup_tol=1.0e-8,
+        start_cycle_id=7,
+        chain_id=3,
+        winding=(3, 1),
+        reduced_winding=(3, 1),
+    )
+
+    assert len(cycles) == 1
+    cycle = cycles[0]
+    assert cycle.cycle_id == 7
+    assert cycle.chain_id == 3
+    assert cycle.metadata["same_cycle_key"] == "chain=3:cycle=7:kind=X"
+    assert {fp.metadata["same_cycle_key"] for fp in cycle.points} == {"chain=3:cycle=7:kind=X"}
+    assert sorted(fp.metadata["point_index"] for fp in cycle.points) == [0, 1, 2]
+
+
 def test_trace_fixed_point_cycles_span_field_uses_batch_outputs(monkeypatch):
     calls = []
 
@@ -210,6 +236,23 @@ def test_trace_fixed_point_cycles_span_field_uses_batch_outputs(monkeypatch):
     assert cycles[0].closure_residual == pytest.approx(0.0)
     assert cycles[0].alive is True
     assert cycles[0].points[1].metadata["map_span"] == pytest.approx(np.pi)
+
+    calls.clear()
+    cycles_unique = trace_fixed_point_cycles_span_field(
+        object(),
+        [fp0, _cycle_fp(0.0, 1.0, 0.0, "O", 3)],
+        map_span=np.pi,
+        DPhi=0.1,
+        deduplicate=True,
+        start_cycle_id=5,
+        chain_id=2,
+        winding=(3, 1),
+        reduced_winding=(3, 1),
+    )
+    assert len(cycles_unique) == 1
+    assert len(calls) == 1
+    assert cycles_unique[0].cycle_id == 5
+    assert cycles_unique[0].metadata["same_cycle_key"] == "chain=2:cycle=5:kind=O"
 
 
 def test_trace_poincare_sections_from_same_orbits_uses_multi_trace(monkeypatch):
@@ -824,6 +867,23 @@ def test_trace_fixed_point_manifolds_returns_plot_payload():
     assert man["s_R"].size > 0
     assert np.all(np.isfinite(man["u_R"]))
     assert np.all(np.isfinite(man["s_Z"]))
+
+    manifolds_with_s = trace_fixed_point_manifolds_field(
+        field,
+        result.fp_by_sec[0.0]["xpts"],
+        phi_section=0.0,
+        N_turns=4,
+        DPhi=0.02,
+        eps_min=1.0e-4,
+        eps_max=3.0e-4,
+        n_eps=3,
+        include_arclength=True,
+    )
+    man_s = manifolds_with_s[0]
+    assert man_s["arclength_coordinate"] == "poloidal_RZ_from_xpoint"
+    assert man_s["u_lpol"].shape == man_s["u_R"].shape
+    assert man_s["s_lpol"].shape == man_s["s_R"].shape
+    assert np.all(man_s["u_lpol"] >= 0.0)
 
 
 def test_boundary_island_shape_payload_uses_traced_curves():

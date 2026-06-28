@@ -3,6 +3,10 @@ import pytest
 
 from pyna.fields import VectorFieldCylind
 from pyna.toroidal.flt import (
+    ToroidalWallTraceData,
+    connection_length_views_from_wall_hits,
+    normalize_connection_length_view,
+    trace_toroidal_wall_data_field,
     trace_fieldline_trajectory,
     trace_fieldline_trajectory_bidirectional,
     trace_orbit_along_phi_field,
@@ -168,6 +172,94 @@ def test_toroidal_wall_hits_and_strike_line_object_api():
     )
     np.testing.assert_array_equal(strike["seed_index"], np.array([0]))
     np.testing.assert_allclose(strike["R"], np.array([1.2]), atol=2.0e-3)
+
+
+def test_wall_trace_post_compute_views_and_cache(tmp_path, monkeypatch):
+    wall_hits = {
+        "Lc_plus": np.asarray([1.0, 2.0]),
+        "Lc_minus": np.asarray([3.0, 0.5]),
+        "hit_plus": np.asarray([[1.2, 0.0, 0.1], [1.1, 0.0, 0.2]]),
+        "hit_minus": np.asarray([[0.8, 0.0, -0.1], [0.9, 0.0, -0.2]]),
+        "term_plus": np.asarray([1, 2]),
+        "term_minus": np.asarray([1, 1]),
+    }
+
+    views = connection_length_views_from_wall_hits(wall_hits, ("forward", "backward", "total", "max"))
+    np.testing.assert_allclose(views["Lc_plus"], [1.0, 2.0])
+    np.testing.assert_allclose(views["Lc_minus"], [3.0, 0.5])
+    np.testing.assert_allclose(views["Lc_sum"], [4.0, 2.5])
+    np.testing.assert_allclose(views["Lc_max"], [3.0, 2.0])
+    assert normalize_connection_length_view("Lc+") == "Lc_plus"
+
+    data = ToroidalWallTraceData(
+        seed_R=np.asarray([1.0, 1.1]),
+        seed_Z=np.asarray([0.0, 0.0]),
+        phi_start=0.0,
+        max_turns=2,
+        DPhi=0.01,
+        wall_hits=wall_hits,
+        metadata={"case": "synthetic"},
+    )
+    cache = tmp_path / "wall_trace.npz"
+    data.save_npz(cache)
+    loaded = ToroidalWallTraceData.load_npz(cache)
+    np.testing.assert_allclose(loaded.view("max"), [3.0, 2.0])
+    views_cache = tmp_path / "wall_trace_views.npz"
+    saved_views = loaded.save_views_npz(views_cache, ("forward", "total"))
+    assert views_cache.exists()
+    np.testing.assert_allclose(saved_views["Lc_sum"], [4.0, 2.5])
+    strike = loaded.strike(direction="-")
+    np.testing.assert_allclose(strike["R"], [0.8, 0.9])
+    assert loaded.metadata["case"] == "synthetic"
+
+    calls = []
+
+    def fake_trace(*args, **kwargs):
+        calls.append((args, kwargs))
+        return wall_hits
+
+    monkeypatch.setattr("pyna.toroidal.flt.postcompute.trace_wall_hits_twall_field", fake_trace)
+    cache2 = tmp_path / "wall_trace_from_field.npz"
+    traced = trace_toroidal_wall_data_field(
+        object(),
+        [1.0, 1.1],
+        [0.0, 0.0],
+        0.0,
+        2,
+        0.01,
+        [0.0],
+        [[1.2]],
+        [[0.0]],
+        cache_path=cache2,
+    )
+    cached = trace_toroidal_wall_data_field(
+        object(),
+        [1.0, 1.1],
+        [0.0, 0.0],
+        0.0,
+        2,
+        0.01,
+        [0.0],
+        [[1.2]],
+        [[0.0]],
+        cache_path=cache2,
+    )
+    assert len(calls) == 1
+    np.testing.assert_allclose(traced.view("total"), cached.view("total"))
+
+    with pytest.raises(ValueError, match="does not match requested inputs"):
+        trace_toroidal_wall_data_field(
+            object(),
+            [1.0, 1.2],
+            [0.0, 0.0],
+            0.0,
+            2,
+            0.01,
+            [0.0],
+            [[1.2]],
+            [[0.0]],
+            cache_path=cache2,
+        )
 
 
 def test_toroidal_wall_period_wraps_for_field_period_wall():

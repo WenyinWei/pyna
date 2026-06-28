@@ -639,6 +639,50 @@ def _deduplicate_cycles(
     return tuple(sorted(kept, key=lambda c: (int(c.period), str(c.kind).upper(), _cycle_sort_angle(c))))
 
 
+def deduplicate_boundary_island_cycles(
+    cycles: Sequence[BoundaryIslandCycle],
+    *,
+    cycle_dedup_tol: float = 5.0e-4,
+    start_cycle_id: int = 0,
+    chain_id: int | None = None,
+    winding: tuple[int, int] | None = None,
+    reduced_winding: tuple[int, int] | None = None,
+) -> tuple[BoundaryIslandCycle, ...]:
+    """Deduplicate equivalent fixed-point cycles and assign stable IDs.
+
+    The equivalence test is phase-invariant along the map orbit: cycles with
+    the same ordered point set but different starting fixed points are treated
+    as one physical cycle.  Returned cycles are annotated with ``cycle_id`` and
+    their points carry matching ``cycle_id``, ``point_index`` and
+    ``same_cycle_key`` metadata so section cuts can be identified across plots.
+    """
+
+    unique = _deduplicate_cycles(cycles, tol=float(cycle_dedup_tol))
+    annotated: list[BoundaryIslandCycle] = []
+    for offset, cycle in enumerate(unique):
+        cycle_id = int(start_cycle_id) + offset
+        annotated_cycle = _annotate_cycle(
+            cycle,
+            cycle_id=cycle_id,
+            chain_id=chain_id,
+            winding=winding,
+            reduced_winding=reduced_winding,
+        )
+        same_cycle_key = f"chain={chain_id if chain_id is not None else 'none'}:cycle={cycle_id}:kind={annotated_cycle.kind}"
+        points = []
+        for fp in annotated_cycle.points:
+            fp.metadata["same_cycle_key"] = same_cycle_key
+            fp.metadata["cycle_point_key"] = f"{same_cycle_key}:point={fp.metadata.get('point_index')}"
+            points.append(fp)
+        metadata = dict(annotated_cycle.metadata)
+        metadata.update({
+            "same_cycle_key": same_cycle_key,
+            "cycle_dedup_tol": float(cycle_dedup_tol),
+        })
+        annotated.append(replace(annotated_cycle, points=tuple(points), metadata=metadata))
+    return tuple(annotated)
+
+
 def _cycle_source_phi(cycle: BoundaryIslandCycle) -> float:
     if "section_phi" in cycle.metadata:
         return float(cycle.metadata["section_phi"])
@@ -900,6 +944,12 @@ def _clone_section_cycle(
             "orbit_point_index": int(point_index),
             "section_local_index": int(local_i),
         })
+        same_cycle_key = fp.metadata.get("same_cycle_key")
+        if same_cycle_key is not None:
+            fp.metadata["cycle_section_key"] = f"{same_cycle_key}:section={int(section_index)}"
+            fp.metadata["cycle_section_point_key"] = (
+                f"{same_cycle_key}:section={int(section_index)}:point={int(point_index)}"
+            )
         points.append(fp)
     metadata = dict(cycle.metadata)
     metadata.update({
@@ -927,12 +977,20 @@ def trace_fixed_point_cycles_span_field(
     wall_Z: Sequence[float] | None = None,
     extend_phi: bool = True,
     n_threads: int = -1,
+    deduplicate: bool = False,
+    cycle_dedup_tol: float = 5.0e-4,
+    start_cycle_id: int = 0,
+    chain_id: int | None = None,
+    winding: tuple[int, int] | None = None,
+    reduced_winding: tuple[int, int] | None = None,
 ) -> tuple[BoundaryIslandCycle, ...]:
     """Trace ordered cycles from converged fixed points using ``P_span``.
 
     This is a batch wrapper around the existing cyna arbitrary-span map tracer.
     For each source point it stores the m distinct cycle points and summarizes
-    the closing endpoint with ``closure_residual``.
+    the closing endpoint with ``closure_residual``.  Set ``deduplicate=True``
+    to collapse equivalent cycles from different seeds and attach stable
+    same-cycle metadata for cross-section plotting.
     """
 
     if not np.isfinite(float(map_span)) or abs(float(map_span)) <= 1.0e-14:
@@ -1014,7 +1072,17 @@ def trace_fixed_point_cycles_span_field(
                     "source_phi": float(phi0[local_index]),
                 },
             ))
-    return tuple(cycles)
+    raw_cycles = tuple(cycles)
+    if not deduplicate:
+        return raw_cycles
+    return deduplicate_boundary_island_cycles(
+        raw_cycles,
+        cycle_dedup_tol=float(cycle_dedup_tol),
+        start_cycle_id=int(start_cycle_id),
+        chain_id=chain_id,
+        winding=winding,
+        reduced_winding=reduced_winding,
+    )
 
 
 def trace_fixed_point_cycle_span_field(
@@ -3160,6 +3228,7 @@ def trace_fixed_point_manifolds_field(
     wall_R_all: np.ndarray | None = None,
     wall_Z_all: np.ndarray | None = None,
     RZlimit: tuple[float, float, float, float] | None = None,
+    include_arclength: bool = False,
     extend_phi: bool = True,
 ) -> list[dict[str, np.ndarray]]:
     """Trace W^u/W^s point clouds from hyperbolic fixed points.
@@ -3181,16 +3250,40 @@ def trace_fixed_point_manifolds_field(
     if distances.size == 0:
         raise ValueError("seed_distances must contain positive finite values")
 
-    def _flatten(traces: list[tuple[np.ndarray, np.ndarray]]) -> tuple[np.ndarray, np.ndarray]:
+    def _flatten(
+        traces: list[tuple[np.ndarray, np.ndarray]],
+        *,
+        origin_R: float,
+        origin_Z: float,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         if not traces:
-            return np.empty(0, dtype=float), np.empty(0, dtype=float)
-        R_arr = np.concatenate([np.asarray(R, dtype=float).ravel() for R, _Z in traces])
-        Z_arr = np.concatenate([np.asarray(Z, dtype=float).ravel() for _R, Z in traces])
+            empty = np.empty(0, dtype=float)
+            return empty, empty, empty
+        R_parts: list[np.ndarray] = []
+        Z_parts: list[np.ndarray] = []
+        s_parts: list[np.ndarray] = []
+        for R, Z in traces:
+            R_trace = np.asarray(R, dtype=float).ravel()
+            Z_trace = np.asarray(Z, dtype=float).ravel()
+            if R_trace.size == 0:
+                continue
+            dR = np.diff(np.concatenate([[float(origin_R)], R_trace]))
+            dZ = np.diff(np.concatenate([[float(origin_Z)], Z_trace]))
+            s_trace = np.cumsum(np.hypot(dR, dZ))
+            R_parts.append(R_trace)
+            Z_parts.append(Z_trace)
+            s_parts.append(s_trace)
+        if not R_parts:
+            empty = np.empty(0, dtype=float)
+            return empty, empty, empty
+        R_arr = np.concatenate(R_parts)
+        Z_arr = np.concatenate(Z_parts)
+        s_arr = np.concatenate(s_parts)
         finite = np.isfinite(R_arr) & np.isfinite(Z_arr)
         if RZlimit is not None:
             r_min, r_max, z_min, z_max = map(float, RZlimit)
             finite &= (R_arr >= r_min) & (R_arr <= r_max) & (Z_arr >= z_min) & (Z_arr <= z_max)
-        return R_arr[finite], Z_arr[finite]
+        return R_arr[finite], Z_arr[finite], s_arr[finite]
 
     manifolds: list[dict[str, np.ndarray]] = []
     for fp in fixed_points:
@@ -3278,14 +3371,21 @@ def trace_fixed_point_manifolds_field(
                 extend_phi=extend_phi,
                 fd_eps=fd_eps,
             )
-        u_R, u_Z = _flatten(u_traces)
-        s_R, s_Z = _flatten(s_traces)
-        manifolds.append({
+        u_R, u_Z, u_lpol = _flatten(u_traces, origin_R=R0, origin_Z=Z0)
+        s_R, s_Z, s_lpol = _flatten(s_traces, origin_R=R0, origin_Z=Z0)
+        payload = {
             "u_R": u_R,
             "u_Z": u_Z,
             "s_R": s_R,
             "s_Z": s_Z,
-        })
+        }
+        if include_arclength:
+            payload.update({
+                "u_lpol": u_lpol,
+                "s_lpol": s_lpol,
+                "arclength_coordinate": "poloidal_RZ_from_xpoint",
+            })
+        manifolds.append(payload)
     return manifolds
 
 
@@ -3378,6 +3478,7 @@ __all__ = [
     "boundary_recurrence_seed_candidates_field",
     "boundary_seed_grid",
     "boundary_wall_fractions",
+    "deduplicate_boundary_island_cycles",
     "fixed_points_by_section_payload",
     "find_boundary_island_fixed_points_field",
     "find_boundary_island_fixed_points_multi_section_field",
