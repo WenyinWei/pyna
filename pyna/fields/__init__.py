@@ -18,6 +18,7 @@ from pyna.fields.cylindrical import (
     as_scalar_field_cylind,
     as_vector_field_cylindrical,
     as_vector_field_cylind,
+    validate_phi_grid,
 )
 from pyna.fields.diff_ops import (
     gradient,
@@ -71,6 +72,7 @@ __all__ = [
     "Equilibrium", "EquilibriumLike",
     "as_scalar_field_cylindrical", "as_scalar_field_cylind",
     "as_vector_field_cylindrical", "as_vector_field_cylind",
+    "validate_phi_grid",
     "compute_J_by_curl", "MU0",
     "gradient", "divergence", "curl", "laplacian",
     "hessian", "jacobian_field", "field_line_curvature",

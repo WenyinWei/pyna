@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import numpy as np
 from pyna.fields.cylindrical import CylindricalFieldArrays, as_vector_field_cylindrical
+from pyna.toroidal.geometry import coerce_toroidal_surface_arrays
 from pyna._cyna import (
     is_available as _cyna_available,
     VectorFieldCylind as _cyna_VectorFieldCylind,
@@ -426,8 +427,8 @@ def trace_poincare_batch_twall_field(
     N_turns,
     DPhi,
     wall_phi,
-    wall_R_all,
-    wall_Z_all,
+    wall_R_all=None,
+    wall_Z_all=None,
     *,
     extend_phi: bool = True,
     direction="+",
@@ -435,6 +436,7 @@ def trace_poincare_batch_twall_field(
     """Object-first toroidal-wall Poincare tracing wrapper."""
 
     arrays = field_arrays_from_field(field, extend_phi=extend_phi)
+    wall_phi, wall_R_all, wall_Z_all = coerce_toroidal_surface_arrays(wall_phi, wall_R_all, wall_Z_all)
     return trace_poincare_batch_twall(
         R_seeds,
         Z_seeds,
@@ -494,14 +496,15 @@ def trace_poincare_bidirectional_batch_twall_field(
     N_turns,
     DPhi,
     wall_phi,
-    wall_R_all,
-    wall_Z_all,
+    wall_R_all=None,
+    wall_Z_all=None,
     *,
     extend_phi: bool = True,
 ):
     """Object-first bidirectional toroidal-wall Poincaré wrapper."""
 
     arrays = field_arrays_from_field(field, extend_phi=extend_phi)
+    wall_phi, wall_R_all, wall_Z_all = coerce_toroidal_surface_arrays(wall_phi, wall_R_all, wall_Z_all)
     return trace_poincare_bidirectional_batch_twall(
         R_seeds,
         Z_seeds,
@@ -578,8 +581,8 @@ def trace_connection_length_twall_field(
     max_turns,
     DPhi,
     wall_phi,
-    wall_R_all,
-    wall_Z_all,
+    wall_R_all=None,
+    wall_Z_all=None,
     *,
     extend_phi: bool = True,
     direction="both",
@@ -587,6 +590,7 @@ def trace_connection_length_twall_field(
     """Object-first wrapper for toroidal-wall connection lengths."""
 
     arrays = field_arrays_from_field(field, extend_phi=extend_phi)
+    wall_phi, wall_R_all, wall_Z_all = coerce_toroidal_surface_arrays(wall_phi, wall_R_all, wall_Z_all)
     return trace_connection_length_twall(
         R_seeds,
         Z_seeds,
@@ -686,8 +690,8 @@ def trace_wall_hits_twall_field(
     max_turns,
     DPhi,
     wall_phi,
-    wall_R_all,
-    wall_Z_all,
+    wall_R_all=None,
+    wall_Z_all=None,
     *,
     extend_phi: bool = True,
     direction="both",
@@ -695,6 +699,7 @@ def trace_wall_hits_twall_field(
     """Object-first wrapper for toroidal-wall hit tracing."""
 
     arrays = field_arrays_from_field(field, extend_phi=extend_phi)
+    wall_phi, wall_R_all, wall_Z_all = coerce_toroidal_surface_arrays(wall_phi, wall_R_all, wall_Z_all)
     return trace_wall_hits_twall(
         R_seeds,
         Z_seeds,
@@ -784,8 +789,8 @@ def trace_strike_line_twall_field(
     max_turns,
     DPhi,
     wall_phi,
-    wall_R_all,
-    wall_Z_all,
+    wall_R_all=None,
+    wall_Z_all=None,
     *,
     extend_phi: bool = True,
     direction="+",
@@ -793,6 +798,7 @@ def trace_strike_line_twall_field(
     """Object-first wrapper for strike-line tracing from an ordered seed bundle."""
 
     arrays = field_arrays_from_field(field, extend_phi=extend_phi)
+    wall_phi, wall_R_all, wall_Z_all = coerce_toroidal_surface_arrays(wall_phi, wall_R_all, wall_Z_all)
     return trace_strike_line_twall(
         R_seeds,
         Z_seeds,
@@ -1608,8 +1614,8 @@ def trace_poincare_dpk_growth_twall_field(
     max_returns,
     DPhi,
     wall_phi,
-    wall_R_all,
-    wall_Z_all,
+    wall_R_all=None,
+    wall_Z_all=None,
     *,
     extend_phi: bool = True,
     return_period: float = 2.0 * np.pi,
@@ -1619,6 +1625,7 @@ def trace_poincare_dpk_growth_twall_field(
     """Object-first wrapper for wall-aware cumulative Poincare ``DP^k``."""
 
     arrays = field_arrays_from_field(field, extend_phi=extend_phi)
+    wall_phi, wall_R_all, wall_Z_all = coerce_toroidal_surface_arrays(wall_phi, wall_R_all, wall_Z_all)
     return trace_poincare_dpk_growth_twall(
         R0,
         Z0,

@@ -27,6 +27,7 @@ from pyna.fields import (
     as_scalar_field_cylind,
     as_vector_field_cylindrical,
     as_vector_field_cylind,
+    validate_phi_grid,
 )
 from pyna.topo import classical_maps
 from pyna.io import poincare_io
@@ -63,6 +64,7 @@ __all__ = [
     "as_scalar_field_cylind",
     "as_vector_field_cylindrical",
     "as_vector_field_cylind",
+    "validate_phi_grid",
     "classical_maps",
     "poincare_io",
     "DynamicalSystem",

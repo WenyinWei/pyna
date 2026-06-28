@@ -27,6 +27,7 @@ from pyna.toroidal.flt.numba_poincare import (
     strike_line_from_wall_hits,
     trace_wall_hits_twall_field,
 )
+from pyna.toroidal.geometry import coerce_toroidal_surface_arrays
 
 
 _VIEW_ALIASES = {
@@ -85,8 +86,8 @@ def _wall_trace_cache_signature(
     max_turns: int,
     DPhi: float,
     wall_phi,
-    wall_R_all,
-    wall_Z_all,
+    wall_R_all=None,
+    wall_Z_all=None,
     extend_phi: bool,
 ) -> str:
     payload = {
@@ -238,8 +239,8 @@ def trace_toroidal_wall_data_field(
     max_turns: int,
     DPhi: float,
     wall_phi,
-    wall_R_all,
-    wall_Z_all,
+    wall_R_all=None,
+    wall_Z_all=None,
     *,
     extend_phi: bool = True,
     cache_path: str | Path | None = None,
@@ -249,6 +250,7 @@ def trace_toroidal_wall_data_field(
 ) -> ToroidalWallTraceData:
     """Trace bidirectional toroidal-wall hits once, optionally caching raw data."""
 
+    wall_phi, wall_R_all, wall_Z_all = coerce_toroidal_surface_arrays(wall_phi, wall_R_all, wall_Z_all)
     signature = _wall_trace_cache_signature(
         seed_R=seed_R,
         seed_Z=seed_Z,

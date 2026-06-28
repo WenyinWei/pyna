@@ -47,6 +47,80 @@ def _periodic_endpoint_values_match(values: tuple[np.ndarray, ...]) -> bool:
     return True
 
 
+def _normalize_field_periods(field_periods: int = 1, nfp: int | None = None) -> int:
+    periods = int(field_periods)
+    if nfp is not None:
+        nfp_i = int(nfp)
+        if nfp_i < 1:
+            raise ValueError("nfp must be a positive integer")
+        if periods not in (1, nfp_i):
+            raise ValueError("field_periods and nfp disagree")
+        periods = nfp_i
+    if periods < 1:
+        raise ValueError("field_periods must be a positive integer")
+    return periods
+
+
+def validate_phi_grid(
+    phi: np.ndarray,
+    *,
+    nfp: int = 1,
+    name: str = "Phi",
+    allow_single: bool = True,
+) -> np.ndarray:
+    """Validate and return a cylindrical toroidal-angle grid.
+
+    The grid is expected to be one-dimensional, finite, and strictly
+    increasing.  For ``nfp > 1`` it must describe one field period, because
+    field evaluation wraps query angles modulo ``2*pi/nfp``.
+    """
+
+    phi_arr = np.asarray(phi, dtype=np.float64)
+    if phi_arr.ndim != 1:
+        raise ValueError(f"{name} must be one-dimensional")
+    if phi_arr.size == 0:
+        raise ValueError(f"{name} must not be empty")
+    if phi_arr.size == 1:
+        if not allow_single:
+            raise ValueError(f"{name} must contain at least two points")
+        if not np.isfinite(phi_arr[0]):
+            raise ValueError(f"{name} must contain only finite values")
+        return np.ascontiguousarray(phi_arr, dtype=np.float64)
+    if not np.all(np.isfinite(phi_arr)):
+        raise ValueError(f"{name} must contain only finite values")
+    dphi = np.diff(phi_arr)
+    if np.any(dphi <= 0.0):
+        raise ValueError(f"{name} must be strictly increasing")
+    nfp_i = _normalize_field_periods(nfp)
+    if nfp_i > 1:
+        period = 2.0 * np.pi / nfp_i
+        tol = max(1.0e-10, 1.0e-10 * abs(period))
+        if phi_arr[0] < -tol or phi_arr[-1] > period + tol:
+            raise ValueError(
+                f"{name} for nfp={nfp_i} must lie within one field period [0, 2*pi/nfp]"
+            )
+        if (phi_arr[-1] - phi_arr[0]) > period + tol:
+            raise ValueError(f"{name} span exceeds one field period for nfp={nfp_i}")
+    return np.ascontiguousarray(phi_arr, dtype=np.float64)
+
+
+def _validate_closed_periodic_endpoint(
+    phi: np.ndarray,
+    values: tuple[np.ndarray, ...],
+    *,
+    nfp: int,
+    name: str,
+) -> None:
+    if phi.size < 2:
+        return
+    period = 2.0 * np.pi / max(int(nfp), 1)
+    tol = max(1.0e-10, 1.0e-10 * abs(period))
+    if abs(float(phi[-1] - phi[0]) - period) > tol:
+        return
+    if not _periodic_endpoint_values_match(values):
+        raise ValueError(f"{name} has a closed periodic Phi endpoint but first/last field slices differ")
+
+
 def close_periodic_phi_grid(
     phi: np.ndarray,
     *values: np.ndarray,
@@ -224,6 +298,7 @@ class ScalarFieldCylind(ScalarField3D):
         Phi: np.ndarray,
         value: np.ndarray,
         field_periods: int = 1,
+        nfp: int | None = None,
         name: str = "",
         units: str = "",
         properties: FieldProperty = FieldProperty.NONE,
@@ -232,13 +307,15 @@ class ScalarFieldCylind(ScalarField3D):
     ) -> None:
         super().__init__(properties=properties, name=name, units=units,
                          coords=_CylCoords3D())
+        field_periods = _normalize_field_periods(field_periods, nfp)
         R_arr = np.asarray(R, dtype=np.float64)
         Z_arr = np.asarray(Z, dtype=np.float64)
-        Phi_arr = np.asarray(Phi, dtype=np.float64)
+        Phi_arr = validate_phi_grid(Phi, nfp=field_periods)
         value_arr = np.asarray(value, dtype=np.float64)
         shape = (len(R_arr), len(Z_arr), len(Phi_arr))
         if value_arr.shape != shape:
             raise ValueError(f"value shape {value_arr.shape} mismatch; expected {shape}")
+        _validate_closed_periodic_endpoint(Phi_arr, (value_arr,), nfp=field_periods, name="ScalarFieldCylind")
         self._R = R_arr
         self._Z = Z_arr
         self._Phi = Phi_arr
@@ -265,6 +342,10 @@ class ScalarFieldCylind(ScalarField3D):
     def value(self) -> np.ndarray: return self._value
     @property
     def B(self) -> np.ndarray: return self._value
+    @property
+    def nfp(self) -> int: return int(self.field_periods)
+    @property
+    def field_period(self) -> float: return 2.0 * np.pi / max(int(self.field_periods), 1)
 
     def _build_interp(self):
         if self._interp is None:
@@ -307,7 +388,7 @@ class ScalarFieldCylind(ScalarField3D):
     def from_npz(cls, path: str) -> "ScalarFieldCylind":
         d = np.load(path, allow_pickle=True)
         return cls(R=d['R'], Z=d['Z'], Phi=d['Phi'], value=d['value'],
-                   field_periods=int(d.get('field_periods', 1)),
+                   field_periods=int(d.get('field_periods', d.get('nfp', 1))),
                    name=str(d.get('name', '')), units=str(d.get('units', '')))
 
     @property
@@ -402,6 +483,9 @@ class VectorFieldCylind(VectorField3D):
     VR, VZ, VPhi or BR, BZ, BPhi : ndarray
         Vector components in canonical ``R, Z, Phi`` order.
     field_periods : int
+    nfp : int, optional
+        Alias for ``field_periods``.  If ``nfp > 1``, ``Phi`` must cover one
+        field period, not a full torus.
     name, units : str
     properties : FieldProperty
     """
@@ -445,6 +529,7 @@ class VectorFieldCylind(VectorField3D):
         phi: float = 0.0,
         label: Optional[str] = None,
         field_periods: int = 1,
+        nfp: int | None = None,
         name: str = "",
         units: str = "",
         properties: FieldProperty = FieldProperty.NONE,
@@ -465,6 +550,7 @@ class VectorFieldCylind(VectorField3D):
             BPhi = VPhi
         if BR is None or BZ is None or BPhi is None:
             raise TypeError("VectorFieldCylind requires BR, BZ, BPhi components")
+        field_periods = _normalize_field_periods(field_periods, nfp)
 
         BR_arr = np.asarray(BR, dtype=float)
         BZ_arr = np.asarray(BZ, dtype=float)
@@ -477,7 +563,7 @@ class VectorFieldCylind(VectorField3D):
 
         if BR_arr.ndim == 2:
             section = True if section_mode is None else bool(section_mode)
-            Phi_arr = np.asarray([phi] if Phi is None else Phi, dtype=float)
+            Phi_arr = validate_phi_grid([phi] if Phi is None else Phi, nfp=field_periods)
             if Phi_arr.size != 1:
                 raise ValueError("2-D VectorFieldCylind sections require exactly one Phi value")
             BR_3d = BR_arr[:, :, np.newaxis]
@@ -489,10 +575,10 @@ class VectorFieldCylind(VectorField3D):
                 if BR_arr.shape[2] == 1:
                     Phi_arr = np.asarray([phi], dtype=float)
                 else:
-                    period = 2.0 * np.pi / max(int(field_periods), 1)
+                    period = 2.0 * np.pi / field_periods
                     Phi_arr = np.linspace(0.0, period, BR_arr.shape[2], endpoint=False)
             else:
-                Phi_arr = np.asarray(Phi, dtype=float)
+                Phi_arr = validate_phi_grid(Phi, nfp=field_periods)
             if Phi_arr.size != BR_arr.shape[2]:
                 raise ValueError(
                     f"Phi length {Phi_arr.size} does not match component nPhi={BR_arr.shape[2]}"
@@ -520,6 +606,12 @@ class VectorFieldCylind(VectorField3D):
         for arr, nm in [(self._VR, 'VR'), (self._VZ, 'VZ'), (self._VPhi, 'VPhi')]:
             if arr.shape != shape:
                 raise ValueError(f"{nm} shape {arr.shape} != {shape}")
+        _validate_closed_periodic_endpoint(
+            self._Phi,
+            (self._VR, self._VZ, self._VPhi),
+            nfp=self.field_periods,
+            name="VectorFieldCylind",
+        )
         self._shape = shape[:2] if section else shape
         self._nR = int(shape[0])
         self._nZ = int(shape[1])
@@ -545,6 +637,10 @@ class VectorFieldCylind(VectorField3D):
     def is_section(self) -> bool: return self._section_mode
     @property
     def nPhi(self) -> int: return self._nPhi
+    @property
+    def nfp(self) -> int: return int(self.field_periods)
+    @property
+    def field_period(self) -> float: return 2.0 * np.pi / max(int(self.field_periods), 1)
 
     # Both naming conventions
     @property
@@ -704,7 +800,7 @@ class VectorFieldCylind(VectorField3D):
         Phi = cache.get("Phi_grid", cache.get("Phi"))
         if R is None or Z is None or Phi is None:
             raise KeyError("field cache must provide R_grid/Z_grid/Phi_grid or R/Z/Phi")
-        field_periods = int(cache.get("field_periods", 1))
+        field_periods = int(cache.get("field_periods", cache.get("nfp", 1)))
         if phi_idx is None:
             return cls(
                 R=R,
@@ -907,7 +1003,7 @@ class VectorFieldCylind(VectorField3D):
         VZ = d.get('VZ', d.get('BZ'))
         VP = d.get('VPhi', d.get('BPhi'))
         return cls(R=d['R'], Z=d['Z'], Phi=d['Phi'], VR=VR, VZ=VZ, VPhi=VP,
-                   field_periods=int(d.get('field_periods', 1)),
+                   field_periods=int(d.get('field_periods', d.get('nfp', 1))),
                    name=str(d.get('name', '')), units=str(d.get('units', '')))
 
     def __repr__(self) -> str:
@@ -1209,7 +1305,7 @@ def as_vector_field_cylindrical(field_like: Any, *, label: str = "") -> VectorFi
             BR=getattr(field_like, "BR"),
             BZ=getattr(field_like, "BZ"),
             BPhi=getattr(field_like, "BPhi"),
-            field_periods=getattr(field_like, "field_periods", 1),
+            field_periods=getattr(field_like, "field_periods", getattr(field_like, "nfp", 1)),
             label=label or getattr(field_like, "label", "") or getattr(field_like, "name", ""),
         )
 

@@ -181,6 +181,67 @@ def test_vector_field_periodic_endpoint_false_field_period_wraps():
     np.testing.assert_allclose(values[:, 0], [1.0, -1.0], atol=1.0e-6)
 
 
+def test_vector_field_nfp_alias_and_phi_grid_validation():
+    from pyna.fields import VectorFieldCylind, validate_phi_grid
+
+    nfp = 2
+    period = 2.0 * np.pi / nfp
+    R = np.linspace(0.8, 1.2, 3)
+    Z = np.linspace(-0.1, 0.1, 3)
+    Phi = np.linspace(0.0, period, 4, endpoint=False)
+    shape = (len(R), len(Z), len(Phi))
+    field = VectorFieldCylind(
+        R=R,
+        Z=Z,
+        Phi=Phi,
+        BR=np.zeros(shape),
+        BZ=np.zeros(shape),
+        BPhi=np.ones(shape),
+        nfp=nfp,
+    )
+
+    assert field.nfp == nfp
+    assert field.field_periods == nfp
+    assert field.field_period == pytest.approx(period)
+    np.testing.assert_allclose(validate_phi_grid(Phi, nfp=nfp), Phi)
+
+    with pytest.raises(ValueError, match="strictly increasing"):
+        VectorFieldCylind(
+            R=R,
+            Z=Z,
+            Phi=[0.0, 0.2, 0.1],
+            BR=np.zeros((3, 3, 3)),
+            BZ=np.zeros((3, 3, 3)),
+            BPhi=np.ones((3, 3, 3)),
+            nfp=nfp,
+        )
+    with pytest.raises(ValueError, match="within one field period"):
+        VectorFieldCylind(
+            R=R,
+            Z=Z,
+            Phi=np.linspace(0.0, 2.0 * np.pi, 4, endpoint=False),
+            BR=np.zeros((3, 3, 4)),
+            BZ=np.zeros((3, 3, 4)),
+            BPhi=np.ones((3, 3, 4)),
+            nfp=nfp,
+        )
+
+
+def test_vector_field_closed_phi_endpoint_requires_matching_slices():
+    from pyna.fields import VectorFieldCylind
+
+    R = np.linspace(0.8, 1.2, 3)
+    Z = np.linspace(-0.1, 0.1, 3)
+    Phi = np.linspace(0.0, 2.0 * np.pi, 5, endpoint=True)
+    BR = np.zeros((3, 3, 5))
+    BZ = np.zeros_like(BR)
+    BPhi = np.ones_like(BR)
+    BR[:, :, -1] = 1.0
+
+    with pytest.raises(ValueError, match="first/last field slices differ"):
+        VectorFieldCylind(R=R, Z=Z, Phi=Phi, BR=BR, BZ=BZ, BPhi=BPhi)
+
+
 def test_scalar_field_periodic_endpoint_false_field_period_wraps():
     from pyna.fields import ScalarFieldCylind
 

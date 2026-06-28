@@ -2,7 +2,24 @@ from __future__ import annotations
 
 import numpy as np
 
-from pyna.plot import plot_boundary_island_sections, plot_poincare_beta_grid
+from pyna.plot import (
+    apply_section_limits,
+    create_section_grid,
+    cycles_for_section,
+    draw_axis_point,
+    draw_cycle_points,
+    draw_manifold_points,
+    draw_poincare_points,
+    draw_wall_section,
+    format_section_axis,
+    manifold_lpol_max,
+    manifolds_for_section,
+    plot_boundary_island_sections,
+    plot_poincare_beta_grid,
+    save_figure,
+    section_data_limits,
+    trim_compact_tick_labels,
+)
 from pyna.topo.toroidal import FixedPoint
 from pyna.toroidal.flt import BoundaryIslandCycle
 
@@ -105,3 +122,60 @@ def test_plot_boundary_island_sections_compact_shared_axes(tmp_path):
     assert len(fig.axes) == 4
     for ax in axes.ravel():
         assert ax.get_aspect() == 1.0
+
+
+def test_section_geometry_primitives_compose_core_and_edge_plot(tmp_path):
+    phi_sections = [0.0, 0.5 * np.pi]
+    theta = np.linspace(0.0, 2.0 * np.pi, 32, endpoint=False)
+    walls = [(1.0 + 0.25 * np.cos(theta), 0.25 * np.sin(theta)) for _ in phi_sections]
+    cycles = {float(phi): [_section_cycle(phi, 2)] for phi in phi_sections}
+    manifolds = {
+        float(phi): [{
+            "u_R": np.asarray([1.07, 1.12, 1.16]),
+            "u_Z": np.asarray([0.00, 0.04, 0.08]),
+            "u_lpol": np.asarray([0.00, 0.05, 0.10]),
+            "s_R": np.asarray([1.13, 1.09, 1.05]),
+            "s_Z": np.asarray([0.00, -0.04, -0.08]),
+            "s_lpol": np.asarray([0.00, 0.05, 0.10]),
+        }]
+        for phi in phi_sections
+    }
+    limits = section_data_limits(
+        section_phis=phi_sections,
+        background=_Background(),
+        section_cycles=cycles,
+        manifolds_by_section=manifolds,
+        walls=walls,
+    )
+    assert limits is not None
+    fig, axes = create_section_grid(
+        phi_sections,
+        ncols=2,
+        compact=True,
+        share_axes=True,
+        data_limits=limits,
+    )
+    vmax = manifold_lpol_max(manifolds, phi_sections)
+    identity_to_color = {}
+
+    for idx, (ax, phi) in enumerate(zip(axes.ravel(), phi_sections)):
+        draw_wall_section(ax, walls[idx][0], walls[idx][1])
+        Rb, Zb, seed_idx = _Background().section_points(idx)
+        pc = draw_poincare_points(ax, Rb, Zb, seed_idx, point_size=3.0)
+        assert pc is not None
+        assert draw_manifold_points(ax, manifolds_for_section(manifolds, phi, idx), vmax=vmax)
+        assert draw_cycle_points(
+            ax,
+            cycles_for_section(cycles, phi, idx),
+            identity_to_color=identity_to_color,
+            label_cycle_ids=True,
+        )
+        draw_axis_point(ax, 1.0, 0.0)
+        format_section_axis(ax, section_phi=phi)
+
+    apply_section_limits(axes, limits)
+    trim_compact_tick_labels(axes, len(phi_sections), ncols=2)
+    out = tmp_path / "section_primitives.png"
+    assert save_figure(fig, out) == out
+    assert out.exists()
+    assert len(identity_to_color) == 1

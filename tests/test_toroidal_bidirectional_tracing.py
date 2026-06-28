@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from pyna.fields import VectorFieldCylind
+from pyna.toroidal import GlassWindow, TargetPlate, ToroidalComponentSurface, ToroidalWall
 from pyna.toroidal.flt import (
     ToroidalWallTraceData,
     connection_length_views_from_wall_hits,
@@ -90,6 +91,35 @@ def _toroidal_wall():
     return wall_phi, R_wall, Z_wall
 
 
+def test_toroidal_component_surface_validation_and_aliases():
+    wall_phi, wall_R, wall_Z = _toroidal_wall()
+    surface = ToroidalWall(wall_phi, wall_R, wall_Z, name="reference_wall")
+
+    assert surface.kind == "wall"
+    assert surface.nfp == 1
+    assert surface.n_phi == wall_phi.size
+    assert surface.n_poloidal == wall_R.shape[1]
+    np.testing.assert_allclose(surface.wall_phi, wall_phi)
+    np.testing.assert_allclose(surface.wall_R_all, wall_R)
+    np.testing.assert_allclose(surface.section(phi=0.01)[0], wall_R[0])
+
+    target = TargetPlate(wall_phi, wall_R, wall_Z, name="target")
+    window = GlassWindow(wall_phi, wall_R, wall_Z, name="window")
+    assert target.kind == "target_plate"
+    assert window.kind == "glass_window"
+
+    with pytest.raises(ValueError, match="R and Z surface arrays"):
+        ToroidalComponentSurface(wall_phi, wall_R, wall_Z[:, :-1])
+
+    fp_phi = np.linspace(0.0, np.pi, 4, endpoint=False)
+    fp_R = wall_R[:4]
+    fp_Z = wall_Z[:4]
+    fp_wall = ToroidalWall(fp_phi, fp_R, fp_Z, nfp=2)
+    assert fp_wall.field_period == pytest.approx(np.pi)
+    with pytest.raises(ValueError, match="within one field period"):
+        ToroidalWall(wall_phi, wall_R, wall_Z, nfp=2)
+
+
 def test_trace_orbit_along_phi_field_accepts_backward_output():
     _skip_without_cyna()
     field = _rotation_field()
@@ -141,6 +171,7 @@ def test_toroidal_wall_hits_and_strike_line_object_api():
     _skip_without_cyna()
     field = _outward_field()
     wall_phi, wall_R, wall_Z = _toroidal_wall()
+    wall = ToroidalWall(wall_phi, wall_R, wall_Z)
 
     hits = trace_wall_hits_twall_field(
         field,
@@ -158,6 +189,17 @@ def test_toroidal_wall_hits_and_strike_line_object_api():
     np.testing.assert_allclose(hits["hit_plus"][0, 0], 1.2, atol=2.0e-3)
     np.testing.assert_allclose(hits["hit_minus"][0, 0], 0.8, atol=2.0e-3)
 
+    hits_obj = trace_wall_hits_twall_field(
+        field,
+        np.array([1.0]),
+        np.array([0.0]),
+        0.0,
+        2,
+        0.01,
+        wall,
+    )
+    np.testing.assert_allclose(hits_obj["hit_plus"][0, 0], 1.2, atol=2.0e-3)
+
     strike = trace_strike_line_twall_field(
         field,
         np.array([1.0]),
@@ -172,6 +214,18 @@ def test_toroidal_wall_hits_and_strike_line_object_api():
     )
     np.testing.assert_array_equal(strike["seed_index"], np.array([0]))
     np.testing.assert_allclose(strike["R"], np.array([1.2]), atol=2.0e-3)
+
+    strike_obj = trace_strike_line_twall_field(
+        field,
+        np.array([1.0]),
+        np.array([0.0]),
+        0.0,
+        2,
+        0.01,
+        wall,
+        direction="+",
+    )
+    np.testing.assert_allclose(strike_obj["R"], np.array([1.2]), atol=2.0e-3)
 
 
 def test_wall_trace_post_compute_views_and_cache(tmp_path, monkeypatch):
@@ -220,6 +274,7 @@ def test_wall_trace_post_compute_views_and_cache(tmp_path, monkeypatch):
 
     monkeypatch.setattr("pyna.toroidal.flt.postcompute.trace_wall_hits_twall_field", fake_trace)
     cache2 = tmp_path / "wall_trace_from_field.npz"
+    fake_wall = ToroidalWall([0.0], [[1.2, 1.2]], [[0.0, 0.1]])
     traced = trace_toroidal_wall_data_field(
         object(),
         [1.0, 1.1],
@@ -227,9 +282,7 @@ def test_wall_trace_post_compute_views_and_cache(tmp_path, monkeypatch):
         0.0,
         2,
         0.01,
-        [0.0],
-        [[1.2]],
-        [[0.0]],
+        fake_wall,
         cache_path=cache2,
     )
     cached = trace_toroidal_wall_data_field(
@@ -239,9 +292,7 @@ def test_wall_trace_post_compute_views_and_cache(tmp_path, monkeypatch):
         0.0,
         2,
         0.01,
-        [0.0],
-        [[1.2]],
-        [[0.0]],
+        fake_wall,
         cache_path=cache2,
     )
     assert len(calls) == 1
@@ -255,9 +306,7 @@ def test_wall_trace_post_compute_views_and_cache(tmp_path, monkeypatch):
             0.0,
             2,
             0.01,
-            [0.0],
-            [[1.2]],
-            [[0.0]],
+            fake_wall,
             cache_path=cache2,
         )
 
