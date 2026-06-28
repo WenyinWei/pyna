@@ -995,6 +995,118 @@ def test_trace_fixed_point_manifolds_uses_eigenvalue_geometric_seed_segment():
     assert set(man["s_point_seed_order"][man["s_generation"] == 1]) == {0, 1, 2, 3}
 
 
+def test_trace_fixed_point_manifolds_exact_linear_map_orders_branches(monkeypatch):
+    expansion = 4.0
+    origin_R = 1.0
+    origin_Z = 0.0
+
+    def fake_trace_map_points(
+        field,
+        seed_R,
+        seed_Z,
+        phi_section,
+        *,
+        N_turns,
+        map_span,
+        DPhi,
+        wall_R=None,
+        wall_Z=None,
+        extend_phi=True,
+        fd_eps=1.0e-4,
+    ):
+        traces = []
+        for r, z in zip(np.asarray(seed_R, dtype=float), np.asarray(seed_Z, dtype=float)):
+            dR = float(r) - origin_R
+            dZ = float(z) - origin_Z
+            R_vals = []
+            Z_vals = []
+            for generation in range(1, int(N_turns) + 1):
+                scale = expansion ** generation
+                R_vals.append(origin_R + scale * dR)
+                Z_vals.append(origin_Z + scale * dZ)
+            traces.append((np.asarray(R_vals, dtype=float), np.asarray(Z_vals, dtype=float)))
+        return traces
+
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain._trace_map_points_field",
+        fake_trace_map_points,
+    )
+    fp = FixedPoint(
+        phi=0.0,
+        R=origin_R,
+        Z=origin_Z,
+        kind="X",
+        DPm=np.diag([expansion, 1.0 / expansion]),
+    )
+    fp.metadata.update({"orbit_id": 3, "map_order_index": 2, "same_orbit_key": "chain=0:orbit=3:kind=X"})
+
+    manifolds = trace_fixed_point_manifolds_field(
+        object(),
+        [fp],
+        phi_section=0.0,
+        N_turns=3,
+        field_period=1.0,
+        DPhi=0.1,
+        eps_min=1.0e-5,
+        eps_max=1.0e-3,
+        n_eps=4,
+        include_arclength=True,
+    )
+
+    assert len(manifolds) == 1
+    man = manifolds[0]
+    assert man["kind"] == "X"
+    assert man["orbit_id"] == 3
+    assert man["map_order_index"] == 2
+    expected_dist = np.unique(np.round(man["u_seed_distance"], decimals=14))
+
+    def branch_offsets(prefix: str, coord: str, generation: int, side_sign: float) -> np.ndarray:
+        gen = np.asarray(man[f"{prefix}_generation"])
+        side = np.asarray(man[f"{prefix}_point_side"])
+        order = np.asarray(man[f"{prefix}_point_seed_order"])
+        values = np.asarray(man[coord])
+        mask = (gen == generation) & (side == side_sign)
+        idx = np.argsort(order[mask])
+        base = origin_R if coord.endswith("_R") else origin_Z
+        return values[mask][idx] - base
+
+    for generation in range(4):
+        factor = expansion ** generation
+        np.testing.assert_allclose(
+            branch_offsets("u", "u_R", generation, 1.0),
+            factor * expected_dist,
+            rtol=1.0e-9,
+            atol=1.0e-15,
+        )
+        np.testing.assert_allclose(
+            branch_offsets("u", "u_R", generation, -1.0),
+            -factor * expected_dist,
+            rtol=1.0e-9,
+            atol=1.0e-15,
+        )
+        np.testing.assert_allclose(
+            branch_offsets("s", "s_Z", generation, 1.0),
+            factor * expected_dist,
+            rtol=1.0e-9,
+            atol=1.0e-15,
+        )
+        np.testing.assert_allclose(
+            branch_offsets("s", "s_Z", generation, -1.0),
+            -factor * expected_dist,
+            rtol=1.0e-9,
+            atol=1.0e-15,
+        )
+        np.testing.assert_allclose(branch_offsets("u", "u_Z", generation, 1.0), 0.0, atol=1.0e-15)
+        np.testing.assert_allclose(branch_offsets("s", "s_R", generation, 1.0), 0.0, atol=1.0e-15)
+
+    for prefix in ("u", "s"):
+        side = np.asarray(man[f"{prefix}_point_side"])
+        lpol = np.asarray(man[f"{prefix}_lpol"])
+        for side_sign in (-1.0, 1.0):
+            branch_lpol = lpol[side == side_sign]
+            assert np.all(np.diff(branch_lpol) > 0.0)
+
+
 def test_trace_fixed_point_manifolds_defaults_to_monodromy_return_map():
     _skip_without_cyna_field_handle()
     lambda_step = 4.0

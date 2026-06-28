@@ -227,3 +227,32 @@ def test_draw_manifold_lines_breaks_at_side_changes():
         assert len(artists[0].get_segments()) == 2
     finally:
         plt.close(fig)
+
+
+def test_draw_manifold_origin_labels_prefer_map_order_index():
+    import matplotlib.pyplot as plt
+
+    manifolds = [{
+        "origin_R": 1.0,
+        "origin_Z": 0.0,
+        "orbit_id": 2,
+        "kind": "X",
+        "map_power": 15,
+        "map_order_index": 4,
+        "u_R": np.asarray([], dtype=float),
+        "u_Z": np.asarray([], dtype=float),
+        "s_R": np.asarray([], dtype=float),
+        "s_Z": np.asarray([], dtype=float),
+    }]
+    fig, ax = plt.subplots()
+    try:
+        artists = draw_manifold_origins(
+            ax,
+            manifolds,
+            show_labels=True,
+            draw_branch_anchors=False,
+        )
+        labels = [artist.get_text() for artist in artists if hasattr(artist, "get_text")]
+        assert labels == ["X2:P4"]
+    finally:
+        plt.close(fig)

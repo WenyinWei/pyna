@@ -19,10 +19,11 @@ SECTION_ORBIT_COLORS = (
 )
 
 _MAP_POWER_METADATA_KEYS = (
-    "map_power",
-    "poincare_map_power",
+    "map_order_index",
     "orbit_point_index",
     "point_index",
+    "poincare_map_power",
+    "map_power",
 )
 
 
@@ -580,7 +581,7 @@ def draw_manifold_origins(
     manifolds,
     *,
     show_labels: bool = False,
-    label_template: str = "{orbit_id}:P{map_power}",
+    label_template: str = "{kind}{orbit_id}:P{map_power}",
     marker_size: float = 44.0,
     origin_edge_color: str = "0.08",
     origin_face_color: str = "white",
@@ -644,6 +645,7 @@ def draw_manifold_origins(
                 map_power=map_power,
                 poincare_map_power=map_power,
                 index=map_power,
+                kind=str(manifold.get("kind", "X")),
                 same_orbit_key=manifold.get("same_orbit_key", ""),
             )
             artists.append(ax.text(

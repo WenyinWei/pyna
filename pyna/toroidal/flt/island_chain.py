@@ -3943,6 +3943,7 @@ def trace_fixed_point_manifolds_field(
             ),
             "orbit_id": orbit_id,
             "chain_id": metadata.get("chain_id"),
+            "kind": "X",
             "point_index": metadata.get("point_index"),
             "orbit_point_index": metadata.get("orbit_point_index"),
             "map_order_index": map_order_index,
