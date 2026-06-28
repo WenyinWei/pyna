@@ -1107,6 +1107,140 @@ def test_trace_fixed_point_manifolds_exact_linear_map_orders_branches(monkeypatc
             assert np.all(np.diff(branch_lpol) > 0.0)
 
 
+def test_trace_fixed_point_manifolds_exact_nonlinear_area_preserving_map(monkeypatch):
+    origin_R = 1.0
+    origin_Z = 0.0
+    expansion = 3.0
+    shear_x = 8.0
+    shear_y = 8.0
+
+    def forward_map(R, Z):
+        x = np.asarray(R, dtype=float) - origin_R
+        y = np.asarray(Z, dtype=float) - origin_Z
+        x1 = x + shear_x * y * y
+        y1 = y
+        x2 = expansion * x1
+        y2 = y1 / expansion
+        x3 = x2
+        y3 = y2 + shear_y * x2 * x2
+        return origin_R + x3, origin_Z + y3
+
+    def inverse_map(R, Z):
+        x3 = np.asarray(R, dtype=float) - origin_R
+        y3 = np.asarray(Z, dtype=float) - origin_Z
+        x2 = x3
+        y2 = y3 - shear_y * x2 * x2
+        x1 = x2 / expansion
+        y1 = expansion * y2
+        x0 = x1 - shear_x * y1 * y1
+        y0 = y1
+        return origin_R + x0, origin_Z + y0
+
+    def fake_trace_map_points(
+        field,
+        seed_R,
+        seed_Z,
+        phi_section,
+        *,
+        N_turns,
+        map_span,
+        DPhi,
+        wall_R=None,
+        wall_Z=None,
+        extend_phi=True,
+        fd_eps=1.0e-4,
+    ):
+        traces = []
+        step = forward_map if float(map_span) > 0.0 else inverse_map
+        for r, z in zip(np.asarray(seed_R, dtype=float), np.asarray(seed_Z, dtype=float)):
+            R_vals = []
+            Z_vals = []
+            rr = float(r)
+            zz = float(z)
+            for _generation in range(int(N_turns)):
+                rr, zz = step(rr, zz)
+                R_vals.append(float(rr))
+                Z_vals.append(float(zz))
+            traces.append((np.asarray(R_vals, dtype=float), np.asarray(Z_vals, dtype=float)))
+        return traces
+
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain._trace_map_points_field",
+        fake_trace_map_points,
+    )
+    fp = FixedPoint(
+        phi=0.0,
+        R=origin_R,
+        Z=origin_Z,
+        kind="X",
+        DPm=np.diag([expansion, 1.0 / expansion]),
+    )
+    fp.metadata.update({
+        "orbit_id": 4,
+        "map_order_index": 1,
+        "same_orbit_key": "chain=0:orbit=4:kind=X",
+    })
+
+    manifolds = trace_fixed_point_manifolds_field(
+        object(),
+        [fp],
+        phi_section=0.0,
+        N_turns=4,
+        field_period=1.0,
+        DPhi=0.1,
+        eps_min=1.0e-4,
+        eps_max=2.0e-2,
+        n_eps=32,
+        include_arclength=True,
+    )
+
+    assert len(manifolds) == 1
+    man = manifolds[0]
+    assert man["seed_spacing"] == "eigenvalue_geometric"
+    assert man["unstable_expansion"] == pytest.approx(expansion)
+    assert man["stable_backward_expansion"] == pytest.approx(expansion)
+    for prefix in ("u", "s"):
+        seed_distance = np.asarray(man[f"{prefix}_seed_distance"])
+        seed_next_distance = float(man[f"{prefix}_seed_next_distance"])
+        seed_ratio = float(man[f"{prefix}_seed_ratio"])
+        assert seed_next_distance > float(np.max(seed_distance))
+        assert seed_next_distance / float(np.max(seed_distance)) == pytest.approx(seed_ratio)
+
+    def branch_points(prefix: str, generation: int, side_sign: float) -> tuple[np.ndarray, np.ndarray]:
+        gen = np.asarray(man[f"{prefix}_generation"])
+        side = np.asarray(man[f"{prefix}_point_side"])
+        order = np.asarray(man[f"{prefix}_point_seed_order"])
+        mask = (gen == generation) & (side == side_sign)
+        idx = np.argsort(order[mask])
+        return np.asarray(man[f"{prefix}_R"])[mask][idx], np.asarray(man[f"{prefix}_Z"])[mask][idx]
+
+    for side_sign in (-1.0, 1.0):
+        for generation in range(4):
+            u_R, u_Z = branch_points("u", generation, side_sign)
+            u_next_R, u_next_Z = branch_points("u", generation + 1, side_sign)
+            mapped_R, mapped_Z = forward_map(u_R, u_Z)
+            np.testing.assert_allclose(u_next_R, mapped_R, rtol=1.0e-12, atol=1.0e-14)
+            np.testing.assert_allclose(u_next_Z, mapped_Z, rtol=1.0e-12, atol=1.0e-14)
+
+            s_R, s_Z = branch_points("s", generation, side_sign)
+            s_next_R, s_next_Z = branch_points("s", generation + 1, side_sign)
+            mapped_R, mapped_Z = inverse_map(s_R, s_Z)
+            np.testing.assert_allclose(s_next_R, mapped_R, rtol=1.0e-12, atol=1.0e-14)
+            np.testing.assert_allclose(s_next_Z, mapped_Z, rtol=1.0e-12, atol=1.0e-14)
+
+    for prefix in ("u", "s"):
+        side = np.asarray(man[f"{prefix}_point_side"])
+        R = np.asarray(man[f"{prefix}_R"])
+        Z = np.asarray(man[f"{prefix}_Z"])
+        lpol = np.asarray(man[f"{prefix}_lpol"])
+        for side_sign in (-1.0, 1.0):
+            branch = np.column_stack([R[side == side_sign], Z[side == side_sign]])
+            centered = branch - np.mean(branch, axis=0)
+            _u, singular_values, _vh = np.linalg.svd(centered, full_matrices=False)
+            assert singular_values[-1] / singular_values[0] > 1.0e-2
+            assert np.all(np.diff(lpol[side == side_sign]) > 0.0)
+
+
 def test_trace_fixed_point_manifolds_defaults_to_monodromy_return_map():
     _skip_without_cyna_field_handle()
     lambda_step = 4.0
