@@ -19,6 +19,8 @@ SECTION_ORBIT_COLORS = (
 )
 
 _MAP_POWER_METADATA_KEYS = (
+    "physical_map_order_index",
+    "fieldline_map_order_index",
     "map_order_index",
     "orbit_point_index",
     "point_index",
@@ -351,6 +353,155 @@ def _first_metadata_or_attr(obj, metadata: Mapping, keys, default=""):
     return default
 
 
+def map_order_value(obj, metadata: Mapping | None = None, keys=None, default=""):
+    """Return the preferred Poincare-map order value for labels."""
+
+    if metadata is None:
+        metadata = getattr(obj, "metadata", {}) or {}
+    if keys is None:
+        keys = _MAP_POWER_METADATA_KEYS
+    return _first_metadata_or_attr(obj, metadata, keys, default=default)
+
+
+def _fixed_point_kind(orbit, point=None) -> str:
+    kind = getattr(point, "kind", None) if point is not None else None
+    if kind is None:
+        kind = getattr(orbit, "kind", "")
+    return str(kind).upper()
+
+
+def draw_fixed_point_orbits(
+    ax,
+    orbits,
+    *,
+    identity_to_color: dict[str, str] | None = None,
+    colors: Sequence[str] = SECTION_ORBIT_COLORS,
+    x_color: str | None = None,
+    o_color: str | None = None,
+    other_color: str = "0.24",
+    x_marker: str = "X",
+    o_marker: str = "o",
+    other_marker: str = "D",
+    x_marker_size: float = 62.0,
+    o_marker_size: float = 34.0,
+    other_marker_size: float = 34.0,
+    edge_color: str = "white",
+    linewidth: float = 1.05,
+    stroke_width: float = 2.0,
+    show_labels: bool = False,
+    label_template: str = "{kind}{orbit_id}:P{map_order}",
+    label_map_order_key: str | Sequence[str] = _MAP_POWER_METADATA_KEYS,
+    label_fontsize: float = 5.4,
+    label_color: str | None = None,
+    label_offset: tuple[float, float] | float = (0.006, 0.006),
+    label_offset_mode: str = "fixed",
+    label_clip_on: bool = False,
+    label_only: set[int] | Sequence[int] | None = None,
+    label_stride: int = 1,
+    zorder: int = 9,
+):
+    """Draw fixed-point orbit intersections with stable cycle/order labels."""
+
+    from matplotlib import patheffects as pe
+
+    if identity_to_color is None:
+        identity_to_color = {}
+    if isinstance(label_offset, (int, float)):
+        dx = float(label_offset)
+        dy = float(label_offset)
+    else:
+        dx = float(label_offset[0])
+        dy = float(label_offset[1])
+    label_only_set = None if label_only is None else {int(v) for v in label_only}
+    label_stride = max(1, int(label_stride))
+
+    artists = []
+    for orbit_index, orbit in enumerate(orbit_list(orbits)):
+        identity, orbit_id = orbit_identity(orbit, orbit_index)
+        orbit_kind = _fixed_point_kind(orbit)
+        if orbit_kind == "X" and x_color is not None:
+            color = x_color
+        elif orbit_kind == "O" and o_color is not None:
+            color = o_color
+        else:
+            if identity not in identity_to_color:
+                identity_to_color[identity] = colors[len(identity_to_color) % len(colors)]
+            color = identity_to_color.get(identity, other_color)
+        if orbit_kind == "X":
+            marker = x_marker
+            marker_size = x_marker_size
+        elif orbit_kind == "O":
+            marker = o_marker
+            marker_size = o_marker_size
+        else:
+            marker = other_marker
+            marker_size = other_marker_size
+
+        R, Z = orbit_point_arrays(orbit)
+        if R.size == 0:
+            continue
+        R_mid = float(np.nanmedian(R)) if np.any(np.isfinite(R)) else 0.0
+        Z_mid = float(np.nanmedian(Z)) if np.any(np.isfinite(Z)) else 0.0
+        artists.append(ax.scatter(
+            R,
+            Z,
+            s=float(marker_size),
+            marker=marker,
+            c=color,
+            edgecolors=edge_color,
+            linewidths=float(linewidth),
+            zorder=int(zorder),
+            path_effects=[pe.withStroke(linewidth=float(stroke_width), foreground=edge_color)],
+        ))
+
+        if not show_labels:
+            continue
+        for fp in getattr(orbit, "points", ()):
+            metadata = getattr(fp, "metadata", {}) or {}
+            map_order = map_order_value(fp, metadata, label_map_order_key, default="")
+            try:
+                map_order_int = int(map_order)
+            except (TypeError, ValueError):
+                map_order_int = None
+            if label_only_set is not None and map_order_int not in label_only_set:
+                continue
+            if map_order_int is not None and map_order_int % label_stride != 0:
+                continue
+            point_kind = _fixed_point_kind(orbit, fp)
+            label = label_template.format(
+                orbit_id=orbit_id,
+                index=map_order,
+                map_order=map_order,
+                map_power=map_order,
+                poincare_map_power=map_order,
+                kind=point_kind,
+                identity=identity,
+            )
+            if str(label_offset_mode).lower() in {"median", "radial", "radial_median"}:
+                xoff = dx if float(fp.R) >= R_mid else -dx
+                yoff = dy if float(fp.Z) >= Z_mid else -dy
+                ha = "left" if xoff >= 0.0 else "right"
+                va = "bottom" if yoff >= 0.0 else "top"
+            else:
+                xoff = dx
+                yoff = dy
+                ha = "left"
+                va = "bottom"
+            artists.append(ax.text(
+                float(fp.R) + xoff,
+                float(fp.Z) + yoff,
+                label,
+                color=color if label_color is None else label_color,
+                fontsize=float(label_fontsize),
+                ha=ha,
+                va=va,
+                clip_on=bool(label_clip_on),
+                zorder=int(zorder) + 1,
+                path_effects=[pe.withStroke(linewidth=1.7, foreground="white")],
+            ))
+    return artists
+
+
 def draw_orbit_points(
     ax,
     orbits,
@@ -393,7 +544,7 @@ def draw_orbit_points(
         if label_orbit_ids:
             for fp in getattr(orbit, "points", ()):
                 metadata = getattr(fp, "metadata", {})
-                map_power = _first_metadata_or_attr(fp, metadata, label_map_power_key)
+                map_power = map_order_value(fp, metadata, label_map_power_key)
                 label = label_template.format(
                     orbit_id=orbit_id,
                     index=map_power,
@@ -420,7 +571,11 @@ def is_manifold_payload(value) -> bool:
     """Return whether ``value`` looks like a traced manifold payload."""
 
     return isinstance(value, Mapping) and (
-        "u_R" in value or "u_Z" in value or "s_R" in value or "s_Z" in value
+        "u_R" in value
+        or "u_Z" in value
+        or "s_R" in value
+        or "s_Z" in value
+        or ("R" in value and "Z" in value)
     )
 
 
@@ -439,6 +594,8 @@ def manifolds_for_section(manifolds_by_section, phi: float, section_index: int) 
 
     if manifolds_by_section is None:
         return []
+    if is_manifold_payload(manifolds_by_section):
+        return manifold_list(manifolds_by_section)
     if isinstance(manifolds_by_section, Mapping) and not is_manifold_payload(manifolds_by_section):
         if phi in manifolds_by_section:
             return manifold_list(manifolds_by_section[phi])
@@ -471,6 +628,190 @@ def manifold_lpol_max(manifolds_by_section, phi_sections: Sequence[float]) -> fl
     if finite.size == 0:
         return None
     return float(np.max(finite))
+
+
+def _iter_payloads(value):
+    if value is None:
+        return
+    if is_manifold_payload(value):
+        yield value
+        return
+    if isinstance(value, Mapping):
+        for subvalue in value.values():
+            yield from _iter_payloads(subvalue)
+        return
+    try:
+        iterator = iter(value)
+    except TypeError:
+        return
+    for subvalue in iterator:
+        yield from _iter_payloads(subvalue)
+
+
+def branch_payload_smax(payloads, *, s_key: str = "s") -> float | None:
+    """Return the maximum finite arclength for generic branch payloads."""
+
+    values: list[np.ndarray] = []
+    for payload in _iter_payloads(payloads):
+        arr = np.asarray(payload.get(s_key, []), dtype=float).ravel()
+        if arr.size:
+            values.append(arr)
+    if not values:
+        return None
+    all_values = np.concatenate(values)
+    finite = all_values[np.isfinite(all_values)]
+    if finite.size == 0:
+        return None
+    return float(np.max(finite))
+
+
+def _branch_kind_from_payload(payload: Mapping, *, kind_key: str) -> str:
+    raw = str(payload.get(kind_key, payload.get("kind", ""))).strip().lower()
+    if raw in {"u", "wu", "w^u", "unstable"} or "unstable" in raw:
+        return "unstable"
+    if raw in {"s", "ws", "w^s", "stable"} or "stable" in raw:
+        return "stable"
+    branch_id = str(payload.get("branch_id", "")).strip().lower()
+    if branch_id.startswith("wu"):
+        return "unstable"
+    if branch_id.startswith("ws"):
+        return "stable"
+    return raw or "unknown"
+
+
+def _branch_side_from_payload(payload: Mapping, *, side_key: str):
+    if side_key in payload:
+        return payload.get(side_key)
+    branch_id = str(payload.get("branch_id", ""))
+    if branch_id.endswith("+"):
+        return "+"
+    if branch_id.endswith("-"):
+        return "-"
+    return None
+
+
+def _side_linestyle(side):
+    raw = str(side).strip().lower()
+    if raw in {"-1", "-", "minus", "negative", "neg"}:
+        return (0.0, (3.4, 2.0))
+    return "solid"
+
+
+def draw_branch_manifold_lines(
+    ax,
+    payloads,
+    *,
+    R_key: str = "R",
+    Z_key: str = "Z",
+    s_key: str = "s",
+    kind_key: str = "branch_kind",
+    side_key: str = "side",
+    unstable_cmap: str = "YlOrRd",
+    stable_cmap: str = "Blues",
+    unknown_cmap: str = "viridis",
+    smax: float | None = None,
+    lw: float = 1.05,
+    alpha_start: float = 0.92,
+    alpha_end: float = 0.58,
+    cmap_min: float = 0.32,
+    cmap_max: float = 0.94,
+    linestyle_by_side: bool = True,
+    max_arclength: float | None = None,
+    max_segment_length: float | None = None,
+    min_path_length: float = 0.0,
+    point_size: float = 0.0,
+    include_scalar_mappables: bool = False,
+    zorder: int = 6,
+):
+    """Draw generic stable/unstable branch payloads as arclength-colored lines."""
+
+    import matplotlib.pyplot as plt
+    from matplotlib.collections import LineCollection
+
+    payload_list = list(_iter_payloads(payloads))
+    if smax is None:
+        smax = branch_payload_smax(payload_list, s_key=s_key)
+    if smax is None or not np.isfinite(float(smax)) or float(smax) <= 0.0:
+        smax = 1.0
+    smax = float(smax)
+    alpha_start = float(alpha_start)
+    alpha_end = float(alpha_end)
+    cmap_min = float(cmap_min)
+    cmap_max = float(cmap_max)
+
+    artists = []
+    used_kinds: set[str] = set()
+    cmap_by_kind: dict[str, str] = {}
+    for payload in payload_list:
+        R = np.asarray(payload.get(R_key, []), dtype=float).ravel()
+        Z = np.asarray(payload.get(Z_key, []), dtype=float).ravel()
+        s = np.asarray(payload.get(s_key, []), dtype=float).ravel()
+        if R.size < 2 or Z.size != R.size or s.shape != R.shape:
+            continue
+        finite = np.isfinite(R) & np.isfinite(Z) & np.isfinite(s)
+        if max_arclength is not None:
+            finite &= s <= float(max_arclength)
+        if np.count_nonzero(finite) < 2:
+            continue
+        points = np.column_stack([R, Z])
+        segment_finite = finite[:-1] & finite[1:]
+        ds = np.diff(s)
+        segment_finite &= ds >= -1.0e-12
+        length = np.hypot(np.diff(R), np.diff(Z))
+        if max_segment_length is not None:
+            segment_finite &= length <= float(max_segment_length)
+        if min_path_length > 0.0:
+            if float(np.sum(length[segment_finite])) < float(min_path_length):
+                continue
+        if not np.any(segment_finite):
+            continue
+
+        kind = _branch_kind_from_payload(payload, kind_key=kind_key)
+        cmap_name = stable_cmap if kind == "stable" else unstable_cmap if kind == "unstable" else unknown_cmap
+        cmap_by_kind[kind] = cmap_name
+        cmap = plt.get_cmap(cmap_name)
+        values = 0.5 * (s[:-1] + s[1:])
+        t = np.clip(values / smax, 0.0, 1.0)
+        rgba = cmap(cmap_min + (cmap_max - cmap_min) * t)
+        rgba[:, 3] = np.clip(alpha_start + (alpha_end - alpha_start) * t, 0.0, 1.0)
+        segments = np.stack([points[:-1], points[1:]], axis=1)
+        linestyle = _side_linestyle(_branch_side_from_payload(payload, side_key=side_key)) if linestyle_by_side else "solid"
+        lc = LineCollection(
+            segments[segment_finite],
+            colors=rgba[segment_finite],
+            linewidths=float(lw),
+            linestyles=linestyle,
+            zorder=int(zorder),
+        )
+        ax.add_collection(lc)
+        artists.append(lc)
+        if float(point_size) > 0.0:
+            point_t = np.clip(s / smax, 0.0, 1.0)
+            point_rgba = cmap(cmap_min + (cmap_max - cmap_min) * point_t)
+            point_rgba[:, 3] = np.clip(0.34 + 0.18 * (alpha_end - alpha_start) * point_t, 0.08, 0.34)
+            artists.append(
+                ax.scatter(
+                    R[finite],
+                    Z[finite],
+                    s=float(point_size),
+                    c=point_rgba[finite],
+                    linewidths=0,
+                    rasterized=True,
+                    zorder=int(zorder) + 1,
+                )
+            )
+        used_kinds.add(kind)
+    if include_scalar_mappables and artists:
+        from matplotlib import colors as mcolors
+
+        norm = mcolors.Normalize(vmin=0.0, vmax=smax)
+        for kind in ("stable", "unstable", "unknown"):
+            if kind not in used_kinds:
+                continue
+            sm = plt.cm.ScalarMappable(norm=norm, cmap=plt.get_cmap(cmap_by_kind.get(kind, unknown_cmap)))
+            sm.set_array([])
+            artists.insert(0, sm)
+    return artists
 
 
 def draw_manifold_points(
@@ -709,6 +1050,12 @@ def section_data_limits(
                 R_parts.append(R)
                 Z_parts.append(Z)
         for manifold in manifolds_for_section(manifolds_by_section, float(phi), i):
+            if "R" in manifold and "Z" in manifold:
+                Rm = np.asarray(manifold.get("R", []), dtype=float).ravel()
+                Zm = np.asarray(manifold.get("Z", []), dtype=float).ravel()
+                if Rm.size and Zm.size:
+                    R_parts.append(Rm)
+                    Z_parts.append(Zm)
             for prefix in ("u", "s"):
                 Rm = np.asarray(manifold.get(f"{prefix}_R", []), dtype=float).ravel()
                 Zm = np.asarray(manifold.get(f"{prefix}_Z", []), dtype=float).ravel()
@@ -752,12 +1099,15 @@ def apply_section_limits(axes, limits: tuple[float, float, float, float] | None)
 __all__ = [
     "SECTION_ORBIT_COLORS",
     "apply_section_limits",
+    "branch_payload_smax",
     "create_section_grid",
     "orbit_identity",
     "orbit_list",
     "orbit_point_arrays",
     "orbits_for_section",
     "draw_axis_point",
+    "draw_branch_manifold_lines",
+    "draw_fixed_point_orbits",
     "draw_orbit_points",
     "draw_manifold_lines",
     "draw_manifold_origins",
@@ -767,6 +1117,7 @@ __all__ = [
     "draw_wall_section",
     "format_section_axis",
     "is_manifold_payload",
+    "map_order_value",
     "manifold_list",
     "manifold_lpol_max",
     "manifolds_for_section",

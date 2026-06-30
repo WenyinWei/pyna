@@ -4,9 +4,12 @@ import numpy as np
 
 from pyna.plot import (
     apply_section_limits,
+    branch_payload_smax,
     create_section_grid,
     orbits_for_section,
     draw_axis_point,
+    draw_branch_manifold_lines,
+    draw_fixed_point_orbits,
     draw_orbit_points,
     draw_manifold_lines,
     draw_manifold_origins,
@@ -14,6 +17,7 @@ from pyna.plot import (
     draw_poincare_points,
     draw_wall_section,
     format_section_axis,
+    map_order_value,
     manifold_lpol_max,
     manifolds_for_section,
     plot_boundary_island_sections,
@@ -310,6 +314,104 @@ def test_draw_orbit_point_labels_prefer_map_order_index():
         assert labels == ["2:P4"]
     finally:
         plt.close(fig)
+
+
+def test_map_order_value_prefers_physical_order_metadata():
+    fp = FixedPoint(phi=0.0, R=1.0, Z=0.0, kind="X", DPm=np.eye(2))
+    fp.map_order_index = 3
+    fp.metadata.update({
+        "physical_map_order_index": 7,
+        "map_order_index": 4,
+        "map_power": 15,
+    })
+
+    assert map_order_value(fp) == 7
+
+
+def test_draw_fixed_point_orbits_labels_xo_by_physical_map_order():
+    import matplotlib.pyplot as plt
+
+    fp_x = FixedPoint(phi=0.0, R=1.0, Z=0.0, kind="X", DPm=np.eye(2))
+    fp_x.metadata.update({"physical_map_order_index": 2})
+    fp_o = FixedPoint(phi=0.0, R=1.1, Z=0.0, kind="O", DPm=np.eye(2))
+    fp_o.metadata.update({"physical_map_order_index": 3})
+    orbit_x = BoundaryIslandOrbit(
+        points=(fp_x,),
+        orbit_size=1,
+        kind="X",
+        map_span=np.pi,
+        orbit_id=0,
+        chain_id=0,
+        closure_residual=1.0e-9,
+        alive=True,
+    )
+    orbit_o = BoundaryIslandOrbit(
+        points=(fp_o,),
+        orbit_size=1,
+        kind="O",
+        map_span=np.pi,
+        orbit_id=1,
+        chain_id=0,
+        closure_residual=1.0e-9,
+        alive=True,
+    )
+
+    fig, ax = plt.subplots()
+    try:
+        artists = draw_fixed_point_orbits(
+            ax,
+            [orbit_x, orbit_o],
+            show_labels=True,
+            x_color="#1b4f9c",
+            o_color="#c93c36",
+        )
+        labels = [artist.get_text() for artist in artists if hasattr(artist, "get_text")]
+        assert labels == ["X0:P2", "O1:P3"]
+    finally:
+        plt.close(fig)
+
+
+def test_draw_branch_manifold_lines_uses_branch_kind_and_side_payloads():
+    import matplotlib.pyplot as plt
+    from matplotlib.collections import LineCollection
+
+    payloads = [
+        {
+            "R": np.asarray([1.0, 1.05, 1.11]),
+            "Z": np.asarray([0.0, 0.02, 0.06]),
+            "s": np.asarray([0.0, 0.1, 0.3]),
+            "branch_kind": "unstable",
+            "side": "+",
+        },
+        {
+            "R": np.asarray([1.0, 0.95, 0.89]),
+            "Z": np.asarray([0.0, -0.02, -0.06]),
+            "s": np.asarray([0.0, 0.1, 0.3]),
+            "branch_kind": "stable",
+            "side": "-",
+        },
+    ]
+
+    fig, ax = plt.subplots()
+    try:
+        assert branch_payload_smax(payloads) == 0.3
+        artists = draw_branch_manifold_lines(ax, payloads, smax=0.3)
+        assert len(artists) == 2
+        assert all(isinstance(artist, LineCollection) for artist in artists)
+        assert all(len(artist.get_segments()) == 2 for artist in artists)
+    finally:
+        plt.close(fig)
+
+
+def test_manifolds_for_section_accepts_single_generic_branch_payload():
+    payload = {
+        "R": np.asarray([1.0, 1.1]),
+        "Z": np.asarray([0.0, 0.1]),
+        "s": np.asarray([0.0, 0.2]),
+        "branch_kind": "unstable",
+    }
+
+    assert manifolds_for_section(payload, 0.0, 0) == [payload]
 
 
 def test_section_grid_validates_aspect_ratio_and_trims_with_effective_columns():
