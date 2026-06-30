@@ -104,6 +104,15 @@ from pyna.toroidal.flt.island_chain import (
     trace_fixed_point_manifolds_field,
     trace_fixed_point_manifolds_multi_section_field,
 )
+from pyna.toroidal.flt.adaptive_density import (
+    AdaptivePoincareSectionTraces,
+    BoundarySeedDensificationResult,
+    adaptive_wall_fraction_seed_points,
+    densify_boundary_poincare_seeds,
+    poincare_wall_fraction_density,
+    trace_adaptive_poincare_sections_from_same_orbits_field,
+    wall_fraction_theta,
+)
 
 __all__ = [
     "precompile_tracer",
@@ -200,4 +209,11 @@ __all__ = [
     "trace_fixed_point_orbits_span_field",
     "trace_fixed_point_manifolds_field",
     "trace_fixed_point_manifolds_multi_section_field",
+    "AdaptivePoincareSectionTraces",
+    "BoundarySeedDensificationResult",
+    "adaptive_wall_fraction_seed_points",
+    "densify_boundary_poincare_seeds",
+    "poincare_wall_fraction_density",
+    "trace_adaptive_poincare_sections_from_same_orbits_field",
+    "wall_fraction_theta",
 ]

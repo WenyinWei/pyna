@@ -4,13 +4,18 @@ import pytest
 from pyna.fields import VectorFieldCylind
 from pyna.topo.toroidal import FixedPoint
 from pyna.toroidal.flt import (
+    AdaptivePoincareSectionTraces,
     BoundaryIslandOrbit,
+    PoincareSectionTraces,
     assemble_boundary_island_chains,
     boundary_island_edge_state_payload,
     boundary_recurrence_seed_candidates_field,
     boundary_seed_grid,
     boundary_wall_fractions,
+    densify_boundary_poincare_seeds,
     deduplicate_boundary_island_orbits,
+    poincare_wall_fraction_density,
+    trace_adaptive_poincare_sections_from_same_orbits_field,
     vector_field_cylind_from_field,
     find_boundary_island_fixed_points_field,
     refine_fixed_points_monodromy_span_field,
@@ -169,6 +174,101 @@ def test_boundary_wall_fractions_measure_axis_to_wall_radius():
     )
 
     np.testing.assert_allclose(fractions, [0.0, 0.5, 0.75, 0.9], atol=2.0e-4)
+
+
+def _unit_circle_trace(seed_R, seed_Z, *, phi_sections=(0.0, 0.5), N_turns=1):
+    seed_R = np.asarray(seed_R, dtype=float)
+    seed_Z = np.asarray(seed_Z, dtype=float)
+    phi = np.asarray(phi_sections, dtype=float)
+    counts = np.ones((seed_R.size, phi.size), dtype=int) * int(N_turns)
+    flat_R = []
+    flat_Z = []
+    for r, z in zip(seed_R, seed_Z):
+        for _phi in phi:
+            for _turn in range(int(N_turns)):
+                flat_R.append(float(r))
+                flat_Z.append(float(z))
+    return PoincareSectionTraces(
+        phi_sections=phi,
+        seed_R=seed_R,
+        seed_Z=seed_Z,
+        counts=counts,
+        R_flat=np.asarray(flat_R, dtype=float),
+        Z_flat=np.asarray(flat_Z, dtype=float),
+        N_turns=int(N_turns),
+    )
+
+
+def test_densify_boundary_poincare_seeds_adds_sparse_wall_angle_bins():
+    theta = np.linspace(0.0, 2.0 * np.pi, 128, endpoint=False)
+    wall_R = np.cos(theta)
+    wall_Z = np.sin(theta)
+    traces = _unit_circle_trace([0.9], [0.0])
+
+    density = poincare_wall_fraction_density(
+        traces,
+        axis_by_section=[(0.0, 0.0), (0.0, 0.0)],
+        wall_by_section=[(wall_R, wall_Z), (wall_R, wall_Z)],
+        wall_fraction_edges=[0.8, 1.0],
+        theta_edges=np.linspace(0.0, 2.0 * np.pi, 5),
+    )
+    assert density["counts"].shape == (2, 1, 4)
+    assert np.count_nonzero(np.min(density["counts"], axis=0)) == 1
+
+    result = densify_boundary_poincare_seeds(
+        traces,
+        0.0,
+        0.0,
+        wall_R,
+        wall_Z,
+        wall_fraction_bins=[0.8, 1.0],
+        theta_bins=np.linspace(0.0, 2.0 * np.pi, 5),
+        min_points_per_bin=1,
+    )
+
+    assert result.added_R.size == 3
+    assert result.seed_R.size == 4
+    added_fraction = boundary_wall_fractions(0.0, 0.0, result.added_R, result.added_Z, wall_R, wall_Z)
+    np.testing.assert_allclose(added_fraction, np.full(3, 0.9), atol=1.0e-12)
+
+
+def test_trace_adaptive_poincare_sections_retraces_only_new_sparse_seeds(monkeypatch):
+    calls = []
+
+    def fake_trace(field, seed_R, seed_Z, phi_sections, **kwargs):
+        calls.append(np.asarray(seed_R, dtype=float).copy())
+        return _unit_circle_trace(seed_R, seed_Z, phi_sections=phi_sections, N_turns=1)
+
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.adaptive_density.trace_poincare_sections_from_same_orbits_field",
+        fake_trace,
+    )
+
+    theta = np.linspace(0.0, 2.0 * np.pi, 128, endpoint=False)
+    wall_R = np.cos(theta)
+    wall_Z = np.sin(theta)
+    traces = trace_adaptive_poincare_sections_from_same_orbits_field(
+        object(),
+        [0.9],
+        [0.0],
+        [0.0, 0.5],
+        axis_by_section=[(0.0, 0.0), (0.0, 0.0)],
+        wall_by_section=[(wall_R, wall_Z), (wall_R, wall_Z)],
+        N_turns=1,
+        DPhi=0.1,
+        density_wall_fraction_range=(0.8, 1.0),
+        n_wall_fraction_bins=1,
+        n_theta_bins=4,
+        target_points_per_bin=1,
+        max_rounds=1,
+    )
+
+    assert isinstance(traces, AdaptivePoincareSectionTraces)
+    assert len(calls) == 2
+    assert calls[0].size == 1
+    assert calls[1].size == 3
+    assert traces.n_seed == 4
+    assert traces.metadata["trace_source"] == "adaptive_same_orbit_multi_section"
 
 
 def test_boundary_chain_assembly_deduplicates_orbits_and_pairs_xo():
