@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [0.8.19] - 2026-06-30
+
+### Added
+- Boundary-island orbit APIs with map-order labels, same-orbit multi-section
+  Poincare backgrounds, and post-compute/cache helpers for reusable orbit data.
+- Toroidal geometry wrappers for structured field-period objects and section
+  plotting helpers.
+- Regression coverage for manifold growth, field-period seams, reverse tracing,
+  dense trajectories, checkpoint/resume, and cyna field grid validation.
+
+### Changed
+- Renamed discrete-map boundary island cycle terminology to orbit terminology.
+- Hardened fixed-point manifold tracing, stable inverse-map anchoring,
+  monodromy span checks, and compact section plotting guards.
+
 ### Added
 - `pyna.topo.chaos`: skeleton module for chaotic region diagnostics — Chirikov
   overlap criterion (`chirikov_overlap`), finite-time Lyapunov exponent field
