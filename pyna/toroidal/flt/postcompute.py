@@ -8,20 +8,7 @@ from pathlib import Path
 from typing import Any, Sequence
 
 import numpy as np
-
-try:
-    from prefect import flow, task
-except ModuleNotFoundError:  # pragma: no cover - exercised only in slim envs
-    def _identity_decorator(*args, **_kwargs):
-        if args and callable(args[0]):
-            return args[0]
-
-        def _wrap(fn):
-            return fn
-
-        return _wrap
-
-    flow = task = _identity_decorator
+from prefect import flow, task
 
 from pyna.toroidal.flt.numba_poincare import (
     strike_line_from_wall_hits,
@@ -78,8 +65,64 @@ def _array_digest(value) -> str:
     return h.hexdigest()
 
 
+def _field_array_signature(field, attr_names: tuple[str, ...]) -> dict[str, Any] | None:
+    for name in attr_names:
+        if not hasattr(field, name):
+            continue
+        value = getattr(field, name)
+        if callable(value):
+            continue
+        arr = np.asarray(value)
+        return {
+            "attr": name,
+            "shape": list(arr.shape),
+            "dtype": str(arr.dtype),
+            "sha256": _array_digest(arr),
+        }
+    return None
+
+
+def _field_cache_signature(field) -> dict[str, Any]:
+    """Return a stable, compact cache signature for known field objects."""
+
+    signature: dict[str, Any] = {
+        "type": f"{field.__class__.__module__}.{field.__class__.__qualname__}",
+    }
+    for name in ("label", "name"):
+        if not hasattr(field, name):
+            continue
+        value = getattr(field, name)
+        if value is not None and not callable(value):
+            signature[name] = str(value)
+    for name in ("nfp", "field_periods", "nPhi"):
+        if not hasattr(field, name):
+            continue
+        value = getattr(field, name)
+        if value is not None and not callable(value):
+            signature[name] = int(value)
+    for name in ("field_period",):
+        if not hasattr(field, name):
+            continue
+        value = getattr(field, name)
+        if value is not None and not callable(value):
+            signature[name] = float(value)
+    for key, attr_names in {
+        "R": ("R_arr", "R"),
+        "Z": ("Z_arr", "Z"),
+        "Phi": ("Phi",),
+        "BR": ("BR", "VR"),
+        "BZ": ("BZ", "VZ"),
+        "BPhi": ("BPhi", "VPhi"),
+    }.items():
+        field_array = _field_array_signature(field, attr_names)
+        if field_array is not None:
+            signature[key] = field_array
+    return signature
+
+
 def _wall_trace_cache_signature(
     *,
+    field_signature,
     seed_R,
     seed_Z,
     phi_start: float,
@@ -91,6 +134,7 @@ def _wall_trace_cache_signature(
     extend_phi: bool,
 ) -> str:
     payload = {
+        "field": field_signature,
         "seed_R": _array_digest(seed_R),
         "seed_Z": _array_digest(seed_Z),
         "phi_start": float(phi_start),
@@ -246,12 +290,16 @@ def trace_toroidal_wall_data_field(
     cache_path: str | Path | None = None,
     overwrite: bool = False,
     validate_cache: bool = True,
+    allow_legacy_unsigned_cache: bool = False,
+    field_signature: Any | None = None,
     metadata: dict[str, Any] | None = None,
 ) -> ToroidalWallTraceData:
     """Trace bidirectional toroidal-wall hits once, optionally caching raw data."""
 
     wall_phi, wall_R_all, wall_Z_all = coerce_toroidal_surface_arrays(wall_phi, wall_R_all, wall_Z_all)
+    resolved_field_signature = _field_cache_signature(field) if field_signature is None else field_signature
     signature = _wall_trace_cache_signature(
+        field_signature=resolved_field_signature,
         seed_R=seed_R,
         seed_Z=seed_Z,
         phi_start=float(phi_start),
@@ -267,11 +315,19 @@ def trace_toroidal_wall_data_field(
         if path.exists() and not overwrite:
             cached = ToroidalWallTraceData.load_npz(path)
             cached_signature = cached.metadata.get("cache_signature")
-            if validate_cache and cached_signature is not None and cached_signature != signature:
-                raise ValueError(
-                    "cached toroidal wall trace does not match requested inputs; "
-                    "use a different cache_path or pass overwrite=True"
-                )
+            if validate_cache:
+                if cached_signature is None:
+                    if not bool(allow_legacy_unsigned_cache):
+                        raise ValueError(
+                            "cached toroidal wall trace lacks cache signature; "
+                            "use a different cache_path, pass overwrite=True, or explicitly "
+                            "pass allow_legacy_unsigned_cache=True"
+                        )
+                elif cached_signature != signature:
+                    raise ValueError(
+                        "cached toroidal wall trace does not match requested inputs; "
+                        "use a different cache_path or pass overwrite=True"
+                    )
             return cached
     else:
         path = None
@@ -300,6 +356,7 @@ def trace_toroidal_wall_data_field(
             **(metadata or {}),
             "trace_source": "trace_wall_hits_twall_field",
             "post_compute_reusable": True,
+            "field_signature": resolved_field_signature,
             "cache_signature": signature,
         },
     )

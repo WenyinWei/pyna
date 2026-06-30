@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [0.8.20] - 2026-06-30
+
+### Changed
+- Made Prefect a hard dependency for field-line trajectory and wall post-compute
+  flows instead of silently falling back to plain functions.
+- Hardened toroidal wall trace cache validation with field signatures and
+  explicit handling for legacy unsigned cache files.
+- Added Python 3.9 dependency constraints needed by Prefect 3.x flow schema
+  generation.
+
 ## [0.8.19] - 2026-06-30
 
 ### Added

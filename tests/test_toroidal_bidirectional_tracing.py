@@ -307,6 +307,30 @@ def test_wall_trace_post_compute_views_and_cache(tmp_path, monkeypatch):
     monkeypatch.setattr("pyna.toroidal.flt.postcompute.trace_wall_hits_twall_field", fake_trace)
     cache2 = tmp_path / "wall_trace_from_field.npz"
     fake_wall = ToroidalWall([0.0], [[1.2, 1.2]], [[0.0, 0.1]])
+    with pytest.raises(ValueError, match="lacks cache signature"):
+        trace_toroidal_wall_data_field(
+            object(),
+            [1.0, 1.1],
+            [0.0, 0.0],
+            0.0,
+            2,
+            0.01,
+            fake_wall,
+            cache_path=cache,
+        )
+    legacy = trace_toroidal_wall_data_field(
+        object(),
+        [1.0, 1.1],
+        [0.0, 0.0],
+        0.0,
+        2,
+        0.01,
+        fake_wall,
+        cache_path=cache,
+        allow_legacy_unsigned_cache=True,
+    )
+    np.testing.assert_allclose(legacy.view("total"), [4.0, 2.5])
+
     traced = trace_toroidal_wall_data_field(
         object(),
         [1.0, 1.1],
@@ -329,6 +353,7 @@ def test_wall_trace_post_compute_views_and_cache(tmp_path, monkeypatch):
     )
     assert len(calls) == 1
     np.testing.assert_allclose(traced.view("total"), cached.view("total"))
+    assert "field_signature" in traced.metadata
 
     with pytest.raises(ValueError, match="does not match requested inputs"):
         trace_toroidal_wall_data_field(
@@ -340,6 +365,18 @@ def test_wall_trace_post_compute_views_and_cache(tmp_path, monkeypatch):
             0.01,
             fake_wall,
             cache_path=cache2,
+        )
+    with pytest.raises(ValueError, match="does not match requested inputs"):
+        trace_toroidal_wall_data_field(
+            object(),
+            [1.0, 1.1],
+            [0.0, 0.0],
+            0.0,
+            2,
+            0.01,
+            fake_wall,
+            cache_path=cache2,
+            field_signature={"case": "different_field"},
         )
 
 
