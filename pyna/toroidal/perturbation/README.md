@@ -70,15 +70,17 @@ chains = toroidal.analyze_resonant_island_chains(spec, q_profile, n=2)
 theta_O = chains[0].with_phase_shift(phase_shift).fixed_points(phi=0.0)["theta_O"]
 ```
 
-For the NCSX beta-ramp artifact layout under `/home/wenyin/MCFdata/NCSX`, run:
+For an NCSX beta-ramp artifact layout, point `PYNA_NCSX_ROOT` at the data
+directory and run:
 
 ```bash
+export PYNA_NCSX_ROOT=/path/to/NCSX
 python3 scripts/ncsx_magnetic_spectrum_case.py
 ```
 
 By default, the script writes all generated data under
-`/home/wenyin/MCFdata/NCSX/ncsx_magnetic_spectrum_case_20260627_v1/`, not inside
-the code repository.
+`$PYNA_NCSX_ROOT/ncsx_magnetic_spectrum_case_20260627_v2/`, not inside the code
+repository.
 
 The case script also writes PNG diagnostics by default:
 

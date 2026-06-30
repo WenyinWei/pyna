@@ -57,7 +57,7 @@ class FixedPoint(InvariantManifold):
             state=self.state.copy(),
             section_value=self.section_value,
             section_label=self.section_label,
-            stability=self.stability,
+            stability_data=self.stability,
             metadata=dict(self.metadata),
         )
 
@@ -65,7 +65,7 @@ class FixedPoint(InvariantManifold):
         return PeriodicOrbit(
             points=[self.as_section_point()],
             period=1,
-            stability=self.stability,
+            stability_data=self.stability,
             representative_state=self.state.copy(),
             metadata=dict(self.metadata),
         )

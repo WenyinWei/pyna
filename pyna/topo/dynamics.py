@@ -116,7 +116,9 @@ class DynamicalSystem(ABC):
         -------
         PoincareMap
         """
-        return PoincareMap(flow=self, section=section)
+        from pyna.topo.factories import PoincareMapFactory
+
+        return PoincareMapFactory.create(flow=self, section=section)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(phase_space={self.phase_space})"

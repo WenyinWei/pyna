@@ -15,7 +15,7 @@ In the 2D MCF case:
 
 Usage
 -----
-    r = ResonanceNumber(10, 3)          # m/n = 10/3 (reference stellarator)
+    r = ResonanceNumber(10, 3)          # m/n = 10/3
     r = ResonanceNumber(3, 2, 1)        # 3D map resonance
     r.dim                               # number of frequency components
     r.short_label()                     # "10/3"

@@ -146,10 +146,83 @@ perturbed Poincaré map to get the island width in metres.
 
 ----
 
-4. Next Steps
+4. General Finite-Dimensional Dynamics
+--------------------------------------
+
+pyna is not limited to toroidal field lines.  The same topology object model is
+available for Hamiltonian systems, N-body flows, maps and SDE sample paths.
+
+.. code-block:: python
+
+   import numpy as np
+   from pyna.dynamics import (
+       SeparableHamiltonianSystem,
+       CallableMap,
+       GeometricBrownianMotion,
+   )
+
+   oscillator = SeparableHamiltonianSystem(
+       kinetic=lambda p, t: 0.5 * np.dot(p, p),
+       potential=lambda q, t: 0.5 * np.dot(q, q),
+       grad_kinetic=lambda p, t: p,
+       grad_potential=lambda q, t: q,
+       dof=1,
+   )
+   traj = oscillator.trajectory([1.0, 0.0], (0.0, 2*np.pi), dt=0.01)
+   print(traj.final)  # TimeSeriesSolution is a pyna.topo.core.Trajectory
+
+   linear_map = CallableMap(lambda x: np.array([2*x[0], 0.5*x[1]]), dim=2)
+   orbit = linear_map.orbit_geometry([1.0, 1.0], n_iter=5)
+   print(orbit.period_guess)
+
+   gbm = GeometricBrownianMotion(mu=[0.08], sigma=[0.2])
+   print(gbm.expected_log_growth())
+
+Use :mod:`pyna.topo.core` objects such as ``Cycle``, ``PeriodicOrbit``,
+``Tube`` and ``IslandChain`` when a trajectory or map orbit has been promoted
+from sampled data into a geometric/topological object.
+
+----
+
+5. Workflow-Based Construction
+------------------------------
+
+For larger projects and teaching notebooks, use ``TopologyWorkflow`` to keep the
+analysis sequence explicit without scattering ad-hoc constructors through the
+code.
+
+.. code-block:: python
+
+   import numpy as np
+   from pyna.topo import TopologyWorkflow
+   from pyna.topo.section import HyperplaneSection
+
+   wf = TopologyWorkflow(closure_tol=1e-3)
+   flow = wf.system(
+       "callable-flow",
+       rhs=lambda x, t: np.array([x[1], -x[0]]),
+       dim=2,
+       coordinate_names=("q", "p"),
+   )
+
+   section = HyperplaneSection(np.array([1.0, 0.0]), 0.0, phase_dim=2)
+   pmap = wf.poincare_map(flow, section, dt=0.02)
+
+   closed_traj = wf.trajectory(flow, [1.0, 0.0], (0.0, 2*np.pi), dt=0.01)
+   cycle = wf.closed_cycle(closed_traj)
+
+The lower-level adapters, builders, bridges and factories remain available for
+library authors, but most notebooks should start with the workflow facade.
+
+----
+
+6. Next Steps
 --------------
 
 - **Tutorials** — worked examples with plots:
+  :doc:`/en/mini-cases`,
+  :doc:`/notebooks/tutorials/general_dynamics_geometry_patterns`,
+  :doc:`/notebooks/tutorials/analytic_stellarator_geometry_workflow`,
   :doc:`/notebooks/tutorials/magnetic_coordinates_comparison`,
   :doc:`/notebooks/tutorials/RMP_island_validation_solovev`
 

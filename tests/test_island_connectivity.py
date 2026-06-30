@@ -3,9 +3,6 @@
 Verifies n_independent_orbits, is_connected, n_points_per_orbit, and
 orbit_groups for IslandChain (island.py).
 """
-import sys
-sys.path.insert(0, r'C:\Users\Legion\Nutstore\1\Repo\pyna')
-
 import numpy as np
 import pytest
 
@@ -29,15 +26,15 @@ def make_chain(m: int, n: int, n_islands: int = None) -> IslandChain:
 
 class TestIslandChainConnectivity:
 
-    def test_private_stellarator_10_3_n_independent_orbits(self):
+    def test_generic_10_3_n_independent_orbits(self):
         chain = make_chain(m=10, n=3)
         assert chain.n_independent_orbits == 1
 
-    def test_private_stellarator_10_3_is_connected(self):
+    def test_generic_10_3_is_connected(self):
         chain = make_chain(m=10, n=3)
         assert chain.is_connected is True
 
-    def test_private_stellarator_10_3_orbit_groups(self):
+    def test_generic_10_3_orbit_groups(self):
         chain = make_chain(m=10, n=3)
         groups = chain.orbit_groups
         assert len(groups) == 1

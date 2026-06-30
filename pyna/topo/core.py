@@ -207,6 +207,26 @@ class Trajectory(GeometricObject):
     def component(self, i: int) -> np.ndarray:
         return self.states[:, i]
 
+    @property
+    def t(self) -> np.ndarray:
+        """Alias for ``times`` used by ODE/SDE solution objects."""
+
+        return self.times
+
+    @property
+    def y(self) -> np.ndarray:
+        """Alias for ``states`` with shape ``(n_samples, ambient_dim)``."""
+
+        return self.states
+
+    @property
+    def final(self) -> np.ndarray:
+        """Final sampled state."""
+
+        if self.n_samples == 0:
+            raise ValueError("empty trajectory has no final state")
+        return self.states[-1]
+
     def section_cut(self, section, *, tol: float = 1e-10) -> List[SectionPoint]:
         hits: List[SectionPoint] = []
         for i in range(self.n_samples - 1):
@@ -214,6 +234,13 @@ class Trajectory(GeometricObject):
             x1 = self.states[i + 1]
             x_hit = section.detect_crossing(x0, x1, tol=tol)
             if x_hit is None:
+                continue
+            if hits and np.allclose(
+                hits[-1].metadata.get('ambient_state'),
+                np.asarray(x_hit, dtype=float),
+                atol=tol,
+                rtol=0.0,
+            ):
                 continue
             t0 = self.times[i]
             t1 = self.times[i + 1]
@@ -278,6 +305,25 @@ class Orbit(GeometricObject):
     @property
     def n_samples(self) -> int:
         return int(self.states.shape[0])
+
+    @property
+    def final(self) -> np.ndarray:
+        """Final sampled map state."""
+
+        if self.n_samples == 0:
+            raise ValueError("empty orbit has no final state")
+        return self.states[-1]
+
+    @property
+    def period_guess(self) -> Optional[int]:
+        """Return the smallest sampled return to the initial state."""
+
+        if self.n_samples < 2:
+            return None
+        for k in range(1, self.n_samples):
+            if np.allclose(self.states[0], self.states[k], atol=1e-10, rtol=1e-10):
+                return k
+        return None
 
     def diagnostics(self) -> Dict[str, Any]:
         return {
@@ -394,7 +440,7 @@ class Cycle(InvariantManifold):
             return PeriodicOrbit(
                 points=pts,
                 period=len(pts),
-                stability=(self.return_map_orbit.stability_data if self.return_map_orbit is not None else None),
+                stability_data=(self.return_map_orbit.stability_data if self.return_map_orbit is not None else None),
                 representative_state=(pts[0].state.copy() if pts else None),
                 metadata=dict(self.metadata),
             )
@@ -413,7 +459,7 @@ class Cycle(InvariantManifold):
             return PeriodicOrbit(
                 points=list(pts),
                 period=len(pts),
-                stability=self.return_map_orbit.stability_data,
+                stability_data=self.return_map_orbit.stability_data,
                 representative_state=(pts[0].state.copy() if pts else self.return_map_orbit.representative_state),
                 orbit_trace=self.trajectory,
                 metadata=dict(self.metadata),
@@ -561,6 +607,7 @@ class IslandChain(InvariantManifold):
         return pts
 
     def add_island(self, island: Island) -> None:
+        previous_count = len(self.islands)
         island.parent_chain = self
         if self.islands:
             prev = self.islands[-1]
@@ -572,7 +619,7 @@ class IslandChain(InvariantManifold):
             island._next = island
             island._prev = island
         self.islands.append(island)
-        if self.period is None:
+        if self.period is None or self.period == previous_count:
             self.period = len(self.islands)
 
     @property
@@ -643,36 +690,9 @@ class Tube(InvariantManifold):
 
     def section_cut(self, section) -> IslandChain:
         """Cut this Tube with a section → IslandChain."""
-        chain = IslandChain(label=self.label)
-        # Cut O_cycle → O-point islands
-        o_po = self.O_cycle.section_cut(section)
-        # Cut X_cycles → X-point islands
-        x_pos = [xc.section_cut(section) for xc in self.X_cycles]
+        from pyna.topo.bridges import CoreSectionCutBridge
 
-        if o_po.points:
-            for i, o_pt in enumerate(o_po.points):
-                x_pts_for_this = []
-                for x_po in x_pos:
-                    if i < len(x_po.points):
-                        x_pts_for_this.append(x_po.points[i])
-                isl = Island(
-                    O_orbit=PeriodicOrbit(points=[o_pt], period=1),
-                    X_orbits=[PeriodicOrbit(points=[xp], period=1) for xp in x_pts_for_this],
-                    label=self.label,
-                )
-                chain.add_island(isl)
-        else:
-            # No O-points — X-only islands (degenerate)
-            for x_po in x_pos:
-                for x_pt in x_po.points:
-                    isl = Island(
-                        O_orbit=PeriodicOrbit(points=[], period=0),
-                        X_orbits=[PeriodicOrbit(points=[x_pt], period=1)],
-                        label=self.label,
-                    )
-                    chain.add_island(isl)
-
-        return chain
+        return CoreSectionCutBridge().cut_tube(self, section)
 
     def diagnostics(self) -> Dict[str, Any]:
         return {
@@ -708,12 +728,9 @@ class TubeChain(InvariantManifold):
 
     def section_cut(self, section) -> IslandChain:
         """Cut all Tubes with a section → merged IslandChain."""
-        chain = IslandChain(label=self.label)
-        for tube in self.tubes:
-            sub = tube.section_cut(section)
-            for isl in sub.islands:
-                chain.add_island(isl)
-        return chain
+        from pyna.topo.bridges import CoreSectionCutBridge
+
+        return CoreSectionCutBridge().cut_tube_chain(self, section)
 
     def diagnostics(self) -> Dict[str, Any]:
         return {

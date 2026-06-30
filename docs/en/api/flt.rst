@@ -21,6 +21,7 @@ Core Tracer
 -----------
 
 .. automodule:: pyna.flt
+   :no-index:
    :members:
    :undoc-members:
    :show-inheritance:
@@ -31,6 +32,7 @@ Dynamical System Hierarchy
 --------------------------
 
 .. automodule:: pyna.system
+   :no-index:
    :members:
    :undoc-members:
    :show-inheritance:

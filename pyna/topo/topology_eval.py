@@ -2,7 +2,7 @@
 ==================
 Fast single-config magnetic topology evaluator — device-agnostic.
 
-Supports reference stellarator, EAST, W7X and any arbitrary MCF device via DeviceConfig.
+Supports arbitrary magnetic-confinement field caches via ``DeviceConfig``.
 
 All heavy numerics go through the cyna C++ extension:
   – trace_poincare_batch_twall    – single-section Poincare (with twall)
@@ -12,16 +12,13 @@ All heavy numerics go through the cyna C++ extension:
   – compute_A_matrix_batch        – Jacobian A(r,z,phi) for DPm integration
 
 Python / scipy are used only as fallbacks when cyna is unavailable.
-
-Target: < 10 s on reference stellarator baseline config.
 """
 from __future__ import annotations
 
 import pickle
-import sys
 import time
 import warnings
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List, Tuple
 
@@ -30,13 +27,6 @@ from scipy.interpolate import RegularGridInterpolator
 from pyna.fields.cylindrical import close_periodic_phi_grid
 
 warnings.filterwarnings("ignore")
-
-# ── sys.path ─────────────────────────────────────────────────────────────────
-TOPOQUEST = Path(r"C:\Users\Legion\Nutstore\1\Repo\topoquest")
-PYNA = Path(r"C:\Users\Legion\Nutstore\1\Repo\pyna")
-for _p in (str(TOPOQUEST), str(PYNA)):
-    if _p not in sys.path:
-        sys.path.insert(0, _p)
 
 # ── cyna import ───────────────────────────────────────────────────────────────
 from pyna._cyna import (
@@ -74,7 +64,7 @@ class DeviceConfig:
     fp_pkl_path : str or None
         Path to pre-computed fixed-point pkl. None → live search.
     n_sym : int
-        Toroidal symmetry number (W7X=5, reference stellarator=2, EAST=1).
+        Toroidal symmetry number (for example W7X=5, EAST=1).
     island_period : int
         Period of outermost island chain (used for X-point DPm integration).
     R_search_min : float
@@ -97,19 +87,19 @@ class DeviceConfig:
     name: str = "unknown"
 
 
-# ── reference stellarator preset ────────────────────────────────────────────────────────────────
-REFERENCE_STELLARATOR_CONFIG = DeviceConfig(
-    R_ax_guess=0.85235,
-    Z_ax_guess=-0.000073,
-    a_minor=0.30,
-    phi_sections=[0.0, np.pi / 4, np.pi / 2, 3 * np.pi / 4],
-    wall_file=r'D:\private_stellarator_data\private_wall_inner.txt',
-    fp_pkl_path=r'D:\private_stellarator_data\fixed_points_all_sections.pkl',
-    n_sym=2,
+# ── public generic preset ────────────────────────────────────────────────────
+DEFAULT_DEVICE_CONFIG = DeviceConfig(
+    R_ax_guess=1.0,
+    Z_ax_guess=0.0,
+    a_minor=0.3,
+    phi_sections=[0.0],
+    wall_file=None,
+    fp_pkl_path=None,
+    n_sym=1,
     island_period=3,
-    R_search_min=0.7,
-    R_search_max=1.2,
-    name="reference stellarator",
+    R_search_min=0.5,
+    R_search_max=2.0,
+    name="generic MCF device",
 )
 
 # ── EAST preset (placeholder — fill in later) ─────────────────────────────────
@@ -229,23 +219,18 @@ class _FC:
 # ===========================================================================
 
 def _find_wall_file_for_device(device: DeviceConfig):
-    """Resolve wall file for device; tries device.wall_file then fallbacks."""
+    """Resolve wall file for device."""
     if device.wall_file is not None:
         p = Path(device.wall_file)
         if p.exists():
             return str(p)
-        # reference stellarator fallback path
-        fallback = TOPOQUEST / "data" / p.name
-        if fallback.exists():
-            return str(fallback)
-        # Could not find the specified wall file
         return None
     return None
 
 
 def _find_wall_file():
-    """Legacy backward-compat: find reference stellarator wall file using REFERENCE_STELLARATOR_CONFIG defaults."""
-    return _find_wall_file_for_device(REFERENCE_STELLARATOR_CONFIG)
+    """Legacy backward-compat: find a wall file using default config."""
+    return _find_wall_file_for_device(DEFAULT_DEVICE_CONFIG)
 
 
 def _load_wall(wall_file: str):
@@ -280,10 +265,6 @@ def _load_fp_pkl(device: DeviceConfig):
 
     if fp_pkl_path is not None:
         p = Path(fp_pkl_path)
-        if not p.exists():
-            # try fallback in topoquest/data
-            fallback = TOPOQUEST / "data" / p.name
-            p = fallback if fallback.exists() else p
     else:
         p = None
 
@@ -570,7 +551,7 @@ def _shoelace_area(R, Z):
 
 def evaluate_topology(
     field_cache: dict,
-    device: DeviceConfig = REFERENCE_STELLARATOR_CONFIG,
+    device: DeviceConfig = DEFAULT_DEVICE_CONFIG,
     # Fine-grained quantity control
     compute_iota: bool = True,          # ι profile
     compute_xpt_DPm: bool = True,       # boundary X-point DPm (incl. λ_u)
@@ -594,7 +575,7 @@ def evaluate_topology(
     field_cache : dict
         Field cache dict with keys BR, BZ, BPhi, R_grid, Z_grid, Phi_grid.
     device : DeviceConfig
-        Device configuration. Defaults to REFERENCE_STELLARATOR_CONFIG for backward compat.
+        Device configuration. Defaults to a generic public configuration.
     compute_iota : bool
         Whether to compute the ι profile. Default True.
     compute_xpt_DPm : bool
@@ -615,7 +596,7 @@ def evaluate_topology(
     n_iota_turns : int
         Ignored (iota derived from already-traced core Poincare crossings).
     fp_pkl_path : str or None
-        Legacy override: path to fixed_points_all_sections.pkl.
+        Legacy override: path to a fixed-point pickle file.
         If set, overrides device.fp_pkl_path.
     island_period : int or None
         Override device.island_period if set.

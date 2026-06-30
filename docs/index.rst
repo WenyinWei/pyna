@@ -4,7 +4,7 @@ pyna - Python DYNAmics
 .. image:: https://img.shields.io/pypi/v/pyna-chaos?color=blue&label=PyPI
    :target: https://pypi.org/project/pyna-chaos/
 .. image:: https://img.shields.io/pypi/pyversions/pyna-chaos
-.. image:: https://img.shields.io/badge/license-GPL--3.0-green
+.. image:: https://img.shields.io/badge/license-LGPL--3.0-green
 .. image:: https://github.com/WenyinWei/pyna/actions/workflows/docs.yml/badge.svg
    :target: https://github.com/WenyinWei/pyna/actions
 
@@ -28,6 +28,12 @@ tokamak visualizations.
 
       Multi-section maps, X/O-point detection, island width extraction.
 
+   .. grid-item-card:: General Dynamics
+      :link: en/api/dynamics
+      :link-type: doc
+
+      Hamiltonian systems, N-body flows, finite-dimensional maps, SDEs.
+
    .. grid-item-card:: Manifold Visualization
       :link: en/api/topo
       :link-type: doc
@@ -36,7 +42,7 @@ tokamak visualizations.
       ``pyna.toroidal`` namespace.
 
    .. grid-item-card:: Torus Deformation
-      :link: en/api/control
+      :link: en/theory/torus_deformation
       :link-type: doc
 
       Non-resonant BNF-derived analytic spectral theory (Wei 2025), surfaced
@@ -60,8 +66,11 @@ tokamak visualizations.
 
    en/installation
    en/quickstart
+   en/mini-cases
    en/api/index
+   en/theory/index
    en/tutorials/index
+   en/development/index
 
 .. toctree::
    :maxdepth: 2
@@ -69,5 +78,6 @@ tokamak visualizations.
 
    zh/installation
    zh/quickstart
+   zh/mini-cases
    zh/straight_theta_surface_coordinates
    zh/api/index

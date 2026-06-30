@@ -47,6 +47,8 @@ from pyna.system import (
 def __getattr__(name):
     if name == "toroidal":
         return import_module("pyna.toroidal")
+    if name == "dynamics":
+        return import_module("pyna.dynamics")
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
@@ -55,6 +57,7 @@ __all__ = [
     "field_data",
     "vector_calc",
     "toroidal",
+    "dynamics",
     "CylindricalFieldArrays",
     "VectorFieldCylind",
     "VectorFieldCylindAxisym",

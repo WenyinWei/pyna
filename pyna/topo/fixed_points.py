@@ -466,10 +466,9 @@ def refine_fixed_points_from_pkl(
 ) -> dict:
     """Refine all fixed points in a pickle file with Newton's method.
 
-    Reads a pickle file containing fixed-point data in the format produced
-    by ``topoquest.private_stellarator_starting_cfg_v4.load_fp_pkl()``, uses each stored
-    point as an initial guess for Newton iteration, and returns a refined
-    dictionary in the same format.
+    Reads a pickle file containing fixed-point data from a downstream loader,
+    uses each stored point as an initial guess for Newton iteration, and
+    returns a refined dictionary in the same format.
 
     The pkl format is assumed to be::
 

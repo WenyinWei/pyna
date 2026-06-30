@@ -8,11 +8,8 @@ Uses synthetic stub objects (no real field cache required).
 """
 from __future__ import annotations
 
-import sys
 import numpy as np
 import pytest
-
-sys.path.insert(0, r'C:\Users\Legion\Nutstore\1\Repo\pyna')
 
 from pyna.topo.island_healed_coords import (
     fp_by_section_from_orbits,

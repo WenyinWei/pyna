@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import os
 import sys
 import types
 from dataclasses import dataclass
@@ -26,9 +27,9 @@ from scipy.interpolate import RegularGridInterpolator
 
 
 TWOPI = 2.0 * np.pi
-DEFAULT_NCSX_DIR = Path("/home/wenyin/MCFdata/NCSX")
-DEFAULT_TOPOQUEST = Path("/home/wenyin/repos/topoquest")
-DEFAULT_PYNA = Path("/home/wenyin/repos/pyna")
+DEFAULT_NCSX_DIR = Path(os.environ.get("PYNA_NCSX_ROOT", "data/NCSX"))
+DEFAULT_TOPOQUEST = Path(os.environ.get("TOPOQUEST_ROOT", "../topoquest"))
+DEFAULT_PYNA = Path(os.environ.get("PYNA_ROOT", "."))
 DEFAULT_OUT = DEFAULT_NCSX_DIR / "ncsx_redo_fieldline_coords_20260620_v1"
 
 

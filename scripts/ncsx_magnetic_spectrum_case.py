@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -30,7 +31,7 @@ from pyna.toroidal.perturbation_spectrum import (
 )
 
 
-DEFAULT_NCSX_ROOT = Path("/home/wenyin/MCFdata/NCSX")
+DEFAULT_NCSX_ROOT = Path(os.environ.get("PYNA_NCSX_ROOT", "data/NCSX"))
 DEFAULT_COORDS = (
     DEFAULT_NCSX_ROOT
     / "ncsx_beta_jfree_retrace_diag_nosmooth_beta003_fullres_20260614_v1"

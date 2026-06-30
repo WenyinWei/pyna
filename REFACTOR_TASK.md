@@ -143,21 +143,21 @@ For EACH file below, replace:
 ## Step 4: Run tests
 
 ```
-cd C:\Users\Legion\Nutstore\1\Repo\pyna
+cd <pyna-repo>
 python -m pytest pyna/topo/ pyna/diff/ -x -q 2>&1 | Select-Object -Last 30
 
-cd C:\Users\Legion\Nutstore\1\Repo\topoquest
+cd <downstream-repo>
 python -m pytest tests/ -x -q 2>&1 | Select-Object -Last 30
 ```
 
 ## Step 5: Commit
 
 ```
-cd C:\Users\Legion\Nutstore\1\Repo\pyna
+cd <pyna-repo>
 git add -A
 git commit -m "refactor: replace scipy solve_ivp with cyna C++ RK4 throughout (performance)"
 
-cd C:\Users\Legion\Nutstore\1\Repo\topoquest
+cd <downstream-repo>
 git add -A
 git commit -m "refactor: replace scipy solve_ivp with cyna C++ RK4 throughout (performance)"
 ```

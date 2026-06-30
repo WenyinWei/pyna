@@ -1,12 +1,15 @@
 @echo off
-call "D:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
+if not defined VCVARS64 (
+  set "VCVARS64=%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
+)
+if exist "%VCVARS64%" call "%VCVARS64%"
 
-set PYBIND11_INC=C:\Users\Legion\AppData\Local\Programs\Python\Python313\Lib\site-packages\pybind11\include
-set PYTHON_INC=C:\Users\Legion\AppData\Local\Programs\Python\Python313\Include
-set PYTHON_LIB=C:\Users\Legion\AppData\Local\Programs\Python\Python313\libs
-set CYNA_INC=D:\Repo\pyna\cyna\include
+if not defined PYBIND11_INC set "PYBIND11_INC=%LocalAppData%\Programs\Python\Python313\Lib\site-packages\pybind11\include"
+if not defined PYTHON_INC set "PYTHON_INC=%LocalAppData%\Programs\Python\Python313\Include"
+if not defined PYTHON_LIB set "PYTHON_LIB=%LocalAppData%\Programs\Python\Python313\libs"
+set "CYNA_INC=%~dp0cyna\include"
 
-cd /d D:\Repo\pyna\cyna
+cd /d "%~dp0cyna"
 
 cl /O2 /std:c++17 /EHsc /LD ^
   /I"%PYBIND11_INC%" ^

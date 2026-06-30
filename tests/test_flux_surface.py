@@ -5,8 +5,7 @@ Tests for FluxSurface, FluxSurfaceMap, XPointOrbit, and Island extensions.
 These tests are designed to:
 1. Build a FluxSurfaceMap from synthetic Poincaré data (no field cache required).
 2. Verify round-trip accuracy: to_RZ(to_rtheta(R, Z, phi)) ≈ (R, Z) < 1 mm.
-3. (Optional, reference stellarator field_cache) Trace X-point orbit and verify closure < 1 mm.
-4. Project external "coil" positions and verify r > 1 (outside LCFS).
+3. Project external "coil" positions and verify r > 1 (outside LCFS).
 
 Run with: pytest tests/test_flux_surface.py -v
 """
@@ -190,40 +189,3 @@ class TestXPointOrbit:
         orbit = self._make_synthetic_orbit()
         with pytest.raises(RuntimeError):
             orbit.theta_at_phi(0.0)
-
-
-# ---------------------------------------------------------------------------
-# Optional reference stellarator integration test (skipped if field_cache unavailable)
-# ---------------------------------------------------------------------------
-
-def _try_load_private_stellarator_field_cache():
-    try:
-        import pickle
-        with open(r"D:\private_stellarator_data\field_cache.pkl", "rb") as f:
-            return pickle.load(f)
-    except Exception:
-        return None
-
-
-@pytest.mark.skipif(
-    _try_load_private_stellarator_field_cache() is None,
-    reason="reference stellarator field_cache.pkl not found",
-)
-class TestPrivateStellaratorIntegration:
-    @pytest.fixture(scope="class")
-    def field_cache(self):
-        import pickle
-        with open(r"D:\private_stellarator_data\field_cache.pkl", "rb") as f:
-            return pickle.load(f)
-
-    def test_x_orbit_closure(self, field_cache):
-        """X-point orbit should close to < 1 mm after period turns."""
-        # Use known reference stellarator X-point coordinates (m/n=10/3 island)
-        R_xpt, Z_xpt = 1.08, 0.0  # approximate — replace with actual value
-        orbit = XPointOrbit.trace(R_xpt, Z_xpt, phi0=0.0, period=10,
-                                   field_cache=field_cache, dphi_out=0.05)
-        if len(orbit.R_arr) < 10:
-            pytest.skip("Orbit too short — X-point may be outside domain")
-        err = np.sqrt((orbit.R_arr[-1] - orbit.R_arr[0]) ** 2 +
-                      (orbit.Z_arr[-1] - orbit.Z_arr[0]) ** 2)
-        assert err < 1e-3, f"X-point orbit closure error {err*1e3:.2f} mm > 1 mm"

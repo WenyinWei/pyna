@@ -11,10 +11,45 @@ from pyna.topo.core import (
     Stability,
     LinearStabilityData,
     SectionPoint,
-    Trajectory,
-    Orbit,
+    Trajectory as CoreTrajectory,
+    Orbit as CoreOrbit,
     PeriodicOrbit as CorePeriodicOrbit,
     Cycle as CoreCycle,
+    Island as CoreIsland,
+    IslandChain as CoreIslandChain,
+    Tube as CoreTube,
+    TubeChain as CoreTubeChain,
+)
+from pyna.topo.protocols import (
+    FlowLike,
+    MapLike,
+    JacobianProvider,
+    SectionLike,
+    StabilityClassifier,
+)
+from pyna.topo.adapters import (
+    as_section_point,
+    as_trajectory,
+    as_orbit,
+    as_periodic_orbit,
+    as_cycle,
+)
+from pyna.topo.builders import (
+    GeometryBuilder,
+    IslandChainBuilder,
+    TubeChainBuilder,
+)
+from pyna.topo.factories import (
+    Registry,
+    DynamicalSystemFactory,
+    GeometryFactory,
+    PoincareMapFactory,
+)
+from pyna.topo.workflow import (
+    TopologyWorkflow,
+    make_poincare_map,
+    orbit_from_map,
+    section_cut,
 )
 from pyna.topo.toroidal import (
     PeriodicOrbit,
@@ -41,6 +76,8 @@ from pyna.topo.toroidal_island import (
 )
 
 # Backward-compat aliases
+Trajectory = CoreTrajectory
+Orbit = CoreOrbit
 ToroidalIsland = Island
 ToroidalIslandChain = IslandChain
 ToroidalTube = Tube
@@ -143,6 +180,19 @@ from pyna.topo.dynamics import (
     MCFPoincareMap,
     GeneralPoincareMap,
 )
+from pyna.dynamics import (
+    TimeSeriesSolution,
+    CallableFlow,
+    HamiltonianSystem,
+    SeparableHamiltonianSystem,
+    NBodySystem,
+    CallableMap,
+    ItoSDE,
+    BrownianMotion,
+    GeometricBrownianMotion,
+    finite_difference_jacobian,
+    fixed_point_eigenspaces,
+)
 # Layer 0.5: Base hierarchy
 from pyna.topo._base import (
     GeometricObject,
@@ -191,8 +241,38 @@ __all__ = [
     "SectionPoint",
     "Stability",
     "LinearStabilityData",
+    "CoreTrajectory",
+    "CoreOrbit",
     "PeriodicOrbit",
     "Cycle",
+    "CorePeriodicOrbit",
+    "CoreCycle",
+    "CoreIsland",
+    "CoreIslandChain",
+    "CoreTube",
+    "CoreTubeChain",
+    # Protocols / adapters / builders / bridges / factories
+    "FlowLike",
+    "MapLike",
+    "JacobianProvider",
+    "SectionLike",
+    "StabilityClassifier",
+    "as_section_point",
+    "as_trajectory",
+    "as_orbit",
+    "as_periodic_orbit",
+    "as_cycle",
+    "GeometryBuilder",
+    "IslandChainBuilder",
+    "TubeChainBuilder",
+    "Registry",
+    "DynamicalSystemFactory",
+    "GeometryFactory",
+    "PoincareMapFactory",
+    "TopologyWorkflow",
+    "make_poincare_map",
+    "orbit_from_map",
+    "section_cut",
     # Toroidal sampled trajectories / specializations
     "ToroidalTrajectory",
     "ToroidalSectionPoint",
@@ -323,6 +403,17 @@ __all__ = [
     "PoincareMap",
     "MCFPoincareMap",
     "GeneralPoincareMap",
+    "TimeSeriesSolution",
+    "CallableFlow",
+    "HamiltonianSystem",
+    "SeparableHamiltonianSystem",
+    "NBodySystem",
+    "CallableMap",
+    "ItoSDE",
+    "BrownianMotion",
+    "GeometricBrownianMotion",
+    "finite_difference_jacobian",
+    "fixed_point_eigenspaces",
     # Invariant / geometry layer
     "GeometricObject",
     "InvariantSet",

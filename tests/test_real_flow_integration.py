@@ -1,29 +1,24 @@
 """Integration test: new Cycle/Tube/TubeChain/IslandChain class hierarchy.
 
 Runs in two modes:
-1. Synthetic data (always runs) — verifies the interface without any real field.
-2. Real field cache (skipped if D:\\private_stellarator_data\\data\\bluestar_starting_config_field_cache_200x190x128.pkl
-   does not exist) — verifies that the new hierarchy wires correctly with actual physics data.
+1. Synthetic data verifies the topology interface.
+2. A public analytic stellarator computes fixed points by integrating field lines
+   and promotes the resulting O/X points into the workflow geometry layer.
 """
 
 from __future__ import annotations
 
-import os
 import numpy as np
 import pytest
 
+from pyna.dynamics import CallableMap
+from pyna.topo import TopologyWorkflow
+from pyna.topo.core import IslandChain as CoreIslandChain
+from pyna.topo.fixed_points import classify_fixed_point, find_periodic_orbit, poincare_map
 from pyna.topo.toroidal import Cycle, FixedPoint, MonodromyData
 from pyna.topo.toroidal import Island, IslandChain
 from pyna.topo.toroidal import Tube, TubeChain
-
-# ---------------------------------------------------------------------------
-# Paths
-# ---------------------------------------------------------------------------
-
-FIELD_CACHE_PATH = r"D:\private_stellarator_data\data\bluestar_starting_config_field_cache_200x190x128.pkl"
-FP_PKL_PATH = r"D:\private_stellarator_data\fixed_points_all_sections.pkl"
-
-FIELD_CACHE_EXISTS = os.path.isfile(FIELD_CACHE_PATH)
+from pyna.toroidal.equilibrium.stellarator import simple_stellarator
 
 # ---------------------------------------------------------------------------
 # Helper: build synthetic period-10 island chain (m=10, n=3)
@@ -167,101 +162,115 @@ class TestSyntheticFlow:
 
 
 # ===========================================================================
-# Part B: Real field-cache tests (skipped if cache absent)
+# Part B: Public analytic stellarator computation
 # ===========================================================================
 
-@pytest.mark.skipif(not FIELD_CACHE_EXISTS, reason=f"Field cache not found at {FIELD_CACHE_PATH}")
-class TestRealFlowIntegration:
-    """Integration test using the real bluestar field cache + fixed-point seeds."""
+def _stellarator_field_func_2d(st):
+    """Wrap StellaratorSimple.field_func into d(R,Z)/dphi."""
 
-    @pytest.fixture(scope="class")
-    def field_cache(self):
-        import pickle
-        with open(FIELD_CACHE_PATH, "rb") as f:
-            return pickle.load(f)
+    def ff2d(R: float, Z: float, phi: float) -> np.ndarray:
+        tangent = np.asarray(st.field_func(np.array([R, Z, phi])), dtype=float)
+        dphi_ds = tangent[2]
+        if abs(dphi_ds) < 1e-15:
+            return np.zeros(2)
+        return np.array([tangent[0] / dphi_ds, tangent[1] / dphi_ds])
 
-    @pytest.fixture(scope="class")
-    def fixed_points_pkl(self):
-        if not os.path.isfile(FP_PKL_PATH):
-            pytest.skip(f"Fixed-point seed file not found: {FP_PKL_PATH}")
-        import pickle
-        with open(FP_PKL_PATH, "rb") as f:
-            return pickle.load(f)
+    return ff2d
 
-    @pytest.fixture(scope="class")
-    def real_tc(self, field_cache, fixed_points_pkl):
-        """Build TubeChain from real fixed-point data.
 
-        The pkl has the structure:
-            {phi: {'xpts': [(R, Z, DPm), ...], 'opts': [(R, Z, DPm), ...]}}
-        We use all sections available, wrapping them into Cycle sections dicts.
-        """
-        pkl = fixed_points_pkl
+@pytest.fixture(scope="module")
+def analytic_stellarator_fixed_points():
+    st = simple_stellarator(
+        R0=3.0,
+        r0=0.3,
+        B0=1.0,
+        q0=1.1,
+        q1=5.0,
+        m_h=4,
+        n_h=4,
+        epsilon_h=0.05,
+    )
+    ff2d = _stellarator_field_func_2d(st)
+    psi_res = st.resonant_psi(5, 4)[0]
+    r_res = st.r0 * np.sqrt(psi_res)
+    seed = np.array([st.R0 + r_res, 0.0])
+    fps = find_periodic_orbit(
+        ff2d,
+        seed=seed,
+        n_turns=4,
+        r_scan=r_res * 0.6,
+        n_scan=300,
+        verbose=False,
+    )
+    records = []
+    for fp in fps:
+        kind, jac, det_jac = classify_fixed_point(fp, ff2d, n_turns=4)
+        residual = float(np.linalg.norm(poincare_map(fp, ff2d, n_turns=4) - fp))
+        records.append(
+            {
+                "kind": kind,
+                "point": np.asarray(fp, dtype=float),
+                "jacobian": jac,
+                "det": det_jac,
+                "residual": residual,
+            }
+        )
+    return ff2d, records
 
-        o_fps_by_phi: dict = {}
-        x_fps_by_phi: dict = {}
 
-        if isinstance(pkl, dict):
-            for phi_key, val in pkl.items():
-                phi = float(phi_key)
-                if isinstance(val, dict):
-                    for pt in val.get('opts', []):
-                        R, Z = float(pt[0]), float(pt[1])
-                        DPm = np.asarray(pt[2], dtype=float) if len(pt) > 2 else np.eye(2)
-                        o_fps_by_phi.setdefault(phi, []).append(
-                            FixedPoint(phi=phi, R=R, Z=Z, DPm=DPm)
-                        )
-                    for pt in val.get('xpts', []):
-                        R, Z = float(pt[0]), float(pt[1])
-                        DPm = np.asarray(pt[2], dtype=float) if len(pt) > 2 else np.eye(2)
-                        x_fps_by_phi.setdefault(phi, []).append(
-                            FixedPoint(phi=phi, R=R, Z=Z, DPm=DPm)
-                        )
+class TestAnalyticStellaratorWorkflow:
+    """Verify workflow geometry against an integrated analytic stellarator map."""
 
-        if not o_fps_by_phi and not x_fps_by_phi:
-            pytest.skip("Could not extract fixed points from pkl")
+    def test_finds_closed_o_and_x_points(self, analytic_stellarator_fixed_points):
+        _, records = analytic_stellarator_fixed_points
+        kinds = [record["kind"] for record in records]
 
-        # Use DPm from first available X-point for chain monodromy
-        DPm_X_default = np.array([[np.exp(0.15), 0.0], [0.0, np.exp(-0.15)]])
-        first_phi = sorted(x_fps_by_phi.keys())[0] if x_fps_by_phi else None
-        if first_phi is not None and x_fps_by_phi[first_phi]:
-            DPm_X = x_fps_by_phi[first_phi][0].DPm
-        else:
-            DPm_X = DPm_X_default
+        assert len(records) >= 2
+        assert "O" in kinds
+        assert "X" in kinds
+        assert max(record["residual"] for record in records) < 1e-8
+        for record in records:
+            assert abs(record["det"] - 1.0) < 0.02
 
-        o_cycle = Cycle(winding=(10, 3), sections=o_fps_by_phi)
-        x_cycle = Cycle(
-            winding=(10, 3),
-            sections=x_fps_by_phi,
-            monodromy=MonodromyData(DPm=DPm_X, eigenvalues=np.linalg.eigvals(DPm_X)),
+    def test_workflow_promotes_integrated_fixed_points_to_island_chain(
+        self, analytic_stellarator_fixed_points
+    ):
+        ff2d, records = analytic_stellarator_fixed_points
+        o_record = next(record for record in records if record["kind"] == "O")
+        x_record = next(record for record in records if record["kind"] == "X")
+
+        return_map = CallableMap(
+            lambda x: poincare_map(x, ff2d, n_turns=4),
+            dim=2,
+            coordinate_names=("R", "Z"),
+            label="analytic stellarator P^4",
+        )
+        wf = TopologyWorkflow(closure_tol=1e-7)
+        o_orbit = wf.periodic_orbit(
+            [o_record["point"]],
+            map_obj=return_map,
+            stability_data=o_record["jacobian"],
+            coordinate_names=("R", "Z"),
+            metadata={"kind": o_record["kind"]},
+        )
+        x_orbit = wf.periodic_orbit(
+            [x_record["point"]],
+            map_obj=return_map,
+            stability_data=x_record["jacobian"],
+            coordinate_names=("R", "Z"),
+            metadata={"kind": x_record["kind"]},
         )
 
-        tube = Tube(O_cycle=o_cycle, X_cycles=[x_cycle])
-        tc = TubeChain(tubes=[tube])
-        return tc
+        chain = wf.island_chain(
+            [o_orbit],
+            [x_orbit],
+            proximity_tol=1.0,
+            label="q=5/4 analytic stellarator",
+        )
 
-    def test_section_cut_real(self, real_tc):
-        chain = real_tc.section_cut(0.0)
-        assert isinstance(chain, IslandChain)
-
-    def test_islands_nonempty_real(self, real_tc):
-        chain = real_tc.section_cut(0.0)
-        assert len(chain.islands) > 0, "Expected at least one island from real fixed points"
-
-    def test_step_doesnt_crash_real(self, real_tc):
-        chain = real_tc.section_cut(0.0)
-        isl = chain.islands[0]
-        _ = isl.step()  # must not raise
-
-    def test_summary_real(self, real_tc):
-        s = real_tc.summary()
-        assert "TubeChain" in s
-        print("\nReal TubeChain summary:", s)
-
-    def test_print_chain_info_real(self, real_tc):
-        chain = real_tc.section_cut(0.0)
-        print(f"\nReal IslandChain: {len(chain.islands)} islands, "
-              f"{len(chain.O_points)} O-points, {len(chain.X_points)} X-points")
-        for i, isl in enumerate(chain.islands):
-            print(f"  Island[{i}]: O=({isl.O_point.R:.4f}, {isl.O_point.Z:.4f}), "
-                  f"X_points={len(isl.X_points)}")
+        assert isinstance(chain, CoreIslandChain)
+        assert chain.n_islands == 1
+        assert len(chain.O_points) == 1
+        assert len(chain.X_points) == 1
+        assert o_orbit.stability_data.classification.name == "ELLIPTIC"
+        assert x_orbit.stability_data.classification.name == "HYPERBOLIC"
