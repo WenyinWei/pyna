@@ -111,6 +111,55 @@ def test_rmp_closure_span_reduces_harmonics():
     assert rmp_closure_map_span(comp) == pytest.approx(4.0 * np.pi)
 
 
+def test_resonant_rmp_spectrum_has_expected_amplitude_orders():
+    eq = simple_stellarator(
+        R0=3.0,
+        r0=0.3,
+        B0=2.5,
+        q0=1.5,
+        q1=4.5,
+        m_h=3,
+        n_h=3,
+        epsilon_h=0.0,
+    )
+    base_m, base_n = 2, 1
+    amplitudes = np.array([2.5e-4, 5.0e-4, 1.0e-3, 2.0e-3, 4.0e-3])
+    b_abs = []
+    widths = []
+    phases = []
+
+    for amplitude in amplitudes:
+        def delta_B_RMP(R, Z, phi, amplitude=amplitude):
+            theta = np.arctan2(Z, R - eq.R0)
+            phase = base_m * theta - base_n * phi
+            return np.array([
+                amplitude * np.cos(phase) * np.cos(theta),
+                amplitude * np.cos(phase) * np.sin(theta),
+                np.zeros_like(np.asarray(theta)),
+            ])
+
+        component = find_resonant_components_analytic(
+            eq,
+            delta_B_RMP,
+            base_m=base_m,
+            base_n=base_n,
+            max_harmonic=1,
+            n_theta=64,
+            n_phi=32,
+            min_amplitude=1.0e-14,
+        )[0]
+        b_abs.append(abs(component.b_mn))
+        widths.append(component.half_width_r)
+        phases.append(component.opoint_theta)
+
+    b_slope = np.polyfit(np.log(amplitudes), np.log(b_abs), 1)[0]
+    width_slope = np.polyfit(np.log(amplitudes), np.log(widths), 1)[0]
+
+    assert b_slope == pytest.approx(1.0, abs=1.0e-12)
+    assert width_slope == pytest.approx(0.5, abs=1.0e-12)
+    assert np.ptp(np.unwrap(phases)) < 1.0e-12
+
+
 @pytest.mark.skipif(not _cyna_available(), reason="cyna extension is unavailable")
 def test_cyna_fixed_points_match_pure_rmp_spectrum_phase():
     eq = simple_stellarator(

@@ -18,7 +18,10 @@ import warnings
 
 import numpy as np
 import pytest
+from scipy.integrate import solve_ivp
 
+from pyna.toroidal.equilibrium.stellarator import simple_stellarator
+from pyna.toroidal.perturbation_spectrum import radial_perturbation_Fourier_spectrum
 from pyna.toroidal import (
     TorusDeformationSpectrum,
     RadialPerturbationSplit,
@@ -193,6 +196,121 @@ def test_fieldline_deformation_spectrum_optional_shear_term():
     expected_theta = (Ft + IOTA_PRIME * expected_r) / (1j * alpha)
     np.testing.assert_allclose(spec.delta_r[0], expected_r, rtol=1e-12)
     np.testing.assert_allclose(spec.delta_theta[0], expected_theta, rtol=1e-12)
+
+
+def _helical_velocity_deformation(eq, psi_res, *, n_grid=128):
+    r_res = np.sqrt(psi_res) * eq.r0
+    iota = 1.0 / float(eq.q_of_psi(psi_res))
+    theta = np.linspace(0.0, 2.0 * np.pi, n_grid, endpoint=False)
+    phi = np.linspace(0.0, 2.0 * np.pi, n_grid, endpoint=False)
+    TT, PP = np.meshgrid(theta, phi, indexing="xy")
+    RR = eq.R0 + r_res * np.cos(TT)
+    ZZ = r_res * np.sin(TT)
+    Bphi = eq.B0 * eq.R0 / RR
+    delta_BR = eq.epsilon_h * eq.B0 * eq.psi_ax(RR, ZZ) * np.cos(eq.m_h * TT - eq.n_h * PP)
+
+    radial_velocity = RR * delta_BR * np.cos(TT) / Bphi
+    poloidal_velocity = -RR * delta_BR * np.sin(TT) / (r_res * Bphi)
+    radial_spec = radial_perturbation_Fourier_spectrum(
+        radial_velocity,
+        theta,
+        phi,
+        m_max=8,
+        n_max=8,
+        min_amplitude=1.0e-13,
+    )
+    poloidal_spec = radial_perturbation_Fourier_spectrum(
+        poloidal_velocity,
+        theta,
+        phi,
+        m_max=8,
+        n_max=8,
+        min_amplitude=1.0e-13,
+    )
+    poloidal_coeffs = np.array([
+        poloidal_spec.mode_coefficient(int(m), int(n))
+        for m, n in zip(radial_spec.m, radial_spec.n)
+    ])
+    nonresonant = np.abs(radial_spec.m * iota + radial_spec.n) > 1.0e-9
+    q_res = float(eq.q_of_psi(psi_res))
+    iota_prime = -(eq.q1 - eq.q0) * (2.0 * r_res / eq.r0**2) / q_res**2
+    return (
+        fieldline_deformation_spectrum(
+            radial_spec.m[nonresonant],
+            radial_spec.n[nonresonant],
+            radial_spec.dBr[nonresonant],
+            poloidal_coeffs[nonresonant],
+            iota=iota,
+            iota_prime=iota_prime,
+            include_shear=True,
+        ),
+        r_res,
+        iota,
+    )
+
+
+def _fieldline_map_residual_for_deformed_torus(epsilon_h):
+    eq = simple_stellarator(
+        R0=3.0,
+        r0=0.3,
+        B0=2.5,
+        q0=1.5,
+        q1=4.5,
+        m_h=3,
+        n_h=3,
+        epsilon_h=epsilon_h,
+    )
+    psi_res = eq.resonant_psi(2, 1)[0]
+    deformation, r_res, iota = _helical_velocity_deformation(eq, psi_res)
+
+    def surface(alpha, phi):
+        alpha_arr = np.asarray(alpha)
+        radius = r_res + deformation.section_r(alpha_arr, phi)
+        theta = alpha_arr + deformation.section_theta(alpha_arr, phi)
+        return radius, theta
+
+    def rhs(phi, state):
+        radius, theta = state
+        R = eq.R0 + radius * np.cos(theta)
+        psi = (radius / eq.r0) ** 2
+        q = float(eq.q_of_psi(psi))
+        Bphi = eq.B0 * eq.R0 / R
+        delta_BR = eq.epsilon_h * eq.B0 * psi * np.cos(eq.m_h * theta - eq.n_h * phi)
+        return [
+            R * delta_BR * np.cos(theta) / Bphi,
+            1.0 / q - R * delta_BR * np.sin(theta) / (radius * Bphi),
+        ]
+
+    residuals = []
+    for alpha0 in np.linspace(0.0, 2.0 * np.pi, 12, endpoint=False):
+        initial = surface(alpha0, 0.0)
+        sol = solve_ivp(
+            rhs,
+            (0.0, 2.0 * np.pi),
+            [float(initial[0]), float(initial[1])],
+            method="DOP853",
+            rtol=5.0e-10,
+            atol=1.0e-12,
+        )
+        radius_end, theta_end = sol.y[:, -1]
+        radius_pred, theta_pred = surface(alpha0 + iota * 2.0 * np.pi, 2.0 * np.pi)
+        R_end = eq.R0 + radius_end * np.cos(theta_end)
+        Z_end = radius_end * np.sin(theta_end)
+        R_pred = eq.R0 + float(radius_pred) * np.cos(float(theta_pred))
+        Z_pred = float(radius_pred) * np.sin(float(theta_pred))
+        residuals.append(np.hypot(R_end - R_pred, Z_end - Z_pred))
+    return max(residuals)
+
+
+def test_first_order_fieldline_deformation_residual_is_quadratic():
+    amplitudes = np.array([0.002, 0.004, 0.008, 0.016])
+    residuals = np.array([
+        _fieldline_map_residual_for_deformed_torus(float(amplitude))
+        for amplitude in amplitudes
+    ])
+    slope = np.polyfit(np.log(amplitudes), np.log(residuals), 1)[0]
+
+    assert slope == pytest.approx(2.0, abs=0.08)
 
 
 # ────────────────────────────────────────────────────────────────────────────

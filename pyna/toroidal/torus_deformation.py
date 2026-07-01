@@ -398,9 +398,10 @@ def fieldline_deformation_spectrum(
     ``i*alpha*delta_theta = F_theta``.
 
     If ``include_shear`` is true, the angular equation uses
-    ``F_theta + iota_prime*delta_r``.  The default leaves this term out because
-    many surface-geometry comparisons only need the first-order coordinate
-    displacement induced directly by the non-resonant perturbation.
+    ``F_theta + iota_prime*delta_r``.  This is the invariant-torus conjugacy
+    form and is the one whose map residual should scale quadratically with the
+    perturbation amplitude.  The default leaves the shear term out because some
+    section-geometry comparisons only need the direct coordinate displacement.
     """
 
     m = np.asarray(m, dtype=int)
