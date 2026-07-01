@@ -24,7 +24,7 @@ class SurfaceFate(Enum):
     INTACT   = auto()   # KAM torus survives  (|Î´DPm/DPm| < Îµ_KAM)
     DEFORMED = auto()   # Torus deforms but stays closed
     ISLAND   = auto()   # Resonant island chain forms (Greene residue crosses 0 or 1)
-    CHAOTIC  = auto()   # Stochastic region  (|Î´DPm/DPm| > Îµ_chaos)
+    STOCHASTIC = auto() # Stochastic region  (|Î´DPm/DPm| > Îµ_chaos)
     UNKNOWN  = auto()
 
 

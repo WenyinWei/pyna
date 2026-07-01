@@ -35,6 +35,7 @@ jobs:
         run: |
           set +e
           pytest --nbmake notebooks/tutorials/ \
+                 --ignore=notebooks/tutorials/sde_monte_carlo_distribution.ipynb \
                  --timeout=300 \
                  -v --tb=short \
                  2>&1 | tee /tmp/nb_results.txt

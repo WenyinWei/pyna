@@ -3,11 +3,20 @@
 API 参考
 ========
 
-详细 API 文档请参阅英文版本:
+中文 API 页覆盖稳定公共入口；完整逐类逐函数文档由英文自动生成参考页承担，
+用于调试和查签名。
 
-- :doc:`../../en/api/flt` -- 场线追踪
-- :doc:`../../en/api/dynamics` -- 通用动力系统、Hamiltonian、N-body、SDE
-- :doc:`../../en/api/topo` -- 拓扑分析
-- :doc:`../../en/api/toroidal` -- 环形磁约束物理
-- :doc:`../../en/api/control` -- 控制理论
-- :doc:`../../en/api/cyna` -- cyna C++ 加速层
+.. toctree::
+   :maxdepth: 2
+
+   dynamics
+   dynamics-patterns
+   flt
+   topo
+   toroidal
+   control
+   cyna
+
+完整自动生成参考：
+
+- :doc:`../../en/api/generated/pyna/index`

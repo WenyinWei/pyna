@@ -9,14 +9,15 @@ Recommended Learning Path
 -------------------------
 
 Start with :doc:`/en/quickstart`, then work through the generic geometry
-workflow before moving to toroidal monodromy and RMP examples:
+workflow, stochastic models, and then toroidal monodromy/RMP examples:
 
 1. :doc:`/en/mini-cases`
 2. :doc:`/notebooks/tutorials/general_dynamics_geometry_patterns`
-3. :doc:`/notebooks/tutorials/analytic_stellarator_geometry_workflow`
-4. :doc:`/notebooks/tutorials/monodromy_xcycle_analytic`
-5. :doc:`/notebooks/tutorials/island_jacobian_analysis`
-6. :doc:`/notebooks/tutorials/RMP_island_validation_solovev`
+3. :doc:`sde-monte-carlo`
+4. :doc:`/notebooks/tutorials/analytic_stellarator_geometry_workflow`
+5. :doc:`/notebooks/tutorials/monodromy_xcycle_analytic`
+6. :doc:`/notebooks/tutorials/island_jacobian_analysis`
+7. :doc:`/notebooks/tutorials/RMP_island_validation_solovev`
 
 General Dynamical Systems
 -------------------------
@@ -24,8 +25,22 @@ General Dynamical Systems
 .. toctree::
    :maxdepth: 1
 
+   sde-monte-carlo
    /notebooks/tutorials/general_dynamics_geometry_patterns
    /notebooks/tutorials/analytic_stellarator_geometry_workflow
+
+Stochastic Differential Equations
+---------------------------------
+
+The SDE tutorial is pre-executed locally because distribution estimation often
+uses tens or hundreds of thousands of Monte Carlo paths.  GitHub Pages renders
+the saved outputs instead of spending CI time on the heavy sampling cells.
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   /notebooks/tutorials/sde_monte_carlo_distribution
 
 Magnetic Coordinates and Equilibria
 -----------------------------------

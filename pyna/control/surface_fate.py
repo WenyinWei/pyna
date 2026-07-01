@@ -87,7 +87,7 @@ def classify_surface_fate(
     if rel_pert < epsilon_KAM:
         return SurfaceFate.INTACT
     elif rel_pert >= epsilon_chaos:
-        return SurfaceFate.CHAOTIC
+        return SurfaceFate.STOCHASTIC
     else:
         # Residue crosses 0 (hyperbolicâelliptic or vice versa)
         # or crosses 1 (inverse hyperbolic transition)

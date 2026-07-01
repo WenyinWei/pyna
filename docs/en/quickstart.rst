@@ -221,6 +221,7 @@ library authors, but most notebooks should start with the workflow facade.
 
 - **Tutorials** — worked examples with plots:
   :doc:`/en/mini-cases`,
+  :doc:`/en/tutorials/sde-monte-carlo`,
   :doc:`/notebooks/tutorials/general_dynamics_geometry_patterns`,
   :doc:`/notebooks/tutorials/analytic_stellarator_geometry_workflow`,
   :doc:`/notebooks/tutorials/magnetic_coordinates_comparison`,

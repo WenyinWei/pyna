@@ -35,11 +35,17 @@ exclude_patterns = [
     # They are listed from the tutorial index without being executed by Sphinx.
     'notebooks/examples/*',
     'notebooks/research/*',
+    'notebooks/tutorials/RMP_resonance_exec.ipynb',
+    'notebooks/validate_chaos.ipynb',
 ]
 
 # ? Theme ?
 html_theme = 'furo'
 html_static_path = ['_static']
+html_css_files = ['custom.css']
+html_js_files = ['language-switcher.js']
+html_copy_source = False
+html_show_sourcelink = False
 
 html_theme_options = {
     "light_css_variables": {
@@ -134,3 +140,17 @@ suppress_warnings = [
 ]
 
 nitpicky = False
+
+
+def _disable_nbsphinx_notebook_copy(app):
+    """Render notebooks as HTML without publishing raw .ipynb sources."""
+    if app.builder.format == 'html' and hasattr(app.env, 'nbsphinx_notebooks'):
+        app.env.nbsphinx_notebooks = {}
+    return []
+
+
+def setup(app):
+    # nbsphinx copies executed notebooks during html-collect-pages.  The pages
+    # already contain rendered outputs, and publishing raw JSON can expose large
+    # base64 payloads, so keep GitHub Pages to HTML/assets only.
+    app.connect('html-collect-pages', _disable_nbsphinx_notebook_copy, priority=400)

@@ -1,83 +1,27 @@
-pyna - Python DYNAmics
-========================
+pyna Documentation
+==================
 
-.. image:: https://img.shields.io/pypi/v/pyna-chaos?color=blue&label=PyPI
-   :target: https://pypi.org/project/pyna-chaos/
-.. image:: https://img.shields.io/pypi/pyversions/pyna-chaos
-.. image:: https://img.shields.io/badge/license-LGPL--3.0-green
-.. image:: https://github.com/WenyinWei/pyna/actions/workflows/docs.yml/badge.svg
-   :target: https://github.com/WenyinWei/pyna/actions
-
-**pyna** is a Python library for **dynamical systems analysis** and
-**magnetic confinement fusion (MCF) physics** -- from field-line tracing and
-Poincare maps to analytic torus-deformation theory and publication-quality
-tokamak visualizations.
+Choose a documentation language.  The language selector in the upper-right
+corner is available on every page; languages without a translated page fall
+back to English.
 
 .. grid:: 2
    :gutter: 3
 
-   .. grid-item-card:: Field-line Tracing
-      :link: en/api/flt
+   .. grid-item-card:: English
+      :link: en/index
       :link-type: doc
 
-      RK4 integrator with optional CUDA acceleration (118x speedup).
+      Full documentation, API reference, tutorials and executed notebooks.
 
-   .. grid-item-card:: Poincare Maps & Islands
-      :link: en/api/topo
+   .. grid-item-card:: 中文
+      :link: zh/index
       :link-type: doc
 
-      Multi-section maps, X/O-point detection, island width extraction.
-
-   .. grid-item-card:: General Dynamics
-      :link: en/api/dynamics
-      :link-type: doc
-
-      Hamiltonian systems, N-body flows, finite-dimensional maps, SDEs.
-
-   .. grid-item-card:: Manifold Visualization
-      :link: en/api/topo
-      :link-type: doc
-
-      Publication-quality stable/unstable manifold plots in the preferred
-      ``pyna.toroidal`` namespace.
-
-   .. grid-item-card:: Torus Deformation
-      :link: en/theory/torus_deformation
-      :link-type: doc
-
-      Non-resonant BNF-derived analytic spectral theory (Wei 2025), surfaced
-      through ``pyna.toroidal``.
-
-   .. grid-item-card:: Toroidal Equilibria
-      :link: en/api/index
-      :link-type: doc
-
-      Solov'ev, Grad-Shafranov, stellarator analytic/numeric solutions.
-
-   .. grid-item-card:: Magnetic Coordinates
-      :link: en/api/index
-      :link-type: doc
-
-      PEST, Boozer, Hamada, Equal-arc transformations via ``pyna.toroidal``.
+      中文快速入门、迷你案例、教程导航和常用 API 说明。
 
 .. toctree::
-   :maxdepth: 2
-   :caption: English Documentation
+   :hidden:
 
-   en/installation
-   en/quickstart
-   en/mini-cases
-   en/api/index
-   en/theory/index
-   en/tutorials/index
-   en/development/index
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Chinese Documentation
-
-   zh/installation
-   zh/quickstart
-   zh/mini-cases
-   zh/straight_theta_surface_coordinates
-   zh/api/index
+   en/index
+   zh/index

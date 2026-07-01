@@ -110,6 +110,8 @@ Stochastic Differential Equations
 
 The SDE layer uses Ito form ``dX = a(X,t) dt + B(X,t) dW`` and a deterministic
 Euler-Maruyama implementation for reproducible research and teaching examples.
+For distribution-estimation workflows, see
+:doc:`/en/tutorials/sde-monte-carlo`.
 
 .. code-block:: python
 

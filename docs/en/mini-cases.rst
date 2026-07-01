@@ -128,7 +128,31 @@ configuration-driven.
 Use local ``Registry`` instances in tests if global registration would make the
 test order-dependent.
 
-Case 5: Where to Customize
+Case 5: SDE Distribution Estimate
+---------------------------------
+
+Single SDE paths are pyna trajectories.  Monte Carlo ensembles are statistical
+estimators; keep them as arrays until pyna grows a dedicated ensemble object.
+
+.. code-block:: python
+
+   import numpy as np
+   from pyna.dynamics import BrownianMotion, GeometricBrownianMotion
+
+   bm = BrownianMotion(dim=1, diffusion=1.0)
+   path = bm.euler_maruyama([0.0], (0.0, 1.0), dt=0.01, rng=1)
+   print(path.final)
+
+   gbm = GeometricBrownianMotion(mu=[0.08], sigma=[0.20])
+   rng = np.random.default_rng(20260701)
+   z = rng.normal(size=100_000)
+   terminal = 100.0 * np.exp(gbm.expected_log_growth()[0] + gbm.sigma[0] * z)
+   print(np.mean(terminal), np.quantile(terminal, [0.05, 0.5, 0.95]))
+
+For a full executed case with Brownian, Ornstein-Uhlenbeck and geometric
+Brownian motion distributions, use :doc:`/en/tutorials/sde-monte-carlo`.
+
+Case 6: Where to Customize
 --------------------------
 
 .. list-table::
@@ -170,6 +194,14 @@ Before publishing documentation:
    .venv/bin/python -m pytest --nbmake \
      notebooks/tutorials/general_dynamics_geometry_patterns.ipynb \
      notebooks/tutorials/analytic_stellarator_geometry_workflow.ipynb
+
+For heavy notebooks with saved outputs, run them locally and commit the updated
+``.ipynb`` file:
+
+.. code-block:: bash
+
+   .venv/bin/jupyter nbconvert --to notebook --execute --inplace \
+     notebooks/tutorials/sde_monte_carlo_distribution.ipynb
 
 For the same notebook set used by GitHub Pages, run the Sphinx build locally:
 

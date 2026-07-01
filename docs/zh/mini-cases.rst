@@ -121,6 +121,29 @@ Factory 不是必须的。它适合配置驱动的下游项目。
 
 测试里如果担心全局注册影响顺序，使用局部 ``Registry`` 实例。
 
+案例 5：SDE 分布估计
+--------------------
+
+单条 SDE 样本路径是 pyna 的 ``Trajectory``；大量路径的 Monte Carlo ensemble
+是统计估计，暂时应保持为数组，不要自动提升为拓扑不变对象。
+
+.. code-block:: python
+
+   import numpy as np
+   from pyna.dynamics import BrownianMotion, GeometricBrownianMotion
+
+   bm = BrownianMotion(dim=1, diffusion=1.0)
+   path = bm.euler_maruyama([0.0], (0.0, 1.0), dt=0.01, rng=1)
+   print(path.final)
+
+   gbm = GeometricBrownianMotion(mu=[0.08], sigma=[0.20])
+   rng = np.random.default_rng(20260701)
+   z = rng.normal(size=100_000)
+   terminal = 100.0 * np.exp(gbm.expected_log_growth()[0] + gbm.sigma[0] * z)
+   print(np.mean(terminal), np.quantile(terminal, [0.05, 0.5, 0.95]))
+
+完整的本地预执行 notebook 见 :doc:`/zh/tutorials/sde-monte-carlo`。
+
 高手应该改哪一层
 ----------------
 
@@ -162,6 +185,13 @@ Notebook 上线前检查
    .venv/bin/python -m pytest --nbmake \
      notebooks/tutorials/general_dynamics_geometry_patterns.ipynb \
      notebooks/tutorials/analytic_stellarator_geometry_workflow.ipynb
+
+重计算 notebook 在本地执行并提交输出：
+
+.. code-block:: bash
+
+   .venv/bin/jupyter nbconvert --to notebook --execute --inplace \
+     notebooks/tutorials/sde_monte_carlo_distribution.ipynb
 
 按 GitHub Pages 的 notebook 集合本地构建：
 
