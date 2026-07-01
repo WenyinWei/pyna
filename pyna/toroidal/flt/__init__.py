@@ -109,7 +109,9 @@ from pyna.toroidal.flt.adaptive_density import (
     BoundarySeedDensificationResult,
     adaptive_wall_fraction_seed_points,
     densify_boundary_poincare_seeds,
+    filter_poincare_traces_by_seed_count,
     poincare_wall_fraction_density,
+    poincare_seed_hit_counts,
     trace_adaptive_poincare_sections_from_same_orbits_field,
     wall_fraction_theta,
 )
@@ -213,7 +215,9 @@ __all__ = [
     "BoundarySeedDensificationResult",
     "adaptive_wall_fraction_seed_points",
     "densify_boundary_poincare_seeds",
+    "filter_poincare_traces_by_seed_count",
     "poincare_wall_fraction_density",
+    "poincare_seed_hit_counts",
     "trace_adaptive_poincare_sections_from_same_orbits_field",
     "wall_fraction_theta",
 ]

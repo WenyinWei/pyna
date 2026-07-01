@@ -14,7 +14,9 @@ from pyna.toroidal.flt import (
     boundary_wall_fractions,
     densify_boundary_poincare_seeds,
     deduplicate_boundary_island_orbits,
+    filter_poincare_traces_by_seed_count,
     poincare_wall_fraction_density,
+    poincare_seed_hit_counts,
     trace_adaptive_poincare_sections_from_same_orbits_field,
     vector_field_cylind_from_field,
     find_boundary_island_fixed_points_field,
@@ -269,6 +271,39 @@ def test_trace_adaptive_poincare_sections_retraces_only_new_sparse_seeds(monkeyp
     assert calls[1].size == 3
     assert traces.n_seed == 4
     assert traces.metadata["trace_source"] == "adaptive_same_orbit_multi_section"
+
+
+def test_filter_poincare_traces_by_seed_count_removes_short_lived_seeds():
+    counts = np.asarray([[3, 3], [1, 0], [3, 2]], dtype=int)
+    n_seed, n_section = counts.shape
+    N_turns = 3
+    flat_R = []
+    flat_Z = []
+    for seed in range(n_seed):
+        for section in range(n_section):
+            for turn in range(N_turns):
+                flat_R.append(100.0 * seed + 10.0 * section + turn)
+                flat_Z.append(-(100.0 * seed + 10.0 * section + turn))
+    traces = PoincareSectionTraces(
+        phi_sections=[0.0, 0.5],
+        seed_R=[0.9, 0.91, 0.92],
+        seed_Z=[0.0, 0.01, 0.02],
+        counts=counts,
+        R_flat=np.asarray(flat_R, dtype=float),
+        Z_flat=np.asarray(flat_Z, dtype=float),
+        N_turns=N_turns,
+    )
+
+    np.testing.assert_array_equal(poincare_seed_hit_counts(traces), [6, 1, 5])
+    filtered = filter_poincare_traces_by_seed_count(traces, min_total_count=5)
+
+    assert filtered.n_seed == 2
+    np.testing.assert_array_equal(filtered.seed_R, [0.9, 0.92])
+    np.testing.assert_array_equal(poincare_seed_hit_counts(filtered), [6, 5])
+    R_sec, _Z_sec, seed_idx = filtered.section_points(1)
+    np.testing.assert_allclose(R_sec, [10.0, 11.0, 12.0, 210.0, 211.0])
+    np.testing.assert_array_equal(seed_idx, [0, 0, 0, 1, 1])
+    assert filtered.metadata["survival_filter"]["dropped_seed_count"] == 1
 
 
 def test_boundary_chain_assembly_deduplicates_orbits_and_pairs_xo():

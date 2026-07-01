@@ -103,6 +103,128 @@ class AdaptivePoincareSectionTraces:
         return np.concatenate(R_parts), np.concatenate(Z_parts), np.concatenate(seed_parts)
 
 
+def _seed_counts_for_trace(trace: PoincareSectionTraces) -> np.ndarray:
+    return np.sum(np.asarray(trace.counts, dtype=int), axis=1)
+
+
+def poincare_seed_hit_counts(traces) -> np.ndarray:
+    """Return total recorded Poincare hits for every seed orbit."""
+
+    if isinstance(traces, AdaptivePoincareSectionTraces):
+        if not traces.traces:
+            return np.empty(0, dtype=int)
+        return np.concatenate([_seed_counts_for_trace(trace) for trace in traces.traces])
+    return _seed_counts_for_trace(traces)
+
+
+def _filter_single_trace_by_mask(trace: PoincareSectionTraces, mask: np.ndarray) -> PoincareSectionTraces:
+    mask = np.asarray(mask, dtype=bool).ravel()
+    if mask.size != trace.n_seed:
+        raise ValueError("seed mask length must match trace.n_seed")
+    R_cube = np.asarray(trace.R_flat, dtype=float).reshape(trace.n_seed, trace.n_section, trace.N_turns)
+    Z_cube = np.asarray(trace.Z_flat, dtype=float).reshape(trace.n_seed, trace.n_section, trace.N_turns)
+    return PoincareSectionTraces(
+        phi_sections=trace.phi_sections,
+        seed_R=trace.seed_R[mask],
+        seed_Z=trace.seed_Z[mask],
+        counts=trace.counts[mask],
+        R_flat=R_cube[mask].ravel(),
+        Z_flat=Z_cube[mask].ravel(),
+        N_turns=trace.N_turns,
+        direction=trace.direction,
+        metadata={**dict(trace.metadata), "seed_filter_kept_count": int(np.count_nonzero(mask))},
+    )
+
+
+def _seed_filter_mask(
+    trace: PoincareSectionTraces,
+    *,
+    min_total_count: int | None,
+    min_count_per_section: int | None,
+) -> np.ndarray:
+    counts = np.asarray(trace.counts, dtype=int)
+    mask = np.ones(trace.n_seed, dtype=bool)
+    if min_total_count is not None:
+        mask &= np.sum(counts, axis=1) >= int(min_total_count)
+    if min_count_per_section is not None:
+        mask &= np.min(counts, axis=1) >= int(min_count_per_section)
+    return mask
+
+
+def _survival_filter_metadata(original_counts: np.ndarray, kept_counts: np.ndarray, *, params: dict) -> dict:
+    def _stats(values: np.ndarray) -> dict:
+        arr = np.asarray(values, dtype=float).ravel()
+        finite = arr[np.isfinite(arr)]
+        if finite.size == 0:
+            return {"count": 0, "min": None, "median": None, "p90": None, "max": None}
+        return {
+            "count": int(finite.size),
+            "min": float(np.min(finite)),
+            "median": float(np.median(finite)),
+            "p90": float(np.percentile(finite, 90.0)),
+            "max": float(np.max(finite)),
+        }
+
+    return {
+        "filter": "seed_hit_count",
+        "params": params,
+        "original_seed_count": int(np.asarray(original_counts).size),
+        "kept_seed_count": int(np.asarray(kept_counts).size),
+        "dropped_seed_count": int(np.asarray(original_counts).size - np.asarray(kept_counts).size),
+        "original_total_hit_stats": _stats(original_counts),
+        "kept_total_hit_stats": _stats(kept_counts),
+    }
+
+
+def filter_poincare_traces_by_seed_count(
+    traces,
+    *,
+    min_total_count: int | None = None,
+    min_count_per_section: int | None = None,
+):
+    """Drop seed orbits that leave too few Poincare hits for clear plotting."""
+
+    if min_total_count is None and min_count_per_section is None:
+        return traces
+    params = {
+        "min_total_count": None if min_total_count is None else int(min_total_count),
+        "min_count_per_section": None if min_count_per_section is None else int(min_count_per_section),
+    }
+    if isinstance(traces, AdaptivePoincareSectionTraces):
+        filtered: list[PoincareSectionTraces] = []
+        original_counts_parts: list[np.ndarray] = []
+        kept_counts_parts: list[np.ndarray] = []
+        for trace in traces.traces:
+            counts = _seed_counts_for_trace(trace)
+            mask = _seed_filter_mask(
+                trace,
+                min_total_count=min_total_count,
+                min_count_per_section=min_count_per_section,
+            )
+            filtered.append(_filter_single_trace_by_mask(trace, mask))
+            original_counts_parts.append(counts)
+            kept_counts_parts.append(counts[mask])
+        original_counts = np.concatenate(original_counts_parts) if original_counts_parts else np.empty(0, dtype=int)
+        kept_counts = np.concatenate(kept_counts_parts) if kept_counts_parts else np.empty(0, dtype=int)
+        metadata = {
+            **dict(traces.metadata),
+            "survival_filter": _survival_filter_metadata(original_counts, kept_counts, params=params),
+        }
+        return AdaptivePoincareSectionTraces(tuple(filtered), metadata=metadata)
+
+    counts = _seed_counts_for_trace(traces)
+    mask = _seed_filter_mask(
+        traces,
+        min_total_count=min_total_count,
+        min_count_per_section=min_count_per_section,
+    )
+    filtered = _filter_single_trace_by_mask(traces, mask)
+    filtered.metadata.update({
+        "survival_filter": _survival_filter_metadata(counts, counts[mask], params=params),
+    })
+    return filtered
+
+
 def _as_axis_by_section(axis_by_section, n_section: int) -> list[tuple[float, float]]:
     if len(axis_by_section) != int(n_section):
         raise ValueError("axis_by_section must have one (R, Z) pair per section")
@@ -572,7 +694,9 @@ __all__ = [
     "BoundarySeedDensificationResult",
     "adaptive_wall_fraction_seed_points",
     "densify_boundary_poincare_seeds",
+    "filter_poincare_traces_by_seed_count",
     "poincare_wall_fraction_density",
+    "poincare_seed_hit_counts",
     "trace_adaptive_poincare_sections_from_same_orbits_field",
     "wall_fraction_theta",
 ]
