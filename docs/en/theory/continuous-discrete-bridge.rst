@@ -37,6 +37,7 @@ toroidal magnetic-field-line specialization.  Generic roots are available as
 See Also
 --------
 
-- :doc:`/notebooks/tutorials/general_dynamics_geometry_patterns`
+- :doc:`/en/mini-cases`
+- :doc:`/notebooks/tutorials/RMP_resonance_analysis`
 - :doc:`/notebooks/tutorials/monodromy_xcycle_analytic`
 - :doc:`/notebooks/tutorials/island_jacobian_analysis`

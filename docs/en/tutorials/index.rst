@@ -12,12 +12,11 @@ Start with :doc:`/en/quickstart`, then work through the generic geometry
 workflow, stochastic models, and then toroidal monodromy/RMP examples:
 
 1. :doc:`/en/mini-cases`
-2. :doc:`/notebooks/tutorials/general_dynamics_geometry_patterns`
-3. :doc:`sde-monte-carlo`
-4. :doc:`/notebooks/tutorials/analytic_stellarator_geometry_workflow`
-5. :doc:`/notebooks/tutorials/monodromy_xcycle_analytic`
-6. :doc:`/notebooks/tutorials/island_jacobian_analysis`
-7. :doc:`/notebooks/tutorials/RMP_island_validation_solovev`
+2. :doc:`sde-monte-carlo`
+3. :doc:`/notebooks/tutorials/RMP_resonance_analysis`
+4. :doc:`/notebooks/tutorials/monodromy_xcycle_analytic`
+5. :doc:`/notebooks/tutorials/island_jacobian_analysis`
+6. :doc:`/notebooks/tutorials/RMP_island_validation_solovev`
 
 General Dynamical Systems
 -------------------------
@@ -26,8 +25,12 @@ General Dynamical Systems
    :maxdepth: 1
 
    sde-monte-carlo
-   /notebooks/tutorials/general_dynamics_geometry_patterns
-   /notebooks/tutorials/analytic_stellarator_geometry_workflow
+
+The generic geometry workflow and analytic stellarator fixed-point workflow are
+now folded into the RMP resonance tutorial instead of being published as
+standalone text-only notebooks.  That tutorial shows the same promotion chain:
+sampled crossings -> fixed-point geometry -> X/O classification -> manifold
+and coordinate-grid overlays.
 
 Stochastic Differential Equations
 ---------------------------------
@@ -56,8 +59,8 @@ RMPs, Islands and Poincare Analysis
 .. toctree::
    :maxdepth: 1
 
-   /notebooks/tutorials/RMP_island_validation_solovev
    /notebooks/tutorials/RMP_resonance_analysis
+   /notebooks/tutorials/RMP_island_validation_solovev
    /notebooks/tutorials/island_jacobian_analysis
 
 ``RMP_resonance_exec.ipynb`` is kept in the repository as an execution/cache

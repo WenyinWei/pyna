@@ -2,11 +2,9 @@ name: Build and Publish Wheels
 
 # Triggers:
 #   - push of a version tag vX.Y.Z  -> build + upload to PyPI
-#   - push to master                -> build only (smoke test, no upload)
 #   - manual dispatch               -> build; optionally upload
 on:
   push:
-    branches: [master]
     tags:
       - "v*.*.*"
   workflow_dispatch:

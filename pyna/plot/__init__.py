@@ -5,6 +5,14 @@ from pyna.plot.island_chain import plot_island_chain, island_chain_section_point
 from pyna.plot.xo_points import draw_xo_points, XO_STYLE
 from pyna.plot.poincare_beta import plot_poincare_beta_grid
 from pyna.plot.boundary_island import plot_boundary_island_sections
+from pyna.plot.rmp import (
+    draw_pest_grid,
+    draw_reduced_stable_manifolds,
+    draw_resonant_surfaces,
+    draw_rmp_fixed_points,
+    draw_rmp_resonance_section,
+    plot_rmp_resonance_sections,
+)
 from pyna.plot.section_geometry import (
     SECTION_ORBIT_COLORS,
     apply_section_limits,
@@ -52,6 +60,12 @@ __all__ = [
     "XO_STYLE",
     "plot_poincare_beta_grid",
     "plot_boundary_island_sections",
+    "draw_pest_grid",
+    "draw_reduced_stable_manifolds",
+    "draw_resonant_surfaces",
+    "draw_rmp_fixed_points",
+    "draw_rmp_resonance_section",
+    "plot_rmp_resonance_sections",
     "SECTION_ORBIT_COLORS",
     "apply_section_limits",
     "branch_payload_smax",

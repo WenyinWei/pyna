@@ -35,6 +35,8 @@ exclude_patterns = [
     # They are listed from the tutorial index without being executed by Sphinx.
     'notebooks/examples/*',
     'notebooks/research/*',
+    'notebooks/tutorials/general_dynamics_geometry_patterns.ipynb',
+    'notebooks/tutorials/analytic_stellarator_geometry_workflow.ipynb',
     'notebooks/tutorials/RMP_resonance_exec.ipynb',
     'notebooks/validate_chaos.ipynb',
 ]
@@ -93,7 +95,10 @@ napoleon_use_admonition_for_notes = True
 napoleon_use_rtype = False
 
 # nbsphinx settings
-nbsphinx_execute = 'auto'
+# Tutorial notebooks are executed locally and committed with their outputs.
+# The GitHub Pages workflow only renders those saved outputs, avoiding slow or
+# non-reproducible CI reruns of Monte Carlo and field-line tracing tutorials.
+nbsphinx_execute = 'never'
 nbsphinx_timeout = 300  # seconds per notebook (per-notebook override via metadata "nbsphinx": {"timeout": N})
 nbsphinx_allow_errors = False
 

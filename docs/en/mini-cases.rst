@@ -87,16 +87,17 @@ Case 3: Analytic Stellarator O/X Points
 ---------------------------------------
 
 For magnetic-confinement work, a field-line flow is cut by a Poincare section.
-The executable tutorial :doc:`/notebooks/tutorials/analytic_stellarator_geometry_workflow`
-does the complete calculation:
+The executable tutorial :doc:`/notebooks/tutorials/RMP_resonance_analysis`
+now carries the complete visual calculation:
 
 1. build the public analytic stellarator model;
-2. integrate the period-4 return map;
-3. classify O/X points from the monodromy;
-4. promote the result to ``PeriodicOrbit`` and ``IslandChain``.
+2. trace unperturbed and perturbed Poincare sections;
+3. compute analytic resonant X/O points;
+4. overlay local stable branches and a PEST-style coordinate grid.
 
-Use this notebook when testing changes to fixed-point algorithms or section
-geometry.  It is small enough to run locally before publishing docs.
+Use this notebook when testing changes to fixed-point plotting, section
+geometry, or tutorial rendering.  It is small enough to run locally before
+publishing docs.
 
 Case 4: Custom System Registration
 ----------------------------------
@@ -192,8 +193,8 @@ Before publishing documentation:
 .. code-block:: bash
 
    .venv/bin/python -m pytest --nbmake \
-     notebooks/tutorials/general_dynamics_geometry_patterns.ipynb \
-     notebooks/tutorials/analytic_stellarator_geometry_workflow.ipynb
+     notebooks/tutorials/RMP_resonance_analysis.ipynb \
+     notebooks/tutorials/island_jacobian_analysis.ipynb
 
 For heavy notebooks with saved outputs, run them locally and commit the updated
 ``.ipynb`` file:

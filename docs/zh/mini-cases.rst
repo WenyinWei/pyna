@@ -84,14 +84,14 @@
 ----------------------------------
 
 磁约束问题里，连续场线流在 Poincare 截面上变成离散返回映射。可执行教程
-:doc:`/notebooks/tutorials/analytic_stellarator_geometry_workflow` 完整展示：
+:doc:`/notebooks/tutorials/RMP_resonance_analysis` 现在承担完整图文案例：
 
 1. 构造公开解析 stellarator 模型；
-2. 积分 period-4 返回映射；
-3. 用 monodromy 分类 O/X 点；
-4. 将结果提升为 ``PeriodicOrbit`` 和 ``IslandChain``。
+2. 追踪未扰动和 RMP 扰动后的 Poincare 截面；
+3. 计算解析共振 X/O 点；
+4. 叠加局部稳定分支和 PEST-style 坐标网格。
 
-修改固定点算法或截面几何前，建议先在本地跑这个 notebook。
+修改固定点绘图、截面几何或教程渲染前，建议先在本地跑这个 notebook。
 
 案例 4：注册自定义系统
 ----------------------
@@ -183,8 +183,8 @@ Notebook 上线前检查
 .. code-block:: bash
 
    .venv/bin/python -m pytest --nbmake \
-     notebooks/tutorials/general_dynamics_geometry_patterns.ipynb \
-     notebooks/tutorials/analytic_stellarator_geometry_workflow.ipynb
+     notebooks/tutorials/RMP_resonance_analysis.ipynb \
+     notebooks/tutorials/island_jacobian_analysis.ipynb
 
 重计算 notebook 在本地执行并提交输出：
 

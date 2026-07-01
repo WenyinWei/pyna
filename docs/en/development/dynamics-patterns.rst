@@ -33,10 +33,11 @@ keeps the notebook code readable while still making each promotion explicit.
 Worked Tutorial
 ---------------
 
-For a complete, executable walk-through, start with
-:doc:`/notebooks/tutorials/general_dynamics_geometry_patterns`.  It shows a
-harmonic oscillator trajectory, explicit cycle promotion, section cuts, map
-periodic-orbit verification and synthetic tube-to-island-chain construction.
+For a compact workflow overview, start with :doc:`/en/mini-cases`.  For a
+complete visual tutorial that applies the same promotion ideas to a real
+toroidal calculation, use :doc:`/notebooks/tutorials/RMP_resonance_analysis`.
+It shows sampled Poincare crossings, explicit X/O fixed-point geometry,
+coordinate-grid overlays and local manifold branches.
 
 For short copy-paste recipes, use :doc:`/en/mini-cases`.  That page is the
 intended bridge between the quickstart and the full API reference.
