@@ -13,6 +13,12 @@ from pyna.plot.rmp import (
     draw_rmp_resonance_section,
     plot_rmp_resonance_sections,
 )
+from pyna.plot.mgrid import (
+    draw_smooth_pest_grid,
+    plot_mgrid_current_cylindrical_components,
+    plot_pest_current_components,
+    plot_surface_fourier_ripple_summary,
+)
 from pyna.plot.section_geometry import (
     SECTION_ORBIT_COLORS,
     apply_section_limits,
@@ -66,6 +72,10 @@ __all__ = [
     "draw_rmp_fixed_points",
     "draw_rmp_resonance_section",
     "plot_rmp_resonance_sections",
+    "draw_smooth_pest_grid",
+    "plot_mgrid_current_cylindrical_components",
+    "plot_pest_current_components",
+    "plot_surface_fourier_ripple_summary",
     "SECTION_ORBIT_COLORS",
     "apply_section_limits",
     "branch_payload_smax",

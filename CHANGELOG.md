@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [0.8.22] - 2026-07-01
+
+### Added
+- Added VMEC mgrid IO helpers with cylindrical ``J = curl(B) / mu0`` current
+  density evaluation.
+- Added smooth-PEST current-component diagnostics for ``J^rho``, ``J^theta``,
+  ``J^phi`` and ``J^theta/J^phi`` sign-reversal analysis.
+- Added smooth-PEST surface Fourier ripple diagnostics for high-poloidal-mode
+  shape content.
+- Added reusable mgrid current-density plotting helpers and
+  ``scripts/plot_mgrid_current_diagnostics.py`` for reproducible comparison
+  figures from mgrid files plus precomputed smooth PEST coordinates.
+
 ## [0.8.20] - 2026-06-30
 
 ### Changed

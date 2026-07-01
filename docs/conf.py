@@ -10,7 +10,7 @@ author = 'Wenyin Wei'
 try:
     release = metadata.version('pyna-chaos')
 except metadata.PackageNotFoundError:
-    release = '0.8.21'
+    release = '0.8.22'
 version = '.'.join(release.split('.')[:2])
 
 extensions = [
