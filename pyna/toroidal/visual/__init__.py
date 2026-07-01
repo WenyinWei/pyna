@@ -2,6 +2,7 @@
 from .equilibrium import plot_nested_flux_surfaces, BPOL_CMAP, ISLAND_CMAPS
 from .RMP_spectrum import (
     island_fixed_points,
+    radial_rmp_field_template,
     ResonantComponent,
     FixedPointPhaseComparison,
     DeformedFixedPointProjection,
@@ -63,6 +64,7 @@ __all__ = [
     "BPOL_CMAP",
     "ISLAND_CMAPS",
     "island_fixed_points",
+    "radial_rmp_field_template",
     "ResonantComponent",
     "FixedPointPhaseComparison",
     "DeformedFixedPointProjection",

@@ -10,6 +10,7 @@ from pyna.toroidal.visual.RMP_spectrum import (
     compare_cyna_fixed_points_for_component,
     find_resonant_components_analytic,
     project_fixed_points_to_deformed_surface,
+    radial_rmp_field_template,
     rmp_closure_map_span,
 )
 
@@ -20,6 +21,10 @@ def _cyna_available():
     except Exception:
         return False
     return bool(cyna.is_available())
+
+
+def _wrap_to_pi(angle):
+    return (np.asarray(angle) + np.pi) % (2.0 * np.pi) - np.pi
 
 
 def _sample_field(eq, delta_B_func, *, nR=128, nPhi=128):
@@ -129,18 +134,9 @@ def test_resonant_rmp_spectrum_has_expected_amplitude_orders():
     phases = []
 
     for amplitude in amplitudes:
-        def delta_B_RMP(R, Z, phi, amplitude=amplitude):
-            theta = np.arctan2(Z, R - eq.R0)
-            phase = base_m * theta - base_n * phi
-            return np.array([
-                amplitude * np.cos(phase) * np.cos(theta),
-                amplitude * np.cos(phase) * np.sin(theta),
-                np.zeros_like(np.asarray(theta)),
-            ])
-
         component = find_resonant_components_analytic(
             eq,
-            delta_B_RMP,
+            radial_rmp_field_template(base_m, base_n, amplitude=amplitude, axis_R=eq.R0),
             base_m=base_m,
             base_n=base_n,
             max_harmonic=1,
@@ -160,7 +156,7 @@ def test_resonant_rmp_spectrum_has_expected_amplitude_orders():
     assert np.ptp(np.unwrap(phases)) < 1.0e-12
 
 
-def test_resonant_phase_order_sign_jump_and_nonlinear_drift():
+def test_resonant_phase_template_controls_xo_phase_order():
     eq = simple_stellarator(
         R0=3.0,
         r0=0.3,
@@ -173,19 +169,16 @@ def test_resonant_phase_order_sign_jump_and_nonlinear_drift():
     )
     base_m, base_n = 2, 1
 
-    def component_for_radial_amplitude(radial_amplitude):
-        def delta_B_RMP(R, Z, phi):
-            theta = np.arctan2(Z, R - eq.R0)
-            amplitude = radial_amplitude(theta, phi)
-            return np.array([
-                amplitude * np.cos(theta),
-                amplitude * np.sin(theta),
-                np.zeros_like(np.asarray(theta)),
-            ])
-
+    def component_for_template(amplitude=1.0e-3, phase=0.0):
         return find_resonant_components_analytic(
             eq,
-            delta_B_RMP,
+            radial_rmp_field_template(
+                base_m,
+                base_n,
+                amplitude=amplitude,
+                phase=phase,
+                axis_R=eq.R0,
+            ),
             base_m=base_m,
             base_n=base_n,
             max_harmonic=1,
@@ -194,38 +187,40 @@ def test_resonant_phase_order_sign_jump_and_nonlinear_drift():
             min_amplitude=1.0e-16,
         )[0]
 
-    comp_pos = component_for_radial_amplitude(
-        lambda theta, phi: 1.0e-3 * np.cos(base_m * theta - base_n * phi)
-    )
-    comp_neg = component_for_radial_amplitude(
-        lambda theta, phi: -1.0e-3 * np.cos(base_m * theta - base_n * phi)
-    )
+    comp_pos = component_for_template(amplitude=1.0e-3)
+    comp_neg = component_for_template(amplitude=-1.0e-3)
 
     phase_jump = np.angle(comp_neg.b_mn / comp_pos.b_mn)
     assert abs(abs(phase_jump) - np.pi) < 1.0e-12
     assert comp_neg.opoint_theta == pytest.approx(comp_pos.xpoint_theta, abs=1.0e-12)
     assert comp_neg.xpoint_theta == pytest.approx(comp_pos.opoint_theta, abs=1.0e-12)
 
-    base_amplitude = 1.0e-3
-    eta = 0.5
-    lambdas = np.array([0.03125, 0.0625, 0.125, 0.25, 0.5])
-    phases = []
-    widths = []
-    for lam in lambdas:
-        component = component_for_radial_amplitude(
-            lambda theta, phi, lam=lam: base_amplitude * (
-                lam * np.cos(base_m * theta - base_n * phi)
-                + eta * lam * lam * np.sin(base_m * theta - base_n * phi)
-            )
-        )
-        phases.append(abs(np.angle(component.b_mn)))
-        widths.append(component.half_width_r)
+    phase_controls = np.array([0.01, 0.02, 0.04, 0.08, 0.16])
+    eta = 0.4
+    measured_b_phase = []
+    exact_phase_residual = []
+    first_order_theta_residual = []
+    for kappa in phase_controls:
+        template_phase = kappa + eta * kappa * kappa
+        component = component_for_template(phase=template_phase)
+        darg_b = float(_wrap_to_pi(np.angle(component.b_mn / comp_pos.b_mn)))
+        dtheta_o = float(_wrap_to_pi(component.opoint_theta - comp_pos.opoint_theta))
 
-    phase_slope = np.polyfit(np.log(lambdas), np.log(phases), 1)[0]
-    width_slope = np.polyfit(np.log(lambdas), np.log(widths), 1)[0]
+        measured_b_phase.append(abs(darg_b))
+        exact_phase_residual.append(abs(float(_wrap_to_pi(base_m * dtheta_o + darg_b))))
+        first_order_theta_residual.append(abs(float(_wrap_to_pi(dtheta_o + kappa / base_m))))
 
-    assert phase_slope == pytest.approx(1.0, abs=0.02)
-    assert width_slope == pytest.approx(0.5, abs=0.03)
+        assert darg_b == pytest.approx(template_phase, abs=1.0e-12)
+
+    measured_b_phase = np.asarray(measured_b_phase)
+    exact_phase_residual = np.asarray(exact_phase_residual)
+    first_order_theta_residual = np.asarray(first_order_theta_residual)
+    phase_slope = np.polyfit(np.log(phase_controls), np.log(measured_b_phase), 1)[0]
+    residual_slope = np.polyfit(np.log(phase_controls), np.log(first_order_theta_residual), 1)[0]
+
+    assert phase_slope == pytest.approx(1.0, abs=0.08)
+    assert np.max(exact_phase_residual) < 1.0e-12
+    assert residual_slope == pytest.approx(2.0, abs=1.0e-9)
 
 
 @pytest.mark.skipif(not _cyna_available(), reason="cyna extension is unavailable")

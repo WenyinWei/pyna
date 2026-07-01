@@ -127,6 +127,50 @@ def island_fixed_points(
     }
 
 
+def radial_rmp_field_template(
+    m: int,
+    n: int,
+    amplitude: float = 1.0,
+    phase: float = 0.0,
+    *,
+    axis_R: float,
+    axis_Z: float = 0.0,
+):
+    """Return a circular-surface radial RMP field template.
+
+    The radial projection is
+
+        delta B^psi = amplitude * cos(m*theta - n*phi + phase)
+
+    so the analytic circular-surface coefficient ``b_{m,-n}`` has phase
+    ``phase`` and magnitude ``amplitude/2`` under the FFT convention used by
+    :func:`find_resonant_components_analytic`.
+    """
+
+    m_int = int(m)
+    n_int = int(n)
+    if m_int <= 0 or n_int <= 0:
+        raise ValueError("m and n must be positive resonant mode numbers")
+    amp = float(amplitude)
+    phase0 = float(phase)
+    center_R = float(axis_R)
+    center_Z = float(axis_Z)
+
+    def delta_B_func(R, Z, phi):
+        R_arr = np.asarray(R, dtype=float)
+        Z_arr = np.asarray(Z, dtype=float)
+        phi_arr = np.asarray(phi, dtype=float)
+        theta = np.arctan2(Z_arr - center_Z, R_arr - center_R)
+        radial = amp * np.cos(m_int * theta - n_int * phi_arr + phase0)
+        return np.array([
+            radial * np.cos(theta),
+            radial * np.sin(theta),
+            np.zeros_like(radial, dtype=float),
+        ])
+
+    return delta_B_func
+
+
 @dataclass
 class ResonantComponent:
     """One resonant (m, n) Fourier component of the RMP field."""
