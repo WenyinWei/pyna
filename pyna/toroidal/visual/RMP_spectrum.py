@@ -143,18 +143,19 @@ def radial_rmp_field_template(
 
         delta B_r = amplitude * cos(m*theta - n*phi + phase)
 
-    and a compensating poloidal component chosen so that
+    and compensating poloidal/toroidal components chosen so that
     ``div(delta B) = 0`` exactly in the circular-shell metric.  The helper is
     meant for resonant-surface test fields away from the magnetic axis.  Under
     the FFT convention used by :func:`find_resonant_components_analytic`, the
     analytic circular-surface coefficient ``b_{m,-n}`` has phase ``phase`` and
-    magnitude ``amplitude/2``.
+    magnitude ``amplitude/2``.  For ``m = 1`` a toroidal component is required
+    to cancel the theta-independent part of ``div(delta B)``.
     """
 
     m_int = int(m)
     n_int = int(n)
-    if m_int <= 1 or n_int <= 0:
-        raise ValueError("m must be greater than 1 and n must be positive")
+    if m_int <= 0 or n_int <= 0:
+        raise ValueError("m and n must be positive resonant mode numbers")
     amp = float(amplitude)
     phase0 = float(phase)
     center_R = float(axis_R)
@@ -172,21 +173,30 @@ def radial_rmp_field_template(
         radial = amp * np.cos(phase_m)
 
         theta_plus = (m_int + 1) * theta - n_int * phi_arr + phase0
-        theta_minus = (m_int - 1) * theta - n_int * phi_arr + phase0
-        poloidal = -amp * (
-            center_R * np.sin(phase_m) / float(m_int)
-            + r_minor * (
-                np.sin(theta_plus) / float(m_int + 1)
-                + np.sin(theta_minus) / float(m_int - 1)
+        if m_int == 1:
+            poloidal_flux = -amp * (
+                center_R * np.sin(phase_m)
+                + 0.5 * r_minor * np.sin(theta_plus)
             )
-        ) / np.maximum(R_arr, 1.0e-300)
+            toroidal = amp * np.sin(-n_int * phi_arr + phase0) / float(n_int)
+        else:
+            theta_minus = (m_int - 1) * theta - n_int * phi_arr + phase0
+            poloidal_flux = -amp * (
+                center_R * np.sin(phase_m) / float(m_int)
+                + r_minor * (
+                    np.sin(theta_plus) / float(m_int + 1)
+                    + np.sin(theta_minus) / float(m_int - 1)
+                )
+            )
+            toroidal = np.zeros_like(radial, dtype=float)
+        poloidal = poloidal_flux / np.maximum(R_arr, 1.0e-300)
 
         BR = radial * np.cos(theta) - poloidal * np.sin(theta)
         BZ = radial * np.sin(theta) + poloidal * np.cos(theta)
         return np.array([
             BR,
             BZ,
-            np.zeros_like(radial, dtype=float),
+            toroidal + np.zeros_like(radial, dtype=float),
         ])
 
     delta_B_func.divergence_free = True

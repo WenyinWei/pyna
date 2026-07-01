@@ -32,6 +32,11 @@ def _periodic_derivative_theta(values, theta):
     return (np.roll(values, -1, axis=-1) - np.roll(values, 1, axis=-1)) / (2.0 * dtheta)
 
 
+def _periodic_derivative_phi(values, phi):
+    dphi = float(phi[1] - phi[0])
+    return (np.roll(values, -1, axis=0) - np.roll(values, 1, axis=0)) / (2.0 * dphi)
+
+
 def _sample_field(eq, delta_B_func, *, nR=128, nPhi=128):
     lim = 1.18 * eq.r0
     R_grid = np.linspace(eq.R0 - lim, eq.R0 + lim, nR)
@@ -161,12 +166,13 @@ def test_resonant_rmp_spectrum_has_expected_amplitude_orders():
     assert np.ptp(np.unwrap(phases)) < 1.0e-12
 
 
-def test_radial_rmp_template_is_divergence_free_on_circular_shell():
+@pytest.mark.parametrize("m,n", [(1, 1), (2, 1)])
+def test_radial_rmp_template_is_divergence_free_on_circular_shell(m, n):
     axis_R = 3.0
     axis_Z = 0.0
     field = radial_rmp_field_template(
-        2,
-        1,
+        m,
+        n,
         amplitude=1.0e-3,
         phase=0.37,
         axis_R=axis_R,
@@ -174,24 +180,63 @@ def test_radial_rmp_template_is_divergence_free_on_circular_shell():
     )
 
     r = np.linspace(0.08, 0.28, 9)
-    theta = np.linspace(0.0, 2.0 * np.pi, 512, endpoint=False)
-    phi = 0.41
-    rr, tt = np.meshgrid(r, theta, indexing="ij")
+    theta = np.linspace(0.0, 2.0 * np.pi, 256, endpoint=False)
+    phi = np.linspace(0.0, 2.0 * np.pi, 256, endpoint=False)
+    pp, rr, tt = np.meshgrid(phi, r, theta, indexing="ij")
     R = axis_R + rr * np.cos(tt)
     Z = axis_Z + rr * np.sin(tt)
-    BR, BZ, Bphi = field(R, Z, phi)
+    BR, BZ, Bphi = field(R, Z, pp)
     Br = BR * np.cos(tt) + BZ * np.sin(tt)
     Btheta = -BR * np.sin(tt) + BZ * np.cos(tt)
 
     radial_flux = rr * R * Br
     poloidal_flux = R * Btheta
-    d_radial = np.gradient(radial_flux, r, axis=0, edge_order=2)
+    toroidal_flux = rr * Bphi
+    d_radial = np.gradient(radial_flux, r, axis=1, edge_order=2)
     d_poloidal = _periodic_derivative_theta(poloidal_flux, theta)
-    divergence = (d_radial + d_poloidal) / (rr * R)
+    d_toroidal = _periodic_derivative_phi(toroidal_flux, phi)
+    divergence = (d_radial + d_poloidal + d_toroidal) / (rr * R)
 
     assert getattr(field, "divergence_free") is True
-    assert np.max(np.abs(Bphi)) == 0.0
-    assert np.max(np.abs(divergence[1:-1])) < 3.0e-6
+    if m > 1:
+        assert np.max(np.abs(Bphi)) == 0.0
+    else:
+        assert np.max(np.abs(Bphi)) > 0.0
+    assert np.max(np.abs(divergence[:, 1:-1])) < 1.0e-5
+
+
+def test_m1_radial_rmp_template_controls_resonant_phase():
+    eq = simple_stellarator(
+        R0=3.0,
+        r0=0.3,
+        B0=2.5,
+        q0=0.75,
+        q1=1.25,
+        m_h=3,
+        n_h=3,
+        epsilon_h=0.0,
+    )
+    base_m, base_n = 1, 1
+    phase = 0.43
+    component = find_resonant_components_analytic(
+        eq,
+        radial_rmp_field_template(
+            base_m,
+            base_n,
+            amplitude=1.0e-3,
+            phase=phase,
+            axis_R=eq.R0,
+        ),
+        base_m=base_m,
+        base_n=base_n,
+        max_harmonic=1,
+        n_theta=128,
+        n_phi=64,
+        min_amplitude=1.0e-16,
+    )[0]
+
+    assert np.angle(component.b_mn) == pytest.approx(phase, abs=1.0e-12)
+    assert abs(component.b_mn) == pytest.approx(5.0e-4, rel=1.0e-12)
 
 
 def test_resonant_phase_template_controls_xo_phase_order():
