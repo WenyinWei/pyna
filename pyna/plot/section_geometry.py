@@ -697,6 +697,86 @@ def _side_linestyle(side):
     return "solid"
 
 
+def contiguous_prefix_mask(mask) -> np.ndarray:
+    """Return the contiguous true prefix of a one-dimensional boolean mask."""
+
+    arr = np.asarray(mask, dtype=bool).ravel()
+    if arr.size == 0:
+        return arr
+    bad = np.flatnonzero(~arr)
+    if bad.size == 0:
+        return arr.copy()
+    out = np.zeros(arr.shape, dtype=bool)
+    out[: int(bad[0])] = arr[: int(bad[0])]
+    return out
+
+
+def branch_payload_point_subset(
+    payload: Mapping,
+    point_mask,
+    *,
+    R_key: str = "R",
+    min_points: int = 2,
+    metadata: Mapping | None = None,
+) -> dict | None:
+    """Copy a branch payload while subsetting per-point arrays by ``point_mask``."""
+
+    R = np.asarray(payload.get(R_key, []), dtype=float).ravel()
+    mask = np.asarray(point_mask, dtype=bool).ravel()
+    if R.size == 0 or mask.shape != R.shape or np.count_nonzero(mask) < int(min_points):
+        return None
+    child = dict(payload)
+    for key, value in payload.items():
+        arr = np.asarray(value)
+        if arr.shape == R.shape:
+            child[key] = arr[mask]
+    if metadata is not None:
+        child.update(dict(metadata))
+    return child
+
+
+def clip_branch_payloads_by_arclength(
+    payloads,
+    max_arclength: float | None,
+    *,
+    s_key: str = "s",
+    R_key: str = "R",
+    mode: str = "prefix",
+    min_points: int = 2,
+) -> list[dict]:
+    """Return branch payloads clipped by arclength with optional prefix semantics."""
+
+    if max_arclength is None:
+        return [dict(payload) for payload in _iter_payloads(payloads)]
+    out: list[dict] = []
+    smax = float(max_arclength)
+    clip_mode = str(mode).lower()
+    for payload_index, payload in enumerate(_iter_payloads(payloads)):
+        R = np.asarray(payload.get(R_key, []), dtype=float).ravel()
+        s = np.asarray(payload.get(s_key, []), dtype=float).ravel()
+        if R.size < int(min_points) or s.shape != R.shape:
+            continue
+        keep = np.isfinite(s) & (s <= smax)
+        if clip_mode in {"prefix", "contiguous", "contiguous_prefix"}:
+            keep = contiguous_prefix_mask(keep)
+        elif clip_mode not in {"pointwise", "mask"}:
+            raise ValueError("mode must be 'prefix' or 'pointwise'")
+        child = branch_payload_point_subset(
+            payload,
+            keep,
+            R_key=R_key,
+            min_points=min_points,
+            metadata={
+                "arclength_clip_max": smax,
+                "arclength_clip_mode": str(mode),
+                "arclength_clip_source_payload_index": int(payload_index),
+            },
+        )
+        if child is not None:
+            out.append(child)
+    return out
+
+
 def draw_branch_manifold_lines(
     ax,
     payloads,
@@ -717,6 +797,7 @@ def draw_branch_manifold_lines(
     cmap_max: float = 0.94,
     linestyle_by_side: bool = True,
     max_arclength: float | None = None,
+    arclength_clip: str = "prefix",
     max_segment_length: float | None = None,
     min_path_length: float = 0.0,
     point_size: float = 0.0,
@@ -750,7 +831,11 @@ def draw_branch_manifold_lines(
             continue
         finite = np.isfinite(R) & np.isfinite(Z) & np.isfinite(s)
         if max_arclength is not None:
-            finite &= s <= float(max_arclength)
+            inside_s = s <= float(max_arclength)
+            if str(arclength_clip).lower() in {"prefix", "contiguous", "contiguous_prefix"}:
+                finite &= contiguous_prefix_mask(finite & inside_s)
+            else:
+                finite &= inside_s
         if np.count_nonzero(finite) < 2:
             continue
         points = np.column_stack([R, Z])
@@ -1099,7 +1184,10 @@ def apply_section_limits(axes, limits: tuple[float, float, float, float] | None)
 __all__ = [
     "SECTION_ORBIT_COLORS",
     "apply_section_limits",
+    "branch_payload_point_subset",
     "branch_payload_smax",
+    "clip_branch_payloads_by_arclength",
+    "contiguous_prefix_mask",
     "create_section_grid",
     "orbit_identity",
     "orbit_list",

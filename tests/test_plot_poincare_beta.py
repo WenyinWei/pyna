@@ -4,7 +4,10 @@ import numpy as np
 
 from pyna.plot import (
     apply_section_limits,
+    branch_payload_point_subset,
     branch_payload_smax,
+    clip_branch_payloads_by_arclength,
+    contiguous_prefix_mask,
     create_section_grid,
     orbits_for_section,
     draw_axis_point,
@@ -401,6 +404,69 @@ def test_draw_branch_manifold_lines_uses_branch_kind_and_side_payloads():
         assert all(len(artist.get_segments()) == 2 for artist in artists)
     finally:
         plt.close(fig)
+
+
+def test_contiguous_prefix_mask_stops_at_first_false():
+    mask = np.asarray([True, True, False, True, True])
+
+    np.testing.assert_array_equal(
+        contiguous_prefix_mask(mask),
+        np.asarray([True, True, False, False, False]),
+    )
+
+
+def test_draw_branch_manifold_lines_arclength_clip_uses_prefix():
+    import matplotlib.pyplot as plt
+    from matplotlib.collections import LineCollection
+
+    payloads = [{
+        "R": np.asarray([0.0, 1.0, 2.0, 3.0, 4.0]),
+        "Z": np.asarray([0.0, 0.0, 0.0, 0.0, 0.0]),
+        "s": np.asarray([0.0, 0.1, 0.4, 0.2, 0.21]),
+        "branch_kind": "unstable",
+        "side": "+",
+    }]
+
+    fig, ax = plt.subplots()
+    try:
+        artists = draw_branch_manifold_lines(ax, payloads, max_arclength=0.25)
+        line_artists = [artist for artist in artists if isinstance(artist, LineCollection)]
+        assert len(line_artists) == 1
+        assert len(line_artists[0].get_segments()) == 1
+    finally:
+        plt.close(fig)
+
+
+def test_clip_branch_payloads_by_arclength_returns_prefix_payload():
+    payload = {
+        "R": np.asarray([0.0, 1.0, 2.0, 3.0]),
+        "Z": np.asarray([0.0, 0.0, 0.0, 0.0]),
+        "s": np.asarray([0.0, 0.2, 0.5, 0.1]),
+        "branch_kind": "stable",
+    }
+
+    clipped = clip_branch_payloads_by_arclength([payload], 0.25)
+
+    assert len(clipped) == 1
+    np.testing.assert_allclose(clipped[0]["R"], [0.0, 1.0])
+    np.testing.assert_allclose(clipped[0]["s"], [0.0, 0.2])
+    assert clipped[0]["arclength_clip_mode"] == "prefix"
+
+
+def test_branch_payload_point_subset_keeps_per_point_arrays_only():
+    payload = {
+        "R": np.asarray([0.0, 1.0, 2.0]),
+        "Z": np.asarray([0.0, 0.1, 0.2]),
+        "s": np.asarray([0.0, 0.1, 0.2]),
+        "branch_kind": "unstable",
+    }
+
+    child = branch_payload_point_subset(payload, [True, False, True])
+
+    assert child is not None
+    np.testing.assert_allclose(child["R"], [0.0, 2.0])
+    np.testing.assert_allclose(child["Z"], [0.0, 0.2])
+    assert child["branch_kind"] == "unstable"
 
 
 def test_manifolds_for_section_accepts_single_generic_branch_payload():
