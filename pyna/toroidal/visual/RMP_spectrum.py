@@ -41,7 +41,7 @@ from __future__ import annotations
 
 import numpy as np
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 import matplotlib.pyplot as plt
 
 from .equilibrium import ISLAND_CMAPS
@@ -162,6 +162,213 @@ class ResonantComponent:
         return island_fixed_points(
             self.m, self.n, self.b_mn, phi, self.q_prime_sign
         )
+
+
+@dataclass(frozen=True)
+class FixedPointPhaseComparison:
+    """RMP spectrum prediction compared with one cyna Newton fixed point."""
+
+    predicted_kind: str
+    branch: int
+    predicted_theta: float
+    predicted_R: float
+    predicted_Z: float
+    newton_kind: Optional[str]
+    newton_R: float
+    newton_Z: float
+    residual: float
+    converged: bool
+    point_type: int
+    theta_error: float
+    helical_phase_error: float
+    radial_error: float
+    map_span: float
+    phi: float
+
+    @property
+    def predicted_theta_deg(self) -> float:
+        return float(np.degrees(self.predicted_theta))
+
+    @property
+    def theta_error_deg(self) -> float:
+        return float(np.degrees(self.theta_error))
+
+    @property
+    def helical_phase_error_deg(self) -> float:
+        return float(np.degrees(self.helical_phase_error))
+
+    @property
+    def radial_error_cm(self) -> float:
+        return 100.0 * float(self.radial_error)
+
+
+def _wrap_to_pi(angle: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+    """Wrap angle(s) to [-pi, pi)."""
+
+    return (np.asarray(angle) + np.pi) % (2.0 * np.pi) - np.pi
+
+
+def _magnetic_axis(eq: Any) -> tuple[float, float]:
+    axis = getattr(eq, "magnetic_axis", None)
+    if axis is not None:
+        return float(axis[0]), float(axis[1])
+    return float(getattr(eq, "R0")), 0.0
+
+
+def rmp_fixed_point_seeds(component: ResonantComponent, eq: Any, phi: float = 0.0) -> list[dict]:
+    """Return geometric R-Z seeds predicted by a resonant RMP component.
+
+    The seeds are placed on the resonant surface ``psi_res`` using the same
+    circular geometry convention as :func:`find_resonant_components_analytic`.
+    They are intended as first guesses for Newton refinement, not as final
+    fixed-point locations for finite-amplitude perturbations.
+    """
+
+    r0 = float(getattr(eq, "r0"))
+    axis_R, axis_Z = _magnetic_axis(eq)
+    r_res = float(np.sqrt(component.psi_res) * r0)
+    pts = component.fixed_points(float(phi))
+
+    seeds = []
+    for kind, key in (("O", "theta_O"), ("X", "theta_X")):
+        theta_values = np.asarray(pts[key], dtype=float)[0]
+        for branch, theta in enumerate(theta_values):
+            theta = float(theta)
+            seeds.append({
+                "predicted_kind": kind,
+                "branch": int(branch),
+                "theta": theta,
+                "R": axis_R + r_res * np.cos(theta),
+                "Z": axis_Z + r_res * np.sin(theta),
+                "r_res": r_res,
+            })
+    return seeds
+
+
+def rmp_closure_map_span(component: ResonantComponent) -> float:
+    """Return the full-torus toroidal span needed to close an m/n island orbit."""
+
+    m = abs(int(component.m))
+    n = abs(int(component.n))
+    if m <= 0 or n <= 0:
+        raise ValueError("component.m and component.n must be positive nonzero integers")
+    return 2.0 * np.pi * (m // int(np.gcd(m, n)))
+
+
+def compare_cyna_fixed_points_for_component(
+    field: Any,
+    component: ResonantComponent,
+    eq: Any,
+    *,
+    phi: float = 0.0,
+    map_span: Optional[float] = None,
+    DPhi: float = 0.025,
+    fd_eps: float = 1.0e-4,
+    max_iter: int = 60,
+    tol: float = 1.0e-10,
+    n_threads: int = -1,
+    extend_phi: bool = True,
+) -> list[FixedPointPhaseComparison]:
+    """Refine RMP-predicted O/X seeds with cyna and compare phases.
+
+    Parameters
+    ----------
+    field
+        Cylindrical physical magnetic field components ``(BR, BZ, BPhi)`` on a
+        :class:`~pyna.fields.VectorFieldCylind`-compatible grid.  cyna evolves
+        ``dR/dphi = R*BR/BPhi`` and ``dZ/dphi = R*BZ/BPhi``.
+    component
+        Resonant RMP component that supplies the first-order O/X phase
+        prediction.
+    eq
+        Equilibrium-like object with ``r0`` and either ``magnetic_axis`` or
+        ``R0``.
+    map_span
+        Toroidal span for the fixed-point map.  If omitted, the helper uses the
+        smallest full-torus closure span implied by ``q=m/n``.
+
+    Returns
+    -------
+    list of :class:`FixedPointPhaseComparison`
+        One row per predicted O/X seed.  ``theta_error`` is the wrapped
+        geometric poloidal-angle error; ``helical_phase_error`` wraps
+        ``m*theta_error``.
+    """
+
+    try:
+        import pyna._cyna as _cyna
+        from pyna._cyna.utils import prepare_field_cache
+    except Exception as exc:  # pragma: no cover - environment dependent
+        raise ImportError("cyna fixed-point comparison requires pyna._cyna") from exc
+
+    if not _cyna.is_available() or getattr(_cyna, "find_fixed_points_batch_span", None) is None:
+        raise ImportError("pyna._cyna.find_fixed_points_batch_span is unavailable. Build cyna first.")
+
+    seeds = rmp_fixed_point_seeds(component, eq, phi=phi)
+    R_seeds = np.ascontiguousarray([seed["R"] for seed in seeds], dtype=np.float64)
+    Z_seeds = np.ascontiguousarray([seed["Z"] for seed in seeds], dtype=np.float64)
+
+    if map_span is None:
+        map_span = rmp_closure_map_span(component)
+    map_span = float(map_span)
+
+    cache = prepare_field_cache(field, extend_phi=extend_phi)
+    out = _cyna.find_fixed_points_batch_span(
+        R_seeds,
+        Z_seeds,
+        float(phi),
+        map_span,
+        float(DPhi),
+        float(fd_eps),
+        int(max_iter),
+        float(tol),
+        np.ravel(cache["BR"]),
+        np.ravel(cache["BZ"]),
+        np.ravel(cache["BPhi"]),
+        cache["R_grid"],
+        cache["Z_grid"],
+        cache["Phi_grid"],
+        int(n_threads),
+    )
+
+    R_out, Z_out, residual, converged, _DPm, _eig_r, _eig_i, point_type = out
+    axis_R, axis_Z = _magnetic_axis(eq)
+    rows: list[FixedPointPhaseComparison] = []
+    for i, seed in enumerate(seeds):
+        conv = bool(converged[i])
+        ptype = int(point_type[i])
+        newton_kind = "X" if ptype == 1 else ("O" if ptype == 0 else None)
+        Rn = float(R_out[i])
+        Zn = float(Z_out[i])
+        if conv and np.isfinite(Rn) and np.isfinite(Zn):
+            theta_new = float(np.arctan2(Zn - axis_Z, Rn - axis_R) % (2.0 * np.pi))
+            theta_error = float(_wrap_to_pi(theta_new - seed["theta"]))
+            radial = float(np.hypot(Rn - axis_R, Zn - axis_Z))
+            radial_error = radial - float(seed["r_res"])
+        else:
+            theta_error = float("nan")
+            radial_error = float("nan")
+
+        rows.append(FixedPointPhaseComparison(
+            predicted_kind=str(seed["predicted_kind"]),
+            branch=int(seed["branch"]),
+            predicted_theta=float(seed["theta"]),
+            predicted_R=float(seed["R"]),
+            predicted_Z=float(seed["Z"]),
+            newton_kind=newton_kind,
+            newton_R=Rn,
+            newton_Z=Zn,
+            residual=float(residual[i]),
+            converged=conv,
+            point_type=ptype,
+            theta_error=theta_error,
+            helical_phase_error=float(_wrap_to_pi(component.m * theta_error))
+            if np.isfinite(theta_error) else float("nan"),
+            radial_error=radial_error,
+            map_span=map_span,
+            phi=float(phi),
+        ))
+    return rows
 
 
 def find_resonant_components_analytic(
