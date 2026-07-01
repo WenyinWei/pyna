@@ -18,11 +18,13 @@ from pyna.plot import (
     draw_manifold_origins,
     draw_manifold_points,
     draw_poincare_points,
+    draw_poincare_background_by_seed_value,
     draw_wall_section,
     format_section_axis,
     map_order_value,
     manifold_lpol_max,
     manifolds_for_section,
+    poincare_seed_values_for_points,
     plot_boundary_island_sections,
     plot_poincare_beta_grid,
     save_figure,
@@ -215,6 +217,65 @@ def test_section_geometry_primitives_compose_core_and_edge_plot(tmp_path):
     assert save_figure(fig, out) == out
     assert out.exists()
     assert len(identity_to_color) == 1
+
+
+def test_poincare_seed_values_expand_to_section_points():
+    seed_index = np.asarray([0, 2, 1, 4])
+    seed_values = np.asarray([1.0, 3.0, np.inf])
+
+    values = poincare_seed_values_for_points(seed_index, seed_values)
+
+    assert values[0] == 1.0
+    assert values[1] == np.inf
+    assert values[2] == 3.0
+    assert np.isnan(values[3])
+
+
+def test_draw_poincare_points_explicit_color_overrides_seed_colormap():
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots()
+    try:
+        artist = draw_poincare_points(
+            ax,
+            [1.0, 1.1],
+            [0.0, 0.1],
+            seed_index=[0, 1],
+            color="0.5",
+        )
+        colors = artist.get_facecolors()
+        assert colors.shape[0] == 1 or np.allclose(colors[:, :3], colors[0, :3])
+    finally:
+        plt.close(fig)
+
+
+def test_draw_poincare_background_by_seed_value_splits_finite_and_infinite():
+    import matplotlib.pyplot as plt
+
+    class Background:
+        def section_points(self, section_index):
+            assert section_index == 0
+            return (
+                np.asarray([1.0, 1.1, 1.2]),
+                np.asarray([0.0, 0.1, 0.2]),
+                np.asarray([0, 1, 2]),
+            )
+
+    fig, ax = plt.subplots()
+    try:
+        artists = draw_poincare_background_by_seed_value(
+            ax,
+            Background(),
+            0,
+            np.asarray([10.0, np.inf, 100.0]),
+            transform="log10",
+            nonfinite_color="0.5",
+        )
+        assert len(artists) == 2
+        assert artists[0].get_offsets().shape[0] == 2
+        assert artists[1].get_offsets().shape[0] == 1
+    finally:
+        plt.close(fig)
 
 
 def test_draw_manifold_lines_breaks_at_side_changes():

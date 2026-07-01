@@ -228,7 +228,7 @@ def draw_poincare_points(
             color_arg = c[finite]
         else:
             color_arg = color
-    elif seed_index is not None:
+    elif seed_index is not None and color is None:
         seed = np.asarray(seed_index).ravel()
         if seed.shape == R_arr.shape:
             color_arg = plt.get_cmap(cmap)(np.mod(seed[finite], plt.get_cmap(cmap).N))
@@ -275,6 +275,125 @@ def draw_poincare_background(
         zorder=zorder,
         **kwargs,
     )
+
+
+def poincare_seed_values_for_points(seed_index, seed_values, *, missing=np.nan) -> np.ndarray:
+    """Expand one scalar per seed to one scalar per plotted Poincare point."""
+
+    seed = np.asarray(seed_index, dtype=int).ravel()
+    values = np.asarray(seed_values, dtype=float).ravel()
+    out = np.full(seed.shape, float(missing), dtype=float)
+    good = (seed >= 0) & (seed < values.size)
+    out[good] = values[seed[good]]
+    return out
+
+
+def _transform_seed_scalar_values(values: np.ndarray, transform: str | None) -> np.ndarray:
+    raw = np.asarray(values, dtype=float)
+    if transform is None or str(transform).lower() in {"", "none", "linear"}:
+        return raw.copy()
+    mode = str(transform).lower()
+    if mode in {"log10", "log"}:
+        out = np.full(raw.shape, np.nan, dtype=float)
+        good = np.isfinite(raw) & (raw > 0.0)
+        out[good] = np.log10(raw[good])
+        return out
+    if mode in {"log10p1", "log1p", "log10_1p"}:
+        out = np.full(raw.shape, np.nan, dtype=float)
+        good = np.isfinite(raw) & (raw >= 0.0)
+        out[good] = np.log10(1.0 + raw[good])
+        return out
+    raise ValueError("transform must be one of None, 'linear', 'log10', or 'log10p1'")
+
+
+def draw_poincare_background_by_seed_value(
+    ax,
+    background,
+    section_index: int,
+    seed_values,
+    *,
+    point_size: float = 3.0,
+    alpha: float = 0.32,
+    cmap: str = "viridis",
+    transform: str | None = None,
+    vmin: float | None = None,
+    vmax: float | None = None,
+    colorbar_label: str | None = None,
+    nonfinite_color: str | None = "0.72",
+    nonfinite_alpha: float | None = None,
+    missing_color: str | None = None,
+    zorder: int = 2,
+    rasterized: bool = True,
+    **kwargs,
+):
+    """Draw Poincare points colored by a scalar attached to each seed orbit.
+
+    ``background`` must expose ``section_points(section_index)`` returning
+    ``(R, Z, seed_index)``.  Finite seed values are colored by ``cmap``; seeds
+    with infinite values can be rendered in ``nonfinite_color`` so long-lived
+    and wall-hitting populations remain visually distinct without retracing.
+    """
+
+    R, Z, seed = background.section_points(int(section_index))
+    R_arr = np.asarray(R, dtype=float).ravel()
+    Z_arr = np.asarray(Z, dtype=float).ravel()
+    if R_arr.size == 0 or Z_arr.size != R_arr.size:
+        return []
+    raw_values = poincare_seed_values_for_points(seed, seed_values)
+    plot_values = _transform_seed_scalar_values(raw_values, transform)
+    finite_xy = np.isfinite(R_arr) & np.isfinite(Z_arr)
+    finite_value = finite_xy & np.isfinite(plot_values)
+    missing_value = finite_xy & np.isnan(raw_values)
+    nonfinite_value = finite_xy & ~missing_value & ~np.isfinite(raw_values)
+
+    artists = []
+    if np.any(finite_value):
+        artists.append(
+            ax.scatter(
+                R_arr[finite_value],
+                Z_arr[finite_value],
+                s=float(point_size),
+                c=plot_values[finite_value],
+                cmap=cmap,
+                vmin=vmin,
+                vmax=vmax,
+                alpha=float(alpha),
+                linewidths=0,
+                rasterized=bool(rasterized),
+                zorder=int(zorder),
+                **kwargs,
+            )
+        )
+        if colorbar_label is not None:
+            artists[-1].set_label(str(colorbar_label))
+    nf_alpha = float(alpha if nonfinite_alpha is None else nonfinite_alpha)
+    if nonfinite_color is not None and np.any(nonfinite_value):
+        artists.append(
+            ax.scatter(
+                R_arr[nonfinite_value],
+                Z_arr[nonfinite_value],
+                s=float(point_size),
+                c=nonfinite_color,
+                alpha=nf_alpha,
+                linewidths=0,
+                rasterized=bool(rasterized),
+                zorder=int(zorder),
+            )
+        )
+    if missing_color is not None and np.any(missing_value):
+        artists.append(
+            ax.scatter(
+                R_arr[missing_value],
+                Z_arr[missing_value],
+                s=float(point_size),
+                c=missing_color,
+                alpha=nf_alpha,
+                linewidths=0,
+                rasterized=bool(rasterized),
+                zorder=int(zorder),
+            )
+        )
+    return artists
 
 
 def orbit_list(value) -> list:
@@ -1201,6 +1320,7 @@ __all__ = [
     "draw_manifold_origins",
     "draw_manifold_points",
     "draw_poincare_background",
+    "draw_poincare_background_by_seed_value",
     "draw_poincare_points",
     "draw_wall_section",
     "format_section_axis",
@@ -1209,6 +1329,7 @@ __all__ = [
     "manifold_list",
     "manifold_lpol_max",
     "manifolds_for_section",
+    "poincare_seed_values_for_points",
     "save_figure",
     "section_data_limits",
     "trim_compact_tick_labels",
