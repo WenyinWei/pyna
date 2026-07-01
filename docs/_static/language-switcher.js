@@ -89,23 +89,27 @@
     }
   }
 
-  function buildSwitcher() {
-    if (document.querySelector(".pyna-language-switcher")) {
-      return;
-    }
-
+  function createSwitcher() {
     const container = document.createElement("div");
     container.className = "pyna-language-switcher";
+    container.dataset.pynaLanguageSwitcher = "true";
 
-    const label = document.createElement("label");
+    const label = document.createElement("span");
     label.className = "pyna-language-switcher__label";
-    label.setAttribute("for", "pyna-language-select");
     label.textContent = "Language";
 
     const select = document.createElement("select");
-    select.id = "pyna-language-select";
+    select.className = "pyna-language-select";
     select.setAttribute("aria-label", "Documentation language");
+    container.appendChild(label);
+    container.appendChild(select);
+    return container;
+  }
 
+  function fillSelect(select) {
+    if (select.options.length > 0) {
+      return;
+    }
     const active = currentLanguage();
     languages.forEach((language) => {
       const option = document.createElement("option");
@@ -114,33 +118,57 @@
       option.selected = language.code === active;
       select.appendChild(option);
     });
+  }
 
+  function wireSwitcher(container) {
+    const select = container.querySelector("select");
+    if (!select || select.dataset.pynaWired === "true") {
+      return;
+    }
+
+    fillSelect(select);
+    select.value = currentLanguage();
     select.addEventListener("change", (event) => {
       navigateWithFallback(event.target.value);
     });
+    select.dataset.pynaWired = "true";
+  }
 
-    container.appendChild(label);
-    container.appendChild(select);
+  function buildSwitchers() {
+    if (!document.querySelector(".pyna-language-switcher")) {
+      const container = createSwitcher();
+      const headerButtons = document.querySelector(
+        ".navbar-header-items__end, .content-icon-container"
+      );
+      if (headerButtons) {
+        headerButtons.prepend(container);
+      } else {
+        document.body.appendChild(container);
+      }
+    }
 
-    const headerButtons = document.querySelector(".content-icon-container");
-    if (headerButtons) {
-      headerButtons.prepend(container);
-    } else {
-      document.body.appendChild(container);
+    document.querySelectorAll(".pyna-language-switcher").forEach(wireSwitcher);
+  }
+
+  function languageFromHref(href) {
+    try {
+      const url = new URL(href, window.location.href);
+      return url.pathname.split("/").filter(Boolean).find((part) => availableCodes.has(part));
+    } catch (_error) {
+      return undefined;
     }
   }
 
   function hideOtherLanguageBranches() {
     const active = currentLanguage();
     document
-      .querySelectorAll(".sidebar-tree a.reference, .toc-tree a.reference")
+      .querySelectorAll(".sidebar-tree a.reference, .toc-tree a.reference, .bd-sidebar-primary a, .bd-header a")
       .forEach((link) => {
-        const href = link.getAttribute("href") || "";
-        const otherLanguage = [...availableCodes].some((code) => code !== active && href.includes(`/${code}/`));
-        if (!otherLanguage) {
+        const linkLanguage = languageFromHref(link.getAttribute("href") || "");
+        if (!linkLanguage || linkLanguage === active) {
           return;
         }
-        const item = link.closest("li");
+        const item = link.closest("li, .nav-item");
         if (item) {
           item.hidden = true;
         }
@@ -148,7 +176,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    buildSwitcher();
+    buildSwitchers();
     hideOtherLanguageBranches();
   });
 })();

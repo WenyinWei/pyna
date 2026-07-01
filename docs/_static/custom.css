@@ -1,72 +1,244 @@
-/* custom.css for pyna docs */
+/* pyna docs theme overrides for pydata-sphinx-theme */
 
-.wy-nav-content {
-    max-width: 1200px;
+:root {
+    --pst-font-family-base: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+    --pst-font-family-monospace: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    --pst-color-primary: #116a6d;
+    --pst-color-secondary: #9a5f21;
+    --pst-color-accent: #b23a48;
+    --pst-color-link: #116a6d;
+    --pst-color-link-hover: #b23a48;
+    --pst-color-inline-code: #a8324a;
+    --pst-color-surface: #ffffff;
+    --pst-color-on-surface: #1f2933;
+    --pst-header-height: 4rem;
 }
 
-/* Improve code block readability */
-.highlight {
-    background: #f8f8f8;
+html[data-theme="dark"] {
+    --pst-color-primary: #55c3be;
+    --pst-color-secondary: #e0a458;
+    --pst-color-accent: #ff7a8a;
+    --pst-color-link: #75d4cf;
+    --pst-color-link-hover: #ff9aa8;
+    --pst-color-inline-code: #ff9aa8;
+    --pst-color-surface: #151a1f;
+    --pst-color-on-surface: #edf2f7;
+}
+
+body {
+    letter-spacing: 0;
+}
+
+.bd-page-width {
+    max-width: 1500px;
+}
+
+.bd-header {
+    background: color-mix(in srgb, var(--pst-color-background) 88%, transparent);
+    border-bottom: 1px solid var(--pst-color-border);
+    box-shadow: 0 1px 18px rgba(31, 41, 51, 0.08);
+}
+
+@supports (backdrop-filter: blur(14px)) {
+    .bd-header {
+        backdrop-filter: blur(14px);
+    }
+}
+
+.navbar-brand.logo {
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.logo__title {
+    color: var(--pst-color-on-surface);
+    font-size: 1.08rem;
+    font-weight: 740;
+    letter-spacing: 0;
+}
+
+.bd-header .navbar-nav > .nav-item > .nav-link {
+    border-radius: 6px;
+    font-size: 0.93rem;
+    font-weight: 560;
+    padding: 0.42rem 0.65rem;
+}
+
+.bd-header .navbar-nav > .nav-item > .nav-link:hover,
+.bd-header .navbar-nav > .nav-item > .nav-link.active {
+    background: color-mix(in srgb, var(--pst-color-primary) 10%, transparent);
+    color: var(--pst-color-primary);
+}
+
+.bd-sidebar-primary {
+    background: color-mix(in srgb, var(--pst-color-background) 94%, var(--pst-color-primary) 6%);
+    border-right: 1px solid var(--pst-color-border);
+}
+
+.bd-sidebar-primary .sidebar-primary-items__end {
+    display: none;
+}
+
+.bd-sidebar-primary .toctree-l1 > a,
+.bd-sidebar-primary .nav-link {
+    border-radius: 6px;
+    font-size: 0.92rem;
+}
+
+.bd-sidebar-primary .current > a,
+.bd-sidebar-primary .active {
+    color: var(--pst-color-primary);
+    font-weight: 650;
+}
+
+.bd-main .bd-content .bd-article-container {
+    max-width: 980px;
+}
+
+.bd-main .bd-content .bd-article {
+    padding-top: 2rem;
+}
+
+.bd-toc {
+    font-size: 0.86rem;
+}
+
+.bd-toc .toc-entry a.nav-link.active {
+    border-left-color: var(--pst-color-primary);
+    color: var(--pst-color-primary);
+    font-weight: 650;
+}
+
+h1 {
+    color: var(--pst-color-on-surface);
+    font-size: 2.15rem;
+    font-weight: 760;
+    letter-spacing: 0;
+}
+
+h2 {
+    font-size: 1.48rem;
+    font-weight: 720;
+    letter-spacing: 0;
+}
+
+h3 {
+    font-size: 1.12rem;
+    font-weight: 680;
+    letter-spacing: 0;
+}
+
+.sd-card {
+    border: 1px solid var(--pst-color-border);
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(31, 41, 51, 0.04);
+    transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+.sd-card:hover {
+    border-color: color-mix(in srgb, var(--pst-color-primary) 42%, var(--pst-color-border));
+    box-shadow: 0 12px 28px rgba(31, 41, 51, 0.10);
+    transform: translateY(-1px);
+}
+
+.sd-card-title {
+    color: var(--pst-color-on-surface);
+    font-weight: 720;
+}
+
+.admonition {
+    border-radius: 8px;
+    box-shadow: none;
+}
+
+.highlight,
+div[class^="highlight"] {
+    border-radius: 8px;
+}
+
+pre {
+    line-height: 1.55;
+}
+
+code.literal {
+    border-radius: 5px;
+    padding: 0.07rem 0.25rem;
+}
+
+.nbinput .prompt,
+.nboutput .prompt {
+    opacity: 0.62;
+}
+
+.nbinput .input_area,
+.nboutput .output_area {
+    border-radius: 8px;
+}
+
+.nboutput img,
+.nboutput svg {
+    border-radius: 8px;
 }
 
 .pyna-language-switcher {
     align-items: center;
     display: inline-flex;
-    gap: 0.35rem;
-    margin-right: 0.4rem;
+    gap: 0.42rem;
+    min-width: max-content;
 }
 
 .pyna-language-switcher__label {
-    color: var(--color-foreground-muted);
+    color: var(--pst-color-text-muted);
     font-size: 0.78rem;
+    font-weight: 650;
     line-height: 1;
 }
 
-.pyna-language-switcher select {
-    background: var(--color-background-primary);
-    border: 1px solid var(--color-background-border);
-    border-radius: 0.35rem;
-    color: var(--color-foreground-primary);
+.pyna-language-select {
+    background: var(--pst-color-background);
+    border: 1px solid var(--pst-color-border);
+    border-radius: 6px;
+    color: var(--pst-color-text-base);
     font: inherit;
     font-size: 0.82rem;
     height: 2rem;
     max-width: 12rem;
-    padding: 0.15rem 1.7rem 0.15rem 0.55rem;
+    padding: 0.12rem 1.65rem 0.12rem 0.55rem;
 }
 
-.pyna-language-switcher select:focus {
-    outline: 2px solid var(--color-brand-primary);
+.pyna-language-select:focus {
+    outline: 2px solid color-mix(in srgb, var(--pst-color-primary) 55%, transparent);
     outline-offset: 2px;
 }
 
+html[data-pyna-lang="en"] .bd-sidebar-primary li:has(a[href*="/zh/"]),
+html[data-pyna-lang="en"] .bd-sidebar-primary li:has(a[href^="zh/"]),
+html[data-pyna-lang="zh"] .bd-sidebar-primary li:has(a[href*="/en/"]),
+html[data-pyna-lang="zh"] .bd-sidebar-primary li:has(a[href^="en/"]),
 html[data-pyna-lang="en"] .sidebar-tree li:has(a[href*="/zh/"]),
-html[data-pyna-lang="en"] .sidebar-tree li:has(a[href^="zh/"]),
-html[data-pyna-lang="zh"] .sidebar-tree li:has(a[href*="/en/"]),
-html[data-pyna-lang="zh"] .sidebar-tree li:has(a[href^="en/"]) {
+html[data-pyna-lang="zh"] .sidebar-tree li:has(a[href*="/en/"]) {
     display: none;
 }
 
+html[data-pyna-lang="root"] .bd-sidebar-primary,
 html[data-pyna-lang="root"] .sidebar-tree {
     display: none;
 }
 
-@media (max-width: 720px) {
-    .pyna-language-switcher {
-        left: 50%;
-        margin: 0;
-        position: fixed;
-        top: 0.55rem;
-        transform: translateX(-50%);
-        z-index: 40;
+html[data-pyna-lang="root"] .bd-main .bd-content .bd-article-container {
+    max-width: 860px;
+}
+
+@media (max-width: 960px) {
+    .bd-main .bd-content .bd-article-container {
+        max-width: 100%;
     }
 
     .pyna-language-switcher__label {
         display: none;
     }
 
-    .pyna-language-switcher select {
-        font-size: 0.78rem;
-        height: 1.8rem;
-        max-width: 8.8rem;
+    .pyna-language-select {
+        max-width: 9.6rem;
     }
 }

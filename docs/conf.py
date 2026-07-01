@@ -39,30 +39,41 @@ exclude_patterns = [
     'notebooks/validate_chaos.ipynb',
 ]
 
-# ? Theme ?
-html_theme = 'furo'
+# HTML theme
+html_theme = 'pydata_sphinx_theme'
 html_static_path = ['_static']
 html_css_files = ['custom.css']
 html_js_files = ['language-switcher.js']
 html_copy_source = False
 html_show_sourcelink = False
+html_title = 'pyna dynamics toolkit'
 
 html_theme_options = {
-    "light_css_variables": {
-        "color-brand-primary":    "#0d6efd",   # blue
-        "color-brand-content":    "#0d6efd",
-        "color-admonition-background": "#e8f4f8",
-        "color-sidebar-background": "#f0f8ff",
-        "font-stack": "Inter, sans-serif",
-        "font-stack--monospace": "JetBrains Mono, Fira Code, monospace",
+    "logo": {
+        "text": "pyna",
     },
-    "dark_css_variables": {
-        "color-brand-primary":    "#4fc3f7",   # teal-blue for dark mode
-        "color-brand-content":    "#4fc3f7",
-        "color-sidebar-background": "#1a1d23",
-    },
-    "sidebar_hide_name": False,
+    "navbar_align": "content",
+    "navbar_center": ["navbar-nav"],
+    "navbar_end": ["navbar-language", "theme-switcher", "navbar-icon-links"],
+    "navbar_persistent": ["search-button"],
+    "header_links_before_dropdown": 6,
+    "show_nav_level": 1,
+    "show_toc_level": 2,
+    "navigation_depth": 4,
+    "collapse_navigation": True,
+    "back_to_top_button": True,
     "navigation_with_keys": True,
+    "secondary_sidebar_items": ["page-toc"],
+    "pygments_light_style": "a11y-high-contrast-light",
+    "pygments_dark_style": "a11y-high-contrast-dark",
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/WenyinWei/pyna",
+            "icon": "fa-brands fa-github",
+            "type": "fontawesome",
+        },
+    ],
 }
 
 # ? MyST parser settings ?
@@ -149,8 +160,30 @@ def _disable_nbsphinx_notebook_copy(app):
     return []
 
 
+def _remove_html_source_maps(app, exception):
+    """Keep published pages compact and free of third-party source-map payloads."""
+    if exception is not None or app.builder.format != 'html':
+        return
+    for root, _dirs, files in os.walk(app.builder.outdir):
+        for filename in files:
+            path = os.path.join(root, filename)
+            if filename.endswith(('.css', '.js')):
+                try:
+                    with open(path, encoding='utf-8') as stream:
+                        lines = stream.readlines()
+                except UnicodeDecodeError:
+                    lines = []
+                filtered = [line for line in lines if 'sourceMappingURL=' not in line]
+                if filtered != lines:
+                    with open(path, 'w', encoding='utf-8') as stream:
+                        stream.writelines(filtered)
+            if filename.endswith('.map'):
+                os.remove(path)
+
+
 def setup(app):
     # nbsphinx copies executed notebooks during html-collect-pages.  The pages
     # already contain rendered outputs, and publishing raw JSON can expose large
     # base64 payloads, so keep GitHub Pages to HTML/assets only.
     app.connect('html-collect-pages', _disable_nbsphinx_notebook_copy, priority=400)
+    app.connect('build-finished', _remove_html_source_maps)
