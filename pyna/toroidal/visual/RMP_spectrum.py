@@ -136,21 +136,25 @@ def radial_rmp_field_template(
     axis_R: float,
     axis_Z: float = 0.0,
 ):
-    """Return a circular-surface radial RMP field template.
+    """Return a divergence-free circular-shell radial RMP field template.
 
-    The radial projection is
+    In local circular coordinates ``R = axis_R + r*cos(theta)`` and
+    ``Z = axis_Z + r*sin(theta)``, the returned cylindrical field has
 
-        delta B^psi = amplitude * cos(m*theta - n*phi + phase)
+        delta B_r = amplitude * cos(m*theta - n*phi + phase)
 
-    so the analytic circular-surface coefficient ``b_{m,-n}`` has phase
-    ``phase`` and magnitude ``amplitude/2`` under the FFT convention used by
-    :func:`find_resonant_components_analytic`.
+    and a compensating poloidal component chosen so that
+    ``div(delta B) = 0`` exactly in the circular-shell metric.  The helper is
+    meant for resonant-surface test fields away from the magnetic axis.  Under
+    the FFT convention used by :func:`find_resonant_components_analytic`, the
+    analytic circular-surface coefficient ``b_{m,-n}`` has phase ``phase`` and
+    magnitude ``amplitude/2``.
     """
 
     m_int = int(m)
     n_int = int(n)
-    if m_int <= 0 or n_int <= 0:
-        raise ValueError("m and n must be positive resonant mode numbers")
+    if m_int <= 1 or n_int <= 0:
+        raise ValueError("m must be greater than 1 and n must be positive")
     amp = float(amplitude)
     phase0 = float(phase)
     center_R = float(axis_R)
@@ -160,14 +164,32 @@ def radial_rmp_field_template(
         R_arr = np.asarray(R, dtype=float)
         Z_arr = np.asarray(Z, dtype=float)
         phi_arr = np.asarray(phi, dtype=float)
-        theta = np.arctan2(Z_arr - center_Z, R_arr - center_R)
-        radial = amp * np.cos(m_int * theta - n_int * phi_arr + phase0)
+        x = R_arr - center_R
+        z = Z_arr - center_Z
+        r_minor = np.hypot(x, z)
+        theta = np.arctan2(z, x)
+        phase_m = m_int * theta - n_int * phi_arr + phase0
+        radial = amp * np.cos(phase_m)
+
+        theta_plus = (m_int + 1) * theta - n_int * phi_arr + phase0
+        theta_minus = (m_int - 1) * theta - n_int * phi_arr + phase0
+        poloidal = -amp * (
+            center_R * np.sin(phase_m) / float(m_int)
+            + r_minor * (
+                np.sin(theta_plus) / float(m_int + 1)
+                + np.sin(theta_minus) / float(m_int - 1)
+            )
+        ) / np.maximum(R_arr, 1.0e-300)
+
+        BR = radial * np.cos(theta) - poloidal * np.sin(theta)
+        BZ = radial * np.sin(theta) + poloidal * np.cos(theta)
         return np.array([
-            radial * np.cos(theta),
-            radial * np.sin(theta),
+            BR,
+            BZ,
             np.zeros_like(radial, dtype=float),
         ])
 
+    delta_B_func.divergence_free = True
     return delta_B_func
 
 

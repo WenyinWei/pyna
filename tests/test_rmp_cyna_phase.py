@@ -27,6 +27,11 @@ def _wrap_to_pi(angle):
     return (np.asarray(angle) + np.pi) % (2.0 * np.pi) - np.pi
 
 
+def _periodic_derivative_theta(values, theta):
+    dtheta = float(theta[1] - theta[0])
+    return (np.roll(values, -1, axis=-1) - np.roll(values, 1, axis=-1)) / (2.0 * dtheta)
+
+
 def _sample_field(eq, delta_B_func, *, nR=128, nPhi=128):
     lim = 1.18 * eq.r0
     R_grid = np.linspace(eq.R0 - lim, eq.R0 + lim, nR)
@@ -156,6 +161,39 @@ def test_resonant_rmp_spectrum_has_expected_amplitude_orders():
     assert np.ptp(np.unwrap(phases)) < 1.0e-12
 
 
+def test_radial_rmp_template_is_divergence_free_on_circular_shell():
+    axis_R = 3.0
+    axis_Z = 0.0
+    field = radial_rmp_field_template(
+        2,
+        1,
+        amplitude=1.0e-3,
+        phase=0.37,
+        axis_R=axis_R,
+        axis_Z=axis_Z,
+    )
+
+    r = np.linspace(0.08, 0.28, 9)
+    theta = np.linspace(0.0, 2.0 * np.pi, 512, endpoint=False)
+    phi = 0.41
+    rr, tt = np.meshgrid(r, theta, indexing="ij")
+    R = axis_R + rr * np.cos(tt)
+    Z = axis_Z + rr * np.sin(tt)
+    BR, BZ, Bphi = field(R, Z, phi)
+    Br = BR * np.cos(tt) + BZ * np.sin(tt)
+    Btheta = -BR * np.sin(tt) + BZ * np.cos(tt)
+
+    radial_flux = rr * R * Br
+    poloidal_flux = R * Btheta
+    d_radial = np.gradient(radial_flux, r, axis=0, edge_order=2)
+    d_poloidal = _periodic_derivative_theta(poloidal_flux, theta)
+    divergence = (d_radial + d_poloidal) / (rr * R)
+
+    assert getattr(field, "divergence_free") is True
+    assert np.max(np.abs(Bphi)) == 0.0
+    assert np.max(np.abs(divergence[1:-1])) < 3.0e-6
+
+
 def test_resonant_phase_template_controls_xo_phase_order():
     eq = simple_stellarator(
         R0=3.0,
@@ -200,15 +238,15 @@ def test_resonant_phase_template_controls_xo_phase_order():
     measured_b_phase = []
     exact_phase_residual = []
     first_order_theta_residual = []
-    for kappa in phase_controls:
-        template_phase = kappa + eta * kappa * kappa
+    for k in phase_controls:
+        template_phase = k + eta * k * k
         component = component_for_template(phase=template_phase)
         darg_b = float(_wrap_to_pi(np.angle(component.b_mn / comp_pos.b_mn)))
         dtheta_o = float(_wrap_to_pi(component.opoint_theta - comp_pos.opoint_theta))
 
         measured_b_phase.append(abs(darg_b))
         exact_phase_residual.append(abs(float(_wrap_to_pi(base_m * dtheta_o + darg_b))))
-        first_order_theta_residual.append(abs(float(_wrap_to_pi(dtheta_o + kappa / base_m))))
+        first_order_theta_residual.append(abs(float(_wrap_to_pi(dtheta_o + k / base_m))))
 
         assert darg_b == pytest.approx(template_phase, abs=1.0e-12)
 
