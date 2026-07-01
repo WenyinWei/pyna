@@ -41,10 +41,13 @@ from __future__ import annotations
 
 import numpy as np
 from dataclasses import dataclass
-from typing import Any, List, Optional, Union
+from typing import Any, Callable, List, Optional, Sequence, Union
 import matplotlib.pyplot as plt
 
 from .equilibrium import ISLAND_CMAPS
+
+
+TWOPI = 2.0 * np.pi
 
 
 def island_fixed_points(
@@ -201,6 +204,314 @@ def radial_rmp_field_template(
 
     delta_B_func.divergence_free = True
     return delta_B_func
+
+
+def compose_magnetic_perturbations(*delta_B_funcs: Callable) -> Callable:
+    """Return the linear superposition of several ``delta_B(R, Z, phi)`` callables."""
+
+    funcs = tuple(delta_B_funcs)
+
+    def delta_B_sum(R, Z, phi):
+        shape = np.broadcast(np.asarray(R), np.asarray(Z), np.asarray(phi)).shape
+        out = np.zeros((3,) + shape, dtype=float)
+        for func in funcs:
+            out = out + np.asarray(func(R, Z, phi), dtype=float)
+        return out
+
+    delta_B_sum.divergence_free = all(bool(getattr(func, "divergence_free", False)) for func in funcs)
+    return delta_B_sum
+
+
+@dataclass(frozen=True)
+class DivergenceDiagnostic:
+    """Numerical divergence check for a circular-shell perturbation field."""
+
+    max_abs: float
+    rms: float
+    scale: float
+    relative_max: float
+    relative_rms: float
+
+
+@dataclass(frozen=True)
+class RMPnRMPModeRow:
+    """One Fourier mode classified as resonant RMP or non-resonant magnetic perturbation."""
+
+    m: int
+    n: int
+    coefficient: complex
+    amplitude: float
+    phase: float
+    detuning: float
+    kind: str
+
+    @property
+    def phase_deg(self) -> float:
+        return float(np.degrees(self.phase))
+
+
+@dataclass(frozen=True)
+class FieldlineVelocitySpectrum:
+    """Field-line velocity spectra induced by a perturbation on a circular surface."""
+
+    psi: float
+    r_minor: float
+    iota: float
+    iota_prime: float
+    theta: np.ndarray
+    phi: np.ndarray
+    radial_velocity: np.ndarray
+    poloidal_velocity: np.ndarray
+    radial_spectrum: Any
+    poloidal_spectrum: Any
+
+    def poloidal_coefficients_for_radial_modes(self) -> np.ndarray:
+        """Return poloidal-velocity coefficients aligned with ``radial_spectrum`` modes."""
+
+        return np.asarray([
+            self.poloidal_spectrum.mode_coefficient(int(m), int(n))
+            for m, n in zip(self.radial_spectrum.m, self.radial_spectrum.n)
+        ], dtype=complex)
+
+    def split(self, resonance_tol: float = 1.0e-9):
+        """Split the radial-velocity spectrum into RMP and nRMP modes."""
+
+        return self.radial_spectrum.split(self.iota, resonance_tol=resonance_tol)
+
+    def nonresonant_deformation(
+        self,
+        *,
+        include_shear: bool = True,
+        resonance_tol: float = 1.0e-9,
+        regularise_eps: float = 0.0,
+    ):
+        """Compute nRMP flux-surface deformation from the non-resonant modes."""
+
+        from pyna.toroidal.torus_deformation import fieldline_deformation_spectrum
+
+        dtheta = self.poloidal_coefficients_for_radial_modes()
+        split = self.split(resonance_tol=resonance_tol)
+        keep = split.nonresonant_mask
+        return fieldline_deformation_spectrum(
+            self.radial_spectrum.m[keep],
+            self.radial_spectrum.n[keep],
+            self.radial_spectrum.dBr[keep],
+            dtheta[keep],
+            iota=self.iota,
+            iota_prime=self.iota_prime,
+            include_shear=include_shear,
+            resonance_tol=0.0,
+            regularise_eps=regularise_eps,
+        )
+
+
+def _periodic_central_diff(values: np.ndarray, axis_values: np.ndarray, axis: int) -> np.ndarray:
+    step = float(np.asarray(axis_values, dtype=float)[1] - np.asarray(axis_values, dtype=float)[0])
+    return (np.roll(values, -1, axis=axis) - np.roll(values, 1, axis=axis)) / (2.0 * step)
+
+
+def circular_shell_divergence_diagnostic(
+    delta_B_func: Callable,
+    *,
+    axis_R: float,
+    axis_Z: float = 0.0,
+    r_values: Sequence[float] | np.ndarray = (0.08, 0.12, 0.16, 0.20, 0.24, 0.28),
+    n_theta: int = 256,
+    n_phi: int = 256,
+) -> DivergenceDiagnostic:
+    """Numerically check ``div(delta_B)`` in circular-shell coordinates."""
+
+    r = np.asarray(r_values, dtype=float)
+    theta = np.linspace(0.0, TWOPI, int(n_theta), endpoint=False)
+    phi = np.linspace(0.0, TWOPI, int(n_phi), endpoint=False)
+    pp, rr, tt = np.meshgrid(phi, r, theta, indexing="ij")
+    R = float(axis_R) + rr * np.cos(tt)
+    Z = float(axis_Z) + rr * np.sin(tt)
+    BR, BZ, Bphi = np.asarray(delta_B_func(R, Z, pp), dtype=float)
+    Br = BR * np.cos(tt) + BZ * np.sin(tt)
+    Btheta = -BR * np.sin(tt) + BZ * np.cos(tt)
+
+    radial_flux = rr * R * Br
+    poloidal_flux = R * Btheta
+    toroidal_flux = rr * Bphi
+    d_radial = np.gradient(radial_flux, r, axis=1, edge_order=2)
+    d_poloidal = _periodic_central_diff(poloidal_flux, theta, axis=2)
+    d_toroidal = _periodic_central_diff(toroidal_flux, phi, axis=0)
+    div = (d_radial + d_poloidal + d_toroidal) / (rr * R)
+    interior = div[:, 1:-1, :] if r.size > 2 else div
+    amp = np.sqrt(BR * BR + BZ * BZ + Bphi * Bphi)
+    scale = float(np.nanmax(amp) / max(float(np.nanmin(r)), 1.0e-300))
+    scale = max(scale, 1.0e-300)
+    max_abs = float(np.nanmax(np.abs(interior)))
+    rms = float(np.sqrt(np.nanmean(np.abs(interior) ** 2)))
+    return DivergenceDiagnostic(
+        max_abs=max_abs,
+        rms=rms,
+        scale=scale,
+        relative_max=max_abs / scale,
+        relative_rms=rms / scale,
+    )
+
+
+def rmp_nrmp_mode_rows(
+    spectrum: Any,
+    iota: float,
+    *,
+    resonance_tol: float = 1.0e-9,
+    top: int | None = 12,
+    min_amplitude: float = 0.0,
+    radial_index: int | None = None,
+) -> list[RMPnRMPModeRow]:
+    """Return a sorted table of RMP/nRMP Fourier modes from a radial spectrum."""
+
+    coeffs = spectrum.dBr
+    if np.ndim(coeffs) == 2:
+        if radial_index is None:
+            raise ValueError("radial_index is required for radial-stack spectra")
+        coeffs = coeffs[int(radial_index)]
+    rows: list[RMPnRMPModeRow] = []
+    for m_val, n_val, coeff in zip(spectrum.m, spectrum.n, coeffs):
+        coeff = complex(coeff)
+        amp = abs(coeff)
+        if amp < float(min_amplitude):
+            continue
+        detuning = float(int(m_val) * float(iota) + int(n_val))
+        kind = "RMP" if abs(detuning) <= float(resonance_tol) else "nRMP"
+        rows.append(RMPnRMPModeRow(
+            m=int(m_val),
+            n=int(n_val),
+            coefficient=coeff,
+            amplitude=float(amp),
+            phase=float(np.angle(coeff)),
+            detuning=detuning,
+            kind=kind,
+        ))
+    rows.sort(key=lambda row: row.amplitude, reverse=True)
+    return rows if top is None else rows[:int(top)]
+
+
+def _iota_prime_radius(eq: Any, r_minor: float) -> float:
+    r0 = float(getattr(eq, "r0"))
+    psi = (float(r_minor) / r0) ** 2
+    h = min(1.0e-4, max(1.0e-6, 0.25 * min(psi, 1.0 - psi))) if 0.0 < psi < 1.0 else 1.0e-5
+    psi_lo = max(0.0, psi - h)
+    psi_hi = min(1.0, psi + h)
+    if psi_hi == psi_lo:
+        return 0.0
+    iota_lo = 1.0 / float(eq.q_of_psi(psi_lo))
+    iota_hi = 1.0 / float(eq.q_of_psi(psi_hi))
+    diota_dpsi = (iota_hi - iota_lo) / (psi_hi - psi_lo)
+    return float(diota_dpsi * 2.0 * float(r_minor) / (r0 * r0))
+
+
+def fieldline_velocity_spectrum_on_circular_surface(
+    eq: Any,
+    delta_B_func: Callable,
+    psi: float,
+    *,
+    n_theta: int = 128,
+    n_phi: int = 128,
+    m_max: int = 8,
+    n_max: int = 8,
+    min_amplitude: float = 1.0e-12,
+) -> FieldlineVelocitySpectrum:
+    """Sample first-order field-line velocity spectra on one circular flux surface.
+
+    The returned radial velocity is ``dr/dphi`` and the poloidal velocity is the
+    perturbation to ``dtheta/dphi``.  A perturbation ``delta B_phi`` contributes
+    ``-iota*delta B_phi/B_phi`` to the poloidal velocity through the toroidal
+    denominator.
+    """
+
+    from pyna.toroidal.perturbation_spectrum import radial_perturbation_Fourier_spectrum
+
+    psi_val = float(psi)
+    r_minor = float(np.sqrt(max(psi_val, 0.0)) * float(getattr(eq, "r0")))
+    iota = 1.0 / float(eq.q_of_psi(psi_val))
+    theta = np.linspace(0.0, TWOPI, int(n_theta), endpoint=False)
+    phi = np.linspace(0.0, TWOPI, int(n_phi), endpoint=False)
+    TT, PP = np.meshgrid(theta, phi, indexing="xy")
+    RR = float(getattr(eq, "R0")) + r_minor * np.cos(TT)
+    ZZ = r_minor * np.sin(TT)
+    Bphi0 = float(getattr(eq, "B0")) * float(getattr(eq, "R0")) / RR
+    dBR, dBZ, dBphi = np.asarray(delta_B_func(RR, ZZ, PP), dtype=float)
+    dBr = dBR * np.cos(TT) + dBZ * np.sin(TT)
+    dBtheta = -dBR * np.sin(TT) + dBZ * np.cos(TT)
+    radial_velocity = RR * dBr / Bphi0
+    poloidal_velocity = RR * dBtheta / (max(r_minor, 1.0e-300) * Bphi0) - iota * dBphi / Bphi0
+    radial_spec = radial_perturbation_Fourier_spectrum(
+        radial_velocity,
+        theta,
+        phi,
+        m_max=m_max,
+        n_max=n_max,
+        min_amplitude=min_amplitude,
+    )
+    poloidal_spec = radial_perturbation_Fourier_spectrum(
+        poloidal_velocity,
+        theta,
+        phi,
+        m_max=m_max,
+        n_max=n_max,
+        min_amplitude=min_amplitude,
+    )
+    return FieldlineVelocitySpectrum(
+        psi=psi_val,
+        r_minor=r_minor,
+        iota=iota,
+        iota_prime=_iota_prime_radius(eq, r_minor),
+        theta=theta,
+        phi=phi,
+        radial_velocity=radial_velocity,
+        poloidal_velocity=poloidal_velocity,
+        radial_spectrum=radial_spec,
+        poloidal_spectrum=poloidal_spec,
+    )
+
+
+def sample_stellarator_cylindrical_field(
+    eq: Any,
+    delta_B_func: Callable | None = None,
+    *,
+    nR: int = 128,
+    nPhi: int = 128,
+    lim_factor: float = 1.18,
+    label: str = "sampled_stellarator_field",
+):
+    """Sample an analytic stellarator plus optional perturbation as ``VectorFieldCylind``."""
+
+    from pyna.fields.cylindrical import VectorFieldCylind
+
+    lim = float(lim_factor) * float(eq.r0)
+    R_grid = np.linspace(float(eq.R0) - lim, float(eq.R0) + lim, int(nR))
+    Z_grid = np.linspace(-lim, lim, int(nR))
+    Phi_grid = np.linspace(0.0, TWOPI, int(nPhi), endpoint=False)
+    RR, ZZ, PP = np.meshgrid(R_grid, Z_grid, Phi_grid, indexing="ij")
+
+    theta = np.arctan2(ZZ, RR - float(eq.R0))
+    psi = eq.psi_ax(RR, ZZ)
+    q = eq.q_of_psi(psi)
+    r_minor = np.hypot(RR - float(eq.R0), ZZ)
+    Bphi = float(eq.B0) * float(eq.R0) / RR
+    Bpol = Bphi * r_minor / (RR * np.maximum(np.abs(q), 1.0e-3))
+    BR = np.where(r_minor > 1.0e-10, -Bpol * np.sin(theta), 0.0)
+    BZ = np.where(r_minor > 1.0e-10, Bpol * np.cos(theta), 0.0)
+    helical_BR = float(eq.epsilon_h) * float(eq.B0) * psi * np.cos(eq.m_h * theta - eq.n_h * PP)
+    BR = BR + helical_BR
+    if delta_B_func is not None:
+        dBR, dBZ, dBphi = np.asarray(delta_B_func(RR, ZZ, PP), dtype=float)
+        BR = BR + dBR
+        BZ = BZ + dBZ
+        Bphi = Bphi + dBphi
+    return VectorFieldCylind(
+        R_grid,
+        Z_grid,
+        Phi_grid,
+        BR=BR,
+        BZ=BZ,
+        BPhi=Bphi,
+        label=label,
+    )
 
 
 @dataclass

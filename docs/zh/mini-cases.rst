@@ -87,11 +87,16 @@
 :doc:`/notebooks/tutorials/RMP_resonance_analysis` 现在承担完整图文案例：
 
 1. 构造公开解析 stellarator 模型；
-2. 追踪未扰动和 RMP 扰动后的 Poincare 截面；
-3. 计算解析共振 X/O 点；
-4. 叠加局部稳定分支和 PEST-style 坐标网格。
+2. 验证 ``m=1`` 和 ``m>1`` RMP 模板的无散度性质；
+3. 追踪未扰动和 RMP 扰动后的 Poincare 截面；
+4. 用 ``cyna`` Newton 定点和解析 RMP 相位互相校验；
+5. 把混合谱拆分为 RMP 与 nRMP 模式；
+6. 可视化 nRMP 引起的磁面形变和场线流速调制；
+7. 叠加局部稳定分支和 PEST-style 坐标网格。
 
-修改固定点绘图、截面几何或教程渲染前，建议先在本地跑这个 notebook。
+修改固定点绘图、截面几何、RMP/nRMP 诊断或教程渲染前，建议先在本地跑这个
+notebook。它的代码路径尽量使用公开 helper，方便用户把案例直接迁移到自己的
+分析脚本。
 
 案例 4：注册自定义系统
 ----------------------
