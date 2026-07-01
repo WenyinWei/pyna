@@ -160,6 +160,74 @@ def test_resonant_rmp_spectrum_has_expected_amplitude_orders():
     assert np.ptp(np.unwrap(phases)) < 1.0e-12
 
 
+def test_resonant_phase_order_sign_jump_and_nonlinear_drift():
+    eq = simple_stellarator(
+        R0=3.0,
+        r0=0.3,
+        B0=2.5,
+        q0=1.5,
+        q1=4.5,
+        m_h=3,
+        n_h=3,
+        epsilon_h=0.0,
+    )
+    base_m, base_n = 2, 1
+
+    def component_for_radial_amplitude(radial_amplitude):
+        def delta_B_RMP(R, Z, phi):
+            theta = np.arctan2(Z, R - eq.R0)
+            amplitude = radial_amplitude(theta, phi)
+            return np.array([
+                amplitude * np.cos(theta),
+                amplitude * np.sin(theta),
+                np.zeros_like(np.asarray(theta)),
+            ])
+
+        return find_resonant_components_analytic(
+            eq,
+            delta_B_RMP,
+            base_m=base_m,
+            base_n=base_n,
+            max_harmonic=1,
+            n_theta=128,
+            n_phi=64,
+            min_amplitude=1.0e-16,
+        )[0]
+
+    comp_pos = component_for_radial_amplitude(
+        lambda theta, phi: 1.0e-3 * np.cos(base_m * theta - base_n * phi)
+    )
+    comp_neg = component_for_radial_amplitude(
+        lambda theta, phi: -1.0e-3 * np.cos(base_m * theta - base_n * phi)
+    )
+
+    phase_jump = np.angle(comp_neg.b_mn / comp_pos.b_mn)
+    assert abs(abs(phase_jump) - np.pi) < 1.0e-12
+    assert comp_neg.opoint_theta == pytest.approx(comp_pos.xpoint_theta, abs=1.0e-12)
+    assert comp_neg.xpoint_theta == pytest.approx(comp_pos.opoint_theta, abs=1.0e-12)
+
+    base_amplitude = 1.0e-3
+    eta = 0.5
+    lambdas = np.array([0.03125, 0.0625, 0.125, 0.25, 0.5])
+    phases = []
+    widths = []
+    for lam in lambdas:
+        component = component_for_radial_amplitude(
+            lambda theta, phi, lam=lam: base_amplitude * (
+                lam * np.cos(base_m * theta - base_n * phi)
+                + eta * lam * lam * np.sin(base_m * theta - base_n * phi)
+            )
+        )
+        phases.append(abs(np.angle(component.b_mn)))
+        widths.append(component.half_width_r)
+
+    phase_slope = np.polyfit(np.log(lambdas), np.log(phases), 1)[0]
+    width_slope = np.polyfit(np.log(lambdas), np.log(widths), 1)[0]
+
+    assert phase_slope == pytest.approx(1.0, abs=0.02)
+    assert width_slope == pytest.approx(0.5, abs=0.03)
+
+
 @pytest.mark.skipif(not _cyna_available(), reason="cyna extension is unavailable")
 def test_cyna_fixed_points_match_pure_rmp_spectrum_phase():
     eq = simple_stellarator(
