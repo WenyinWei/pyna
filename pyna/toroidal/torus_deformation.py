@@ -86,6 +86,7 @@ __all__ = [
     "RadialPerturbationSplit",
     "split_radial_perturbation_spectrum",
     "non_resonant_deformation_spectrum",
+    "fieldline_deformation_spectrum",
     "poincare_section_deformation",
     "iota_variation_pf",
     "mean_radial_displacement",
@@ -366,6 +367,79 @@ def non_resonant_deformation_spectrum(
         delta_r=dr_mn,
         delta_theta=dth_mn,
         delta_phi=dph_mn,
+        resonant_mask=res_mask,
+    )
+
+
+def fieldline_deformation_spectrum(
+    m: Union[ndarray, list],
+    n: Union[ndarray, list],
+    radial_velocity_mn: Union[ndarray, list],
+    poloidal_velocity_mn: Union[ndarray, list, None] = None,
+    *,
+    iota: float,
+    iota_prime: float = 0.0,
+    include_shear: bool = False,
+    resonance_tol: float = 1e-9,
+    regularise_eps: float = 0.0,
+) -> TorusDeformationSpectrum:
+    """Compute non-resonant torus deformation from field-line velocity spectra.
+
+    This is the field-line ODE form of
+    :func:`non_resonant_deformation_spectrum`.  It expects Fourier
+    coefficients of the perturbation to
+
+    ``dr/dphi = F_r(theta, phi)`` and ``dtheta/dphi = iota + F_theta(theta, phi)``,
+
+    using the same convention ``exp(i*(m*theta+n*phi))``.  For each
+    non-resonant mode ``alpha = m*iota+n`` it solves the homological equations
+
+    ``i*alpha*delta_r = F_r`` and
+    ``i*alpha*delta_theta = F_theta``.
+
+    If ``include_shear`` is true, the angular equation uses
+    ``F_theta + iota_prime*delta_r``.  The default leaves this term out because
+    many surface-geometry comparisons only need the first-order coordinate
+    displacement induced directly by the non-resonant perturbation.
+    """
+
+    m = np.asarray(m, dtype=int)
+    n = np.asarray(n, dtype=int)
+    Fr = np.asarray(radial_velocity_mn, dtype=complex)
+    if poloidal_velocity_mn is None:
+        Ft = np.zeros_like(Fr, dtype=complex)
+    else:
+        Ft = np.asarray(poloidal_velocity_mn, dtype=complex)
+    if m.shape != n.shape or m.shape != Fr.shape or Ft.shape != Fr.shape:
+        raise ValueError(
+            "m, n, radial_velocity_mn, and poloidal_velocity_mn must have identical shapes"
+        )
+
+    denom = _safe_denom(m, n, float(iota), eps=regularise_eps)
+    res_mask = _check_resonant(m, n, float(iota), tol=resonance_tol)
+    if res_mask.any():
+        warnings.warn(
+            f"{res_mask.sum()} resonant mode(s) found and set to NaN. "
+            "Non-resonant deformation theory does not apply to these modes.",
+            UserWarning,
+            stacklevel=2,
+        )
+
+    keep = ~res_mask
+    delta_r = np.full(Fr.shape, np.nan + 0j, dtype=complex)
+    delta_theta = np.full(Fr.shape, np.nan + 0j, dtype=complex)
+    delta_r[keep] = Fr[keep] / (1j * denom[keep])
+    if include_shear:
+        theta_forcing = Ft[keep] + float(iota_prime) * delta_r[keep]
+    else:
+        theta_forcing = Ft[keep]
+    delta_theta[keep] = theta_forcing / (1j * denom[keep])
+    return TorusDeformationSpectrum(
+        m=m,
+        n=n,
+        delta_r=delta_r,
+        delta_theta=delta_theta,
+        delta_phi=np.zeros_like(delta_r, dtype=complex),
         resonant_mask=res_mask,
     )
 

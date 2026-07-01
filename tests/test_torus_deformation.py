@@ -24,6 +24,7 @@ from pyna.toroidal import (
     RadialPerturbationSplit,
     split_radial_perturbation_spectrum,
     non_resonant_deformation_spectrum,
+    fieldline_deformation_spectrum,
     poincare_section_deformation,
     iota_variation_pf,
     mean_radial_displacement,
@@ -151,6 +152,47 @@ def test_poincare_section_phi0_phase():
 
     # With n=1:  exp(i*1*π)=−1, so the n=1 contribution flips sign.
     np.testing.assert_allclose(dr_pi, -dr_0, atol=1e-15)
+
+
+def test_fieldline_deformation_spectrum_matches_homological_equation():
+    """Velocity-form helper solves i*(m*iota+n)*delta = forcing."""
+    m_val, n_val = 2, 1
+    Fr = 0.01 + 0.005j
+    Ft = -0.002j
+
+    spec = fieldline_deformation_spectrum(
+        [m_val],
+        [n_val],
+        [Fr],
+        [Ft],
+        iota=IOTA,
+    )
+
+    alpha = m_val * IOTA + n_val
+    np.testing.assert_allclose(spec.delta_r[0], Fr / (1j * alpha), rtol=1e-12)
+    np.testing.assert_allclose(spec.delta_theta[0], Ft / (1j * alpha), rtol=1e-12)
+
+
+def test_fieldline_deformation_spectrum_optional_shear_term():
+    m_val, n_val = 2, 1
+    Fr = 0.01
+    Ft = 0.002
+
+    spec = fieldline_deformation_spectrum(
+        [m_val],
+        [n_val],
+        [Fr],
+        [Ft],
+        iota=IOTA,
+        iota_prime=IOTA_PRIME,
+        include_shear=True,
+    )
+
+    alpha = m_val * IOTA + n_val
+    expected_r = Fr / (1j * alpha)
+    expected_theta = (Ft + IOTA_PRIME * expected_r) / (1j * alpha)
+    np.testing.assert_allclose(spec.delta_r[0], expected_r, rtol=1e-12)
+    np.testing.assert_allclose(spec.delta_theta[0], expected_theta, rtol=1e-12)
 
 
 # ────────────────────────────────────────────────────────────────────────────

@@ -55,6 +55,7 @@ _SYMBOL_MODULES = {
     "surface_unit_normal_cylindrical": "pyna.toroidal.perturbation_spectrum",
     "split_radial_perturbation_spectrum": "pyna.toroidal.torus_deformation",
     "non_resonant_deformation_spectrum": "pyna.toroidal.torus_deformation",
+    "fieldline_deformation_spectrum": "pyna.toroidal.torus_deformation",
     "poincare_section_deformation": "pyna.toroidal.torus_deformation",
     "iota_variation_pf": "pyna.toroidal.torus_deformation",
     "mean_radial_displacement": "pyna.toroidal.torus_deformation",

@@ -202,6 +202,29 @@ class FixedPointPhaseComparison:
         return 100.0 * float(self.radial_error)
 
 
+@dataclass(frozen=True)
+class DeformedFixedPointProjection:
+    """Projection of a Newton fixed point onto a deformed resonant surface."""
+
+    predicted_kind: str
+    branch: int
+    predicted_theta: float
+    projected_theta: float
+    theta_error: float
+    closest_R: float
+    closest_Z: float
+    distance: float
+    phi: float
+
+    @property
+    def theta_error_deg(self) -> float:
+        return float(np.degrees(self.theta_error))
+
+    @property
+    def distance_cm(self) -> float:
+        return 100.0 * float(self.distance)
+
+
 def _wrap_to_pi(angle: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
     """Wrap angle(s) to [-pi, pi)."""
 
@@ -369,6 +392,103 @@ def compare_cyna_fixed_points_for_component(
             phi=float(phi),
         ))
     return rows
+
+
+def deformed_circular_section_rz(
+    eq: Any,
+    r_minor: float,
+    deformation: Any,
+    theta: Union[float, np.ndarray],
+    *,
+    phi: float = 0.0,
+    include_poloidal: bool = True,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Evaluate a circular flux surface after applying a deformation spectrum.
+
+    ``deformation`` is typically a
+    :class:`pyna.toroidal.torus_deformation.TorusDeformationSpectrum`.
+    ``delta_r`` changes the minor radius and, when ``include_poloidal`` is true,
+    ``delta_theta`` changes the poloidal coordinate before mapping to ``(R, Z)``.
+    """
+
+    theta_arr = np.asarray(theta, dtype=float)
+    axis_R, axis_Z = _magnetic_axis(eq)
+    dr = deformation.section_r(theta_arr, float(phi))
+    dtheta = deformation.section_theta(theta_arr, float(phi)) if include_poloidal else 0.0
+    theta_phys = theta_arr + dtheta
+    radius = float(r_minor) + dr
+    return (
+        axis_R + radius * np.cos(theta_phys),
+        axis_Z + radius * np.sin(theta_phys),
+    )
+
+
+def project_fixed_points_to_deformed_surface(
+    rows: list[FixedPointPhaseComparison],
+    eq: Any,
+    deformation: Any,
+    *,
+    r_minor: Optional[float] = None,
+    phi: float = 0.0,
+    theta_window: float = 0.35,
+    include_poloidal: bool = True,
+) -> list[DeformedFixedPointProjection]:
+    """Project cyna Newton points onto a deformed resonant-surface section.
+
+    The returned ``theta_error`` compares the best-fit deformed-surface
+    coordinate against the original RMP spectrum prediction.  This separates
+    apparent geometric phase shifts caused by smooth non-resonant surface
+    deformation from residual periodic-orbit shifts.
+    """
+
+    from scipy.optimize import minimize_scalar
+
+    axis_R, axis_Z = _magnetic_axis(eq)
+    out: list[DeformedFixedPointProjection] = []
+    for row in rows:
+        if r_minor is None:
+            r_row = float(np.hypot(row.predicted_R - axis_R, row.predicted_Z - axis_Z))
+        else:
+            r_row = float(r_minor)
+
+        def objective(theta_val: float) -> float:
+            Rm, Zm = deformed_circular_section_rz(
+                eq,
+                r_row,
+                deformation,
+                float(theta_val),
+                phi=phi,
+                include_poloidal=include_poloidal,
+            )
+            return float((float(Rm) - row.newton_R) ** 2 + (float(Zm) - row.newton_Z) ** 2)
+
+        center = float(row.predicted_theta)
+        result = minimize_scalar(
+            objective,
+            bounds=(center - float(theta_window), center + float(theta_window)),
+            method="bounded",
+        )
+        theta_proj = float(result.x % (2.0 * np.pi))
+        R_closest, Z_closest = deformed_circular_section_rz(
+            eq,
+            r_row,
+            deformation,
+            theta_proj,
+            phi=phi,
+            include_poloidal=include_poloidal,
+        )
+        out.append(DeformedFixedPointProjection(
+            predicted_kind=row.predicted_kind,
+            branch=row.branch,
+            predicted_theta=center,
+            projected_theta=theta_proj,
+            theta_error=float(_wrap_to_pi(theta_proj - center)),
+            closest_R=float(R_closest),
+            closest_Z=float(Z_closest),
+            distance=float(np.sqrt(max(float(result.fun), 0.0))),
+            phi=float(phi),
+        ))
+    return out
 
 
 def find_resonant_components_analytic(
