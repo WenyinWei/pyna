@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any, Sequence
 
 import numpy as np
-from prefect import flow, task
 
 from pyna.toroidal.flt.numba_poincare import (
     strike_line_from_wall_hits,
@@ -365,13 +364,12 @@ def trace_toroidal_wall_data_field(
     return payload
 
 
-@task
 def wall_trace_post_compute_task(
     cache_path: str,
     views: Sequence[str],
     out_path: str | None = None,
 ) -> dict[str, np.ndarray]:
-    """Prefect task: load one cached raw trace and derive scalar Lc views."""
+    """Load one cached raw trace and derive scalar Lc views."""
 
     data = ToroidalWallTraceData.load_npz(cache_path)
     if out_path is not None:
@@ -379,7 +377,41 @@ def wall_trace_post_compute_task(
     return data.views(tuple(views))
 
 
-@flow(name="pyna-wall-trace-post-compute")
+def _optional_prefect_flow_task():
+    try:
+        from pyna.workflow.prefect import optional_prefect
+    except ModuleNotFoundError as exc:
+        if exc.name and (
+            exc.name == "pyna.workflow" or exc.name.startswith("pyna.workflow.")
+        ):
+            raise RuntimeError(
+                "Prefect is required for workflow runtime support. "
+                "Install it with `pyna-chaos[workflow]` or `pyna-chaos[prefect]`."
+            ) from exc
+        raise
+    return optional_prefect()
+
+
+def _make_prefect_wall_post_compute_flow(flow, task):
+    @task(name="pyna-wall-trace-post-compute-task")
+    def _wall_trace_post_compute_task(
+        cache_path: str,
+        views: Sequence[str],
+        out_path: str | None = None,
+    ) -> dict[str, np.ndarray]:
+        return wall_trace_post_compute_task(cache_path, tuple(views), out_path)
+
+    @flow(name="pyna-wall-trace-post-compute")
+    def _wall_trace_post_compute_flow(
+        cache_path: str,
+        views: Sequence[str] = ("Lc_plus", "Lc_minus", "Lc_sum", "Lc_max"),
+        out_path: str | None = None,
+    ):
+        return _wall_trace_post_compute_task(cache_path, tuple(views), out_path)
+
+    return _wall_trace_post_compute_flow
+
+
 def wall_trace_post_compute_flow(
     cache_path: str,
     views: Sequence[str] = ("Lc_plus", "Lc_minus", "Lc_sum", "Lc_max"),
@@ -387,13 +419,16 @@ def wall_trace_post_compute_flow(
 ):
     """Prefect flow for post-compute views from cached wall-hit data."""
 
-    return wall_trace_post_compute_task(cache_path, tuple(views), out_path)
+    flow, task = _optional_prefect_flow_task()
+    prefect_flow = _make_prefect_wall_post_compute_flow(flow, task)
+    return prefect_flow(cache_path, tuple(views), out_path)
 
 
 def build_prefect_wall_post_compute_flow():
     """Return the canonical Prefect flow for wall-trace post-compute views."""
 
-    return wall_trace_post_compute_flow
+    flow, task = _optional_prefect_flow_task()
+    return _make_prefect_wall_post_compute_flow(flow, task)
 
 
 __all__ = [

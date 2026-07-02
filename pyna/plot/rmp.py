@@ -40,6 +40,15 @@ def _component_color(component, index: int, colors: Sequence[str] | None = None)
     return str(palette[order % len(palette)])
 
 
+def _apply_line_halo(artist, *, color: str = "white", linewidth: float = 4.6, alpha: float = 0.84):
+    try:
+        import matplotlib.patheffects as pe
+    except Exception:  # pragma: no cover - path effects are normally available with matplotlib
+        return artist
+    artist.set_path_effects([pe.Stroke(linewidth=float(linewidth), foreground=color, alpha=float(alpha)), pe.Normal()])
+    return artist
+
+
 def _fixed_point_angles(component, phi: float) -> tuple[np.ndarray, np.ndarray]:
     if hasattr(component, "fixed_points"):
         pts = component.fixed_points(float(phi))
@@ -226,6 +235,68 @@ def draw_reduced_stable_manifolds(
     return artists
 
 
+def draw_rmp_island_width_bars(
+    ax,
+    components,
+    eq,
+    phi: float,
+    *,
+    colors: Sequence[str] | None = None,
+    width_scale: float = 1.0,
+    n_path: int = 17,
+    lw: float = 2.8,
+    alpha: float = 0.95,
+    zorder: int = 9,
+    label_first: bool = True,
+    halo: bool = True,
+    halo_color: str = "white",
+):
+    """Draw theoretical island half-width bars centered at analytic O-points.
+
+    For the circular analytic stellarator used by the RMP tutorial, constant
+    ``theta`` radial curves are straight section rays.  The function mirrors the
+    arbitrary-surface curved-bar API in ``pyna.toroidal.visual`` while consuming
+    the lightweight ``ResonantComponent`` objects already used by this module.
+    """
+
+    R0 = float(eq.R0)
+    r0 = float(eq.r0)
+    if int(n_path) < 2:
+        raise ValueError("n_path must be at least 2")
+    artists = []
+    labelled = False
+    for idx, component in enumerate(components):
+        color = _component_color(component, idx, colors)
+        r_res = np.sqrt(float(component.psi_res)) * r0
+        half_width = float(getattr(component, "half_width_r", 0.0))
+        if not np.isfinite(half_width) or half_width <= 0.0:
+            continue
+        theta_o, _theta_x = _fixed_point_angles(component, phi)
+        r_inner = max(0.0, r_res - float(width_scale) * half_width)
+        r_outer = r_res + float(width_scale) * half_width
+        radii = np.linspace(r_inner, r_outer, int(n_path), dtype=float)
+        for th in theta_o:
+            theta = float(th)
+            label = None
+            if label_first and not labelled:
+                label = "theory island half-width"
+                labelled = True
+            (line,) = ax.plot(
+                R0 + radii * np.cos(theta),
+                radii * np.sin(theta),
+                color=color,
+                lw=float(lw),
+                alpha=float(alpha),
+                solid_capstyle="round",
+                zorder=zorder,
+                label=label,
+            )
+            if halo:
+                _apply_line_halo(line, color=halo_color, linewidth=float(lw) + 2.2, alpha=0.78)
+            artists.append(line)
+    return artists
+
+
 def draw_resonant_surfaces(
     ax,
     components,
@@ -272,6 +343,7 @@ def draw_rmp_resonance_section(
     show_pest_grid: bool = True,
     show_resonant_surfaces: bool = True,
     show_manifolds: bool = True,
+    show_island_width_bars: bool = True,
     show_xo: bool = True,
     point_size: float = 2.0,
     point_alpha: float = 0.45,
@@ -305,6 +377,9 @@ def draw_rmp_resonance_section(
         draw_resonant_surfaces(ax, components, eq, colors=colors)
     if show_manifolds:
         draw_reduced_stable_manifolds(ax, components, eq, phi, colors=colors)
+    bar_artists = []
+    if show_island_width_bars:
+        bar_artists = draw_rmp_island_width_bars(ax, components, eq, phi, colors=colors)
     markers = {"x_points": [], "o_points": []}
     if show_xo:
         markers = draw_rmp_fixed_points(ax, components, eq, phi, colors=colors)
@@ -315,7 +390,7 @@ def draw_rmp_resonance_section(
     format_section_axis(ax, section_phi=phi, title=title, grid=False)
     ax.set_xlabel("R [m]")
     ax.set_ylabel("Z [m]")
-    return {"psi_values": values, **markers}
+    return {"psi_values": values, "island_width_bars": bar_artists, **markers}
 
 
 def plot_rmp_resonance_sections(
@@ -331,6 +406,7 @@ def plot_rmp_resonance_sections(
     point_size: float = 1.7,
     point_alpha: float = 0.42,
     cmap: str = "viridis",
+    show_island_width_bars: bool = True,
 ):
     """Draw a compact multi-section RMP resonance figure."""
 
@@ -365,6 +441,7 @@ def plot_rmp_resonance_sections(
             point_size=point_size,
             point_alpha=point_alpha,
             cmap=cmap,
+            show_island_width_bars=show_island_width_bars,
         )
         row, col = divmod(idx, int(ncols))
         nrows = axes.shape[0]
@@ -422,6 +499,13 @@ def plot_rmp_resonance_sections(
                 lw=0.75,
                 linestyle="--",
                 label="resonant surface",
+            ),
+            Line2D(
+                [0],
+                [0],
+                color=_component_color(components[0], 0, colors) if components else "#2563eb",
+                lw=2.8,
+                label="theory island half-width",
             ),
             Line2D(
                 [0],

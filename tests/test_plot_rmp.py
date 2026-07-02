@@ -51,6 +51,8 @@ def test_draw_rmp_resonance_section_smoke():
     assert payload["psi_values"].shape == R.shape
     assert len(payload["x_points"]) == 2
     assert len(payload["o_points"]) == 2
+    assert len(payload["island_width_bars"]) == 2
+    assert all(len(line.get_xdata()) == 17 for line in payload["island_width_bars"])
     assert len(ax.lines) > 0
     assert len(ax.collections) > 0
     plt.close(fig)

@@ -16,7 +16,6 @@ import tempfile
 from typing import Any
 
 import numpy as np
-from prefect import flow, task
 
 from pyna.toroidal.flt.numba_poincare import field_arrays_from_field, trace_orbit_along_phi
 
@@ -427,12 +426,33 @@ def trace_fieldline_trajectory_bidirectional(
     }
 
 
-@task
 def _trace_fieldline_trajectory_task(field, R0, Z0, phi_start, phi_end, DPhi, kwargs):
     return trace_fieldline_trajectory(field, R0, Z0, phi_start, phi_end, DPhi, **kwargs)
 
 
-@flow(name="pyna-fieldline-trajectory")
+def _optional_prefect():
+    try:
+        from pyna.workflow.prefect import optional_prefect
+    except ModuleNotFoundError as exc:
+        if exc.name in {"pyna.workflow", "pyna.workflow.prefect"}:
+            raise RuntimeError(
+                "Prefect support requires the optional workflow module; "
+                "install pyna with the Prefect extra."
+            ) from exc
+        raise
+    return optional_prefect()
+
+
+def _build_prefect_fieldline_flow(flow, task):
+    trajectory_task = task(_trace_fieldline_trajectory_task)
+
+    @flow(name="pyna-fieldline-trajectory")
+    def prefect_fieldline_trajectory_flow(field, R0, Z0, phi_start, phi_end, DPhi, **kwargs):
+        return trajectory_task(field, R0, Z0, phi_start, phi_end, DPhi, kwargs)
+
+    return prefect_fieldline_trajectory_flow
+
+
 def fieldline_trajectory_flow(field, R0, Z0, phi_start, phi_end, DPhi, **kwargs):
     """Prefect flow for restartable field-line trajectory tracing.
 
@@ -441,13 +461,16 @@ def fieldline_trajectory_flow(field, R0, Z0, phi_start, phi_end, DPhi, **kwargs)
     chunk checkpoints and resumes from the last committed chunk.
     """
 
-    return _trace_fieldline_trajectory_task(field, R0, Z0, phi_start, phi_end, DPhi, kwargs)
+    flow, task = _optional_prefect()
+    prefect_flow = _build_prefect_fieldline_flow(flow, task)
+    return prefect_flow(field, R0, Z0, phi_start, phi_end, DPhi, **kwargs)
 
 
 def build_prefect_fieldline_flow():
     """Return the canonical Prefect flow for field-line trajectory tracing."""
 
-    return fieldline_trajectory_flow
+    flow, task = _optional_prefect()
+    return _build_prefect_fieldline_flow(flow, task)
 
 
 __all__ = [

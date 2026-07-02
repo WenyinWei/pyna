@@ -17,7 +17,12 @@ from pyna.toroidal.perturbation_spectrum import (
 
 @dataclass(frozen=True)
 class SectionIslandBar:
-    """Geometry of one plotted island-width bar on a poloidal section."""
+    """Geometry of one plotted island-width bar on a poloidal section.
+
+    ``R_path`` and ``Z_path`` sample the constant-theta radial curve segment
+    from ``s_inner`` to ``s_outer``.  The scalar endpoint fields are kept for
+    compatibility and quick annotations.
+    """
 
     chain: ResonantIslandChain
     branch: int
@@ -31,6 +36,12 @@ class SectionIslandBar:
     Z_inner: float
     R_outer: float
     Z_outer: float
+    s_center: float = np.nan
+    s_inner: float = np.nan
+    s_outer: float = np.nan
+    s_path: np.ndarray | None = None
+    R_path: np.ndarray | None = None
+    Z_path: np.ndarray | None = None
 
 
 @dataclass(frozen=True)
@@ -1596,6 +1607,32 @@ def _surface_point(
     return _interp_extrap(radial_labels, R_theta, s), _interp_extrap(radial_labels, Z_theta, s)
 
 
+def _surface_curve_fixed_theta(
+    R_section: np.ndarray,
+    Z_section: np.ndarray,
+    theta: np.ndarray,
+    radial_labels: np.ndarray,
+    *,
+    s_values: Sequence[float],
+    theta0: float,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Evaluate a constant-theta radial curve on one section."""
+
+    s_arr = np.asarray(s_values, dtype=float)
+    R_path = np.empty(s_arr.shape, dtype=float)
+    Z_path = np.empty(s_arr.shape, dtype=float)
+    for idx, s_val in np.ndenumerate(s_arr):
+        R_path[idx], Z_path[idx] = _surface_point(
+            R_section,
+            Z_section,
+            theta,
+            radial_labels,
+            s=float(s_val),
+            theta0=theta0,
+        )
+    return R_path, Z_path
+
+
 def island_bars_on_section(
     R_surf: np.ndarray,
     Z_surf: np.ndarray,
@@ -1606,13 +1643,24 @@ def island_bars_on_section(
     *,
     phi_section: float = 0.0,
     width_scale: float = 1.0,
+    n_path: int = 33,
+    clip_to_radial_domain: bool = False,
 ) -> list[SectionIslandBar]:
-    """Return island-width bar geometry on the nearest available phi section."""
+    """Return island-width bar geometry on the nearest available phi section.
+
+    Each bar is centered at the O-point phase predicted by
+    :class:`ResonantIslandChain` and follows a constant-``theta`` radial curve
+    from ``s_res - width_scale*w`` to ``s_res + width_scale*w``.  This makes the
+    overlay faithful on shaped sections, where a radial line in surface
+    coordinates is generally a curved segment in the plotted ``(R, Z)`` plane.
+    """
 
     R, Z, phi, theta = prepare_surface_arrays(R_surf, Z_surf, phi_vals, theta_vals)
     radial = np.asarray(radial_labels, dtype=float)
     if radial.shape != (R.shape[1],):
         raise ValueError("radial_labels must match the radial surface count")
+    if int(n_path) < 2:
+        raise ValueError("n_path must be at least 2")
     iphi = int(np.argmin(np.abs(np.angle(np.exp(1j * (phi - float(phi_section)))))))
     bars: list[SectionIslandBar] = []
     for chain in chains:
@@ -1622,24 +1670,23 @@ def island_bars_on_section(
         for branch in range(chain.m):
             th_o = float(theta_O[branch])
             th_x = float(theta_X[branch])
+            s_center = float(chain.radial_label)
+            s_inner = s_center - float(width_scale) * float(chain.half_width)
+            s_outer = s_center + float(width_scale) * float(chain.half_width)
+            if clip_to_radial_domain:
+                s_inner = float(np.clip(s_inner, radial[0], radial[-1]))
+                s_outer = float(np.clip(s_outer, radial[0], radial[-1]))
+            s_path = np.linspace(s_inner, s_outer, int(n_path), dtype=float)
+            R_path, Z_path = _surface_curve_fixed_theta(
+                R[iphi],
+                Z[iphi],
+                theta,
+                radial,
+                s_values=s_path,
+                theta0=th_o,
+            )
             R_O, Z_O = _surface_point(R[iphi], Z[iphi], theta, radial, s=chain.radial_label, theta0=th_o)
             R_X, Z_X = _surface_point(R[iphi], Z[iphi], theta, radial, s=chain.radial_label, theta0=th_x)
-            R_inner, Z_inner = _surface_point(
-                R[iphi],
-                Z[iphi],
-                theta,
-                radial,
-                s=chain.radial_label - width_scale * chain.half_width,
-                theta0=th_o,
-            )
-            R_outer, Z_outer = _surface_point(
-                R[iphi],
-                Z[iphi],
-                theta,
-                radial,
-                s=chain.radial_label + width_scale * chain.half_width,
-                theta0=th_o,
-            )
             bars.append(
                 SectionIslandBar(
                     chain=chain,
@@ -1650,13 +1697,78 @@ def island_bars_on_section(
                     Z_O=Z_O,
                     R_X=R_X,
                     Z_X=Z_X,
-                    R_inner=R_inner,
-                    Z_inner=Z_inner,
-                    R_outer=R_outer,
-                    Z_outer=Z_outer,
+                    R_inner=float(R_path[0]),
+                    Z_inner=float(Z_path[0]),
+                    R_outer=float(R_path[-1]),
+                    Z_outer=float(Z_path[-1]),
+                    s_center=s_center,
+                    s_inner=s_inner,
+                    s_outer=s_outer,
+                    s_path=s_path,
+                    R_path=R_path,
+                    Z_path=Z_path,
                 )
             )
     return bars
+
+
+def overlay_island_bars_on_section(
+    ax,
+    bars: Sequence[SectionIslandBar],
+    *,
+    colors: Sequence[str] | None = None,
+    linewidth: float = 2.8,
+    alpha: float = 0.96,
+    show_O: bool = True,
+    show_X: bool = True,
+    show_labels: bool = True,
+    halo: bool = True,
+    zorder: float = 5.0,
+):
+    """Overlay precomputed island-width bars on an existing Poincare section."""
+
+    import matplotlib.pyplot as plt
+
+    palette = tuple(colors or plt.rcParams["axes.prop_cycle"].by_key().get("color", ["C0"]))
+    chain_order: dict[int, int] = {}
+    labelled: set[int] = set()
+    artists = []
+    for bar in bars:
+        chain_key = id(bar.chain)
+        if chain_key not in chain_order:
+            chain_order[chain_key] = len(chain_order)
+        color = palette[chain_order[chain_key] % len(palette)]
+        label = None
+        if show_labels and chain_key not in labelled:
+            label = (
+                f"({bar.chain.m},{bar.chain.n}) "
+                f"w={bar.chain.half_width:.2e}, phase={np.degrees(bar.chain.phase):.1f} deg"
+            )
+            labelled.add(chain_key)
+        if bar.R_path is not None and bar.Z_path is not None:
+            R_line = np.asarray(bar.R_path, dtype=float)
+            Z_line = np.asarray(bar.Z_path, dtype=float)
+        else:
+            R_line = np.asarray([bar.R_inner, bar.R_outer], dtype=float)
+            Z_line = np.asarray([bar.Z_inner, bar.Z_outer], dtype=float)
+        (line,) = ax.plot(
+            R_line,
+            Z_line,
+            color=color,
+            lw=float(linewidth),
+            alpha=float(alpha),
+            solid_capstyle="round",
+            zorder=zorder,
+            label=label,
+        )
+        if halo:
+            _apply_line_halo(line, linewidth=float(linewidth) + 2.1, alpha=0.72)
+        artists.append(line)
+        if show_O:
+            artists.extend(ax.plot(bar.R_O, bar.Z_O, "o", ms=4.8, color=color, zorder=zorder + 1.0))
+        if show_X:
+            artists.extend(ax.plot(bar.R_X, bar.Z_X, "x", ms=5.8, mew=1.25, color=color, zorder=zorder + 1.0))
+    return artists
 
 
 def plot_island_chains_on_section(
@@ -1670,11 +1782,15 @@ def plot_island_chains_on_section(
     phi_section: float = 0.0,
     max_chains: int = 4,
     width_scale: float = 1.0,
+    n_path: int = 33,
     show_legend: bool = True,
+    show_O: bool = True,
+    show_X: bool = True,
+    halo: bool = True,
     ax=None,
     title: str | None = None,
 ):
-    """Plot flux surfaces and Nardon island-width bars at O-points."""
+    """Plot flux surfaces and Nardon island-width curved bars at O-points."""
 
     import matplotlib.pyplot as plt
 
@@ -1704,31 +1820,18 @@ def plot_island_chains_on_section(
         ordered,
         phi_section=phi[iphi],
         width_scale=width_scale,
+        n_path=n_path,
     )
-    colors = plt.rcParams["axes.prop_cycle"].by_key().get("color", ["C0"])
-    chain_order = {id(chain): i for i, chain in enumerate(ordered)}
-    labelled: set[int] = set()
-    for bar in bars:
-        ci = chain_order[id(bar.chain)]
-        color = colors[ci % len(colors)]
-        label = None
-        if id(bar.chain) not in labelled:
-            label = (
-                f"({bar.chain.m},{bar.chain.n}) "
-                f"w={bar.chain.half_width:.2e}, phase={np.degrees(bar.chain.phase):.1f} deg"
-            )
-            labelled.add(id(bar.chain))
-        ax.plot(
-            [bar.R_inner, bar.R_outer],
-            [bar.Z_inner, bar.Z_outer],
-            color=color,
-            lw=2.6,
-            solid_capstyle="round",
-            zorder=4,
-            label=label,
-        )
-        ax.plot(bar.R_O, bar.Z_O, "o", ms=4.5, color=color, zorder=5)
-        ax.plot(bar.R_X, bar.Z_X, "x", ms=5.5, mew=1.2, color=color, zorder=5)
+    overlay_island_bars_on_section(
+        ax,
+        bars,
+        colors=plt.rcParams["axes.prop_cycle"].by_key().get("color", ["C0"]),
+        linewidth=2.7,
+        show_O=show_O,
+        show_X=show_X,
+        halo=halo,
+        zorder=4,
+    )
 
     ax.set_aspect("equal", adjustable="box")
     ax.set_xlabel("R")
@@ -1813,6 +1916,7 @@ __all__ = [
     "SectionIslandBar",
     "SpectrumSurfaceMatrix",
     "island_bars_on_section",
+    "overlay_island_bars_on_section",
     "overlay_poincare_rational_trace",
     "overlay_radial_mode_island_bars",
     "overlay_radial_resonance_curve",

@@ -12,6 +12,7 @@ from pyna.toroidal.perturbation_spectrum import (
 from pyna.toroidal.visual.magnetic_spectrum import (
     PoincareRationalTrace,
     island_bars_on_section,
+    overlay_island_bars_on_section,
     plot_island_chains_on_section,
     plot_radial_mode_heatmap,
     plot_rational_surface_map,
@@ -31,6 +32,20 @@ def _surface():
     R0 = 3.0
     R = R0 + radial[None, :, None] * np.cos(theta)[None, None, :]
     Z = radial[None, :, None] * np.sin(theta)[None, None, :]
+    R = np.repeat(R, phi.size, axis=0)
+    Z = np.repeat(Z, phi.size, axis=0)
+    return R, Z, phi, theta, radial
+
+
+def _shaped_surface():
+    phi = np.linspace(0.0, 2.0 * np.pi, 8, endpoint=False)
+    theta = np.linspace(0.0, 2.0 * np.pi, 96, endpoint=False)
+    radial = np.array([0.18, 0.25, 0.32, 0.40])
+    R0 = 3.0
+    rr = radial[None, :, None]
+    th = theta[None, None, :]
+    R = R0 + rr * np.cos(th) + 0.45 * rr * rr * np.cos(2.0 * th)
+    Z = 0.82 * rr * np.sin(th) + 0.30 * rr * rr * rr
     R = np.repeat(R, phi.size, axis=0)
     Z = np.repeat(Z, phi.size, axis=0)
     return R, Z, phi, theta, radial
@@ -77,6 +92,42 @@ def test_island_bars_use_one_bar_per_o_point():
 
     assert len(bars) == 3
     assert all(np.isfinite([bar.R_O, bar.Z_O, bar.R_inner, bar.Z_inner, bar.R_outer, bar.Z_outer]).all() for bar in bars)
+    assert all(bar.R_path is not None and bar.R_path.size == 33 for bar in bars)
+
+
+def test_island_bars_follow_constant_theta_curves_on_shaped_sections():
+    import matplotlib.pyplot as plt
+
+    R, Z, phi, theta, radial = _shaped_surface()
+    bars = island_bars_on_section(
+        R,
+        Z,
+        phi,
+        theta,
+        radial,
+        [_chain()],
+        phi_section=0.0,
+        n_path=21,
+    )
+    bar = bars[0]
+
+    assert bar.s_path is not None
+    assert bar.R_path is not None
+    assert bar.Z_path is not None
+    assert bar.s_path.size == 21
+    np.testing.assert_allclose([bar.R_path[0], bar.Z_path[0]], [bar.R_inner, bar.Z_inner])
+    np.testing.assert_allclose([bar.R_path[-1], bar.Z_path[-1]], [bar.R_outer, bar.Z_outer])
+    chord = np.array([bar.R_outer - bar.R_inner, bar.Z_outer - bar.Z_inner])
+    rel = np.column_stack([bar.R_path - bar.R_inner, bar.Z_path - bar.Z_inner])
+    cross = chord[0] * rel[:, 1] - chord[1] * rel[:, 0]
+    assert np.nanmax(np.abs(cross)) > 1.0e-6
+
+    fig, ax = plt.subplots()
+    artists = overlay_island_bars_on_section(ax, bars, show_labels=False)
+    assert artists
+    curved_lines = [artist for artist in artists if hasattr(artist, "get_xdata")]
+    assert any(len(line.get_xdata()) == 21 for line in curved_lines)
+    plt.close(fig)
 
 
 def test_visual_plots_run_headless():

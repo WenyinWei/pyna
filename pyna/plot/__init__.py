@@ -7,6 +7,7 @@ from pyna.plot.poincare_beta import plot_poincare_beta_grid
 from pyna.plot.boundary_island import plot_boundary_island_sections
 from pyna.plot.rmp import (
     draw_pest_grid,
+    draw_rmp_island_width_bars,
     draw_reduced_stable_manifolds,
     draw_resonant_surfaces,
     draw_rmp_fixed_points,
@@ -72,6 +73,7 @@ __all__ = [
     "plot_poincare_beta_grid",
     "plot_boundary_island_sections",
     "draw_pest_grid",
+    "draw_rmp_island_width_bars",
     "draw_reduced_stable_manifolds",
     "draw_resonant_surfaces",
     "draw_rmp_fixed_points",

@@ -6,7 +6,7 @@ Supported Python versions
 
 ``pyna-chaos`` supports CPython 3.9 through 3.13 on Linux, macOS, and Windows.
 The core Python dependencies are NumPy, SciPy, Matplotlib, SymPy, h5py, joblib,
-Prefect, and Pydantic.  CUDA acceleration is optional.
+and Plotly.  Prefect orchestration and CUDA acceleration are optional.
 
 From PyPI
 ---------
@@ -31,6 +31,13 @@ Verify the install:
 
    print(pyna.__version__)
    print(is_available(), get_version())
+
+Prefect orchestration is not installed by the core package.  Install the
+workflow extra when you need Prefect-backed workflows:
+
+.. code-block:: bash
+
+   python -m pip install "pyna-chaos[workflow]"
 
 From source
 -----------

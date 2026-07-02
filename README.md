@@ -53,6 +53,13 @@ pip install -e ".[dev]"
 pip install "pyna-chaos[cuda]"
 ```
 
+The core install does not include Prefect. For Prefect orchestration workflows,
+install the optional workflow extra:
+
+```bash
+pip install "pyna-chaos[workflow]"
+```
+
 ### cyna C++ tracing core
 
 `pyna._cyna` is part of the supported runtime surface, not an optional extra.
