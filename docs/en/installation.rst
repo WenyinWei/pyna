@@ -39,6 +39,9 @@ workflow extra when you need Prefect-backed workflows:
 
    python -m pip install "pyna-chaos[workflow]"
 
+Workflow trajectory/orbit caches are stored as pyna-managed versioned payloads.
+Prefect is used for orchestration; it is not the durable cache file format.
+
 From source
 -----------
 

@@ -197,6 +197,30 @@ def test_trace_trajectory_returns_trajectory_and_uses_trace_id_cache(tmp_path):
     assert len(store) > entries_after_first
 
 
+def test_trace_trajectory_cache_payload_is_versioned_schema(tmp_path):
+    store = CacheStore(tmp_path, backend="npz", async_write=False)
+    flow = CountingTrajectoryFlow()
+
+    trajectory = trace_trajectory(
+        flow,
+        np.array([0.0, 1.0]),
+        (0.0, 0.2),
+        t_eval=np.linspace(0.0, 0.2, 3),
+        trace_id="schema-check",
+        cache_store=store,
+    )
+
+    assert isinstance(trajectory, Trajectory)
+    assert len(store) == 1
+    key = next(iter(store._index))
+    record = store.get(key)
+    assert record["__pyna_cache__"] == "pyna.workflow.tracing"
+    assert int(record["schema_version"]) == 1
+    assert record["kind"] == "trajectory"
+    assert "states" in record
+    assert "metadata_json" in record
+
+
 def test_trace_trajectory_cache_requires_trace_id(tmp_path):
     store = CacheStore(tmp_path, backend="pickle", async_write=False)
     flow = CountingTrajectoryFlow()
@@ -326,6 +350,29 @@ def test_trace_orbit_returns_orbit_and_uses_trace_id_cache(tmp_path):
     assert isinstance(second, Orbit)
     np.testing.assert_allclose(second.states, first.states)
     assert map_obj.orbit_calls == 1
+
+
+def test_trace_orbit_cache_payload_is_versioned_schema(tmp_path):
+    store = CacheStore(tmp_path, backend="npz", async_write=False)
+    map_obj = CountingMap()
+
+    orbit = trace_orbit(
+        map_obj,
+        np.array([0.0, 1.0]),
+        2,
+        trace_id="schema-map",
+        cache_store=store,
+    )
+
+    assert isinstance(orbit, Orbit)
+    assert len(store) == 1
+    key = next(iter(store._index))
+    record = store.get(key)
+    assert record["__pyna_cache__"] == "pyna.workflow.tracing"
+    assert int(record["schema_version"]) == 1
+    assert record["kind"] == "orbit"
+    assert "states" in record
+    assert "steps" in record
 
 
 def test_trace_orbit_cache_requires_trace_id(tmp_path):

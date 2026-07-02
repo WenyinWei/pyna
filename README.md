@@ -60,6 +60,10 @@ install the optional workflow extra:
 pip install "pyna-chaos[workflow]"
 ```
 
+Prefect-backed workflows use pyna's versioned cache payloads for durable
+trajectory/orbit data; Prefect is treated as the orchestration layer, not the
+long-term cache file format.
+
 ### cyna C++ tracing core
 
 `pyna._cyna` is part of the supported runtime surface, not an optional extra.

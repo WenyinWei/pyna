@@ -7,9 +7,39 @@ Prefect flows only when Prefect is installed.
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 from pyna.cache import CacheStore, memoize
+
+
+_CACHE_SCHEMA_VERSION = 1
+_CACHE_MARKER = "pyna.workflow.tracing"
+
+
+def _json_default(value: Any) -> Any:
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, Path):
+        return str(value)
+    return repr(value)
+
+
+def _json_dumps(value: Any) -> str:
+    return json.dumps(value, sort_keys=True, default=_json_default)
+
+
+def _json_loads(value: Any) -> Any:
+    if isinstance(value, np.ndarray) and value.ndim == 0:
+        value = value.item()
+    if isinstance(value, bytes):
+        value = value.decode("utf-8")
+    return json.loads(str(value))
 
 
 def _resolve_use_cache(use_cache: bool, cache: bool | None) -> bool:
@@ -84,6 +114,153 @@ def _trace_orbit_uncached(
     return orbit_from_map(map_obj, x0, int(n_iter))
 
 
+def _source_type(value: Any) -> str:
+    return f"{value.__class__.__module__}.{value.__class__.__qualname__}"
+
+
+def _encode_cache_record(value: Any, *, expected_kind: str) -> dict[str, Any]:
+    """Encode supported tracing results as a versioned, array-based record."""
+
+    from pyna.topo.core import Orbit, Trajectory
+
+    if isinstance(value, Trajectory):
+        return {
+            "__pyna_cache__": _CACHE_MARKER,
+            "schema_version": int(_CACHE_SCHEMA_VERSION),
+            "kind": "trajectory",
+            "source_type": _source_type(value),
+            "states": np.asarray(value.states, dtype=float),
+            "times": np.asarray(value.times, dtype=float),
+            "time_name": str(value.time_name),
+            "coordinate_names_json": _json_dumps(
+                list(value.coordinate_names) if value.coordinate_names is not None else None
+            ),
+            "metadata_json": _json_dumps(dict(value.metadata)),
+        }
+
+    if isinstance(value, Orbit):
+        steps = None if value.steps is None else np.asarray(value.steps)
+        return {
+            "__pyna_cache__": _CACHE_MARKER,
+            "schema_version": int(_CACHE_SCHEMA_VERSION),
+            "kind": "orbit",
+            "source_type": _source_type(value),
+            "states": np.asarray(value.states, dtype=float),
+            "has_steps": bool(steps is not None),
+            "steps": np.asarray([], dtype=int) if steps is None else steps,
+            "coordinate_names_json": _json_dumps(
+                list(value.coordinate_names) if value.coordinate_names is not None else None
+            ),
+            "metadata_json": _json_dumps(dict(value.metadata)),
+        }
+
+    if isinstance(value, np.ndarray):
+        return {
+            "__pyna_cache__": _CACHE_MARKER,
+            "schema_version": int(_CACHE_SCHEMA_VERSION),
+            "kind": "ndarray",
+            "expected_kind": str(expected_kind),
+            "source_type": "numpy.ndarray",
+            "data": np.asarray(value),
+            "metadata_json": _json_dumps({}),
+        }
+
+    raise TypeError(
+        f"workflow cache cannot store {type(value).__name__} as a stable schema; "
+        "return a pyna.topo Trajectory/Orbit or numpy array, or pass use_cache=False."
+    )
+
+
+def _decode_cache_record(record: Any) -> Any:
+    """Decode a versioned workflow cache record.
+
+    Non-record values are returned unchanged so older pickle-backed caches remain
+    readable during the transition to schema records.
+    """
+
+    if not isinstance(record, dict) or record.get("__pyna_cache__") != _CACHE_MARKER:
+        return record
+
+    schema_version = int(record.get("schema_version", 0))
+    if schema_version > _CACHE_SCHEMA_VERSION:
+        raise ValueError(
+            "workflow cache entry was written by a newer pyna cache schema "
+            f"({schema_version}); this version supports {_CACHE_SCHEMA_VERSION}."
+        )
+    if schema_version < 1:
+        raise ValueError("workflow cache entry has an unsupported schema version")
+
+    kind = str(record.get("kind", ""))
+    metadata = _json_loads(record.get("metadata_json", "{}"))
+    coordinate_names = _json_loads(record.get("coordinate_names_json", "null"))
+    coordinate_names_tuple = None if coordinate_names is None else tuple(coordinate_names)
+
+    if kind == "trajectory":
+        from pyna.topo.core import Trajectory
+
+        return Trajectory(
+            states=np.asarray(record["states"], dtype=float),
+            times=np.asarray(record["times"], dtype=float),
+            time_name=str(record.get("time_name", "t")),
+            coordinate_names=coordinate_names_tuple,
+            metadata=dict(metadata),
+        )
+
+    if kind == "orbit":
+        from pyna.topo.core import Orbit
+
+        has_steps = bool(record.get("has_steps", False))
+        return Orbit(
+            states=np.asarray(record["states"], dtype=float),
+            steps=np.asarray(record["steps"]) if has_steps else None,
+            coordinate_names=coordinate_names_tuple,
+            metadata=dict(metadata),
+        )
+
+    if kind == "ndarray":
+        return np.asarray(record["data"])
+
+    raise ValueError(f"workflow cache entry has unknown kind {kind!r}")
+
+
+def _trace_trajectory_cache_record(
+    *,
+    system: Any,
+    trace_id: str | None,
+    x0: Any,
+    t_span: Any,
+    dt: Any = None,
+    t_eval: Any = None,
+    method_kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    result = _trace_trajectory_uncached(
+        system=system,
+        trace_id=trace_id,
+        x0=x0,
+        t_span=t_span,
+        dt=dt,
+        t_eval=t_eval,
+        method_kwargs=method_kwargs,
+    )
+    return _encode_cache_record(result, expected_kind="trajectory")
+
+
+def _trace_orbit_cache_record(
+    *,
+    map_obj: Any,
+    trace_id: str | None,
+    x0: Any,
+    n_iter: int,
+) -> dict[str, Any]:
+    result = _trace_orbit_uncached(
+        map_obj=map_obj,
+        trace_id=trace_id,
+        x0=x0,
+        n_iter=int(n_iter),
+    )
+    return _encode_cache_record(result, expected_kind="orbit")
+
+
 def _memoized(
     fn: Any,
     *,
@@ -113,7 +290,7 @@ def trace_trajectory(
     use_cache: bool = True,
     cache: bool | None = None,
     cache_store: CacheStore | None = None,
-    cache_backend: str = "pickle",
+    cache_backend: str = "npz",
     **kwargs: Any,
 ) -> Any:
     """Trace a finite-dimensional continuous trajectory.
@@ -139,13 +316,13 @@ def trace_trajectory(
 
     stable_id = _require_trace_id(trace_id, cache_kind="trajectory")
     cached_trace = _memoized(
-        _trace_trajectory_uncached,
+        _trace_trajectory_cache_record,
         namespace=cache_namespace,
         ignore=["system"],
         cache_store=cache_store,
         cache_backend=cache_backend,
     )
-    return cached_trace(
+    record = cached_trace(
         system=system,
         trace_id=stable_id,
         x0=x0,
@@ -154,6 +331,7 @@ def trace_trajectory(
         t_eval=t_eval,
         method_kwargs=method_kwargs,
     )
+    return _decode_cache_record(record)
 
 
 def trace_orbit(
@@ -166,7 +344,7 @@ def trace_orbit(
     use_cache: bool = True,
     cache: bool | None = None,
     cache_store: CacheStore | None = None,
-    cache_backend: str = "pickle",
+    cache_backend: str = "npz",
 ) -> Any:
     """Trace a finite-dimensional discrete orbit.
 
@@ -185,18 +363,19 @@ def trace_orbit(
 
     stable_id = _require_trace_id(trace_id, cache_kind="orbit")
     cached_trace = _memoized(
-        _trace_orbit_uncached,
+        _trace_orbit_cache_record,
         namespace=cache_namespace,
         ignore=["map_obj"],
         cache_store=cache_store,
         cache_backend=cache_backend,
     )
-    return cached_trace(
+    record = cached_trace(
         map_obj=map_obj,
         trace_id=stable_id,
         x0=x0,
         n_iter=int(n_iter),
     )
+    return _decode_cache_record(record)
 
 
 def _trace_trajectory_task(
@@ -270,7 +449,7 @@ def _build_prefect_trace_trajectory_flow(flow: Any, task: Any) -> Any:
         cache_namespace: str = "workflow.trajectory",
         use_cache: bool = True,
         cache_store: CacheStore | None = None,
-        cache_backend: str = "pickle",
+        cache_backend: str = "npz",
         **kwargs: Any,
     ) -> Any:
         return trajectory_task(
@@ -303,7 +482,7 @@ def _build_prefect_trace_orbit_flow(flow: Any, task: Any) -> Any:
         cache_namespace: str = "workflow.orbit",
         use_cache: bool = True,
         cache_store: CacheStore | None = None,
-        cache_backend: str = "pickle",
+        cache_backend: str = "npz",
     ) -> Any:
         return orbit_task(
             map_obj,
@@ -330,7 +509,7 @@ def trace_trajectory_flow(
     cache_namespace: str = "workflow.trajectory",
     use_cache: bool = True,
     cache_store: CacheStore | None = None,
-    cache_backend: str = "pickle",
+    cache_backend: str = "npz",
     **kwargs: Any,
 ) -> Any:
     """Run the Prefect flow for generic continuous trajectory tracing."""
@@ -361,7 +540,7 @@ def trace_orbit_flow(
     cache_namespace: str = "workflow.orbit",
     use_cache: bool = True,
     cache_store: CacheStore | None = None,
-    cache_backend: str = "pickle",
+    cache_backend: str = "npz",
 ) -> Any:
     """Run the Prefect flow for generic discrete orbit tracing."""
 
