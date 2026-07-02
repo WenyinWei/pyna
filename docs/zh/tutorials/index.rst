@@ -31,8 +31,8 @@ Pages 只负责渲染，避免在 CPU 数量有限的 workflow 里重复做 Mont
 --------------------
 
 磁拓扑学习建议从 RMP resonance analysis 开始。它现在覆盖无散度 RMP 模板、
-重要的 ``m=1`` 分支、``cyna`` 定点校验、混合 RMP/nRMP 谱、nRMP 磁面
-形变、场线流速调制和扰动阶次检查。
+重要的 ``m=1`` 分支、``cyna`` 定点校验、混合 RMP/nRMP 谱、所有非共振
+模式求和得到的总 nRMP 响应、场线流速调制和扰动阶次检查。
 
 - :doc:`/notebooks/tutorials/magnetic_coordinates_comparison`
 - :doc:`/notebooks/tutorials/RMP_resonance_analysis`

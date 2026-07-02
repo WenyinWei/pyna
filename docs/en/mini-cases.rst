@@ -94,9 +94,10 @@ now carries the complete visual calculation:
 2. validate divergence-free ``m=1`` and ``m>1`` RMP templates;
 3. trace unperturbed and perturbed Poincare sections;
 4. compare analytic resonant X/O phases with ``cyna`` Newton fixed points;
-5. split mixed spectra into RMP and nRMP rows;
-6. visualise nRMP flux-surface deformation and field-line speed modulation;
-7. overlay local stable branches and a PEST-style coordinate grid.
+5. compute the total nRMP response from all non-resonant spectrum rows;
+6. use contribution tables only as diagnostics for ranking and convergence;
+7. visualise nRMP flux-surface deformation and field-line speed modulation;
+8. overlay local stable branches and a PEST-style coordinate grid.
 
 Use this notebook when testing changes to fixed-point plotting, section
 geometry, RMP/nRMP diagnostics, or tutorial rendering.  It is small enough to

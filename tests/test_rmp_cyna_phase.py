@@ -9,6 +9,7 @@ from pyna.toroidal.visual.RMP_spectrum import (
     compare_cyna_fixed_points_for_component,
     fieldline_velocity_spectrum_on_circular_surface,
     find_resonant_components_analytic,
+    NonResonantFieldlineResponse,
     project_fixed_points_to_deformed_surface,
     radial_rmp_field_template,
     rmp_nrmp_mode_rows,
@@ -236,9 +237,34 @@ def test_mixed_rmp_nrmp_workflow_classifies_modes_and_deforms_surface():
     assert by_mode[(3, -1)].kind == "nRMP"
     assert by_mode[(1, -1)].kind == "nRMP"
 
-    deformation = velocity.nonresonant_deformation(include_shear=True, resonance_tol=1.0e-10)
+    response = velocity.nonresonant_response(include_shear=True, resonance_tol=1.0e-10)
+    assert isinstance(response, NonResonantFieldlineResponse)
+    assert response.n_total_modes == velocity.radial_spectrum.m.size
+    assert response.n_nonresonant_modes > 2
+    assert response.n_resonant_modes >= 2
+    assert response.n_nonresonant_modes == np.count_nonzero([
+        abs(int(m) * velocity.iota + int(n)) > 1.0e-10
+        for m, n in zip(velocity.radial_spectrum.m, velocity.radial_spectrum.n)
+    ])
+
+    contribution_rows = response.contribution_rows(top=None)
+    assert len(contribution_rows) == response.n_nonresonant_modes
+    assert contribution_rows[0].radial_response_weight >= contribution_rows[-1].radial_response_weight
+    assert contribution_rows[-1].cumulative_fraction == pytest.approx(1.0, abs=1.0e-12)
+    assert any((row.m, row.n) == (3, -1) for row in contribution_rows)
+    assert any((row.m, row.n) == (1, -1) for row in contribution_rows)
+
+    counts, cumulative = response.cumulative_contribution()
+    assert counts[-1] == response.n_nonresonant_modes
+    assert np.all(np.diff(cumulative) >= -1.0e-15)
+    assert cumulative[-1] == pytest.approx(1.0, abs=1.0e-12)
+
+    deformation = response.deformation
+    legacy_deformation = velocity.nonresonant_deformation(include_shear=True, resonance_tol=1.0e-10)
     assert np.count_nonzero(~deformation.resonant_mask) > 0
     assert np.nanmax(np.abs(deformation.delta_r)) > 0.0
+    np.testing.assert_allclose(deformation.delta_r, legacy_deformation.delta_r)
+    np.testing.assert_allclose(deformation.delta_theta, legacy_deformation.delta_theta)
 
     sampled = sample_stellarator_cylindrical_field(
         eq,

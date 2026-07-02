@@ -251,6 +251,135 @@ class RMPnRMPModeRow:
 
 
 @dataclass(frozen=True)
+class NonResonantContributionRow:
+    """One non-resonant mode contribution to the total field-line response."""
+
+    m: int
+    n: int
+    detuning: float
+    radial_velocity_coefficient: complex
+    poloidal_velocity_coefficient: complex
+    delta_r_coefficient: complex
+    delta_theta_coefficient: complex
+    radial_response_weight: float
+    cumulative_fraction: float
+
+    @property
+    def phase_deg(self) -> float:
+        return float(np.degrees(np.angle(self.delta_r_coefficient)))
+
+
+@dataclass(frozen=True)
+class NonResonantFieldlineResponse:
+    """Total nRMP field-line response from all non-resonant Fourier modes.
+
+    The response is not a single selected mode.  It is the full sum over every
+    mode with ``m*iota+n`` outside the resonance tolerance.  Contribution rows
+    are diagnostics for ranking and convergence, not a replacement for the
+    complete deformation spectrum.
+    """
+
+    velocity: "FieldlineVelocitySpectrum"
+    deformation: Any
+    resonance_tol: float
+    include_shear: bool
+    regularise_eps: float
+    nonresonant_mask: np.ndarray
+    detuning: np.ndarray
+    poloidal_velocity_coefficients: np.ndarray
+
+    @property
+    def n_total_modes(self) -> int:
+        return int(self.velocity.radial_spectrum.m.size)
+
+    @property
+    def n_nonresonant_modes(self) -> int:
+        return int(np.count_nonzero(self.nonresonant_mask))
+
+    @property
+    def n_resonant_modes(self) -> int:
+        return int(self.n_total_modes - self.n_nonresonant_modes)
+
+    @property
+    def total_radial_response_l2(self) -> float:
+        return float(np.sqrt(np.nansum(np.abs(self.deformation.delta_r) ** 2)))
+
+    @property
+    def max_radial_response(self) -> float:
+        return float(np.nanmax(np.abs(self.deformation.delta_r))) if self.deformation.delta_r.size else 0.0
+
+    def real_fields(
+        self,
+        theta: np.ndarray | None = None,
+        phi: np.ndarray | None = None,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """Evaluate the total ``delta_r`` and ``delta_theta`` on a grid."""
+
+        theta_vals = self.velocity.theta if theta is None else np.asarray(theta, dtype=float)
+        phi_vals = self.velocity.phi if phi is None else np.asarray(phi, dtype=float)
+        theta_grid, phi_grid = np.meshgrid(theta_vals, phi_vals, indexing="xy")
+        return (
+            theta_grid,
+            phi_grid,
+            self.deformation.real_field_r(theta_grid, phi_grid),
+            self.deformation.real_field_theta(theta_grid, phi_grid),
+        )
+
+    def contribution_rows(
+        self,
+        *,
+        top: int | None = None,
+        min_weight: float = 0.0,
+    ) -> list[NonResonantContributionRow]:
+        """Return non-resonant contribution diagnostics sorted by ``|delta_r_mn|``."""
+
+        keep_idx = np.flatnonzero(self.nonresonant_mask)
+        delta_r = np.asarray(self.deformation.delta_r, dtype=complex)
+        delta_theta = np.asarray(self.deformation.delta_theta, dtype=complex)
+        weights = np.abs(delta_r)
+        total = float(np.nansum(weights * weights))
+        order = sorted(
+            [int(i) for i in range(weights.size) if np.isfinite(weights[i]) and weights[i] >= float(min_weight)],
+            key=lambda i: float(weights[i]),
+            reverse=True,
+        )
+        if top is not None:
+            order = order[:int(top)]
+
+        rows: list[NonResonantContributionRow] = []
+        cumulative = 0.0
+        for response_i in order:
+            cumulative += float(weights[response_i] ** 2)
+            source_i = int(keep_idx[response_i])
+            rows.append(NonResonantContributionRow(
+                m=int(self.velocity.radial_spectrum.m[source_i]),
+                n=int(self.velocity.radial_spectrum.n[source_i]),
+                detuning=float(self.detuning[source_i]),
+                radial_velocity_coefficient=complex(self.velocity.radial_spectrum.dBr[source_i]),
+                poloidal_velocity_coefficient=complex(self.poloidal_velocity_coefficients[source_i]),
+                delta_r_coefficient=complex(delta_r[response_i]),
+                delta_theta_coefficient=complex(delta_theta[response_i]),
+                radial_response_weight=float(weights[response_i]),
+                cumulative_fraction=float(cumulative / total) if total > 0.0 else 0.0,
+            ))
+        return rows
+
+    def cumulative_contribution(self) -> tuple[np.ndarray, np.ndarray]:
+        """Return sorted mode counts and cumulative ``|delta_r_mn|^2`` fraction."""
+
+        weights = np.abs(np.asarray(self.deformation.delta_r, dtype=complex))
+        weights = weights[np.isfinite(weights)]
+        weights = np.sort(weights)[::-1]
+        if weights.size == 0:
+            return np.zeros(0, dtype=int), np.zeros(0, dtype=float)
+        power = weights * weights
+        total = float(np.sum(power))
+        counts = np.arange(1, weights.size + 1, dtype=int)
+        fraction = np.cumsum(power) / total if total > 0.0 else np.zeros_like(power, dtype=float)
+        return counts, fraction
+
+
+@dataclass(frozen=True)
 class FieldlineVelocitySpectrum:
     """Field-line velocity spectra induced by a perturbation on a circular surface."""
 
@@ -285,14 +414,32 @@ class FieldlineVelocitySpectrum:
         resonance_tol: float = 1.0e-9,
         regularise_eps: float = 0.0,
     ):
-        """Compute nRMP flux-surface deformation from the non-resonant modes."""
+        """Compute total nRMP flux-surface deformation from all non-resonant modes."""
+
+        return self.nonresonant_response(
+            include_shear=include_shear,
+            resonance_tol=resonance_tol,
+            regularise_eps=regularise_eps,
+        ).deformation
+
+    def nonresonant_response(
+        self,
+        *,
+        include_shear: bool = True,
+        resonance_tol: float = 1.0e-9,
+        regularise_eps: float = 0.0,
+    ) -> NonResonantFieldlineResponse:
+        """Compute the total nRMP response by summing every non-resonant mode."""
 
         from pyna.toroidal.torus_deformation import fieldline_deformation_spectrum
 
         dtheta = self.poloidal_coefficients_for_radial_modes()
         split = self.split(resonance_tol=resonance_tol)
         keep = split.nonresonant_mask
-        return fieldline_deformation_spectrum(
+        detuning = np.asarray(self.radial_spectrum.m, dtype=float) * float(self.iota) + np.asarray(
+            self.radial_spectrum.n, dtype=float
+        )
+        deformation = fieldline_deformation_spectrum(
             self.radial_spectrum.m[keep],
             self.radial_spectrum.n[keep],
             self.radial_spectrum.dBr[keep],
@@ -302,6 +449,16 @@ class FieldlineVelocitySpectrum:
             include_shear=include_shear,
             resonance_tol=0.0,
             regularise_eps=regularise_eps,
+        )
+        return NonResonantFieldlineResponse(
+            velocity=self,
+            deformation=deformation,
+            resonance_tol=float(resonance_tol),
+            include_shear=bool(include_shear),
+            regularise_eps=float(regularise_eps),
+            nonresonant_mask=np.asarray(keep, dtype=bool),
+            detuning=detuning,
+            poloidal_velocity_coefficients=dtheta,
         )
 
 

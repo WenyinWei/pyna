@@ -58,8 +58,8 @@ RMPs, Islands and Poincare Analysis
 
 Start with the resonance analysis notebook when studying magnetic topology.  It
 now covers divergence-free RMP templates, the important ``m=1`` branch, ``cyna``
-fixed-point validation, mixed RMP/nRMP spectra, nRMP surface deformation,
-field-line speed modulation, and perturbation-order checks.
+fixed-point validation, mixed RMP/nRMP spectra, total nRMP response from all
+non-resonant modes, field-line speed modulation, and perturbation-order checks.
 
 .. toctree::
    :maxdepth: 1
