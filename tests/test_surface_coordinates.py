@@ -273,6 +273,49 @@ def test_nardon_radial_spectrum_island_phase_and_width():
     assert wrapped_delta == pytest.approx(-phase_shift / m_val)
 
 
+def test_resonant_chain_uses_forward_helicity_not_opposite_branch():
+    radial = np.linspace(0.2, 0.5, 5)
+    theta = np.linspace(0.0, 2.0 * np.pi, 96, endpoint=False)
+    phi = np.linspace(0.0, 2.0 * np.pi, 64, endpoint=False)
+    theta_grid = theta[None, None, :]
+    phi_grid = phi[:, None, None]
+
+    m_val = 5
+    n_val = 2
+    phase_forward = 0.37
+    phase_opposite = -1.1
+    forward = 1.0e-3 * np.cos(m_val * theta_grid - n_val * phi_grid + phase_forward)
+    opposite = 8.0e-3 * np.cos(m_val * theta_grid + n_val * phi_grid + phase_opposite)
+    tilde = forward + opposite
+    tilde = tilde * np.ones((phi.size, radial.size, theta.size), dtype=float)
+
+    spec = radial_perturbation_Fourier_spectrum(
+        tilde,
+        theta,
+        phi,
+        radial_labels=radial,
+        m_max=6,
+        n_max=3,
+        min_amplitude=1.0e-12,
+    )
+    q_profile = 2.0 + 2.0 * radial
+    chains = analyze_resonant_island_chains(
+        spec,
+        q_profile,
+        n=n_val,
+        m_values=[m_val],
+    )
+
+    assert len(chains) == 1
+    chain = chains[0]
+    assert chain.q == pytest.approx(float(m_val) / float(n_val))
+    np.testing.assert_allclose(chain.coefficient, 0.5e-3 * np.exp(1j * phase_forward), atol=2.0e-12)
+    assert chain.b_res == pytest.approx(1.0e-3)
+    opposite_idx = spec.mode_index(m_val, n_val)
+    assert opposite_idx is not None
+    np.testing.assert_allclose(spec.dBr[:, opposite_idx], 4.0e-3 * np.exp(1j * phase_opposite), atol=2.0e-12)
+
+
 def test_chirikov_overlap_between_adjacent_chains():
     left = ResonantIslandChain(
         m=5,

@@ -769,10 +769,510 @@ class DeformedFixedPointProjection:
         return 100.0 * float(self.distance)
 
 
+@dataclass(frozen=True)
+class LogLogOrderFit:
+    """Least-squares power-law fit ``y ~= exp(intercept) * x**slope``."""
+
+    x: np.ndarray
+    y: np.ndarray
+    slope: float
+    intercept: float
+    expected: float | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "x", np.asarray(self.x, dtype=float))
+        object.__setattr__(self, "y", np.asarray(self.y, dtype=float))
+
+    def reference(self, *, exponent: float | None = None, anchor: int = 0) -> np.ndarray:
+        """Return a power-law reference through one measured point."""
+
+        if self.x.size == 0 or self.y.size == 0:
+            return np.zeros(0, dtype=float)
+        idx = int(anchor)
+        power = self.expected if exponent is None else float(exponent)
+        if power is None:
+            power = self.slope
+        return self.y[idx] * (self.x / self.x[idx]) ** float(power)
+
+
+@dataclass(frozen=True)
+class NonResonantResidualOrderScan:
+    """Perturbation-order scan for a smooth nRMP deformation residual."""
+
+    k: np.ndarray
+    residual: np.ndarray
+    residual_fit: LogLogOrderFit
+
+    def __post_init__(self):
+        object.__setattr__(self, "k", np.asarray(self.k, dtype=float))
+        object.__setattr__(self, "residual", np.asarray(self.residual, dtype=float))
+
+    @property
+    def slope(self) -> float:
+        return float(self.residual_fit.slope)
+
+
+@dataclass(frozen=True)
+class RMPAmplitudeOrderScan:
+    """Amplitude-order scan for resonant coefficients and island widths."""
+
+    k: np.ndarray
+    b_abs: np.ndarray
+    half_width: np.ndarray
+    opoint_theta: np.ndarray
+    b_fit: LogLogOrderFit
+    width_fit: LogLogOrderFit
+
+    def __post_init__(self):
+        object.__setattr__(self, "k", np.asarray(self.k, dtype=float))
+        object.__setattr__(self, "b_abs", np.asarray(self.b_abs, dtype=float))
+        object.__setattr__(self, "half_width", np.asarray(self.half_width, dtype=float))
+        object.__setattr__(self, "opoint_theta", np.asarray(self.opoint_theta, dtype=float))
+
+    @property
+    def phase_span_deg(self) -> float:
+        return float(np.degrees(np.ptp(np.unwrap(self.opoint_theta)))) if self.opoint_theta.size else 0.0
+
+
+@dataclass(frozen=True)
+class RMPPhaseOrderScan:
+    """Phase-control scan for ``arg(b_{m,-n})`` and X/O-point phases."""
+
+    control: np.ndarray
+    b_phase_shift: np.ndarray
+    opoint_shift: np.ndarray
+    exact_relation_residual: np.ndarray
+    first_order_residual: np.ndarray
+    b_phase_fit: LogLogOrderFit
+    opoint_vs_b_phase_fit: LogLogOrderFit
+    first_order_residual_fit: LogLogOrderFit
+
+    def __post_init__(self):
+        object.__setattr__(self, "control", np.asarray(self.control, dtype=float))
+        object.__setattr__(self, "b_phase_shift", np.asarray(self.b_phase_shift, dtype=float))
+        object.__setattr__(self, "opoint_shift", np.asarray(self.opoint_shift, dtype=float))
+        object.__setattr__(
+            self,
+            "exact_relation_residual",
+            np.asarray(self.exact_relation_residual, dtype=float),
+        )
+        object.__setattr__(
+            self,
+            "first_order_residual",
+            np.asarray(self.first_order_residual, dtype=float),
+        )
+
+    @property
+    def max_exact_relation_residual(self) -> float:
+        return float(np.nanmax(self.exact_relation_residual)) if self.exact_relation_residual.size else 0.0
+
+
+@dataclass(frozen=True)
+class CoupledFixedPointSweep:
+    """Fixed-point distance sweep for coupled RMP+nRMP fields."""
+
+    k: np.ndarray
+    raw_distance: np.ndarray
+    superposed_distance: np.ndarray
+    nearest_deformed_distance: np.ndarray
+
+    def __post_init__(self):
+        object.__setattr__(self, "k", np.asarray(self.k, dtype=float))
+        object.__setattr__(self, "raw_distance", np.asarray(self.raw_distance, dtype=float))
+        object.__setattr__(self, "superposed_distance", np.asarray(self.superposed_distance, dtype=float))
+        object.__setattr__(
+            self,
+            "nearest_deformed_distance",
+            np.asarray(self.nearest_deformed_distance, dtype=float),
+        )
+
+
+@dataclass(frozen=True)
+class RMPResolutionConvergenceRow:
+    """One grid-resolution row for resonant spectrum convergence."""
+
+    n_theta: int
+    n_phi: int
+    relative_b_error: float
+    phase_error: float
+    relative_width_error: float
+    deformation_metric: float | None = None
+
+    @property
+    def phase_error_deg(self) -> float:
+        return float(np.degrees(self.phase_error))
+
+
+@dataclass(frozen=True)
+class RMPResolutionConvergenceScan:
+    """Resolution convergence of a resonant-component extraction workflow."""
+
+    rows: tuple[RMPResolutionConvergenceRow, ...]
+    reference_n_theta: int
+    reference_n_phi: int
+    reference_component: Any
+
+
+@dataclass(frozen=True)
+class SurfaceMapResidual:
+    """Residuals for one deformed invariant-surface map test."""
+
+    alpha: np.ndarray
+    residual: np.ndarray
+    endpoint_state: np.ndarray
+    predicted_state: np.ndarray
+
+    def __post_init__(self):
+        object.__setattr__(self, "alpha", np.asarray(self.alpha, dtype=float))
+        object.__setattr__(self, "residual", np.asarray(self.residual, dtype=float))
+        object.__setattr__(self, "endpoint_state", np.asarray(self.endpoint_state, dtype=float))
+        object.__setattr__(self, "predicted_state", np.asarray(self.predicted_state, dtype=float))
+
+    @property
+    def max_residual(self) -> float:
+        return float(np.nanmax(self.residual)) if self.residual.size else 0.0
+
+
 def _wrap_to_pi(angle: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
     """Wrap angle(s) to [-pi, pi)."""
 
     return (np.asarray(angle) + np.pi) % (2.0 * np.pi) - np.pi
+
+
+def loglog_order_fit(
+    x: Sequence[float],
+    y: Sequence[float],
+    *,
+    expected: float | None = None,
+) -> LogLogOrderFit:
+    """Fit a power-law slope on positive finite samples."""
+
+    x_arr = np.asarray(x, dtype=float)
+    y_arr = np.asarray(y, dtype=float)
+    keep = np.isfinite(x_arr) & np.isfinite(y_arr) & (x_arr > 0.0) & (y_arr > 0.0)
+    if np.count_nonzero(keep) < 2:
+        raise ValueError("at least two positive finite samples are required for a log-log order fit")
+    slope, intercept = np.polyfit(np.log(x_arr[keep]), np.log(y_arr[keep]), 1)
+    return LogLogOrderFit(
+        x=x_arr,
+        y=y_arr,
+        slope=float(slope),
+        intercept=float(intercept),
+        expected=None if expected is None else float(expected),
+    )
+
+
+def scan_nonresonant_residual_order(
+    k_values: Sequence[float],
+    residual_factory: Callable[[float], float],
+    *,
+    expected: float = 2.0,
+) -> NonResonantResidualOrderScan:
+    """Evaluate an nRMP residual over perturbation coefficients ``k``."""
+
+    k = np.asarray(k_values, dtype=float)
+    residual = np.asarray([float(residual_factory(float(k_val))) for k_val in k], dtype=float)
+    return NonResonantResidualOrderScan(
+        k=k,
+        residual=residual,
+        residual_fit=loglog_order_fit(k, residual, expected=expected),
+    )
+
+
+def scan_rmp_amplitude_order(
+    k_values: Sequence[float],
+    component_factory: Callable[[float], ResonantComponent],
+) -> RMPAmplitudeOrderScan:
+    """Scan resonant ``b_{m,-n}`` amplitude and island width versus coefficient ``k``."""
+
+    k = np.asarray(k_values, dtype=float)
+    components = [component_factory(float(k_val)) for k_val in k]
+    b_abs = np.asarray([abs(component.b_mn) for component in components], dtype=float)
+    half_width = np.asarray([float(component.half_width_r) for component in components], dtype=float)
+    opoint_theta = np.unwrap(np.asarray([float(component.opoint_theta) for component in components], dtype=float))
+    return RMPAmplitudeOrderScan(
+        k=k,
+        b_abs=b_abs,
+        half_width=half_width,
+        opoint_theta=opoint_theta,
+        b_fit=loglog_order_fit(k, b_abs, expected=1.0),
+        width_fit=loglog_order_fit(k, half_width, expected=0.5),
+    )
+
+
+def scan_rmp_phase_order(
+    control_values: Sequence[float],
+    component_factory: Callable[[float], ResonantComponent],
+    *,
+    base_component: ResonantComponent | None = None,
+    mode_m: int | None = None,
+    first_order_phase_coefficient: float = 1.0,
+) -> RMPPhaseOrderScan:
+    """Scan how X/O phase follows the resonant coefficient phase.
+
+    ``component_factory(control)`` should return the resonant component after
+    applying the requested phase-control parameter.  The exact first-order
+    relation is ``m*Delta(theta_O)+Delta(arg b)=0``.
+    """
+
+    control = np.asarray(control_values, dtype=float)
+    base = component_factory(0.0) if base_component is None else base_component
+    m_val = int(base.m if mode_m is None else mode_m)
+    if m_val == 0:
+        raise ValueError("mode_m must be nonzero")
+
+    b_phase_shift = []
+    opoint_shift = []
+    exact_residual = []
+    first_order_residual = []
+    for control_val in control:
+        component = component_factory(float(control_val))
+        darg_b = float(_wrap_to_pi(np.angle(component.b_mn / base.b_mn)))
+        dtheta = float(_wrap_to_pi(component.opoint_theta - base.opoint_theta))
+        b_phase_shift.append(abs(darg_b))
+        opoint_shift.append(abs(dtheta))
+        exact_residual.append(abs(float(_wrap_to_pi(m_val * dtheta + darg_b))))
+        first_order_residual.append(
+            abs(float(_wrap_to_pi(dtheta + float(first_order_phase_coefficient) * float(control_val) / m_val)))
+        )
+
+    b_phase = np.asarray(b_phase_shift, dtype=float)
+    opoint = np.asarray(opoint_shift, dtype=float)
+    first_res = np.asarray(first_order_residual, dtype=float)
+    return RMPPhaseOrderScan(
+        control=control,
+        b_phase_shift=b_phase,
+        opoint_shift=opoint,
+        exact_relation_residual=np.asarray(exact_residual, dtype=float),
+        first_order_residual=first_res,
+        b_phase_fit=loglog_order_fit(control, b_phase, expected=1.0),
+        opoint_vs_b_phase_fit=loglog_order_fit(b_phase, opoint, expected=1.0),
+        first_order_residual_fit=loglog_order_fit(control, first_res, expected=2.0),
+    )
+
+
+def scan_coupled_fixed_point_sweep(
+    k_values: Sequence[float],
+    distance_factory: Callable[[float], Sequence[float]],
+) -> CoupledFixedPointSweep:
+    """Evaluate raw/superposed/deformed fixed-point distances over ``k``."""
+
+    k = np.asarray(k_values, dtype=float)
+    rows = np.asarray([distance_factory(float(k_val)) for k_val in k], dtype=float)
+    if rows.ndim != 2 or rows.shape[1] != 3:
+        raise ValueError("distance_factory must return three distances: raw, superposed, nearest")
+    return CoupledFixedPointSweep(
+        k=k,
+        raw_distance=rows[:, 0],
+        superposed_distance=rows[:, 1],
+        nearest_deformed_distance=rows[:, 2],
+    )
+
+
+def scan_rmp_resolution_convergence(
+    grids: Sequence[tuple[int, int]],
+    component_factory: Callable[[int, int], ResonantComponent],
+    *,
+    reference_grid: tuple[int, int] | None = None,
+    deformation_metric_factory: Callable[[int, int], float] | None = None,
+) -> RMPResolutionConvergenceScan:
+    """Compare RMP component extraction across ``(n_theta, n_phi)`` grids."""
+
+    grid_list = [(int(n_theta), int(n_phi)) for n_theta, n_phi in grids]
+    if not grid_list:
+        raise ValueError("at least one resolution grid is required")
+    ref_grid = grid_list[-1] if reference_grid is None else (int(reference_grid[0]), int(reference_grid[1]))
+    ref_component = component_factory(*ref_grid)
+    ref_abs = max(abs(ref_component.b_mn), 1.0e-300)
+    ref_width = max(abs(float(ref_component.half_width_r)), 1.0e-300)
+
+    rows: list[RMPResolutionConvergenceRow] = []
+    for n_theta, n_phi in grid_list:
+        component = component_factory(n_theta, n_phi)
+        metric = None if deformation_metric_factory is None else float(deformation_metric_factory(n_theta, n_phi))
+        rows.append(RMPResolutionConvergenceRow(
+            n_theta=n_theta,
+            n_phi=n_phi,
+            relative_b_error=float(abs(abs(component.b_mn) - abs(ref_component.b_mn)) / ref_abs),
+            phase_error=float(abs(_wrap_to_pi(np.angle(component.b_mn / ref_component.b_mn)))),
+            relative_width_error=float(abs(component.half_width_r - ref_component.half_width_r) / ref_width),
+            deformation_metric=metric,
+        ))
+    return RMPResolutionConvergenceScan(
+        rows=tuple(rows),
+        reference_n_theta=ref_grid[0],
+        reference_n_phi=ref_grid[1],
+        reference_component=ref_component,
+    )
+
+
+def deformed_surface_map_residual(
+    surface: Callable[[float, float], Sequence[float]],
+    rhs: Callable[[float, np.ndarray], Sequence[float]],
+    iota: float,
+    *,
+    alpha_values: Sequence[float] | None = None,
+    phi0: float = 0.0,
+    phi_span: float = TWOPI,
+    state_to_cartesian: Callable[[Sequence[float], float], Sequence[float]] | None = None,
+    solver_kwargs: dict | None = None,
+) -> SurfaceMapResidual:
+    """Measure one-turn residuals for a parameterized deformed surface."""
+
+    from scipy.integrate import solve_ivp
+
+    if alpha_values is None:
+        alpha = np.linspace(0.0, TWOPI, 12, endpoint=False)
+    else:
+        alpha = np.asarray(alpha_values, dtype=float)
+    kwargs = {
+        "method": "DOP853",
+        "rtol": 5.0e-10,
+        "atol": 1.0e-12,
+    }
+    if solver_kwargs is not None:
+        kwargs.update(dict(solver_kwargs))
+
+    endpoint_rows = []
+    predicted_rows = []
+    residual = []
+    phi1 = float(phi0) + float(phi_span)
+    for alpha0 in alpha:
+        y0 = np.asarray(surface(float(alpha0), float(phi0)), dtype=float).ravel()
+        sol = solve_ivp(rhs, (float(phi0), phi1), y0, **kwargs)
+        y_end = np.asarray(sol.y[:, -1], dtype=float)
+        y_pred = np.asarray(surface(float(alpha0) + float(iota) * float(phi_span), phi1), dtype=float).ravel()
+        endpoint_rows.append(y_end)
+        predicted_rows.append(y_pred)
+        if state_to_cartesian is None:
+            lhs = y_end
+            rhs_pred = y_pred
+        else:
+            lhs = np.asarray(state_to_cartesian(y_end, phi1), dtype=float).ravel()
+            rhs_pred = np.asarray(state_to_cartesian(y_pred, phi1), dtype=float).ravel()
+        residual.append(float(np.linalg.norm(lhs - rhs_pred)))
+
+    return SurfaceMapResidual(
+        alpha=alpha,
+        residual=np.asarray(residual, dtype=float),
+        endpoint_state=np.asarray(endpoint_rows, dtype=float),
+        predicted_state=np.asarray(predicted_rows, dtype=float),
+    )
+
+
+def plot_perturbation_order_summary(
+    *,
+    nonresonant: NonResonantResidualOrderScan | None = None,
+    rmp_amplitude: RMPAmplitudeOrderScan | None = None,
+    rmp_phase: RMPPhaseOrderScan | None = None,
+    coupling: CoupledFixedPointSweep | None = None,
+    axes=None,
+    residual_scale: float = 1.0,
+    residual_label: str = "residual",
+    coefficient_label: str = "perturbation coefficient k",
+):
+    """Plot a compact four-panel order-analysis summary."""
+
+    if axes is None:
+        fig, axes_arr = plt.subplots(2, 2, figsize=(12.4, 7.2), constrained_layout=True)
+    else:
+        axes_arr = np.asarray(axes)
+        fig = axes_arr.ravel()[0].figure
+    axes_arr = np.asarray(axes_arr).reshape(2, 2)
+
+    ax = axes_arr[0, 0]
+    if nonresonant is None:
+        ax.axis("off")
+    else:
+        ax.loglog(nonresonant.k, nonresonant.residual * residual_scale, "o-", color="#16a34a", label="measured")
+        ax.loglog(
+            nonresonant.k,
+            nonresonant.residual_fit.reference(exponent=2.0) * residual_scale,
+            "--",
+            color="0.35",
+            label="slope 2",
+        )
+        ax.set_xlabel(coefficient_label)
+        ax.set_ylabel(residual_label)
+        ax.set_title(f"Non-resonant residual, k={nonresonant.slope:.2f}")
+        ax.legend(frameon=False, fontsize=8)
+        ax.grid(True, which="both", alpha=0.25)
+
+    ax = axes_arr[0, 1]
+    if rmp_amplitude is None:
+        ax.axis("off")
+    else:
+        k_norm = rmp_amplitude.k / rmp_amplitude.k[0]
+        ax.loglog(
+            k_norm,
+            rmp_amplitude.b_abs / rmp_amplitude.b_abs[0],
+            "o-",
+            color="#2563eb",
+            label=rf"$|b_{{m,-n}}|$, slope={rmp_amplitude.b_fit.slope:.2f}",
+        )
+        ax.loglog(
+            k_norm,
+            rmp_amplitude.half_width / rmp_amplitude.half_width[0],
+            "s-",
+            color="#dc2626",
+            label=f"width, slope={rmp_amplitude.width_fit.slope:.2f}",
+        )
+        ax.loglog(k_norm, k_norm, "--", color="#2563eb", alpha=0.35)
+        ax.loglog(k_norm, k_norm ** 0.5, "--", color="#dc2626", alpha=0.35)
+        ax.set_xlabel("coefficient / first coefficient")
+        ax.set_ylabel("normalised response")
+        ax.set_title("Resonant amplitude orders")
+        ax.legend(frameon=False, fontsize=8)
+        ax.grid(True, which="both", alpha=0.25)
+
+    ax = axes_arr[1, 0]
+    if rmp_phase is None:
+        ax.axis("off")
+    else:
+        control_norm = rmp_phase.control / rmp_phase.control[0]
+        ax.loglog(
+            control_norm,
+            rmp_phase.b_phase_shift / rmp_phase.b_phase_shift[0],
+            "o-",
+            color="#7c3aed",
+            label=rf"$|\Delta\arg b|$, slope={rmp_phase.b_phase_fit.slope:.2f}",
+        )
+        ax.loglog(
+            control_norm,
+            rmp_phase.opoint_shift / rmp_phase.opoint_shift[0],
+            "s-",
+            color="#2563eb",
+            label=rf"$|\Delta\theta_O|$, slope={loglog_order_fit(rmp_phase.control, rmp_phase.opoint_shift).slope:.2f}",
+        )
+        ax.loglog(
+            control_norm,
+            rmp_phase.first_order_residual / rmp_phase.first_order_residual[0],
+            "^-",
+            color="#dc2626",
+            label=f"1st-order residual, slope={rmp_phase.first_order_residual_fit.slope:.2f}",
+        )
+        ax.loglog(control_norm, control_norm, "--", color="0.45", alpha=0.35)
+        ax.loglog(control_norm, control_norm ** 2, "--", color="#dc2626", alpha=0.35)
+        ax.set_xlabel("phase-control coefficient / first coefficient")
+        ax.set_ylabel("normalised response")
+        ax.set_title("X/O phase-control order")
+        ax.legend(frameon=False, fontsize=7)
+        ax.grid(True, which="both", alpha=0.25)
+
+    ax = axes_arr[1, 1]
+    if coupling is None or coupling.k.size == 0:
+        ax.axis("off")
+    else:
+        ax.plot(coupling.k, coupling.raw_distance, "o-", color="0.35", label="circular RMP seed")
+        ax.plot(coupling.k, coupling.superposed_distance, "s-", color="#7c3aed", label="linear superposition")
+        ax.plot(coupling.k, coupling.nearest_deformed_distance, "^-", color="#16a34a", label="nearest deformed section")
+        ax.set_xlabel("nRMP coefficient k")
+        ax.set_ylabel("max fixed-point distance")
+        ax.set_title("Coupled-field diagnostic")
+        ax.legend(frameon=False, fontsize=8)
+        ax.grid(True, alpha=0.25)
+
+    return fig, axes_arr
 
 
 def _magnetic_axis(eq: Any) -> tuple[float, float]:
@@ -1044,12 +1544,13 @@ def find_resonant_components_analytic(
     n_theta: int = 128,
     n_phi: int = 64,
     min_amplitude: float = 1e-8,
+    verbose: bool = True,
 ) -> List[ResonantComponent]:
     """Find resonant RMP components using analytic surface sampling.
 
     For each harmonic k, finds the resonant surface ψ_res where
-    q(ψ_res) = k*base_n / (k*base_m) = base_n/base_m, then computes
-    the Fourier coefficient b_{km, kn} by sampling the RMP on that surface.
+    q(ψ_res) = k*base_m / (k*base_n) = base_m/base_n, then computes
+    the Fourier coefficient b_{km,-kn} by sampling the RMP on that surface.
 
     Works with StellaratorSimple's psi_ax / q_of_psi / resonant_psi API.
     """
@@ -1064,7 +1565,8 @@ def find_resonant_components_analytic(
         # We want q = m_k/n_k, so call resonant_psi(m_k, n_k)
         psi_list = eq.resonant_psi(m_k, n_k)
         if not psi_list:
-            print(f"  k={k}: ({m_k},{n_k}) — no resonant surface in [0,1], skipping")
+            if verbose:
+                print(f"  k={k}: ({m_k},{n_k}) — no resonant surface in [0,1], skipping")
             continue
 
         psi_res = float(psi_list[0])
@@ -1099,13 +1601,15 @@ def find_resonant_components_analytic(
         n_idx_arr = np.where(n_freq == -n_k)[0]  # note: -n_k (conjugate convention)
 
         if len(m_idx_arr) == 0 or len(n_idx_arr) == 0:
-            print(f"  k={k}: ({m_k},{n_k}) — mode not in FFT grid, skipping")
+            if verbose:
+                print(f"  k={k}: ({m_k},{n_k}) — mode not in FFT grid, skipping")
             continue
 
         b_mn = b_fft[m_idx_arr[0], n_idx_arr[0]]
 
         if abs(b_mn) < min_amplitude:
-            print(f"  k={k}: ({m_k},{n_k}) — |b_mn|={abs(b_mn):.2e} below threshold")
+            if verbose:
+                print(f"  k={k}: ({m_k},{n_k}) — |b_mn|={abs(b_mn):.2e} below threshold")
             continue
 
         # dq/dψ at resonant surface (from linear profile: dq/dψ = q1 - q0)
@@ -1132,10 +1636,11 @@ def find_resonant_components_analytic(
         opoint_theta = ((-np.pi/2) * q_prime_sign - phi_mn) / m_k % (2 * np.pi / m_k)
         xpoint_theta = ((+np.pi/2) * q_prime_sign - phi_mn) / m_k % (2 * np.pi / m_k)
 
-        print(f"  k={k}: ({m_k},{n_k}) ψ_res={psi_res:.3f} q_res={q_res:.3f} "
-              f"|b_mn|={abs(b_mn):.3e} phase_arg={np.degrees(phi_mn):.1f}° "
-              f"w_ψ={half_width_psi:.4f} ({half_width_r*100:.2f} cm) "
-              f"θ_O={np.degrees(opoint_theta):.1f}° θ_X={np.degrees(xpoint_theta):.1f}°")
+        if verbose:
+            print(f"  k={k}: ({m_k},{n_k}) ψ_res={psi_res:.3f} q_res={q_res:.3f} "
+                  f"|b_mn|={abs(b_mn):.3e} phase_arg={np.degrees(phi_mn):.1f}° "
+                  f"w_ψ={half_width_psi:.4f} ({half_width_r*100:.2f} cm) "
+                  f"θ_O={np.degrees(opoint_theta):.1f}° θ_X={np.degrees(xpoint_theta):.1f}°")
 
         components.append(ResonantComponent(
             m=m_k, n=n_k,

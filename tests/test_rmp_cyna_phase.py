@@ -4,16 +4,24 @@ import pytest
 from pyna.toroidal.equilibrium.stellarator import simple_stellarator
 from pyna.toroidal.visual.RMP_spectrum import (
     ResonantComponent,
+    CoupledFixedPointSweep,
     circular_shell_divergence_diagnostic,
     compose_magnetic_perturbations,
     compare_cyna_fixed_points_for_component,
+    deformed_surface_map_residual,
     fieldline_velocity_spectrum_on_circular_surface,
     find_resonant_components_analytic,
     NonResonantFieldlineResponse,
+    plot_perturbation_order_summary,
     project_fixed_points_to_deformed_surface,
     radial_rmp_field_template,
     rmp_nrmp_mode_rows,
     rmp_closure_map_span,
+    scan_coupled_fixed_point_sweep,
+    scan_nonresonant_residual_order,
+    scan_rmp_amplitude_order,
+    scan_rmp_phase_order,
+    scan_rmp_resolution_convergence,
     sample_stellarator_cylindrical_field,
 )
 
@@ -109,6 +117,121 @@ def test_resonant_rmp_spectrum_has_expected_amplitude_orders():
     assert b_slope == pytest.approx(1.0, abs=1.0e-12)
     assert width_slope == pytest.approx(0.5, abs=1.0e-12)
     assert np.ptp(np.unwrap(phases)) < 1.0e-12
+
+
+def test_order_scan_helpers_capture_expected_power_laws():
+    m_val = 2
+
+    def amp_component(k):
+        k = float(k)
+        return ResonantComponent(
+            m=m_val,
+            n=1,
+            harmonic_order=1,
+            b_mn=k * np.exp(0.2j),
+            psi_res=0.25,
+            q_res=2.0,
+            half_width_psi=np.sqrt(k),
+            half_width_r=0.3 * np.sqrt(k),
+            opoint_theta=0.17,
+            xpoint_theta=0.17 + np.pi / m_val,
+        )
+
+    k_values = np.array([1.0e-4, 2.0e-4, 4.0e-4, 8.0e-4])
+    nonres = scan_nonresonant_residual_order(k_values, lambda k: 3.0 * k * k)
+    amp_scan = scan_rmp_amplitude_order(k_values, amp_component)
+
+    assert nonres.slope == pytest.approx(2.0, abs=1.0e-12)
+    assert amp_scan.b_fit.slope == pytest.approx(1.0, abs=1.0e-12)
+    assert amp_scan.width_fit.slope == pytest.approx(0.5, abs=1.0e-12)
+    assert amp_scan.phase_span_deg == pytest.approx(0.0, abs=1.0e-12)
+
+    eta = 0.4
+
+    def phase_component(control):
+        phase = float(control) + eta * float(control) ** 2
+        return ResonantComponent(
+            m=m_val,
+            n=1,
+            harmonic_order=1,
+            b_mn=np.exp(1j * phase),
+            psi_res=0.25,
+            q_res=2.0,
+            half_width_psi=0.01,
+            half_width_r=0.003,
+            opoint_theta=float(((-np.pi / 2.0) - phase) / m_val),
+            xpoint_theta=float(((np.pi / 2.0) - phase) / m_val),
+        )
+
+    controls = np.array([0.01, 0.02, 0.04, 0.08])
+    phase_scan = scan_rmp_phase_order(controls, phase_component)
+
+    assert phase_scan.b_phase_fit.slope == pytest.approx(1.0, abs=0.06)
+    assert phase_scan.opoint_vs_b_phase_fit.slope == pytest.approx(1.0, abs=1.0e-12)
+    assert phase_scan.max_exact_relation_residual < 1.0e-12
+    assert phase_scan.first_order_residual_fit.slope == pytest.approx(2.0, abs=1.0e-9)
+
+    fig, axes = plot_perturbation_order_summary(
+        nonresonant=nonres,
+        rmp_amplitude=amp_scan,
+        rmp_phase=phase_scan,
+        coupling=CoupledFixedPointSweep(
+            k=np.array([0.0, 0.1]),
+            raw_distance=np.array([1.0, 2.0]),
+            superposed_distance=np.array([1.0, 1.2]),
+            nearest_deformed_distance=np.array([1.0, 1.05]),
+        ),
+    )
+    assert fig is not None
+    assert axes.shape == (2, 2)
+
+
+def test_deformed_surface_map_residual_uses_user_distance_function():
+    residual = deformed_surface_map_residual(
+        lambda alpha, phi: np.array([alpha]),
+        lambda phi, state: np.array([1.0]),
+        iota=1.0,
+        alpha_values=np.array([0.0, 1.0]),
+        phi_span=0.25,
+        state_to_cartesian=lambda state, phi: np.array([np.cos(state[0]), np.sin(state[0])]),
+    )
+
+    assert residual.max_residual < 1.0e-10
+    assert residual.endpoint_state.shape == (2, 1)
+
+
+def test_resolution_and_coupling_scan_helpers_pack_rows():
+    def component_factory(n_theta, n_phi):
+        scale = 1.0 + 1.0 / float(n_theta)
+        return ResonantComponent(
+            m=2,
+            n=1,
+            harmonic_order=1,
+            b_mn=scale * np.exp(0.01j / float(n_phi)),
+            psi_res=0.25,
+            q_res=2.0,
+            half_width_psi=np.sqrt(scale),
+            half_width_r=0.1 * np.sqrt(scale),
+            opoint_theta=0.0,
+            xpoint_theta=np.pi / 2.0,
+        )
+
+    resolution = scan_rmp_resolution_convergence(
+        [(32, 16), (64, 32)],
+        component_factory,
+        deformation_metric_factory=lambda n_theta, n_phi: n_theta + n_phi,
+    )
+    assert len(resolution.rows) == 2
+    assert resolution.reference_n_theta == 64
+    assert resolution.rows[-1].relative_b_error == pytest.approx(0.0)
+    assert resolution.rows[0].deformation_metric == pytest.approx(48.0)
+
+    coupling = scan_coupled_fixed_point_sweep(
+        [0.0, 0.1],
+        lambda k: (1.0 + k, 0.8 + k, 0.5 + k),
+    )
+    np.testing.assert_allclose(coupling.raw_distance, [1.0, 1.1])
+    np.testing.assert_allclose(coupling.nearest_deformed_distance, [0.5, 0.6])
 
 
 @pytest.mark.parametrize("m,n", [(1, 1), (2, 1)])

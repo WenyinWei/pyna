@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from collections.abc import Mapping
 from typing import Iterable
 
 import numpy as np
@@ -567,6 +568,65 @@ def analyze_resonant_island_chains(
     return chains
 
 
+def analyze_resonant_island_chains_multi_n(
+    spectrum: RadialPerturbationFourierSpectrum,
+    q_profile: np.ndarray,
+    *,
+    n_values: Iterable[int] | None = None,
+    radial_labels: np.ndarray | None = None,
+    m_values: Iterable[int] | Mapping[int, Iterable[int]] | None = None,
+    min_b_res: float = 0.0,
+) -> list[ResonantIslandChain]:
+    """Analyze all requested resonant ``(m, n)`` island chains together.
+
+    This is the multi-component counterpart to
+    :func:`analyze_resonant_island_chains`.  For each positive toroidal mode
+    number ``n`` it finds every requested ``q(s)=m/n`` crossing, interpolates
+    the resonant coefficient ``tilde_b^1_{m,-n}``, and returns one combined
+    list sorted by radial position and mode number.
+
+    Parameters
+    ----------
+    spectrum:
+        Radial stack of ``tilde_b^1_{mn}`` Fourier coefficients.
+    q_profile:
+        Safety-factor profile sampled on ``radial_labels``.
+    n_values:
+        Positive physical toroidal mode numbers to scan.  If omitted, all
+        positive ``abs(n)`` values present in ``spectrum`` are scanned.
+    radial_labels:
+        Optional radial labels overriding ``spectrum.radial_labels``.
+    m_values:
+        Optional positive poloidal mode numbers.  Pass a mapping ``{n: m_list}``
+        when different toroidal families need different candidate ``m`` values.
+    min_b_res:
+        Drop chains with ``2*abs(tilde_b^1_{m,-n})`` below this threshold.
+    """
+
+    if n_values is None:
+        n_scan = sorted({abs(int(n_val)) for n_val in np.asarray(spectrum.n).ravel() if int(n_val) != 0})
+    else:
+        n_scan = sorted({int(n_val) for n_val in n_values if int(n_val) > 0})
+    chains: list[ResonantIslandChain] = []
+    for n_int in n_scan:
+        if isinstance(m_values, Mapping):
+            m_for_n = m_values.get(n_int)
+        else:
+            m_for_n = m_values
+        chains.extend(
+            analyze_resonant_island_chains(
+                spectrum,
+                q_profile,
+                n=n_int,
+                radial_labels=radial_labels,
+                m_values=m_for_n,
+                min_b_res=min_b_res,
+            )
+        )
+    chains.sort(key=lambda chain: (chain.radial_label, chain.n, chain.m))
+    return chains
+
+
 def chirikov_overlaps(chains: Iterable[ResonantIslandChain]) -> list[ChirikovOverlap]:
     """Compute Chirikov overlap for adjacent chains with the same toroidal ``n``."""
 
@@ -650,6 +710,7 @@ __all__ = [
     "RadialPerturbationFourierSpectrum",
     "ResonantIslandChain",
     "analyze_resonant_island_chains",
+    "analyze_resonant_island_chains_multi_n",
     "chirikov_overlaps",
     "contravariant_radial_component",
     "island_chain_fixed_points",
