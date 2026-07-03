@@ -5,6 +5,7 @@ from __future__ import annotations
 import builtins
 import importlib.util
 import inspect
+import json
 import sys
 
 import numpy as np
@@ -13,6 +14,7 @@ import pytest
 from pyna.cache import CacheStore
 from pyna.topo import Orbit, Trajectory
 from pyna.workflow.tracing import (
+    _decode_cache_record,
     build_prefect_trace_trajectory_flow,
     trace_orbit,
     trace_trajectory,
@@ -86,6 +88,15 @@ class IntegrateOnlyFlow:
         )
 
 
+class SignedCountingTrajectoryFlow(CountingTrajectoryFlow):
+    def __init__(self, signature):
+        super().__init__()
+        self.signature = signature
+
+    def cache_signature(self):
+        return self.signature
+
+
 class CountingMap:
     """Small finite-dimensional map with an orbit(...) method."""
 
@@ -100,6 +111,39 @@ class CountingMap:
             x = x + np.array([1.0, -0.5])
             states.append(x.copy())
         return np.vstack(states)
+
+
+class IterateOnlyMap:
+    """Map exposing endpoint iteration but no sampled orbit method."""
+
+    def __init__(self) -> None:
+        self.iterate_calls: list[int] = []
+
+    def iterate(self, x0, n_iter):
+        self.iterate_calls.append(int(n_iter))
+        return np.asarray(x0, dtype=float) + int(n_iter) * np.array([0.25, 0.5])
+
+
+class PackedStepMap:
+    """Map using a scalar step(x, y) signature."""
+
+    def __init__(self) -> None:
+        self.step_calls = 0
+
+    def step(self, x, y):
+        self.step_calls += 1
+        return float(x) + 1.0, float(y) - 0.25
+
+
+class CallableOnlyMap:
+    """Callable map without an explicit step(...) method."""
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def __call__(self, x0):
+        self.calls += 1
+        return np.asarray(x0, dtype=float) + np.array([-0.5, 0.75])
 
 
 def _times_from(t_span, t_eval) -> np.ndarray:
@@ -207,6 +251,7 @@ def test_trace_trajectory_cache_payload_is_versioned_schema(tmp_path):
         (0.0, 0.2),
         t_eval=np.linspace(0.0, 0.2, 3),
         trace_id="schema-check",
+        source_signature={"system": "counting", "version": 1},
         cache_store=store,
     )
 
@@ -215,10 +260,217 @@ def test_trace_trajectory_cache_payload_is_versioned_schema(tmp_path):
     key = next(iter(store._index))
     record = store.get(key)
     assert record["__pyna_cache__"] == "pyna.workflow.tracing"
+    assert record["schema_name"] == "pyna.workflow.tracing.result"
     assert int(record["schema_version"]) == 1
     assert record["kind"] == "trajectory"
+    assert record["compatibility"] == "v1 append-only; readers ignore unknown fields"
+    assert record["source_type"].endswith("Trajectory")
+    assert record["trace_id"] == "schema-check"
+    assert bool(record["complete"]) is True
+    request = json.loads(record["request_json"])
+    assert request["x0"] == [0.0, 1.0]
+    assert request["t_span"] == [0.0, 0.2]
+    assert request["t_eval"] == [0.0, 0.1, 0.2]
+    request_hash = json.loads(record["request_hash_json"])
+    assert request_hash["algorithm"] == "sha256"
+    assert len(request_hash["request_json_sha256"]) == 64
+    source_signature = json.loads(record["source_signature_json"])
+    assert source_signature == {"system": "counting", "version": 1}
+    source_hash = json.loads(record["source_signature_hash_json"])
+    assert source_hash["algorithm"] == "sha256"
+    assert len(source_hash["source_signature_json_sha256"]) == 64
+    producer = json.loads(record["producer_json"])
+    assert producer["trace_function"] == "trace_trajectory"
+    assert producer["system_type"].endswith("CountingTrajectoryFlow")
+    summary = json.loads(record["result_summary_json"])
+    assert summary["kind"] == "trajectory"
+    assert summary["n_samples"] == 3
+    assert summary["ambient_dim"] == 2
+    assert summary["states"]["shape"] == [3, 2]
+    assert len(summary["states"]["sha256"]) == 64
     assert "states" in record
     assert "metadata_json" in record
+
+
+def test_trace_trajectory_decoder_accepts_append_only_v1_records():
+    record = {
+        "__pyna_cache__": "pyna.workflow.tracing",
+        "schema_name": "pyna.workflow.tracing.result",
+        "schema_version": 1,
+        "compatibility": "v1 append-only; readers ignore unknown fields",
+        "kind": "trajectory",
+        "states": np.asarray([[0.0, 1.0], [0.2, 1.2]]),
+        "times": np.asarray([0.0, 0.1]),
+        "time_name": "tau",
+        "coordinate_names_json": '["x", "y"]',
+        "metadata_json": '{"case": "append-only"}',
+        "future_field_json": '{"ignored": true}',
+    }
+
+    trajectory = _decode_cache_record(record)
+
+    assert isinstance(trajectory, Trajectory)
+    assert trajectory.time_name == "tau"
+    assert trajectory.coordinate_names == ("x", "y")
+    assert trajectory.metadata["case"] == "append-only"
+    np.testing.assert_allclose(trajectory.final, [0.2, 1.2])
+
+
+def test_trace_trajectory_decoder_accepts_minimal_v1_record_without_new_optional_fields():
+    record = {
+        "__pyna_cache__": "pyna.workflow.tracing",
+        "schema_version": 1,
+        "kind": "trajectory",
+        "states": np.asarray([[1.0], [2.0]]),
+        "times": np.asarray([0.0, 1.0]),
+    }
+
+    trajectory = _decode_cache_record(record)
+
+    assert isinstance(trajectory, Trajectory)
+    assert trajectory.time_name == "t"
+    assert trajectory.coordinate_names is None
+    assert trajectory.metadata == {}
+    np.testing.assert_allclose(trajectory.final, [2.0])
+
+
+def test_trace_trajectory_decoder_rejects_unknown_schema_name():
+    record = {
+        "__pyna_cache__": "pyna.workflow.tracing",
+        "schema_name": "pyna.workflow.other",
+        "schema_version": 1,
+        "kind": "trajectory",
+        "states": np.asarray([[1.0]]),
+        "times": np.asarray([0.0]),
+    }
+
+    with pytest.raises(ValueError, match="unknown schema"):
+        _decode_cache_record(record)
+
+
+def test_trace_trajectory_decoder_rejects_incomplete_record():
+    record = {
+        "__pyna_cache__": "pyna.workflow.tracing",
+        "schema_name": "pyna.workflow.tracing.result",
+        "schema_version": 1,
+        "complete": False,
+        "kind": "trajectory",
+        "states": np.asarray([[1.0], [2.0]]),
+        "times": np.asarray([0.0, 1.0]),
+    }
+
+    with pytest.raises(ValueError, match="not complete"):
+        _decode_cache_record(record)
+
+
+def test_trace_trajectory_decoder_rejects_source_signature_mismatch():
+    record = {
+        "__pyna_cache__": "pyna.workflow.tracing",
+        "schema_name": "pyna.workflow.tracing.result",
+        "schema_version": 1,
+        "kind": "trajectory",
+        "source_signature_json": '{"system": "A"}',
+        "states": np.asarray([[1.0], [2.0]]),
+        "times": np.asarray([0.0, 1.0]),
+    }
+
+    with pytest.raises(ValueError, match="source signature"):
+        _decode_cache_record(record, expected_source_signature={"system": "B"})
+
+
+def test_trace_trajectory_source_signature_partitions_cache(tmp_path):
+    store = CacheStore(tmp_path, backend="pickle", async_write=False)
+    flow = CountingTrajectoryFlow()
+    t_eval = np.linspace(0.0, 0.2, 3)
+
+    first = trace_trajectory(
+        flow,
+        np.array([0.0, 1.0]),
+        (0.0, 0.2),
+        t_eval=t_eval,
+        trace_id="same-id",
+        source_signature={"case": "A"},
+        cache_store=store,
+    )
+    calls_after_first = flow.rhs_calls
+    second = trace_trajectory(
+        flow,
+        np.array([0.0, 1.0]),
+        (0.0, 0.2),
+        t_eval=t_eval,
+        trace_id="same-id",
+        source_signature={"case": "B"},
+        cache_store=store,
+    )
+
+    assert flow.rhs_calls == 2 * calls_after_first
+    assert len(store) == 2
+    np.testing.assert_allclose(second.states, first.states)
+
+
+def test_trace_trajectory_uses_source_cache_signature_protocol(tmp_path):
+    store = CacheStore(tmp_path, backend="pickle", async_write=False)
+    t_eval = np.linspace(0.0, 0.2, 3)
+    flow_a = SignedCountingTrajectoryFlow({"case": "A"})
+    flow_b = SignedCountingTrajectoryFlow({"case": "B"})
+
+    trace_trajectory(
+        flow_a,
+        np.array([0.0, 1.0]),
+        (0.0, 0.2),
+        t_eval=t_eval,
+        trace_id="same-id",
+        cache_store=store,
+    )
+    trace_trajectory(
+        flow_b,
+        np.array([0.0, 1.0]),
+        (0.0, 0.2),
+        t_eval=t_eval,
+        trace_id="same-id",
+        cache_store=store,
+    )
+
+    assert flow_a.rhs_calls == len(t_eval) - 1
+    assert flow_b.rhs_calls == len(t_eval) - 1
+    assert len(store) == 2
+
+
+def test_trace_trajectory_cache_signature_not_called_when_cache_disabled():
+    class FailingSignatureFlow(CountingTrajectoryFlow):
+        def cache_signature(self):
+            raise RuntimeError("cache signature should not be needed")
+
+    flow = FailingSignatureFlow()
+    out = trace_trajectory(
+        flow,
+        np.array([0.0, 1.0]),
+        (0.0, 0.2),
+        t_eval=np.linspace(0.0, 0.2, 3),
+        use_cache=False,
+    )
+
+    assert isinstance(out, Trajectory)
+    assert flow.rhs_calls == 2
+
+
+def test_trace_trajectory_cache_sync_flushes_async_store(tmp_path):
+    store = CacheStore(tmp_path, backend="pickle", async_write=True)
+    flow = CountingTrajectoryFlow()
+
+    trace_trajectory(
+        flow,
+        np.array([0.0, 1.0]),
+        (0.0, 0.2),
+        t_eval=np.linspace(0.0, 0.2, 3),
+        trace_id="sync-trace",
+        cache_store=store,
+        cache_sync=True,
+    )
+
+    assert store.stats["pending_writes"] == 0
+    reopened = CacheStore(tmp_path, backend="pickle", async_write=False)
+    assert len(reopened) == 1
 
 
 def test_trace_trajectory_cache_requires_trace_id(tmp_path):
@@ -352,6 +604,19 @@ def test_trace_orbit_returns_orbit_and_uses_trace_id_cache(tmp_path):
     assert map_obj.orbit_calls == 1
 
 
+def test_trace_orbit_accepts_step_fallback_and_rejects_ambiguous_maps_without_prefect():
+    packed_step = PackedStepMap()
+    stepped = trace_orbit(packed_step, np.array([0.0, 1.0]), 2, use_cache=False)
+    np.testing.assert_allclose(stepped.states, [[0.0, 1.0], [1.0, 0.75], [2.0, 0.5]])
+    assert packed_step.step_calls == 2
+
+    with pytest.raises(TypeError, match="step"):
+        trace_orbit(IterateOnlyMap(), np.array([0.0, 1.0]), 2, use_cache=False)
+
+    with pytest.raises(TypeError, match="step"):
+        trace_orbit(CallableOnlyMap(), np.array([0.0, 1.0]), 2, use_cache=False)
+
+
 def test_trace_orbit_cache_payload_is_versioned_schema(tmp_path):
     store = CacheStore(tmp_path, backend="npz", async_write=False)
     map_obj = CountingMap()
@@ -361,6 +626,7 @@ def test_trace_orbit_cache_payload_is_versioned_schema(tmp_path):
         np.array([0.0, 1.0]),
         2,
         trace_id="schema-map",
+        source_signature={"map": "counting"},
         cache_store=store,
     )
 
@@ -369,8 +635,23 @@ def test_trace_orbit_cache_payload_is_versioned_schema(tmp_path):
     key = next(iter(store._index))
     record = store.get(key)
     assert record["__pyna_cache__"] == "pyna.workflow.tracing"
+    assert record["schema_name"] == "pyna.workflow.tracing.result"
     assert int(record["schema_version"]) == 1
     assert record["kind"] == "orbit"
+    assert record["trace_id"] == "schema-map"
+    assert bool(record["complete"]) is True
+    request = json.loads(record["request_json"])
+    assert request["x0"] == [0.0, 1.0]
+    assert request["n_iter"] == 2
+    assert json.loads(record["source_signature_json"]) == {"map": "counting"}
+    producer = json.loads(record["producer_json"])
+    assert producer["trace_function"] == "trace_orbit"
+    assert producer["map_type"].endswith("CountingMap")
+    summary = json.loads(record["result_summary_json"])
+    assert summary["kind"] == "orbit"
+    assert summary["n_samples"] == 3
+    assert summary["ambient_dim"] == 2
+    assert summary["steps"]["shape"] == [3]
     assert "states" in record
     assert "steps" in record
 

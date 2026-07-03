@@ -7,6 +7,8 @@ Prefect flows only when Prefect is installed.
 
 from __future__ import annotations
 
+import hashlib
+from importlib import metadata as importlib_metadata
 import json
 from pathlib import Path
 from typing import Any
@@ -18,6 +20,8 @@ from pyna.cache import CacheStore, memoize
 
 _CACHE_SCHEMA_VERSION = 1
 _CACHE_MARKER = "pyna.workflow.tracing"
+_CACHE_SCHEMA_NAME = "pyna.workflow.tracing.result"
+_CACHE_COMPATIBILITY = "v1 append-only; readers ignore unknown fields"
 
 
 def _json_default(value: Any) -> Any:
@@ -40,6 +44,118 @@ def _json_loads(value: Any) -> Any:
     if isinstance(value, bytes):
         value = value.decode("utf-8")
     return json.loads(str(value))
+
+
+def _source_signature(source: Any, explicit: Any = None) -> Any:
+    """Resolve a stable source identity for cache records when available."""
+
+    if explicit is not None:
+        return explicit
+    value = getattr(source, "cache_signature", None)
+    if callable(value):
+        return value()
+    if value is not None:
+        return value
+    return None
+
+
+def _signature_hash(signature: Any) -> dict[str, Any]:
+    signature_json = _json_dumps(signature)
+    return {
+        "algorithm": "sha256",
+        "source_signature_json_sha256": hashlib.sha256(signature_json.encode("utf-8")).hexdigest(),
+    }
+
+
+def _pyna_version() -> str | None:
+    for package_name in ("pyna-chaos", "pyna"):
+        try:
+            return importlib_metadata.version(package_name)
+        except importlib_metadata.PackageNotFoundError:
+            continue
+    return None
+
+
+def _array_summary(value: Any) -> dict[str, Any]:
+    arr = np.asarray(value)
+    h = hashlib.sha256()
+    h.update(str(arr.dtype).encode("utf-8"))
+    h.update(np.asarray(arr.shape, dtype=np.int64).tobytes())
+    if arr.dtype == object:
+        h.update(repr(arr.tolist()).encode("utf-8"))
+    else:
+        h.update(np.ascontiguousarray(arr).tobytes())
+    return {
+        "shape": list(arr.shape),
+        "dtype": str(arr.dtype),
+        "sha256": h.hexdigest(),
+    }
+
+
+def _result_summary(record: dict[str, Any]) -> dict[str, Any]:
+    kind = str(record.get("kind", ""))
+    summary: dict[str, Any] = {"kind": kind}
+    if "states" in record:
+        states = np.asarray(record["states"])
+        summary["states"] = _array_summary(states)
+        summary["n_samples"] = int(states.shape[0]) if states.ndim >= 1 else 0
+        summary["ambient_dim"] = int(states.shape[1]) if states.ndim >= 2 else 1
+    if "times" in record:
+        summary["times"] = _array_summary(record["times"])
+    if bool(record.get("has_steps", False)) and "steps" in record:
+        summary["steps"] = _array_summary(record["steps"])
+    if "data" in record:
+        summary["data"] = _array_summary(record["data"])
+    return summary
+
+
+def _add_cache_audit_fields(
+    record: dict[str, Any],
+    *,
+    trace_id: str | None,
+    trace_function: str,
+    source_role: str,
+    source: Any,
+    request: dict[str, Any],
+    source_signature: Any = None,
+) -> dict[str, Any]:
+    request_json = _json_dumps(request)
+    record["trace_id"] = "" if trace_id is None else str(trace_id)
+    record["request_json"] = request_json
+    record["request_hash_json"] = _json_dumps(
+        {
+            "algorithm": "sha256",
+            "request_json_sha256": hashlib.sha256(request_json.encode("utf-8")).hexdigest(),
+        }
+    )
+    record["producer_json"] = _json_dumps(
+        {
+            "pyna_version": _pyna_version(),
+            "cache_schema_name": _CACHE_SCHEMA_NAME,
+            "cache_schema_version": int(_CACHE_SCHEMA_VERSION),
+            "trace_function": trace_function,
+            source_role: _source_type(source),
+        }
+    )
+    record["source_signature_json"] = _json_dumps(source_signature)
+    record["source_signature_hash_json"] = _json_dumps(_signature_hash(source_signature))
+    record["result_summary_json"] = _json_dumps(_result_summary(record))
+    record["complete"] = True
+    return record
+
+
+def _validate_cache_record_source_signature(record: Any, expected: Any) -> None:
+    if expected is None:
+        return
+    if not isinstance(record, dict) or record.get("__pyna_cache__") != _CACHE_MARKER:
+        raise ValueError("workflow cache entry has no source signature to validate")
+    if "source_signature_json" not in record:
+        raise ValueError("workflow cache entry has no source signature")
+    actual = _json_loads(record["source_signature_json"])
+    if actual != expected:
+        raise ValueError(
+            "workflow cache entry source signature does not match the requested source"
+        )
 
 
 def _resolve_use_cache(use_cache: bool, cache: bool | None) -> bool:
@@ -126,7 +242,9 @@ def _encode_cache_record(value: Any, *, expected_kind: str) -> dict[str, Any]:
     if isinstance(value, Trajectory):
         return {
             "__pyna_cache__": _CACHE_MARKER,
+            "schema_name": _CACHE_SCHEMA_NAME,
             "schema_version": int(_CACHE_SCHEMA_VERSION),
+            "compatibility": _CACHE_COMPATIBILITY,
             "kind": "trajectory",
             "source_type": _source_type(value),
             "states": np.asarray(value.states, dtype=float),
@@ -142,7 +260,9 @@ def _encode_cache_record(value: Any, *, expected_kind: str) -> dict[str, Any]:
         steps = None if value.steps is None else np.asarray(value.steps)
         return {
             "__pyna_cache__": _CACHE_MARKER,
+            "schema_name": _CACHE_SCHEMA_NAME,
             "schema_version": int(_CACHE_SCHEMA_VERSION),
+            "compatibility": _CACHE_COMPATIBILITY,
             "kind": "orbit",
             "source_type": _source_type(value),
             "states": np.asarray(value.states, dtype=float),
@@ -157,7 +277,9 @@ def _encode_cache_record(value: Any, *, expected_kind: str) -> dict[str, Any]:
     if isinstance(value, np.ndarray):
         return {
             "__pyna_cache__": _CACHE_MARKER,
+            "schema_name": _CACHE_SCHEMA_NAME,
             "schema_version": int(_CACHE_SCHEMA_VERSION),
+            "compatibility": _CACHE_COMPATIBILITY,
             "kind": "ndarray",
             "expected_kind": str(expected_kind),
             "source_type": "numpy.ndarray",
@@ -171,15 +293,21 @@ def _encode_cache_record(value: Any, *, expected_kind: str) -> dict[str, Any]:
     )
 
 
-def _decode_cache_record(record: Any) -> Any:
+def _decode_cache_record(record: Any, *, expected_source_signature: Any = None) -> Any:
     """Decode a versioned workflow cache record.
 
     Non-record values are returned unchanged so older pickle-backed caches remain
     readable during the transition to schema records.
     """
 
+    _validate_cache_record_source_signature(record, expected_source_signature)
+
     if not isinstance(record, dict) or record.get("__pyna_cache__") != _CACHE_MARKER:
         return record
+
+    schema_name = record.get("schema_name", _CACHE_SCHEMA_NAME)
+    if schema_name != _CACHE_SCHEMA_NAME:
+        raise ValueError(f"workflow cache entry has unknown schema {schema_name!r}")
 
     schema_version = int(record.get("schema_version", 0))
     if schema_version > _CACHE_SCHEMA_VERSION:
@@ -189,6 +317,8 @@ def _decode_cache_record(record: Any) -> Any:
         )
     if schema_version < 1:
         raise ValueError("workflow cache entry has an unsupported schema version")
+    if "complete" in record and not bool(record["complete"]):
+        raise ValueError("workflow cache entry is not complete")
 
     kind = str(record.get("kind", ""))
     metadata = _json_loads(record.get("metadata_json", "{}"))
@@ -232,6 +362,7 @@ def _trace_trajectory_cache_record(
     dt: Any = None,
     t_eval: Any = None,
     method_kwargs: dict[str, Any] | None = None,
+    source_signature: Any = None,
 ) -> dict[str, Any]:
     result = _trace_trajectory_uncached(
         system=system,
@@ -242,7 +373,22 @@ def _trace_trajectory_cache_record(
         t_eval=t_eval,
         method_kwargs=method_kwargs,
     )
-    return _encode_cache_record(result, expected_kind="trajectory")
+    record = _encode_cache_record(result, expected_kind="trajectory")
+    return _add_cache_audit_fields(
+        record,
+        trace_id=trace_id,
+        trace_function="trace_trajectory",
+        source_role="system_type",
+        source=system,
+        source_signature=source_signature,
+        request={
+            "x0": x0,
+            "t_span": t_span,
+            "dt": dt,
+            "t_eval": t_eval,
+            "method_kwargs": dict(method_kwargs or {}),
+        },
+    )
 
 
 def _trace_orbit_cache_record(
@@ -251,6 +397,7 @@ def _trace_orbit_cache_record(
     trace_id: str | None,
     x0: Any,
     n_iter: int,
+    source_signature: Any = None,
 ) -> dict[str, Any]:
     result = _trace_orbit_uncached(
         map_obj=map_obj,
@@ -258,7 +405,19 @@ def _trace_orbit_cache_record(
         x0=x0,
         n_iter=int(n_iter),
     )
-    return _encode_cache_record(result, expected_kind="orbit")
+    record = _encode_cache_record(result, expected_kind="orbit")
+    return _add_cache_audit_fields(
+        record,
+        trace_id=trace_id,
+        trace_function="trace_orbit",
+        source_role="map_type",
+        source=map_obj,
+        source_signature=source_signature,
+        request={
+            "x0": x0,
+            "n_iter": int(n_iter),
+        },
+    )
 
 
 def _memoized(
@@ -278,12 +437,19 @@ def _memoized(
     )
 
 
+def _flush_memoized_cache(fn: Any) -> None:
+    store = getattr(fn, "_pyna_cache_store", None)
+    if store is not None and hasattr(store, "flush"):
+        store.flush()
+
+
 def trace_trajectory(
     system: Any,
     x0: Any,
     t_span: Any,
     *,
     trace_id: str | None = None,
+    source_signature: Any = None,
     dt: Any = None,
     t_eval: Any = None,
     cache_namespace: str = "workflow.trajectory",
@@ -291,6 +457,7 @@ def trace_trajectory(
     cache: bool | None = None,
     cache_store: CacheStore | None = None,
     cache_backend: str = "npz",
+    cache_sync: bool = False,
     **kwargs: Any,
 ) -> Any:
     """Trace a finite-dimensional continuous trajectory.
@@ -299,6 +466,9 @@ def trace_trajectory(
     ``integrate(x0, t_span, ...)``.  Local caching is independent of Prefect.
     When caching is enabled, callers must provide a stable ``trace_id`` because
     arbitrary Python system objects often have process-local ``repr`` values.
+    Pass ``source_signature`` or implement ``system.cache_signature()`` to bind
+    the cache entry to the system parameters behind that id.  Set
+    ``cache_sync=True`` when the result must be durable before returning.
     """
 
     should_cache = _resolve_use_cache(use_cache, cache)
@@ -314,6 +484,7 @@ def trace_trajectory(
             method_kwargs=method_kwargs,
         )
 
+    resolved_source_signature = _source_signature(system, source_signature)
     stable_id = _require_trace_id(trace_id, cache_kind="trajectory")
     cached_trace = _memoized(
         _trace_trajectory_cache_record,
@@ -330,8 +501,11 @@ def trace_trajectory(
         dt=dt,
         t_eval=t_eval,
         method_kwargs=method_kwargs,
+        source_signature=resolved_source_signature,
     )
-    return _decode_cache_record(record)
+    if cache_sync:
+        _flush_memoized_cache(cached_trace)
+    return _decode_cache_record(record, expected_source_signature=resolved_source_signature)
 
 
 def trace_orbit(
@@ -340,16 +514,22 @@ def trace_orbit(
     n_iter: int,
     *,
     trace_id: str | None = None,
+    source_signature: Any = None,
     cache_namespace: str = "workflow.orbit",
     use_cache: bool = True,
     cache: bool | None = None,
     cache_store: CacheStore | None = None,
     cache_backend: str = "npz",
+    cache_sync: bool = False,
 ) -> Any:
     """Trace a finite-dimensional discrete orbit.
 
-    ``map_obj`` may expose ``orbit_geometry`` or ``orbit``; the result is the
-    generic :class:`pyna.topo.core.Orbit` shape used by ``TopologyWorkflow``.
+    ``map_obj`` may expose ``orbit_geometry``/``orbit`` for sampled output or
+    ``step`` for one-step advancement; the result is the generic
+    :class:`pyna.topo.core.Orbit` shape used by ``TopologyWorkflow``.  Pass
+    ``source_signature`` or implement ``map_obj.cache_signature()`` to bind the
+    cache entry to the map parameters behind the trace id.  Set
+    ``cache_sync=True`` when the result must be durable before returning.
     """
 
     should_cache = _resolve_use_cache(use_cache, cache)
@@ -361,6 +541,7 @@ def trace_orbit(
             n_iter=int(n_iter),
         )
 
+    resolved_source_signature = _source_signature(map_obj, source_signature)
     stable_id = _require_trace_id(trace_id, cache_kind="orbit")
     cached_trace = _memoized(
         _trace_orbit_cache_record,
@@ -374,8 +555,11 @@ def trace_orbit(
         trace_id=stable_id,
         x0=x0,
         n_iter=int(n_iter),
+        source_signature=resolved_source_signature,
     )
-    return _decode_cache_record(record)
+    if cache_sync:
+        _flush_memoized_cache(cached_trace)
+    return _decode_cache_record(record, expected_source_signature=resolved_source_signature)
 
 
 def _trace_trajectory_task(
@@ -383,12 +567,14 @@ def _trace_trajectory_task(
     x0: Any,
     t_span: Any,
     trace_id: str | None,
+    source_signature: Any,
     dt: Any,
     t_eval: Any,
     cache_namespace: str,
     use_cache: bool,
     cache_store: CacheStore | None,
     cache_backend: str,
+    cache_sync: bool,
     method_kwargs: dict[str, Any],
 ) -> Any:
     return trace_trajectory(
@@ -396,12 +582,14 @@ def _trace_trajectory_task(
         x0,
         t_span,
         trace_id=trace_id,
+        source_signature=source_signature,
         dt=dt,
         t_eval=t_eval,
         cache_namespace=cache_namespace,
         use_cache=use_cache,
         cache_store=cache_store,
         cache_backend=cache_backend,
+        cache_sync=cache_sync,
         **method_kwargs,
     )
 
@@ -411,20 +599,24 @@ def _trace_orbit_task(
     x0: Any,
     n_iter: int,
     trace_id: str | None,
+    source_signature: Any,
     cache_namespace: str,
     use_cache: bool,
     cache_store: CacheStore | None,
     cache_backend: str,
+    cache_sync: bool,
 ) -> Any:
     return trace_orbit(
         map_obj,
         x0,
         n_iter,
         trace_id=trace_id,
+        source_signature=source_signature,
         cache_namespace=cache_namespace,
         use_cache=use_cache,
         cache_store=cache_store,
         cache_backend=cache_backend,
+        cache_sync=cache_sync,
     )
 
 
@@ -444,12 +636,14 @@ def _build_prefect_trace_trajectory_flow(flow: Any, task: Any) -> Any:
         t_span: Any,
         *,
         trace_id: str | None = None,
+        source_signature: Any = None,
         dt: Any = None,
         t_eval: Any = None,
         cache_namespace: str = "workflow.trajectory",
         use_cache: bool = True,
         cache_store: CacheStore | None = None,
         cache_backend: str = "npz",
+        cache_sync: bool = False,
         **kwargs: Any,
     ) -> Any:
         return trajectory_task(
@@ -457,12 +651,14 @@ def _build_prefect_trace_trajectory_flow(flow: Any, task: Any) -> Any:
             x0,
             t_span,
             trace_id,
+            source_signature,
             dt,
             t_eval,
             cache_namespace,
             use_cache,
             cache_store,
             cache_backend,
+            cache_sync,
             kwargs,
         )
 
@@ -479,20 +675,24 @@ def _build_prefect_trace_orbit_flow(flow: Any, task: Any) -> Any:
         n_iter: int,
         *,
         trace_id: str | None = None,
+        source_signature: Any = None,
         cache_namespace: str = "workflow.orbit",
         use_cache: bool = True,
         cache_store: CacheStore | None = None,
         cache_backend: str = "npz",
+        cache_sync: bool = False,
     ) -> Any:
         return orbit_task(
             map_obj,
             x0,
             n_iter,
             trace_id,
+            source_signature,
             cache_namespace,
             use_cache,
             cache_store,
             cache_backend,
+            cache_sync,
         )
 
     return prefect_trace_orbit_flow
@@ -504,12 +704,14 @@ def trace_trajectory_flow(
     t_span: Any,
     *,
     trace_id: str | None = None,
+    source_signature: Any = None,
     dt: Any = None,
     t_eval: Any = None,
     cache_namespace: str = "workflow.trajectory",
     use_cache: bool = True,
     cache_store: CacheStore | None = None,
     cache_backend: str = "npz",
+    cache_sync: bool = False,
     **kwargs: Any,
 ) -> Any:
     """Run the Prefect flow for generic continuous trajectory tracing."""
@@ -521,12 +723,14 @@ def trace_trajectory_flow(
         x0,
         t_span,
         trace_id=trace_id,
+        source_signature=source_signature,
         dt=dt,
         t_eval=t_eval,
         cache_namespace=cache_namespace,
         use_cache=use_cache,
         cache_store=cache_store,
         cache_backend=cache_backend,
+        cache_sync=cache_sync,
         **kwargs,
     )
 
@@ -537,10 +741,12 @@ def trace_orbit_flow(
     n_iter: int,
     *,
     trace_id: str | None = None,
+    source_signature: Any = None,
     cache_namespace: str = "workflow.orbit",
     use_cache: bool = True,
     cache_store: CacheStore | None = None,
     cache_backend: str = "npz",
+    cache_sync: bool = False,
 ) -> Any:
     """Run the Prefect flow for generic discrete orbit tracing."""
 
@@ -551,10 +757,12 @@ def trace_orbit_flow(
         x0,
         n_iter,
         trace_id=trace_id,
+        source_signature=source_signature,
         cache_namespace=cache_namespace,
         use_cache=use_cache,
         cache_store=cache_store,
         cache_backend=cache_backend,
+        cache_sync=cache_sync,
     )
 
 

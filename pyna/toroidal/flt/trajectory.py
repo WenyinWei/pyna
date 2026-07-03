@@ -8,6 +8,7 @@ for low-level callers.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import hashlib
 import json
 import math
 import os
@@ -22,6 +23,8 @@ from pyna.toroidal.flt.numba_poincare import field_arrays_from_field, trace_orbi
 
 _CHECKPOINT_NAME = "fieldline_trajectory_checkpoint.json"
 _SCHEMA_VERSION = 1
+_SCHEMA_NAME = "pyna.toroidal.flt.fieldline_trajectory_checkpoint"
+_SCHEMA_COMPATIBILITY = "v1 append-only; readers ignore unknown fields"
 
 
 @dataclass
@@ -127,6 +130,73 @@ def _open_array(path: Path, name: str, mode: str = "r+"):
     return np.load(path / f"{name}.npy", mmap_mode=mode)
 
 
+def _array_digest(value) -> str:
+    arr = np.asarray(value)
+    h = hashlib.sha256()
+    h.update(str(arr.dtype).encode("utf-8"))
+    h.update(np.asarray(arr.shape, dtype=np.int64).tobytes())
+    if arr.dtype == object:
+        h.update(repr(arr.tolist()).encode("utf-8"))
+    else:
+        h.update(np.ascontiguousarray(arr).tobytes())
+    return h.hexdigest()
+
+
+def _field_array_signature(field, attr_names: tuple[str, ...]) -> dict[str, Any] | None:
+    for name in attr_names:
+        if not hasattr(field, name):
+            continue
+        value = getattr(field, name)
+        if callable(value):
+            continue
+        arr = np.asarray(value)
+        return {
+            "attr": name,
+            "shape": list(arr.shape),
+            "dtype": str(arr.dtype),
+            "sha256": _array_digest(arr),
+        }
+    return None
+
+
+def _field_signature(field) -> dict[str, Any]:
+    """Return a stable signature for known cylindrical field objects."""
+
+    signature: dict[str, Any] = {
+        "type": f"{field.__class__.__module__}.{field.__class__.__qualname__}",
+    }
+    for name in ("label", "name"):
+        if not hasattr(field, name):
+            continue
+        value = getattr(field, name)
+        if value is not None and not callable(value):
+            signature[name] = str(value)
+    for name in ("nfp", "field_periods", "nPhi"):
+        if not hasattr(field, name):
+            continue
+        value = getattr(field, name)
+        if value is not None and not callable(value):
+            signature[name] = int(value)
+    for name in ("field_period",):
+        if not hasattr(field, name):
+            continue
+        value = getattr(field, name)
+        if value is not None and not callable(value):
+            signature[name] = float(value)
+    for key, attr_names in {
+        "R": ("R_arr", "R"),
+        "Z": ("Z_arr", "Z"),
+        "Phi": ("Phi",),
+        "BR": ("BR", "VR"),
+        "BZ": ("BZ", "VZ"),
+        "BPhi": ("BPhi", "VPhi"),
+    }.items():
+        field_array = _field_array_signature(field, attr_names)
+        if field_array is not None:
+            signature[key] = field_array
+    return signature
+
+
 def _checkpoint_payload(
     *,
     checkpoint_dir: Path,
@@ -139,11 +209,20 @@ def _checkpoint_payload(
     last_Z: float,
     last_phi: float,
     storage: str,
+    field_signature: dict[str, Any] | None = None,
+    extend_phi: bool | None = None,
 ) -> dict[str, Any]:
     return {
+        "schema_name": _SCHEMA_NAME,
         "schema_version": _SCHEMA_VERSION,
+        "compatibility": _SCHEMA_COMPATIBILITY,
         "status": status,
         "params": params,
+        "options": {
+            "extend_phi": bool(extend_phi) if extend_phi is not None else None,
+            "trace_source": "trace_orbit_along_phi",
+        },
+        "field_signature": field_signature,
         "n_total": int(n_total),
         "n_written": int(n_written),
         "next_index": int(next_index),
@@ -156,6 +235,12 @@ def _checkpoint_payload(
             "R": str(checkpoint_dir / "R.npy"),
             "Z": str(checkpoint_dir / "Z.npy"),
             "alive": str(checkpoint_dir / "alive.npy"),
+        },
+        "array_specs": {
+            "phi": {"shape": [int(n_total)], "dtype": "float64"},
+            "R": {"shape": [int(n_total)], "dtype": "float64"},
+            "Z": {"shape": [int(n_total)], "dtype": "float64"},
+            "alive": {"shape": [int(n_total)], "dtype": "int8"},
         },
     }
 
@@ -171,6 +256,82 @@ def _params_match(saved: dict[str, Any], current: dict[str, Any]) -> bool:
         elif saved[key] != current[key]:
             return False
     return True
+
+
+def _validate_checkpoint_arrays(checkpoint_dir: Path, checkpoint: dict[str, Any]) -> None:
+    n_total = int(checkpoint["n_total"])
+    n_written = int(checkpoint["n_written"])
+    next_index = int(checkpoint["next_index"])
+    if n_total <= 0:
+        raise ValueError("checkpoint n_total must be positive")
+    if n_written <= 0 or n_written > n_total:
+        raise ValueError(f"checkpoint n_written={n_written} is outside [1, {n_total}]")
+    if next_index < 0 or next_index >= n_written:
+        raise ValueError(f"checkpoint next_index={next_index} is outside written range")
+    if next_index != n_written - 1:
+        raise ValueError("checkpoint next_index must reference the last written sample")
+
+    specs = checkpoint.get("array_specs") or {}
+    opened: dict[str, np.ndarray] = {}
+    for name in ("R", "Z", "phi", "alive"):
+        path = checkpoint_dir / f"{name}.npy"
+        if not path.exists():
+            raise ValueError(f"checkpoint array is missing: {path}")
+        arr = np.load(path, mmap_mode="r")
+        opened[name] = arr
+        try:
+            expected = specs.get(name, {})
+            expected_shape = expected.get("shape")
+            if expected_shape is not None:
+                if list(arr.shape) != list(expected_shape):
+                    raise ValueError(
+                        f"checkpoint array {path} has shape {arr.shape}; expected {tuple(expected_shape)}"
+                    )
+            elif arr.shape[0] < n_total:
+                raise ValueError(
+                    f"checkpoint array {path} has shape {arr.shape}; expected at least {n_total} samples"
+                )
+            expected_dtype = expected.get("dtype")
+            if expected_dtype is not None and str(arr.dtype) != str(expected_dtype):
+                raise ValueError(
+                    f"checkpoint array {path} has dtype {arr.dtype}; expected {expected_dtype}"
+                )
+        except Exception:
+            for opened_arr in opened.values():
+                del opened_arr
+            raise
+
+    try:
+        phi = np.asarray(opened["phi"][:n_written], dtype=float)
+        R = np.asarray(opened["R"][:n_written], dtype=float)
+        Z = np.asarray(opened["Z"][:n_written], dtype=float)
+        alive = np.asarray(opened["alive"][:n_written], dtype=np.int8)
+        if not (np.all(np.isfinite(phi)) and np.all(np.isfinite(R)) and np.all(np.isfinite(Z))):
+            raise ValueError("checkpoint written arrays contain non-finite samples")
+        if not np.all(alive > 0):
+            raise ValueError("checkpoint written samples are not all marked alive")
+        if n_written > 1:
+            dphi = float((checkpoint.get("params") or {}).get("dphi_out", 0.0))
+            deltas = np.diff(phi)
+            if dphi >= 0.0 and np.any(deltas < -1.0e-12):
+                raise ValueError("checkpoint phi samples are not monotone increasing")
+            if dphi < 0.0 and np.any(deltas > 1.0e-12):
+                raise ValueError("checkpoint phi samples are not monotone decreasing")
+        if not np.isclose(float(checkpoint["last_R"]), float(R[next_index]), rtol=0.0, atol=1.0e-12):
+            raise ValueError("checkpoint last_R does not match saved arrays")
+        if not np.isclose(float(checkpoint["last_Z"]), float(Z[next_index]), rtol=0.0, atol=1.0e-12):
+            raise ValueError("checkpoint last_Z does not match saved arrays")
+        if not np.isclose(float(checkpoint["last_phi"]), float(phi[next_index]), rtol=0.0, atol=1.0e-12):
+            raise ValueError("checkpoint last_phi does not match saved arrays")
+    finally:
+        for arr in opened.values():
+            del arr
+
+
+def _flush_checkpoint_arrays(*arrays) -> None:
+    for arr in arrays:
+        if hasattr(arr, "flush"):
+            arr.flush()
 
 
 def trace_fieldline_trajectory(
@@ -221,6 +382,8 @@ def trace_fieldline_trajectory(
     chunk_intervals = max(1, int(math.floor(abs(float(chunk_phi_span)) / abs(dphi_out))))
 
     ckpt_dir = Path(checkpoint_dir) if checkpoint_dir is not None else None
+    if ckpt_dir is not None and storage == "memory":
+        raise ValueError("checkpoint_dir requires disk-backed storage; use storage='auto' or storage='disk'")
     if storage == "disk" or (storage == "auto" and (ckpt_dir is not None or bytes_needed > memory_limit_bytes)):
         if ckpt_dir is None:
             ckpt_dir = Path(tempfile.mkdtemp(prefix="pyna_fieldline_"))
@@ -239,11 +402,22 @@ def trace_fieldline_trajectory(
         "chunk_intervals": int(chunk_intervals),
     }
     checkpoint_path = ckpt_dir / _CHECKPOINT_NAME if ckpt_dir is not None else None
+    resolved_field_signature = _field_signature(field)
 
     checkpoint = _load_checkpoint(checkpoint_path) if checkpoint_path is not None and resume else None
     if checkpoint is not None:
         if checkpoint.get("schema_version") != _SCHEMA_VERSION or not _params_match(checkpoint.get("params", {}), params):
             raise ValueError(f"checkpoint parameters do not match current trace: {checkpoint_path}")
+        if checkpoint.get("schema_name", _SCHEMA_NAME) != _SCHEMA_NAME:
+            raise ValueError(f"checkpoint schema does not match current trace: {checkpoint_path}")
+        options = checkpoint.get("options") or {}
+        if "extend_phi" in options and options["extend_phi"] is not None:
+            if bool(options["extend_phi"]) != bool(extend_phi):
+                raise ValueError(f"checkpoint extend_phi option does not match current trace: {checkpoint_path}")
+        saved_field_signature = checkpoint.get("field_signature")
+        if saved_field_signature is not None and saved_field_signature != resolved_field_signature:
+            raise ValueError(f"checkpoint field signature does not match current trace: {checkpoint_path}")
+        _validate_checkpoint_arrays(ckpt_dir, checkpoint)
         R_all = _open_array(ckpt_dir, "R")
         Z_all = _open_array(ckpt_dir, "Z")
         phi_all = _open_array(ckpt_dir, "phi")
@@ -336,6 +510,7 @@ def trace_fieldline_trajectory(
         completed = next_index >= n_total - 1
         status = "complete" if completed else "running"
         if checkpoint_path is not None:
+            _flush_checkpoint_arrays(R_all, Z_all, phi_all, alive_all)
             payload = _checkpoint_payload(
                 checkpoint_dir=ckpt_dir,
                 status=status,
@@ -347,11 +522,10 @@ def trace_fieldline_trajectory(
                 last_Z=Z_cur,
                 last_phi=phi_cur,
                 storage=storage_mode,
+                field_signature=resolved_field_signature,
+                extend_phi=extend_phi,
             )
             _atomic_write_json(checkpoint_path, payload)
-        for arr in (R_all, Z_all, phi_all, alive_all):
-            if hasattr(arr, "flush"):
-                arr.flush()
 
         if stop_after_chunks is not None and chunks_done_this_call >= int(stop_after_chunks):
             completed = False
@@ -362,6 +536,7 @@ def trace_fieldline_trajectory(
 
     final_status = "complete" if completed else "incomplete"
     if checkpoint_path is not None:
+        _flush_checkpoint_arrays(R_all, Z_all, phi_all, alive_all)
         payload = _checkpoint_payload(
             checkpoint_dir=ckpt_dir,
             status=final_status,
@@ -373,6 +548,8 @@ def trace_fieldline_trajectory(
             last_Z=Z_cur,
             last_phi=phi_cur,
             storage=storage_mode,
+            field_signature=resolved_field_signature,
+            extend_phi=extend_phi,
         )
         _atomic_write_json(checkpoint_path, payload)
 
@@ -385,8 +562,13 @@ def trace_fieldline_trajectory(
         "phi_end": phi_end,
         "DPhi": DPhi,
         "dphi_out": dphi_out,
+        "n_total": int(n_total),
+        "n_written": int(n_written),
+        "next_index": int(next_index),
         "storage": storage_mode,
         "checkpoint": str(checkpoint_path) if checkpoint_path is not None else None,
+        "field_signature": resolved_field_signature,
+        "extend_phi": bool(extend_phi),
     }
     return DenseFieldLineTrajectory(
         phi=phi_all[usable],

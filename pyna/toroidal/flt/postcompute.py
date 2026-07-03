@@ -41,6 +41,10 @@ _VIEW_ALIASES = {
     "Lc_min": "Lc_min",
 }
 
+_WALL_TRACE_SCHEMA_NAME = "pyna.toroidal.flt.wall_trace_data"
+_WALL_TRACE_SCHEMA_VERSION = 1
+_WALL_TRACE_COMPATIBILITY = "v1 append-only; readers ignore unknown fields"
+
 
 def _json_default(value):
     if isinstance(value, np.generic):
@@ -62,6 +66,42 @@ def _array_digest(value) -> str:
     else:
         h.update(np.ascontiguousarray(arr).tobytes())
     return h.hexdigest()
+
+
+def _array_spec(value) -> dict[str, Any]:
+    arr = np.asarray(value)
+    return {"shape": list(arr.shape), "dtype": str(arr.dtype)}
+
+
+def _npz_scalar(data, key: str, default=None):
+    if key not in data.files:
+        return default
+    return np.asarray(data[key]).item()
+
+
+def _json_from_npz_scalar(data, key: str, default):
+    value = _npz_scalar(data, key, None)
+    if value is None:
+        return default
+    return json.loads(str(value))
+
+
+def _validate_npz_array_spec(data, key: str, spec: dict[str, Any]) -> None:
+    if key not in data.files:
+        raise ValueError(f"cached toroidal wall trace is missing array {key!r}")
+    arr = np.asarray(data[key])
+    expected_shape = spec.get("shape")
+    if expected_shape is not None and list(arr.shape) != list(expected_shape):
+        raise ValueError(
+            f"cached toroidal wall trace array {key!r} has shape {arr.shape}; "
+            f"expected {tuple(expected_shape)}"
+        )
+    expected_dtype = spec.get("dtype")
+    if expected_dtype is not None and str(arr.dtype) != str(expected_dtype):
+        raise ValueError(
+            f"cached toroidal wall trace array {key!r} has dtype {arr.dtype}; "
+            f"expected {expected_dtype}"
+        )
 
 
 def _field_array_signature(field, attr_names: tuple[str, ...]) -> dict[str, Any] | None:
@@ -119,6 +159,38 @@ def _field_cache_signature(field) -> dict[str, Any]:
     return signature
 
 
+def _wall_trace_cache_signature_payload(
+    *,
+    field_signature,
+    seed_R,
+    seed_Z,
+    phi_start: float,
+    max_turns: int,
+    DPhi: float,
+    wall_phi,
+    wall_R_all=None,
+    wall_Z_all=None,
+    extend_phi: bool,
+) -> dict[str, Any]:
+    return {
+        "field": field_signature,
+        "seed_R": _array_digest(seed_R),
+        "seed_Z": _array_digest(seed_Z),
+        "phi_start": float(phi_start),
+        "max_turns": int(max_turns),
+        "DPhi": float(DPhi),
+        "wall_phi": _array_digest(wall_phi),
+        "wall_R_all": _array_digest(wall_R_all),
+        "wall_Z_all": _array_digest(wall_Z_all),
+        "extend_phi": bool(extend_phi),
+    }
+
+
+def _wall_trace_cache_signature_from_payload(payload: dict[str, Any]) -> str:
+    encoded = json.dumps(payload, sort_keys=True, default=_json_default).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def _wall_trace_cache_signature(
     *,
     field_signature,
@@ -132,20 +204,19 @@ def _wall_trace_cache_signature(
     wall_Z_all=None,
     extend_phi: bool,
 ) -> str:
-    payload = {
-        "field": field_signature,
-        "seed_R": _array_digest(seed_R),
-        "seed_Z": _array_digest(seed_Z),
-        "phi_start": float(phi_start),
-        "max_turns": int(max_turns),
-        "DPhi": float(DPhi),
-        "wall_phi": _array_digest(wall_phi),
-        "wall_R_all": _array_digest(wall_R_all),
-        "wall_Z_all": _array_digest(wall_Z_all),
-        "extend_phi": bool(extend_phi),
-    }
-    encoded = json.dumps(payload, sort_keys=True, default=_json_default).encode("utf-8")
-    return hashlib.sha256(encoded).hexdigest()
+    payload = _wall_trace_cache_signature_payload(
+        field_signature=field_signature,
+        seed_R=seed_R,
+        seed_Z=seed_Z,
+        phi_start=phi_start,
+        max_turns=max_turns,
+        DPhi=DPhi,
+        wall_phi=wall_phi,
+        wall_R_all=wall_R_all,
+        wall_Z_all=wall_Z_all,
+        extend_phi=extend_phi,
+    )
+    return _wall_trace_cache_signature_from_payload(payload)
 
 
 def normalize_connection_length_view(name: str) -> str:
@@ -222,17 +293,39 @@ class ToroidalWallTraceData:
 
         out = Path(path).expanduser()
         out.parent.mkdir(parents=True, exist_ok=True)
+        wall_hit_items = sorted(((str(key), value) for key, value in self.wall_hits.items()), key=lambda item: item[0])
+        wall_hit_keys = [key for key, _value in wall_hit_items]
+        wall_hit_specs = {key: _array_spec(value) for key, value in wall_hit_items}
+        array_specs = {
+            "seed_R": _array_spec(self.seed_R),
+            "seed_Z": _array_spec(self.seed_Z),
+            **{f"wall_hits_{key}": spec for key, spec in wall_hit_specs.items()},
+        }
         arrays: dict[str, np.ndarray] = {
+            "schema_name": np.asarray(_WALL_TRACE_SCHEMA_NAME),
+            "schema_version": np.asarray(_WALL_TRACE_SCHEMA_VERSION, dtype=np.int64),
+            "compatibility": np.asarray(_WALL_TRACE_COMPATIBILITY),
+            "complete": np.asarray(True),
+            "n_seed": np.asarray(self.n_seed, dtype=np.int64),
             "seed_R": np.asarray(self.seed_R, dtype=float),
             "seed_Z": np.asarray(self.seed_Z, dtype=float),
             "phi_start": np.asarray(float(self.phi_start)),
             "max_turns": np.asarray(int(self.max_turns), dtype=int),
             "DPhi": np.asarray(float(self.DPhi)),
+            "wall_hit_keys_json": np.asarray(json.dumps(wall_hit_keys, sort_keys=True)),
+            "wall_hit_specs_json": np.asarray(json.dumps(wall_hit_specs, sort_keys=True)),
+            "array_specs_json": np.asarray(json.dumps(array_specs, sort_keys=True)),
             "metadata_json": np.asarray(json.dumps(self.metadata, sort_keys=True, default=_json_default)),
         }
-        for key, value in self.wall_hits.items():
+        for key, value in wall_hit_items:
             arrays[f"wall_hits_{key}"] = np.asarray(value)
-        np.savez(str(out), **arrays)
+        tmp = out.with_name(f".{out.name}.tmp.npz")
+        try:
+            np.savez(str(tmp), **arrays)
+            tmp.replace(out)
+        finally:
+            if tmp.exists():
+                tmp.unlink()
 
     def save_views_npz(
         self,
@@ -252,14 +345,41 @@ class ToroidalWallTraceData:
         """Load a cached raw wall trace from :meth:`save_npz` output."""
 
         with np.load(str(Path(path).expanduser()), allow_pickle=False) as data:
+            schema_name = str(_npz_scalar(data, "schema_name", _WALL_TRACE_SCHEMA_NAME))
+            if schema_name != _WALL_TRACE_SCHEMA_NAME:
+                raise ValueError(f"cached toroidal wall trace has unknown schema {schema_name!r}")
+            schema_version = int(_npz_scalar(data, "schema_version", 1))
+            if schema_version > _WALL_TRACE_SCHEMA_VERSION:
+                raise ValueError(
+                    "cached toroidal wall trace was written by a newer schema "
+                    f"({schema_version}); this version supports {_WALL_TRACE_SCHEMA_VERSION}."
+                )
+            if schema_version < 1:
+                raise ValueError("cached toroidal wall trace has an unsupported schema version")
+            if "complete" in data.files and not bool(_npz_scalar(data, "complete")):
+                raise ValueError("cached toroidal wall trace is not marked complete")
+
             metadata_raw = str(np.asarray(data["metadata_json"]).item())
-            wall_hits = {
-                key[len("wall_hits_"):]: np.asarray(data[key])
-                for key in data.files
-                if key.startswith("wall_hits_")
-            }
+            wall_hit_keys = _json_from_npz_scalar(data, "wall_hit_keys_json", None)
+            if wall_hit_keys is None:
+                wall_hit_keys = sorted(key[len("wall_hits_"):] for key in data.files if key.startswith("wall_hits_"))
+            wall_hit_specs = _json_from_npz_scalar(data, "wall_hit_specs_json", {})
+            for key in wall_hit_keys:
+                array_key = f"wall_hits_{key}"
+                if key in wall_hit_specs:
+                    _validate_npz_array_spec(data, array_key, wall_hit_specs[key])
+            array_specs = _json_from_npz_scalar(data, "array_specs_json", {})
+            for key, spec in array_specs.items():
+                _validate_npz_array_spec(data, key, spec)
+            wall_hits = {key: np.asarray(data[f"wall_hits_{key}"]) for key in wall_hit_keys}
             seed_R = np.asarray(data["seed_R"], dtype=float)
             seed_Z = np.asarray(data["seed_Z"], dtype=float)
+            n_seed = _npz_scalar(data, "n_seed", None)
+            if n_seed is not None and int(n_seed) != int(seed_R.size):
+                raise ValueError(
+                    f"cached toroidal wall trace has n_seed={int(n_seed)} "
+                    f"but seed_R contains {seed_R.size} entries"
+                )
             phi_start = float(np.asarray(data["phi_start"]).item())
             max_turns = int(np.asarray(data["max_turns"]).item())
             DPhi = float(np.asarray(data["DPhi"]).item())
@@ -297,7 +417,7 @@ def trace_toroidal_wall_data_field(
 
     wall_phi, wall_R_all, wall_Z_all = coerce_toroidal_surface_arrays(wall_phi, wall_R_all, wall_Z_all)
     resolved_field_signature = _field_cache_signature(field) if field_signature is None else field_signature
-    signature = _wall_trace_cache_signature(
+    signature_payload = _wall_trace_cache_signature_payload(
         field_signature=resolved_field_signature,
         seed_R=seed_R,
         seed_Z=seed_Z,
@@ -309,6 +429,7 @@ def trace_toroidal_wall_data_field(
         wall_Z_all=wall_Z_all,
         extend_phi=bool(extend_phi),
     )
+    signature = _wall_trace_cache_signature_from_payload(signature_payload)
     if cache_path is not None:
         path = Path(cache_path).expanduser()
         if path.exists() and not overwrite:
@@ -357,6 +478,7 @@ def trace_toroidal_wall_data_field(
             "post_compute_reusable": True,
             "field_signature": resolved_field_signature,
             "cache_signature": signature,
+            "cache_signature_inputs": signature_payload,
         },
     )
     if path is not None:

@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pytest
 
@@ -288,8 +290,28 @@ def test_wall_trace_post_compute_views_and_cache(tmp_path, monkeypatch):
     )
     cache = tmp_path / "wall_trace.npz"
     data.save_npz(cache)
+    with np.load(cache, allow_pickle=False) as raw:
+        assert str(np.asarray(raw["schema_name"]).item()) == "pyna.toroidal.flt.wall_trace_data"
+        assert int(np.asarray(raw["schema_version"]).item()) == 1
+        assert str(np.asarray(raw["compatibility"]).item()) == "v1 append-only; readers ignore unknown fields"
+        assert bool(np.asarray(raw["complete"]).item()) is True
+        assert int(np.asarray(raw["n_seed"]).item()) == 2
+        wall_hit_keys = json.loads(str(np.asarray(raw["wall_hit_keys_json"]).item()))
+        assert wall_hit_keys == sorted(wall_hits)
+        wall_hit_specs = json.loads(str(np.asarray(raw["wall_hit_specs_json"]).item()))
+        assert wall_hit_specs["Lc_plus"]["shape"] == [2]
+        assert wall_hit_specs["hit_plus"]["shape"] == [2, 3]
+        assert wall_hit_specs["term_plus"]["dtype"] == str(wall_hits["term_plus"].dtype)
     loaded = ToroidalWallTraceData.load_npz(cache)
     np.testing.assert_allclose(loaded.view("max"), [3.0, 2.0])
+    incomplete_cache = tmp_path / "wall_trace_incomplete.npz"
+    with np.load(cache, allow_pickle=False) as raw:
+        arrays = {key: np.asarray(raw[key]) for key in raw.files}
+    arrays["complete"] = np.asarray(False)
+    np.savez(incomplete_cache, **arrays)
+    with pytest.raises(ValueError, match="not marked complete"):
+        ToroidalWallTraceData.load_npz(incomplete_cache)
+
     views_cache = tmp_path / "wall_trace_views.npz"
     saved_views = loaded.save_views_npz(views_cache, ("forward", "total"))
     assert views_cache.exists()
@@ -354,6 +376,9 @@ def test_wall_trace_post_compute_views_and_cache(tmp_path, monkeypatch):
     assert len(calls) == 1
     np.testing.assert_allclose(traced.view("total"), cached.view("total"))
     assert "field_signature" in traced.metadata
+    assert traced.metadata["cache_signature_inputs"]["extend_phi"] is True
+    assert traced.metadata["cache_signature_inputs"]["seed_R"]
+    assert traced.metadata["cache_signature_inputs"]["wall_phi"]
 
     with pytest.raises(ValueError, match="does not match requested inputs"):
         trace_toroidal_wall_data_field(
@@ -618,6 +643,13 @@ def test_restartable_dense_trajectory_matches_unchunked(tmp_path):
         stop_after_chunks=2,
     )
     assert partial.status == "incomplete"
+    checkpoint = json.loads((tmp_path / "fieldline_trajectory_checkpoint.json").read_text(encoding="utf-8"))
+    assert checkpoint["schema_name"] == "pyna.toroidal.flt.fieldline_trajectory_checkpoint"
+    assert checkpoint["compatibility"] == "v1 append-only; readers ignore unknown fields"
+    assert checkpoint["options"]["extend_phi"] is True
+    assert checkpoint["field_signature"]["type"].endswith("VectorFieldCylind")
+    assert checkpoint["array_specs"]["R"]["shape"] == [partial.metadata["n_total"]]
+    assert checkpoint["array_specs"]["alive"]["dtype"] == "int8"
 
     resumed = trace_fieldline_trajectory(
         field,
@@ -638,3 +670,81 @@ def test_restartable_dense_trajectory_matches_unchunked(tmp_path):
     values = resumed.sol([0.25, 0.75])
     assert values.shape == (2, 2)
     assert np.all(np.isfinite(values))
+
+
+def test_restartable_dense_trajectory_rejects_memory_storage_checkpoint(tmp_path):
+    with pytest.raises(ValueError, match="checkpoint_dir"):
+        trace_fieldline_trajectory(
+            object(),
+            1.08,
+            0.02,
+            0.0,
+            1.0,
+            0.01,
+            dphi_out=0.05,
+            checkpoint_dir=tmp_path,
+            storage="memory",
+        )
+
+
+def test_restartable_dense_trajectory_rejects_mismatched_resume_inputs(tmp_path):
+    _skip_without_cyna()
+    field = _rotation_field(omega=0.25)
+
+    partial = trace_fieldline_trajectory(
+        field,
+        1.08,
+        0.02,
+        0.0,
+        1.0,
+        0.01,
+        dphi_out=0.05,
+        chunk_phi_span=0.2,
+        checkpoint_dir=tmp_path,
+        stop_after_chunks=1,
+    )
+    assert partial.status == "incomplete"
+
+    with pytest.raises(ValueError, match="field signature"):
+        trace_fieldline_trajectory(
+            _rotation_field(omega=0.30),
+            1.08,
+            0.02,
+            0.0,
+            1.0,
+            0.01,
+            dphi_out=0.05,
+            chunk_phi_span=0.2,
+            checkpoint_dir=tmp_path,
+        )
+
+    with pytest.raises(ValueError, match="extend_phi"):
+        trace_fieldline_trajectory(
+            field,
+            1.08,
+            0.02,
+            0.0,
+            1.0,
+            0.01,
+            dphi_out=0.05,
+            chunk_phi_span=0.2,
+            checkpoint_dir=tmp_path,
+            extend_phi=False,
+        )
+
+    checkpoint_path = tmp_path / "fieldline_trajectory_checkpoint.json"
+    checkpoint = json.loads(checkpoint_path.read_text(encoding="utf-8"))
+    checkpoint["last_R"] = float(checkpoint["last_R"]) + 0.1
+    checkpoint_path.write_text(json.dumps(checkpoint), encoding="utf-8")
+    with pytest.raises(ValueError, match="last_R"):
+        trace_fieldline_trajectory(
+            field,
+            1.08,
+            0.02,
+            0.0,
+            1.0,
+            0.01,
+            dphi_out=0.05,
+            chunk_phi_span=0.2,
+            checkpoint_dir=tmp_path,
+        )

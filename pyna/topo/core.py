@@ -186,6 +186,42 @@ class Trajectory(GeometricObject):
     def n_samples(self) -> int:
         return int(self.states.shape[0])
 
+    @property
+    def independent(self) -> np.ndarray:
+        """Sample parameter values aligned with ``states``."""
+
+        return self.times
+
+    @property
+    def independent_name(self) -> str:
+        """Name of the sample parameter used by storage/resume code."""
+
+        return self.time_name
+
+    @property
+    def initial(self) -> np.ndarray:
+        """Initial sampled state."""
+
+        if self.n_samples == 0:
+            raise ValueError("empty trajectory has no initial state")
+        return self.states[0]
+
+    @property
+    def start_independent(self) -> float:
+        """First sampled parameter value."""
+
+        if self.n_samples == 0:
+            raise ValueError("empty trajectory has no start parameter")
+        return float(self.times[0])
+
+    @property
+    def end_independent(self) -> float:
+        """Last sampled parameter value."""
+
+        if self.n_samples == 0:
+            raise ValueError("empty trajectory has no end parameter")
+        return float(self.times[-1])
+
     def interpolate_at(self, t: float) -> np.ndarray:
         t = float(t)
         if self.n_samples == 0:
@@ -305,6 +341,44 @@ class Orbit(GeometricObject):
     @property
     def n_samples(self) -> int:
         return int(self.states.shape[0])
+
+    @property
+    def independent(self) -> np.ndarray:
+        """Sample step values aligned with ``states``."""
+
+        if self.steps is None:
+            return np.arange(self.n_samples, dtype=int)
+        return self.steps
+
+    @property
+    def independent_name(self) -> str:
+        """Name of the sample parameter used by storage/resume code."""
+
+        return "step"
+
+    @property
+    def initial(self) -> np.ndarray:
+        """Initial sampled map state."""
+
+        if self.n_samples == 0:
+            raise ValueError("empty orbit has no initial state")
+        return self.states[0]
+
+    @property
+    def start_independent(self) -> int:
+        """First sampled step value."""
+
+        if self.n_samples == 0:
+            raise ValueError("empty orbit has no start step")
+        return int(np.asarray(self.independent)[0])
+
+    @property
+    def end_independent(self) -> int:
+        """Last sampled step value."""
+
+        if self.n_samples == 0:
+            raise ValueError("empty orbit has no end step")
+        return int(np.asarray(self.independent)[-1])
 
     @property
     def final(self) -> np.ndarray:

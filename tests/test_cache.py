@@ -9,7 +9,7 @@ from unittest.mock import patch, MagicMock
 
 from pyna.toroidal.equilibrium.Solovev import EquilibriumSolovev
 from pyna.control._cached_fpt import CachedFPTAnalyzer
-from pyna.cache import eq_hash, array_hash, cache_info, clear_cache
+from pyna.cache import CacheStore, eq_hash, array_hash, cache_info, clear_cache
 
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -83,6 +83,27 @@ def test_array_hash_different_arrays():
     h1 = array_hash(np.array([1.0, 2.0]))
     h2 = array_hash(np.array([1.0, 3.0]))
     assert h1 != h2
+
+
+def test_cache_store_flush_waits_for_async_write(tmp_path):
+    store = CacheStore(tmp_path, backend="pickle", async_write=True)
+
+    store.put("resume-key", {"value": np.asarray([1.0, 2.0])})
+    store.flush()
+
+    assert store.stats["pending_writes"] == 0
+    reopened = CacheStore(tmp_path, backend="pickle", async_write=False)
+    cached = reopened.get("resume-key")
+    np.testing.assert_allclose(cached["value"], [1.0, 2.0])
+
+
+def test_cache_store_join_pending_writes_alias(tmp_path):
+    store = CacheStore(tmp_path, backend="pickle", async_write=True)
+
+    store.put("resume-key", {"value": 3})
+    store.join_pending_writes()
+
+    assert store.get("resume-key") == {"value": 3}
 
 
 # ─── Tests: CachedFPTAnalyzer.A_matrix ────────────────────────────────────────

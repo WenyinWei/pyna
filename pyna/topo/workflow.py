@@ -13,7 +13,7 @@ It is a facade, not a new mathematical layer.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Optional, Sequence
+from typing import Any, Callable, Optional, Sequence
 
 import numpy as np
 
@@ -24,16 +24,117 @@ from pyna.topo.core import Cycle, IslandChain, Orbit, PeriodicOrbit, Trajectory,
 from pyna.topo.factories import DynamicalSystemFactory, GeometryFactory, PoincareMapFactory
 
 
+def _map_coordinate_names(map_obj: Any) -> tuple[str, ...] | None:
+    names = getattr(getattr(map_obj, "phase_space", None), "coordinate_names", None)
+    return tuple(names) if names else None
+
+
+def _state_matrix_from_result(value: Any) -> np.ndarray | None:
+    """Return sampled states from common map-orbit result conventions."""
+
+    if isinstance(value, Orbit):
+        return np.asarray(value.states, dtype=float)
+
+    if isinstance(value, tuple) and value and all(np.ndim(item) == 1 for item in value):
+        arrays = [np.asarray(item, dtype=float) for item in value]
+        sizes = {arr.shape[0] for arr in arrays}
+        if len(sizes) == 1:
+            return np.column_stack(arrays)
+
+    arr = np.asarray(value, dtype=float)
+    if arr.ndim == 2:
+        return arr
+    return None
+
+
+def _state_from_result(value: Any) -> np.ndarray:
+    states = _state_matrix_from_result(value)
+    if states is not None:
+        if states.shape[0] == 0:
+            raise ValueError("map result produced no states")
+        return np.asarray(states[-1], dtype=float).reshape(-1)
+
+    arr = np.asarray(value, dtype=float)
+    if arr.ndim == 0:
+        return arr.reshape(1)
+    if arr.ndim == 1:
+        return arr.copy()
+    raise TypeError("map step result cannot be interpreted as a state")
+
+
+def _call_with_state_and_count(method: Callable[..., Any], state: np.ndarray, count: int) -> Any:
+    try:
+        return method(state, int(count))
+    except TypeError as state_error:
+        try:
+            return method(*state.tolist(), int(count))
+        except TypeError:
+            raise state_error
+
+
+def _call_with_state(method: Callable[..., Any], state: np.ndarray) -> Any:
+    try:
+        return method(state)
+    except TypeError as state_error:
+        try:
+            return method(*state.tolist())
+        except TypeError:
+            raise state_error
+
+
+def _orbit_from_states(states: Any, *, coordinate_names: tuple[str, ...] | None) -> Orbit:
+    if isinstance(states, Orbit):
+        return states
+    state_arr = _state_matrix_from_result(states)
+    if state_arr is None:
+        raise TypeError("map orbit result must be a sampled state array or Orbit")
+    return Orbit(
+        states=np.asarray(state_arr, dtype=float),
+        steps=np.arange(state_arr.shape[0]),
+        coordinate_names=coordinate_names,
+    )
+
+
+def _orbit_from_step(
+    step: Callable[..., Any],
+    x0: np.ndarray,
+    n_iter: int,
+    *,
+    coordinate_names: tuple[str, ...] | None,
+) -> Orbit:
+    x = x0.copy()
+    sampled = [x.copy()]
+    for _ in range(n_iter):
+        x = _state_from_result(_call_with_state(step, x))
+        sampled.append(x.copy())
+    return _orbit_from_states(np.vstack(sampled), coordinate_names=coordinate_names)
+
+
 def orbit_from_map(map_obj: Any, x0: Sequence[float], n_iter: int) -> Orbit:
     """Iterate a map-like object and return an ``Orbit`` geometry object."""
 
-    if hasattr(map_obj, "orbit_geometry"):
-        return map_obj.orbit_geometry(x0, n_iter)
-    if hasattr(map_obj, "orbit"):
-        states = map_obj.orbit(np.asarray(x0, dtype=float), int(n_iter))
-        names = getattr(getattr(map_obj, "phase_space", None), "coordinate_names", None)
-        return Orbit(states=states, steps=np.arange(states.shape[0]), coordinate_names=names or None)
-    raise TypeError(f"{type(map_obj).__name__} cannot produce a discrete orbit.")
+    n_iter = int(n_iter)
+    if n_iter < 0:
+        raise ValueError("n_iter must be non-negative")
+    x0_arr = np.asarray(x0, dtype=float).reshape(-1)
+    names = _map_coordinate_names(map_obj)
+
+    orbit_geometry = getattr(map_obj, "orbit_geometry", None)
+    if callable(orbit_geometry):
+        return _orbit_from_states(orbit_geometry(x0_arr, n_iter), coordinate_names=names)
+
+    orbit = getattr(map_obj, "orbit", None)
+    if callable(orbit):
+        return _orbit_from_states(_call_with_state_and_count(orbit, x0_arr, n_iter), coordinate_names=names)
+
+    step = getattr(map_obj, "step", None)
+    if callable(step):
+        return _orbit_from_step(step, x0_arr, n_iter, coordinate_names=names)
+
+    raise TypeError(
+        f"{type(map_obj).__name__} cannot produce a discrete orbit; "
+        "implement orbit_geometry(...), orbit(...), or step(...)."
+    )
 
 
 def make_poincare_map(flow: Any, section: Any, **kwargs: Any) -> Any:

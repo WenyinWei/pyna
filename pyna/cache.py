@@ -407,6 +407,8 @@ class CacheStore:
 
         self._index: OrderedDict[str, _Entry] = OrderedDict()
         self._lock = threading.Lock()
+        self._pending_writes: list[threading.Thread] = []
+        self._write_errors: list[BaseException] = []
 
         # Scan existing entries on disk
         self._scan()
@@ -450,11 +452,59 @@ class CacheStore:
         """
         if self.async_write:
             t = threading.Thread(
-                target=self._put_sync, args=(key, data), daemon=True
+                target=self._put_async, args=(key, data), daemon=True
             )
+            with self._lock:
+                self._pending_writes.append(t)
             t.start()
         else:
             self._put_sync(key, data)
+
+    def _put_async(self, key: str, data: Any) -> None:
+        try:
+            self._put_sync(key, data)
+        except BaseException as exc:
+            with self._lock:
+                self._write_errors.append(exc)
+        finally:
+            current = threading.current_thread()
+            with self._lock:
+                self._pending_writes = [t for t in self._pending_writes if t is not current]
+
+    def flush(self, timeout: float | None = None) -> None:
+        """Wait for pending async writes to finish.
+
+        This is the reliability boundary for cross-process resume: after
+        ``flush()`` returns, all writes submitted before the call have either
+        reached disk and the index, or an exception is raised.
+        """
+
+        deadline = None if timeout is None else time.time() + float(timeout)
+        while True:
+            with self._lock:
+                pending = list(self._pending_writes)
+            if not pending:
+                break
+            for thread in pending:
+                join_timeout = None
+                if deadline is not None:
+                    join_timeout = max(0.0, deadline - time.time())
+                thread.join(join_timeout)
+            if deadline is not None:
+                with self._lock:
+                    if self._pending_writes and time.time() >= deadline:
+                        raise TimeoutError("timed out waiting for async cache writes")
+
+        with self._lock:
+            errors = list(self._write_errors)
+            self._write_errors.clear()
+        if errors:
+            raise RuntimeError(f"{len(errors)} async cache write(s) failed") from errors[0]
+
+    def join_pending_writes(self, timeout: float | None = None) -> None:
+        """Alias for ``flush()`` with a resume-oriented name."""
+
+        self.flush(timeout=timeout)
 
     def _put_sync(self, key: str, data: Any) -> None:
         """Synchronous write (used by async thread or direct call).
@@ -518,12 +568,14 @@ class CacheStore:
         with self._lock:
             entries = len(self._index)
             total_bytes = sum(e.size_bytes for e in self._index.values())
+            pending_writes = len(self._pending_writes)
         return {
             "entries": entries,
             "total_mb": round(total_bytes / (1024 * 1024), 2),
             "root": str(self.root),
             "backend": self._backend_name,
             "async_write": self.async_write,
+            "pending_writes": pending_writes,
         }
 
     def __repr__(self) -> str:
@@ -798,6 +850,7 @@ def _memoize_impl(
 
     # Expose cache control on the wrapper
     wrapper._pyna_key_fn = fn.__qualname__  # type: ignore[attr-defined]
+    wrapper._pyna_cache_store = store  # type: ignore[attr-defined]
 
     def _clear_fn_entries():
         """Clear all cache entries for this function."""
