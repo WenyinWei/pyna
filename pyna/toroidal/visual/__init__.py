@@ -77,6 +77,8 @@ try:
         plot_poincare_orbits,
         plot_xcycle_marker,
         plot_manifold_1d,
+        draw_manifold_segments,
+        plot_poincare_manifold_section,
         plot_xcycle_all_manifolds,
         make_tokamak_overview_figure,
         manifold_legend_handles,
@@ -97,6 +99,8 @@ except ModuleNotFoundError as exc:
     plot_poincare_orbits = _tokamak_manifold_unavailable
     plot_xcycle_marker = _tokamak_manifold_unavailable
     plot_manifold_1d = _tokamak_manifold_unavailable
+    draw_manifold_segments = _tokamak_manifold_unavailable
+    plot_poincare_manifold_section = _tokamak_manifold_unavailable
     plot_xcycle_all_manifolds = _tokamak_manifold_unavailable
     make_tokamak_overview_figure = _tokamak_manifold_unavailable
     manifold_legend_handles = _tokamak_manifold_unavailable
@@ -179,6 +183,8 @@ __all__ = [
     "plot_poincare_orbits",
     "plot_xcycle_marker",
     "plot_manifold_1d",
+    "draw_manifold_segments",
+    "plot_poincare_manifold_section",
     "plot_xcycle_all_manifolds",
     "make_tokamak_overview_figure",
     "manifold_legend_handles",

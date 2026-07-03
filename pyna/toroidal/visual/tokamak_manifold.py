@@ -445,6 +445,283 @@ def plot_manifold_1d(
     return lc
 
 
+def _iter_manifold_segment_arrays(segments) -> list[np.ndarray]:
+    """Normalize manifold segment containers to ordered R/Z arrays."""
+
+    if segments is None:
+        return []
+    if isinstance(segments, dict):
+        out: list[np.ndarray] = []
+        for value in segments.values():
+            out.extend(_iter_manifold_segment_arrays(value))
+        return out
+
+    try:
+        arr = np.asarray(segments, dtype=float)
+    except (TypeError, ValueError):
+        arr = np.asarray(segments, dtype=object)
+
+    if arr.dtype != object:
+        if arr.ndim == 2 and arr.shape[1] >= 2:
+            return [arr[:, :2]] if arr.shape[0] >= 2 else []
+        if arr.ndim == 3 and arr.shape[-1] >= 2:
+            return [seg[:, :2] for seg in arr if seg.shape[0] >= 2]
+
+    out = []
+    for value in segments:
+        out.extend(_iter_manifold_segment_arrays(value))
+    return out
+
+
+def draw_manifold_segments(
+    ax: plt.Axes,
+    segments,
+    *,
+    unstable: bool = True,
+    fig: Optional[plt.Figure] = None,
+    cmap: Optional[str] = None,
+    lw: float = 0.9,
+    alpha: float = 0.90,
+    s_norm_gamma: float = 0.5,
+    s_ref: Optional[float] = None,
+    zorder: int = 6,
+    show_colorbar: bool = False,
+    colorbar_label: Optional[str] = None,
+) -> list[LineCollection]:
+    """Draw one or more ordered manifold sections on a Poincare plane.
+
+    This is the public, composable facade around pyna's arc-length-coloured
+    manifold line collection.  ``segments`` may be a single ``(N, 2+)`` array,
+    a list of such arrays, or a nested dict/list produced by a workflow cell.
+    """
+
+    if fig is None:
+        fig = ax.get_figure()
+    arrays = _iter_manifold_segment_arrays(segments)
+    if not arrays:
+        return []
+
+    shared_s_ref = s_ref
+    if shared_s_ref is None and len(arrays) > 1:
+        maxima = [float(accumulate_s_from_RZ_arr(arr).max()) for arr in arrays]
+        shared_s_ref = max(maxima) if maxima else None
+
+    collections = []
+    for arr in arrays:
+        collections.append(
+            plot_manifold_1d(
+                fig,
+                ax,
+                arr,
+                unstable=unstable,
+                cmap=cmap,
+                lw=lw,
+                alpha=alpha,
+                s_norm_gamma=s_norm_gamma,
+                s_ref=shared_s_ref,
+                zorder=zorder,
+                show_colorbar=False,
+            )
+        )
+
+    if show_colorbar and collections:
+        label = colorbar_label or (
+            r'$s_{\rm unstable}\ (\mathrm{m})$'
+            if unstable
+            else r'$s_{\rm stable}\ (\mathrm{m})$'
+        )
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes('right', size='4%', pad=0.05)
+        cb = fig.colorbar(collections[0], cax=cax)
+        cb.set_label(label, fontsize=9)
+        cb.ax.tick_params(labelsize=8)
+
+    return collections
+
+
+def _draw_poincare_payload(
+    ax: plt.Axes,
+    points,
+    *,
+    psi_values: Optional[np.ndarray] = None,
+    color: str = '0.16',
+    cmap: str = 'viridis',
+    point_size: float = 0.55,
+    alpha: float = 0.55,
+    rasterized: bool = True,
+    zorder: int = 3,
+):
+    if points is None:
+        return None
+    if isinstance(points, tuple) and len(points) >= 2:
+        R = np.asarray(points[0], dtype=float).ravel()
+        Z = np.asarray(points[1], dtype=float).ravel()
+        good = np.isfinite(R) & np.isfinite(Z)
+        return ax.scatter(
+            R[good],
+            Z[good],
+            s=point_size,
+            color=color,
+            alpha=alpha,
+            linewidths=0,
+            rasterized=rasterized,
+            zorder=zorder,
+        )
+
+    try:
+        arr = np.asarray(points, dtype=float)
+        if arr.ndim == 2 and arr.shape[1] >= 2:
+            good = np.isfinite(arr[:, 0]) & np.isfinite(arr[:, 1])
+            return ax.scatter(
+                arr[good, 0],
+                arr[good, 1],
+                s=point_size,
+                color=color,
+                alpha=alpha,
+                linewidths=0,
+                rasterized=rasterized,
+                zorder=zorder,
+            )
+    except (TypeError, ValueError):
+        pass
+
+    return plot_poincare_orbits(
+        list(points),
+        ax,
+        psi_values=psi_values,
+        cmap=cmap,
+        s=point_size,
+        alpha=alpha,
+        rasterized=rasterized,
+        zorder=zorder,
+        show_colorbar=False,
+    )
+
+
+def plot_poincare_manifold_section(
+    ax: plt.Axes,
+    *,
+    poincare_points=None,
+    stable_segments=None,
+    unstable_segments=None,
+    x_points=None,
+    o_points=None,
+    psi_values: Optional[np.ndarray] = None,
+    point_size: float = 0.55,
+    point_alpha: float = 0.55,
+    point_color: str = '0.16',
+    poincare_cmap: str = 'viridis',
+    unstable_cmap: str = UNSTABLE_CMAPS[0],
+    stable_cmap: str = STABLE_CMAPS[0],
+    manifold_lw: float = 0.9,
+    manifold_alpha: float = 0.90,
+    s_norm_gamma: float = 0.5,
+    show_colorbar: bool = False,
+    show_legend: bool = True,
+    legend_loc: str = 'best',
+    xlabel: str = r'$R\ (\mathrm{m})$',
+    ylabel: str = r'$Z\ (\mathrm{m})$',
+    title: Optional[str] = None,
+) -> dict[str, object]:
+    """Compose a compact Poincare/manifold section from optional plot layers.
+
+    The function intentionally keeps each layer optional: tutorial notebooks can
+    call one facade, while research scripts can still use
+    :func:`draw_manifold_segments`, :func:`plot_poincare_orbits`, and
+    :func:`plot_xcycle_marker` independently.
+    """
+
+    fig = ax.get_figure()
+    artists: dict[str, object] = {}
+
+    artists['poincare'] = _draw_poincare_payload(
+        ax,
+        poincare_points,
+        psi_values=psi_values,
+        color=point_color,
+        cmap=poincare_cmap,
+        point_size=point_size,
+        alpha=point_alpha,
+        zorder=3,
+    )
+    artists['stable'] = draw_manifold_segments(
+        ax,
+        stable_segments,
+        unstable=False,
+        fig=fig,
+        cmap=stable_cmap,
+        lw=manifold_lw,
+        alpha=manifold_alpha,
+        s_norm_gamma=s_norm_gamma,
+        show_colorbar=False,
+        zorder=6,
+    )
+    artists['unstable'] = draw_manifold_segments(
+        ax,
+        unstable_segments,
+        unstable=True,
+        fig=fig,
+        cmap=unstable_cmap,
+        lw=manifold_lw,
+        alpha=manifold_alpha,
+        s_norm_gamma=s_norm_gamma,
+        show_colorbar=False,
+        zorder=7,
+    )
+
+    if x_points is not None:
+        artists['x_points'] = plot_xcycle_marker(x_points, 'hyperbolic', ax=ax, label='X-point')
+    if o_points is not None:
+        artists['o_points'] = plot_xcycle_marker(o_points, 'elliptic', ax=ax, label='O-point')
+
+    if show_colorbar:
+        ref = None
+        if artists['unstable']:
+            ref = artists['unstable'][0]
+            label = r'$s_{\rm unstable}\ (\mathrm{m})$'
+        elif artists['stable']:
+            ref = artists['stable'][0]
+            label = r'$s_{\rm stable}\ (\mathrm{m})$'
+        else:
+            label = r'$s\ (\mathrm{m})$'
+        if ref is not None:
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes('right', size='4%', pad=0.05)
+            cb = fig.colorbar(ref, cax=cax)
+            cb.set_label(label, fontsize=9)
+            cb.ax.tick_params(labelsize=8)
+
+    if title:
+        ax.set_title(title, fontsize=10, pad=2.0)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_aspect('equal', adjustable='box')
+
+    if show_legend and (artists['stable'] or artists['unstable'] or x_points is not None or o_points is not None):
+        handles = []
+        cmap_u = plt.colormaps.get_cmap(unstable_cmap)
+        cmap_s = plt.colormaps.get_cmap(stable_cmap)
+        if artists['unstable']:
+            handles.append(
+                plt.Line2D([0], [0], color=cmap_u(0.75), lw=2.0, label=r'Unstable manifold $W^{\rm u}$')
+            )
+        if artists['stable']:
+            handles.append(
+                plt.Line2D([0], [0], color=cmap_s(0.75), lw=2.0, label=r'Stable manifold $W^{\rm s}$')
+            )
+        if x_points is not None:
+            handles.append(
+                plt.Line2D([0], [0], marker='x', color='#D32F2F', ms=7, lw=0, markeredgewidth=1.8, label='X-point')
+            )
+        if o_points is not None:
+            handles.append(
+                plt.Line2D([0], [0], marker='o', color='#1565C0', ms=6, lw=0, label='O-point')
+            )
+        ax.legend(handles=handles, loc=legend_loc, frameon=False, fontsize=8)
+
+    return artists
+
+
 # ────────────────────────────────────────────────────────────────────────────
 # 6.  Plot all four manifold arms from a single X-point
 # ────────────────────────────────────────────────────────────────────────────
