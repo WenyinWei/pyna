@@ -175,6 +175,87 @@ code.literal {
     border-radius: 8px;
 }
 
+.nbinput.pyna-nbinput-foldable {
+    position: relative;
+}
+
+.pyna-code-togglebar {
+    align-items: center;
+    display: flex;
+    gap: 0.6rem;
+    justify-content: space-between;
+    margin: 0.25rem 0 0.35rem;
+}
+
+.pyna-code-summary {
+    color: var(--pst-color-text-muted);
+    font-size: 0.76rem;
+    font-weight: 600;
+}
+
+.pyna-code-toggle {
+    background: color-mix(in srgb, var(--pst-color-background) 88%, var(--pst-color-primary) 12%);
+    border: 1px solid color-mix(in srgb, var(--pst-color-primary) 28%, var(--pst-color-border));
+    border-radius: 6px;
+    color: var(--pst-color-primary);
+    cursor: pointer;
+    flex: 0 0 auto;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 650;
+    line-height: 1.2;
+    padding: 0.32rem 0.55rem;
+}
+
+.pyna-code-toggle:hover {
+    background: color-mix(in srgb, var(--pst-color-background) 78%, var(--pst-color-primary) 22%);
+}
+
+.pyna-code-toggle:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--pst-color-primary) 58%, transparent);
+    outline-offset: 2px;
+}
+
+.nbinput.pyna-nbinput-foldable .input_area {
+    transition: max-height 0.18s ease, opacity 0.18s ease, margin 0.18s ease;
+}
+
+.nbinput.pyna-nbinput-collapsed .input_area {
+    max-height: calc(var(--pyna-code-preview-lines, 12) * 1.55em + 1.4rem);
+    overflow: hidden;
+    position: relative;
+}
+
+.nbinput.pyna-nbinput-collapsed:not(.pyna-nbinput-hidden-preview) .input_area::after {
+    background: linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--pst-color-background) 0%, transparent),
+        var(--pst-color-background)
+    );
+    bottom: 0;
+    content: "";
+    height: 3.2rem;
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+}
+
+.nbinput.pyna-nbinput-expanded .input_area {
+    max-height: none;
+    overflow: visible;
+}
+
+.nbinput.pyna-nbinput-hidden-preview.pyna-nbinput-collapsed .prompt,
+.nbinput.pyna-nbinput-hidden-preview.pyna-nbinput-collapsed .input_area {
+    border-width: 0;
+    margin: 0;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    padding: 0;
+}
+
 .nboutput img,
 .nboutput svg {
     border-radius: 8px;

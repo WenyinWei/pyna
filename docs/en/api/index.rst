@@ -13,6 +13,7 @@ source-parsed reference is generated under :doc:`generated/pyna/index` when
 .. toctree::
    :maxdepth: 2
 
+   public-surfaces
    dynamics
    dynamics-patterns
    flt

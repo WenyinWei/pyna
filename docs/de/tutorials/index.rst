@@ -19,6 +19,32 @@ zu toroidalen Monodromie-/RMP-Beispielen:
 5. :doc:`/notebooks/i18n/de/tutorials/island_jacobian_analysis`
 6. :doc:`/notebooks/i18n/de/tutorials/RMP_island_validation_solovev`
 
+Pfad nach Ziel wählen
+---------------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Ziel
+     - Zuerst lesen
+     - Danach
+   * - Grundlegenden pyna-Workflow lernen
+     - :doc:`/de/quickstart`
+     - :doc:`/de/mini-cases`
+   * - SDE-Verteilungen schätzen
+     - :doc:`sde-monte-carlo`
+     - :doc:`/notebooks/i18n/de/tutorials/sde_monte_carlo_distribution`
+   * - Magnetische Koordinaten vergleichen
+     - :doc:`/notebooks/i18n/de/tutorials/magnetic_coordinates_comparison`
+     - :doc:`/de/api/public-surfaces`
+   * - RMP/nRMP-Magnettopologie untersuchen
+     - :doc:`/notebooks/i18n/de/tutorials/RMP_resonance_analysis`
+     - :doc:`/notebooks/i18n/de/tutorials/RMP_island_validation_solovev`,
+       :doc:`/notebooks/i18n/de/tutorials/island_jacobian_analysis`
+   * - Monodromie und Mannigfaltigkeiten analysieren
+     - :doc:`/notebooks/i18n/de/tutorials/monodromy_xcycle_analytic`
+     - :doc:`/notebooks/i18n/de/tutorials/monodromy_mobius_saddle`
+
 Allgemeine dynamische Systeme
 -----------------------------
 

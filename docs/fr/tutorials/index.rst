@@ -19,6 +19,32 @@ toroïdaux :
 5. :doc:`/notebooks/i18n/fr/tutorials/island_jacobian_analysis`
 6. :doc:`/notebooks/i18n/fr/tutorials/RMP_island_validation_solovev`
 
+Choisir un parcours
+-------------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Objectif
+     - Lire d'abord
+     - Continuer avec
+   * - Apprendre le workflow pyna de base
+     - :doc:`/fr/quickstart`
+     - :doc:`/fr/mini-cases`
+   * - Estimer des distributions d'EDS
+     - :doc:`sde-monte-carlo`
+     - :doc:`/notebooks/i18n/fr/tutorials/sde_monte_carlo_distribution`
+   * - Comparer les coordonnées magnétiques
+     - :doc:`/notebooks/i18n/fr/tutorials/magnetic_coordinates_comparison`
+     - :doc:`/fr/api/public-surfaces`
+   * - Étudier la topologie magnétique RMP/nRMP
+     - :doc:`/notebooks/i18n/fr/tutorials/RMP_resonance_analysis`
+     - :doc:`/notebooks/i18n/fr/tutorials/RMP_island_validation_solovev`,
+       :doc:`/notebooks/i18n/fr/tutorials/island_jacobian_analysis`
+   * - Travailler avec la monodromie et les variétés
+     - :doc:`/notebooks/i18n/fr/tutorials/monodromy_xcycle_analytic`
+     - :doc:`/notebooks/i18n/fr/tutorials/monodromy_mobius_saddle`
+
 Systèmes dynamiques généraux
 ----------------------------
 

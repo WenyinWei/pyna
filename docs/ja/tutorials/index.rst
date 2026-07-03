@@ -18,6 +18,32 @@ Monodromy/RMP の例へ進んでください。
 5. :doc:`/notebooks/i18n/ja/tutorials/island_jacobian_analysis`
 6. :doc:`/notebooks/i18n/ja/tutorials/RMP_island_validation_solovev`
 
+目的別の入口
+------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - 目的
+     - 最初に読む
+     - 次に読む
+   * - pyna の基本 workflow を学ぶ
+     - :doc:`/ja/quickstart`
+     - :doc:`/ja/mini-cases`
+   * - SDE 分布を推定する
+     - :doc:`sde-monte-carlo`
+     - :doc:`/notebooks/i18n/ja/tutorials/sde_monte_carlo_distribution`
+   * - 磁気座標を比較する
+     - :doc:`/notebooks/i18n/ja/tutorials/magnetic_coordinates_comparison`
+     - :doc:`/ja/api/public-surfaces`
+   * - RMP/nRMP 磁気トポロジーを調べる
+     - :doc:`/notebooks/i18n/ja/tutorials/RMP_resonance_analysis`
+     - :doc:`/notebooks/i18n/ja/tutorials/RMP_island_validation_solovev`,
+       :doc:`/notebooks/i18n/ja/tutorials/island_jacobian_analysis`
+   * - Monodromy と多様体を扱う
+     - :doc:`/notebooks/i18n/ja/tutorials/monodromy_xcycle_analytic`
+     - :doc:`/notebooks/i18n/ja/tutorials/monodromy_mobius_saddle`
+
 一般力学系
 ----------
 

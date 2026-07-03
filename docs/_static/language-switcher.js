@@ -440,6 +440,7 @@
     const lang = currentLanguage();
     const text = chromeTranslations[lang] || chromeTranslations.en;
     document.documentElement.lang = lang;
+    document.documentElement.dataset.pynaLang = lang;
 
     document.querySelectorAll(".pyna-language-switcher__label").forEach((label) => {
       label.textContent = text.language;

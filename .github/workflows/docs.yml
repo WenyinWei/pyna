@@ -28,11 +28,19 @@ jobs:
           pip install --upgrade pip
           pip install --upgrade "sphinx>=7" pydata-sphinx-theme myst-parser nbsphinx sphinx-autodoc-typehints \
                       sphinx-copybutton sphinx-design sphinx-autoapi ipykernel \
-                      numpy scipy matplotlib sympy scikit-image joblib deprecated pandas
+                      numpy scipy matplotlib sympy scikit-image joblib deprecated pandas pytest
           pip install --upgrade --no-build-isolation --no-deps .
 
       - name: Install pandoc
         run: sudo apt-get install -y pandoc
+
+      - name: Preflight docs sources
+        env:
+          PYNA_PRIVACY_TERMS: ${{ secrets.PYNA_PRIVACY_TERMS }}
+        run: |
+          python scripts/check_privacy_terms.py --root .
+          python scripts/check_docs_notebooks.py --root notebooks
+          pytest -q tests/test_docs_preflight.py
 
       - name: Build Sphinx docs
         run: |
@@ -40,3 +48,6 @@ jobs:
           rm -rf notebooks
           cp -r ../notebooks notebooks
           make html SPHINXOPTS="-q"
+
+      - name: Preflight generated Pages artifacts
+        run: python scripts/check_docs_artifacts.py docs/_build/html

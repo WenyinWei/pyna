@@ -18,6 +18,32 @@
 5. :doc:`/notebooks/i18n/ru/tutorials/island_jacobian_analysis`
 6. :doc:`/notebooks/i18n/ru/tutorials/RMP_island_validation_solovev`
 
+Выбор маршрута
+--------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Цель
+     - Сначала читать
+     - Затем
+   * - Освоить базовый workflow pyna
+     - :doc:`/ru/quickstart`
+     - :doc:`/ru/mini-cases`
+   * - Оценить распределения SDE
+     - :doc:`sde-monte-carlo`
+     - :doc:`/notebooks/i18n/ru/tutorials/sde_monte_carlo_distribution`
+   * - Сравнить магнитные координаты
+     - :doc:`/notebooks/i18n/ru/tutorials/magnetic_coordinates_comparison`
+     - :doc:`/ru/api/public-surfaces`
+   * - Изучать магнитную топологию RMP/nRMP
+     - :doc:`/notebooks/i18n/ru/tutorials/RMP_resonance_analysis`
+     - :doc:`/notebooks/i18n/ru/tutorials/RMP_island_validation_solovev`,
+       :doc:`/notebooks/i18n/ru/tutorials/island_jacobian_analysis`
+   * - Работать с монодромией и многообразиями
+     - :doc:`/notebooks/i18n/ru/tutorials/monodromy_xcycle_analytic`
+     - :doc:`/notebooks/i18n/ru/tutorials/monodromy_mobius_saddle`
+
 Общие динамические системы
 --------------------------
 

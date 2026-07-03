@@ -13,6 +13,7 @@ API 레퍼런스
 .. toctree::
    :maxdepth: 2
 
+   public-surfaces
    dynamics
    dynamics-patterns
    flt

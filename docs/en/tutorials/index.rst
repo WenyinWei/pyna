@@ -18,6 +18,32 @@ workflow, stochastic models, and then toroidal monodromy/RMP examples:
 5. :doc:`/notebooks/i18n/en/tutorials/island_jacobian_analysis`
 6. :doc:`/notebooks/i18n/en/tutorials/RMP_island_validation_solovev`
 
+Choose a Path
+-------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Goal
+     - Read first
+     - Continue with
+   * - Learn pyna's basic workflow
+     - :doc:`/en/quickstart`
+     - :doc:`/en/mini-cases`
+   * - Estimate SDE distributions
+     - :doc:`sde-monte-carlo`
+     - :doc:`/notebooks/i18n/en/tutorials/sde_monte_carlo_distribution`
+   * - Compare magnetic coordinates
+     - :doc:`/notebooks/i18n/en/tutorials/magnetic_coordinates_comparison`
+     - :doc:`/en/api/public-surfaces`
+   * - Study RMP/nRMP magnetic topology
+     - :doc:`/notebooks/i18n/en/tutorials/RMP_resonance_analysis`
+     - :doc:`/notebooks/i18n/en/tutorials/RMP_island_validation_solovev`,
+       :doc:`/notebooks/i18n/en/tutorials/island_jacobian_analysis`
+   * - Work with monodromy and manifolds
+     - :doc:`/notebooks/i18n/en/tutorials/monodromy_xcycle_analytic`
+     - :doc:`/notebooks/i18n/en/tutorials/monodromy_mobius_saddle`
+
 General Dynamical Systems
 -------------------------
 

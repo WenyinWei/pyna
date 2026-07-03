@@ -17,6 +17,32 @@ Monodromy/RMP 示例：
 5. :doc:`/notebooks/i18n/zh/tutorials/island_jacobian_analysis`
 6. :doc:`/notebooks/i18n/zh/tutorials/RMP_island_validation_solovev`
 
+按目标选择入口
+--------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - 目标
+     - 先读
+     - 继续阅读
+   * - 掌握 pyna 基本工作流
+     - :doc:`/zh/quickstart`
+     - :doc:`/zh/mini-cases`
+   * - 估计 SDE 分布
+     - :doc:`sde-monte-carlo`
+     - :doc:`/notebooks/i18n/zh/tutorials/sde_monte_carlo_distribution`
+   * - 比较磁坐标
+     - :doc:`/notebooks/i18n/zh/tutorials/magnetic_coordinates_comparison`
+     - :doc:`/zh/api/public-surfaces`
+   * - 研究 RMP/nRMP 磁拓扑
+     - :doc:`/notebooks/i18n/zh/tutorials/RMP_resonance_analysis`
+     - :doc:`/notebooks/i18n/zh/tutorials/RMP_island_validation_solovev`,
+       :doc:`/notebooks/i18n/zh/tutorials/island_jacobian_analysis`
+   * - 分析 Monodromy 和流形
+     - :doc:`/notebooks/i18n/zh/tutorials/monodromy_xcycle_analytic`
+     - :doc:`/notebooks/i18n/zh/tutorials/monodromy_mobius_saddle`
+
 一般动力系统
 ------------
 

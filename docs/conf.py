@@ -1,11 +1,16 @@
 # Configuration file for the Sphinx documentation builder.
+import json
 import os
+import re
 import sys
 import subprocess
 from importlib import metadata
 from functools import lru_cache
 from pathlib import Path
+from sphinx.util import logging
 sys.path.insert(0, os.path.abspath('..'))
+
+logger = logging.getLogger(__name__)
 
 project = 'pyna'
 copyright = '2024-2026, Wenyin Wei'
@@ -48,7 +53,7 @@ exclude_patterns = [
 html_theme = 'pydata_sphinx_theme'
 html_static_path = ['_static']
 html_css_files = ['custom.css']
-html_js_files = ['language-switcher.js']
+html_js_files = ['language-switcher.js', 'notebook-inputs.js']
 html_copy_source = False
 html_show_sourcelink = False
 html_title = 'pyna dynamics toolkit'
@@ -95,6 +100,7 @@ napoleon_google_docstring = True
 napoleon_numpy_docstring = True
 napoleon_include_init_with_doc = True
 napoleon_use_admonition_for_notes = True
+napoleon_use_ivar = True
 napoleon_use_rtype = False
 
 # nbsphinx settings
@@ -335,6 +341,93 @@ def _disable_nbsphinx_notebook_copy(app):
     return []
 
 
+_notebook_input_tag_classes = {
+    'pyna:essential': 'pyna-keep-input',
+    'pyna-essential': 'pyna-keep-input',
+    'pyna-keep-input': 'pyna-keep-input',
+    'pyna-show-input': 'pyna-keep-input',
+    'pyna:details': 'pyna-collapse-input',
+    'pyna-details': 'pyna-collapse-input',
+    'pyna-collapse-input': 'pyna-collapse-input',
+    'pyna-fold-input': 'pyna-collapse-input',
+    'pyna:boilerplate': 'pyna-hide-input',
+    'pyna-boilerplate': 'pyna-hide-input',
+    'pyna-hide-input': 'pyna-hide-input',
+    'hide-input': 'pyna-hide-input',
+}
+
+
+def _notebook_input_classes(cell):
+    tags = cell.get('metadata', {}).get('tags', []) or []
+    classes = []
+    for tag in tags:
+        css_class = _notebook_input_tag_classes.get(str(tag))
+        if css_class and css_class not in classes:
+            classes.append(css_class)
+    return classes
+
+
+def _annotate_notebook_input_cells(app, exception):
+    """Carry pyna notebook input tags into nbsphinx HTML cell classes."""
+    if exception is not None or app.builder.format != 'html':
+        return
+    srcdir = Path(app.srcdir)
+    outdir = Path(app.builder.outdir)
+    for notebook_path in srcdir.rglob('*.ipynb'):
+        rel_path = notebook_path.relative_to(srcdir)
+        if rel_path.parts and rel_path.parts[0] == '_build':
+            continue
+        html_path = outdir / rel_path.with_suffix('.html')
+        if not html_path.exists():
+            continue
+        try:
+            notebook = json.loads(notebook_path.read_text(encoding='utf-8'))
+        except (OSError, json.JSONDecodeError):
+            continue
+        code_cell_classes = [
+            ' '.join(_notebook_input_classes(cell))
+            for cell in notebook.get('cells', [])
+            if cell.get('cell_type') == 'code'
+            and cell.get('metadata', {}).get('nbsphinx') != 'hidden'
+        ]
+        if not any(code_cell_classes):
+            continue
+
+        try:
+            html = html_path.read_text(encoding='utf-8')
+        except OSError:
+            continue
+        pattern = re.compile(r'<div class="(?P<classes>[^"]*\bnbinput\b[^"]*)">')
+        input_count = len(pattern.findall(html))
+        if input_count != len(code_cell_classes):
+            logger.warning(
+                'Skipping notebook input tag annotation for %s: %d nbinput '
+                'blocks but %d visible code cells.',
+                rel_path,
+                input_count,
+                len(code_cell_classes),
+            )
+            continue
+        cell_index = 0
+
+        def add_classes(match):
+            nonlocal cell_index
+            classes = code_cell_classes[cell_index] if cell_index < len(code_cell_classes) else ''
+            cell_index += 1
+            if not classes:
+                return match.group(0)
+            existing = match.group('classes')
+            merged = existing
+            for css_class in classes.split():
+                if css_class not in merged.split():
+                    merged = f'{merged} {css_class}'
+            return f'<div class="{merged}">'
+
+        annotated = pattern.sub(add_classes, html)
+        if annotated != html:
+            html_path.write_text(annotated, encoding='utf-8')
+
+
 def _remove_html_source_maps(app, exception):
     """Keep published pages compact and free of third-party source-map payloads."""
     if exception is not None or app.builder.format != 'html':
@@ -362,4 +455,5 @@ def setup(app):
     # base64 payloads, so keep GitHub Pages to HTML/assets only.
     app.connect('html-page-context', _add_translation_badge_context)
     app.connect('html-collect-pages', _disable_nbsphinx_notebook_copy, priority=400)
+    app.connect('build-finished', _annotate_notebook_input_cells)
     app.connect('build-finished', _remove_html_source_maps)

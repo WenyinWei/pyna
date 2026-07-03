@@ -32,6 +32,8 @@ data/
 .env
 *.secret
 secrets/
+.pyna_private_terms
+.pyna_private_terms.*
 
 # Logs / temp
 *.log
@@ -41,6 +43,7 @@ field_gpu_src.txt
 *_stderr.txt
 *_stdout.txt
 *.bak_*
+pyna_output/
 
 # ===== PYTHON STANDARD =====
 # Byte-compiled / optimized / DLL files

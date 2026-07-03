@@ -14,6 +14,7 @@
 .. toctree::
    :maxdepth: 2
 
+   public-surfaces
    dynamics
    dynamics-patterns
    flt
