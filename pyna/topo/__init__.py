@@ -1,8 +1,5 @@
 """pyna.topo — topology analysis subpackage."""
 
-from pyna.topo._base import (
-    InvariantSet, InvariantManifold, SectionCuttable,
-)
 from pyna.topo.toroidal_trajectory import (
     ToroidalTrajectory,
     trace_toroidal_trajectory,

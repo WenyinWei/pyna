@@ -41,7 +41,6 @@ from pyna.system import (
     VectorField2D,
     VectorField3D,
     VectorField4D,
-    VectorFieldCylindAxisym,
 )
 
 def __getattr__(name):
@@ -49,6 +48,8 @@ def __getattr__(name):
         return import_module("pyna.toroidal")
     if name == "dynamics":
         return import_module("pyna.dynamics")
+    if name == "trace_dataset":
+        return import_module("pyna.trace_dataset")
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
@@ -58,6 +59,7 @@ __all__ = [
     "vector_calc",
     "toroidal",
     "dynamics",
+    "trace_dataset",
     "CylindricalFieldArrays",
     "VectorFieldCylind",
     "VectorFieldCylindAxisym",

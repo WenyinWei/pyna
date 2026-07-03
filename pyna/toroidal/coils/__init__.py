@@ -12,9 +12,7 @@ from pyna.toroidal.coils.coil_system import (
     Biot_Savart_field,
     CoilFieldBiotSavart,
 )
-from pyna.toroidal.coils.field import (
-    VectorFieldCylind,
-    VectorFieldCylindAxisym,
+from pyna.fields.cylindrical import (
     VectorFieldCylind,
     VectorFieldCylindAxisym,
 )
