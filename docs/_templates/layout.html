@@ -2,15 +2,8 @@
 
 {% block extrahead %}
 {{ super() }}
-{%- if pagename.startswith("zh/") -%}
-  {%- set pyna_lang = "zh" -%}
-{%- elif pagename.startswith("en/") or pagename.startswith("notebooks/") -%}
-  {%- set pyna_lang = "en" -%}
-{%- else -%}
-  {%- set pyna_lang = "root" -%}
-{%- endif %}
 <script>
-  document.documentElement.dataset.pynaLang = "{{ pyna_lang }}";
+  document.documentElement.dataset.pynaLang = "{{ pyna_current_language | default('root') }}";
 </script>
 {% endblock %}
 

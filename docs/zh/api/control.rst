@@ -1,13 +1,31 @@
-控制模块
-========
+FPT 拓扑控制（``pyna.control``）
+================================
 
-控制模块用于把拓扑诊断结果连接到扰动、岛链抑制和响应分析。推荐工作流是：
+.. note::
+   ``pyna.control`` 包含 **通用** FPT 拓扑控制框架，可用于任意保面积动力系统。
+   对于环形场专用的控制 helper（gap response、island control、q-profile），请使用
+   :mod:`pyna.toroidal.control`。
 
-1. 用场线追踪和 Poincare 截面定位目标结构；
-2. 用 ``IslandChain``、monodromy 或流形工具表征稳定性；
-3. 把控制参数扫描保存在明确的配置和 metadata 中；
-4. 在公开仓库中只使用公开解析案例或匿名化案例。
+.. automodule:: pyna.control.FPT
+   :no-index:
+   :members:
 
-英文详细 API：
+.. automodule:: pyna.control.topology_state
+   :no-index:
+   :members:
 
-- :doc:`../../en/api/control`
+.. automodule:: pyna.control.response_matrix
+   :no-index:
+   :members:
+
+.. automodule:: pyna.control.optimizer
+   :no-index:
+   :members:
+
+.. automodule:: pyna.control.surface_fate
+   :no-index:
+   :members:
+
+.. automodule:: pyna.toroidal.control
+   :no-index:
+   :members:

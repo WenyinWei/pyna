@@ -4,10 +4,11 @@
   const languages = [
     { code: "en", label: "English", available: true },
     { code: "zh", label: "中文", available: true },
-    { code: "ja", label: "日本語", available: false },
-    { code: "de", label: "Deutsch", available: false },
-    { code: "ko", label: "한국어", available: false },
-    { code: "ru", label: "Русский", available: false },
+    { code: "ja", label: "日本語", available: true },
+    { code: "ko", label: "한국어", available: true },
+    { code: "de", label: "Deutsch", available: true },
+    { code: "fr", label: "Français", available: true },
+    { code: "ru", label: "Русский", available: true },
   ];
 
   const availableCodes = new Set(languages.filter((item) => item.available).map((item) => item.code));

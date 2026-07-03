@@ -1,10 +1,13 @@
-.. _zh-api:
-
 API 参考
 ========
 
-中文 API 页覆盖稳定公共入口；完整逐类逐函数文档由英文自动生成参考页承担，
-用于调试和查签名。
+.. note::
+
+   ``pyna.toroidal`` 是 pyna 中记录的环形/磁几何命名空间。历史上的
+   ``pyna.MCF`` 兼容层已经移除。
+
+下面的手写页面解释稳定的公共接口。安装 ``sphinx-autoapi`` 时，完整的源码解析参考
+会生成在 :doc:`/en/api/generated/pyna/index`。
 
 .. toctree::
    :maxdepth: 2
@@ -16,7 +19,3 @@ API 参考
    toroidal
    control
    cyna
-
-完整自动生成参考：
-
-- :doc:`../../en/api/generated/pyna/index`

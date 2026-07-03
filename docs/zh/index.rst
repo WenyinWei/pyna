@@ -1,9 +1,16 @@
-pyna 中文文档
-=============
+pyna - Python DYNAmics
+======================
 
-**pyna** 是用于动力系统分析和磁约束聚变物理研究的 Python 工具包。它同时
-覆盖环形磁场线追踪、Poincare 映射、Hamiltonian 系统、N-body 相互作用、
-有限维映射、Ito 随机微分方程，以及把采样数据提升为相空间几何对象的统一
+.. image:: https://img.shields.io/pypi/v/pyna-chaos?color=blue&label=PyPI
+   :target: https://pypi.org/project/pyna-chaos/
+.. image:: https://img.shields.io/pypi/pyversions/pyna-chaos
+.. image:: https://img.shields.io/badge/license-LGPL--3.0-green
+.. image:: https://github.com/WenyinWei/pyna/actions/workflows/docs.yml/badge.svg
+   :target: https://github.com/WenyinWei/pyna/actions
+
+**pyna** 是一个面向 **动力系统分析** 和 **磁约束聚变物理** 的 Python
+库。它覆盖场线追踪、Poincare 映射、Hamiltonian 系统、N-body 相互作用、
+有限维映射、Ito 随机微分方程，以及把采样数据提升为相空间几何对象时共用的
 拓扑词汇。
 
 .. grid:: 2
@@ -13,25 +20,25 @@ pyna 中文文档
       :link: quickstart
       :link-type: doc
 
-      安装、验证 cyna，并运行第一个通用动力系统与环形场线例子。
+      安装、验证 cyna，并运行第一个环形场线和通用动力系统示例。
 
    .. grid-item-card:: 迷你案例
       :link: mini-cases
       :link-type: doc
 
-      ODE、Hamiltonian、映射、SDE 和几何对象提升的短示例。
+      ODE、Hamiltonian 系统、映射、SDE 和拓扑对象提升的简短配方。
 
-   .. grid-item-card:: 教程导航
+   .. grid-item-card:: 教程
       :link: tutorials/index
       :link-type: doc
 
-      面向新手的循序渐进路径，以及面向扩展开发者的 notebook 案例。
+      已执行 notebook 和叙述式指南，包括 Monte Carlo SDE 分布估计。
 
    .. grid-item-card:: API 参考
       :link: api/index
       :link-type: doc
 
-      常用中文说明和英文自动生成 API 的入口。
+      手写模块指南，以及从源码生成的完整参考入口。
 
 .. toctree::
    :maxdepth: 2

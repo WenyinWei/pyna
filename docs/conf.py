@@ -164,6 +164,11 @@ nitpicky = False
 translation_languages = {
     'en': 'English',
     'zh': '中文',
+    'ja': '日本語',
+    'ko': '한국어',
+    'de': 'Deutsch',
+    'fr': 'Français',
+    'ru': 'Русский',
 }
 
 translation_badge_text = {
@@ -173,6 +178,41 @@ translation_badge_text = {
         'missing_title': '中文翻译缺失',
         'missing_message': '该页面还没有中文版本，当前显示英文源页。',
         'link_label': '查看英文版',
+    },
+    'ja': {
+        'outdated_title': '翻訳が古い可能性があります',
+        'outdated_message': '英語の原文ページの方が新しいため、この日本語ページはまだ完全には同期されていない可能性があります。',
+        'missing_title': '日本語訳はまだありません',
+        'missing_message': 'このページにはまだ日本語版がないため、英語の原文を表示しています。',
+        'link_label': '英語版を見る',
+    },
+    'ko': {
+        'outdated_title': '번역이 오래되었을 수 있습니다',
+        'outdated_message': '영어 원문 페이지가 더 최근에 업데이트되었으므로 이 한국어 페이지가 아직 완전히 동기화되지 않았을 수 있습니다.',
+        'missing_title': '한국어 번역 없음',
+        'missing_message': '이 페이지의 한국어 번역이 아직 없어 영어 원문을 표시합니다.',
+        'link_label': '영어 원문 보기',
+    },
+    'de': {
+        'outdated_title': 'Übersetzung möglicherweise veraltet',
+        'outdated_message': 'Die englische Quellseite ist neuer; diese deutsche Seite ist möglicherweise noch nicht vollständig synchronisiert.',
+        'missing_title': 'Deutsche Übersetzung fehlt',
+        'missing_message': 'Für diese Seite gibt es noch keine deutsche Fassung; angezeigt wird die englische Quelle.',
+        'link_label': 'Englische Quelle öffnen',
+    },
+    'fr': {
+        'outdated_title': 'Traduction peut-être obsolète',
+        'outdated_message': 'La page source anglaise est plus récente ; cette page française n’est peut-être pas encore entièrement synchronisée.',
+        'missing_title': 'Traduction française indisponible',
+        'missing_message': 'Cette page n’a pas encore de version française ; la source anglaise est affichée.',
+        'link_label': 'Voir la source anglaise',
+    },
+    'ru': {
+        'outdated_title': 'Перевод может быть устаревшим',
+        'outdated_message': 'Английская исходная страница новее; эта русская страница может быть еще не полностью синхронизирована.',
+        'missing_title': 'Русский перевод отсутствует',
+        'missing_message': 'Для этой страницы пока нет русской версии; показан английский источник.',
+        'link_label': 'Открыть английский источник',
     },
     'default': {
         'outdated_title': 'Translation may be outdated',
@@ -263,6 +303,7 @@ def _translation_badge_for_page(app, pagename):
 
 def _add_translation_badge_context(app, pagename, templatename, context, doctree):
     context['pyna_translation_languages'] = translation_languages
+    context['pyna_current_language'] = _page_language(pagename) or 'root'
     context['pyna_translation_badge'] = _translation_badge_for_page(app, pagename)
 
 

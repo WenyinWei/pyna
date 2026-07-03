@@ -1,19 +1,37 @@
-场线追踪 (``pyna.flt``)
-=======================
+场线追踪（``pyna.flt``）
+========================
 
-``pyna.flt`` 提供磁场线追踪的公共入口。典型流程是定义 ``dR/dphi``、
-``dZ/dphi`` 的右端，选择 CPU 或 cyna 后端，然后在 Poincare 截面上累积
-交点。
+``pyna.flt`` 包提供建立在抽象 :mod:`pyna.system` 层次之上的场线积分例程。
 
-.. code-block:: python
+**后端：**
 
-   from pyna.flt import FieldLineTracer, get_backend
+- **CPU/serial** -- 纯 Python RK4 积分器
+- **CPU/parallel** -- 多进程或多线程变体
+- **CUDA** -- 通过 CuPy 提供的可选 GPU 后端（最高 118× 加速）
+- **OpenCL** -- 实验性
 
-   tracer = FieldLineTracer(field_rhs, backend=get_backend("cpu"))
+.. contents:: 子模块
+   :depth: 2
+   :local:
 
-生产计算建议把 field function、起点、截面和步长记录进 metadata，便于之后
-把交点提升为 ``PeriodicOrbit``、``IslandChain`` 或流形对象时审查来源。
+----
 
-英文详细 API：
+核心 Tracer
+-----------
 
-- :doc:`../../en/api/flt`
+.. automodule:: pyna.flt
+   :no-index:
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+----
+
+动力系统层次
+------------
+
+.. automodule:: pyna.system
+   :no-index:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,38 +1,38 @@
 迷你案例
 ========
 
-这一页放在快速入门和完整 API 之间：知道自己手里是什么系统时，直接复制最小
-模式；需要深度定制时，看该改哪一层。
+本页是快速开始和完整 API 参考之间的短路径。已经知道自己处理的是哪类系统，并希望
+获得最小可运行 pyna 模式时，请从这里开始。
 
-入口怎么选
-----------
+从哪个入口开始？
+----------------
 
 .. list-table::
    :header-rows: 1
 
-   * - 你手里有
+   * - 你已有
      - 从这里开始
      - 通常得到的几何对象
    * - ODE ``dx/dt = f(x,t)``
      - ``CallableFlow`` 或 ``TopologyWorkflow.system("callable-flow", ...)``
-     - ``Trajectory``，必要时提升为 ``Cycle``
+     - ``Trajectory``，然后可能是 ``Cycle``
    * - Hamiltonian ``H(q,p,t)``
      - ``SeparableHamiltonianSystem`` 或 ``HamiltonianSystem``
      - ``Trajectory`` / ``Cycle``
    * - 有限维映射 ``x -> F(x)``
      - ``CallableMap``
-     - ``Orbit``，必要时提升为 ``PeriodicOrbit``
-   * - 环形磁场线问题
+     - ``Orbit``，然后可能是 ``PeriodicOrbit``
+   * - 环形磁场
      - ``pyna.flt`` / ``pyna.topo`` / ``pyna.toroidal``
      - ``Cycle``、``Tube``、``IslandChain``、流形
-   * - 教学用随机模型
+   * - 随机教学模型
      - ``BrownianMotion`` 或 ``GeometricBrownianMotion``
-     - 采样 ``Trajectory`` 和统计量
+     - 采样 ``Trajectory`` 加统计量
 
-案例 1：ODE 采样到闭合 Cycle
-----------------------------
+案例 1：从 ODE 样本到闭合 Cycle
+--------------------------------
 
-``Trajectory`` 只是采样曲线；``Cycle`` 表示你明确声称它闭合。
+``Trajectory`` 表示采样数据。``Cycle`` 表示你进一步声称该样本是闭合的。
 
 .. code-block:: python
 
@@ -52,12 +52,12 @@
    cycle = wf.closed_cycle(traj)
    print(cycle.period_value, cycle.ambient_dim)
 
-生产代码里要把闭合误差容差写清楚，这样数值假设可以被审查。
+在生产工作流中，应显式保留闭合容差。这样数值假设才便于审查。
 
-案例 2：映射迭代到 PeriodicOrbit
--------------------------------
+案例 2：从映射迭代到周期轨道
+------------------------------
 
-映射先产生 ``Orbit``。只有已知闭合或数值验证闭合时，才提升为
+映射首先产生 ``Orbit`` 对象。只有对已知闭合或已通过数值验证的样本，才提升为
 ``PeriodicOrbit``。
 
 .. code-block:: python
@@ -77,35 +77,35 @@
    )
    print(periodic.period, periodic.points[0].state)
 
-外部库里的映射可以先用 ``CallableMap`` 包一层；更深度集成时，实现
-``__call__(x)`` 和 ``phase_space`` 属性。
+如果你的映射来自其他包，可以用 ``CallableMap`` 包装它，或实现 ``__call__(x)``
+并提供 ``phase_space`` 属性。
 
-案例 3：解析 Stellarator 的 O/X 点
+案例 3：解析 stellarator 的 O/X 点
 ----------------------------------
 
-磁约束问题里，连续场线流在 Poincare 截面上变成离散返回映射。可执行教程
-:doc:`/notebooks/tutorials/RMP_resonance_analysis` 现在承担完整图文案例：
+在磁约束工作中，场线流会被 Poincare 截面切开。可执行教程
+:doc:`/notebooks/tutorials/RMP_resonance_analysis` 现在包含完整的可视化计算：
 
-1. 构造公开解析 stellarator 模型；
-2. 验证 ``m=1`` 和 ``m>1`` RMP 模板的无散度性质；
-3. 追踪未扰动和 RMP 扰动后的 Poincare 截面；
-4. 用 ``cyna`` Newton 定点和解析 RMP 相位互相校验；
-5. 对多分量 RMP 做逆变 ``B^r`` 磁谱分析，展示 pcolormesh atlas、
-   可叠加 Poincare 投影的 ``q``/``m/n`` 共振图、Plotly 交互 3D bar、
-   固定 ``n``/固定 ``m`` 的径向谱图、共振曲线和可开关的岛宽标记；
-6. 对所有非共振谱行求和，得到总 nRMP 响应；
-7. 只把贡献表作为排序和收敛诊断，而不是把单个分量当成模型；
-8. 可视化 nRMP 引起的磁面形变和场线流速调制；
-9. 叠加局部稳定分支和 PEST-style 坐标网格。
+1. 构建公开的解析 stellarator 模型；
+2. 验证无散度的 ``m=1`` 和 ``m>1`` RMP 模板；
+3. 追踪未扰动和受扰动的 Poincare 截面；
+4. 将解析共振 X/O 相位与 ``cyna`` Newton 固定点比较；
+5. 用逆变 ``B^r`` pcolormesh 图册、带可选 Poincare 投影的 ``q``/``m/n``
+   共振图、交互式 Plotly 3-D 柱状图、径向固定 ``n``/固定 ``m`` 图、共振曲线和可切换
+   磁岛宽度标记，分析多分量 RMP 谱；
+6. 计算所有非共振谱行产生的总 nRMP 响应；
+7. 仅把贡献表作为排序和收敛诊断；
+8. 可视化 nRMP 磁通面形变和场线速度调制；
+9. 叠加局部稳定分支和 PEST 风格坐标网格。
 
-修改固定点绘图、截面几何、RMP/nRMP 诊断或教程渲染前，建议先在本地跑这个
-notebook。它的代码路径尽量使用公开 helper，方便用户把案例直接迁移到自己的
-分析脚本。
+当你测试固定点绘图、截面几何、RMP/nRMP 诊断或教程渲染的改动时，请使用这个
+notebook。它足够小，可以在发布文档前本地运行，同时仍会覆盖下游分析脚本使用的
+公共 helper API。
 
-案例 4：注册自定义系统
-----------------------
+案例 4：自定义系统注册
+-----------------------
 
-Factory 不是必须的。它适合配置驱动的下游项目。
+factory 是可选的。只有当下游项目由配置驱动时，它们才重要。
 
 .. code-block:: python
 
@@ -128,13 +128,13 @@ Factory 不是必须的。它适合配置驱动的下游项目。
    )
    flow = DynamicalSystemFactory.create("damped-oscillator", gamma=0.05)
 
-测试里如果担心全局注册影响顺序，使用局部 ``Registry`` 实例。
+如果全局注册会让测试依赖执行顺序，请在测试中使用局部 ``Registry`` 实例。
 
 案例 5：SDE 分布估计
 --------------------
 
-单条 SDE 样本路径是 pyna 的 ``Trajectory``；大量路径的 Monte Carlo ensemble
-是统计估计，暂时应保持为数组，不要自动提升为拓扑不变对象。
+单条 SDE 路径是 pyna 轨迹。Monte Carlo ensemble 是统计估计器；在 pyna 增加专用
+ensemble 对象之前，请把它们保留为数组。
 
 .. code-block:: python
 
@@ -151,43 +151,44 @@ Factory 不是必须的。它适合配置驱动的下游项目。
    terminal = 100.0 * np.exp(gbm.expected_log_growth()[0] + gbm.sigma[0] * z)
    print(np.mean(terminal), np.quantile(terminal, [0.05, 0.5, 0.95]))
 
-完整的本地预执行 notebook 见 :doc:`/zh/tutorials/sde-monte-carlo`。
+完整的已执行示例包含 Brownian、Ornstein-Uhlenbeck 和 geometric Brownian motion
+分布，可参见 :doc:`/zh/tutorials/sde-monte-carlo`。
 
-高手应该改哪一层
-----------------
+案例 6：在哪里定制
+------------------
 
 .. list-table::
    :header-rows: 1
 
    * - 目标
      - 扩展点
-     - 注意
+     - 注意事项
    * - 新物理模型
      - ``CallableFlow``、``HamiltonianSystem`` 或 ``ContinuousFlow`` 子类
-     - 积分方法返回 pyna 几何对象
+     - 从积分方法返回 pyna 几何对象
    * - 新映射族
      - ``CallableMap`` 或 ``DiscreteMap`` 子类
      - 暴露稳定的坐标名
    * - 新截面
      - ``pyna.topo.section.Section`` 风格对象
-     - 明确 crossing/project 语义
+     - 清晰实现 crossing/project 语义
    * - 新数据格式
      - ``pyna.topo.adapters``
-     - 只做规范化，不要偷偷声称周期性
+     - 规范化数据；不要静默声称周期性
    * - 新装配策略
      - ``pyna.topo.builders``
      - 集中验证和 metadata
    * - 新后端选择
-     - factories 或 workflow facade
-     - 原始后端数组应留在 pyna 对象边界内
+     - factory 或 workflow facade
+     - 把原始后端数组保持在 pyna 对象之后
 
-经验法则：数学对象用 dataclass；输入格式用 adapter；验证和回链用 builder；
-只有需要稳定字符串 key 时才引入 factory。
+经验法则：数学对象使用 dataclass，输入规范化使用 adapter，验证使用 builder；
+只有当用户需要稳定字符串键时才使用 factory。
 
-Notebook 上线前检查
--------------------
+Notebook 检查清单
+-----------------
 
-先跑关键教程：
+发布文档前：
 
 .. code-block:: bash
 
@@ -195,14 +196,14 @@ Notebook 上线前检查
      notebooks/tutorials/RMP_resonance_analysis.ipynb \
      notebooks/tutorials/island_jacobian_analysis.ipynb
 
-重计算 notebook 在本地执行并提交输出：
+对于带保存输出的重型 notebook，请在本地运行并提交更新后的 ``.ipynb`` 文件：
 
 .. code-block:: bash
 
    .venv/bin/jupyter nbconvert --to notebook --execute --inplace \
      notebooks/tutorials/sde_monte_carlo_distribution.ipynb
 
-按 GitHub Pages 的 notebook 集合本地构建：
+若要运行 GitHub Pages 使用的同一组 notebook，请本地构建 Sphinx：
 
 .. code-block:: bash
 
