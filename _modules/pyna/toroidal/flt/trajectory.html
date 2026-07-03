@@ -33,7 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=a0d39112" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=243d2ed3" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
 
-    <script src="../../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../../_static/documentation_options.js?v=9ed95442"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -50,7 +50,7 @@
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/toroidal/flt/trajectory';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <script src="../../../../_static/language-switcher.js?v=8b136864"></script>
+    <script src="../../../../_static/language-switcher.js?v=866ba1ee"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
 
@@ -151,7 +151,42 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../../zh/index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -177,10 +212,11 @@
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
     <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
       
@@ -265,7 +301,42 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../../zh/index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -284,10 +355,11 @@
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
     <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
         
@@ -393,6 +465,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
@@ -407,11 +480,13 @@
 
 <span class="n">_CHECKPOINT_NAME</span> <span class="o">=</span> <span class="s2">&quot;fieldline_trajectory_checkpoint.json&quot;</span>
 <span class="n">_SCHEMA_VERSION</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">_SCHEMA_NAME</span> <span class="o">=</span> <span class="s2">&quot;pyna.toroidal.flt.fieldline_trajectory_checkpoint&quot;</span>
+<span class="n">_SCHEMA_COMPATIBILITY</span> <span class="o">=</span> <span class="s2">&quot;v1 append-only; readers ignore unknown fields&quot;</span>
 
 
 <span class="nd">@dataclass</span>
 <div class="viewcode-block" id="DenseFieldLineTrajectory">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.trajectory.DenseFieldLineTrajectory">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.DenseFieldLineTrajectory">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DenseFieldLineTrajectory</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Sampled field-line trajectory with scipy-like dense interpolation.</span>
 
@@ -421,46 +496,46 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="DenseFieldLineTrajectory.phi">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.trajectory.DenseFieldLineTrajectory.phi">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.DenseFieldLineTrajectory.phi">[docs]</a>
     <span class="n">phi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="DenseFieldLineTrajectory.R">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.trajectory.DenseFieldLineTrajectory.R">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.DenseFieldLineTrajectory.R">[docs]</a>
     <span class="n">R</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="DenseFieldLineTrajectory.Z">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.trajectory.DenseFieldLineTrajectory.Z">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.DenseFieldLineTrajectory.Z">[docs]</a>
     <span class="n">Z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="DenseFieldLineTrajectory.alive">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.trajectory.DenseFieldLineTrajectory.alive">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.DenseFieldLineTrajectory.alive">[docs]</a>
     <span class="n">alive</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="DenseFieldLineTrajectory.metadata">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.trajectory.DenseFieldLineTrajectory.metadata">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.DenseFieldLineTrajectory.metadata">[docs]</a>
     <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DenseFieldLineTrajectory.storage_dir">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.trajectory.DenseFieldLineTrajectory.storage_dir">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.DenseFieldLineTrajectory.storage_dir">[docs]</a>
     <span class="n">storage_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="DenseFieldLineTrajectory.n_samples">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.trajectory.DenseFieldLineTrajectory.n_samples">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.DenseFieldLineTrajectory.n_samples">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">n_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phi</span><span class="p">))</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="DenseFieldLineTrajectory.status">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.trajectory.DenseFieldLineTrajectory.status">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.DenseFieldLineTrajectory.status">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">,</span> <span class="s2">&quot;complete&quot;</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="DenseFieldLineTrajectory.sol">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.trajectory.DenseFieldLineTrajectory.sol">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.DenseFieldLineTrajectory.sol">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phi_values</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Interpolate ``[R, Z]`` at scalar or array-like toroidal angles.&quot;&quot;&quot;</span>
 
@@ -486,7 +561,7 @@
     <span class="fm">__call__</span> <span class="o">=</span> <span class="n">sol</span>
 
 <div class="viewcode-block" id="DenseFieldLineTrajectory.as_arrays">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.trajectory.DenseFieldLineTrajectory.as_arrays">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.DenseFieldLineTrajectory.as_arrays">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">as_arrays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">copy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return trajectory arrays as ``{&quot;phi&quot;, &quot;R&quot;, &quot;Z&quot;, &quot;alive&quot;}``.&quot;&quot;&quot;</span>
 
@@ -503,7 +578,7 @@
 
 
 <div class="viewcode-block" id="DenseFieldLineTrajectory.flush">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.trajectory.DenseFieldLineTrajectory.flush">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.DenseFieldLineTrajectory.flush">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">flush</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Flush memmap-backed arrays to disk.&quot;&quot;&quot;</span>
 
@@ -548,6 +623,73 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.npy&quot;</span><span class="p">,</span> <span class="n">mmap_mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_array_digest</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">()</span>
+    <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
+    <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">h</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_field_array_signature</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">attr_names</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">attr_names</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;attr&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+            <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span>
+            <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span>
+            <span class="s2">&quot;sha256&quot;</span><span class="p">:</span> <span class="n">_array_digest</span><span class="p">(</span><span class="n">arr</span><span class="p">),</span>
+        <span class="p">}</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_field_signature</span><span class="p">(</span><span class="n">field</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a stable signature for known cylindrical field objects.&quot;&quot;&quot;</span>
+
+    <span class="n">signature</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">field</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">field</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__qualname__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="n">signature</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;nfp&quot;</span><span class="p">,</span> <span class="s2">&quot;field_periods&quot;</span><span class="p">,</span> <span class="s2">&quot;nPhi&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="n">signature</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;field_period&quot;</span><span class="p">,):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="n">signature</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">attr_names</span> <span class="ow">in</span> <span class="p">{</span>
+        <span class="s2">&quot;R&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;R_arr&quot;</span><span class="p">,</span> <span class="s2">&quot;R&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;Z&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Z_arr&quot;</span><span class="p">,</span> <span class="s2">&quot;Z&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;Phi&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Phi&quot;</span><span class="p">,),</span>
+        <span class="s2">&quot;BR&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;BR&quot;</span><span class="p">,</span> <span class="s2">&quot;VR&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;BZ&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;BZ&quot;</span><span class="p">,</span> <span class="s2">&quot;VZ&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;BPhi&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;BPhi&quot;</span><span class="p">,</span> <span class="s2">&quot;VPhi&quot;</span><span class="p">),</span>
+    <span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">field_array</span> <span class="o">=</span> <span class="n">_field_array_signature</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">attr_names</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">field_array</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">signature</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">field_array</span>
+    <span class="k">return</span> <span class="n">signature</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_checkpoint_payload</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">checkpoint_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
@@ -560,11 +702,20 @@
     <span class="n">last_Z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">last_phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">storage</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">field_signature</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">extend_phi</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
     <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;schema_name&quot;</span><span class="p">:</span> <span class="n">_SCHEMA_NAME</span><span class="p">,</span>
         <span class="s2">&quot;schema_version&quot;</span><span class="p">:</span> <span class="n">_SCHEMA_VERSION</span><span class="p">,</span>
+        <span class="s2">&quot;compatibility&quot;</span><span class="p">:</span> <span class="n">_SCHEMA_COMPATIBILITY</span><span class="p">,</span>
         <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="n">status</span><span class="p">,</span>
         <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="n">params</span><span class="p">,</span>
+        <span class="s2">&quot;options&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;extend_phi&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">extend_phi</span><span class="p">)</span> <span class="k">if</span> <span class="n">extend_phi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;trace_source&quot;</span><span class="p">:</span> <span class="s2">&quot;trace_orbit_along_phi&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;field_signature&quot;</span><span class="p">:</span> <span class="n">field_signature</span><span class="p">,</span>
         <span class="s2">&quot;n_total&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_total</span><span class="p">),</span>
         <span class="s2">&quot;n_written&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_written</span><span class="p">),</span>
         <span class="s2">&quot;next_index&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">next_index</span><span class="p">),</span>
@@ -577,6 +728,12 @@
             <span class="s2">&quot;R&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">checkpoint_dir</span> <span class="o">/</span> <span class="s2">&quot;R.npy&quot;</span><span class="p">),</span>
             <span class="s2">&quot;Z&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">checkpoint_dir</span> <span class="o">/</span> <span class="s2">&quot;Z.npy&quot;</span><span class="p">),</span>
             <span class="s2">&quot;alive&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">checkpoint_dir</span> <span class="o">/</span> <span class="s2">&quot;alive.npy&quot;</span><span class="p">),</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;array_specs&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;phi&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">n_total</span><span class="p">)],</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;float64&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;R&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">n_total</span><span class="p">)],</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;float64&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;Z&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">n_total</span><span class="p">)],</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;float64&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;alive&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">n_total</span><span class="p">)],</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;int8&quot;</span><span class="p">},</span>
         <span class="p">},</span>
     <span class="p">}</span>
 
@@ -594,8 +751,84 @@
     <span class="k">return</span> <span class="kc">True</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_validate_checkpoint_arrays</span><span class="p">(</span><span class="n">checkpoint_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">n_total</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;n_total&quot;</span><span class="p">])</span>
+    <span class="n">n_written</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;n_written&quot;</span><span class="p">])</span>
+    <span class="n">next_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;next_index&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">n_total</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;checkpoint n_total must be positive&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n_written</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">n_written</span> <span class="o">&gt;</span> <span class="n">n_total</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;checkpoint n_written=</span><span class="si">{</span><span class="n">n_written</span><span class="si">}</span><span class="s2"> is outside [1, </span><span class="si">{</span><span class="n">n_total</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">next_index</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">next_index</span> <span class="o">&gt;=</span> <span class="n">n_written</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;checkpoint next_index=</span><span class="si">{</span><span class="n">next_index</span><span class="si">}</span><span class="s2"> is outside written range&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">next_index</span> <span class="o">!=</span> <span class="n">n_written</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;checkpoint next_index must reference the last written sample&quot;</span><span class="p">)</span>
+
+    <span class="n">specs</span> <span class="o">=</span> <span class="n">checkpoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;array_specs&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">opened</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;Z&quot;</span><span class="p">,</span> <span class="s2">&quot;phi&quot;</span><span class="p">,</span> <span class="s2">&quot;alive&quot;</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">checkpoint_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.npy&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;checkpoint array is missing: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">mmap_mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+        <span class="n">opened</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">expected</span> <span class="o">=</span> <span class="n">specs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">expected_shape</span> <span class="o">=</span> <span class="n">expected</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;shape&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">expected_shape</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">list</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">list</span><span class="p">(</span><span class="n">expected_shape</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;checkpoint array </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> has shape </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">; expected </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">expected_shape</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">n_total</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;checkpoint array </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> has shape </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">; expected at least </span><span class="si">{</span><span class="n">n_total</span><span class="si">}</span><span class="s2"> samples&quot;</span>
+                <span class="p">)</span>
+            <span class="n">expected_dtype</span> <span class="o">=</span> <span class="n">expected</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dtype&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">expected_dtype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">(</span><span class="n">expected_dtype</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;checkpoint array </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> has dtype </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">; expected </span><span class="si">{</span><span class="n">expected_dtype</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">opened_arr</span> <span class="ow">in</span> <span class="n">opened</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">del</span> <span class="n">opened_arr</span>
+            <span class="k">raise</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">opened</span><span class="p">[</span><span class="s2">&quot;phi&quot;</span><span class="p">][:</span><span class="n">n_written</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">opened</span><span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">][:</span><span class="n">n_written</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">opened</span><span class="p">[</span><span class="s2">&quot;Z&quot;</span><span class="p">][:</span><span class="n">n_written</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">alive</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">opened</span><span class="p">[</span><span class="s2">&quot;alive&quot;</span><span class="p">][:</span><span class="n">n_written</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">phi</span><span class="p">))</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">R</span><span class="p">))</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">Z</span><span class="p">))):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;checkpoint written arrays contain non-finite samples&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">alive</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;checkpoint written samples are not all marked alive&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">n_written</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">dphi</span> <span class="o">=</span> <span class="nb">float</span><span class="p">((</span><span class="n">checkpoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dphi_out&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+            <span class="n">deltas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dphi</span> <span class="o">&gt;=</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">deltas</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">1.0e-12</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;checkpoint phi samples are not monotone increasing&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dphi</span> <span class="o">&lt;</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">deltas</span> <span class="o">&gt;</span> <span class="mf">1.0e-12</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;checkpoint phi samples are not monotone decreasing&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;last_R&quot;</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="n">next_index</span><span class="p">]),</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1.0e-12</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;checkpoint last_R does not match saved arrays&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;last_Z&quot;</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">Z</span><span class="p">[</span><span class="n">next_index</span><span class="p">]),</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1.0e-12</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;checkpoint last_Z does not match saved arrays&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;last_phi&quot;</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">phi</span><span class="p">[</span><span class="n">next_index</span><span class="p">]),</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1.0e-12</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;checkpoint last_phi does not match saved arrays&quot;</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">opened</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">del</span> <span class="n">arr</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_flush_checkpoint_arrays</span><span class="p">(</span><span class="o">*</span><span class="n">arrays</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">arrays</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="s2">&quot;flush&quot;</span><span class="p">):</span>
+            <span class="n">arr</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+
 <div class="viewcode-block" id="trace_fieldline_trajectory">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.trajectory.trace_fieldline_trajectory">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_fieldline_trajectory">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_fieldline_trajectory</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">R0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -644,6 +877,8 @@
     <span class="n">chunk_intervals</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">chunk_phi_span</span><span class="p">))</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dphi_out</span><span class="p">))))</span>
 
     <span class="n">ckpt_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">checkpoint_dir</span><span class="p">)</span> <span class="k">if</span> <span class="n">checkpoint_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">ckpt_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">storage</span> <span class="o">==</span> <span class="s2">&quot;memory&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;checkpoint_dir requires disk-backed storage; use storage=&#39;auto&#39; or storage=&#39;disk&#39;&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">storage</span> <span class="o">==</span> <span class="s2">&quot;disk&quot;</span> <span class="ow">or</span> <span class="p">(</span><span class="n">storage</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ckpt_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">bytes_needed</span> <span class="o">&gt;</span> <span class="n">memory_limit_bytes</span><span class="p">)):</span>
         <span class="k">if</span> <span class="n">ckpt_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">ckpt_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;pyna_fieldline_&quot;</span><span class="p">))</span>
@@ -662,11 +897,22 @@
         <span class="s2">&quot;chunk_intervals&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">chunk_intervals</span><span class="p">),</span>
     <span class="p">}</span>
     <span class="n">checkpoint_path</span> <span class="o">=</span> <span class="n">ckpt_dir</span> <span class="o">/</span> <span class="n">_CHECKPOINT_NAME</span> <span class="k">if</span> <span class="n">ckpt_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">resolved_field_signature</span> <span class="o">=</span> <span class="n">_field_signature</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
 
     <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">_load_checkpoint</span><span class="p">(</span><span class="n">checkpoint_path</span><span class="p">)</span> <span class="k">if</span> <span class="n">checkpoint_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">resume</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">checkpoint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">checkpoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;schema_version&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">_SCHEMA_VERSION</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">_params_match</span><span class="p">(</span><span class="n">checkpoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">,</span> <span class="p">{}),</span> <span class="n">params</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;checkpoint parameters do not match current trace: </span><span class="si">{</span><span class="n">checkpoint_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">checkpoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;schema_name&quot;</span><span class="p">,</span> <span class="n">_SCHEMA_NAME</span><span class="p">)</span> <span class="o">!=</span> <span class="n">_SCHEMA_NAME</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;checkpoint schema does not match current trace: </span><span class="si">{</span><span class="n">checkpoint_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="n">checkpoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;options&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="s2">&quot;extend_phi&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;extend_phi&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;extend_phi&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">extend_phi</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;checkpoint extend_phi option does not match current trace: </span><span class="si">{</span><span class="n">checkpoint_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">saved_field_signature</span> <span class="o">=</span> <span class="n">checkpoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;field_signature&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">saved_field_signature</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">saved_field_signature</span> <span class="o">!=</span> <span class="n">resolved_field_signature</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;checkpoint field signature does not match current trace: </span><span class="si">{</span><span class="n">checkpoint_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">_validate_checkpoint_arrays</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">)</span>
         <span class="n">R_all</span> <span class="o">=</span> <span class="n">_open_array</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">,</span> <span class="s2">&quot;R&quot;</span><span class="p">)</span>
         <span class="n">Z_all</span> <span class="o">=</span> <span class="n">_open_array</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">,</span> <span class="s2">&quot;Z&quot;</span><span class="p">)</span>
         <span class="n">phi_all</span> <span class="o">=</span> <span class="n">_open_array</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">,</span> <span class="s2">&quot;phi&quot;</span><span class="p">)</span>
@@ -759,6 +1005,7 @@
         <span class="n">completed</span> <span class="o">=</span> <span class="n">next_index</span> <span class="o">&gt;=</span> <span class="n">n_total</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;complete&quot;</span> <span class="k">if</span> <span class="n">completed</span> <span class="k">else</span> <span class="s2">&quot;running&quot;</span>
         <span class="k">if</span> <span class="n">checkpoint_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_flush_checkpoint_arrays</span><span class="p">(</span><span class="n">R_all</span><span class="p">,</span> <span class="n">Z_all</span><span class="p">,</span> <span class="n">phi_all</span><span class="p">,</span> <span class="n">alive_all</span><span class="p">)</span>
             <span class="n">payload</span> <span class="o">=</span> <span class="n">_checkpoint_payload</span><span class="p">(</span>
                 <span class="n">checkpoint_dir</span><span class="o">=</span><span class="n">ckpt_dir</span><span class="p">,</span>
                 <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="p">,</span>
@@ -770,11 +1017,10 @@
                 <span class="n">last_Z</span><span class="o">=</span><span class="n">Z_cur</span><span class="p">,</span>
                 <span class="n">last_phi</span><span class="o">=</span><span class="n">phi_cur</span><span class="p">,</span>
                 <span class="n">storage</span><span class="o">=</span><span class="n">storage_mode</span><span class="p">,</span>
+                <span class="n">field_signature</span><span class="o">=</span><span class="n">resolved_field_signature</span><span class="p">,</span>
+                <span class="n">extend_phi</span><span class="o">=</span><span class="n">extend_phi</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">_atomic_write_json</span><span class="p">(</span><span class="n">checkpoint_path</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="p">(</span><span class="n">R_all</span><span class="p">,</span> <span class="n">Z_all</span><span class="p">,</span> <span class="n">phi_all</span><span class="p">,</span> <span class="n">alive_all</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="s2">&quot;flush&quot;</span><span class="p">):</span>
-                <span class="n">arr</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">stop_after_chunks</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">chunks_done_this_call</span> <span class="o">&gt;=</span> <span class="nb">int</span><span class="p">(</span><span class="n">stop_after_chunks</span><span class="p">):</span>
             <span class="n">completed</span> <span class="o">=</span> <span class="kc">False</span>
@@ -785,6 +1031,7 @@
 
     <span class="n">final_status</span> <span class="o">=</span> <span class="s2">&quot;complete&quot;</span> <span class="k">if</span> <span class="n">completed</span> <span class="k">else</span> <span class="s2">&quot;incomplete&quot;</span>
     <span class="k">if</span> <span class="n">checkpoint_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_flush_checkpoint_arrays</span><span class="p">(</span><span class="n">R_all</span><span class="p">,</span> <span class="n">Z_all</span><span class="p">,</span> <span class="n">phi_all</span><span class="p">,</span> <span class="n">alive_all</span><span class="p">)</span>
         <span class="n">payload</span> <span class="o">=</span> <span class="n">_checkpoint_payload</span><span class="p">(</span>
             <span class="n">checkpoint_dir</span><span class="o">=</span><span class="n">ckpt_dir</span><span class="p">,</span>
             <span class="n">status</span><span class="o">=</span><span class="n">final_status</span><span class="p">,</span>
@@ -796,6 +1043,8 @@
             <span class="n">last_Z</span><span class="o">=</span><span class="n">Z_cur</span><span class="p">,</span>
             <span class="n">last_phi</span><span class="o">=</span><span class="n">phi_cur</span><span class="p">,</span>
             <span class="n">storage</span><span class="o">=</span><span class="n">storage_mode</span><span class="p">,</span>
+            <span class="n">field_signature</span><span class="o">=</span><span class="n">resolved_field_signature</span><span class="p">,</span>
+            <span class="n">extend_phi</span><span class="o">=</span><span class="n">extend_phi</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">_atomic_write_json</span><span class="p">(</span><span class="n">checkpoint_path</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
 
@@ -808,8 +1057,13 @@
         <span class="s2">&quot;phi_end&quot;</span><span class="p">:</span> <span class="n">phi_end</span><span class="p">,</span>
         <span class="s2">&quot;DPhi&quot;</span><span class="p">:</span> <span class="n">DPhi</span><span class="p">,</span>
         <span class="s2">&quot;dphi_out&quot;</span><span class="p">:</span> <span class="n">dphi_out</span><span class="p">,</span>
+        <span class="s2">&quot;n_total&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_total</span><span class="p">),</span>
+        <span class="s2">&quot;n_written&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_written</span><span class="p">),</span>
+        <span class="s2">&quot;next_index&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">next_index</span><span class="p">),</span>
         <span class="s2">&quot;storage&quot;</span><span class="p">:</span> <span class="n">storage_mode</span><span class="p">,</span>
         <span class="s2">&quot;checkpoint&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">checkpoint_path</span><span class="p">)</span> <span class="k">if</span> <span class="n">checkpoint_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;field_signature&quot;</span><span class="p">:</span> <span class="n">resolved_field_signature</span><span class="p">,</span>
+        <span class="s2">&quot;extend_phi&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">extend_phi</span><span class="p">),</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">DenseFieldLineTrajectory</span><span class="p">(</span>
         <span class="n">phi</span><span class="o">=</span><span class="n">phi_all</span><span class="p">[</span><span class="n">usable</span><span class="p">],</span>
@@ -823,7 +1077,7 @@
 
 
 <div class="viewcode-block" id="trace_fieldline_trajectory_bidirectional">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.trajectory.trace_fieldline_trajectory_bidirectional">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_fieldline_trajectory_bidirectional">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_fieldline_trajectory_bidirectional</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">R0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -881,7 +1135,7 @@
 
 
 <div class="viewcode-block" id="fieldline_trajectory_flow">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.trajectory.fieldline_trajectory_flow">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.fieldline_trajectory_flow">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">fieldline_trajectory_flow</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span><span class="p">,</span> <span class="n">phi_start</span><span class="p">,</span> <span class="n">phi_end</span><span class="p">,</span> <span class="n">DPhi</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Prefect flow for restartable field-line trajectory tracing.</span>
 
@@ -897,7 +1151,7 @@
 
 
 <div class="viewcode-block" id="build_prefect_fieldline_flow">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.trajectory.build_prefect_fieldline_flow">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.build_prefect_fieldline_flow">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">build_prefect_fieldline_flow</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the canonical Prefect flow for field-line trajectory tracing.&quot;&quot;&quot;</span>
 
@@ -964,7 +1218,7 @@
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     <br/>
   </p>
 </div>

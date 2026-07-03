@@ -33,7 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=a0d39112" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=243d2ed3" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
 
-    <script src="../../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../../_static/documentation_options.js?v=9ed95442"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -50,7 +50,7 @@
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/toroidal/flt/adaptive_density';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <script src="../../../../_static/language-switcher.js?v=8b136864"></script>
+    <script src="../../../../_static/language-switcher.js?v=866ba1ee"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
 
@@ -151,7 +151,42 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../../zh/index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -177,10 +212,11 @@
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
     <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
       
@@ -265,7 +301,42 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../../zh/index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -284,10 +355,11 @@
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
     <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
         
@@ -401,28 +473,28 @@
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <div class="viewcode-block" id="BoundarySeedDensificationResult">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.BoundarySeedDensificationResult">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.BoundarySeedDensificationResult">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BoundarySeedDensificationResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Seed update proposed from a Poincare point-density diagnostic.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="BoundarySeedDensificationResult.seed_R">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.BoundarySeedDensificationResult.seed_R">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.BoundarySeedDensificationResult.seed_R">[docs]</a>
     <span class="n">seed_R</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="BoundarySeedDensificationResult.seed_Z">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.BoundarySeedDensificationResult.seed_Z">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.BoundarySeedDensificationResult.seed_Z">[docs]</a>
     <span class="n">seed_Z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="BoundarySeedDensificationResult.added_R">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.BoundarySeedDensificationResult.added_R">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.BoundarySeedDensificationResult.added_R">[docs]</a>
     <span class="n">added_R</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="BoundarySeedDensificationResult.added_Z">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.BoundarySeedDensificationResult.added_Z">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.BoundarySeedDensificationResult.added_Z">[docs]</a>
     <span class="n">added_Z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="BoundarySeedDensificationResult.diagnostics">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.BoundarySeedDensificationResult.diagnostics">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.BoundarySeedDensificationResult.diagnostics">[docs]</a>
     <span class="n">diagnostics</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span> <span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 
@@ -444,16 +516,16 @@
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <div class="viewcode-block" id="AdaptivePoincareSectionTraces">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.AdaptivePoincareSectionTraces">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">AdaptivePoincareSectionTraces</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Aggregate Poincare traces from adaptive seed-refinement rounds.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="AdaptivePoincareSectionTraces.traces">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.traces">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.AdaptivePoincareSectionTraces.traces">[docs]</a>
     <span class="n">traces</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">PoincareSectionTraces</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="AdaptivePoincareSectionTraces.metadata">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.metadata">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.AdaptivePoincareSectionTraces.metadata">[docs]</a>
     <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span> <span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 
@@ -471,55 +543,55 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="AdaptivePoincareSectionTraces.phi_sections">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.phi_sections">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.AdaptivePoincareSectionTraces.phi_sections">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">phi_sections</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">phi_sections</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="AdaptivePoincareSectionTraces.seed_R">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.seed_R">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.AdaptivePoincareSectionTraces.seed_R">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">seed_R</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">trace</span><span class="o">.</span><span class="n">seed_R</span> <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="p">])</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="AdaptivePoincareSectionTraces.seed_Z">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.seed_Z">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.AdaptivePoincareSectionTraces.seed_Z">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">seed_Z</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">trace</span><span class="o">.</span><span class="n">seed_Z</span> <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="p">])</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="AdaptivePoincareSectionTraces.n_seed">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.n_seed">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.AdaptivePoincareSectionTraces.n_seed">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">n_seed</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">n_seed</span> <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="p">))</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="AdaptivePoincareSectionTraces.n_section">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.n_section">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.AdaptivePoincareSectionTraces.n_section">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">n_section</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">n_section</span><span class="p">)</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="AdaptivePoincareSectionTraces.N_turns">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.N_turns">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.AdaptivePoincareSectionTraces.N_turns">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">N_turns</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">N_turns</span> <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="p">))</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="AdaptivePoincareSectionTraces.direction">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.direction">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.AdaptivePoincareSectionTraces.direction">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">direction</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">direction</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="AdaptivePoincareSectionTraces.section_points">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.section_points">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.AdaptivePoincareSectionTraces.section_points">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">section_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
         <span class="n">R_parts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">Z_parts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -544,7 +616,7 @@
 
 
 <div class="viewcode-block" id="poincare_seed_hit_counts">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.poincare_seed_hit_counts">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.poincare_seed_hit_counts">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">poincare_seed_hit_counts</span><span class="p">(</span><span class="n">traces</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return total recorded Poincare hits for every seed orbit.&quot;&quot;&quot;</span>
 
@@ -616,7 +688,7 @@
 
 
 <div class="viewcode-block" id="filter_poincare_traces_by_seed_count">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.filter_poincare_traces_by_seed_count">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.filter_poincare_traces_by_seed_count">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">filter_poincare_traces_by_seed_count</span><span class="p">(</span>
     <span class="n">traces</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -687,7 +759,7 @@
 
 
 <div class="viewcode-block" id="wall_fraction_theta">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.wall_fraction_theta">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.wall_fraction_theta">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">wall_fraction_theta</span><span class="p">(</span>
     <span class="n">axis_R</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">axis_Z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -710,7 +782,7 @@
 
 
 <div class="viewcode-block" id="poincare_wall_fraction_density">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.poincare_wall_fraction_density">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.poincare_wall_fraction_density">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">poincare_wall_fraction_density</span><span class="p">(</span>
     <span class="n">traces</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -800,7 +872,7 @@
 
 
 <div class="viewcode-block" id="adaptive_wall_fraction_seed_points">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.adaptive_wall_fraction_seed_points">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.adaptive_wall_fraction_seed_points">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">adaptive_wall_fraction_seed_points</span><span class="p">(</span>
     <span class="n">density</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -886,7 +958,7 @@
 
 
 <div class="viewcode-block" id="densify_boundary_poincare_seeds">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.densify_boundary_poincare_seeds">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.densify_boundary_poincare_seeds">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">densify_boundary_poincare_seeds</span><span class="p">(</span>
     <span class="n">traces</span><span class="p">,</span>
     <span class="n">axis_R</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -991,7 +1063,7 @@
 
 
 <div class="viewcode-block" id="trace_adaptive_poincare_sections_from_same_orbits_field">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.trace_adaptive_poincare_sections_from_same_orbits_field">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_adaptive_poincare_sections_from_same_orbits_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_adaptive_poincare_sections_from_same_orbits_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">seed_R</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -1208,7 +1280,7 @@
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     <br/>
   </p>
 </div>

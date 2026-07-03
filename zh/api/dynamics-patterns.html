@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>工作流与扩展辅助层 &#8212; pyna dynamics toolkit</title>
+    <title>动力系统工作流和扩展辅助层 &#8212; pyna dynamics toolkit</title>
   
   
   
@@ -34,7 +34,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a0d39112" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=243d2ed3" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
 
-    <script src="../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../_static/documentation_options.js?v=9ed95442"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -51,11 +51,11 @@
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'zh/api/dynamics-patterns';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <script src="../../_static/language-switcher.js?v=8b136864"></script>
+    <script src="../../_static/language-switcher.js?v=866ba1ee"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="场线追踪 (pyna.flt)" href="flt.html" />
-    <link rel="prev" title="通用动力系统 (pyna.dynamics)" href="dynamics.html" />
+    <link rel="next" title="场线追踪（pyna.flt）" href="flt.html" />
+    <link rel="prev" title="一般动力系统（pyna.dynamics）" href="dynamics.html" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -154,7 +154,42 @@
 
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="../index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -179,11 +214,12 @@
   <span class="pyna-language-switcher__label">Language</span>
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
-    <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="zh" selected>中文</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
       
@@ -231,6 +267,10 @@
   
 
   
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
 </div>
 
     </header>
@@ -266,7 +306,42 @@
 
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="../index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -284,11 +359,12 @@
   <span class="pyna-language-switcher__label">Language</span>
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
-    <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="zh" selected>中文</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
         
@@ -340,22 +416,22 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">文档</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../installation.html">安装指南</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">快速入门</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">安装</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">快速开始</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mini-cases.html">迷你案例</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">教程与案例</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">教程和示例</a></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">API 参考</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="dynamics.html">通用动力系统 (<code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code>)</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">工作流与扩展辅助层</a></li>
-<li class="toctree-l2"><a class="reference internal" href="flt.html">场线追踪 (<code class="docutils literal notranslate"><span class="pre">pyna.flt</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="topo.html">拓扑对象与 Poincare 分析 (<code class="docutils literal notranslate"><span class="pre">pyna.topo</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="toroidal.html">环形磁约束命名空间 (<code class="docutils literal notranslate"><span class="pre">pyna.toroidal</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="control.html">控制模块</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cyna.html">cyna C++ 加速层</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamics.html">一般动力系统（<code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code>）</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">动力系统工作流和扩展辅助层</a></li>
+<li class="toctree-l2"><a class="reference internal" href="flt.html">场线追踪（<code class="docutils literal notranslate"><span class="pre">pyna.flt</span></code>）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topo.html">拓扑（<code class="docutils literal notranslate"><span class="pre">pyna.topo</span></code>）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toroidal.html">环形物理（<code class="docutils literal notranslate"><span class="pre">pyna.toroidal</span></code>）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="control.html">FPT 拓扑控制（<code class="docutils literal notranslate"><span class="pre">pyna.control</span></code>）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cyna.html">cyna 加速层</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="../theory/index.html">理论说明</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/index.html">开发与架构</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../theory/index.html">理论</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/index.html">开发</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../straight_theta_surface_coordinates.html">基于 Poincare 迹线构建 straight-theta 磁面坐标</a></li>
 </ul>
 </div>
@@ -398,12 +474,12 @@
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">pyna 中文文档</a></li>
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">pyna - Python DYNAmics</a></li>
     
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">API 参考</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">工作流与扩展辅助层</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">动力系统工作流和扩展辅助层</span></li>
   </ul>
 </nav>
 </div>
@@ -423,22 +499,820 @@
                 <article class="bd-article">
                   
   <section id="id1">
-<h1>工作流与扩展辅助层<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">pyna.topo</span></code> 的辅助层解决“怎么把外部模型接入 pyna”的问题：</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">TopologyWorkflow</span></code>：notebook 和脚本优先使用的门面；</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">protocols</span></code>：定义 FlowLike、MapLike、SectionLike 等结构契约；</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">adapters</span></code>：把数组、求解器输出或外部对象规范化；</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">builders</span></code>：集中处理闭合检查、metadata 和对象提升；</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">bridges</span></code>：把 <code class="docutils literal notranslate"><span class="pre">Cycle/Tube</span></code> 切到 <code class="docutils literal notranslate"><span class="pre">PeriodicOrbit/IslandChain</span></code>；</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">factories</span></code>：为配置驱动项目提供稳定字符串 key。</p></li>
-</ul>
-<p>使用原则：adapter 只做格式归一；builder 才表达“这是闭合对象”之类的数学
-声明；factory 只在需要稳定 key 或后端选择时引入。</p>
-<p>英文详细 API：</p>
-<ul class="simple">
-<li><p><a class="reference internal" href="../../en/api/dynamics-patterns.html"><span class="doc">Dynamics Workflows and Extension Helpers</span></a></p></li>
-</ul>
+<h1>动力系统工作流和扩展辅助层<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">pyna.topo</span></code> 在核心拓扑对象之上提供工作流辅助层。主要面向用户的入口是
+<code class="docutils literal notranslate"><span class="pre">TopologyWorkflow</span></code>；低层协议、适配器、构建器、桥接和工厂模块
+仍然提供给需要稳定扩展点的下游库。</p>
+<section id="id2">
+<h2>工作流门面<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">TopologyWorkflow</span></code> 面向 notebook 和日常脚本。它组合系统构造、积分/迭代、显式提升
+和截面切割，而不引入新的数学对象类型。</p>
+<p>Workflow facade for teaching and day-to-day topology construction.</p>
+<p><code class="docutils literal notranslate"><span class="pre">TopologyWorkflow</span></code> composes factories, builders and bridges into the sequence
+users actually perform in notebooks:</p>
+<ol class="arabic simple">
+<li><p>create or receive a flow/map,</p></li>
+<li><p>integrate trajectories or iterate orbits,</p></li>
+<li><p>explicitly promote closed samples to invariant objects,</p></li>
+<li><p>cut continuous geometry into section-level discrete geometry.</p></li>
+</ol>
+<p>It is a facade, not a new mathematical layer.</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.topo.workflow.</span></span><span class="sig-name descname"><span class="pre">TopologyWorkflow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">closure_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section_bridge</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#TopologyWorkflow"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>High-level workflow facade for examples and user scripts.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">closed_cycle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajectory</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">period_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closure_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#TopologyWorkflow.closed_cycle"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Promote a closed sampled trajectory to a <code class="docutils literal notranslate"><span class="pre">Cycle</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.Cycle" title="pyna.topo.core.Cycle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cycle</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">closing_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#TopologyWorkflow.closing_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">||x_final</span> <span class="pre">-</span> <span class="pre">x_initial||</span></code> for trajectory/orbit-like samples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">closure_tol</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-08</span></span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#TopologyWorkflow.closure_tol"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">cycle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_closed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#TopologyWorkflow.cycle"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Build a <code class="docutils literal notranslate"><span class="pre">Cycle</span></code> with an explicit closure policy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.Cycle" title="pyna.topo.core.Cycle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cycle</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">geometry</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../../en/api/generated/pyna/topo/builders/index.html#pyna.topo.builders.GeometryBuilder" title="pyna.topo.builders.GeometryBuilder"><span class="pre">GeometryBuilder</span></a></span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#TopologyWorkflow.geometry"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">geometry_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#TopologyWorkflow.geometry_object"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Build a topology object through the geometry factory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">island_chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">O_orbits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_orbits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proximity_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#TopologyWorkflow.island_chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Build a generic <code class="docutils literal notranslate"><span class="pre">IslandChain</span></code> from O/X periodic orbits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.IslandChain" title="pyna.topo.core.IslandChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">IslandChain</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">orbit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">map_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_iter</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#TopologyWorkflow.orbit"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Iterate <code class="docutils literal notranslate"><span class="pre">map_obj</span></code> and return a sampled orbit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.Orbit" title="pyna.topo.core.Orbit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Orbit</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">periodic_orbit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#TopologyWorkflow.periodic_orbit"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Promote map samples to a <code class="docutils literal notranslate"><span class="pre">PeriodicOrbit</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.PeriodicOrbit" title="pyna.topo.core.PeriodicOrbit"><code class="xref py py-class docutils literal notranslate"><span class="pre">PeriodicOrbit</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">poincare_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flow</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#TopologyWorkflow.poincare_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Create an executable Poincare map for <code class="docutils literal notranslate"><span class="pre">flow</span></code> and <code class="docutils literal notranslate"><span class="pre">section</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">section_bridge</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../../en/api/generated/pyna/topo/bridges/index.html#pyna.topo.bridges.SectionCutBridge" title="pyna.topo.bridges.SectionCutBridge"><span class="pre">SectionCutBridge</span></a></span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#TopologyWorkflow.section_bridge"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">section_cut</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#TopologyWorkflow.section_cut"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Cut any supported object by a section.</p>
+<p>Core <code class="docutils literal notranslate"><span class="pre">Tube</span></code> and <code class="docutils literal notranslate"><span class="pre">TubeChain</span></code> objects use the configured bridge.
+Other objects delegate to their own <code class="docutils literal notranslate"><span class="pre">section_cut</span></code> implementation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">system</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#TopologyWorkflow.system"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Build a ready-to-use dynamical system by stable factory key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">trajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flow</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_span</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#TopologyWorkflow.trajectory"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Integrate <code class="docutils literal notranslate"><span class="pre">flow</span></code> and return a sampled trajectory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.Trajectory" title="pyna.topo.core.Trajectory"><code class="xref py py-class docutils literal notranslate"><span class="pre">Trajectory</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">tube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">O_cycle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_cycles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_closed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closure_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#TopologyWorkflow.tube"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Build a generic <code class="docutils literal notranslate"><span class="pre">Tube</span></code> from one O-cycle and optional X-cycles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.Tube" title="pyna.topo.core.Tube"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tube</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">tube_chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">O_cycles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_cycles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_closed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#TopologyWorkflow.tube_chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Build a generic <code class="docutils literal notranslate"><span class="pre">TubeChain</span></code> through <code class="docutils literal notranslate"><span class="pre">TubeChainBuilder</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.TubeChain" title="pyna.topo.core.TubeChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">TubeChain</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">pyna.topo.workflow.</span></span><span class="sig-name descname"><span class="pre">make_poincare_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flow</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#make_poincare_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Create an executable Poincare map for <code class="docutils literal notranslate"><span class="pre">flow</span></code> and <code class="docutils literal notranslate"><span class="pre">section</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">pyna.topo.workflow.</span></span><span class="sig-name descname"><span class="pre">orbit_from_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">map_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_iter</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#orbit_from_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Iterate a map-like object and return an <code class="docutils literal notranslate"><span class="pre">Orbit</span></code> geometry object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.Orbit" title="pyna.topo.core.Orbit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Orbit</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">pyna.topo.workflow.</span></span><span class="sig-name descname"><span class="pre">section_cut</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bridge</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/workflow.html#section_cut"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Cut a supported continuous-time geometry object by <code class="docutils literal notranslate"><span class="pre">section</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="id3">
+<h2>扩展协议<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>结构化协议描述外部系统的扩展契约。第三方对象只要实现所需属性和方法即可参与
+工作；不强制继承 pyna 类。</p>
+<p>Structural protocols for pyna’s topology and dynamics layers.</p>
+<p>The concrete class hierarchy intentionally stays small:
+<code class="docutils literal notranslate"><span class="pre">pyna.topo.core</span></code> owns domain-agnostic geometry and <code class="docutils literal notranslate"><span class="pre">pyna.topo.toroidal</span></code>
+owns magnetic-confinement specializations.  Protocols in this module define
+the structural contracts used by adapters, builders, bridges and factories.
+They make extension points explicit without forcing third-party systems to
+subclass pyna internals.</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.topo.protocols.</span></span><span class="sig-name descname"><span class="pre">FlowLike</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/protocols.html#FlowLike"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<p>Continuous-time system exposing a vector field.</p>
+<dl class="py property">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">phase_space</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../../en/api/generated/pyna/topo/dynamics/index.html#pyna.topo.dynamics.PhaseSpace" title="pyna.topo.dynamics.PhaseSpace"><span class="pre">PhaseSpace</span></a></span><a class="reference internal" href="../../_modules/pyna/topo/protocols.html#FlowLike.phase_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">vector_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/protocols.html#FlowLike.vector_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.topo.protocols.</span></span><span class="sig-name descname"><span class="pre">JacobianProvider</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/protocols.html#JacobianProvider"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<p>Object that can provide a local derivative matrix.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/protocols.html#JacobianProvider.jacobian"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.topo.protocols.</span></span><span class="sig-name descname"><span class="pre">MapLike</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/protocols.html#MapLike"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<p>Discrete-time map exposing one-step iteration.</p>
+<dl class="py property">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">phase_space</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../../en/api/generated/pyna/topo/dynamics/index.html#pyna.topo.dynamics.PhaseSpace" title="pyna.topo.dynamics.PhaseSpace"><span class="pre">PhaseSpace</span></a></span><a class="reference internal" href="../../_modules/pyna/topo/protocols.html#MapLike.phase_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/protocols.html#MapLike.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.topo.protocols.</span></span><span class="sig-name descname"><span class="pre">SectionLike</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/protocols.html#SectionLike"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<p>Codimension-one section used for cuts and Poincare maps.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">detect_crossing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_prev</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_curr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/protocols.html#SectionLike.detect_crossing"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">dim_phase</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../_modules/pyna/topo/protocols.html#SectionLike.dim_phase"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">label</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="reference internal" href="../../_modules/pyna/topo/protocols.html#SectionLike.label"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/protocols.html#SectionLike.project"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.topo.protocols.</span></span><span class="sig-name descname"><span class="pre">StabilityClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/protocols.html#StabilityClassifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<p>Callable linear-stability classifier.</p>
+</dd></dl>
+
+</section>
+<section id="id4">
+<h2>数据适配<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<p>适配器将数组、求解器输出和已有 pyna 对象规范化为核心几何表示。它们不会静默地把
+采样数据提升为不变对象。</p>
+<p>Adapters between user data and pyna topology objects.</p>
+<p>Adapters are deliberately conservative: they normalize representation, but they
+do not claim a sampled curve is invariant.  Promotion from <code class="docutils literal notranslate"><span class="pre">Trajectory</span></code> to
+<code class="docutils literal notranslate"><span class="pre">Cycle</span></code> or from <code class="docutils literal notranslate"><span class="pre">Orbit</span></code> to <code class="docutils literal notranslate"><span class="pre">PeriodicOrbit</span></code> is exposed as an explicit
+operation with optional closure/iteration checks.</p>
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">pyna.topo.adapters.</span></span><span class="sig-name descname"><span class="pre">as_cycle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">period_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_map_orbit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_closed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closure_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-08</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/adapters.html#as_cycle"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">obj</span></code> as a continuous-time cycle representation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.Cycle" title="pyna.topo.core.Cycle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cycle</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">pyna.topo.adapters.</span></span><span class="sig-name descname"><span class="pre">as_orbit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/adapters.html#as_orbit"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">obj</span></code> as a generic sampled discrete-time orbit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.Orbit" title="pyna.topo.core.Orbit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Orbit</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">pyna.topo.adapters.</span></span><span class="sig-name descname"><span class="pre">as_periodic_orbit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stability_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closure_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_closing_duplicate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/adapters.html#as_periodic_orbit"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">obj</span></code> as a periodic orbit with optional map/closure checks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.PeriodicOrbit" title="pyna.topo.core.PeriodicOrbit"><code class="xref py py-class docutils literal notranslate"><span class="pre">PeriodicOrbit</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">pyna.topo.adapters.</span></span><span class="sig-name descname"><span class="pre">as_section_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">section_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stability_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/adapters.html#as_section_point"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">obj</span></code> as a generic section point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">pyna.topo.adapters.</span></span><span class="sig-name descname"><span class="pre">as_trajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'t'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/adapters.html#as_trajectory"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">obj</span></code> as a generic sampled continuous-time trajectory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.Trajectory" title="pyna.topo.core.Trajectory"><code class="xref py py-class docutils literal notranslate"><span class="pre">Trajectory</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="id5">
+<h2>构建器<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<p>构建器编码显式提升规则。例如，只有通过可要求闭合样本的构建器或适配器调用，
+轨迹才能被提升为 <code class="docutils literal notranslate"><span class="pre">Cycle</span></code>。</p>
+<p>Builder objects for finite-dimensional topology geometry.</p>
+<p>Builders encode explicit promotion rules.  A sampled trajectory is just a
+trajectory until a caller asks to build a <code class="docutils literal notranslate"><span class="pre">Cycle</span></code> and passes the required
+closure policy.  The same idea applies to discrete <code class="docutils literal notranslate"><span class="pre">Orbit</span></code> versus
+<code class="docutils literal notranslate"><span class="pre">PeriodicOrbit</span></code>.</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.topo.builders.</span></span><span class="sig-name descname"><span class="pre">GeometryBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">closure_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-08</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#GeometryBuilder"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Convenience builder for core trajectory/orbit/cycle objects.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">closure_tol</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-08</span></span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#GeometryBuilder.closure_tol"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">cycle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_closed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closure_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#GeometryBuilder.cycle"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.Cycle" title="pyna.topo.core.Cycle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cycle</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">orbit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#GeometryBuilder.orbit"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.Orbit" title="pyna.topo.core.Orbit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Orbit</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">periodic_orbit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closure_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#GeometryBuilder.periodic_orbit"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.PeriodicOrbit" title="pyna.topo.core.PeriodicOrbit"><code class="xref py py-class docutils literal notranslate"><span class="pre">PeriodicOrbit</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">section_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#GeometryBuilder.section_point"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.SectionPoint" title="pyna.topo.core.SectionPoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">SectionPoint</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">trajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#GeometryBuilder.trajectory"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.Trajectory" title="pyna.topo.core.Trajectory"><code class="xref py py-class docutils literal notranslate"><span class="pre">Trajectory</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.topo.builders.</span></span><span class="sig-name descname"><span class="pre">IslandChainBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proximity_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#IslandChainBuilder"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Builder for generic discrete island chains.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">add_from_orbit_clouds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">O_orbits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_orbits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#IslandChainBuilder.add_from_orbit_clouds"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/builders/index.html#pyna.topo.builders.IslandChainBuilder" title="pyna.topo.builders.IslandChainBuilder"><code class="xref py py-class docutils literal notranslate"><span class="pre">IslandChainBuilder</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">add_island</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">O_orbit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_orbits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#IslandChainBuilder.add_island"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/builders/index.html#pyna.topo.builders.IslandChainBuilder" title="pyna.topo.builders.IslandChainBuilder"><code class="xref py py-class docutils literal notranslate"><span class="pre">IslandChainBuilder</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#IslandChainBuilder.build"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.IslandChain" title="pyna.topo.core.IslandChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">IslandChain</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_periodic_orbits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">O_orbits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_orbits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proximity_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#IslandChainBuilder.from_periodic_orbits"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.IslandChain" title="pyna.topo.core.IslandChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">IslandChain</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">label</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#IslandChainBuilder.label"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">metadata</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#IslandChainBuilder.metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">period</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#IslandChainBuilder.period"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">proximity_tol</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#IslandChainBuilder.proximity_tol"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.topo.builders.</span></span><span class="sig-name descname"><span class="pre">TubeChainBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#TubeChainBuilder"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Builder for generic continuous-time tube chains.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">add_tube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">O_cycle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_cycles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_closed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closure_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#TubeChainBuilder.add_tube"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/builders/index.html#pyna.topo.builders.TubeChainBuilder" title="pyna.topo.builders.TubeChainBuilder"><code class="xref py py-class docutils literal notranslate"><span class="pre">TubeChainBuilder</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#TubeChainBuilder.build"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.TubeChain" title="pyna.topo.core.TubeChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">TubeChain</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_cycles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">O_cycles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_cycles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_closed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closure_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#TubeChainBuilder.from_cycles"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.TubeChain" title="pyna.topo.core.TubeChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">TubeChain</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">label</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#TubeChainBuilder.label"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">metadata</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span><a class="reference internal" href="../../_modules/pyna/topo/builders.html#TubeChainBuilder.metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="id6">
+<h2>连续-离散桥接<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<p>桥接层连接连续时间和离散时间对象族：<code class="docutils literal notranslate"><span class="pre">Cycle</span> <span class="pre">-&gt;</span> <span class="pre">PeriodicOrbit</span></code> 以及
+<code class="docutils literal notranslate"><span class="pre">Tube/TubeChain</span> <span class="pre">-&gt;</span> <span class="pre">IslandChain</span></code>。</p>
+<p>Bridge objects between continuous and discrete topology layers.</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.topo.bridges.</span></span><span class="sig-name descname"><span class="pre">CoreSectionCutBridge</span></span><a class="reference internal" href="../../_modules/pyna/topo/bridges.html#CoreSectionCutBridge"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Default bridge for <code class="docutils literal notranslate"><span class="pre">pyna.topo.core</span></code> geometry objects.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">cut_cycle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cycle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/bridges.html#CoreSectionCutBridge.cut_cycle"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.PeriodicOrbit" title="pyna.topo.core.PeriodicOrbit"><code class="xref py py-class docutils literal notranslate"><span class="pre">PeriodicOrbit</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">cut_tube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/bridges.html#CoreSectionCutBridge.cut_tube"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Cut a generic <code class="docutils literal notranslate"><span class="pre">Tube</span></code> into a generic <code class="docutils literal notranslate"><span class="pre">IslandChain</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.IslandChain" title="pyna.topo.core.IslandChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">IslandChain</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">cut_tube_chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tube_chain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/bridges.html#CoreSectionCutBridge.cut_tube_chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Cut all tubes and merge their islands into one generic chain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.IslandChain" title="pyna.topo.core.IslandChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">IslandChain</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.topo.bridges.</span></span><span class="sig-name descname"><span class="pre">SectionCutBridge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/bridges.html#SectionCutBridge"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<p>Bridge from continuous geometry to section-level discrete geometry.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">cut_tube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/bridges.html#SectionCutBridge.cut_tube"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.IslandChain" title="pyna.topo.core.IslandChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">IslandChain</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">cut_tube_chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tube_chain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/bridges.html#SectionCutBridge.cut_tube_chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/core/index.html#pyna.topo.core.IslandChain" title="pyna.topo.core.IslandChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">IslandChain</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="id7">
+<h2>工厂与注册表<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<p>工厂为系统、几何对象和 Poincare 映射提供稳定构造入口。注册表是显式且防重复
+的，因此测试和下游库可以隔离自己的扩展。</p>
+<p>Registries and factories for dynamics and topology objects.</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.topo.factories.</span></span><span class="sig-name descname"><span class="pre">DynamicalSystemFactory</span></span><a class="reference internal" href="../../_modules/pyna/topo/factories.html#DynamicalSystemFactory"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Factory for ready-to-use finite-dimensional dynamical systems.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/factories.html#DynamicalSystemFactory.create"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/factories.html#DynamicalSystemFactory.from_spec"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/factories.html#DynamicalSystemFactory.register"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">registry</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/factories.html#DynamicalSystemFactory.registry"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/factories/index.html#pyna.topo.factories.Registry" title="pyna.topo.factories.Registry"><code class="xref py py-class docutils literal notranslate"><span class="pre">Registry</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.topo.factories.</span></span><span class="sig-name descname"><span class="pre">GeometryFactory</span></span><a class="reference internal" href="../../_modules/pyna/topo/factories.html#GeometryFactory"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Factory for topology geometry using the explicit builder layer.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/factories.html#GeometryFactory.create"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/factories.html#GeometryFactory.from_spec"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.topo.factories.</span></span><span class="sig-name descname"><span class="pre">PoincareMapFactory</span></span><a class="reference internal" href="../../_modules/pyna/topo/factories.html#PoincareMapFactory"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Factory for executable Poincare map implementations.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flow</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/factories.html#PoincareMapFactory.create"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.topo.factories.</span></span><span class="sig-name descname"><span class="pre">Registry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/factories.html#Registry"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Small named factory registry with explicit duplicate handling.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/factories.html#Registry.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/topo/factories/index.html#pyna.topo.factories.Registry" title="pyna.topo.factories.Registry"><code class="xref py py-class docutils literal notranslate"><span class="pre">Registry</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/factories.html#Registry.create"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/factories.html#Registry.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/constants.html#Ellipsis" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">keys</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/factories.html#Registry.keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/factories.html#Registry.register"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Register a factory or use as a decorator.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">unregister</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/topo/factories.html#Registry.unregister"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -458,7 +1332,7 @@
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">通用动力系统 (<code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code>)</p>
+        <p class="prev-next-title">一般动力系统（<code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code>）</p>
       </div>
     </a>
     <a class="right-next"
@@ -466,7 +1340,7 @@
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">场线追踪 (<code class="docutils literal notranslate"><span class="pre">pyna.flt</span></code>)</p>
+        <p class="prev-next-title">场线追踪（<code class="docutils literal notranslate"><span class="pre">pyna.flt</span></code>）</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -476,6 +1350,29 @@
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">工作流门面</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">扩展协议</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">数据适配</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">构建器</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">连续-离散桥接</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">工厂与注册表</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>
@@ -509,7 +1406,7 @@
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     <br/>
   </p>
 </div>

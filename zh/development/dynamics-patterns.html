@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>扩展模式 &#8212; pyna dynamics toolkit</title>
+    <title>动力系统工作流和扩展辅助层 &#8212; pyna dynamics toolkit</title>
   
   
   
@@ -34,7 +34,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a0d39112" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=243d2ed3" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
 
-    <script src="../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../_static/documentation_options.js?v=9ed95442"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -51,11 +51,11 @@
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'zh/development/dynamics-patterns';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <script src="../../_static/language-switcher.js?v=8b136864"></script>
+    <script src="../../_static/language-switcher.js?v=866ba1ee"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="基于 Poincare 迹线构建 straight-theta 磁面坐标" href="../straight_theta_surface_coordinates.html" />
-    <link rel="prev" title="架构概览" href="architecture.html" />
+    <link rel="prev" title="架构" href="architecture.html" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -154,7 +154,42 @@
 
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="../index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -179,11 +214,12 @@
   <span class="pyna-language-switcher__label">Language</span>
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
-    <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="zh" selected>中文</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
       
@@ -270,7 +306,42 @@
 
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="../index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -288,11 +359,12 @@
   <span class="pyna-language-switcher__label">Language</span>
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
-    <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="zh" selected>中文</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
         
@@ -344,15 +416,15 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">文档</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../installation.html">安装指南</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">快速入门</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">安装</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">快速开始</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mini-cases.html">迷你案例</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">教程与案例</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">教程和示例</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API 参考</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../theory/index.html">理论说明</a></li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">开发与架构</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="architecture.html">架构概览</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">扩展模式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../theory/index.html">理论</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">开发</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="architecture.html">架构</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">动力系统工作流和扩展辅助层</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../straight_theta_surface_coordinates.html">基于 Poincare 迹线构建 straight-theta 磁面坐标</a></li>
@@ -397,12 +469,12 @@
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">pyna 中文文档</a></li>
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">pyna - Python DYNAmics</a></li>
     
     
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">开发与架构</a></li>
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">开发</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">扩展模式</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">动力系统工作流和扩展辅助层</span></li>
   </ul>
 </nav>
 </div>
@@ -422,29 +494,90 @@
                 <article class="bd-article">
                   
   <section id="id1">
-<h1>扩展模式<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
-<p>辅助类不是为了设计模式本身存在，而是为了让 notebook 和下游库少写脆弱胶水。</p>
+<h1>动力系统工作流和扩展辅助层<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
+<p>pyna 将数学几何与构造策略分离。</p>
+<p>核心层次保持紧凑：</p>
+<ul class="simple">
+<li><p>连续时间几何：<code class="docutils literal notranslate"><span class="pre">Trajectory</span></code>、<code class="docutils literal notranslate"><span class="pre">Cycle</span></code>、<code class="docutils literal notranslate"><span class="pre">Tube</span></code>、<code class="docutils literal notranslate"><span class="pre">TubeChain</span></code>；</p></li>
+<li><p>离散时间几何：<code class="docutils literal notranslate"><span class="pre">Orbit</span></code>、<code class="docutils literal notranslate"><span class="pre">PeriodicOrbit</span></code>、<code class="docutils literal notranslate"><span class="pre">Island</span></code>、<code class="docutils literal notranslate"><span class="pre">IslandChain</span></code>；</p></li>
+<li><p>环形类仍然是 <code class="docutils literal notranslate"><span class="pre">pyna.topo.Tube</span></code>、<code class="docutils literal notranslate"><span class="pre">pyna.topo.Cycle</span></code> 和
+<code class="docutils literal notranslate"><span class="pre">pyna.topo.IslandChain</span></code> 下默认的公共拓扑专门化。</p></li>
+</ul>
+<p>辅助层在这个层次周围增加一个面向用户的工作流门面，以及显式扩展点。</p>
 <section id="id2">
-<h2>推荐使用顺序<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<h2>工作流门面<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">TopologyWorkflow</span></code> 是教程和分析脚本推荐的第一入口。它把低层 helper 组合成用户实际
+遵循的路径：</p>
 <ol class="arabic simple">
-<li><p>普通脚本和教学案例先用 <code class="docutils literal notranslate"><span class="pre">TopologyWorkflow</span></code>；</p></li>
-<li><p>外部对象只差少量字段时，用 protocol 约束接口；</p></li>
-<li><p>数据格式不统一时，用 adapter 归一到核心对象；</p></li>
-<li><p>需要闭合检查、metadata 和回链时，用 builder；</p></li>
-<li><p>连续对象切到截面离散对象时，用 bridge；</p></li>
-<li><p>配置驱动或后端可切换时，再引入 factory/registry。</p></li>
+<li><p>构建或接收 flow/map；</p></li>
+<li><p>积分得到 <code class="docutils literal notranslate"><span class="pre">Trajectory</span></code> 或迭代得到 <code class="docutils literal notranslate"><span class="pre">Orbit</span></code>；</p></li>
+<li><p>显式把闭合样本提升为 <code class="docutils literal notranslate"><span class="pre">Cycle</span></code> 或 <code class="docutils literal notranslate"><span class="pre">PeriodicOrbit</span></code>；</p></li>
+<li><p>用截面切割 <code class="docutils literal notranslate"><span class="pre">Cycle</span></code>/<code class="docutils literal notranslate"><span class="pre">Tube</span></code>/<code class="docutils literal notranslate"><span class="pre">TubeChain</span></code> 对象。</p></li>
 </ol>
+<p>这个门面刻意保持很薄。它不引入新的数学；它让 notebook 代码更可读，同时仍保持
+每一次提升都显式可见。</p>
 </section>
 <section id="id3">
-<h2>反模式<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<h2>完整教程<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>紧凑的工作流概览可从 <a class="reference internal" href="../mini-cases.html"><span class="doc">迷你案例</span></a> 开始。若需要把同样的提升思想用于真实
+环形计算的完整可视化教程，请使用
+<a class="reference internal" href="../../notebooks/i18n/zh/tutorials/RMP_resonance_analysis.html"><span class="doc">RMP 仿星器共振分析</span></a>。它展示了采样 Poincare 截面点、
+显式 X/O 固定点几何、坐标网格叠加和局部流形分支。</p>
+<p>短小的可复制配方见 <a class="reference internal" href="../mini-cases.html"><span class="doc">迷你案例</span></a>。该页面是快速开始和完整 API 参考之间的
+预期桥梁。</p>
+</section>
+<section id="id4">
+<h2>扩展协议<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pyna.topo.protocols</span></code> 定义结构化契约，例如 <code class="docutils literal notranslate"><span class="pre">FlowLike</span></code>、<code class="docutils literal notranslate"><span class="pre">MapLike</span></code>、
+<code class="docutils literal notranslate"><span class="pre">SectionLike</span></code> 和 <code class="docutils literal notranslate"><span class="pre">TubeLike</span></code>。当你增加一个希望与 pyna 互操作的新领域包，而又不想
+直接继承每个基类时，请使用这些契约。</p>
+</section>
+<section id="id5">
+<h2>数据适配<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pyna.topo.adapters</span></code> 将用户数据转换为稳定的核心对象：</p>
 <ul class="simple">
-<li><p>adapter 静默把开放轨道变成 <code class="docutils literal notranslate"><span class="pre">Cycle</span></code>；</p></li>
-<li><p>factory 只包了一层普通构造函数却没有稳定 key 或后端选择价值；</p></li>
-<li><p>notebook 里到处直接拼装 dataclass，导致闭合容差和 metadata 分散。</p></li>
+<li><p>数组或 solver 输出到 <code class="docutils literal notranslate"><span class="pre">Trajectory</span></code> 和 <code class="docutils literal notranslate"><span class="pre">Orbit</span></code>；</p></li>
+<li><p>点或固定点风格对象到 <code class="docutils literal notranslate"><span class="pre">SectionPoint</span></code>；</p></li>
+<li><p>在需要时把已验证样本转换为 <code class="docutils literal notranslate"><span class="pre">PeriodicOrbit</span></code> 或 <code class="docutils literal notranslate"><span class="pre">Cycle</span></code>。</p></li>
 </ul>
-<p>英文完整版本：</p>
+<p>适配器规范化表示；它们不应隐藏数学声明。例如，开放采样轨迹仍是
+<code class="docutils literal notranslate"><span class="pre">Trajectory</span></code>，除非调用方显式请求 <code class="docutils literal notranslate"><span class="pre">Cycle</span></code> 并接受或传入闭合检查。</p>
+</section>
+<section id="id6">
+<h2>构建器<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">GeometryBuilder</span></code>、<code class="docutils literal notranslate"><span class="pre">IslandChainBuilder</span></code> 和 <code class="docutils literal notranslate"><span class="pre">TubeChainBuilder</span></code> 捕获构造策略。
+当工作流从多个低层材料装配拓扑对象时，优先使用构建器，因为它们集中处理验证、
+metadata 和 back-link。</p>
+</section>
+<section id="id7">
+<h2>连续-离散桥接<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">CoreSectionCutBridge</span></code> 是 core 对象默认的连续到离散桥接实现：</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="../../en/development/dynamics-patterns.html"><span class="doc">Dynamics Workflows and Extension Helpers</span></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Cycle.section_cut(section)</span></code> 返回 <code class="docutils literal notranslate"><span class="pre">PeriodicOrbit</span></code>；</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Tube.section_cut(section)</span></code> 返回 <code class="docutils literal notranslate"><span class="pre">IslandChain</span></code>；</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TubeChain.section_cut(section)</span></code> 合并得到的 island。</p></li>
+</ul>
+<p>环形对象已经拥有优化过的 <code class="docutils literal notranslate"><span class="pre">section_cut</span></code> 方法。可以直接使用它们，或调用
+<code class="docutils literal notranslate"><span class="pre">TopologyWorkflow.section_cut(...)</span></code>，让对象分派到自己的实现。</p>
+</section>
+<section id="id8">
+<h2>工厂<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">DynamicalSystemFactory</span></code> 通过稳定字符串键构建可直接使用的系统，例如
+<code class="docutils literal notranslate"><span class="pre">callable-flow</span></code>、<code class="docutils literal notranslate"><span class="pre">callable-map</span></code>、<code class="docutils literal notranslate"><span class="pre">hamiltonian</span></code>、<code class="docutils literal notranslate"><span class="pre">nbody</span></code> 和
+<code class="docutils literal notranslate"><span class="pre">geometric-brownian-motion</span></code>。</p>
+<p><code class="docutils literal notranslate"><span class="pre">PoincareMapFactory</span></code> 选择可执行的返回映射实现。默认 <code class="docutils literal notranslate"><span class="pre">backend=&quot;auto&quot;</span></code> 当前会选择
+可移植的 <code class="docutils literal notranslate"><span class="pre">GeneralPoincareMap</span></code>，除非提供了 cyna field-cache 参数。</p>
+<p><code class="docutils literal notranslate"><span class="pre">GeometryFactory</span></code> 通过构建器层构建拓扑几何。它适合配置驱动示例，以及需要稳定
+构造键的下游包。</p>
+</section>
+<section id="id9">
+<h2>兼容性规则<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>不要把 <code class="docutils literal notranslate"><span class="pre">pyna.topo.Tube</span></code>、<code class="docutils literal notranslate"><span class="pre">Cycle</span></code> 或 <code class="docutils literal notranslate"><span class="pre">IslandChain</span></code> 改成指向 core 类；
+通用根类使用 <code class="docutils literal notranslate"><span class="pre">CoreTube</span></code>、<code class="docutils literal notranslate"><span class="pre">CoreCycle</span></code> 和 <code class="docutils literal notranslate"><span class="pre">CoreIslandChain</span></code>。</p></li>
+<li><p>不要在仅限环形对象的边界使用 duck-typed 假截面。使用一等 <code class="docutils literal notranslate"><span class="pre">Section</span></code> 对象。</p></li>
+<li><p>把注册表视为可变状态。在测试和下游包中需要隔离时，使用局部 <code class="docutils literal notranslate"><span class="pre">Registry</span></code>
+实例。</p></li>
 </ul>
 </section>
 </section>
@@ -466,7 +599,7 @@
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">架构概览</p>
+        <p class="prev-next-title">架构</p>
       </div>
     </a>
     <a class="right-next"
@@ -497,8 +630,14 @@
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">推荐使用顺序</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">反模式</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">工作流门面</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">完整教程</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">扩展协议</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">数据适配</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">构建器</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">连续-离散桥接</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">工厂</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">兼容性规则</a></li>
 </ul>
   </nav></div>
 
@@ -536,7 +675,7 @@
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     <br/>
   </p>
 </div>

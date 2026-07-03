@@ -34,7 +34,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a0d39112" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=243d2ed3" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
 
-    <script src="../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../_static/documentation_options.js?v=9ed95442"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -51,11 +51,11 @@
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'zh/api/index';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <script src="../../_static/language-switcher.js?v=8b136864"></script>
+    <script src="../../_static/language-switcher.js?v=866ba1ee"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="通用动力系统 (pyna.dynamics)" href="dynamics.html" />
-    <link rel="prev" title="SDE Monte Carlo 分布估计" href="../tutorials/sde-monte-carlo.html" />
+    <link rel="next" title="一般动力系统（pyna.dynamics）" href="dynamics.html" />
+    <link rel="prev" title="解析 X 型鞍点周期轨道的 Monodromy 矩阵与轨道位移" href="../../notebooks/i18n/zh/tutorials/monodromy_xcycle_analytic.html" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -154,7 +154,42 @@
 
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="../index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -179,11 +214,12 @@
   <span class="pyna-language-switcher__label">Language</span>
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
-    <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="zh" selected>中文</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
       
@@ -266,7 +302,42 @@
 
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="../index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -284,11 +355,12 @@
   <span class="pyna-language-switcher__label">Language</span>
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
-    <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="zh" selected>中文</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
         
@@ -340,22 +412,22 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">文档</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../installation.html">安装指南</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">快速入门</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">安装</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">快速开始</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mini-cases.html">迷你案例</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">教程与案例</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">教程和示例</a></li>
 <li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">API 参考</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="dynamics.html">通用动力系统 (<code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dynamics-patterns.html">工作流与扩展辅助层</a></li>
-<li class="toctree-l2"><a class="reference internal" href="flt.html">场线追踪 (<code class="docutils literal notranslate"><span class="pre">pyna.flt</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="topo.html">拓扑对象与 Poincare 分析 (<code class="docutils literal notranslate"><span class="pre">pyna.topo</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="toroidal.html">环形磁约束命名空间 (<code class="docutils literal notranslate"><span class="pre">pyna.toroidal</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="control.html">控制模块</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cyna.html">cyna C++ 加速层</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamics.html">一般动力系统（<code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code>）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamics-patterns.html">动力系统工作流和扩展辅助层</a></li>
+<li class="toctree-l2"><a class="reference internal" href="flt.html">场线追踪（<code class="docutils literal notranslate"><span class="pre">pyna.flt</span></code>）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topo.html">拓扑（<code class="docutils literal notranslate"><span class="pre">pyna.topo</span></code>）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toroidal.html">环形物理（<code class="docutils literal notranslate"><span class="pre">pyna.toroidal</span></code>）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="control.html">FPT 拓扑控制（<code class="docutils literal notranslate"><span class="pre">pyna.control</span></code>）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cyna.html">cyna 加速层</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="../theory/index.html">理论说明</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/index.html">开发与架构</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../theory/index.html">理论</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/index.html">开发</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../straight_theta_surface_coordinates.html">基于 Poincare 迹线构建 straight-theta 磁面坐标</a></li>
 </ul>
 </div>
@@ -398,7 +470,7 @@
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">pyna 中文文档</a></li>
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">pyna - Python DYNAmics</a></li>
     
     <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">API 参考</span></li>
   </ul>
@@ -420,24 +492,72 @@
                 <article class="bd-article">
                   
   <section id="api">
-<span id="zh-api"></span><h1>API 参考<a class="headerlink" href="#api" title="Link to this heading">#</a></h1>
-<p>中文 API 页覆盖稳定公共入口；完整逐类逐函数文档由英文自动生成参考页承担，
-用于调试和查签名。</p>
+<h1>API 参考<a class="headerlink" href="#api" title="Link to this heading">#</a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">pyna.toroidal</span></code> 是 pyna 中记录的环形/磁几何命名空间。历史上的
+<code class="docutils literal notranslate"><span class="pre">pyna.MCF</span></code> 兼容层已经移除。</p>
+</div>
+<p>下面的手写页面解释稳定的公共接口。安装 <code class="docutils literal notranslate"><span class="pre">sphinx-autoapi</span></code> 时，完整的源码解析参考
+会生成在 <a class="reference internal" href="../../en/api/generated/pyna/index.html"><span class="doc">pyna</span></a>。</p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="dynamics.html">通用动力系统 (<code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code>)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dynamics-patterns.html">工作流与扩展辅助层</a></li>
-<li class="toctree-l1"><a class="reference internal" href="flt.html">场线追踪 (<code class="docutils literal notranslate"><span class="pre">pyna.flt</span></code>)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="topo.html">拓扑对象与 Poincare 分析 (<code class="docutils literal notranslate"><span class="pre">pyna.topo</span></code>)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="toroidal.html">环形磁约束命名空间 (<code class="docutils literal notranslate"><span class="pre">pyna.toroidal</span></code>)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="control.html">控制模块</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cyna.html">cyna C++ 加速层</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dynamics.html">一般动力系统（<code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code>）</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dynamics.html#id1">几何集成</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamics.html#flow">连续 Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamics.html#hamiltonian">Hamiltonian 系统</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamics.html#n-body">N-body 系统</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamics.html#id2">映射和局部流形</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamics.html#id3">随机微分方程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamics.html#id4">相关拓扑层</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dynamics-patterns.html">动力系统工作流和扩展辅助层</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dynamics-patterns.html#id2">工作流门面</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamics-patterns.html#id3">扩展协议</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamics-patterns.html#id4">数据适配</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamics-patterns.html#id5">构建器</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamics-patterns.html#id6">连续-离散桥接</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamics-patterns.html#id7">工厂与注册表</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="flt.html">场线追踪（<code class="docutils literal notranslate"><span class="pre">pyna.flt</span></code>）</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="flt.html#tracer">核心 Tracer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="flt.html#id4">动力系统层次</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="topo.html">拓扑（<code class="docutils literal notranslate"><span class="pre">pyna.topo</span></code>）</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="topo.html#poincare">Poincare 映射</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topo.html#id2">几何对象层次</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topo.html#id4">截面</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topo.html#poincare-accumulator">Poincare Accumulator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topo.html#id5">磁岛</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topo.html#id7">流形计算</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topo.html#cycle">周期轨道 / Cycle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topo.html#id8">经典映射和混沌诊断</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="toroidal.html">环形物理（<code class="docutils literal notranslate"><span class="pre">pyna.toroidal</span></code>）</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="toroidal.html#id1">命名空间概览</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toroidal.html#id2">平衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toroidal.html#id4">磁坐标</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toroidal.html#id5">场线追踪</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toroidal.html#biot-savart">线圈和 Biot-Savart 场</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toroidal.html#id6">扰动和控制</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toroidal.html#id7">环面形变</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toroidal.html#id8">几何和诊断</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="control.html">FPT 拓扑控制（<code class="docutils literal notranslate"><span class="pre">pyna.control</span></code>）</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cyna.html">cyna 加速层</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cyna.html#id1">构建约定</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cyna.html#api">高层与低层 API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cyna.html#python">Python 包装层参考</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cyna.html#id2">工具辅助函数</a></li>
+</ul>
+</li>
 </ul>
 </div>
-<p>完整自动生成参考：</p>
-<ul class="simple">
-<li><p><a class="reference internal" href="../../en/api/generated/pyna/index.html"><span class="doc">pyna</span></a></p></li>
-</ul>
 </section>
 
 
@@ -452,12 +572,12 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../tutorials/sde-monte-carlo.html"
+       href="../../notebooks/i18n/zh/tutorials/monodromy_xcycle_analytic.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">SDE Monte Carlo 分布估计</p>
+        <p class="prev-next-title">解析 X 型鞍点周期轨道的 Monodromy 矩阵与轨道位移</p>
       </div>
     </a>
     <a class="right-next"
@@ -465,7 +585,7 @@
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">通用动力系统 (<code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code>)</p>
+        <p class="prev-next-title">一般动力系统（<code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code>）</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -508,7 +628,7 @@
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     <br/>
   </p>
 </div>

@@ -33,7 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=a0d39112" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=243d2ed3" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
 
-    <script src="../../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../../_static/documentation_options.js?v=9ed95442"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -50,7 +50,7 @@
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/toroidal/diagnostics/mgrid';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <script src="../../../../_static/language-switcher.js?v=8b136864"></script>
+    <script src="../../../../_static/language-switcher.js?v=866ba1ee"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
 
@@ -151,7 +151,42 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../../zh/index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -177,10 +212,11 @@
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
     <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
       
@@ -265,7 +301,42 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../../zh/index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -284,10 +355,11 @@
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
     <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
         
@@ -397,46 +469,46 @@
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <div class="viewcode-block" id="SmoothPestCoordinates">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.diagnostics.mgrid.SmoothPestCoordinates">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.diagnostics.SmoothPestCoordinates">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SmoothPestCoordinates</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Smooth PEST-like surface coordinates stored as ``(phi, rho, theta)``.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="SmoothPestCoordinates.R_surf">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.mgrid.SmoothPestCoordinates.R_surf">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.SmoothPestCoordinates.R_surf">[docs]</a>
     <span class="n">R_surf</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="SmoothPestCoordinates.Z_surf">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.mgrid.SmoothPestCoordinates.Z_surf">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.SmoothPestCoordinates.Z_surf">[docs]</a>
     <span class="n">Z_surf</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="SmoothPestCoordinates.rho_vals">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.mgrid.SmoothPestCoordinates.rho_vals">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.SmoothPestCoordinates.rho_vals">[docs]</a>
     <span class="n">rho_vals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="SmoothPestCoordinates.theta_vals">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.mgrid.SmoothPestCoordinates.theta_vals">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.SmoothPestCoordinates.theta_vals">[docs]</a>
     <span class="n">theta_vals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="SmoothPestCoordinates.phi_vals">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.mgrid.SmoothPestCoordinates.phi_vals">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.SmoothPestCoordinates.phi_vals">[docs]</a>
     <span class="n">phi_vals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="SmoothPestCoordinates.axis_R">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.mgrid.SmoothPestCoordinates.axis_R">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.SmoothPestCoordinates.axis_R">[docs]</a>
     <span class="n">axis_R</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="SmoothPestCoordinates.axis_Z">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.mgrid.SmoothPestCoordinates.axis_Z">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.SmoothPestCoordinates.axis_Z">[docs]</a>
     <span class="n">axis_Z</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="SmoothPestCoordinates.source">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.mgrid.SmoothPestCoordinates.source">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.SmoothPestCoordinates.source">[docs]</a>
     <span class="n">source</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="SmoothPestCoordinates.period">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.mgrid.SmoothPestCoordinates.period">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.SmoothPestCoordinates.period">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">period</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
         <span class="k">return</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span></div>
 </div>
@@ -445,40 +517,40 @@
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <div class="viewcode-block" id="PestCurrentSection">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.diagnostics.mgrid.PestCurrentSection">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.diagnostics.PestCurrentSection">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PestCurrentSection</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Contravariant current components on one toroidal PEST section.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="PestCurrentSection.section_deg">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.mgrid.PestCurrentSection.section_deg">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.PestCurrentSection.section_deg">[docs]</a>
     <span class="n">section_deg</span><span class="p">:</span> <span class="nb">float</span></div>
 
 <div class="viewcode-block" id="PestCurrentSection.section_phi">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.mgrid.PestCurrentSection.section_phi">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.PestCurrentSection.section_phi">[docs]</a>
     <span class="n">section_phi</span><span class="p">:</span> <span class="nb">float</span></div>
 
 <div class="viewcode-block" id="PestCurrentSection.R">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.mgrid.PestCurrentSection.R">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.PestCurrentSection.R">[docs]</a>
     <span class="n">R</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="PestCurrentSection.Z">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.mgrid.PestCurrentSection.Z">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.PestCurrentSection.Z">[docs]</a>
     <span class="n">Z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="PestCurrentSection.Jrho">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.mgrid.PestCurrentSection.Jrho">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.PestCurrentSection.Jrho">[docs]</a>
     <span class="n">Jrho</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="PestCurrentSection.Jtheta">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.mgrid.PestCurrentSection.Jtheta">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.PestCurrentSection.Jtheta">[docs]</a>
     <span class="n">Jtheta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="PestCurrentSection.Jphi">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.mgrid.PestCurrentSection.Jphi">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.PestCurrentSection.Jphi">[docs]</a>
     <span class="n">Jphi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="PestCurrentSection.Jtheta_over_Jphi">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.mgrid.PestCurrentSection.Jtheta_over_Jphi">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.PestCurrentSection.Jtheta_over_Jphi">[docs]</a>
     <span class="n">Jtheta_over_Jphi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 </div>
 
@@ -486,21 +558,21 @@
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <div class="viewcode-block" id="PestCurrentComponents">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.diagnostics.mgrid.PestCurrentComponents">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.diagnostics.PestCurrentComponents">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PestCurrentComponents</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;PEST-section current-component diagnostic for one mgrid field.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="PestCurrentComponents.label">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.mgrid.PestCurrentComponents.label">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.PestCurrentComponents.label">[docs]</a>
     <span class="n">label</span><span class="p">:</span> <span class="nb">str</span></div>
 
 <div class="viewcode-block" id="PestCurrentComponents.sections">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.mgrid.PestCurrentComponents.sections">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/diagnostics/mgrid/index.html#pyna.toroidal.diagnostics.PestCurrentComponents.sections">[docs]</a>
     <span class="n">sections</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">PestCurrentSection</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="PestCurrentComponents.component_stats">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.diagnostics.mgrid.PestCurrentComponents.component_stats">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.diagnostics.PestCurrentComponents.component_stats">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">component_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return per-section sign and percentile statistics.&quot;&quot;&quot;</span>
 
@@ -534,7 +606,7 @@
 
 
 <div class="viewcode-block" id="load_smooth_pest_coordinates">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.diagnostics.mgrid.load_smooth_pest_coordinates">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.diagnostics.load_smooth_pest_coordinates">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">load_smooth_pest_coordinates</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">SmoothPestCoordinates</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load a ``*_pest_coordinates_smooth.npz`` surface-coordinate bundle.&quot;&quot;&quot;</span>
 
@@ -554,7 +626,7 @@
 
 
 <div class="viewcode-block" id="periodic_phi_slice">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.diagnostics.mgrid.periodic_phi_slice">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.diagnostics.periodic_phi_slice">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">periodic_phi_slice</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">period</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Interpolate a periodic ``phi`` slice from an array with leading phi axis.&quot;&quot;&quot;</span>
 
@@ -569,7 +641,7 @@
 
 
 <div class="viewcode-block" id="smooth_pest_derivatives">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.diagnostics.mgrid.smooth_pest_derivatives">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.diagnostics.smooth_pest_derivatives">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">smooth_pest_derivatives</span><span class="p">(</span><span class="n">coords</span><span class="p">:</span> <span class="n">SmoothPestCoordinates</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return ``dR,dZ`` derivatives with respect to ``rho, theta, phi``.&quot;&quot;&quot;</span>
 
@@ -589,7 +661,7 @@
 
 
 <div class="viewcode-block" id="compute_pest_current_components">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.diagnostics.mgrid.compute_pest_current_components">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.diagnostics.compute_pest_current_components">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">compute_pest_current_components</span><span class="p">(</span>
     <span class="n">current</span><span class="p">:</span> <span class="n">MGridCurrent</span><span class="p">,</span>
     <span class="n">coords</span><span class="p">:</span> <span class="n">SmoothPestCoordinates</span><span class="p">,</span>
@@ -659,7 +731,7 @@
 
 
 <div class="viewcode-block" id="surface_fourier_spectrum">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.diagnostics.mgrid.surface_fourier_spectrum">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.diagnostics.surface_fourier_spectrum">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">surface_fourier_spectrum</span><span class="p">(</span>
     <span class="n">coords</span><span class="p">:</span> <span class="n">SmoothPestCoordinates</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -767,7 +839,7 @@
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     <br/>
   </p>
 </div>

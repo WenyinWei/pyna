@@ -33,7 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=a0d39112" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=243d2ed3" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
 
-    <script src="../../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../../_static/documentation_options.js?v=9ed95442"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -50,7 +50,7 @@
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/toroidal/flt/cycle_shift';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <script src="../../../../_static/language-switcher.js?v=8b136864"></script>
+    <script src="../../../../_static/language-switcher.js?v=866ba1ee"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
 
@@ -151,7 +151,42 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../../zh/index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -177,10 +212,11 @@
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
     <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
       
@@ -265,7 +301,42 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../../zh/index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -284,10 +355,11 @@
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
     <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
         
@@ -399,24 +471,24 @@
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <div class="viewcode-block" id="AxisCycleShift">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.cycle_shift.AxisCycleShift">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.AxisCycleShift">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">AxisCycleShift</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Shifted O-cycle samples and the underlying FPT cycle shift.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="AxisCycleShift.axis_R">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/cycle_shift/index.html#pyna.toroidal.flt.cycle_shift.AxisCycleShift.axis_R">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/cycle_shift/index.html#pyna.toroidal.flt.AxisCycleShift.axis_R">[docs]</a>
     <span class="n">axis_R</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="AxisCycleShift.axis_Z">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/cycle_shift/index.html#pyna.toroidal.flt.cycle_shift.AxisCycleShift.axis_Z">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/cycle_shift/index.html#pyna.toroidal.flt.AxisCycleShift.axis_Z">[docs]</a>
     <span class="n">axis_Z</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="AxisCycleShift.cycle_shift">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/cycle_shift/index.html#pyna.toroidal.flt.cycle_shift.AxisCycleShift.cycle_shift">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/cycle_shift/index.html#pyna.toroidal.flt.AxisCycleShift.cycle_shift">[docs]</a>
     <span class="n">cycle_shift</span><span class="p">:</span> <span class="n">CyclePerturbationShift</span></div>
 
 <div class="viewcode-block" id="AxisCycleShift.diagnostics">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/cycle_shift/index.html#pyna.toroidal.flt.cycle_shift.AxisCycleShift.diagnostics">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/cycle_shift/index.html#pyna.toroidal.flt.AxisCycleShift.diagnostics">[docs]</a>
     <span class="n">diagnostics</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span></div>
 </div>
 
@@ -424,27 +496,27 @@
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <div class="viewcode-block" id="CyclePointShift">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.cycle_shift.CyclePointShift">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.CyclePointShift">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CyclePointShift</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Shifted periodic-cycle points sampled on requested toroidal sections.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="CyclePointShift.sections">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/cycle_shift/index.html#pyna.toroidal.flt.cycle_shift.CyclePointShift.sections">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/cycle_shift/index.html#pyna.toroidal.flt.CyclePointShift.sections">[docs]</a>
     <span class="n">sections</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]</span></div>
 
 <div class="viewcode-block" id="CyclePointShift.cycle_shifts">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/cycle_shift/index.html#pyna.toroidal.flt.cycle_shift.CyclePointShift.cycle_shifts">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/cycle_shift/index.html#pyna.toroidal.flt.CyclePointShift.cycle_shifts">[docs]</a>
     <span class="n">cycle_shifts</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">CyclePerturbationShift</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="CyclePointShift.diagnostics">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/cycle_shift/index.html#pyna.toroidal.flt.cycle_shift.CyclePointShift.diagnostics">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/cycle_shift/index.html#pyna.toroidal.flt.CyclePointShift.diagnostics">[docs]</a>
     <span class="n">diagnostics</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span></div>
 </div>
 
 
 
 <div class="viewcode-block" id="field_period_cache_from_components">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.cycle_shift.field_period_cache_from_components">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.field_period_cache_from_components">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">field_period_cache_from_components</span><span class="p">(</span>
     <span class="n">R</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
     <span class="n">Z</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
@@ -489,7 +561,7 @@
 
 
 <div class="viewcode-block" id="cycle_shift_from_fields">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.cycle_shift.cycle_shift_from_fields">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.cycle_shift_from_fields">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">cycle_shift_from_fields</span><span class="p">(</span>
     <span class="n">R0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">Z0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -519,7 +591,7 @@
 
 
 <div class="viewcode-block" id="axis_cycle_shift_from_fields">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.cycle_shift.axis_cycle_shift_from_fields">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.axis_cycle_shift_from_fields">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">axis_cycle_shift_from_fields</span><span class="p">(</span>
     <span class="n">axis_R</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">axis_Z</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="nb">float</span><span class="p">,</span>
@@ -604,7 +676,7 @@
 
 
 <div class="viewcode-block" id="cycle_points_shift_from_fields">
-<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.cycle_shift.cycle_points_shift_from_fields">[docs]</a>
+<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.cycle_points_shift_from_fields">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">cycle_points_shift_from_fields</span><span class="p">(</span>
     <span class="n">seed_points</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
     <span class="n">phi_sections</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -857,7 +929,7 @@
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     <br/>
   </p>
 </div>

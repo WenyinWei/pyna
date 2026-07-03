@@ -33,7 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a0d39112" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=243d2ed3" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
 
-    <script src="../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../_static/documentation_options.js?v=9ed95442"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -50,7 +50,7 @@
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/topo/dynamics';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <script src="../../../_static/language-switcher.js?v=8b136864"></script>
+    <script src="../../../_static/language-switcher.js?v=866ba1ee"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
@@ -151,7 +151,42 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../zh/index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -177,10 +212,11 @@
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
     <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
       
@@ -265,7 +301,42 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../zh/index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -284,10 +355,11 @@
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
     <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
         
@@ -418,7 +490,7 @@
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <div class="viewcode-block" id="PhaseSpace">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PhaseSpace">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.PhaseSpace">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PhaseSpace</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The ambient space where the dynamics lives.</span>
 
@@ -444,19 +516,19 @@
 <span class="sd">                          symplectic=True, label=&#39;Guiding centre&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="PhaseSpace.dim">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PhaseSpace.dim">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.PhaseSpace.dim">[docs]</a>
     <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span></div>
 
 <div class="viewcode-block" id="PhaseSpace.coordinate_names">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PhaseSpace.coordinate_names">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.PhaseSpace.coordinate_names">[docs]</a>
     <span class="n">coordinate_names</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="PhaseSpace.symplectic">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PhaseSpace.symplectic">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.PhaseSpace.symplectic">[docs]</a>
     <span class="n">symplectic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="PhaseSpace.label">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PhaseSpace.label">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.PhaseSpace.label">[docs]</a>
     <span class="n">label</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
@@ -468,7 +540,7 @@
             <span class="p">)</span>
 
 <div class="viewcode-block" id="PhaseSpace.zero">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PhaseSpace.zero">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.PhaseSpace.zero">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">zero</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the zero vector in this phase space.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span></div>
@@ -497,7 +569,7 @@
 <span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
 
 <div class="viewcode-block" id="DynamicalSystem">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.DynamicalSystem">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.DynamicalSystem">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DynamicalSystem</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract base for a dynamical system on a PhaseSpace.</span>
 
@@ -512,20 +584,20 @@
     <span class="nd">@property</span>
     <span class="nd">@abstractmethod</span>
 <div class="viewcode-block" id="DynamicalSystem.phase_space">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.DynamicalSystem.phase_space">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.DynamicalSystem.phase_space">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">phase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhaseSpace</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The phase space this system lives in.&quot;&quot;&quot;</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="DynamicalSystem.dim">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.DynamicalSystem.dim">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.DynamicalSystem.dim">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_space</span><span class="o">.</span><span class="n">dim</span></div>
 
 
 <div class="viewcode-block" id="DynamicalSystem.make_poincare_map">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.DynamicalSystem.make_poincare_map">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.DynamicalSystem.make_poincare_map">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">make_poincare_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">:</span> <span class="s2">&quot;Section&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;PoincareMap&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct the Poincaré return map to a given Section.</span>
 
@@ -553,7 +625,7 @@
 <span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
 
 <div class="viewcode-block" id="ContinuousFlow">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.ContinuousFlow">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.ContinuousFlow">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ContinuousFlow</span><span class="p">(</span><span class="n">DynamicalSystem</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A dynamical system defined by a continuous-time flow φ^t.</span>
 
@@ -564,7 +636,7 @@
 
     <span class="nd">@abstractmethod</span>
 <div class="viewcode-block" id="ContinuousFlow.vector_field">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.ContinuousFlow.vector_field">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.ContinuousFlow.vector_field">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">vector_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Vector field f(x, t) at phase-space point x and time t.</span>
 
@@ -573,7 +645,7 @@
 
 
 <div class="viewcode-block" id="ContinuousFlow.flow">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.ContinuousFlow.flow">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.ContinuousFlow.flow">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">flow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Integrate the flow from x0 for time t.</span>
 
@@ -587,7 +659,7 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="ContinuousFlow.is_time_reversible">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.ContinuousFlow.is_time_reversible">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.ContinuousFlow.is_time_reversible">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_time_reversible</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;True when the flow has a time-reversal symmetry.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">False</span></div>
@@ -596,7 +668,7 @@
 
 
 <div class="viewcode-block" id="HamiltonianFlow">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.HamiltonianFlow">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.HamiltonianFlow">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">HamiltonianFlow</span><span class="p">(</span><span class="n">ContinuousFlow</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A symplectic (Hamiltonian) continuous flow.</span>
 
@@ -606,13 +678,13 @@
 
     <span class="nd">@abstractmethod</span>
 <div class="viewcode-block" id="HamiltonianFlow.hamiltonian">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.HamiltonianFlow.hamiltonian">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.HamiltonianFlow.hamiltonian">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">hamiltonian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The Hamiltonian H(q, p, t).&quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="HamiltonianFlow.vector_field">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.HamiltonianFlow.vector_field">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.HamiltonianFlow.vector_field">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">vector_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Hamilton&#39;s equations via finite-difference ∂H/∂x.&quot;&quot;&quot;</span>
         <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">//</span> <span class="mi">2</span>
@@ -631,7 +703,7 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="HamiltonianFlow.is_time_reversible">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.HamiltonianFlow.is_time_reversible">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.HamiltonianFlow.is_time_reversible">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_time_reversible</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 </div>
@@ -639,7 +711,7 @@
 
 
 <div class="viewcode-block" id="MagneticFieldLine">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MagneticFieldLine">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.MagneticFieldLine">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MagneticFieldLine</span><span class="p">(</span><span class="n">ContinuousFlow</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Continuous flow along magnetic field lines.</span>
 
@@ -651,20 +723,20 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="MagneticFieldLine.phase_space">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MagneticFieldLine.phase_space">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.MagneticFieldLine.phase_space">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">phase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhaseSpace</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">MCF_2D</span></div>
 
 
     <span class="nd">@abstractmethod</span>
 <div class="viewcode-block" id="MagneticFieldLine.field">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MagneticFieldLine.field">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.MagneticFieldLine.field">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return (B_R, B_Z, B_phi) at (R, Z, φ).&quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="MagneticFieldLine.vector_field">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MagneticFieldLine.vector_field">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.MagneticFieldLine.vector_field">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">vector_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;RHS of field-line ODE: dx/dφ = [R·B_R/B_φ, R·B_Z/B_φ].&quot;&quot;&quot;</span>
         <span class="n">R</span><span class="p">,</span> <span class="n">Z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
@@ -681,7 +753,7 @@
 <span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
 
 <div class="viewcode-block" id="DiscreteMap">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.DiscreteMap">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.DiscreteMap">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DiscreteMap</span><span class="p">(</span><span class="n">DynamicalSystem</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A dynamical system defined by a discrete map P: x → P(x).</span>
 
@@ -690,13 +762,13 @@
 
     <span class="nd">@abstractmethod</span>
 <div class="viewcode-block" id="DiscreteMap.step">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.DiscreteMap.step">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.DiscreteMap.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply the map once: x → P(x).&quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="DiscreteMap.iterate">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.DiscreteMap.iterate">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.DiscreteMap.iterate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">iterate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return P^n(x0) (n applications of the map).&quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -706,7 +778,7 @@
 
 
 <div class="viewcode-block" id="DiscreteMap.orbit">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.DiscreteMap.orbit">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.DiscreteMap.orbit">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">orbit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the orbit [x0, P(x0), P²(x0), ..., P^n(x0)].</span>
 
@@ -723,7 +795,7 @@
 
 
 <div class="viewcode-block" id="StandardMap">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.StandardMap">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.StandardMap">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">StandardMap</span><span class="p">(</span><span class="n">DiscreteMap</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The Chirikov standard map (twist map on the 2-torus).</span>
 
@@ -743,14 +815,14 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="StandardMap.phase_space">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.StandardMap.phase_space">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.StandardMap.phase_space">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">phase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhaseSpace</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">PhaseSpace</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">coordinate_names</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">),</span>
                           <span class="n">symplectic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Standard map (K=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">K</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="StandardMap.step">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.StandardMap.step">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.StandardMap.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="n">theta</span><span class="p">,</span> <span class="n">I</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">I_new</span> <span class="o">=</span> <span class="n">I</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">K</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
@@ -761,7 +833,7 @@
 
 
 <div class="viewcode-block" id="PoincareMap">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PoincareMap">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.PoincareMap">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PoincareMap</span><span class="p">(</span><span class="n">DiscreteMap</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The Poincaré return map of a ContinuousFlow to a Section.</span>
 
@@ -784,21 +856,21 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="PoincareMap.flow">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PoincareMap.flow">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.PoincareMap.flow">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">flow</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ContinuousFlow</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flow</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="PoincareMap.section">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PoincareMap.section">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.PoincareMap.section">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">section</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Section&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_section</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="PoincareMap.phase_space">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PoincareMap.phase_space">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.PoincareMap.phase_space">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">phase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhaseSpace</span><span class="p">:</span>
         <span class="c1"># The map acts on the section (dim - 1)</span>
         <span class="n">ps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flow</span><span class="o">.</span><span class="n">phase_space</span>
@@ -811,7 +883,7 @@
 
 
 <div class="viewcode-block" id="PoincareMap.step">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PoincareMap.step">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.PoincareMap.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Not generically implemented — requires flow integration to section.</span>
 
@@ -831,7 +903,7 @@
 <span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
 
 <div class="viewcode-block" id="MCFPoincareMap">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MCFPoincareMap">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.MCFPoincareMap">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MCFPoincareMap</span><span class="p">(</span><span class="n">DiscreteMap</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Poincaré return map for toroidal field-line tracing, backed by cyna C++.</span>
 
@@ -908,7 +980,7 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="MCFPoincareMap.field_cache">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.field_cache">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.field_cache">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">field_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The prepared field cache dict (BR, BZ, BPhi, grids).&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fc</span></div>
@@ -916,7 +988,7 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="MCFPoincareMap.Np">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.Np">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.Np">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">Np</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Field toroidal periodicity.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Np</span></div>
@@ -924,7 +996,7 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="MCFPoincareMap.phi_section">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.phi_section">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.phi_section">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">phi_section</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Toroidal angle of the Poincaré section [rad].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phi_section</span></div>
@@ -932,7 +1004,7 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="MCFPoincareMap.n_turns">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.n_turns">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.n_turns">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">n_turns</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Number of toroidal turns per map application.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_turns</span></div>
@@ -940,7 +1012,7 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="MCFPoincareMap.phase_space">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.phase_space">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.phase_space">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">phase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;PhaseSpace&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;MCF 2D phase space (R, Z).&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">MCF_2D</span></div>
@@ -949,7 +1021,7 @@
     <span class="c1"># ── DiscreteMap interface ─────────────────────────────────────────────────</span>
 
 <div class="viewcode-block" id="MCFPoincareMap.step">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.step">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply the Poincaré map once: (R, Z) → P(R, Z).</span>
 
@@ -971,7 +1043,7 @@
 
 
 <div class="viewcode-block" id="MCFPoincareMap.step_n">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.step_n">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.step_n">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step_n</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply the map n times: x → P^n(x).</span>
 
@@ -993,7 +1065,7 @@
 
 
 <div class="viewcode-block" id="MCFPoincareMap.poincare_trace">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.poincare_trace">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.poincare_trace">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">poincare_trace</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">R_arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -1080,7 +1152,7 @@
 <span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
 
 <div class="viewcode-block" id="GeneralPoincareMap">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.GeneralPoincareMap">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.GeneralPoincareMap">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">GeneralPoincareMap</span><span class="p">(</span><span class="n">DiscreteMap</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Poincaré return map for an arbitrary ContinuousFlow and Section.</span>
 
@@ -1144,21 +1216,21 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="GeneralPoincareMap.flow">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.GeneralPoincareMap.flow">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.GeneralPoincareMap.flow">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">flow</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ContinuousFlow&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flow</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="GeneralPoincareMap.section">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.GeneralPoincareMap.section">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.GeneralPoincareMap.section">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">section</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Section&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_section</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="GeneralPoincareMap.phase_space">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.GeneralPoincareMap.phase_space">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.GeneralPoincareMap.phase_space">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">phase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;PhaseSpace&quot;</span><span class="p">:</span>
         <span class="n">ps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flow</span><span class="o">.</span><span class="n">phase_space</span>
         <span class="k">return</span> <span class="n">PhaseSpace</span><span class="p">(</span>
@@ -1172,7 +1244,7 @@
     <span class="c1"># ── Core step ─────────────────────────────────────────────────────────────</span>
 
 <div class="viewcode-block" id="GeneralPoincareMap.step">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.GeneralPoincareMap.step">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.GeneralPoincareMap.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Integrate the flow from x and return the next section crossing.</span>
 
@@ -1292,7 +1364,7 @@
         <span class="k">return</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="GeneralPoincareMap.trajectory">
-<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.GeneralPoincareMap.trajectory">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.dynamics.GeneralPoincareMap.trajectory">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">trajectory</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -1379,7 +1451,7 @@
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     <br/>
   </p>
 </div>

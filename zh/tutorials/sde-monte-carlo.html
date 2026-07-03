@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>SDE Monte Carlo 分布估计 &#8212; pyna dynamics toolkit</title>
+    <title>SDE 蒙特卡洛分布 &#8212; pyna dynamics toolkit</title>
   
   
   
@@ -34,7 +34,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a0d39112" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=243d2ed3" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
 
-    <script src="../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../_static/documentation_options.js?v=9ed95442"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -51,11 +51,11 @@
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'zh/tutorials/sde-monte-carlo';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <script src="../../_static/language-switcher.js?v=8b136864"></script>
+    <script src="../../_static/language-switcher.js?v=866ba1ee"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="API 参考" href="../api/index.html" />
-    <link rel="prev" title="教程与案例" href="index.html" />
+    <link rel="next" title="SDE 蒙特卡洛分布" href="../../notebooks/i18n/zh/tutorials/sde_monte_carlo_distribution.html" />
+    <link rel="prev" title="教程和示例" href="index.html" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -154,7 +154,42 @@
 
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="../index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -179,11 +214,12 @@
   <span class="pyna-language-switcher__label">Language</span>
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
-    <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="zh" selected>中文</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
       
@@ -270,7 +306,42 @@
 
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="../index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -288,11 +359,12 @@
   <span class="pyna-language-switcher__label">Language</span>
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
-    <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="zh" selected>中文</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
         
@@ -344,23 +416,23 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">文档</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../installation.html">安装指南</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">快速入门</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">安装</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">快速开始</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mini-cases.html">迷你案例</a></li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">教程与案例</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">SDE Monte Carlo 分布估计</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../notebooks/tutorials/sde_monte_carlo_distribution.html">SDE Monte Carlo Distribution Estimates</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../notebooks/tutorials/magnetic_coordinates_comparison.html">Magnetic Coordinate Systems in Tokamak Equilibria</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../notebooks/tutorials/RMP_resonance_analysis.html">RMP Stellarator Resonance Analysis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../notebooks/tutorials/RMP_island_validation_solovev.html">RMP Island Width Validation �?Solov’ev Analytic Equilibrium</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../notebooks/tutorials/island_jacobian_analysis.html">Island Jacobian Analysis: Periodic Orbits and Monodromy Matrices</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../notebooks/tutorials/monodromy_mobius_saddle.html">Tutorial: Möbius Saddle Cycle — Period-Doubling and Negative Eigenvalues</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../notebooks/tutorials/monodromy_xcycle_analytic.html">Tutorial: Monodromy Matrix and Orbit Shift on an Analytic X-type Saddle Cycle</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">教程和示例</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">SDE 蒙特卡洛分布</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../notebooks/i18n/zh/tutorials/sde_monte_carlo_distribution.html">SDE 蒙特卡洛分布</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../notebooks/i18n/zh/tutorials/magnetic_coordinates_comparison.html">托卡马克平衡中的磁坐标系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../notebooks/i18n/zh/tutorials/RMP_resonance_analysis.html">RMP 仿星器共振分析</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../notebooks/i18n/zh/tutorials/RMP_island_validation_solovev.html">RMP 磁岛宽度验证：Solov’ev 解析平衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../notebooks/i18n/zh/tutorials/island_jacobian_analysis.html">磁岛链 Jacobian 分析：周期轨道与 Monodromy 矩阵</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../notebooks/i18n/zh/tutorials/monodromy_mobius_saddle.html">Möbius 鞍点循环：倍周期与负特征值</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../notebooks/i18n/zh/tutorials/monodromy_xcycle_analytic.html">解析 X 型鞍点周期轨道的 Monodromy 矩阵与轨道位移</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API 参考</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../theory/index.html">理论说明</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/index.html">开发与架构</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../theory/index.html">理论</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/index.html">开发</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../straight_theta_surface_coordinates.html">基于 Poincare 迹线构建 straight-theta 磁面坐标</a></li>
 </ul>
 </div>
@@ -403,12 +475,12 @@
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">pyna 中文文档</a></li>
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">pyna - Python DYNAmics</a></li>
     
     
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">教程与案例</a></li>
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">教程和示例</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">SDE Monte Carlo 分布估计</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">SDE 蒙特卡洛分布</span></li>
   </ul>
 </nav>
 </div>
@@ -427,36 +499,35 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="sde-monte-carlo">
-<h1>SDE Monte Carlo 分布估计<a class="headerlink" href="#sde-monte-carlo" title="Link to this heading">#</a></h1>
-<p>这个案例展示 pyna 里随机微分方程的实际使用路径：</p>
+  <section id="sde">
+<h1>SDE 蒙特卡洛分布<a class="headerlink" href="#sde" title="Link to this heading">#</a></h1>
+<p>本教程展示 pyna 中实用的 SDE 工作流：</p>
 <ol class="arabic simple">
-<li><p>用 <code class="docutils literal notranslate"><span class="pre">BrownianMotion</span></code>、<code class="docutils literal notranslate"><span class="pre">GeometricBrownianMotion</span></code> 或 <code class="docutils literal notranslate"><span class="pre">ItoSDE</span></code> 定义模型；</p></li>
-<li><p>生成一条可复现样本路径，它是 <code class="docutils literal notranslate"><span class="pre">Trajectory</span></code>；</p></li>
-<li><p>对大量样本使用向量化 NumPy 做 Monte Carlo 分布估计；</p></li>
-<li><p>在有解析公式时，对比经验均值、方差和分位数。</p></li>
+<li><p>使用 <code class="docutils literal notranslate"><span class="pre">BrownianMotion</span></code>、<code class="docutils literal notranslate"><span class="pre">GeometricBrownianMotion</span></code> 或 <code class="docutils literal notranslate"><span class="pre">ItoSDE</span></code> 定义 Itô 模型；</p></li>
+<li><p>生成可复现的样本路径，并表示为 <code class="docutils literal notranslate"><span class="pre">Trajectory</span></code>；</p></li>
+<li><p>运行向量化蒙特卡洛样本集合，用于分布估计；</p></li>
+<li><p>在可用时，将经验均值、方差和分位数与解析公式比较。</p></li>
 </ol>
-<p>使用 pyna 的 SDE 类来表达模型边界和单路径几何；大量 ensemble 在 pyna 拥有
-专门的 ensemble 几何类之前，继续使用向量化 NumPy 数组。这样数学对象模型
-更诚实：单条随机实现是采样轨道，大量实现是统计估计器。</p>
+<p>使用 pyna 的 SDE 类来界定模型边界并表示单路径几何。大规模样本集合请使用向量化
+NumPy 数组，直到 pyna 增加专用样本集合几何类。这样能让数学对象模型保持清晰：
+单次实现是一条样本轨迹，样本云才是统计估计器。</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>下面的 notebook 已在本地执行并保存输出，<code class="docutils literal notranslate"><span class="pre">nbsphinx</span></code> 不会在 GitHub
-workflow 里重新执行重采样单元。修改 Monte Carlo 参数后，请先本地重跑
-notebook，再提交更新后的输出。</p>
+<p>下面的可执行 notebook 已提交保存输出，并禁用了 <code class="docutils literal notranslate"><span class="pre">nbsphinx</span></code> 执行。修改数值参数时
+请在本地重新运行；文档工作流会在 GitHub Pages 上渲染这些保存输出。</p>
 </div>
 <p>可执行 notebook：</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="../../notebooks/tutorials/sde_monte_carlo_distribution.html"><span class="doc">SDE Monte Carlo Distribution Estimates</span></a></p></li>
+<li><p><a class="reference internal" href="../../notebooks/i18n/zh/tutorials/sde_monte_carlo_distribution.html"><span class="doc">SDE 蒙特卡洛分布</span></a></p></li>
 </ul>
 <section id="id1">
-<h2>可复制模式<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<h2>可复用模式<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.dynamics</span><span class="w"> </span><span class="kn">import</span> <span class="n">GeometricBrownianMotion</span>
 
 <span class="n">gbm</span> <span class="o">=</span> <span class="n">GeometricBrownianMotion</span><span class="p">(</span><span class="n">mu</span><span class="o">=</span><span class="p">[</span><span class="mf">0.08</span><span class="p">],</span> <span class="n">sigma</span><span class="o">=</span><span class="p">[</span><span class="mf">0.20</span><span class="p">])</span>
 <span class="n">one_path</span> <span class="o">=</span> <span class="n">gbm</span><span class="o">.</span><span class="n">euler_maruyama</span><span class="p">([</span><span class="mf">100.0</span><span class="p">],</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">dt</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">252</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">one_path</span><span class="o">.</span><span class="n">final</span><span class="p">)</span>  <span class="c1"># TimeSeriesSolution 是 pyna Trajectory</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">one_path</span><span class="o">.</span><span class="n">final</span><span class="p">)</span>  <span class="c1"># TimeSeriesSolution is a pyna Trajectory</span>
 
 <span class="n">n_paths</span> <span class="o">=</span> <span class="mi">200_000</span>
 <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">20260701</span><span class="p">)</span>
@@ -472,12 +543,13 @@ notebook，再提交更新后的输出。</p>
 </div>
 </section>
 <section id="id2">
-<h2>扩展要点<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<h2>扩展说明<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">ItoSDE.diffusion_matrix</span></code> 支持标量、向量或矩阵扩散项；</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ItoSDE.euler_maruyama</span></code> 可以传入固定的 <code class="docutils literal notranslate"><span class="pre">dW</span></code>，便于回归测试和共同随机数实验；</p></li>
-<li><p>只有当几何声称有意义时，才把一条样本路径提升到拓扑对象中；Monte Carlo
-样本用于估计分布，不会自动成为不变集。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ItoSDE.diffusion_matrix</span></code> 接受标量、向量或矩阵扩散项。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ItoSDE.euler_maruyama</span></code> 接受外部提供的 <code class="docutils literal notranslate"><span class="pre">dW</span></code> 增量，因此共同随机数
+实验和回归测试可以保持确定性。</p></li>
+<li><p>只有当几何声明有意义时，才把单条样本路径提升为拓扑对象。蒙特卡洛样本估计
+分布；它们不会自动成为不变集。</p></li>
 </ul>
 </section>
 </section>
@@ -499,15 +571,15 @@ notebook，再提交更新后的输出。</p>
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">教程与案例</p>
+        <p class="prev-next-title">教程和示例</p>
       </div>
     </a>
     <a class="right-next"
-       href="../api/index.html"
+       href="../../notebooks/i18n/zh/tutorials/sde_monte_carlo_distribution.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">API 参考</p>
+        <p class="prev-next-title">SDE 蒙特卡洛分布</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -530,8 +602,8 @@ notebook，再提交更新后的输出。</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">可复制模式</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">扩展要点</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">可复用模式</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">扩展说明</a></li>
 </ul>
   </nav></div>
 
@@ -569,7 +641,7 @@ notebook，再提交更新后的输出。</p>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     <br/>
   </p>
 </div>

@@ -1,0 +1,1051 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>자력선 추적 (pyna.flt) &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=243d2ed3" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../_static/documentation_options.js?v=9ed95442"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'ko/api/flt';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../_static/language-switcher.js?v=866ba1ee"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="위상 구조 (pyna.topo)" href="topo.html" />
+    <link rel="prev" title="동역학 워크플로와 확장 헬퍼" href="dynamics-patterns.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "ko";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../zh/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ru/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語</option>
+    <option value="ko" selected>한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../zh/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ru/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語</option>
+    <option value="ko" selected>한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar"><svg class="pst-icon svg-inline--fa" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">문서</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">설치</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">빠른 시작</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mini-cases.html">미니 사례</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">튜토리얼과 예제</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">API 레퍼런스</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="dynamics.html">일반 동역학 (<code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamics-patterns.html">동역학 워크플로와 확장 헬퍼</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">자력선 추적 (<code class="docutils literal notranslate"><span class="pre">pyna.flt</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topo.html">위상 구조 (<code class="docutils literal notranslate"><span class="pre">pyna.topo</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toroidal.html">토로이달 물리 (<code class="docutils literal notranslate"><span class="pre">pyna.toroidal</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="control.html">FPT 위상 제어 (<code class="docutils literal notranslate"><span class="pre">pyna.control</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cyna.html">cyna 가속 계층</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../theory/index.html">이론</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/index.html">개발</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">pyna - Python DYNAmics</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">API 레퍼런스</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">자력선 추적 (<code class="docutils literal notranslate"><span class="pre">pyna.flt</span></code>)</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="pyna-flt">
+<h1>자력선 추적 (<code class="docutils literal notranslate"><span class="pre">pyna.flt</span></code>)<a class="headerlink" href="#pyna-flt" title="Link to this heading">#</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">pyna.flt</span></code> package는 추상 <a class="reference internal" href="../../en/api/generated/pyna/system/index.html#module-pyna.system" title="pyna.system"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pyna.system</span></code></a> 계층 위에 구축된 자력선 적분
+routine을 제공합니다.</p>
+<p><strong>백엔드:</strong></p>
+<ul class="simple">
+<li><p><strong>CPU/serial</strong> – pure-Python RK4 integrator</p></li>
+<li><p><strong>CPU/parallel</strong> – multi-process 또는 multi-threaded variant</p></li>
+<li><p><strong>CUDA</strong> – CuPy를 통한 선택적 GPU backend(최대 118× speedup)</p></li>
+<li><p><strong>OpenCL</strong> – experimental</p></li>
+</ul>
+<nav class="contents local" id="submodules">
+<p class="topic-title">Submodules</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#id1" id="id5">핵심 추적기</a></p>
+<ul>
+<li><p><a class="reference internal" href="#progress-reporting" id="id6">Progress reporting</a></p></li>
+<li><p><a class="reference internal" href="#wall-hit-handling-boundary-field-lines" id="id7">Wall-hit handling (boundary field lines)</a></p></li>
+<li><p><a class="reference internal" href="#legacy-api" id="id8">Legacy API</a></p></li>
+<li><p><a class="reference internal" href="#new-api" id="id9">New API</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#id4" id="id10">동역학계 계층</a></p></li>
+</ul>
+</nav>
+<hr class="docutils" />
+<section id="id1">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">핵심 추적기</a><a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<p>Field line tracing with parallel execution.</p>
+<p>Parallelism strategy (Windows + Python 3.13 standard GIL build):
+- Primary: ThreadPoolExecutor — works with any callable, numpy releases GIL</p>
+<blockquote>
+<div><p>during integration loops, so real speedup is achievable</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>ProcessPoolExecutor: available but requires module-level picklable functions;
+use only when explicitly requested and field_func is picklable</p></li>
+<li><p>CUDA: CuPy backend for GPU-accelerated batch tracing</p></li>
+</ul>
+<section id="progress-reporting">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Progress reporting</a><a class="headerlink" href="#progress-reporting" title="Link to this heading">#</a></h3>
+<p>All batch methods accept an optional <code class="docutils literal notranslate"><span class="pre">progress=</span></code> parameter.  Pass any
+<a class="reference internal" href="../../en/api/generated/pyna/progress/index.html#pyna.progress.TraceProgressBase" title="pyna.progress.TraceProgressBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">TraceProgressBase</span></code></a> instance to receive per-task or
+aggregate progress updates:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyna.progress</span><span class="w"> </span><span class="kn">import</span> <span class="n">TqdmProgress</span><span class="p">,</span> <span class="n">LogFileProgress</span><span class="p">,</span> <span class="n">CompositeProgress</span>
+
+<span class="c1"># tqdm bar in CLI / notebook</span>
+<span class="n">tracer</span><span class="o">.</span><span class="n">trace_many</span><span class="p">(</span><span class="n">starts</span><span class="p">,</span> <span class="n">t_max</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="n">TqdmProgress</span><span class="p">())</span>
+
+<span class="c1"># bar + log file simultaneously</span>
+<span class="n">prog</span> <span class="o">=</span> <span class="n">CompositeProgress</span><span class="p">([</span><span class="n">TqdmProgress</span><span class="p">(),</span> <span class="n">LogFileProgress</span><span class="p">(</span><span class="s2">&quot;run.jsonl&quot;</span><span class="p">)])</span>
+<span class="n">tracer</span><span class="o">.</span><span class="n">trace_many</span><span class="p">(</span><span class="n">starts</span><span class="p">,</span> <span class="n">t_max</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="n">prog</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="wall-hit-handling-boundary-field-lines">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Wall-hit handling (boundary field lines)</a><a class="headerlink" href="#wall-hit-handling-boundary-field-lines" title="Link to this heading">#</a></h3>
+<p>Near the plasma boundary, field lines may strike the first wall after only
+a few integration steps.  <code class="docutils literal notranslate"><span class="pre">FieldLineTracer.trace_many</span></code> marks these as
+“wall-hit” (non-blocking) and returns the short trajectory.  Use
+<a class="reference internal" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.reseed_boundary_field_lines" title="pyna.flt.reseed_boundary_field_lines"><code class="xref py py-func docutils literal notranslate"><span class="pre">reseed_boundary_field_lines()</span></code></a> to automatically add extra seed points
+around the boundary where the hit-fraction is high, ensuring the boundary
+topology is still captured.</p>
+</section>
+<section id="legacy-api">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Legacy API</a><a class="headerlink" href="#legacy-api" title="Link to this heading">#</a></h3>
+<p>已移除。原 <code class="docutils literal notranslate"><span class="pre">bundle_tracing_with_t_as_DeltaPhi</span></code>、<code class="docutils literal notranslate"><span class="pre">save_Poincare_orbits</span></code>、
+<code class="docutils literal notranslate"><span class="pre">load_Poincare_orbits</span></code> 及 <code class="docutils literal notranslate"><span class="pre">OdeSolution.mat_interp</span></code> monkey-patch 已删除。
+请使用 <code class="docutils literal notranslate"><span class="pre">FieldLineTracer.trace_many</span></code> 替代。</p>
+</section>
+<section id="new-api">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">New API</a><a class="headerlink" href="#new-api" title="Link to this heading">#</a></h3>
+<dl class="simple">
+<dt>FieldLineTracer</dt><dd><p>RK4 integrator with .trace() / .trace_many() (ThreadPoolExecutor).
+当传入网格数据时底层由 cyna C++ 扩展驱动；若只有 callable 场函数，
+则使用纯 Python RK4 fallback（向后兼容）。
+若要完全使用 C++ 底层加速，请使用
+<code class="docutils literal notranslate"><span class="pre">pyna.toroidal.flt.trace_poincare_batch</span></code> 并传入网格数组。</p>
+</dd>
+<dt>WallModel</dt><dd><p>Parametric / polygon wall geometry for wall-hit detection.</p>
+</dd>
+<dt>reseed_boundary_field_lines</dt><dd><p>Adaptively add more seed points where wall-hits are dense.</p>
+</dd>
+<dt>get_backend(mode, <a href="#id2"><span class="problematic" id="id3">**</span></a>kwargs)</dt><dd><p>Factory: ‘cpu’, ‘cuda’, ‘opencl’.</p>
+</dd>
+</dl>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.flt.</span></span><span class="sig-name descname"><span class="pre">FieldLineTracer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.04</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RZlimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/flt.html#FieldLineTracer"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>RK4 field-line integrator with parallel trace_many.</p>
+<p>The field function signature:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">f</span><span class="p">(</span><span class="n">rzphi</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>   <span class="c1"># (dR/dl, dZ/dl, dphi/dl)</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">rzphi</span> <span class="pre">=</span> <span class="pre">[R,</span> <span class="pre">Z,</span> <span class="pre">phi]</span></code> is the current position.</p>
+<p>Parallelism uses <a class="reference external" href="https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ThreadPoolExecutor</span></code></a> on all
+platforms.  This is deliberately chosen over ProcessPoolExecutor because:</p>
+<ul class="simple">
+<li><p>Works with <em>any</em> callable — no pickle requirement (important on Windows).</p></li>
+<li><p>NumPy/SciPy release the GIL during heavy computation, so threads achieve
+real parallel speedup.</p></li>
+<li><p>No process-spawn overhead on Windows.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>field_func</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a></span>) – Unit tangent vector field.</p></li>
+<li><p><strong>dt</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>) – Integration step size (arc length).</p></li>
+<li><p><strong>RZlimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em> or </em><em>None</em>) – Optional <code class="docutils literal notranslate"><span class="pre">(R_min,</span> <span class="pre">R_max,</span> <span class="pre">Z_min,</span> <span class="pre">Z_max)</span></code> domain boundary.
+Integration stops when the trajectory leaves this box.</p></li>
+<li><p><strong>n_workers</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</span>) – Default thread-pool size for <a class="reference internal" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.FieldLineTracer.trace_many" title="pyna.flt.FieldLineTracer.trace_many"><code class="xref py py-meth docutils literal notranslate"><span class="pre">trace_many()</span></code></a>.
+<code class="docutils literal notranslate"><span class="pre">None</span></code> → <code class="docutils literal notranslate"><span class="pre">min(os.cpu_count(),</span> <span class="pre">16)</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_pt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/flt.html#FieldLineTracer.trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Trace a single field line, optionally stopping at a wall.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_pt</strong> (<em>array-like</em><em> of </em><em>length 3</em>) – Starting point (R, Z, phi).</p></li>
+<li><p><strong>t_max</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>) – Maximum arc-length parameter.</p></li>
+<li><p><strong>wall</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference internal" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.WallModel" title="pyna.flt.WallModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">WallModel</span></code></a>]</span>) – Wall model for early-termination on wall hit.  <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the
+<code class="docutils literal notranslate"><span class="pre">RZlimit</span></code> box-boundary from the constructor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>ndarray, shape (N, 3)</em> – Trajectory points (R, Z, phi).  For wall-hit cases N may be much
+smaller than <code class="docutils literal notranslate"><span class="pre">int(t_max</span> <span class="pre">/</span> <span class="pre">dt)</span></code>; the trajectory is <em>not</em> padded.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">trace_many</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_pts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_valid_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/flt.html#FieldLineTracer.trace_many"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Parallel field-line tracing with optional wall-hit handling.</p>
+<p>Wall-hitting trajectories are returned as short arrays and do <strong>not</strong>
+block or slow down other traces in the same batch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_pts</strong> (<em>array-like</em><em>, </em><a class="reference internal" href="../../en/api/generated/pyna/fields/cylindrical/index.html#pyna.fields.cylindrical.CylindricalFieldArrays.shape" title="pyna.fields.cylindrical.CylindricalFieldArrays.shape"><em>shape</em></a><em> (</em><em>N</em><em>, </em><em>3</em><em>)</em>) – Starting points.</p></li>
+<li><p><strong>t_max</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>) – Maximum arc-length for each field line.</p></li>
+<li><p><strong>n_workers</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</span>) – Override the default worker count.</p></li>
+<li><p><strong>progress</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference internal" href="../../en/api/generated/pyna/progress/index.html#pyna.progress.TraceProgressBase" title="pyna.progress.TraceProgressBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">TraceProgressBase</span></code></a>]</span>) – Optional progress reporter.</p></li>
+<li><p><strong>wall</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference internal" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.WallModel" title="pyna.flt.WallModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">WallModel</span></code></a>]</span>) – Wall model.  When provided, trajectories that hit the wall are
+returned early (shorter arrays).</p></li>
+<li><p><strong>min_valid_steps</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – If &gt; 0, trajectories with fewer than this many steps are flagged
+as “wall-hit” in the returned metadata.  This does not discard
+the trajectory — callers can filter using the returned list.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>list of ndarray</em> – One trajectory per starting point.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.flt.</span></span><span class="sig-name descname"><span class="pre">WallModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R_wall</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_wall</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_clearance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/flt.html#WallModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>First-wall geometry for wall-hit detection during field-line tracing.</p>
+<p>A wall is represented as a closed polygon in the (R, Z) poloidal cross-
+section.  The same shape is assumed toroidally symmetric (axisymmetric
+wall).  More complex 3-D first-wall descriptions can be approximated by
+providing an appropriate 2-D outline.</p>
+<p>The model also provides a <em>minimum clearance</em> check so that trajectories
+that approach very close to the wall but haven’t yet crossed it can be
+flagged for early termination.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>R_wall</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a></span>) – R-coordinates of the wall polygon vertices (m).  The polygon is
+closed automatically; do not repeat the first point.</p></li>
+<li><p><strong>Z_wall</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a></span>) – Z-coordinates of the wall polygon vertices (m).</p></li>
+<li><p><strong>min_clearance</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>) – Minimum distance from wall (m) before a point is considered a
+near-miss / wall-hit.  <code class="docutils literal notranslate"><span class="pre">0</span></code> means only count true crossings.
+Default 0.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wall</span> <span class="o">=</span> <span class="n">WallModel</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wall</span><span class="o">.</span><span class="n">is_outside</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">2.6</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]))</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">circular</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_vertices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_clearance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/flt.html#WallModel.circular"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Construct a circular (axisymmetric) wall.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>R0</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>) – Major radius and minor radius of the circular wall.</p></li>
+<li><p><strong>a</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>) – Major radius and minor radius of the circular wall.</p></li>
+<li><p><strong>n_vertices</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Number of polygon vertices.</p></li>
+<li><p><strong>min_clearance</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>) – Proximity clearance (m).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.WallModel" title="pyna.flt.WallModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">WallModel</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>WallModel</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">is_outside</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">RZ</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/flt.html#WallModel.is_outside"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Return True if the point (R, Z) is outside the wall polygon.</p>
+<p>Uses the ray-casting (winding-number) algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>RZ</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a></span>) – Point [R, Z] to test (m).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>bool</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">pyna.flt.</span></span><span class="sig-name descname"><span class="pre">get_backend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/flt.html#get_backend"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Get a field-line tracer backend.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – <dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'cpu'</span></code>    — <a class="reference internal" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.FieldLineTracer" title="pyna.flt.FieldLineTracer"><code class="xref py py-class docutils literal notranslate"><span class="pre">FieldLineTracer</span></code></a> with ThreadPoolExecutor</dt><dd><p>(always available).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'cuda'</span></code>   — <a class="reference internal" href="../../en/api/generated/pyna/flt_cuda/index.html#pyna.flt_cuda.FieldLineTracerCUDA" title="pyna.flt_cuda.FieldLineTracerCUDA"><code class="xref py py-class docutils literal notranslate"><span class="pre">FieldLineTracerCUDA</span></code></a></dt><dd><p>(requires CuPy, only for analytic fields).</p>
+</dd>
+</dl>
+<p><code class="docutils literal notranslate"><span class="pre">'opencl'</span></code> — reserved, not yet implemented.</p>
+</p></li>
+<li><p><strong>**kwargs</strong> – Passed to the backend constructor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Backend object with <code class="docutils literal notranslate"><span class="pre">.trace_many(start_pts,</span> <span class="pre">t_max)</span></code> method.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>CPU:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tracer</span> <span class="o">=</span> <span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;cpu&#39;</span><span class="p">,</span> <span class="n">field_func</span><span class="o">=</span><span class="n">my_field</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mf">0.02</span><span class="p">)</span>
+<span class="n">trajs</span>  <span class="o">=</span> <span class="n">tracer</span><span class="o">.</span><span class="n">trace_many</span><span class="p">(</span><span class="n">starts</span><span class="p">,</span> <span class="n">t_max</span><span class="o">=</span><span class="mf">100.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>CUDA:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tracer</span> <span class="o">=</span> <span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span><span class="p">,</span> <span class="n">R0</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">B0</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">q0</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="n">trajs</span>  <span class="o">=</span> <span class="n">tracer</span><span class="o">.</span><span class="n">trace_many</span><span class="p">(</span><span class="n">starts</span><span class="p">,</span> <span class="n">t_max</span><span class="o">=</span><span class="mf">100.0</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">pyna.flt.</span></span><span class="sig-name descname"><span class="pre">reseed_boundary_field_lines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tracer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_pts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trajs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_valid_fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_reseed_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reseed_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pyna/flt.html#reseed_boundary_field_lines"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Adaptively reseed field lines near wall-hit starting points.</p>
+<p>Near the plasma boundary, a fraction of seed points may produce very
+short trajectories (wall hits).  This function:</p>
+<ol class="arabic simple">
+<li><p>Identifies seeds with trajectories shorter than
+<code class="docutils literal notranslate"><span class="pre">min_valid_fraction</span> <span class="pre">*</span> <span class="pre">t_max</span> <span class="pre">/</span> <span class="pre">dt</span></code> steps.</p></li>
+<li><p>Surrounds each such seed with <code class="docutils literal notranslate"><span class="pre">n_reseed_factor</span></code> new seeds in a
+small circle of radius <code class="docutils literal notranslate"><span class="pre">reseed_radius</span></code>.</p></li>
+<li><p>Traces the new seeds and returns <em>all</em> trajectories (original +
+reseeded).</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tracer</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.FieldLineTracer" title="pyna.flt.FieldLineTracer"><code class="xref py py-class docutils literal notranslate"><span class="pre">FieldLineTracer</span></code></a></span>) – Tracer used for the original batch.</p></li>
+<li><p><strong>start_pts</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a></span>) – Original starting points [R, Z, phi].</p></li>
+<li><p><strong>trajs</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a>]</span>) – Trajectories from the original batch (one per start point).</p></li>
+<li><p><strong>t_max</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>) – Arc-length used in the original batch.</p></li>
+<li><p><strong>wall</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference internal" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.WallModel" title="pyna.flt.WallModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">WallModel</span></code></a>]</span>) – Wall model passed to the new traces.</p></li>
+<li><p><strong>min_valid_fraction</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>) – Fraction of <code class="docutils literal notranslate"><span class="pre">t_max</span> <span class="pre">/</span> <span class="pre">dt</span></code> steps below which a trajectory is
+considered a wall hit.  Default 0.5.</p></li>
+<li><p><strong>n_reseed_factor</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Number of new seeds to place around each wall-hit seed.  Default 4.</p></li>
+<li><p><strong>reseed_radius</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>) – Radius (m) of the reseeding circle around each hit seed.  Default 0.02.</p></li>
+<li><p><strong>n_workers</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</span>) – Worker count for the reseeded traces.</p></li>
+<li><p><strong>progress</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference internal" href="../../en/api/generated/pyna/progress/index.html#pyna.progress.TraceProgressBase" title="pyna.progress.TraceProgressBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">TraceProgressBase</span></code></a>]</span>) – Progress reporter for the reseeded traces.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>list of ndarray</em> – Original trajectories plus new reseeded trajectories (appended).</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<hr class="docutils" />
+<section id="id4">
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">동역학계 계층</a><a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<p>Core dynamical system abstractions for pyna.</p>
+<p>This module defines the class hierarchy for dynamical systems,
+from general abstract base classes down to physically motivated
+special cases.</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.system.</span></span><span class="sig-name descname"><span class="pre">AutonomousDynamicalSystem</span></span><a class="reference internal" href="../../_modules/pyna/system.html#AutonomousDynamicalSystem"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../en/api/generated/pyna/system/index.html#pyna.system.DynamicalSystem" title="pyna.system.DynamicalSystem"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicalSystem</span></code></a></p>
+<p>Autonomous dynamical system: dx/dt = f(x).</p>
+<p>The right-hand side does not depend explicitly on time.
+Key consequences:</p>
+<ul class="simple">
+<li><p>Poincaré section maps are well-defined without a time reference.</p></li>
+<li><p>Invariant manifolds, fixed points, and KAM tori are
+time-independent geometric objects in state space.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.system.</span></span><span class="sig-name descname"><span class="pre">DynamicalSystem</span></span><a class="reference internal" href="../../_modules/pyna/system.html#DynamicalSystem"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
+<p>Abstract base for all dynamical systems.</p>
+<p>A dynamical system defines the evolution law for a state vector.
+Subclasses must implement <a class="reference internal" href="../../en/api/generated/pyna/system/index.html#pyna.system.DynamicalSystem.state_dim" title="pyna.system.DynamicalSystem.state_dim"><code class="xref py py-meth docutils literal notranslate"><span class="pre">state_dim()</span></code></a> and <code class="xref py py-meth docutils literal notranslate"><span class="pre">__call__()</span></code>.</p>
+<dl class="py property">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">abstract</span></span><span class="w"> </span><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">state_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../_modules/pyna/system.html#DynamicalSystem.state_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Dimension of the state space.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.system.</span></span><span class="sig-name descname"><span class="pre">NonAutonomousDynamicalSystem</span></span><a class="reference internal" href="../../_modules/pyna/system.html#NonAutonomousDynamicalSystem"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../en/api/generated/pyna/system/index.html#pyna.system.DynamicalSystem" title="pyna.system.DynamicalSystem"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicalSystem</span></code></a></p>
+<p>Non-autonomous dynamical system: dx/dt = f(x, t).</p>
+<p>Time appears explicitly on the right-hand side.  Geometric
+structures such as Poincaré maps depend on the phase of the
+driving and are therefore more complex to analyse than their
+autonomous counterparts.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.system.</span></span><span class="sig-name descname"><span class="pre">VectorField</span></span><a class="reference internal" href="../../_modules/pyna/system.html#VectorField"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../en/api/generated/pyna/system/index.html#pyna.system.AutonomousDynamicalSystem" title="pyna.system.AutonomousDynamicalSystem"><code class="xref py py-class docutils literal notranslate"><span class="pre">AutonomousDynamicalSystem</span></code></a></p>
+<p>Autonomous dynamical system defined by a smooth vector field.</p>
+<p>The vector field <strong>is</strong> the right-hand side f(x) of dx/dt = f(x).
+Subclasses specialise to a particular spatial dimension.</p>
+<dl class="py property">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">abstract</span></span><span class="w"> </span><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../_modules/pyna/system.html#VectorField.dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Spatial dimension of the vector field.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">state_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../_modules/pyna/system.html#VectorField.state_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Dimension of the state space.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.system.</span></span><span class="sig-name descname"><span class="pre">VectorField1D</span></span><a class="reference internal" href="../../_modules/pyna/system.html#VectorField1D"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../en/api/generated/pyna/system/index.html#pyna.system.VectorField" title="pyna.system.VectorField"><code class="xref py py-class docutils literal notranslate"><span class="pre">VectorField</span></code></a></p>
+<p>One-dimensional vector field: dx/dt = f(x).</p>
+<dl class="py property">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../_modules/pyna/system.html#VectorField1D.dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Spatial dimension of the vector field.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.system.</span></span><span class="sig-name descname"><span class="pre">VectorField2D</span></span><a class="reference internal" href="../../_modules/pyna/system.html#VectorField2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../en/api/generated/pyna/system/index.html#pyna.system.VectorField" title="pyna.system.VectorField"><code class="xref py py-class docutils literal notranslate"><span class="pre">VectorField</span></code></a></p>
+<p>Two-dimensional vector field: dx/dt = f(x), x ∈ ℝ².</p>
+<p>The 2-D case is where KAM theory is most transparent and
+area-preserving (Hamiltonian) maps are most widely studied.</p>
+<dl class="py property">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../_modules/pyna/system.html#VectorField2D.dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Spatial dimension of the vector field.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.system.</span></span><span class="sig-name descname"><span class="pre">VectorField4D</span></span><a class="reference internal" href="../../_modules/pyna/system.html#VectorField4D"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../en/api/generated/pyna/system/index.html#pyna.system.VectorField" title="pyna.system.VectorField"><code class="xref py py-class docutils literal notranslate"><span class="pre">VectorField</span></code></a></p>
+<p>Four-dimensional vector field: dx/dt = f(x), x ∈ ℝ⁴.</p>
+<p>Relevant for relativistic charged-particle dynamics (guiding-centre
+equations with energy as a fourth coordinate) and certain
+Hamiltonian systems with two degrees of freedom.</p>
+<dl class="py property">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../_modules/pyna/system.html#VectorField4D.dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Spatial dimension of the vector field.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="dynamics-patterns.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">동역학 워크플로와 확장 헬퍼</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="topo.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">위상 구조 (<code class="docutils literal notranslate"><span class="pre">pyna.topo</span></code>)</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">핵심 추적기</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#progress-reporting">Progress reporting</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wall-hit-handling-boundary-field-lines">Wall-hit handling (boundary field lines)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#legacy-api">Legacy API</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#new-api">New API</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">동역학계 계층</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

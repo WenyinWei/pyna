@@ -250,15 +250,6 @@ code.literal {
     white-space: nowrap;
 }
 
-html[data-pyna-lang="en"] .bd-sidebar-primary li:has(a[href*="/zh/"]),
-html[data-pyna-lang="en"] .bd-sidebar-primary li:has(a[href^="zh/"]),
-html[data-pyna-lang="zh"] .bd-sidebar-primary li:has(a[href*="/en/"]),
-html[data-pyna-lang="zh"] .bd-sidebar-primary li:has(a[href^="en/"]),
-html[data-pyna-lang="en"] .sidebar-tree li:has(a[href*="/zh/"]),
-html[data-pyna-lang="zh"] .sidebar-tree li:has(a[href*="/en/"]) {
-    display: none;
-}
-
 html[data-pyna-lang="root"] .bd-sidebar-primary,
 html[data-pyna-lang="root"] .sidebar-tree {
     display: none;

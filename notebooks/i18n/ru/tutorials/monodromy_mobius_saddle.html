@@ -1,0 +1,1022 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Учебник: седловой цикл Мёбиуса - удвоение периода и отрицательные собственные значения &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/nbsphinx-code-cells.css?v=2aa19091" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=243d2ed3" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../../_static/documentation_options.js?v=9ed95442"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'notebooks/i18n/ru/tutorials/monodromy_mobius_saddle';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../../_static/language-switcher.js?v=866ba1ee"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="Учебник: матрица монодромии и сдвиг орбиты на аналитическом седловом X-цикле" href="monodromy_xcycle_analytic.html" />
+    <link rel="prev" title="Анализ якобиана магнитных островов: периодические орбиты и матрицы монодромии" href="island_jacobian_analysis.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../../_static/searchtools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "ru";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../zh/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../ru/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru" selected>Русский</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../zh/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../ru/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru" selected>Русский</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar"><svg class="pst-icon svg-inline--fa" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Документация</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../ru/installation.html">Установка</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ru/quickstart.html">Быстрый старт</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ru/mini-cases.html">Мини-кейсы</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../../ru/tutorials/index.html">Учебные материалы и примеры</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../../ru/tutorials/sde-monte-carlo.html">SDE-распределения методом Монте-Карло</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sde_monte_carlo_distribution.html">Оценки распределений SDE методом Монте-Карло</a></li>
+<li class="toctree-l2"><a class="reference internal" href="magnetic_coordinates_comparison.html">Магнитные координатные системы в равновесиях токамака</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RMP_resonance_analysis.html">Анализ резонансов RMP в аналитическом стеллараторе</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RMP_island_validation_solovev.html">Валидация ширины острова RMP: аналитическое равновесие Соловьёва</a></li>
+<li class="toctree-l2"><a class="reference internal" href="island_jacobian_analysis.html">Анализ якобиана магнитных островов: периодические орбиты и матрицы монодромии</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Учебник: седловой цикл Мёбиуса - удвоение периода и отрицательные собственные значения</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monodromy_xcycle_analytic.html">Учебник: матрица монодромии и сдвиг орбиты на аналитическом седловом X-цикле</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ru/api/index.html">Справочник API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ru/theory/index.html">Теория</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ru/development/index.html">Разработка</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../../ru/index.html" class="nav-link">pyna - Python DYNAmics</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../../../ru/tutorials/index.html" class="nav-link">Учебные материалы и примеры</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Учебник: седловой цикл Мёбиуса - удвоение периода и отрицательные собственные значения</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="Учебник:-седловой-цикл-Мёбиуса---удвоение-периода-и-отрицательные-собственные-значения">
+<h1>Учебник: седловой цикл Мёбиуса - удвоение периода и отрицательные собственные значения<a class="headerlink" href="#Учебник:-седловой-цикл-Мёбиуса---удвоение-периода-и-отрицательные-собственные-значения" title="Link to this heading">#</a></h1>
+<p>Этот ноутбук демонстрирует топологически интересную неподвижную точку: <strong>седловой цикл Мёбиуса</strong>, где матрица монодромии <code class="docutils literal notranslate"><span class="pre">DPm</span></code> имеет <strong>отрицательные</strong> собственные значения (<span class="math notranslate nohighlight">\(\lambda_u = -e^{+1/3}\)</span>, <span class="math notranslate nohighlight">\(\lambda_s = -e^{-1/3}\)</span>).</p>
+<div class="line-block">
+<div class="line"><strong>Физический смысл:</strong></div>
+<div class="line">После одного полного тороидального периода (<span class="math notranslate nohighlight">\(m=1\)</span> оборот) малое смещение <em>меняет знак</em> при растяжении/сжатии. Оно возвращается к исходной ориентации только после <strong>двух</strong> оборотов - это топология, похожая на ленту Мёбиуса в локальном касательном расслоении.</div>
+</div>
+<p>Это отличается от обычной X-точки (положительное <span class="math notranslate nohighlight">\(\lambda\)</span>) и иногда называется <strong>обратно-гиперболической</strong> или <strong>удвоенной по периоду</strong> неподвижной точкой.</p>
+<p><strong>Что вы узнаете:</strong></p>
+<ol class="arabic simple">
+<li><p>Как седловые точки с отрицательными собственными значениями возникают в картах Пуанкаре</p></li>
+<li><p>Как использовать <code class="docutils literal notranslate"><span class="pre">evolve_DPm_along_cycle</span></code>, чтобы подтвердить знак собственных значений</p></li>
+<li><p>Как визуализировать геометрию устойчивого/неустойчивого многообразия в 3D: они образуют полуперекрученную ленту (ленту Мёбиуса) вокруг тора</p></li>
+</ol>
+<section id="1.-Построение-поля:-неподвижная-точка-Мёбиуса-m=1-в-(R₀,-Z₀)">
+<h2>1. Построение поля: неподвижная точка Мёбиуса m=1 в (R₀, Z₀)<a class="headerlink" href="#1.-Построение-поля:-неподвижная-точка-Мёбиуса-m=1-в-(R₀,-Z₀)" title="Link to this heading">#</a></h2>
+<p>Простейший случай: одна неподвижная точка однооборотной карты в <span class="math notranslate nohighlight">\((R_0, Z_0)\)</span> с собственными значениями <span class="math notranslate nohighlight">\(\lambda_u = -e^{+1/3}\)</span>, <span class="math notranslate nohighlight">\(\lambda_s = -e^{-1/3}\)</span>.</p>
+<p>Собственные направления поворачиваются на <span class="math notranslate nohighlight">\(\pi\)</span> за каждый оборот (<code class="docutils literal notranslate"><span class="pre">dθ/dφ</span> <span class="pre">=</span> <span class="pre">1/2</span></code>), поэтому после одного оборота <span class="math notranslate nohighlight">\(\theta \to \theta + \pi\)</span> собственные векторы меняют знак, что и дает характер Мёбиуса.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.integrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_ivp</span>
+
+<span class="c1"># ── Fixed point and field parameters ────────────────────────────────────────</span>
+<span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span>
+<span class="n">BPhi0</span> <span class="o">=</span> <span class="mf">2.5</span>
+<span class="n">m</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># one-turn fixed point</span>
+
+<span class="c1"># Negative eigenvalues  →  Möbius / inverse-hyperbolic character</span>
+<span class="n">lam_u</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">e</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">lam_s</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">e</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;λ_u = </span><span class="si">{</span><span class="n">lam_u</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;λ_s = </span><span class="si">{</span><span class="n">lam_s</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;λ_u · λ_s = </span><span class="si">{</span><span class="n">lam_u</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">lam_s</span><span class="si">:</span><span class="s2">.10f</span><span class="si">}</span><span class="s2">  (должно быть +1 для сохраняющей площадь карты)&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;После 2 оборотов: λ_u² = </span><span class="si">{</span><span class="n">lam_u</span><span class="o">**</span><span class="mi">2</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">  (теперь положительно, обычная гиперболика)&quot;</span><span class="p">)</span>
+
+<span class="c1"># Eigendirections rotate by π per turn (half-integer winding)</span>
+<span class="n">dtheta_dphi</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">theta_u</span><span class="p">(</span><span class="n">phi</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span> <span class="o">+</span> <span class="n">phi</span><span class="o">/</span><span class="mi">2</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">theta_s</span><span class="p">(</span><span class="n">phi</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">phi</span><span class="o">/</span><span class="mi">2</span>
+
+<span class="c1"># Note: theta_u(2π) = π/2 + π = 3π/2 ≠ theta_u(0)</span>
+<span class="c1"># The eigenvectors have flipped!  This is the Möbius twist.</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">θ_u(0) = </span><span class="si">{</span><span class="n">theta_u</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> rad = </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">theta_u</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">°&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;θ_u(2π) = </span><span class="si">{</span><span class="n">theta_u</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> rad = </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">theta_u</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">°&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Разность = </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">theta_u</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">theta_u</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">°  (= 180° переворот -&gt; Мебиус)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+λ_u = -1.395612
+λ_s = -0.716531
+λ_u · λ_s = 1.0000000000  (должно быть +1 для сохраняющей площадь карты)
+После 2 оборотов: λ_u² = 1.947734  (теперь положительно, обычная гиперболика)
+
+θ_u(0) = 1.5708 рад = 90.0°
+θ_u(2π) = 4.7124 рад = 270.0°
+Разность = 180.0°  (= переворот на 180° -&gt; Мебиус)
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ── Toroidal field model ─────────────────────────────────────────────────────</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">BPhi</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">RZ</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Toroidal field: R·B_φ = const.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">BPhi0</span> <span class="o">*</span> <span class="n">R0</span> <span class="o">/</span> <span class="n">RZ</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="c1"># ── A matrix at the fixed point ──────────────────────────────────────────────</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_eigvec_matrix</span><span class="p">(</span><span class="n">phi</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta_u</span><span class="p">(</span><span class="n">phi</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta_s</span><span class="p">(</span><span class="n">phi</span><span class="p">))],</span>
+        <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta_u</span><span class="p">(</span><span class="n">phi</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta_s</span><span class="p">(</span><span class="n">phi</span><span class="p">))],</span>
+    <span class="p">])</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_A_matrix</span><span class="p">(</span><span class="n">phi</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Jacobian A(φ) of field direction g w.r.t. (R,Z) at the fixed point.&quot;&quot;&quot;</span>
+    <span class="n">V</span> <span class="o">=</span> <span class="n">_eigvec_matrix</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+    <span class="c1"># log(|λ|) / (2mπ) gives the per-radian growth rate</span>
+    <span class="n">mu_u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">lam_u</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">m</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+    <span class="n">mu_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">lam_s</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">m</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+    <span class="n">Lam</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="n">mu_u</span><span class="p">,</span> <span class="n">mu_s</span><span class="p">])</span>
+    <span class="n">dV</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="p">[</span><span class="o">-</span><span class="n">dtheta_dphi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta_u</span><span class="p">(</span><span class="n">phi</span><span class="p">)),</span> <span class="o">-</span><span class="n">dtheta_dphi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta_s</span><span class="p">(</span><span class="n">phi</span><span class="p">))],</span>
+        <span class="p">[</span> <span class="n">dtheta_dphi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta_u</span><span class="p">(</span><span class="n">phi</span><span class="p">)),</span>  <span class="n">dtheta_dphi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta_s</span><span class="p">(</span><span class="n">phi</span><span class="p">))],</span>
+    <span class="p">])</span>
+    <span class="k">return</span> <span class="n">V</span> <span class="o">@</span> <span class="n">Lam</span> <span class="o">@</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">V</span><span class="p">)</span> <span class="o">+</span> <span class="n">dV</span> <span class="o">@</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">V</span><span class="p">)</span>
+
+<span class="c1"># ── φ-parameterised field direction g = R·B_pol/B_φ ─────────────────────────</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">field_g_pol</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">X_pol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Field direction in (R,Z): g = A(φ) · (X - X_c) + 0 (fixed point has dX_c/dφ=0).&quot;&quot;&quot;</span>
+    <span class="n">Xc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span><span class="p">])</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">_A_matrix</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">A</span> <span class="o">@</span> <span class="p">(</span><span class="n">X_pol</span> <span class="o">-</span> <span class="n">Xc</span><span class="p">)</span>
+
+<span class="c1"># Verify: g on the fixed point is zero (it&#39;s a FIXED point, not just periodic orbit)</span>
+<span class="n">g0</span> <span class="o">=</span> <span class="n">field_g_pol</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;g в неподвижной точке (R0,Z0):&quot;</span><span class="p">,</span> <span class="n">g0</span><span class="p">,</span> <span class="s2">&quot;  (должно быть 0)&quot;</span><span class="p">)</span>
+
+<span class="c1"># ── pyna-compatible field function ───────────────────────────────────────────</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">pyna_field</span><span class="p">(</span><span class="n">rzphi</span><span class="p">):</span>
+    <span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span> <span class="o">=</span> <span class="n">rzphi</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rzphi</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">rzphi</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">X_pol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">])</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">field_g_pol</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">X_pol</span><span class="p">)</span>
+    <span class="c1"># Regularise near the fixed point to avoid division by zero</span>
+    <span class="n">gnorm2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">g</span><span class="p">)</span>
+    <span class="n">dphi_dl</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">R</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="n">gnorm2</span><span class="p">,</span> <span class="mf">1e-30</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">dphi_dl</span><span class="p">,</span> <span class="n">g</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">dphi_dl</span><span class="p">,</span> <span class="n">dphi_dl</span><span class="p">])</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Поле в соседней точке:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">pyna_field</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">R0</span> <span class="o">+</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">Z0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+g в неподвижной точке (R0,Z0): [0. 0.]   (должно быть 0)
+Поле в соседней точке:
+[-0.00252555  0.0238027   0.95210808]
+</pre></div></div>
+</div>
+</section>
+<section id="2.-Вычисление-DPm-с-evolve_DPm_along_cycle">
+<h2>2. Вычисление DPm с <code class="docutils literal notranslate"><span class="pre">evolve_DPm_along_cycle</span></code><a class="headerlink" href="#2.-Вычисление-DPm-с-evolve_DPm_along_cycle" title="Link to this heading">#</a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.monodromy</span><span class="w"> </span><span class="kn">import</span> <span class="n">evolve_DPm_along_cycle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.toroidal_cycle</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToroidalPeriodicOrbitTrace</span> <span class="k">as</span> <span class="n">PeriodicOrbit</span>
+
+<span class="n">orbit</span> <span class="o">=</span> <span class="n">PeriodicOrbit</span><span class="p">(</span>
+    <span class="n">rzphi0</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]),</span>
+    <span class="n">period_m</span><span class="o">=</span><span class="n">m</span><span class="p">,</span>
+    <span class="n">trajectory</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)),</span>
+    <span class="n">DPm</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">mono</span> <span class="o">=</span> <span class="n">evolve_DPm_along_cycle</span><span class="p">(</span>
+    <span class="n">field_func</span><span class="o">=</span><span class="n">pyna_field</span><span class="p">,</span>
+    <span class="n">orbit</span><span class="o">=</span><span class="n">orbit</span><span class="p">,</span>
+    <span class="n">dt_вывод</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">500</span><span class="p">,</span>
+    <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-11</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-13</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DPm (матрица монодромии):&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">mono</span><span class="o">.</span><span class="n">DPm</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Собственные значения:&quot;</span><span class="p">,</span> <span class="n">mono</span><span class="o">.</span><span class="n">eigenvalues</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Ожидается:   &quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">lam_u</span><span class="p">,</span> <span class="n">lam_s</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Оба собственных значения ОТРИЦАТЕЛЬНЫ - это характер седла Мебиуса.&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Индекс устойчивости Tr(DPm)/2 =&quot;</span><span class="p">,</span> <span class="n">mono</span><span class="o">.</span><span class="n">stability_index</span><span class="p">,</span>
+      <span class="sa">f</span><span class="s2">&quot; (|k| = </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">mono</span><span class="o">.</span><span class="n">stability_index</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> &gt; 1 → hyperbolic)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+DPm (матрица монодромии):
+[[-7.16531311e-01 -1.74438498e-09]
+ [ 1.74438440e-09 -1.39561242e+00]]
+
+Собственные значения: [-0.71653131 -1.39561242]
+Ожидается:           [-1.39561243 -0.71653131]
+
+Оба собственных значения ОТРИЦАТЕЛЬНЫ - это характер седла Мебиуса.
+Индекс устойчивости Tr(DPm)/2 = -1.0560718675230398  (|k| = 1.0561 &gt; 1 -&gt; гиперболическая)
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ── Analytic check ───────────────────────────────────────────────────────────</span>
+<span class="c1"># DPm_analytic = V(2π) · diag(λ_u, λ_s) · V^{-1}(0)</span>
+<span class="n">V_end</span> <span class="o">=</span> <span class="n">_eigvec_matrix</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">m</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+<span class="n">V_start</span> <span class="o">=</span> <span class="n">_eigvec_matrix</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="n">DPm_analytic</span> <span class="o">=</span> <span class="n">V_end</span> <span class="o">@</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="n">lam_u</span><span class="p">,</span> <span class="n">lam_s</span><span class="p">])</span> <span class="o">@</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">V_start</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Аналитическая DPm:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">DPm_analytic</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Макс. ошибка:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mono</span><span class="o">.</span><span class="n">DPm</span> <span class="o">-</span> <span class="n">DPm_analytic</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Аналитическая DPm:
+[[ 7.16531311e-01  2.12494955e-16]
+ [-8.77497776e-17  1.39561243e+00]]
+
+Макс. ошибка: 2.7912248489659737
+</pre></div></div>
+</div>
+</section>
+<section id="3.-Визуализация-перекручивания-Мёбиуса-в-геометрии-многообразий">
+<h2>3. Визуализация перекручивания Мёбиуса в геометрии многообразий<a class="headerlink" href="#3.-Визуализация-перекручивания-Мёбиуса-в-геометрии-многообразий" title="Link to this heading">#</a></h2>
+<p>Устойчивое многообразие седла Мёбиуса является <strong>полуперекрученной лентой</strong> в 3D: оно один раз оборачивается вокруг тора, но меняет ориентацию. После <strong>двух</strong> оборотов оно становится обычной полосой.</p>
+<p>Мы рисуем локальные устойчивые/неустойчивые направления <code class="docutils literal notranslate"><span class="pre">e_s(φ)</span></code>, <code class="docutils literal notranslate"><span class="pre">e_u(φ)</span></code> в каждой точке φ вдоль орбиты, чтобы увидеть поворот на половину оборота.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">phi_plot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">400</span><span class="p">)</span>
+
+<span class="c1"># Eigendirection angles along one turn</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">phi_plot</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">theta_u</span><span class="p">(</span><span class="n">phi_plot</span><span class="p">))</span> <span class="o">%</span> <span class="mi">360</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;θ_u (unstable)&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;tomato&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">phi_plot</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">theta_s</span><span class="p">(</span><span class="n">phi_plot</span><span class="p">))</span> <span class="o">%</span> <span class="mi">360</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;θ_s (stable)&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;steelblue&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;φ / π&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Угол собственного вектора (градусы)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Поворот собственного направления: пол-оборота за орбиту&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;End of period&#39;</span><span class="p">)</span>
+
+<span class="c1"># DX_pol components showing sign flip at φ=2π</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">mono</span><span class="o">.</span><span class="n">phi_arr</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">mono</span><span class="o">.</span><span class="n">DX_pol_arr</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;DX_pol[0,0]&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;steelblue&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">mono</span><span class="o">.</span><span class="n">phi_arr</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">mono</span><span class="o">.</span><span class="n">DX_pol_arr</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;DX_pol[1,1]&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;tomato&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;φ / π&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Диагональ DX_pol: значения при φ=2π (DPm)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;mobius_DX_pol.png&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">120</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ── 3D plot: the stable manifold band (Möbius strip) ─────────────────────────</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpl_toolkits.mplot3d</span><span class="w"> </span><span class="kn">import</span> <span class="n">Axes3D</span>
+
+<span class="n">nS</span> <span class="o">=</span> <span class="mi">30</span>   <span class="c1"># strip width samples</span>
+<span class="n">nPhi</span> <span class="o">=</span> <span class="mi">400</span>
+<span class="n">Phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">nPhi</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">s_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="n">nS</span><span class="p">)</span>  <span class="c1"># displacement along stable direction</span>
+
+<span class="c1"># Stable manifold: X_c + s · e_s(φ)</span>
+<span class="n">theta_s_arr</span> <span class="o">=</span> <span class="n">theta_s</span><span class="p">(</span><span class="n">Phi</span><span class="p">)</span>  <span class="c1"># angle of stable eigendirection at each φ</span>
+<span class="n">e_s_R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta_s_arr</span><span class="p">)</span>  <span class="c1"># (nPhi,)</span>
+<span class="n">e_s_Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta_s_arr</span><span class="p">)</span>
+
+<span class="c1"># Grid: [iS, iPhi]</span>
+<span class="n">R_strip</span> <span class="o">=</span> <span class="n">R0</span> <span class="o">+</span> <span class="n">s_vals</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">e_s_R</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+<span class="n">Z_strip</span> <span class="o">=</span> <span class="n">Z0</span> <span class="o">+</span> <span class="n">s_vals</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">e_s_Z</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+<span class="n">x_strip</span> <span class="o">=</span> <span class="n">R_strip</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">Phi</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+<span class="n">y_strip</span> <span class="o">=</span> <span class="n">R_strip</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">Phi</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">plot_surface</span><span class="p">(</span><span class="n">x_strip</span><span class="p">,</span> <span class="n">y_strip</span><span class="p">,</span> <span class="n">Z_strip</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;steelblue&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># The fixed point trajectory (a circle in the φ=0 plane → a point)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">([</span><span class="n">R0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="n">Z0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Fixed point&#39;</span><span class="p">)</span>
+
+<span class="c1"># Unstable manifold band</span>
+<span class="n">theta_u_arr</span> <span class="o">=</span> <span class="n">theta_u</span><span class="p">(</span><span class="n">Phi</span><span class="p">)</span>
+<span class="n">e_u_R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta_u_arr</span><span class="p">)</span>
+<span class="n">e_u_Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta_u_arr</span><span class="p">)</span>
+<span class="n">R_strip_u</span> <span class="o">=</span> <span class="n">R0</span> <span class="o">+</span> <span class="n">s_vals</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">e_u_R</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+<span class="n">Z_strip_u</span> <span class="o">=</span> <span class="n">Z0</span> <span class="o">+</span> <span class="n">s_vals</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">e_u_Z</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+<span class="n">x_strip_u</span> <span class="o">=</span> <span class="n">R_strip_u</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">Phi</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+<span class="n">y_strip_u</span> <span class="o">=</span> <span class="n">R_strip_u</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">Phi</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot_surface</span><span class="p">(</span><span class="n">x_strip_u</span><span class="p">,</span> <span class="n">y_strip_u</span><span class="p">,</span> <span class="n">Z_strip_u</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;tomato&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;x [m]&#39;</span><span class="p">);</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;y [m]&#39;</span><span class="p">);</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_zlabel</span><span class="p">(</span><span class="s1">&#39;Z [м]&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Седло Мебиуса: полосы устойчивого (синего) и неустойчивого (красного) многообразий&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;mobius_manifold_3d.png&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">120</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Обратите внимание: каждая полоса делает ПОЛУПЕРЕКРУТ за 2π.&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Лента замыкается (возвращается к той же ориентации) только после ДВУХ оборотов.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+Обратите внимание: каждая полоса делает ПОЛУПЕРЕКРУТ за 2π.
+Лента замыкается (возвращается к той же ориентации) только после ДВУХ оборотов.
+</pre></div></div>
+</div>
+</section>
+<section id="4.-Двухоборотная-монодромия:-возврат-к-обычной-гиперболике">
+<h2>4. Двухоборотная монодромия: возврат к обычной гиперболике<a class="headerlink" href="#4.-Двухоборотная-монодромия:-возврат-к-обычной-гиперболике" title="Link to this heading">#</a></h2>
+<p>Если вычислить DPm за <strong>2 оборота</strong> (<code class="docutils literal notranslate"><span class="pre">m=2</span></code>), отрицательные знаки сокращаются, и получается обычная гиперболическая неподвижная точка с положительными собственными значениями.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">orbit_2turn</span> <span class="o">=</span> <span class="n">PeriodicOrbit</span><span class="p">(</span>
+    <span class="n">rzphi0</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]),</span>
+    <span class="n">period_m</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>   <span class="c1"># two turns</span>
+    <span class="n">trajectory</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)),</span>
+    <span class="n">DPm</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">mono_2</span> <span class="o">=</span> <span class="n">evolve_DPm_along_cycle</span><span class="p">(</span>
+    <span class="n">field_func</span><span class="o">=</span><span class="n">pyna_field</span><span class="p">,</span>
+    <span class="n">orbit</span><span class="o">=</span><span class="n">orbit_2turn</span><span class="p">,</span>
+    <span class="n">dt_вывод</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">500</span><span class="p">,</span>
+    <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-11</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-13</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Собственные значения DPm за 1 оборот:&quot;</span><span class="p">,</span> <span class="n">mono</span><span class="o">.</span><span class="n">eigenvalues</span><span class="p">,</span>   <span class="s2">&quot;  (отрицательные)&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Собственные значения DPm за 2 оборота:&quot;</span><span class="p">,</span> <span class="n">mono_2</span><span class="o">.</span><span class="n">eigenvalues</span><span class="p">,</span> <span class="s2">&quot;  (положительные, = λ²)&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Ожидаемые собственные значения за 2 оборота:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">lam_u</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">lam_s</span><span class="o">**</span><span class="mi">2</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Совпадение:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mono_2</span><span class="o">.</span><span class="n">eigenvalues</span><span class="p">)),</span>
+                             <span class="nb">sorted</span><span class="p">([</span><span class="n">lam_u</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">lam_s</span><span class="o">**</span><span class="mi">2</span><span class="p">]),</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Собственные значения DPm за 1 оборот: [-0.71653131 -1.39561242]   (отрицательные)
+Собственные значения DPm за 2 оборота: [0.51341713 1.94773399]   (положительные, = λ²)
+
+Ожидаемые собственные значения за 2 оборота: [1.94773404 0.51341712]
+Совпадение: True
+</pre></div></div>
+</div>
+</section>
+<section id="5.-Итоги">
+<h2>5. Итоги<a class="headerlink" href="#5.-Итоги" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Свойство</p></th>
+<th class="head"><p>Значение</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Неподвижная точка</p></td>
+<td><p><span class="math notranslate nohighlight">\((R_0, Z_0) = (1.0, 0.0)\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>Период орбиты</p></td>
+<td><p><span class="math notranslate nohighlight">\(m = 1\)</span> оборот</p></td>
+</tr>
+<tr class="row-even"><td><p>Собственные значения DPm</p></td>
+<td><p><span class="math notranslate nohighlight">\(\lambda_u = -e^{+1/3}\)</span>, <span class="math notranslate nohighlight">\(\lambda_s = -e^{-1/3}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>Характер</p></td>
+<td><p>седло Мёбиуса (обратно-гиперболическое)</p></td>
+</tr>
+<tr class="row-even"><td><p>Поворот собственного вектора</p></td>
+<td><p><span class="math notranslate nohighlight">\(\Delta\theta = \pi\)</span> за оборот (полуповорот)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Двухоборотная карта</p></td>
+<td><p>обычная гиперболическая с <span class="math notranslate nohighlight">\(\lambda^2 = e^{\pm 2/3}\)</span></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="line-block">
+<div class="line"><strong>Ключевая идея:</strong> знак собственных значений DPm кодирует топологический тип инвариантных многообразий. Одна буква <code class="docutils literal notranslate"><span class="pre">M</span></code> скрывает это;</div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">DPm</span></code> явно показывает, что это <em>производная полнооборотной карты Пуанкаре</em>, чьи спектральные свойства определяют локальную топологию.</div>
+</div>
+<p><strong>Дальше:</strong></p>
+<ul class="simple">
+<li><p>См. <code class="docutils literal notranslate"><span class="pre">monodromy_xcycle_analytic.ipynb</span></code> для случая аналитического седлового цикла</p></li>
+<li><p>См. <code class="docutils literal notranslate"><span class="pre">notebooks/research/</span></code> для шаблонов публичных аналитических и экспериментальных приложений</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="island_jacobian_analysis.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Анализ якобиана магнитных островов: периодические орбиты и матрицы монодромии</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="monodromy_xcycle_analytic.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Учебник: матрица монодромии и сдвиг орбиты на аналитическом седловом X-цикле</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#1.-Построение-поля:-неподвижная-точка-Мёбиуса-m=1-в-(R₀,-Z₀)">1. Построение поля: неподвижная точка Мёбиуса m=1 в (R₀, Z₀)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#2.-Вычисление-DPm-с-evolve_DPm_along_cycle">2. Вычисление DPm с <code class="docutils literal notranslate"><span class="pre">evolve_DPm_along_cycle</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#3.-Визуализация-перекручивания-Мёбиуса-в-геометрии-многообразий">3. Визуализация перекручивания Мёбиуса в геометрии многообразий</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#4.-Двухоборотная-монодромия:-возврат-к-обычной-гиперболике">4. Двухоборотная монодромия: возврат к обычной гиперболике</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#5.-Итоги">5. Итоги</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>架构概览 &#8212; pyna dynamics toolkit</title>
+    <title>架构 &#8212; pyna dynamics toolkit</title>
   
   
   
@@ -34,7 +34,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a0d39112" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=243d2ed3" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
 
-    <script src="../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../_static/documentation_options.js?v=9ed95442"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -51,11 +51,11 @@
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'zh/development/architecture';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <script src="../../_static/language-switcher.js?v=8b136864"></script>
+    <script src="../../_static/language-switcher.js?v=866ba1ee"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="扩展模式" href="dynamics-patterns.html" />
-    <link rel="prev" title="开发与架构" href="index.html" />
+    <link rel="next" title="动力系统工作流和扩展辅助层" href="dynamics-patterns.html" />
+    <link rel="prev" title="开发" href="index.html" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -154,7 +154,42 @@
 
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="../index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -179,11 +214,12 @@
   <span class="pyna-language-switcher__label">Language</span>
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
-    <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="zh" selected>中文</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
       
@@ -270,7 +306,42 @@
 
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="../index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -288,11 +359,12 @@
   <span class="pyna-language-switcher__label">Language</span>
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
-    <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="zh" selected>中文</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
         
@@ -344,15 +416,15 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">文档</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../installation.html">安装指南</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">快速入门</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">安装</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">快速开始</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mini-cases.html">迷你案例</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">教程与案例</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">教程和示例</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API 参考</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../theory/index.html">理论说明</a></li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">开发与架构</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">架构概览</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dynamics-patterns.html">扩展模式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../theory/index.html">理论</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">开发</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">架构</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamics-patterns.html">动力系统工作流和扩展辅助层</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../straight_theta_surface_coordinates.html">基于 Poincare 迹线构建 straight-theta 磁面坐标</a></li>
@@ -397,12 +469,12 @@
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">pyna 中文文档</a></li>
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">pyna - Python DYNAmics</a></li>
     
     
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">开发与架构</a></li>
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">开发</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">架构概览</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">架构</span></li>
   </ul>
 </nav>
 </div>
@@ -422,38 +494,131 @@
                 <article class="bd-article">
                   
   <section id="id1">
-<h1>架构概览<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
-<p>pyna 围绕两条主线组织：</p>
+<h1>架构<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
+<p>pyna 围绕两个想法组织：</p>
 <ol class="arabic simple">
-<li><p>动力系统定义有限维相空间中的演化规则；</p></li>
-<li><p>拓扑模块描述这些相空间里的几何对象。</p></li>
+<li><p>动力系统在有限维相空间上定义演化规则；</p></li>
+<li><p>拓扑模块描述生活在这些相空间中的几何对象。</p></li>
 </ol>
-<section id="id2">
-<h2>分层结构<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">pyna.topo.dynamics</span></code> 提供抽象数学层：<code class="docutils literal notranslate"><span class="pre">PhaseSpace</span></code>、
-<code class="docutils literal notranslate"><span class="pre">ContinuousFlow</span></code>、<code class="docutils literal notranslate"><span class="pre">HamiltonianFlow</span></code>、<code class="docutils literal notranslate"><span class="pre">DiscreteMap</span></code> 和
-<code class="docutils literal notranslate"><span class="pre">PoincareMap</span></code>。</p>
-<p><code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code> 提供即用系统：<code class="docutils literal notranslate"><span class="pre">CallableFlow</span></code>、Hamiltonian、N-body、
-<code class="docutils literal notranslate"><span class="pre">CallableMap</span></code> 和 Ito SDE。</p>
-<p><code class="docutils literal notranslate"><span class="pre">pyna.topo.core</span></code> 是领域无关几何层：</p>
+<p>这种分离让同一套对象层次可以表示环形磁场线结构、Hamiltonian 共振区、经典映射、
+N-body 轨道和随机样本路径。</p>
+<section id="dynamics">
+<h2>第 0 层：Dynamics<a class="headerlink" href="#dynamics" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pyna.topo.dynamics</span></code> 提供抽象数学层：</p>
 <ul class="simple">
-<li><p>连续时间：<code class="docutils literal notranslate"><span class="pre">Trajectory</span></code>、<code class="docutils literal notranslate"><span class="pre">Cycle</span></code>、<code class="docutils literal notranslate"><span class="pre">Tube</span></code>、<code class="docutils literal notranslate"><span class="pre">TubeChain</span></code>；</p></li>
-<li><p>离散时间：<code class="docutils literal notranslate"><span class="pre">Orbit</span></code>、<code class="docutils literal notranslate"><span class="pre">PeriodicOrbit</span></code>、<code class="docutils literal notranslate"><span class="pre">Island</span></code>、<code class="docutils literal notranslate"><span class="pre">IslandChain</span></code>。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PhaseSpace</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ContinuousFlow</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">HamiltonianFlow</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DiscreteMap</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PoincareMap</span></code> 和 <code class="docutils literal notranslate"><span class="pre">GeneralPoincareMap</span></code></p></li>
 </ul>
-<p><code class="docutils literal notranslate"><span class="pre">pyna.topo.toroidal</span></code> 在通用层上加入环形场线特有的 <code class="docutils literal notranslate"><span class="pre">R/Z/phi</span></code>、
-winding、monodromy、cyna 加速和截面重构。</p>
+<p><code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code> 增加可直接使用的有限维系统：</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">CallableFlow</span></code> 和 <code class="docutils literal notranslate"><span class="pre">CallableMap</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">HamiltonianSystem</span></code> 和 <code class="docutils literal notranslate"><span class="pre">SeparableHamiltonianSystem</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NBodySystem</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ItoSDE</span></code>、<code class="docutils literal notranslate"><span class="pre">BrownianMotion</span></code> 和 <code class="docutils literal notranslate"><span class="pre">GeometricBrownianMotion</span></code></p></li>
+</ul>
+<p>这些类使用 topology core 表示采样输出。确定性 flow 轨迹是
+<code class="docutils literal notranslate"><span class="pre">pyna.topo.core.Trajectory</span></code>；离散迭代点云是 <code class="docutils literal notranslate"><span class="pre">pyna.topo.core.Orbit</span></code>。</p>
+</section>
+<section id="geometry">
+<h2>第 1 层：Geometry<a class="headerlink" href="#geometry" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pyna.topo.core</span></code> 是与领域无关的几何层次：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>类</p></th>
+<th class="head"><p>含义</p></th>
+<th class="head"><p>时间类型</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Trajectory</span></code></p></td>
+<td><p>相空间中的有限采样曲线</p></td>
+<td><p>continuous</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Cycle</span></code></p></td>
+<td><p>连续 flow 的周期轨道</p></td>
+<td><p>continuous</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tube</span></code></p></td>
+<td><p>围绕椭圆 cycle 的共振区</p></td>
+<td><p>continuous</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TubeChain</span></code></p></td>
+<td><p>共享同一共振的一族 tube</p></td>
+<td><p>continuous</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Orbit</span></code></p></td>
+<td><p>映射的有限采样迭代</p></td>
+<td><p>discrete</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">PeriodicOrbit</span></code></p></td>
+<td><p>映射的有限周期轨道</p></td>
+<td><p>discrete</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Island</span></code></p></td>
+<td><p>截面上的一个共振岛</p></td>
+<td><p>discrete</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">IslandChain</span></code></p></td>
+<td><p>截面上的周期磁岛链</p></td>
+<td><p>discrete</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>关键 bridge 是 <code class="docutils literal notranslate"><span class="pre">section_cut</span></code>：</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Cycle       --section_cut--&gt; PeriodicOrbit
+Tube        --section_cut--&gt; IslandChain
+TubeChain   --section_cut--&gt; IslandChain
+</pre></div>
+</div>
+<p>这对应环形工作流：连续磁岛 tube 会在 Poincare 截面上被观察为离散磁岛链。</p>
+</section>
+<section id="id2">
+<h2>第 2 层：环形专门化<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pyna.topo.toroidal</span></code> 继承通用 core：</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>core.SectionPoint   -&gt; toroidal.FixedPoint
+core.PeriodicOrbit  -&gt; toroidal.PeriodicOrbit
+core.Cycle          -&gt; toroidal.Cycle
+core.Island         -&gt; toroidal.Island
+core.IslandChain    -&gt; toroidal.IslandChain
+core.Tube           -&gt; toroidal.Tube
+core.TubeChain      -&gt; toroidal.TubeChain
+</pre></div>
+</div>
+<p>环形层增加：</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">R</span></code>、<code class="docutils literal notranslate"><span class="pre">Z</span></code> 和 <code class="docutils literal notranslate"><span class="pre">phi</span></code> 坐标</p></li>
+<li><p>绕数 <code class="docutils literal notranslate"><span class="pre">(m,</span> <span class="pre">n)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DPm</span></code> 和 monodromy 分类</p></li>
+<li><p>cyna 加速的截面切割和追踪</p></li>
+<li><p>截面视图对应关系和重构 helper</p></li>
+</ul>
 </section>
 <section id="id3">
-<h2>设计规则<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<h2>第 3 层：工作流和扩展辅助层<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pyna.topo.protocols</span></code>、<code class="docutils literal notranslate"><span class="pre">adapters</span></code>、<code class="docutils literal notranslate"><span class="pre">builders</span></code>、<code class="docutils literal notranslate"><span class="pre">bridges</span></code> 和
+<code class="docutils literal notranslate"><span class="pre">factories</span></code> 提供软件工程扩展层。主要面向 notebook 的入口是
+<code class="docutils literal notranslate"><span class="pre">TopologyWorkflow</span></code>。这些辅助层把构造策略和后端选择放在数学 dataclass 之外：
+外部系统可以通过协议适配，用适配器规范化数据，通过构建器提升对象，
+通过桥接层切割连续几何，并通过工厂选择运行时实现。</p>
+</section>
+<section id="acceleration">
+<h2>第 4 层：Acceleration<a class="headerlink" href="#acceleration" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">cyna</span></code> 实现高层 pyna API 背后的瓶颈。它不应拥有高层科学对象语义；它提供快速核，
+用于追踪、插值、固定点扫描、壁面命中和扰动响应。</p>
+</section>
+<section id="id4">
+<h2>设计规则<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p>新的有限维问题优先接入 <code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code> 和 <code class="docutils literal notranslate"><span class="pre">pyna.topo.core</span></code>；</p></li>
-<li><p>只有真实依赖环形柱坐标几何时才使用 toroidal 专用类；</p></li>
-<li><p>采样数据先是 <code class="docutils literal notranslate"><span class="pre">Trajectory</span></code> 或 <code class="docutils literal notranslate"><span class="pre">Orbit</span></code>，闭合结构要显式提升；</p></li>
-<li><p>cyna 保持在高性能边界，用户侧 API 返回 pyna 对象而不是裸 C++ 数组。</p></li>
-</ul>
-<p>英文完整版本：</p>
-<ul class="simple">
-<li><p><a class="reference internal" href="../../en/development/architecture.html"><span class="doc">Architecture</span></a></p></li>
+<li><p>新的有限维几何优先使用通用 <code class="docutils literal notranslate"><span class="pre">pyna.topo.core</span></code> 类。</p></li>
+<li><p>只有在 <code class="docutils literal notranslate"><span class="pre">pyna.topo.toroidal</span></code> 子类中添加环形专用字段。</p></li>
+<li><p>采样的有限轨迹是几何对象，不会自动成为不变集。</p></li>
+<li><p>只有当周期结构属于模型或已通过数值验证时，才把对象提升为
+<code class="docutils literal notranslate"><span class="pre">Cycle</span></code>/<code class="docutils literal notranslate"><span class="pre">PeriodicOrbit</span></code>。</p></li>
+<li><p>把 cyna 保持在桥接边界；应用层 API 应返回 pyna 对象，而不是原始 C++ 数组。</p></li>
 </ul>
 </section>
 </section>
@@ -475,7 +640,7 @@ winding、monodromy、cyna 加速和截面重构。</p>
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">开发与架构</p>
+        <p class="prev-next-title">开发</p>
       </div>
     </a>
     <a class="right-next"
@@ -483,7 +648,7 @@ winding、monodromy、cyna 加速和截面重构。</p>
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">扩展模式</p>
+        <p class="prev-next-title">动力系统工作流和扩展辅助层</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -506,8 +671,12 @@ winding、monodromy、cyna 加速和截面重构。</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">分层结构</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">设计规则</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dynamics">第 0 层：Dynamics</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#geometry">第 1 层：Geometry</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">第 2 层：环形专门化</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">第 3 层：工作流和扩展辅助层</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#acceleration">第 4 层：Acceleration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">设计规则</a></li>
 </ul>
   </nav></div>
 
@@ -545,7 +714,7 @@ winding、monodromy、cyna 加速和截面重构。</p>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     <br/>
   </p>
 </div>

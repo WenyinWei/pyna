@@ -33,7 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a0d39112" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=243d2ed3" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
 
-    <script src="../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../_static/documentation_options.js?v=9ed95442"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -50,7 +50,7 @@
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/topo/workflow';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <script src="../../../_static/language-switcher.js?v=8b136864"></script>
+    <script src="../../../_static/language-switcher.js?v=866ba1ee"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
@@ -151,7 +151,42 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../zh/index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -177,10 +212,11 @@
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
     <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
       
@@ -265,7 +301,42 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../zh/index.html">
-    pyna 中文文档
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ja/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ko/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../de/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../fr/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ru/index.html">
+    pyna - Python DYNAmics
   </a>
 </li>
 
@@ -284,10 +355,11 @@
   <select class="pyna-language-select" aria-label="Documentation language">
     <option value="en">English</option>
     <option value="zh">中文</option>
-    <option value="ja">日本語 -> English</option>
-    <option value="de">Deutsch -> English</option>
-    <option value="ko">한국어 -> English</option>
-    <option value="ru">Русский -> English</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ru">Русский</option>
   </select>
 </div></div>
         
@@ -401,7 +473,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
@@ -412,23 +484,124 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.factories</span><span class="w"> </span><span class="kn">import</span> <span class="n">DynamicalSystemFactory</span><span class="p">,</span> <span class="n">GeometryFactory</span><span class="p">,</span> <span class="n">PoincareMapFactory</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_map_coordinate_names</span><span class="p">(</span><span class="n">map_obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">map_obj</span><span class="p">,</span> <span class="s2">&quot;phase_space&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">&quot;coordinate_names&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="k">if</span> <span class="n">names</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_state_matrix_from_result</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return sampled states from common map-orbit result conventions.&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Orbit</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">states</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">arrays</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
+        <span class="n">sizes</span> <span class="o">=</span> <span class="p">{</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">arrays</span><span class="p">}</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span><span class="n">arrays</span><span class="p">)</span>
+
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">arr</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_state_from_result</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="n">states</span> <span class="o">=</span> <span class="n">_state_matrix_from_result</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">states</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;map result produced no states&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">arr</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">arr</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;map step result cannot be interpreted as a state&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_call_with_state_and_count</span><span class="p">(</span><span class="n">method</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">count</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">state_error</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="nb">int</span><span class="p">(</span><span class="n">count</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">state_error</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_call_with_state</span><span class="p">(</span><span class="n">method</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">state_error</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">state_error</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_orbit_from_states</span><span class="p">(</span><span class="n">states</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">coordinate_names</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Orbit</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">Orbit</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">states</span>
+    <span class="n">state_arr</span> <span class="o">=</span> <span class="n">_state_matrix_from_result</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">state_arr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;map orbit result must be a sampled state array or Orbit&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Orbit</span><span class="p">(</span>
+        <span class="n">states</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">state_arr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+        <span class="n">steps</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">state_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="n">coordinate_names</span><span class="o">=</span><span class="n">coordinate_names</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_orbit_from_step</span><span class="p">(</span>
+    <span class="n">step</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">x0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">n_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">coordinate_names</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Orbit</span><span class="p">:</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x0</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">sampled</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()]</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_iter</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">_state_from_result</span><span class="p">(</span><span class="n">_call_with_state</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span>
+        <span class="n">sampled</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">_orbit_from_states</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">sampled</span><span class="p">),</span> <span class="n">coordinate_names</span><span class="o">=</span><span class="n">coordinate_names</span><span class="p">)</span>
+
+
 <div class="viewcode-block" id="orbit_from_map">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.orbit_from_map">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.orbit_from_map">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">orbit_from_map</span><span class="p">(</span><span class="n">map_obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">x0</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">n_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Orbit</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Iterate a map-like object and return an ``Orbit`` geometry object.&quot;&quot;&quot;</span>
 
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">map_obj</span><span class="p">,</span> <span class="s2">&quot;orbit_geometry&quot;</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">map_obj</span><span class="o">.</span><span class="n">orbit_geometry</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">n_iter</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">map_obj</span><span class="p">,</span> <span class="s2">&quot;orbit&quot;</span><span class="p">):</span>
-        <span class="n">states</span> <span class="o">=</span> <span class="n">map_obj</span><span class="o">.</span><span class="n">orbit</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_iter</span><span class="p">))</span>
-        <span class="n">names</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">map_obj</span><span class="p">,</span> <span class="s2">&quot;phase_space&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">&quot;coordinate_names&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Orbit</span><span class="p">(</span><span class="n">states</span><span class="o">=</span><span class="n">states</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">coordinate_names</span><span class="o">=</span><span class="n">names</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">map_obj</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> cannot produce a discrete orbit.&quot;</span><span class="p">)</span></div>
+    <span class="n">n_iter</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_iter</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n_iter</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;n_iter must be non-negative&quot;</span><span class="p">)</span>
+    <span class="n">x0_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="n">_map_coordinate_names</span><span class="p">(</span><span class="n">map_obj</span><span class="p">)</span>
+
+    <span class="n">orbit_geometry</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">map_obj</span><span class="p">,</span> <span class="s2">&quot;orbit_geometry&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">orbit_geometry</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_orbit_from_states</span><span class="p">(</span><span class="n">orbit_geometry</span><span class="p">(</span><span class="n">x0_arr</span><span class="p">,</span> <span class="n">n_iter</span><span class="p">),</span> <span class="n">coordinate_names</span><span class="o">=</span><span class="n">names</span><span class="p">)</span>
+
+    <span class="n">orbit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">map_obj</span><span class="p">,</span> <span class="s2">&quot;orbit&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">orbit</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_orbit_from_states</span><span class="p">(</span><span class="n">_call_with_state_and_count</span><span class="p">(</span><span class="n">orbit</span><span class="p">,</span> <span class="n">x0_arr</span><span class="p">,</span> <span class="n">n_iter</span><span class="p">),</span> <span class="n">coordinate_names</span><span class="o">=</span><span class="n">names</span><span class="p">)</span>
+
+    <span class="n">step</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">map_obj</span><span class="p">,</span> <span class="s2">&quot;step&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">step</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_orbit_from_step</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">x0_arr</span><span class="p">,</span> <span class="n">n_iter</span><span class="p">,</span> <span class="n">coordinate_names</span><span class="o">=</span><span class="n">names</span><span class="p">)</span>
+
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">map_obj</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> cannot produce a discrete orbit; &quot;</span>
+        <span class="s2">&quot;implement orbit_geometry(...), orbit(...), or step(...).&quot;</span>
+    <span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="make_poincare_map">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.make_poincare_map">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.make_poincare_map">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_poincare_map</span><span class="p">(</span><span class="n">flow</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">section</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create an executable Poincare map for ``flow`` and ``section``.&quot;&quot;&quot;</span>
 
@@ -437,7 +610,7 @@
 
 
 <div class="viewcode-block" id="section_cut">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.section_cut">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.section_cut">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">section_cut</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">section</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">bridge</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">SectionCutBridge</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Cut a supported continuous-time geometry object by ``section``.&quot;&quot;&quot;</span>
 
@@ -454,20 +627,20 @@
 
 <span class="nd">@dataclass</span>
 <div class="viewcode-block" id="TopologyWorkflow">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.TopologyWorkflow">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TopologyWorkflow</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;High-level workflow facade for examples and user scripts.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="TopologyWorkflow.closure_tol">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.closure_tol">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.TopologyWorkflow.closure_tol">[docs]</a>
     <span class="n">closure_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-8</span></div>
 
 <div class="viewcode-block" id="TopologyWorkflow.geometry">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.geometry">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.TopologyWorkflow.geometry">[docs]</a>
     <span class="n">geometry</span><span class="p">:</span> <span class="n">GeometryBuilder</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="TopologyWorkflow.section_bridge">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.section_bridge">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.TopologyWorkflow.section_bridge">[docs]</a>
     <span class="n">section_bridge</span><span class="p">:</span> <span class="n">SectionCutBridge</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">CoreSectionCutBridge</span><span class="p">)</span></div>
 
 
@@ -477,7 +650,7 @@
     <span class="c1"># ── System construction ────────────────────────────────────────────────</span>
 
 <div class="viewcode-block" id="TopologyWorkflow.system">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.system">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.TopologyWorkflow.system">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Build a ready-to-use dynamical system by stable factory key.&quot;&quot;&quot;</span>
 
@@ -485,7 +658,7 @@
 
 
 <div class="viewcode-block" id="TopologyWorkflow.geometry_object">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.geometry_object">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.TopologyWorkflow.geometry_object">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">geometry_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Build a topology object through the geometry factory.&quot;&quot;&quot;</span>
 
@@ -495,7 +668,7 @@
     <span class="c1"># ── Continuous-time workflow ───────────────────────────────────────────</span>
 
 <div class="viewcode-block" id="TopologyWorkflow.trajectory">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.trajectory">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.TopologyWorkflow.trajectory">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">x0</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">t_span</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Trajectory</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Integrate ``flow`` and return a sampled trajectory.&quot;&quot;&quot;</span>
 
@@ -508,7 +681,7 @@
 
 
 <div class="viewcode-block" id="TopologyWorkflow.closed_cycle">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.closed_cycle">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.TopologyWorkflow.closed_cycle">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">closed_cycle</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">trajectory</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
@@ -529,7 +702,7 @@
 
 
 <div class="viewcode-block" id="TopologyWorkflow.cycle">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.cycle">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.TopologyWorkflow.cycle">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">cycle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">require_closed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Cycle</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Build a ``Cycle`` with an explicit closure policy.&quot;&quot;&quot;</span>
 
@@ -537,7 +710,7 @@
 
 
 <div class="viewcode-block" id="TopologyWorkflow.poincare_map">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.poincare_map">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.TopologyWorkflow.poincare_map">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">poincare_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">section</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create an executable Poincare map for ``flow`` and ``section``.&quot;&quot;&quot;</span>
 
@@ -547,7 +720,7 @@
     <span class="c1"># ── Discrete-time workflow ─────────────────────────────────────────────</span>
 
 <div class="viewcode-block" id="TopologyWorkflow.orbit">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.orbit">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.TopologyWorkflow.orbit">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">orbit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">map_obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">x0</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">n_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Orbit</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Iterate ``map_obj`` and return a sampled orbit.&quot;&quot;&quot;</span>
 
@@ -555,7 +728,7 @@
 
 
 <div class="viewcode-block" id="TopologyWorkflow.periodic_orbit">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.periodic_orbit">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.TopologyWorkflow.periodic_orbit">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">periodic_orbit</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">samples</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
@@ -572,7 +745,7 @@
     <span class="c1"># ── Resonance objects ──────────────────────────────────────────────────</span>
 
 <div class="viewcode-block" id="TopologyWorkflow.tube">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.tube">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.TopologyWorkflow.tube">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">tube</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">O_cycle</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
@@ -596,7 +769,7 @@
 
 
 <div class="viewcode-block" id="TopologyWorkflow.tube_chain">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.tube_chain">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.TopologyWorkflow.tube_chain">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">tube_chain</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">O_cycles</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span>
@@ -617,7 +790,7 @@
 
 
 <div class="viewcode-block" id="TopologyWorkflow.island_chain">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.island_chain">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.TopologyWorkflow.island_chain">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">island_chain</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">O_orbits</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span>
@@ -637,7 +810,7 @@
 
 
 <div class="viewcode-block" id="TopologyWorkflow.section_cut">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.section_cut">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.TopologyWorkflow.section_cut">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">section_cut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">section</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Cut any supported object by a section.</span>
 
@@ -651,7 +824,7 @@
     <span class="c1"># ── Small teaching helpers ─────────────────────────────────────────────</span>
 
 <div class="viewcode-block" id="TopologyWorkflow.closing_error">
-<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.closing_error">[docs]</a>
+<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.dynamics.TopologyWorkflow.closing_error">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">closing_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return ``||x_final - x_initial||`` for trajectory/orbit-like samples.&quot;&quot;&quot;</span>
 
@@ -721,7 +894,7 @@
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     <br/>
   </p>
 </div>
