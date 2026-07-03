@@ -1,22 +1,17 @@
-name: Build and Publish Docs
+name: Build Docs
 
 on:
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: docs-build
   cancel-in-progress: false
 
 jobs:
-  publish:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -45,12 +40,3 @@ jobs:
           rm -rf notebooks
           cp -r ../notebooks notebooks
           make html SPHINXOPTS="-q"
-
-      - name: Upload GitHub Pages artifact
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: docs/_build/html
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
