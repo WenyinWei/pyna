@@ -186,6 +186,6 @@ Poincare 迹线构造可靠的 straight-theta / PEST-like 磁面网格。Boozer 
 - 如果某个装置的 Poincare 点有天然顺序，也仍应保留 turn index，并使用
   ``circle_map_lift_iota`` 解决模数分支问题。
 
-在 NCSX 和 W7X 真空场测试中，这个流程已经能稳定生成四截面的嵌套磁面和等
-theta 网格。topoquest 中的装置专用脚本可以作为真实数据 IO 和可视化的参考；pyna
+在 private stellarator 真空场测试中，这个流程已经能稳定生成四截面的嵌套磁面和等
+theta 网格。private stellarator 专用脚本可以作为真实数据 IO 和可视化的参考；pyna
 中保留的是可复用的数组构建核心。

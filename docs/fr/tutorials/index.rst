@@ -1,14 +1,14 @@
 Tutoriels et exemples
 =====================
 
-Les notebooks publics sont regroupés par workflow. Le build de documentation
-copie ``notebooks/`` dans l'arborescence source Sphinx ; les chemins ci-dessous
-reflètent donc l'organisation du dépôt.
+Les notebooks publics sont regroupés par flux de travail. La génération de la
+documentation copie ``notebooks/`` dans l'arborescence source Sphinx ; les
+chemins ci-dessous reflètent donc l'organisation du dépôt.
 
 Parcours d'apprentissage recommandé
 -----------------------------------
 
-Commencez par :doc:`/fr/quickstart`, puis parcourez le workflow de géométrie
+Commencez par :doc:`/fr/quickstart`, puis parcourez le flux de géométrie
 générique, les modèles stochastiques, puis les exemples de monodromie/RMP
 toroïdaux :
 
@@ -27,7 +27,7 @@ Systèmes dynamiques généraux
 
    sde-monte-carlo
 
-Le workflow de géométrie générique et le workflow de points fixes de stellarator
+Le flux de géométrie générique et le flux de points fixes de stellarator
 analytique sont maintenant intégrés au tutoriel de résonance RMP au lieu d'être
 publiés comme notebooks autonomes uniquement textuels. Ce tutoriel montre la
 même chaîne de promotion : croisements échantillonnés -> géométrie de points
@@ -76,7 +76,7 @@ les contrôles d'ordre de perturbation.
    /notebooks/i18n/fr/tutorials/island_jacobian_analysis
 
 ``RMP_resonance_exec.ipynb`` est conservé dans le dépôt comme variante
-d'exécution/cache du workflow d'analyse de résonance, mais la documentation
+d'exécution/cache du flux d'analyse de résonance, mais la documentation
 publique pointe vers la version explicative ci-dessus.
 
 Monodromie et variétés
@@ -101,7 +101,7 @@ brouillon sans titres de sections.
 Figures statiques de tutoriels
 ------------------------------
 
-Plusieurs workflows plus longs sont représentés dans le dépôt par des figures
+Plusieurs flux plus longs sont représentés dans le dépôt par des figures
 statiques et des sorties générées sous ``notebooks/tutorials``. Ils couvrent les
 diagnostics de profil q, les coordonnées PEST/Boozer/Hamada/à arc égal, les
 balayages de suppression d'îlots, le contrôle de phase, les variétés de

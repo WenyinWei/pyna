@@ -1,16 +1,16 @@
-Tutorials und Beispiele
-=======================
+Anleitungen und Beispiele
+=========================
 
-Die öffentlichen Notebooks sind nach Workflow gruppiert.  Der
-Dokumentations-Build kopiert ``notebooks/`` in den Sphinx-Quellbaum, daher
+Die öffentlichen Notebooks sind nach Arbeitsablauf gruppiert.  Der
+Dokumentationsaufbau kopiert ``notebooks/`` in den Sphinx-Quellbaum, daher
 spiegeln die folgenden Pfade die Repository-Struktur wider.
 
 Empfohlener Lernpfad
 --------------------
 
 Beginnen Sie mit :doc:`/de/quickstart`, arbeiten Sie dann den generischen
-Geometrie-Workflow und stochastische Modelle durch und wechseln Sie anschließend
-zu toroidalen Monodromy-/RMP-Beispielen:
+Geometrie-Arbeitsablauf und stochastische Modelle durch und wechseln Sie anschließend
+zu toroidalen Monodromie-/RMP-Beispielen:
 
 1. :doc:`/de/mini-cases`
 2. :doc:`sde-monte-carlo`
@@ -27,8 +27,8 @@ Allgemeine dynamische Systeme
 
    sde-monte-carlo
 
-Der generische Geometrie-Workflow und der analytische
-Stellarator-Fixpunkt-Workflow sind jetzt in das RMP-Resonanz-Tutorial
+Der generische Geometrie-Arbeitsablauf und der analytische
+Stellarator-Fixpunkt-Arbeitsablauf sind jetzt in das RMP-Resonanz-Tutorial
 integriert, statt als eigenständige textbasierte Notebooks veröffentlicht zu
 werden.  Dieses Tutorial zeigt dieselbe Hochstufungskette: von abgetasteten
 Kreuzungen über Fixpunktgeometrie und X/O-Klassifikation bis zu
@@ -37,9 +37,9 @@ Kreuzungen über Fixpunktgeometrie und X/O-Klassifikation bis zu
 Stochastische Differentialgleichungen
 -------------------------------------
 
-Das SDE-Tutorial wird lokal vorab ausgeführt, weil Verteilungsschätzungen oft
+Die SDE-Anleitung wird lokal vorab ausgeführt, weil Verteilungsschätzungen oft
 zehn- oder hunderttausende Monte-Carlo-Pfade verwenden.  GitHub Pages rendert
-die gespeicherten Ausgaben, statt CI-Zeit für die schweren Sampling-Zellen zu
+die gespeicherten Ausgaben, statt CI-Zeit für die schweren Abtastzellen zu
 verwenden.
 
 .. toctree::
@@ -60,10 +60,10 @@ RMPs, Inseln und Poincaré-Analyse
 ---------------------------------
 
 Beginnen Sie mit dem Resonanzanalyse-Notebook, wenn Sie magnetische Topologie
-untersuchen.  Es behandelt jetzt divergenzfreie RMP-Templates, den wichtigen
+untersuchen.  Es behandelt jetzt divergenzfreie RMP-Vorlagen, den wichtigen
 ``m=1``-Zweig, ``cyna``-Fixpunktvalidierung, mehrkomponentige kontravariante
 ``B^r``-Magnetfeldspektren als Atlanten, modulare ``q``/``m/n``-Resonanzkarten
-mit optionalen Poincaré- und Insel-Overlays, gemischte RMP/nRMP-Spektren, die
+mit optionalen Poincaré- und Inselüberlagerungen, gemischte RMP/nRMP-Spektren, die
 gesamte nRMP-Antwort aus allen nichtresonanten Moden,
 Feldliniengeschwindigkeitsmodulation und Prüfungen der Störungsordnung.
 
@@ -75,11 +75,11 @@ Feldliniengeschwindigkeitsmodulation und Prüfungen der Störungsordnung.
    /notebooks/i18n/de/tutorials/island_jacobian_analysis
 
 ``RMP_resonance_exec.ipynb`` bleibt als Ausführungs-/Cache-Variante des
-Resonanzanalyse-Workflows im Repository, aber die öffentliche Dokumentation
+Resonanzanalyse-Ablaufs im Repository, aber die öffentliche Dokumentation
 verlinkt auf die erklärende Version oben.
 
-Monodromy und Mannigfaltigkeiten
---------------------------------
+Monodromie und Mannigfaltigkeiten
+---------------------------------
 
 .. toctree::
    :maxdepth: 1
@@ -95,13 +95,13 @@ Das Repository enthält außerdem leichtgewichtige Notebooks unter
 ``resonance_1_1_map.ipynb``, ``Mobiusian_saddle_cycle.ipynb``,
 ``Xcycle_construction.ipynb`` und ``FPT_DX_to_DP_sympy.ipynb``.  Sie bleiben
 Quellbeispiele statt ausgeführter Dokumentationsseiten, weil mehrere davon
-Scratch-artige Notebooks ohne Abschnittstitel sind.
+Entwurfsnotebooks ohne Abschnittstitel sind.
 
 Statische Tutorial-Abbildungen
 ------------------------------
 
-Mehrere längere Workflows sind im Repository als statische Abbildungen und
+Mehrere längere Arbeitsabläufe sind im Repository als statische Abbildungen und
 generierte Ausgaben unter ``notebooks/tutorials`` vertreten.  Sie behandeln
 q-Profil-Diagnostik, PEST/Boozer/Hamada/Equal-Arc-Koordinaten,
 Inselunterdrückungsscans, Phasensteuerung, Poincaré-Mannigfaltigkeiten und
-Solov'ev-Single-Null-Beispiele.
+Solov'ev-Beispiele mit einer einzelnen Null.

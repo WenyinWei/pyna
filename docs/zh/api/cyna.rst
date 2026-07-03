@@ -32,16 +32,16 @@ cyna 加速层
 只有在 bridge 边界、诊断场景，或编写新的高层 wrapper 时，才直接使用
 ``pyna._cyna``。
 
-Python Wrapper 参考
--------------------
+Python 包装层参考
+-----------------
 
 .. automodule:: pyna._cyna
    :no-index:
    :members:
    :show-inheritance:
 
-工具 Helper
------------
+工具辅助函数
+------------
 
 .. automodule:: pyna._cyna.utils
    :no-index:

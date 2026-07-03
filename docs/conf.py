@@ -13,7 +13,7 @@ author = 'Wenyin Wei'
 try:
     release = metadata.version('pyna-chaos')
 except metadata.PackageNotFoundError:
-    release = '0.8.27'
+    release = '0.8.28'
 version = '.'.join(release.split('.')[:2])
 
 extensions = [
@@ -36,11 +36,11 @@ exclude_patterns = [
     '_build', 'Thumbs.db', '.DS_Store',
     # Keep scratch examples and research notebooks out of the public docs build.
     # They are listed from the tutorial index without being executed by Sphinx.
+    # Public tutorials are served from notebooks/i18n/<lang>/... so the legacy
+    # root notebook pages do not duplicate sidebar entries, search hits, or images.
+    'notebooks/tutorials/*',
     'notebooks/examples/*',
     'notebooks/research/*',
-    'notebooks/tutorials/general_dynamics_geometry_patterns.ipynb',
-    'notebooks/tutorials/analytic_stellarator_geometry_workflow.ipynb',
-    'notebooks/tutorials/RMP_resonance_exec.ipynb',
     'notebooks/validate_chaos.ipynb',
 ]
 

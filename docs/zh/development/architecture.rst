@@ -99,14 +99,14 @@ N-body 轨道和随机样本路径。
 - cyna 加速的截面切割和追踪
 - 截面视图对应关系和重构 helper
 
-第 3 层：Workflow 和扩展 Helper
--------------------------------
+第 3 层：工作流和扩展辅助层
+---------------------------
 
 ``pyna.topo.protocols``、``adapters``、``builders``、``bridges`` 和
 ``factories`` 提供软件工程扩展层。主要面向 notebook 的入口是
-``TopologyWorkflow``。这些 helper 把构造策略和后端选择放在数学 dataclass 之外：
-外部系统可以通过 protocol 适配，用 adapter 规范化数据，通过 builder 提升对象，
-通过 bridge 切割连续几何，并通过 factory 选择运行时实现。
+``TopologyWorkflow``。这些辅助层把构造策略和后端选择放在数学 dataclass 之外：
+外部系统可以通过协议适配，用适配器规范化数据，通过构建器提升对象，
+通过桥接层切割连续几何，并通过工厂选择运行时实现。
 
 第 4 层：Acceleration
 --------------------
@@ -122,4 +122,4 @@ N-body 轨道和随机样本路径。
 - 采样的有限轨迹是几何对象，不会自动成为不变集。
 - 只有当周期结构属于模型或已通过数值验证时，才把对象提升为
   ``Cycle``/``PeriodicOrbit``。
-- 把 cyna 保持在 bridge 边界；应用层 API 应返回 pyna 对象，而不是原始 C++ 数组。
+- 把 cyna 保持在桥接边界；应用层 API 应返回 pyna 对象，而不是原始 C++ 数组。

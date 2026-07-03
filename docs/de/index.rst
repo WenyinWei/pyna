@@ -18,7 +18,7 @@ Phasenraumgeometrie überführt werden.
 .. grid:: 2
    :gutter: 3
 
-   .. grid-item-card:: Schnell Starten
+   .. grid-item-card:: Schnellstart
       :link: quickstart
       :link-type: doc
 
@@ -32,7 +32,7 @@ Phasenraumgeometrie überführt werden.
       Kurze Rezepte für ODEs, Hamiltonsche Systeme, Abbildungen, SDEs und
       topologische Überführung.
 
-   .. grid-item-card:: Tutorials
+   .. grid-item-card:: Anleitungen
       :link: tutorials/index
       :link-type: doc
 

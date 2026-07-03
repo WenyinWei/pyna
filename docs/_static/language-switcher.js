@@ -349,7 +349,11 @@
   function hideOtherLanguageBranches() {
     const active = currentLanguage();
     document
-      .querySelectorAll(".sidebar-tree a.reference, .toc-tree a.reference, .bd-sidebar-primary a, .bd-header a")
+      .querySelectorAll(
+        ".sidebar-tree a.reference, .toc-tree a.reference, " +
+          ".bd-header .bd-navbar-elements a, " +
+          ".bd-sidebar-primary .sidebar-header-items a"
+      )
       .forEach((link) => {
         const linkLanguage = languageFromHref(link.getAttribute("href") || "");
         if (!linkLanguage || linkLanguage === active) {
