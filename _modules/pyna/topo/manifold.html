@@ -489,7 +489,7 @@
 
 
 <div class="viewcode-block" id="grow_manifold_from_Xcycle_naive_init_segment">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.manifold.grow_manifold_from_Xcycle_naive_init_segment">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/manifold/index.html#pyna.topo.manifold.grow_manifold_from_Xcycle_naive_init_segment">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">grow_manifold_from_Xcycle_naive_init_segment</span><span class="p">(</span>
     <span class="n">afield</span><span class="p">:</span><span class="n">VectorFieldCylind</span><span class="p">,</span> 
     <span class="n">Xcycle_RZdiff</span><span class="p">,</span> 
@@ -529,7 +529,7 @@
 
 
 <div class="viewcode-block" id="grow_manifold_from_Xcycle_naive_carousel">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.manifold.grow_manifold_from_Xcycle_naive_carousel">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/manifold/index.html#pyna.topo.manifold.grow_manifold_from_Xcycle_naive_carousel">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">grow_manifold_from_Xcycle_naive_carousel</span><span class="p">(</span><span class="n">afield</span><span class="p">:</span><span class="n">VectorFieldCylind</span><span class="p">,</span> <span class="n">Xcycle_RZdiff</span><span class="p">,</span> <span class="n">Jac_evosol_along_Xcycle</span><span class="p">,</span> <span class="n">eigind</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">Phi_span</span><span class="p">,</span> <span class="n">W_nPhi</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">Ind_num</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">first_step</span><span class="o">=</span><span class="mf">5e-5</span><span class="p">,</span> <span class="n">max_step</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">):</span>    
     <span class="n">Phi_start</span><span class="p">,</span> <span class="n">Phi_end</span> <span class="o">=</span> <span class="n">Phi_span</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Phi_span</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">W_Phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">Phi_start</span><span class="p">,</span> <span class="n">Phi_end</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">W_nPhi</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -630,7 +630,7 @@
 
 
 <div class="viewcode-block" id="grow_manifold_from_Xcycle_eig_interp">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.manifold.grow_manifold_from_Xcycle_eig_interp">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/manifold/index.html#pyna.topo.manifold.grow_manifold_from_Xcycle_eig_interp">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">grow_manifold_from_Xcycle_eig_interp</span><span class="p">(</span><span class="n">afield</span><span class="p">:</span><span class="n">VectorFieldCylind</span><span class="p">,</span> <span class="n">Xcycle_RZdiff</span><span class="p">,</span> <span class="n">Jac_evosol_along_Xcycle</span><span class="p">,</span> <span class="n">eigind</span><span class="p">,</span> <span class="n">S_span</span><span class="p">,</span> <span class="n">S_num</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">Phi_span</span><span class="p">,</span> <span class="n">Phi_num</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">rev_eigvec</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">first_step</span><span class="o">=</span><span class="mf">5e-5</span><span class="p">,</span> <span class="n">max_step</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">):</span>
     <span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">Phi</span><span class="p">,</span> <span class="n">BR</span><span class="p">,</span> <span class="n">BZ</span><span class="p">,</span> <span class="n">BPhi</span> <span class="o">=</span> <span class="n">afield</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="n">afield</span><span class="o">.</span><span class="n">Z</span><span class="p">,</span> <span class="n">afield</span><span class="o">.</span><span class="n">Phi</span><span class="p">,</span> <span class="n">afield</span><span class="o">.</span><span class="n">BR</span><span class="p">,</span> <span class="n">afield</span><span class="o">.</span><span class="n">BZ</span><span class="p">,</span> <span class="n">afield</span><span class="o">.</span><span class="n">BPhi</span>
 
@@ -701,7 +701,7 @@
 
 
 <div class="viewcode-block" id="smooth1D">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.manifold.smooth1D">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/manifold/index.html#pyna.topo.manifold.smooth1D">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">smooth1D</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">window_len</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="s1">&#39;hanning&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;smooth the data using a window with requested size.</span>
 <span class="sd">    </span>
@@ -785,7 +785,7 @@
 
 
 <div class="viewcode-block" id="accumulate_s_from_RZ_arr">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.manifold.accumulate_s_from_RZ_arr">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/manifold/index.html#pyna.topo.manifold.accumulate_s_from_RZ_arr">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">accumulate_s_from_RZ_arr</span><span class="p">(</span><span class="n">W1d_RZ</span><span class="p">:</span><span class="n">ndarray</span><span class="p">):</span>
     <span class="n">W1d_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span> <span class="p">(</span><span class="n">W1d_RZ</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">)</span>
     <span class="n">W1d_s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
@@ -798,7 +798,7 @@
 
 
 <div class="viewcode-block" id="create_W1d_interpolator_s_to_RZdRZds">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.manifold.create_W1d_interpolator_s_to_RZdRZds">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/manifold/index.html#pyna.topo.manifold.create_W1d_interpolator_s_to_RZdRZds">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_W1d_interpolator_s_to_RZdRZds</span><span class="p">(</span>
     <span class="n">afield</span><span class="p">:</span><span class="n">VectorFieldCylind</span><span class="p">,</span> 
     <span class="n">Wivp_bundle</span><span class="p">,</span> <span class="n">phi</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="n">phi_epsilon</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="n">mturn</span><span class="o">=</span><span class="nb">int</span><span class="p">):</span>

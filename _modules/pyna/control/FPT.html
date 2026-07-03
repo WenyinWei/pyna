@@ -518,7 +518,7 @@
 
 
 <div class="viewcode-block" id="A_matrix">
-<a class="viewcode-back" href="../../../zh/api/control.html#pyna.control.FPT.A_matrix">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/control/FPT/index.html#pyna.control.FPT.A_matrix">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">A_matrix</span><span class="p">(</span><span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">R</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
 
              <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
@@ -609,7 +609,7 @@
 
 
 <div class="viewcode-block" id="DPm_axisymmetric">
-<a class="viewcode-back" href="../../../zh/api/control.html#pyna.control.FPT.DPm_axisymmetric">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/control/FPT/index.html#pyna.control.FPT.DPm_axisymmetric">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">DPm_axisymmetric</span><span class="p">(</span><span class="n">A</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">m_turns</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute DPm = exp(2??m?A) for axisymmetric equilibrium.</span>
@@ -654,7 +654,7 @@
 
 
 <div class="viewcode-block" id="cycle_shift">
-<a class="viewcode-back" href="../../../zh/api/control.html#pyna.control.FPT.cycle_shift">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/control/FPT/index.html#pyna.control.FPT.cycle_shift">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">cycle_shift</span><span class="p">(</span><span class="n">A</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">delta_g</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute X/O-cycle shift under perturbation ?B (axisymmetric).</span>
@@ -709,7 +709,7 @@
 
 
 <div class="viewcode-block" id="delta_g_from_delta_B">
-<a class="viewcode-back" href="../../../zh/api/control.html#pyna.control.FPT.delta_g_from_delta_B">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/control/FPT/index.html#pyna.control.FPT.delta_g_from_delta_B">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">delta_g_from_delta_B</span><span class="p">(</span>
 
     <span class="n">R</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -770,7 +770,7 @@
 
 
 <div class="viewcode-block" id="DPm_change">
-<a class="viewcode-back" href="../../../zh/api/control.html#pyna.control.FPT.DPm_change">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/control/FPT/index.html#pyna.control.FPT.DPm_change">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">DPm_change</span><span class="p">(</span><span class="n">A</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">delta_A</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
 
                <span class="n">m_turns</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">n_quad</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
@@ -855,7 +855,7 @@
 
 
 <div class="viewcode-block" id="delta_A_total">
-<a class="viewcode-back" href="../../../zh/api/control.html#pyna.control.FPT.delta_A_total">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/control/FPT/index.html#pyna.control.FPT.delta_A_total">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">delta_A_total</span><span class="p">(</span>
 
     <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
@@ -984,7 +984,7 @@
 
 
 <div class="viewcode-block" id="manifold_shift">
-<a class="viewcode-back" href="../../../zh/api/control.html#pyna.control.FPT.manifold_shift">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/control/FPT/index.html#pyna.control.FPT.manifold_shift">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">manifold_shift</span><span class="p">(</span>
 
     <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
@@ -1143,7 +1143,7 @@
 
 
 <div class="viewcode-block" id="flux_surface_deformation">
-<a class="viewcode-back" href="../../../zh/api/control.html#pyna.control.FPT.flux_surface_deformation">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/control/FPT/index.html#pyna.control.FPT.flux_surface_deformation">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">flux_surface_deformation</span><span class="p">(</span>
 
     <span class="n">poincare_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>

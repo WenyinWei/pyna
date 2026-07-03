@@ -464,8 +464,6 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">importlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">metadata</span> <span class="k">as</span> <span class="n">importlib_metadata</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
@@ -477,8 +475,6 @@
 
 <span class="n">_CACHE_SCHEMA_VERSION</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="n">_CACHE_MARKER</span> <span class="o">=</span> <span class="s2">&quot;pyna.workflow.tracing&quot;</span>
-<span class="n">_CACHE_SCHEMA_NAME</span> <span class="o">=</span> <span class="s2">&quot;pyna.workflow.tracing.result&quot;</span>
-<span class="n">_CACHE_COMPATIBILITY</span> <span class="o">=</span> <span class="s2">&quot;v1 append-only; readers ignore unknown fields&quot;</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_json_default</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
@@ -501,118 +497,6 @@
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
         <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_source_signature</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">explicit</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Resolve a stable source identity for cache records when available.&quot;&quot;&quot;</span>
-
-    <span class="k">if</span> <span class="n">explicit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">explicit</span>
-    <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="s2">&quot;cache_signature&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">value</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">value</span>
-    <span class="k">return</span> <span class="kc">None</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_signature_hash</span><span class="p">(</span><span class="n">signature</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-    <span class="n">signature_json</span> <span class="o">=</span> <span class="n">_json_dumps</span><span class="p">(</span><span class="n">signature</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">{</span>
-        <span class="s2">&quot;algorithm&quot;</span><span class="p">:</span> <span class="s2">&quot;sha256&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;source_signature_json_sha256&quot;</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">signature_json</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(),</span>
-    <span class="p">}</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_pyna_version</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="k">for</span> <span class="n">package_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;pyna-chaos&quot;</span><span class="p">,</span> <span class="s2">&quot;pyna&quot;</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">importlib_metadata</span><span class="o">.</span><span class="n">version</span><span class="p">(</span><span class="n">package_name</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">importlib_metadata</span><span class="o">.</span><span class="n">PackageNotFoundError</span><span class="p">:</span>
-            <span class="k">continue</span>
-    <span class="k">return</span> <span class="kc">None</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_array_summary</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-    <span class="n">h</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">()</span>
-    <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
-    <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())</span>
-    <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">object</span><span class="p">:</span>
-        <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())</span>
-    <span class="k">return</span> <span class="p">{</span>
-        <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span>
-        <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span>
-        <span class="s2">&quot;sha256&quot;</span><span class="p">:</span> <span class="n">h</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(),</span>
-    <span class="p">}</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_result_summary</span><span class="p">(</span><span class="n">record</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-    <span class="n">kind</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;kind&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
-    <span class="n">summary</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;kind&quot;</span><span class="p">:</span> <span class="n">kind</span><span class="p">}</span>
-    <span class="k">if</span> <span class="s2">&quot;states&quot;</span> <span class="ow">in</span> <span class="n">record</span><span class="p">:</span>
-        <span class="n">states</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;states&quot;</span><span class="p">])</span>
-        <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;states&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_array_summary</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
-        <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;n_samples&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">states</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">0</span>
-        <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;ambient_dim&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="n">states</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;=</span> <span class="mi">2</span> <span class="k">else</span> <span class="mi">1</span>
-    <span class="k">if</span> <span class="s2">&quot;times&quot;</span> <span class="ow">in</span> <span class="n">record</span><span class="p">:</span>
-        <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;times&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_array_summary</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;times&quot;</span><span class="p">])</span>
-    <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;has_steps&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span> <span class="ow">and</span> <span class="s2">&quot;steps&quot;</span> <span class="ow">in</span> <span class="n">record</span><span class="p">:</span>
-        <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;steps&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_array_summary</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;steps&quot;</span><span class="p">])</span>
-    <span class="k">if</span> <span class="s2">&quot;data&quot;</span> <span class="ow">in</span> <span class="n">record</span><span class="p">:</span>
-        <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_array_summary</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span>
-    <span class="k">return</span> <span class="n">summary</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_add_cache_audit_fields</span><span class="p">(</span>
-    <span class="n">record</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
-    <span class="o">*</span><span class="p">,</span>
-    <span class="n">trace_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">trace_function</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">source_role</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">source</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
-    <span class="n">request</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
-    <span class="n">source_signature</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-    <span class="n">request_json</span> <span class="o">=</span> <span class="n">_json_dumps</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
-    <span class="n">record</span><span class="p">[</span><span class="s2">&quot;trace_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">trace_id</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">trace_id</span><span class="p">)</span>
-    <span class="n">record</span><span class="p">[</span><span class="s2">&quot;request_json&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">request_json</span>
-    <span class="n">record</span><span class="p">[</span><span class="s2">&quot;request_hash_json&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_json_dumps</span><span class="p">(</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;algorithm&quot;</span><span class="p">:</span> <span class="s2">&quot;sha256&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;request_json_sha256&quot;</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">request_json</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(),</span>
-        <span class="p">}</span>
-    <span class="p">)</span>
-    <span class="n">record</span><span class="p">[</span><span class="s2">&quot;producer_json&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_json_dumps</span><span class="p">(</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;pyna_version&quot;</span><span class="p">:</span> <span class="n">_pyna_version</span><span class="p">(),</span>
-            <span class="s2">&quot;cache_schema_name&quot;</span><span class="p">:</span> <span class="n">_CACHE_SCHEMA_NAME</span><span class="p">,</span>
-            <span class="s2">&quot;cache_schema_version&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">_CACHE_SCHEMA_VERSION</span><span class="p">),</span>
-            <span class="s2">&quot;trace_function&quot;</span><span class="p">:</span> <span class="n">trace_function</span><span class="p">,</span>
-            <span class="n">source_role</span><span class="p">:</span> <span class="n">_source_type</span><span class="p">(</span><span class="n">source</span><span class="p">),</span>
-        <span class="p">}</span>
-    <span class="p">)</span>
-    <span class="n">record</span><span class="p">[</span><span class="s2">&quot;source_signature_json&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_json_dumps</span><span class="p">(</span><span class="n">source_signature</span><span class="p">)</span>
-    <span class="n">record</span><span class="p">[</span><span class="s2">&quot;source_signature_hash_json&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_json_dumps</span><span class="p">(</span><span class="n">_signature_hash</span><span class="p">(</span><span class="n">source_signature</span><span class="p">))</span>
-    <span class="n">record</span><span class="p">[</span><span class="s2">&quot;result_summary_json&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_json_dumps</span><span class="p">(</span><span class="n">_result_summary</span><span class="p">(</span><span class="n">record</span><span class="p">))</span>
-    <span class="n">record</span><span class="p">[</span><span class="s2">&quot;complete&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="k">return</span> <span class="n">record</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_validate_cache_record_source_signature</span><span class="p">(</span><span class="n">record</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">expected</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">expected</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">or</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;__pyna_cache__&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">_CACHE_MARKER</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;workflow cache entry has no source signature to validate&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s2">&quot;source_signature_json&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">record</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;workflow cache entry has no source signature&quot;</span><span class="p">)</span>
-    <span class="n">actual</span> <span class="o">=</span> <span class="n">_json_loads</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;source_signature_json&quot;</span><span class="p">])</span>
-    <span class="k">if</span> <span class="n">actual</span> <span class="o">!=</span> <span class="n">expected</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;workflow cache entry source signature does not match the requested source&quot;</span>
-        <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_use_cache</span><span class="p">(</span><span class="n">use_cache</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -699,9 +583,7 @@
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Trajectory</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;__pyna_cache__&quot;</span><span class="p">:</span> <span class="n">_CACHE_MARKER</span><span class="p">,</span>
-            <span class="s2">&quot;schema_name&quot;</span><span class="p">:</span> <span class="n">_CACHE_SCHEMA_NAME</span><span class="p">,</span>
             <span class="s2">&quot;schema_version&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">_CACHE_SCHEMA_VERSION</span><span class="p">),</span>
-            <span class="s2">&quot;compatibility&quot;</span><span class="p">:</span> <span class="n">_CACHE_COMPATIBILITY</span><span class="p">,</span>
             <span class="s2">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;trajectory&quot;</span><span class="p">,</span>
             <span class="s2">&quot;source_type&quot;</span><span class="p">:</span> <span class="n">_source_type</span><span class="p">(</span><span class="n">value</span><span class="p">),</span>
             <span class="s2">&quot;states&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">states</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
@@ -717,9 +599,7 @@
         <span class="n">steps</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">steps</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;__pyna_cache__&quot;</span><span class="p">:</span> <span class="n">_CACHE_MARKER</span><span class="p">,</span>
-            <span class="s2">&quot;schema_name&quot;</span><span class="p">:</span> <span class="n">_CACHE_SCHEMA_NAME</span><span class="p">,</span>
             <span class="s2">&quot;schema_version&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">_CACHE_SCHEMA_VERSION</span><span class="p">),</span>
-            <span class="s2">&quot;compatibility&quot;</span><span class="p">:</span> <span class="n">_CACHE_COMPATIBILITY</span><span class="p">,</span>
             <span class="s2">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;orbit&quot;</span><span class="p">,</span>
             <span class="s2">&quot;source_type&quot;</span><span class="p">:</span> <span class="n">_source_type</span><span class="p">(</span><span class="n">value</span><span class="p">),</span>
             <span class="s2">&quot;states&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">states</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
@@ -734,9 +614,7 @@
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;__pyna_cache__&quot;</span><span class="p">:</span> <span class="n">_CACHE_MARKER</span><span class="p">,</span>
-            <span class="s2">&quot;schema_name&quot;</span><span class="p">:</span> <span class="n">_CACHE_SCHEMA_NAME</span><span class="p">,</span>
             <span class="s2">&quot;schema_version&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">_CACHE_SCHEMA_VERSION</span><span class="p">),</span>
-            <span class="s2">&quot;compatibility&quot;</span><span class="p">:</span> <span class="n">_CACHE_COMPATIBILITY</span><span class="p">,</span>
             <span class="s2">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;ndarray&quot;</span><span class="p">,</span>
             <span class="s2">&quot;expected_kind&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">expected_kind</span><span class="p">),</span>
             <span class="s2">&quot;source_type&quot;</span><span class="p">:</span> <span class="s2">&quot;numpy.ndarray&quot;</span><span class="p">,</span>
@@ -750,21 +628,15 @@
     <span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_decode_cache_record</span><span class="p">(</span><span class="n">record</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">expected_source_signature</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_decode_cache_record</span><span class="p">(</span><span class="n">record</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Decode a versioned workflow cache record.</span>
 
 <span class="sd">    Non-record values are returned unchanged so older pickle-backed caches remain</span>
 <span class="sd">    readable during the transition to schema records.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">_validate_cache_record_source_signature</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">expected_source_signature</span><span class="p">)</span>
-
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">or</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;__pyna_cache__&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">_CACHE_MARKER</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">record</span>
-
-    <span class="n">schema_name</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;schema_name&quot;</span><span class="p">,</span> <span class="n">_CACHE_SCHEMA_NAME</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">schema_name</span> <span class="o">!=</span> <span class="n">_CACHE_SCHEMA_NAME</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;workflow cache entry has unknown schema </span><span class="si">{</span><span class="n">schema_name</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="n">schema_version</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;schema_version&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">schema_version</span> <span class="o">&gt;</span> <span class="n">_CACHE_SCHEMA_VERSION</span><span class="p">:</span>
@@ -774,8 +646,6 @@
         <span class="p">)</span>
     <span class="k">if</span> <span class="n">schema_version</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;workflow cache entry has an unsupported schema version&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s2">&quot;complete&quot;</span> <span class="ow">in</span> <span class="n">record</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;complete&quot;</span><span class="p">]):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;workflow cache entry is not complete&quot;</span><span class="p">)</span>
 
     <span class="n">kind</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;kind&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
     <span class="n">metadata</span> <span class="o">=</span> <span class="n">_json_loads</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;metadata_json&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">))</span>
@@ -819,7 +689,6 @@
     <span class="n">dt</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">t_eval</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">method_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">source_signature</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">_trace_trajectory_uncached</span><span class="p">(</span>
         <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
@@ -830,22 +699,7 @@
         <span class="n">t_eval</span><span class="o">=</span><span class="n">t_eval</span><span class="p">,</span>
         <span class="n">method_kwargs</span><span class="o">=</span><span class="n">method_kwargs</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">record</span> <span class="o">=</span> <span class="n">_encode_cache_record</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">expected_kind</span><span class="o">=</span><span class="s2">&quot;trajectory&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">_add_cache_audit_fields</span><span class="p">(</span>
-        <span class="n">record</span><span class="p">,</span>
-        <span class="n">trace_id</span><span class="o">=</span><span class="n">trace_id</span><span class="p">,</span>
-        <span class="n">trace_function</span><span class="o">=</span><span class="s2">&quot;trace_trajectory&quot;</span><span class="p">,</span>
-        <span class="n">source_role</span><span class="o">=</span><span class="s2">&quot;system_type&quot;</span><span class="p">,</span>
-        <span class="n">source</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
-        <span class="n">source_signature</span><span class="o">=</span><span class="n">source_signature</span><span class="p">,</span>
-        <span class="n">request</span><span class="o">=</span><span class="p">{</span>
-            <span class="s2">&quot;x0&quot;</span><span class="p">:</span> <span class="n">x0</span><span class="p">,</span>
-            <span class="s2">&quot;t_span&quot;</span><span class="p">:</span> <span class="n">t_span</span><span class="p">,</span>
-            <span class="s2">&quot;dt&quot;</span><span class="p">:</span> <span class="n">dt</span><span class="p">,</span>
-            <span class="s2">&quot;t_eval&quot;</span><span class="p">:</span> <span class="n">t_eval</span><span class="p">,</span>
-            <span class="s2">&quot;method_kwargs&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">method_kwargs</span> <span class="ow">or</span> <span class="p">{}),</span>
-        <span class="p">},</span>
-    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_encode_cache_record</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">expected_kind</span><span class="o">=</span><span class="s2">&quot;trajectory&quot;</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_trace_orbit_cache_record</span><span class="p">(</span>
@@ -854,7 +708,6 @@
     <span class="n">trace_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">x0</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">n_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-    <span class="n">source_signature</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">_trace_orbit_uncached</span><span class="p">(</span>
         <span class="n">map_obj</span><span class="o">=</span><span class="n">map_obj</span><span class="p">,</span>
@@ -862,19 +715,7 @@
         <span class="n">x0</span><span class="o">=</span><span class="n">x0</span><span class="p">,</span>
         <span class="n">n_iter</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">n_iter</span><span class="p">),</span>
     <span class="p">)</span>
-    <span class="n">record</span> <span class="o">=</span> <span class="n">_encode_cache_record</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">expected_kind</span><span class="o">=</span><span class="s2">&quot;orbit&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">_add_cache_audit_fields</span><span class="p">(</span>
-        <span class="n">record</span><span class="p">,</span>
-        <span class="n">trace_id</span><span class="o">=</span><span class="n">trace_id</span><span class="p">,</span>
-        <span class="n">trace_function</span><span class="o">=</span><span class="s2">&quot;trace_orbit&quot;</span><span class="p">,</span>
-        <span class="n">source_role</span><span class="o">=</span><span class="s2">&quot;map_type&quot;</span><span class="p">,</span>
-        <span class="n">source</span><span class="o">=</span><span class="n">map_obj</span><span class="p">,</span>
-        <span class="n">source_signature</span><span class="o">=</span><span class="n">source_signature</span><span class="p">,</span>
-        <span class="n">request</span><span class="o">=</span><span class="p">{</span>
-            <span class="s2">&quot;x0&quot;</span><span class="p">:</span> <span class="n">x0</span><span class="p">,</span>
-            <span class="s2">&quot;n_iter&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_iter</span><span class="p">),</span>
-        <span class="p">},</span>
-    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_encode_cache_record</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">expected_kind</span><span class="o">=</span><span class="s2">&quot;orbit&quot;</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_memoized</span><span class="p">(</span>
@@ -894,12 +735,6 @@
     <span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_flush_memoized_cache</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="n">store</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s2">&quot;_pyna_cache_store&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">&quot;flush&quot;</span><span class="p">):</span>
-        <span class="n">store</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-
-
 <div class="viewcode-block" id="trace_trajectory">
 <a class="viewcode-back" href="../../../en/api/generated/pyna/workflow/tracing/index.html#pyna.workflow.tracing.trace_trajectory">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_trajectory</span><span class="p">(</span>
@@ -908,7 +743,6 @@
     <span class="n">t_span</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">trace_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">source_signature</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">dt</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">t_eval</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">cache_namespace</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;workflow.trajectory&quot;</span><span class="p">,</span>
@@ -916,7 +750,6 @@
     <span class="n">cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">cache_store</span><span class="p">:</span> <span class="n">CacheStore</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">cache_backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;npz&quot;</span><span class="p">,</span>
-    <span class="n">cache_sync</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Trace a finite-dimensional continuous trajectory.</span>
@@ -925,9 +758,6 @@
 <span class="sd">    ``integrate(x0, t_span, ...)``.  Local caching is independent of Prefect.</span>
 <span class="sd">    When caching is enabled, callers must provide a stable ``trace_id`` because</span>
 <span class="sd">    arbitrary Python system objects often have process-local ``repr`` values.</span>
-<span class="sd">    Pass ``source_signature`` or implement ``system.cache_signature()`` to bind</span>
-<span class="sd">    the cache entry to the system parameters behind that id.  Set</span>
-<span class="sd">    ``cache_sync=True`` when the result must be durable before returning.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">should_cache</span> <span class="o">=</span> <span class="n">_resolve_use_cache</span><span class="p">(</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">cache</span><span class="p">)</span>
@@ -943,7 +773,6 @@
             <span class="n">method_kwargs</span><span class="o">=</span><span class="n">method_kwargs</span><span class="p">,</span>
         <span class="p">)</span>
 
-    <span class="n">resolved_source_signature</span> <span class="o">=</span> <span class="n">_source_signature</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">source_signature</span><span class="p">)</span>
     <span class="n">stable_id</span> <span class="o">=</span> <span class="n">_require_trace_id</span><span class="p">(</span><span class="n">trace_id</span><span class="p">,</span> <span class="n">cache_kind</span><span class="o">=</span><span class="s2">&quot;trajectory&quot;</span><span class="p">)</span>
     <span class="n">cached_trace</span> <span class="o">=</span> <span class="n">_memoized</span><span class="p">(</span>
         <span class="n">_trace_trajectory_cache_record</span><span class="p">,</span>
@@ -960,11 +789,8 @@
         <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span>
         <span class="n">t_eval</span><span class="o">=</span><span class="n">t_eval</span><span class="p">,</span>
         <span class="n">method_kwargs</span><span class="o">=</span><span class="n">method_kwargs</span><span class="p">,</span>
-        <span class="n">source_signature</span><span class="o">=</span><span class="n">resolved_source_signature</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="k">if</span> <span class="n">cache_sync</span><span class="p">:</span>
-        <span class="n">_flush_memoized_cache</span><span class="p">(</span><span class="n">cached_trace</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">_decode_cache_record</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">expected_source_signature</span><span class="o">=</span><span class="n">resolved_source_signature</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_decode_cache_record</span><span class="p">(</span><span class="n">record</span><span class="p">)</span></div>
 
 
 
@@ -976,22 +802,16 @@
     <span class="n">n_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">trace_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">source_signature</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">cache_namespace</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;workflow.orbit&quot;</span><span class="p">,</span>
     <span class="n">use_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">cache_store</span><span class="p">:</span> <span class="n">CacheStore</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">cache_backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;npz&quot;</span><span class="p">,</span>
-    <span class="n">cache_sync</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Trace a finite-dimensional discrete orbit.</span>
 
-<span class="sd">    ``map_obj`` may expose ``orbit_geometry``/``orbit`` for sampled output or</span>
-<span class="sd">    ``step`` for one-step advancement; the result is the generic</span>
-<span class="sd">    :class:`pyna.topo.core.Orbit` shape used by ``TopologyWorkflow``.  Pass</span>
-<span class="sd">    ``source_signature`` or implement ``map_obj.cache_signature()`` to bind the</span>
-<span class="sd">    cache entry to the map parameters behind the trace id.  Set</span>
-<span class="sd">    ``cache_sync=True`` when the result must be durable before returning.</span>
+<span class="sd">    ``map_obj`` may expose ``orbit_geometry`` or ``orbit``; the result is the</span>
+<span class="sd">    generic :class:`pyna.topo.core.Orbit` shape used by ``TopologyWorkflow``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">should_cache</span> <span class="o">=</span> <span class="n">_resolve_use_cache</span><span class="p">(</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">cache</span><span class="p">)</span>
@@ -1003,7 +823,6 @@
             <span class="n">n_iter</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">n_iter</span><span class="p">),</span>
         <span class="p">)</span>
 
-    <span class="n">resolved_source_signature</span> <span class="o">=</span> <span class="n">_source_signature</span><span class="p">(</span><span class="n">map_obj</span><span class="p">,</span> <span class="n">source_signature</span><span class="p">)</span>
     <span class="n">stable_id</span> <span class="o">=</span> <span class="n">_require_trace_id</span><span class="p">(</span><span class="n">trace_id</span><span class="p">,</span> <span class="n">cache_kind</span><span class="o">=</span><span class="s2">&quot;orbit&quot;</span><span class="p">)</span>
     <span class="n">cached_trace</span> <span class="o">=</span> <span class="n">_memoized</span><span class="p">(</span>
         <span class="n">_trace_orbit_cache_record</span><span class="p">,</span>
@@ -1017,11 +836,8 @@
         <span class="n">trace_id</span><span class="o">=</span><span class="n">stable_id</span><span class="p">,</span>
         <span class="n">x0</span><span class="o">=</span><span class="n">x0</span><span class="p">,</span>
         <span class="n">n_iter</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">n_iter</span><span class="p">),</span>
-        <span class="n">source_signature</span><span class="o">=</span><span class="n">resolved_source_signature</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="k">if</span> <span class="n">cache_sync</span><span class="p">:</span>
-        <span class="n">_flush_memoized_cache</span><span class="p">(</span><span class="n">cached_trace</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">_decode_cache_record</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">expected_source_signature</span><span class="o">=</span><span class="n">resolved_source_signature</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_decode_cache_record</span><span class="p">(</span><span class="n">record</span><span class="p">)</span></div>
 
 
 
@@ -1030,14 +846,12 @@
     <span class="n">x0</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">t_span</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">trace_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">source_signature</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">dt</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">t_eval</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">cache_namespace</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">use_cache</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="n">cache_store</span><span class="p">:</span> <span class="n">CacheStore</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">cache_backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">cache_sync</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="n">method_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">trace_trajectory</span><span class="p">(</span>
@@ -1045,14 +859,12 @@
         <span class="n">x0</span><span class="p">,</span>
         <span class="n">t_span</span><span class="p">,</span>
         <span class="n">trace_id</span><span class="o">=</span><span class="n">trace_id</span><span class="p">,</span>
-        <span class="n">source_signature</span><span class="o">=</span><span class="n">source_signature</span><span class="p">,</span>
         <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span>
         <span class="n">t_eval</span><span class="o">=</span><span class="n">t_eval</span><span class="p">,</span>
         <span class="n">cache_namespace</span><span class="o">=</span><span class="n">cache_namespace</span><span class="p">,</span>
         <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
         <span class="n">cache_store</span><span class="o">=</span><span class="n">cache_store</span><span class="p">,</span>
         <span class="n">cache_backend</span><span class="o">=</span><span class="n">cache_backend</span><span class="p">,</span>
-        <span class="n">cache_sync</span><span class="o">=</span><span class="n">cache_sync</span><span class="p">,</span>
         <span class="o">**</span><span class="n">method_kwargs</span><span class="p">,</span>
     <span class="p">)</span>
 
@@ -1062,24 +874,20 @@
     <span class="n">x0</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">n_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">trace_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">source_signature</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">cache_namespace</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">use_cache</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="n">cache_store</span><span class="p">:</span> <span class="n">CacheStore</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">cache_backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">cache_sync</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">trace_orbit</span><span class="p">(</span>
         <span class="n">map_obj</span><span class="p">,</span>
         <span class="n">x0</span><span class="p">,</span>
         <span class="n">n_iter</span><span class="p">,</span>
         <span class="n">trace_id</span><span class="o">=</span><span class="n">trace_id</span><span class="p">,</span>
-        <span class="n">source_signature</span><span class="o">=</span><span class="n">source_signature</span><span class="p">,</span>
         <span class="n">cache_namespace</span><span class="o">=</span><span class="n">cache_namespace</span><span class="p">,</span>
         <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
         <span class="n">cache_store</span><span class="o">=</span><span class="n">cache_store</span><span class="p">,</span>
         <span class="n">cache_backend</span><span class="o">=</span><span class="n">cache_backend</span><span class="p">,</span>
-        <span class="n">cache_sync</span><span class="o">=</span><span class="n">cache_sync</span><span class="p">,</span>
     <span class="p">)</span>
 
 
@@ -1099,14 +907,12 @@
         <span class="n">t_span</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">trace_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">source_signature</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">dt</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">t_eval</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">cache_namespace</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;workflow.trajectory&quot;</span><span class="p">,</span>
         <span class="n">use_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">cache_store</span><span class="p">:</span> <span class="n">CacheStore</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">cache_backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;npz&quot;</span><span class="p">,</span>
-        <span class="n">cache_sync</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">trajectory_task</span><span class="p">(</span>
@@ -1114,14 +920,12 @@
             <span class="n">x0</span><span class="p">,</span>
             <span class="n">t_span</span><span class="p">,</span>
             <span class="n">trace_id</span><span class="p">,</span>
-            <span class="n">source_signature</span><span class="p">,</span>
             <span class="n">dt</span><span class="p">,</span>
             <span class="n">t_eval</span><span class="p">,</span>
             <span class="n">cache_namespace</span><span class="p">,</span>
             <span class="n">use_cache</span><span class="p">,</span>
             <span class="n">cache_store</span><span class="p">,</span>
             <span class="n">cache_backend</span><span class="p">,</span>
-            <span class="n">cache_sync</span><span class="p">,</span>
             <span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span>
 
@@ -1138,24 +942,20 @@
         <span class="n">n_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">trace_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">source_signature</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">cache_namespace</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;workflow.orbit&quot;</span><span class="p">,</span>
         <span class="n">use_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">cache_store</span><span class="p">:</span> <span class="n">CacheStore</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">cache_backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;npz&quot;</span><span class="p">,</span>
-        <span class="n">cache_sync</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">orbit_task</span><span class="p">(</span>
             <span class="n">map_obj</span><span class="p">,</span>
             <span class="n">x0</span><span class="p">,</span>
             <span class="n">n_iter</span><span class="p">,</span>
             <span class="n">trace_id</span><span class="p">,</span>
-            <span class="n">source_signature</span><span class="p">,</span>
             <span class="n">cache_namespace</span><span class="p">,</span>
             <span class="n">use_cache</span><span class="p">,</span>
             <span class="n">cache_store</span><span class="p">,</span>
             <span class="n">cache_backend</span><span class="p">,</span>
-            <span class="n">cache_sync</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">prefect_trace_orbit_flow</span>
@@ -1169,14 +969,12 @@
     <span class="n">t_span</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">trace_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">source_signature</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">dt</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">t_eval</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">cache_namespace</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;workflow.trajectory&quot;</span><span class="p">,</span>
     <span class="n">use_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">cache_store</span><span class="p">:</span> <span class="n">CacheStore</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">cache_backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;npz&quot;</span><span class="p">,</span>
-    <span class="n">cache_sync</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run the Prefect flow for generic continuous trajectory tracing.&quot;&quot;&quot;</span>
@@ -1188,14 +986,12 @@
         <span class="n">x0</span><span class="p">,</span>
         <span class="n">t_span</span><span class="p">,</span>
         <span class="n">trace_id</span><span class="o">=</span><span class="n">trace_id</span><span class="p">,</span>
-        <span class="n">source_signature</span><span class="o">=</span><span class="n">source_signature</span><span class="p">,</span>
         <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span>
         <span class="n">t_eval</span><span class="o">=</span><span class="n">t_eval</span><span class="p">,</span>
         <span class="n">cache_namespace</span><span class="o">=</span><span class="n">cache_namespace</span><span class="p">,</span>
         <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
         <span class="n">cache_store</span><span class="o">=</span><span class="n">cache_store</span><span class="p">,</span>
         <span class="n">cache_backend</span><span class="o">=</span><span class="n">cache_backend</span><span class="p">,</span>
-        <span class="n">cache_sync</span><span class="o">=</span><span class="n">cache_sync</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 
@@ -1209,12 +1005,10 @@
     <span class="n">n_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">trace_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">source_signature</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">cache_namespace</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;workflow.orbit&quot;</span><span class="p">,</span>
     <span class="n">use_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">cache_store</span><span class="p">:</span> <span class="n">CacheStore</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">cache_backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;npz&quot;</span><span class="p">,</span>
-    <span class="n">cache_sync</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run the Prefect flow for generic discrete orbit tracing.&quot;&quot;&quot;</span>
 
@@ -1225,12 +1019,10 @@
         <span class="n">x0</span><span class="p">,</span>
         <span class="n">n_iter</span><span class="p">,</span>
         <span class="n">trace_id</span><span class="o">=</span><span class="n">trace_id</span><span class="p">,</span>
-        <span class="n">source_signature</span><span class="o">=</span><span class="n">source_signature</span><span class="p">,</span>
         <span class="n">cache_namespace</span><span class="o">=</span><span class="n">cache_namespace</span><span class="p">,</span>
         <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
         <span class="n">cache_store</span><span class="o">=</span><span class="n">cache_store</span><span class="p">,</span>
         <span class="n">cache_backend</span><span class="o">=</span><span class="n">cache_backend</span><span class="p">,</span>
-        <span class="n">cache_sync</span><span class="o">=</span><span class="n">cache_sync</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 

@@ -485,62 +485,62 @@
 
 
 <div class="viewcode-block" id="Section">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.Section">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.Section">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Section</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract Poincaré section (codimension-1 hypersurface in phase space).&quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
     <span class="nd">@abstractmethod</span>
 <div class="viewcode-block" id="Section.dim_phase">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.Section.dim_phase">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.Section.dim_phase">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">dim_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Dimension of the ambient phase space.&quot;&quot;&quot;</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="Section.dim_section">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.Section.dim_section">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.Section.dim_section">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">dim_section</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim_phase</span> <span class="o">-</span> <span class="mi">1</span></div>
 
 
     <span class="nd">@abstractmethod</span>
 <div class="viewcode-block" id="Section.f">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.Section.f">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.Section.f">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Defining function: section = {x | f(x) = 0}.&quot;&quot;&quot;</span></div>
 
 
     <span class="nd">@abstractmethod</span>
 <div class="viewcode-block" id="Section.contains">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.Section.contains">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.Section.contains">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">contains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-8</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return True if point x is on this section (within tol).&quot;&quot;&quot;</span></div>
 
 
     <span class="nd">@abstractmethod</span>
 <div class="viewcode-block" id="Section.project">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.Section.project">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.Section.project">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Project phase-space point x to a section-level coordinate representation.&quot;&quot;&quot;</span></div>
 
 
     <span class="nd">@abstractmethod</span>
 <div class="viewcode-block" id="Section.normal">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.Section.normal">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.Section.normal">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">normal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Normal vector to the section at x.&quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="Section.accepts">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.Section.accepts">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.Section.accepts">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">accepts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Optional finite-extent acceptance test for bounded sections.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 
 <div class="viewcode-block" id="Section.detect_crossing">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.Section.detect_crossing">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.Section.detect_crossing">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">detect_crossing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_prev</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x_curr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Detect a segment crossing and return an interpolated intersection point.</span>
 
@@ -572,20 +572,20 @@
 
 
 <div class="viewcode-block" id="Section.is_transverse">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.Section.is_transverse">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.Section.is_transverse">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_transverse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">v</span><span class="p">)))</span> <span class="o">&gt;</span> <span class="n">tol</span></div>
 
 
 <div class="viewcode-block" id="Section.crossing_direction">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.Section.crossing_direction">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.Section.crossing_direction">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">crossing_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">1</span> <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">v</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="Section.label">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.Section.label">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.Section.label">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 
@@ -597,26 +597,26 @@
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <div class="viewcode-block" id="ToroidalSection">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ToroidalSection">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ToroidalSection">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ToroidalSection</span><span class="p">(</span><span class="n">Section</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Poincaré section phi = const in toroidal (R, Z, phi) coordinates.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ToroidalSection.phi">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ToroidalSection.phi">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ToroidalSection.phi">[docs]</a>
     <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span></div>
 
     <span class="n">_label</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="ToroidalSection.dim_phase">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ToroidalSection.dim_phase">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ToroidalSection.dim_phase">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">dim_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">2</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="ToroidalSection.label">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ToroidalSection.label">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ToroidalSection.label">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span>
@@ -631,25 +631,25 @@
 
 
 <div class="viewcode-block" id="ToroidalSection.f">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ToroidalSection.f">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ToroidalSection.f">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;ToroidalSection.f() is undefined in reduced (R,Z) coordinates.&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ToroidalSection.contains">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ToroidalSection.contains">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ToroidalSection.contains">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">contains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-8</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 
 <div class="viewcode-block" id="ToroidalSection.project">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ToroidalSection.project">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ToroidalSection.project">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ToroidalSection.normal">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ToroidalSection.normal">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ToroidalSection.normal">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">normal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;ToroidalSection normal points along the eliminated phi direction.&quot;</span><span class="p">)</span></div>
 
@@ -661,24 +661,24 @@
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <div class="viewcode-block" id="HyperplaneSection">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.HyperplaneSection">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.HyperplaneSection">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">HyperplaneSection</span><span class="p">(</span><span class="n">Section</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Poincaré section defined by a·x = c in n-dimensional phase space.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="HyperplaneSection.normal_vec">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.HyperplaneSection.normal_vec">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.HyperplaneSection.normal_vec">[docs]</a>
     <span class="n">normal_vec</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="HyperplaneSection.offset">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.HyperplaneSection.offset">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.HyperplaneSection.offset">[docs]</a>
     <span class="n">offset</span><span class="p">:</span> <span class="nb">float</span></div>
 
 <div class="viewcode-block" id="HyperplaneSection.phase_dim">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.HyperplaneSection.phase_dim">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.HyperplaneSection.phase_dim">[docs]</a>
     <span class="n">phase_dim</span><span class="p">:</span> <span class="nb">int</span></div>
 
 <div class="viewcode-block" id="HyperplaneSection.accept_func">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.HyperplaneSection.accept_func">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.HyperplaneSection.accept_func">[docs]</a>
     <span class="n">accept_func</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
     <span class="n">_label</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -688,45 +688,45 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="HyperplaneSection.dim_phase">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.HyperplaneSection.dim_phase">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.HyperplaneSection.dim_phase">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">dim_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_dim</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="HyperplaneSection.label">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.HyperplaneSection.label">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.HyperplaneSection.label">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span></div>
 
 
 <div class="viewcode-block" id="HyperplaneSection.f">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.HyperplaneSection.f">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.HyperplaneSection.f">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">normal_vec</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset</span></div>
 
 
 <div class="viewcode-block" id="HyperplaneSection.contains">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.HyperplaneSection.contains">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.HyperplaneSection.contains">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">contains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-8</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="o">&lt;</span> <span class="n">tol</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">accepts</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="HyperplaneSection.project">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.HyperplaneSection.project">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.HyperplaneSection.project">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normal_vec</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">normal_vec</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-30</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span> <span class="o">*</span> <span class="n">n</span></div>
 
 
 <div class="viewcode-block" id="HyperplaneSection.normal">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.HyperplaneSection.normal">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.HyperplaneSection.normal">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">normal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">normal_vec</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="HyperplaneSection.accepts">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.HyperplaneSection.accepts">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.HyperplaneSection.accepts">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">accepts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">accept_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span>
@@ -737,60 +737,60 @@
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <div class="viewcode-block" id="ParametricSection">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ParametricSection">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ParametricSection">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ParametricSection</span><span class="p">(</span><span class="n">Section</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Poincaré section defined by an arbitrary scalar function f(x) = 0.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ParametricSection.f_func">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ParametricSection.f_func">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ParametricSection.f_func">[docs]</a>
     <span class="n">f_func</span><span class="p">:</span> <span class="n">Any</span></div>
 
 <div class="viewcode-block" id="ParametricSection.grad_func">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ParametricSection.grad_func">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ParametricSection.grad_func">[docs]</a>
     <span class="n">grad_func</span><span class="p">:</span> <span class="n">Any</span></div>
 
 <div class="viewcode-block" id="ParametricSection.phase_dim">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ParametricSection.phase_dim">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ParametricSection.phase_dim">[docs]</a>
     <span class="n">phase_dim</span><span class="p">:</span> <span class="nb">int</span></div>
 
 <div class="viewcode-block" id="ParametricSection.project_func">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ParametricSection.project_func">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ParametricSection.project_func">[docs]</a>
     <span class="n">project_func</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ParametricSection.accept_func">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ParametricSection.accept_func">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ParametricSection.accept_func">[docs]</a>
     <span class="n">accept_func</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
 
     <span class="n">_label</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="ParametricSection.dim_phase">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ParametricSection.dim_phase">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ParametricSection.dim_phase">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">dim_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_dim</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="ParametricSection.label">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ParametricSection.label">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ParametricSection.label">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span></div>
 
 
 <div class="viewcode-block" id="ParametricSection.f">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ParametricSection.f">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ParametricSection.f">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f_func</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="ParametricSection.contains">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ParametricSection.contains">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ParametricSection.contains">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">contains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-8</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="o">&lt;</span> <span class="n">tol</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">accepts</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ParametricSection.project">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ParametricSection.project">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ParametricSection.project">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_func</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
@@ -798,13 +798,13 @@
 
 
 <div class="viewcode-block" id="ParametricSection.normal">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ParametricSection.normal">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ParametricSection.normal">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">normal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grad_func</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ParametricSection.accepts">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.ParametricSection.accepts">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.ParametricSection.accepts">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">accepts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">accept_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span>
@@ -814,7 +814,7 @@
 
 
 <div class="viewcode-block" id="coerce_section">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.coerce_section">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.coerce_section">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">coerce_section</span><span class="p">(</span><span class="n">section</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Section</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize user input into a first-class :class:`Section`.</span>
 
@@ -840,7 +840,7 @@
 
 
 <div class="viewcode-block" id="coerce_toroidal_section">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.coerce_toroidal_section">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.coerce_toroidal_section">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">coerce_toroidal_section</span><span class="p">(</span><span class="n">section</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ToroidalSection</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize input into a concrete :class:`ToroidalSection`.</span>
 
@@ -859,7 +859,7 @@
 
 
 <div class="viewcode-block" id="toroidal_sections">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.section.toroidal_sections">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/section/index.html#pyna.topo.section.toroidal_sections">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">toroidal_sections</span><span class="p">(</span><span class="n">phi_list</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ToroidalSection</span><span class="p">]:</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">ToroidalSection</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">phi</span><span class="p">))</span> <span class="k">for</span> <span class="n">phi</span> <span class="ow">in</span> <span class="n">phi_list</span><span class="p">]</span></div>
 

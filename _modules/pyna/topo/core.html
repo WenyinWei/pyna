@@ -735,57 +735,6 @@
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
 
 
-    <span class="nd">@property</span>
-<div class="viewcode-block" id="Trajectory.independent">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.core.Trajectory.independent">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">independent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sample parameter values aligned with ``states``.&quot;&quot;&quot;</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span></div>
-
-
-    <span class="nd">@property</span>
-<div class="viewcode-block" id="Trajectory.independent_name">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.core.Trajectory.independent_name">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">independent_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Name of the sample parameter used by storage/resume code.&quot;&quot;&quot;</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_name</span></div>
-
-
-    <span class="nd">@property</span>
-<div class="viewcode-block" id="Trajectory.initial">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.core.Trajectory.initial">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">initial</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initial sampled state.&quot;&quot;&quot;</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;empty trajectory has no initial state&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
-
-
-    <span class="nd">@property</span>
-<div class="viewcode-block" id="Trajectory.start_independent">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.core.Trajectory.start_independent">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">start_independent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;First sampled parameter value.&quot;&quot;&quot;</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;empty trajectory has no start parameter&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
-
-
-    <span class="nd">@property</span>
-<div class="viewcode-block" id="Trajectory.end_independent">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.core.Trajectory.end_independent">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">end_independent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Last sampled parameter value.&quot;&quot;&quot;</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;empty trajectory has no end parameter&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
-
-
 <div class="viewcode-block" id="Trajectory.interpolate_at">
 <a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.core.Trajectory.interpolate_at">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">interpolate_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
@@ -946,59 +895,6 @@
 <a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.core.Orbit.n_samples">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">n_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
-
-
-    <span class="nd">@property</span>
-<div class="viewcode-block" id="Orbit.independent">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.core.Orbit.independent">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">independent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sample step values aligned with ``states``.&quot;&quot;&quot;</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span></div>
-
-
-    <span class="nd">@property</span>
-<div class="viewcode-block" id="Orbit.independent_name">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.core.Orbit.independent_name">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">independent_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Name of the sample parameter used by storage/resume code.&quot;&quot;&quot;</span>
-
-        <span class="k">return</span> <span class="s2">&quot;step&quot;</span></div>
-
-
-    <span class="nd">@property</span>
-<div class="viewcode-block" id="Orbit.initial">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.core.Orbit.initial">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">initial</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initial sampled map state.&quot;&quot;&quot;</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;empty orbit has no initial state&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
-
-
-    <span class="nd">@property</span>
-<div class="viewcode-block" id="Orbit.start_independent">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.core.Orbit.start_independent">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">start_independent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;First sampled step value.&quot;&quot;&quot;</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;empty orbit has no start step&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">independent</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span></div>
-
-
-    <span class="nd">@property</span>
-<div class="viewcode-block" id="Orbit.end_independent">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.core.Orbit.end_independent">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">end_independent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Last sampled step value.&quot;&quot;&quot;</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;empty orbit has no end step&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">independent</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
 
 
     <span class="nd">@property</span>

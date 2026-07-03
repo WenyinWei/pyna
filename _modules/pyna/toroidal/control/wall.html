@@ -474,7 +474,7 @@
 
 <span class="nd">@dataclass</span>
 <div class="viewcode-block" id="WallGeometry">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.control.WallGeometry">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/control/wall/index.html#pyna.toroidal.control.wall.WallGeometry">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">WallGeometry</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;First wall contour in R-Z poloidal cross-section.</span>
 
@@ -493,23 +493,23 @@
 <span class="sd">        Z coordinates of gap monitoring points on the wall.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="WallGeometry.R_wall">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/control/wall/index.html#pyna.toroidal.control.WallGeometry.R_wall">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/control/wall/index.html#pyna.toroidal.control.wall.WallGeometry.R_wall">[docs]</a>
     <span class="n">R_wall</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="WallGeometry.Z_wall">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/control/wall/index.html#pyna.toroidal.control.WallGeometry.Z_wall">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/control/wall/index.html#pyna.toroidal.control.wall.WallGeometry.Z_wall">[docs]</a>
     <span class="n">Z_wall</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="WallGeometry.gap_monitor_names">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/control/wall/index.html#pyna.toroidal.control.WallGeometry.gap_monitor_names">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/control/wall/index.html#pyna.toroidal.control.wall.WallGeometry.gap_monitor_names">[docs]</a>
     <span class="n">gap_monitor_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="WallGeometry.gap_monitor_R">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/control/wall/index.html#pyna.toroidal.control.WallGeometry.gap_monitor_R">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/control/wall/index.html#pyna.toroidal.control.wall.WallGeometry.gap_monitor_R">[docs]</a>
     <span class="n">gap_monitor_R</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="WallGeometry.gap_monitor_Z">
-<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/control/wall/index.html#pyna.toroidal.control.WallGeometry.gap_monitor_Z">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/control/wall/index.html#pyna.toroidal.control.wall.WallGeometry.gap_monitor_Z">[docs]</a>
     <span class="n">gap_monitor_Z</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
@@ -555,7 +555,7 @@
         <span class="k">return</span> <span class="n">n2</span>
 
 <div class="viewcode-block" id="WallGeometry.inward_normal_at">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.control.WallGeometry.inward_normal_at">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/control/wall/index.html#pyna.toroidal.control.wall.WallGeometry.inward_normal_at">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">inward_normal_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R_pt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Z_pt</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute inward wall normal at the wall segment nearest to (R_pt, Z_pt).</span>
 
@@ -600,7 +600,7 @@
 
 
 <div class="viewcode-block" id="WallGeometry.gap_to_LCFS">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.control.WallGeometry.gap_to_LCFS">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/control/wall/index.html#pyna.toroidal.control.wall.WallGeometry.gap_to_LCFS">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">gap_to_LCFS</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">LCFS_R</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">LCFS_Z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
                     <span class="n">monitor_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute gap from wall monitoring point to nearest LCFS point.</span>
@@ -624,7 +624,7 @@
 
 
 <div class="viewcode-block" id="WallGeometry.all_gaps">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.control.WallGeometry.all_gaps">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/control/wall/index.html#pyna.toroidal.control.wall.WallGeometry.all_gaps">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">all_gaps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">LCFS_R</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">LCFS_Z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute all g_i gaps dict {name: gap_m}.</span>
 
@@ -649,7 +649,7 @@
 
 
 <div class="viewcode-block" id="make_east_like_wall">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.control.make_east_like_wall">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/control/wall/index.html#pyna.toroidal.control.wall.make_east_like_wall">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_east_like_wall</span><span class="p">(</span><span class="n">R0</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.85</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.45</span><span class="p">,</span>
                         <span class="n">kappa</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.6</span><span class="p">,</span> <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.4</span><span class="p">,</span>
                         <span class="n">n_pts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WallGeometry</span><span class="p">:</span>

@@ -469,17 +469,17 @@
 
 <span class="nd">@runtime_checkable</span>
 <div class="viewcode-block" id="SectionCutBridge">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.bridges.SectionCutBridge">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/bridges/index.html#pyna.topo.bridges.SectionCutBridge">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SectionCutBridge</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Bridge from continuous geometry to section-level discrete geometry.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="SectionCutBridge.cut_tube">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.bridges.SectionCutBridge.cut_tube">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/bridges/index.html#pyna.topo.bridges.SectionCutBridge.cut_tube">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">cut_tube</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tube</span><span class="p">:</span> <span class="n">Tube</span><span class="p">,</span> <span class="n">section</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IslandChain</span><span class="p">:</span> <span class="o">...</span></div>
 
 
 <div class="viewcode-block" id="SectionCutBridge.cut_tube_chain">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.bridges.SectionCutBridge.cut_tube_chain">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/bridges/index.html#pyna.topo.bridges.SectionCutBridge.cut_tube_chain">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">cut_tube_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tube_chain</span><span class="p">:</span> <span class="n">TubeChain</span><span class="p">,</span> <span class="n">section</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IslandChain</span><span class="p">:</span> <span class="o">...</span></div>
 </div>
 
@@ -487,18 +487,18 @@
 
 <span class="nd">@dataclass</span>
 <div class="viewcode-block" id="CoreSectionCutBridge">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.bridges.CoreSectionCutBridge">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/bridges/index.html#pyna.topo.bridges.CoreSectionCutBridge">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CoreSectionCutBridge</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Default bridge for ``pyna.topo.core`` geometry objects.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="CoreSectionCutBridge.cut_cycle">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.bridges.CoreSectionCutBridge.cut_cycle">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/bridges/index.html#pyna.topo.bridges.CoreSectionCutBridge.cut_cycle">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">cut_cycle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cycle</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">section</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PeriodicOrbit</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">cycle</span><span class="o">.</span><span class="n">section_cut</span><span class="p">(</span><span class="n">section</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="CoreSectionCutBridge.cut_tube">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.bridges.CoreSectionCutBridge.cut_tube">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/bridges/index.html#pyna.topo.bridges.CoreSectionCutBridge.cut_tube">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">cut_tube</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tube</span><span class="p">:</span> <span class="n">Tube</span><span class="p">,</span> <span class="n">section</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IslandChain</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Cut a generic ``Tube`` into a generic ``IslandChain``.&quot;&quot;&quot;</span>
 
@@ -533,7 +533,7 @@
 
 
 <div class="viewcode-block" id="CoreSectionCutBridge.cut_tube_chain">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.bridges.CoreSectionCutBridge.cut_tube_chain">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/bridges/index.html#pyna.topo.bridges.CoreSectionCutBridge.cut_tube_chain">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">cut_tube_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tube_chain</span><span class="p">:</span> <span class="n">TubeChain</span><span class="p">,</span> <span class="n">section</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IslandChain</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Cut all tubes and merge their islands into one generic chain.&quot;&quot;&quot;</span>
 

@@ -478,18 +478,18 @@
 
 <span class="nd">@runtime_checkable</span>
 <div class="viewcode-block" id="FlowLike">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.protocols.FlowLike">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/protocols/index.html#pyna.topo.protocols.FlowLike">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">FlowLike</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Continuous-time system exposing a vector field.&quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="FlowLike.phase_space">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.protocols.FlowLike.phase_space">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/protocols/index.html#pyna.topo.protocols.FlowLike.phase_space">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">phase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhaseSpace</span><span class="p">:</span> <span class="o">...</span></div>
 
 
 <div class="viewcode-block" id="FlowLike.vector_field">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.protocols.FlowLike.vector_field">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/protocols/index.html#pyna.topo.protocols.FlowLike.vector_field">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">vector_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span> <span class="o">...</span></div>
 </div>
 
@@ -497,18 +497,18 @@
 
 <span class="nd">@runtime_checkable</span>
 <div class="viewcode-block" id="MapLike">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.protocols.MapLike">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/protocols/index.html#pyna.topo.protocols.MapLike">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MapLike</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Discrete-time map exposing one-step iteration.&quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="MapLike.phase_space">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.protocols.MapLike.phase_space">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/protocols/index.html#pyna.topo.protocols.MapLike.phase_space">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">phase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhaseSpace</span><span class="p">:</span> <span class="o">...</span></div>
 
 
 <div class="viewcode-block" id="MapLike.step">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.protocols.MapLike.step">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/protocols/index.html#pyna.topo.protocols.MapLike.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span> <span class="o">...</span></div>
 </div>
 
@@ -516,12 +516,12 @@
 
 <span class="nd">@runtime_checkable</span>
 <div class="viewcode-block" id="JacobianProvider">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.protocols.JacobianProvider">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/protocols/index.html#pyna.topo.protocols.JacobianProvider">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">JacobianProvider</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Object that can provide a local derivative matrix.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="JacobianProvider.jacobian">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.protocols.JacobianProvider.jacobian">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/protocols/index.html#pyna.topo.protocols.JacobianProvider.jacobian">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">jacobian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span> <span class="o">...</span></div>
 </div>
 
@@ -529,24 +529,24 @@
 
 <span class="nd">@runtime_checkable</span>
 <div class="viewcode-block" id="SectionLike">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.protocols.SectionLike">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/protocols/index.html#pyna.topo.protocols.SectionLike">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SectionLike</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Codimension-one section used for cuts and Poincare maps.&quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="SectionLike.dim_phase">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.protocols.SectionLike.dim_phase">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/protocols/index.html#pyna.topo.protocols.SectionLike.dim_phase">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">dim_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span> <span class="o">...</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="SectionLike.label">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.protocols.SectionLike.label">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/protocols/index.html#pyna.topo.protocols.SectionLike.label">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span> <span class="o">...</span></div>
 
 
 <div class="viewcode-block" id="SectionLike.detect_crossing">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.protocols.SectionLike.detect_crossing">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/protocols/index.html#pyna.topo.protocols.SectionLike.detect_crossing">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">detect_crossing</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x_prev</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -556,7 +556,7 @@
 
 
 <div class="viewcode-block" id="SectionLike.project">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.protocols.SectionLike.project">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/protocols/index.html#pyna.topo.protocols.SectionLike.project">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span> <span class="o">...</span></div>
 </div>
 
@@ -564,7 +564,7 @@
 
 <span class="nd">@runtime_checkable</span>
 <div class="viewcode-block" id="StabilityClassifier">
-<a class="viewcode-back" href="../../../zh/api/dynamics-patterns.html#pyna.topo.protocols.StabilityClassifier">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/protocols/index.html#pyna.topo.protocols.StabilityClassifier">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">StabilityClassifier</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Callable linear-stability classifier.&quot;&quot;&quot;</span>
 

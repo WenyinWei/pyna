@@ -453,7 +453,6 @@
 <li class="toctree-l3"><a class="reference internal" href="../sysutil/index.html">pyna.sysutil</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../topo/index.html">pyna.topo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../toroidal/index.html">pyna.toroidal</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../trace_dataset/index.html">pyna.trace_dataset</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../utils/index.html">pyna.utils</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../vector_calc/index.html">pyna.vector_calc</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../withparam/index.html">pyna.withparam</a></li>
@@ -804,21 +803,6 @@ writes in a background thread.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pyna.cache.CacheStore.flush">
-<span class="sig-name descname"><span class="pre">flush</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../../../../_modules/pyna/cache.html#CacheStore.flush"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.cache.CacheStore.flush" title="Link to this definition">#</a></dt>
-<dd><p>Wait for pending async writes to finish.</p>
-<p>This is the reliability boundary for cross-process resume: after
-<code class="docutils literal notranslate"><span class="pre">flush()</span></code> returns, all writes submitted before the call have either
-reached disk and the index, or an exception is raised.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pyna.cache.CacheStore.join_pending_writes">
-<span class="sig-name descname"><span class="pre">join_pending_writes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../../../../_modules/pyna/cache.html#CacheStore.join_pending_writes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.cache.CacheStore.join_pending_writes" title="Link to this definition">#</a></dt>
-<dd><p>Alias for <code class="docutils literal notranslate"><span class="pre">flush()</span></code> with a resume-oriented name.</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="pyna.cache.CacheStore.contains">
 <span class="sig-name descname"><span class="pre">contains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../../../../../_modules/pyna/cache.html#CacheStore.contains"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.cache.CacheStore.contains" title="Link to this definition">#</a></dt>
 <dd><p>Check if a key exists and is valid (not expired, file exists).</p>
@@ -1096,8 +1080,6 @@ entries for this specific function.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.cache.CacheStore.async_write"><code class="docutils literal notranslate"><span class="pre">CacheStore.async_write</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.cache.CacheStore.get"><code class="docutils literal notranslate"><span class="pre">CacheStore.get()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.cache.CacheStore.put"><code class="docutils literal notranslate"><span class="pre">CacheStore.put()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.cache.CacheStore.flush"><code class="docutils literal notranslate"><span class="pre">CacheStore.flush()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.cache.CacheStore.join_pending_writes"><code class="docutils literal notranslate"><span class="pre">CacheStore.join_pending_writes()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.cache.CacheStore.contains"><code class="docutils literal notranslate"><span class="pre">CacheStore.contains()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.cache.CacheStore.remove"><code class="docutils literal notranslate"><span class="pre">CacheStore.remove()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.cache.CacheStore.clear"><code class="docutils literal notranslate"><span class="pre">CacheStore.clear()</span></code></a></li>

@@ -477,7 +477,7 @@
 
 <span class="nd">@dataclass</span>
 <div class="viewcode-block" id="ToroidalPeriodicOrbitTrace">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_cycle/index.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ToroidalPeriodicOrbitTrace</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A periodic field-line orbit.</span>
 
@@ -494,25 +494,25 @@
 <span class="sd">        Monodromy matrix DPm = DX_pol(phi_end), phi_end = 2π·m. Eigenvalues characterize stability.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.rzphi0">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.rzphi0">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_cycle/index.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.rzphi0">[docs]</a>
     <span class="n">rzphi0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.period_m">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.period_m">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_cycle/index.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.period_m">[docs]</a>
     <span class="n">period_m</span><span class="p">:</span> <span class="nb">int</span></div>
 
 <div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.trajectory">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.trajectory">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_cycle/index.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.trajectory">[docs]</a>
     <span class="n">trajectory</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 <div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.DPm">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.DPm">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_cycle/index.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.DPm">[docs]</a>
     <span class="n">DPm</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.period_n">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.period_n">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_cycle/index.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.period_n">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">period_n</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Alias for period_m (backward compatibility).&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">period_m</span></div>
@@ -520,7 +520,7 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.Jac">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.Jac">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_cycle/index.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.Jac">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">Jac</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated alias for DPm.&quot;&quot;&quot;</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
@@ -533,7 +533,7 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.is_stable">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.is_stable">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_cycle/index.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.is_stable">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_stable</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;True if |eigenvalues| ≤ 1 (elliptic, O-point type).&quot;&quot;&quot;</span>
         <span class="n">eigvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigvals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DPm</span><span class="p">)</span>
@@ -542,14 +542,14 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.eigenvalues">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.eigenvalues">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_cycle/index.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.eigenvalues">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">eigenvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigvals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DPm</span><span class="p">)</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.stability_index">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.stability_index">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_cycle/index.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.stability_index">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">stability_index</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Tr(DPm)/2 for a 2x2 symplectic map. |k|&lt;1 → elliptic, |k|&gt;1 → hyperbolic.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DPm</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span></div>
@@ -557,7 +557,7 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.kind">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.kind">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_cycle/index.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.kind">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">kind</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return determinant-checked monodromy kind: X, O, P, or U.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">monodromy_kind</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DPm</span><span class="p">)</span></div>
@@ -566,7 +566,7 @@
     <span class="c1"># ── InvariantSet-style interface ───────────────────────────────────────</span>
 
 <div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.section_cut">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.section_cut">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_cycle/index.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.section_cut">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">section_cut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the point(s) at which this orbit crosses a toroidal section.</span>
 
@@ -617,7 +617,7 @@
 
 
 <div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.diagnostics">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.diagnostics">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_cycle/index.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.diagnostics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">diagnostics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="n">eigvals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigenvalues</span>
         <span class="k">return</span> <span class="p">{</span>
@@ -646,7 +646,7 @@
 
 
 <div class="viewcode-block" id="poincare_map_n">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.toroidal_cycle.poincare_map_n">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_cycle/index.html#pyna.topo.toroidal_cycle.poincare_map_n">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">poincare_map_n</span><span class="p">(</span>
     <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
     <span class="n">rzphi0</span><span class="p">,</span>
@@ -716,7 +716,7 @@
 
 
 <div class="viewcode-block" id="poincare_map_n_trajectory">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.toroidal_cycle.poincare_map_n_trajectory">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_cycle/index.html#pyna.topo.toroidal_cycle.poincare_map_n_trajectory">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">poincare_map_n_trajectory</span><span class="p">(</span>
     <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
     <span class="n">rzphi0</span><span class="p">,</span>
@@ -762,7 +762,7 @@
 
 
 <div class="viewcode-block" id="jacobian_of_poincare_map">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.toroidal_cycle.jacobian_of_poincare_map">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_cycle/index.html#pyna.topo.toroidal_cycle.jacobian_of_poincare_map">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">jacobian_of_poincare_map</span><span class="p">(</span>
     <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
     <span class="n">rzphi0</span><span class="p">,</span>
@@ -865,7 +865,7 @@
 
 
 <div class="viewcode-block" id="find_cycle">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.toroidal_cycle.find_cycle">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_cycle/index.html#pyna.topo.toroidal_cycle.find_cycle">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">find_cycle</span><span class="p">(</span>
     <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
     <span class="n">init_rzphi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -943,7 +943,7 @@
 <span class="c1"># ---------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="find_all_cycles_near_resonance">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.toroidal_cycle.find_all_cycles_near_resonance">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_cycle/index.html#pyna.topo.toroidal_cycle.find_all_cycles_near_resonance">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">find_all_cycles_near_resonance</span><span class="p">(</span>
     <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
     <span class="n">equilibrium</span><span class="p">,</span>

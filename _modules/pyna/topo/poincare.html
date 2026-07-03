@@ -496,7 +496,7 @@
 <span class="c1"># ---------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="PoincareSection">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.poincare.PoincareSection">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/poincare/index.html#pyna.topo.poincare.PoincareSection">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PoincareSection</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract crossing surface for use with PoincareAccumulator.</span>
 
@@ -508,7 +508,7 @@
 
     <span class="nd">@abstractmethod</span>
 <div class="viewcode-block" id="PoincareSection.detect_crossing">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.poincare.PoincareSection.detect_crossing">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/poincare/index.html#pyna.topo.poincare.PoincareSection.detect_crossing">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">detect_crossing</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">pt_prev</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -530,7 +530,7 @@
     <span class="nd">@property</span>
     <span class="nd">@abstractmethod</span>
 <div class="viewcode-block" id="PoincareSection.label">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.poincare.PoincareSection.label">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/poincare/index.html#pyna.topo.poincare.PoincareSection.label">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Human-readable label for this section.&quot;&quot;&quot;</span></div>
 </div>
@@ -538,7 +538,7 @@
 
 
 <div class="viewcode-block" id="PoincareToroidalSection">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.poincare.PoincareToroidalSection">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/poincare/index.html#pyna.topo.poincare.PoincareToroidalSection">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PoincareToroidalSection</span><span class="p">(</span><span class="n">PoincareSection</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Toroidal section at φ = φ₀ for use with PoincareAccumulator.</span>
 
@@ -559,13 +559,13 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="PoincareToroidalSection.label">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.poincare.PoincareToroidalSection.label">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/poincare/index.html#pyna.topo.poincare.PoincareToroidalSection.label">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;ToroidalSection(φ=</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phi0</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">°)&quot;</span></div>
 
 
 <div class="viewcode-block" id="PoincareToroidalSection.detect_crossing">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.poincare.PoincareToroidalSection.detect_crossing">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/poincare/index.html#pyna.topo.poincare.PoincareToroidalSection.detect_crossing">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">detect_crossing</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">pt_prev</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -604,7 +604,7 @@
 <span class="c1"># ---------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="PoincareAccumulator">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.poincare.PoincareAccumulator">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/poincare/index.html#pyna.topo.poincare.PoincareAccumulator">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PoincareAccumulator</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Collect and store trajectory crossings on multiple sections.</span>
 
@@ -622,7 +622,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_crossings</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">sections</span><span class="p">]</span>
 
 <div class="viewcode-block" id="PoincareAccumulator.record_step">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.poincare.PoincareAccumulator.record_step">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/poincare/index.html#pyna.topo.poincare.PoincareAccumulator.record_step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">record_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pt_prev</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pt_curr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Check all sections for a crossing between two consecutive points.&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sections</span><span class="p">):</span>
@@ -632,7 +632,7 @@
 
 
 <div class="viewcode-block" id="PoincareAccumulator.record_trajectory">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.poincare.PoincareAccumulator.record_trajectory">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/poincare/index.html#pyna.topo.poincare.PoincareAccumulator.record_trajectory">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">record_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">traj</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Record all crossings in a full trajectory array.</span>
 
@@ -646,7 +646,7 @@
 
 
 <div class="viewcode-block" id="PoincareAccumulator.crossing_array">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.poincare.PoincareAccumulator.crossing_array">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/poincare/index.html#pyna.topo.poincare.PoincareAccumulator.crossing_array">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">crossing_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return all crossings for a given section as an (N, 3) array.</span>
 
@@ -674,7 +674,7 @@
 
 <span class="c1">#: Alias for ``PoincareAccumulator`` kept for backward compatibility.</span>
 <div class="viewcode-block" id="PoincareMap">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.poincare.PoincareMap">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/poincare/index.html#pyna.topo.poincare.PoincareMap">[docs]</a>
 <span class="n">PoincareMap</span> <span class="o">=</span> <span class="n">PoincareAccumulator</span></div>
 
 
@@ -682,14 +682,14 @@
 <span class="c1">#: (has detect_crossing for use with PoincareAccumulator)</span>
 <span class="c1">#: For section-based topology queries, use ``pyna.topo.section.ToroidalSection``.</span>
 <div class="viewcode-block" id="ToroidalSection">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.poincare.ToroidalSection">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/poincare/index.html#pyna.topo.poincare.ToroidalSection">[docs]</a>
 <span class="n">ToroidalSection</span> <span class="o">=</span> <span class="n">PoincareToroidalSection</span></div>
 
 
 <span class="c1">#: Backward-compatible alias: ``Section`` from poincare module → PoincareSection ABC</span>
 <span class="c1">#: For the canonical Section ABC, use ``pyna.topo.section.Section``.</span>
 <div class="viewcode-block" id="Section">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.poincare.Section">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/poincare/index.html#pyna.topo.poincare.Section">[docs]</a>
 <span class="n">Section</span> <span class="o">=</span> <span class="n">PoincareSection</span></div>
 
 
@@ -699,7 +699,7 @@
 <span class="c1"># ---------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="poincare_from_fieldlines">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.poincare.poincare_from_fieldlines">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/poincare/index.html#pyna.topo.poincare.poincare_from_fieldlines">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">poincare_from_fieldlines</span><span class="p">(</span>
     <span class="n">field_func</span><span class="p">,</span>
     <span class="n">start_pts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -753,7 +753,7 @@
 <span class="c1"># ---------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="rotational_transform_from_trajectory">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.poincare.rotational_transform_from_trajectory">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/poincare/index.html#pyna.topo.poincare.rotational_transform_from_trajectory">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">rotational_transform_from_trajectory</span><span class="p">(</span>
     <span class="n">traj</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="n">axis_RZ</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>

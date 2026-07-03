@@ -490,7 +490,7 @@
 
 
 <div class="viewcode-block" id="field_arrays_from_interpolators">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.field_arrays_from_interpolators">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.field_arrays_from_interpolators">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">field_arrays_from_interpolators</span><span class="p">(</span><span class="n">itp_BR</span><span class="p">,</span> <span class="n">itp_BZ</span><span class="p">,</span> <span class="n">itp_BPhi</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract contiguous field arrays from ``RegularGridInterpolator`` objects.&quot;&quot;&quot;</span>
     <span class="n">R_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">itp_BR</span><span class="o">.</span><span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
@@ -506,7 +506,7 @@
 
 
 <div class="viewcode-block" id="field_arrays_from_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.field_arrays_from_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.field_arrays_from_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">field_arrays_from_field</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">extend_phi</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CylindricalFieldArrays</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a named cyna-array view from a cylindrical vector field object.&quot;&quot;&quot;</span>
 
@@ -549,7 +549,7 @@
 
 
 <div class="viewcode-block" id="vector_field_cylind_from_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.vector_field_cylind_from_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.vector_field_cylind_from_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">vector_field_cylind_from_field</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">extend_phi</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a cyna ``VectorFieldCylind`` handle from a pyna VectorFieldCylind.&quot;&quot;&quot;</span>
 
@@ -591,7 +591,7 @@
 
 
 <div class="viewcode-block" id="precompile_tracer">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.precompile_tracer">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.precompile_tracer">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">precompile_tracer</span><span class="p">(</span><span class="n">R_grid</span><span class="p">,</span> <span class="n">Z_grid</span><span class="p">,</span> <span class="n">Phi_grid</span><span class="p">,</span> <span class="n">BR_flat</span><span class="p">,</span> <span class="n">BZ_flat</span><span class="p">,</span> <span class="n">BPhi_flat</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compatibility no-op retained for the historical numba-era API.&quot;&quot;&quot;</span>
     <span class="n">_</span> <span class="o">=</span> <span class="p">(</span><span class="n">R_grid</span><span class="p">,</span> <span class="n">Z_grid</span><span class="p">,</span> <span class="n">Phi_grid</span><span class="p">,</span> <span class="n">BR_flat</span><span class="p">,</span> <span class="n">BZ_flat</span><span class="p">,</span> <span class="n">BPhi_flat</span><span class="p">)</span></div>
@@ -625,7 +625,7 @@
 
 
 <div class="viewcode-block" id="trace_poincare_batch">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_poincare_batch">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_poincare_batch">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_poincare_batch</span><span class="p">(</span>
     <span class="n">R_seeds</span><span class="p">,</span>
     <span class="n">Z_seeds</span><span class="p">,</span>
@@ -675,7 +675,7 @@
 
 
 <div class="viewcode-block" id="trace_poincare_batch_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_poincare_batch_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_poincare_batch_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_poincare_batch_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">R_seeds</span><span class="p">,</span>
@@ -716,7 +716,7 @@
 
 
 <div class="viewcode-block" id="trace_poincare_bidirectional_batch">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_poincare_bidirectional_batch">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_poincare_bidirectional_batch</span><span class="p">(</span>
     <span class="n">R_seeds</span><span class="p">,</span>
     <span class="n">Z_seeds</span><span class="p">,</span>
@@ -754,7 +754,7 @@
 
 
 <div class="viewcode-block" id="trace_poincare_bidirectional_batch_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_poincare_bidirectional_batch_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_poincare_bidirectional_batch_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">R_seeds</span><span class="p">,</span>
@@ -790,7 +790,7 @@
 
 
 <div class="viewcode-block" id="trace_poincare_multi_batch">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_poincare_multi_batch">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_poincare_multi_batch">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_poincare_multi_batch</span><span class="p">(</span>
     <span class="n">R_seeds</span><span class="p">,</span>
     <span class="n">Z_seeds</span><span class="p">,</span>
@@ -841,7 +841,7 @@
 
 
 <div class="viewcode-block" id="trace_poincare_multi_batch_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_poincare_multi_batch_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_poincare_multi_batch_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_poincare_multi_batch_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">R_seeds</span><span class="p">,</span>
@@ -878,7 +878,7 @@
 
 
 <div class="viewcode-block" id="trace_poincare_multi_bidirectional_batch">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_poincare_multi_bidirectional_batch">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_poincare_multi_bidirectional_batch">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_poincare_multi_bidirectional_batch</span><span class="p">(</span>
     <span class="n">R_seeds</span><span class="p">,</span>
     <span class="n">Z_seeds</span><span class="p">,</span>
@@ -912,7 +912,7 @@
 
 
 <div class="viewcode-block" id="trace_poincare_multi_bidirectional_batch_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_poincare_multi_bidirectional_batch_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_poincare_multi_bidirectional_batch_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_poincare_multi_bidirectional_batch_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">R_seeds</span><span class="p">,</span>
@@ -948,7 +948,7 @@
 
 
 <div class="viewcode-block" id="trace_poincare_batch_twall">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_poincare_batch_twall">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_poincare_batch_twall">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_poincare_batch_twall</span><span class="p">(</span>
     <span class="n">R_seeds</span><span class="p">,</span>
     <span class="n">Z_seeds</span><span class="p">,</span>
@@ -1000,7 +1000,7 @@
 
 
 <div class="viewcode-block" id="trace_poincare_batch_twall_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_poincare_batch_twall_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_poincare_batch_twall_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_poincare_batch_twall_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">R_seeds</span><span class="p">,</span>
@@ -1040,7 +1040,7 @@
 
 
 <div class="viewcode-block" id="trace_poincare_bidirectional_batch_twall">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_poincare_bidirectional_batch_twall">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch_twall">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_poincare_bidirectional_batch_twall</span><span class="p">(</span>
     <span class="n">R_seeds</span><span class="p">,</span>
     <span class="n">Z_seeds</span><span class="p">,</span>
@@ -1075,7 +1075,7 @@
 
 
 <div class="viewcode-block" id="trace_poincare_bidirectional_batch_twall_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_poincare_bidirectional_batch_twall_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch_twall_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_poincare_bidirectional_batch_twall_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">R_seeds</span><span class="p">,</span>
@@ -1113,7 +1113,7 @@
 
 
 <div class="viewcode-block" id="trace_connection_length_twall">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_connection_length_twall">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_connection_length_twall">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_connection_length_twall</span><span class="p">(</span>
     <span class="n">R_seeds</span><span class="p">,</span>
     <span class="n">Z_seeds</span><span class="p">,</span>
@@ -1174,7 +1174,7 @@
 
 
 <div class="viewcode-block" id="trace_connection_length_twall_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_connection_length_twall_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_connection_length_twall_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_connection_length_twall_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">R_seeds</span><span class="p">,</span>
@@ -1214,7 +1214,7 @@
 
 
 <div class="viewcode-block" id="trace_wall_hits_twall">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_wall_hits_twall">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_wall_hits_twall">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_wall_hits_twall</span><span class="p">(</span>
     <span class="n">R_seeds</span><span class="p">,</span>
     <span class="n">Z_seeds</span><span class="p">,</span>
@@ -1297,7 +1297,7 @@
 
 
 <div class="viewcode-block" id="trace_wall_hits_twall_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_wall_hits_twall_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_wall_hits_twall_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_wall_hits_twall_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">R_seeds</span><span class="p">,</span>
@@ -1337,7 +1337,7 @@
 
 
 <div class="viewcode-block" id="strike_line_from_wall_hits">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.strike_line_from_wall_hits">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.strike_line_from_wall_hits">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">strike_line_from_wall_hits</span><span class="p">(</span><span class="n">wall_hits</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="n">wall_term</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract strike points from a ``trace_wall_hits_twall`` result.</span>
 
@@ -1362,7 +1362,7 @@
 
 
 <div class="viewcode-block" id="trace_strike_line_twall">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_strike_line_twall">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_strike_line_twall">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_strike_line_twall</span><span class="p">(</span>
     <span class="n">R_seeds</span><span class="p">,</span>
     <span class="n">Z_seeds</span><span class="p">,</span>
@@ -1405,7 +1405,7 @@
 
 
 <div class="viewcode-block" id="trace_strike_line_twall_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_strike_line_twall_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_strike_line_twall_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_strike_line_twall_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">R_seeds</span><span class="p">,</span>
@@ -1446,7 +1446,7 @@
 
 
 <div class="viewcode-block" id="find_fixed_points_batch">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.find_fixed_points_batch">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.find_fixed_points_batch">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">find_fixed_points_batch</span><span class="p">(</span>
     <span class="n">R_seeds</span><span class="p">,</span>
     <span class="n">Z_seeds</span><span class="p">,</span>
@@ -1504,7 +1504,7 @@
 
 
 <div class="viewcode-block" id="find_fixed_points_batch_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.find_fixed_points_batch_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.find_fixed_points_batch_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">find_fixed_points_batch_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">R_seeds</span><span class="p">,</span>
@@ -1539,7 +1539,7 @@
 
 
 <div class="viewcode-block" id="find_fixed_points_batch_span">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.find_fixed_points_batch_span">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.find_fixed_points_batch_span">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">find_fixed_points_batch_span</span><span class="p">(</span>
     <span class="n">R_seeds</span><span class="p">,</span>
     <span class="n">Z_seeds</span><span class="p">,</span>
@@ -1597,7 +1597,7 @@
 
 
 <div class="viewcode-block" id="find_fixed_points_batch_span_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.find_fixed_points_batch_span_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.find_fixed_points_batch_span_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">find_fixed_points_batch_span_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">R_seeds</span><span class="p">,</span>
@@ -1657,7 +1657,7 @@
 
 
 <div class="viewcode-block" id="trace_map_batch_span">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_map_batch_span">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_map_batch_span">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_map_batch_span</span><span class="p">(</span>
     <span class="n">R_seeds</span><span class="p">,</span>
     <span class="n">Z_seeds</span><span class="p">,</span>
@@ -1715,7 +1715,7 @@
 
 
 <div class="viewcode-block" id="trace_map_batch_span_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_map_batch_span_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_map_batch_span_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_map_batch_span_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">R_seeds</span><span class="p">,</span>
@@ -1752,7 +1752,7 @@
 
 
 <div class="viewcode-block" id="trace_orbit_along_phi">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_orbit_along_phi">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_orbit_along_phi">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_orbit_along_phi</span><span class="p">(</span>
     <span class="n">R0</span><span class="p">,</span>
     <span class="n">Z0</span><span class="p">,</span>
@@ -1812,7 +1812,7 @@
 
 
 <div class="viewcode-block" id="trace_orbit_along_phi_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_orbit_along_phi_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_orbit_along_phi_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_orbit_along_phi_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">R0</span><span class="p">,</span>
@@ -1849,7 +1849,7 @@
 
 
 <div class="viewcode-block" id="trace_orbit_bidirectional_along_phi">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_orbit_bidirectional_along_phi">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_orbit_bidirectional_along_phi">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_orbit_bidirectional_along_phi</span><span class="p">(</span>
     <span class="n">R0</span><span class="p">,</span>
     <span class="n">Z0</span><span class="p">,</span>
@@ -1914,7 +1914,7 @@
 
 
 <div class="viewcode-block" id="trace_orbit_bidirectional_along_phi_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_orbit_bidirectional_along_phi_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_orbit_bidirectional_along_phi_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_orbit_bidirectional_along_phi_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">R0</span><span class="p">,</span>
@@ -1951,7 +1951,7 @@
 
 
 <div class="viewcode-block" id="progress_DX_pol_along_orbit">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.progress_DX_pol_along_orbit">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.progress_DX_pol_along_orbit">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">progress_DX_pol_along_orbit</span><span class="p">(</span>
     <span class="n">R_traj</span><span class="p">,</span>
     <span class="n">Z_traj</span><span class="p">,</span>
@@ -1989,7 +1989,7 @@
 
 
 <div class="viewcode-block" id="progress_DX_pol_along_orbit_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.progress_DX_pol_along_orbit_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.progress_DX_pol_along_orbit_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">progress_DX_pol_along_orbit_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">R_traj</span><span class="p">,</span>
@@ -2018,7 +2018,7 @@
 
 
 <div class="viewcode-block" id="progress_delta_X_along_orbit">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.progress_delta_X_along_orbit">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.progress_delta_X_along_orbit">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">progress_delta_X_along_orbit</span><span class="p">(</span>
     <span class="n">R_traj</span><span class="p">,</span>
     <span class="n">Z_traj</span><span class="p">,</span>
@@ -2064,7 +2064,7 @@
 
 
 <div class="viewcode-block" id="evolve_delta_X_cycle_along_cycle">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.evolve_delta_X_cycle_along_cycle">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">evolve_delta_X_cycle_along_cycle</span><span class="p">(</span>
     <span class="n">R_traj</span><span class="p">,</span>
     <span class="n">Z_traj</span><span class="p">,</span>
@@ -2114,7 +2114,7 @@
 
 
 <div class="viewcode-block" id="evolve_delta_X_cycle_along_orbit">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.evolve_delta_X_cycle_along_orbit">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_orbit">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">evolve_delta_X_cycle_along_orbit</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compatibility alias for :func:`evolve_delta_X_cycle_along_cycle`.&quot;&quot;&quot;</span>
 
@@ -2123,7 +2123,7 @@
 
 
 <div class="viewcode-block" id="progress_delta_X_along_orbit_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.progress_delta_X_along_orbit_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.progress_delta_X_along_orbit_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">progress_delta_X_along_orbit_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">delta_field</span><span class="p">,</span>
@@ -2159,7 +2159,7 @@
 
 
 <div class="viewcode-block" id="evolve_delta_X_cycle_along_cycle_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.evolve_delta_X_cycle_along_cycle_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">evolve_delta_X_cycle_along_cycle_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">delta_field</span><span class="p">,</span>
@@ -2195,7 +2195,7 @@
 
 
 <div class="viewcode-block" id="evolve_delta_X_cycle_along_orbit_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.evolve_delta_X_cycle_along_orbit_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_orbit_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">evolve_delta_X_cycle_along_orbit_field</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compatibility alias for :func:`evolve_delta_X_cycle_along_cycle_field`.&quot;&quot;&quot;</span>
 
@@ -2204,7 +2204,7 @@
 
 
 <div class="viewcode-block" id="trace_poincare_dpk_growth">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_poincare_dpk_growth">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_poincare_dpk_growth</span><span class="p">(</span>
     <span class="n">R0</span><span class="p">,</span>
     <span class="n">Z0</span><span class="p">,</span>
@@ -2249,7 +2249,7 @@
 
 
 <div class="viewcode-block" id="trace_poincare_dpk_growth_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_poincare_dpk_growth_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_poincare_dpk_growth_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">R0</span><span class="p">,</span>
@@ -2284,7 +2284,7 @@
 
 
 <div class="viewcode-block" id="trace_poincare_dpk_growth_twall">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_poincare_dpk_growth_twall">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth_twall">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_poincare_dpk_growth_twall</span><span class="p">(</span>
     <span class="n">R0</span><span class="p">,</span>
     <span class="n">Z0</span><span class="p">,</span>
@@ -2338,7 +2338,7 @@
 
 
 <div class="viewcode-block" id="trace_poincare_dpk_growth_twall_field">
-<a class="viewcode-back" href="../../../../zh/api/toroidal.html#pyna.toroidal.flt.trace_poincare_dpk_growth_twall_field">[docs]</a>
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/numba_poincare/index.html#pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth_twall_field">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace_poincare_dpk_growth_twall_field</span><span class="p">(</span>
     <span class="n">field</span><span class="p">,</span>
     <span class="n">R0</span><span class="p">,</span>

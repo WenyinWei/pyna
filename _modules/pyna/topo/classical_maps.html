@@ -482,7 +482,7 @@
 
 <span class="nd">@dataclass</span>
 <div class="viewcode-block" id="HenonMap">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.classical_maps.HenonMap">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/classical_maps/index.html#pyna.topo.classical_maps.HenonMap">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">HenonMap</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Hénon area-preserving quadratic map.</span>
 
@@ -498,12 +498,12 @@
 <span class="sd">    so elliptic when sqrt(K) &lt; 0.5, i.e. K &lt; 0.25.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="HenonMap.K">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.classical_maps.HenonMap.K">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/classical_maps/index.html#pyna.topo.classical_maps.HenonMap.K">[docs]</a>
     <span class="n">K</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span></div>
 
 
 <div class="viewcode-block" id="HenonMap.step">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.classical_maps.HenonMap.step">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/classical_maps/index.html#pyna.topo.classical_maps.HenonMap.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;One iteration of the map.&quot;&quot;&quot;</span>
         <span class="n">x_new</span> <span class="o">=</span> <span class="o">-</span><span class="n">y</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">K</span> <span class="o">-</span> <span class="n">x</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
@@ -512,7 +512,7 @@
 
 
 <div class="viewcode-block" id="HenonMap.iterate">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.classical_maps.HenonMap.iterate">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/classical_maps/index.html#pyna.topo.classical_maps.HenonMap.iterate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">iterate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">n_steps</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Iterate n_steps times, return full trajectory arrays.&quot;&quot;&quot;</span>
         <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="p">[</span><span class="n">x0</span><span class="p">],</span> <span class="p">[</span><span class="n">y0</span><span class="p">]</span>
@@ -525,7 +525,7 @@
 
 
 <div class="viewcode-block" id="HenonMap.fixed_points">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.classical_maps.HenonMap.fixed_points">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/classical_maps/index.html#pyna.topo.classical_maps.HenonMap.fixed_points">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">fixed_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return (O-point, X-point) fixed point coordinates.</span>
 
@@ -550,7 +550,7 @@
 
 
 <div class="viewcode-block" id="HenonMap.jacobian_at">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.classical_maps.HenonMap.jacobian_at">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/classical_maps/index.html#pyna.topo.classical_maps.HenonMap.jacobian_at">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">jacobian_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;2×2 Jacobian of the map at (x, y).</span>
 
@@ -563,7 +563,7 @@
 
 
 <div class="viewcode-block" id="HenonMap.monodromy_at_fixed_point">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.classical_maps.HenonMap.monodromy_at_fixed_point">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/classical_maps/index.html#pyna.topo.classical_maps.HenonMap.monodromy_at_fixed_point">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">monodromy_at_fixed_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Monodromy matrix (= Jacobian) at a fixed point.&quot;&quot;&quot;</span>
         <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">point</span>
@@ -574,7 +574,7 @@
 
 <span class="nd">@dataclass</span>
 <div class="viewcode-block" id="StandardMap">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.classical_maps.StandardMap">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/classical_maps/index.html#pyna.topo.classical_maps.StandardMap">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">StandardMap</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Chirikov standard (twist) map.</span>
 
@@ -591,12 +591,12 @@
 <span class="sd">    with det(J) = 1 (area-preserving).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="StandardMap.K">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.classical_maps.StandardMap.K">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/classical_maps/index.html#pyna.topo.classical_maps.StandardMap.K">[docs]</a>
     <span class="n">K</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span></div>
 
 
 <div class="viewcode-block" id="StandardMap.step">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.classical_maps.StandardMap.step">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/classical_maps/index.html#pyna.topo.classical_maps.StandardMap.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;One iteration of the map.&quot;&quot;&quot;</span>
         <span class="n">p_new</span> <span class="o">=</span> <span class="p">(</span><span class="n">p</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">K</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
@@ -605,7 +605,7 @@
 
 
 <div class="viewcode-block" id="StandardMap.iterate">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.classical_maps.StandardMap.iterate">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/classical_maps/index.html#pyna.topo.classical_maps.StandardMap.iterate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">iterate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">n_steps</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Iterate n_steps times, return full trajectory arrays.&quot;&quot;&quot;</span>
         <span class="n">ps</span><span class="p">,</span> <span class="n">xs</span> <span class="o">=</span> <span class="p">[</span><span class="n">p0</span><span class="p">],</span> <span class="p">[</span><span class="n">x0</span><span class="p">]</span>
@@ -618,7 +618,7 @@
 
 
 <div class="viewcode-block" id="StandardMap.jacobian_at">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.classical_maps.StandardMap.jacobian_at">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/classical_maps/index.html#pyna.topo.classical_maps.StandardMap.jacobian_at">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">jacobian_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;2×2 Jacobian at (p, x).&quot;&quot;&quot;</span>
         <span class="n">kcosx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">K</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -628,7 +628,7 @@
 
 
 <div class="viewcode-block" id="poincare_map_henon">
-<a class="viewcode-back" href="../../../zh/api/topo.html#pyna.topo.classical_maps.poincare_map_henon">[docs]</a>
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/classical_maps/index.html#pyna.topo.classical_maps.poincare_map_henon">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">poincare_map_henon</span><span class="p">(</span><span class="n">K_values</span><span class="p">,</span> <span class="n">n_steps</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">n_seeds</span><span class="o">=</span><span class="mi">30</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate Poincaré-like scatter plot data for Hénon map across K values.</span>
 

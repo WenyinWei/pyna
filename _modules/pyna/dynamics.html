@@ -490,7 +490,7 @@
 
 
 <div class="viewcode-block" id="TimeSeriesSolution">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.TimeSeriesSolution">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.TimeSeriesSolution">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TimeSeriesSolution</span><span class="p">(</span><span class="n">Trajectory</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Sampled continuous-time solution.</span>
 
@@ -543,7 +543,7 @@
 
 
 <div class="viewcode-block" id="finite_difference_jacobian">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.finite_difference_jacobian">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.finite_difference_jacobian">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">finite_difference_jacobian</span><span class="p">(</span>
     <span class="n">func</span><span class="p">:</span> <span class="n">ArrayFunc</span><span class="p">,</span>
     <span class="n">x</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -619,7 +619,7 @@
 
 
 <div class="viewcode-block" id="CallableFlow">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.CallableFlow">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.CallableFlow">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CallableFlow</span><span class="p">(</span><span class="n">ContinuousFlow</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Continuous flow backed by a Python callable.</span>
 
@@ -644,13 +644,13 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="CallableFlow.phase_space">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.CallableFlow.phase_space">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.CallableFlow.phase_space">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">phase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhaseSpace</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase_space</span></div>
 
 
 <div class="viewcode-block" id="CallableFlow.vector_field">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.CallableFlow.vector_field">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.CallableFlow.vector_field">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">vector_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="n">x_arr</span> <span class="o">=</span> <span class="n">_as_state</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
         <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rhs</span><span class="p">(</span><span class="n">x_arr</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
@@ -660,7 +660,7 @@
 
 
 <div class="viewcode-block" id="CallableFlow.trajectory">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.CallableFlow.trajectory">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.CallableFlow.trajectory">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">trajectory</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x0</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -675,14 +675,14 @@
 
 
 <div class="viewcode-block" id="CallableFlow.solve">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.CallableFlow.solve">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.CallableFlow.solve">[docs]</a>
     <span class="n">solve</span> <span class="o">=</span> <span class="n">trajectory</span></div>
 </div>
 
 
 
 <div class="viewcode-block" id="HamiltonianSystem">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.HamiltonianSystem">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.HamiltonianSystem">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">HamiltonianSystem</span><span class="p">(</span><span class="n">HamiltonianFlow</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Hamiltonian flow on canonical coordinates ``x = (q, p)``.</span>
 
@@ -721,19 +721,19 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="HamiltonianSystem.phase_space">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.HamiltonianSystem.phase_space">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.HamiltonianSystem.phase_space">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">phase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhaseSpace</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase_space</span></div>
 
 
 <div class="viewcode-block" id="HamiltonianSystem.hamiltonian">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.HamiltonianSystem.hamiltonian">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.HamiltonianSystem.hamiltonian">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">hamiltonian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_hamiltonian</span><span class="p">(</span><span class="n">_as_state</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)))</span></div>
 
 
 <div class="viewcode-block" id="HamiltonianSystem.gradient">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.HamiltonianSystem.gradient">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.HamiltonianSystem.gradient">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="n">x_arr</span> <span class="o">=</span> <span class="n">_as_state</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -746,7 +746,7 @@
 
 
 <div class="viewcode-block" id="HamiltonianSystem.vector_field">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.HamiltonianSystem.vector_field">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.HamiltonianSystem.vector_field">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">vector_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="n">dH</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
         <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">//</span> <span class="mi">2</span>
@@ -757,7 +757,7 @@
 
 
 <div class="viewcode-block" id="HamiltonianSystem.energy">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.HamiltonianSystem.energy">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.HamiltonianSystem.energy">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the Hamiltonian value.&quot;&quot;&quot;</span>
 
@@ -765,7 +765,7 @@
 
 
 <div class="viewcode-block" id="HamiltonianSystem.trajectory">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.HamiltonianSystem.trajectory">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.HamiltonianSystem.trajectory">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">trajectory</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x0</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -782,7 +782,7 @@
 
 
 <div class="viewcode-block" id="SeparableHamiltonianSystem">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.SeparableHamiltonianSystem">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.SeparableHamiltonianSystem">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SeparableHamiltonianSystem</span><span class="p">(</span><span class="n">HamiltonianSystem</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Hamiltonian system ``H(q, p) = T(p) + V(q)``.</span>
 
@@ -821,7 +821,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="SeparableHamiltonianSystem.split_state">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.SeparableHamiltonianSystem.split_state">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.SeparableHamiltonianSystem.split_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">split_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
         <span class="n">x_arr</span> <span class="o">=</span> <span class="n">_as_state</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dof</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x_arr</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dof</span><span class="p">],</span> <span class="n">x_arr</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_dof</span> <span class="p">:]</span></div>
@@ -846,14 +846,14 @@
         <span class="k">return</span> <span class="n">grad</span>
 
 <div class="viewcode-block" id="SeparableHamiltonianSystem.vector_field">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.SeparableHamiltonianSystem.vector_field">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.SeparableHamiltonianSystem.vector_field">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">vector_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="n">q</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_state</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_grad_t</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">t</span><span class="p">),</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_grad_v</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">t</span><span class="p">)])</span></div>
 
 
 <div class="viewcode-block" id="SeparableHamiltonianSystem.step_velocity_verlet">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.SeparableHamiltonianSystem.step_velocity_verlet">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.SeparableHamiltonianSystem.step_velocity_verlet">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step_velocity_verlet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;One second-order symplectic velocity-Verlet step.&quot;&quot;&quot;</span>
 
@@ -868,7 +868,7 @@
 
 
 <div class="viewcode-block" id="NBodySystem">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.NBodySystem">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.NBodySystem">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">NBodySystem</span><span class="p">(</span><span class="n">ContinuousFlow</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Pairwise N-body system for gravity or electrostatic interactions.</span>
 
@@ -937,20 +937,20 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="NBodySystem.phase_space">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.NBodySystem.phase_space">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.NBodySystem.phase_space">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">phase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhaseSpace</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase_space</span></div>
 
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="NBodySystem.n_bodies">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.NBodySystem.n_bodies">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.NBodySystem.n_bodies">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">n_bodies</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">masses</span><span class="o">.</span><span class="n">size</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="NBodySystem.pack_state">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.NBodySystem.pack_state">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.NBodySystem.pack_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">pack_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span> <span class="n">velocities</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="n">vel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">velocities</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
@@ -961,7 +961,7 @@
 
 
 <div class="viewcode-block" id="NBodySystem.unpack_state">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.NBodySystem.unpack_state">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.NBodySystem.unpack_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">unpack_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
         <span class="n">x_arr</span> <span class="o">=</span> <span class="n">_as_state</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
         <span class="n">half</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_bodies</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_dim</span>
@@ -971,7 +971,7 @@
 
 
 <div class="viewcode-block" id="NBodySystem.accelerations">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.NBodySystem.accelerations">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.NBodySystem.accelerations">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">accelerations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="n">expected</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_bodies</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_dim</span><span class="p">)</span>
@@ -997,14 +997,14 @@
 
 
 <div class="viewcode-block" id="NBodySystem.vector_field">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.NBodySystem.vector_field">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.NBodySystem.vector_field">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">vector_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="n">positions</span><span class="p">,</span> <span class="n">velocities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unpack_state</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">velocities</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">accelerations</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)])</span></div>
 
 
 <div class="viewcode-block" id="NBodySystem.trajectory">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.NBodySystem.trajectory">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.NBodySystem.trajectory">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">trajectory</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x0</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -1019,7 +1019,7 @@
 
 
 <div class="viewcode-block" id="NBodySystem.total_energy">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.NBodySystem.total_energy">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.NBodySystem.total_energy">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">total_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
         <span class="n">positions</span><span class="p">,</span> <span class="n">velocities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unpack_state</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">kinetic</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">masses</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">velocities</span> <span class="o">*</span> <span class="n">velocities</span><span class="p">))</span>
@@ -1039,7 +1039,7 @@
 
 
 <div class="viewcode-block" id="CallableMap">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.CallableMap">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.CallableMap">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CallableMap</span><span class="p">(</span><span class="n">DiscreteMap</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Finite-dimensional discrete map backed by ``step_func(x)``.&quot;&quot;&quot;</span>
 
@@ -1060,13 +1060,13 @@
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="CallableMap.phase_space">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.CallableMap.phase_space">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.CallableMap.phase_space">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">phase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhaseSpace</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase_space</span></div>
 
 
 <div class="viewcode-block" id="CallableMap.step">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.CallableMap.step">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.CallableMap.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="n">x_arr</span> <span class="o">=</span> <span class="n">_as_state</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
         <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_step_func</span><span class="p">(</span><span class="n">x_arr</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
@@ -1076,13 +1076,13 @@
 
 
 <div class="viewcode-block" id="CallableMap.jacobian">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.CallableMap.jacobian">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.CallableMap.jacobian">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">jacobian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">finite_difference_jacobian</span><span class="p">(</span><span class="k">lambda</span> <span class="n">y</span><span class="p">,</span> <span class="n">_t</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">x</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="CallableMap.orbit_geometry">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.CallableMap.orbit_geometry">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.CallableMap.orbit_geometry">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">orbit_geometry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">n_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Orbit</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a finite sampled :class:`pyna.topo.core.Orbit`.&quot;&quot;&quot;</span>
 
@@ -1096,14 +1096,14 @@
 
 
 <div class="viewcode-block" id="CallableMap.fixed_point_residual">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.CallableMap.fixed_point_residual">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.CallableMap.fixed_point_residual">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">fixed_point_residual</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="n">x_arr</span> <span class="o">=</span> <span class="n">_as_state</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">x_arr</span><span class="p">)</span> <span class="o">-</span> <span class="n">x_arr</span></div>
 
 
 <div class="viewcode-block" id="CallableMap.section_point">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.CallableMap.section_point">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.CallableMap.section_point">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">section_point</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -1126,7 +1126,7 @@
 
 
 <div class="viewcode-block" id="CallableMap.periodic_orbit">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.CallableMap.periodic_orbit">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.CallableMap.periodic_orbit">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">periodic_orbit</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">points</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
@@ -1163,7 +1163,7 @@
 
 
 <div class="viewcode-block" id="CallableMap.lyapunov_spectrum">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.CallableMap.lyapunov_spectrum">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.CallableMap.lyapunov_spectrum">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">lyapunov_spectrum</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x0</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -1196,7 +1196,7 @@
 
 
 <div class="viewcode-block" id="fixed_point_eigenspaces">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.fixed_point_eigenspaces">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.fixed_point_eigenspaces">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">fixed_point_eigenspaces</span><span class="p">(</span>
     <span class="n">map_obj</span><span class="p">:</span> <span class="n">CallableMap</span><span class="p">,</span>
     <span class="n">point</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -1224,7 +1224,7 @@
 
 
 <div class="viewcode-block" id="ItoSDE">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.ItoSDE">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.ItoSDE">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ItoSDE</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Ito stochastic differential equation.</span>
 
@@ -1262,7 +1262,7 @@
 
 
 <div class="viewcode-block" id="ItoSDE.drift">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.ItoSDE.drift">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.ItoSDE.drift">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">drift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="n">x_arr</span> <span class="o">=</span> <span class="n">_as_state</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
         <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_drift</span><span class="p">(</span><span class="n">x_arr</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
@@ -1272,7 +1272,7 @@
 
 
 <div class="viewcode-block" id="ItoSDE.diffusion_matrix">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.ItoSDE.diffusion_matrix">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.ItoSDE.diffusion_matrix">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">diffusion_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="n">x_arr</span> <span class="o">=</span> <span class="n">_as_state</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
         <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_diffusion</span><span class="p">(</span><span class="n">x_arr</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
@@ -1294,7 +1294,7 @@
 
 
 <div class="viewcode-block" id="ItoSDE.euler_maruyama">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.ItoSDE.euler_maruyama">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.ItoSDE.euler_maruyama">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">euler_maruyama</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x0</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -1336,7 +1336,7 @@
 
 
 <div class="viewcode-block" id="ItoSDE.sample_paths">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.ItoSDE.sample_paths">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.ItoSDE.sample_paths">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sample_paths</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x0</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -1363,7 +1363,7 @@
 
 
 <div class="viewcode-block" id="BrownianMotion">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.BrownianMotion">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.BrownianMotion">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BrownianMotion</span><span class="p">(</span><span class="n">ItoSDE</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Brownian motion with optional constant drift.&quot;&quot;&quot;</span>
 
@@ -1393,13 +1393,13 @@
 
 
 <div class="viewcode-block" id="BrownianMotion.mean">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.BrownianMotion.mean">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.BrownianMotion.mean">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_as_state</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x0&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">drift_vector</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BrownianMotion.variance">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.BrownianMotion.variance">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.BrownianMotion.variance">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">variance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">diffusion</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">diffusion</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span></div>
 </div>
@@ -1407,7 +1407,7 @@
 
 
 <div class="viewcode-block" id="GeometricBrownianMotion">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.GeometricBrownianMotion">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.GeometricBrownianMotion">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">GeometricBrownianMotion</span><span class="p">(</span><span class="n">ItoSDE</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Independent geometric Brownian motions ``dS = mu*S dt + sigma*S dW``.&quot;&quot;&quot;</span>
 
@@ -1434,7 +1434,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="GeometricBrownianMotion.expected_log_growth">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.GeometricBrownianMotion.expected_log_growth">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.GeometricBrownianMotion.expected_log_growth">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">expected_log_growth</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the long-time drift of ``log(S_t)``.&quot;&quot;&quot;</span>
 
@@ -1442,7 +1442,7 @@
 
 
 <div class="viewcode-block" id="GeometricBrownianMotion.mean">
-<a class="viewcode-back" href="../../zh/api/dynamics.html#pyna.dynamics.GeometricBrownianMotion.mean">[docs]</a>
+<a class="viewcode-back" href="../../en/api/generated/pyna/dynamics/index.html#pyna.dynamics.GeometricBrownianMotion.mean">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_as_state</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x0&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mu</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">))</span></div>
 </div>

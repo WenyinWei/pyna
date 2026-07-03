@@ -496,7 +496,6 @@
 </ul>
 </details></li>
 <li class="toctree-l3"><a class="reference internal" href="../../toroidal/index.html">pyna.toroidal</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../trace_dataset/index.html">pyna.trace_dataset</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../utils/index.html">pyna.utils</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../vector_calc/index.html">pyna.vector_calc</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../withparam/index.html">pyna.withparam</a></li>
@@ -850,36 +849,6 @@ information.</p>
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">n_samples</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/core.html#Trajectory.n_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.core.Trajectory.n_samples" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="pyna.topo.core.Trajectory.independent">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">independent</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/core.html#Trajectory.independent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.core.Trajectory.independent" title="Link to this definition">#</a></dt>
-<dd><p>Sample parameter values aligned with <code class="docutils literal notranslate"><span class="pre">states</span></code>.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="pyna.topo.core.Trajectory.independent_name">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">independent_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/core.html#Trajectory.independent_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.core.Trajectory.independent_name" title="Link to this definition">#</a></dt>
-<dd><p>Name of the sample parameter used by storage/resume code.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="pyna.topo.core.Trajectory.initial">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">initial</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/core.html#Trajectory.initial"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.core.Trajectory.initial" title="Link to this definition">#</a></dt>
-<dd><p>Initial sampled state.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="pyna.topo.core.Trajectory.start_independent">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">start_independent</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/core.html#Trajectory.start_independent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.core.Trajectory.start_independent" title="Link to this definition">#</a></dt>
-<dd><p>First sampled parameter value.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="pyna.topo.core.Trajectory.end_independent">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">end_independent</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/core.html#Trajectory.end_independent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.core.Trajectory.end_independent" title="Link to this definition">#</a></dt>
-<dd><p>Last sampled parameter value.</p>
-</dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="pyna.topo.core.Trajectory.interpolate_at">
 <span class="sig-name descname"><span class="pre">interpolate_at</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/core.html#Trajectory.interpolate_at"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.core.Trajectory.interpolate_at" title="Link to this definition">#</a></dt>
@@ -956,36 +925,6 @@ information.</p>
 <dt class="sig sig-object py" id="pyna.topo.core.Orbit.n_samples">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">n_samples</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/core.html#Orbit.n_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.core.Orbit.n_samples" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="pyna.topo.core.Orbit.independent">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">independent</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/core.html#Orbit.independent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.core.Orbit.independent" title="Link to this definition">#</a></dt>
-<dd><p>Sample step values aligned with <code class="docutils literal notranslate"><span class="pre">states</span></code>.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="pyna.topo.core.Orbit.independent_name">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">independent_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/core.html#Orbit.independent_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.core.Orbit.independent_name" title="Link to this definition">#</a></dt>
-<dd><p>Name of the sample parameter used by storage/resume code.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="pyna.topo.core.Orbit.initial">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">initial</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/core.html#Orbit.initial"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.core.Orbit.initial" title="Link to this definition">#</a></dt>
-<dd><p>Initial sampled map state.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="pyna.topo.core.Orbit.start_independent">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">start_independent</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/core.html#Orbit.start_independent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.core.Orbit.start_independent" title="Link to this definition">#</a></dt>
-<dd><p>First sampled step value.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="pyna.topo.core.Orbit.end_independent">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">end_independent</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/core.html#Orbit.end_independent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.core.Orbit.end_independent" title="Link to this definition">#</a></dt>
-<dd><p>Last sampled step value.</p>
-</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="pyna.topo.core.Orbit.final">
@@ -1554,11 +1493,6 @@ information.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Trajectory.metadata"><code class="docutils literal notranslate"><span class="pre">Trajectory.metadata</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Trajectory.ambient_dim"><code class="docutils literal notranslate"><span class="pre">Trajectory.ambient_dim</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Trajectory.n_samples"><code class="docutils literal notranslate"><span class="pre">Trajectory.n_samples</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Trajectory.independent"><code class="docutils literal notranslate"><span class="pre">Trajectory.independent</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Trajectory.independent_name"><code class="docutils literal notranslate"><span class="pre">Trajectory.independent_name</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Trajectory.initial"><code class="docutils literal notranslate"><span class="pre">Trajectory.initial</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Trajectory.start_independent"><code class="docutils literal notranslate"><span class="pre">Trajectory.start_independent</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Trajectory.end_independent"><code class="docutils literal notranslate"><span class="pre">Trajectory.end_independent</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Trajectory.interpolate_at"><code class="docutils literal notranslate"><span class="pre">Trajectory.interpolate_at()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Trajectory.component"><code class="docutils literal notranslate"><span class="pre">Trajectory.component()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Trajectory.t"><code class="docutils literal notranslate"><span class="pre">Trajectory.t</span></code></a></li>
@@ -1575,11 +1509,6 @@ information.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Orbit.metadata"><code class="docutils literal notranslate"><span class="pre">Orbit.metadata</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Orbit.ambient_dim"><code class="docutils literal notranslate"><span class="pre">Orbit.ambient_dim</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Orbit.n_samples"><code class="docutils literal notranslate"><span class="pre">Orbit.n_samples</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Orbit.independent"><code class="docutils literal notranslate"><span class="pre">Orbit.independent</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Orbit.independent_name"><code class="docutils literal notranslate"><span class="pre">Orbit.independent_name</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Orbit.initial"><code class="docutils literal notranslate"><span class="pre">Orbit.initial</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Orbit.start_independent"><code class="docutils literal notranslate"><span class="pre">Orbit.start_independent</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Orbit.end_independent"><code class="docutils literal notranslate"><span class="pre">Orbit.end_independent</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Orbit.final"><code class="docutils literal notranslate"><span class="pre">Orbit.final</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Orbit.period_guess"><code class="docutils literal notranslate"><span class="pre">Orbit.period_guess</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.core.Orbit.diagnostics"><code class="docutils literal notranslate"><span class="pre">Orbit.diagnostics()</span></code></a></li>
