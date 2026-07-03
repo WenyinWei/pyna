@@ -12,10 +12,10 @@ O-point orbits *define* the topology there.
 
 This module constructs a globally smooth (r, θ, φ) coordinate system that:
 
-1. Reproduces exact closed nested surfaces for r �?r_inner (from Poincaré
-   data, typically r_inner �?0.82).
+1. Reproduces exact closed nested surfaces for r <= r_inner (from Poincaré
+   data, typically r_inner ~= 0.82).
 2. Anchors the coordinate θ to the **Ocyc orbit** at r = r_island
-   (island centre �?θ_O = 0 convention, or any chosen θ_O) and to the
+   (island centre -> θ_O = 0 convention, or any chosen θ_O) and to the
    **Xcyc orbit** at r = r_island, θ = θ_X.
 3. Smoothly blends from the inner Fourier description into the island
    frame using a monotone radial blend, then continues outward for
@@ -33,11 +33,11 @@ Build coordinate system::
     from pyna.topo.island_healed_coords import IslandHealedCoordMap
 
     coord = IslandHealedCoordMap.build(
-        inner_surfaces,          # list[FluxSurface], r �?r_inner
+        inner_surfaces,          # list[FluxSurface], r <= r_inner
         xring_orbit,             # IslandChainOrbit (X-type fixed points)
         oring_orbit,             # IslandChainOrbit (O-type fixed points)
         r_island=1.0,            # normalised r assigned to the island layer
-        r_inner_fit=0.82,        # only surfaces �?this r used for inner fit
+        r_inner_fit=0.82,        # only surfaces <= this r used for inner fit
         n_fourier=8,
         blend_width=0.08,        # radial width of blend zone
     )
@@ -53,7 +53,7 @@ Key design decisions
 * **θ origin**: at each φ, θ = 0 is defined by the Ocyc position
   (mapped from the Ocyc orbit via the inner Fourier map at r_island).
   θ = θ_X is defined by the Xcyc position.
-* **Fourier frame**: for r �?r_inner we use the usual geometric θ
+* **Fourier frame**: for r <= r_inner we use the usual geometric θ
   (arctan2 from axis), fitted by Fourier series.  At r = r_island we
   anchor to the X/O frame.  Between r_inner and r_island we blend
   via a smooth sigmoid.
@@ -121,7 +121,7 @@ class InnerFourierSection:
     """Fourier surface description at one toroidal section φ_ref.
 
     Stores CubicSpline(r) objects for each Fourier coefficient, built
-    from inner Poincaré surfaces (r �?r_inner_fit).
+    from inner Poincaré surfaces (r <= r_inner_fit).
 
     Attributes
     ----------
@@ -184,7 +184,7 @@ class InnerFourierSection:
             coeffs_R[ir] = A_pinv @ R_surf[ir]
             coeffs_Z[ir] = A_pinv @ Z_surf[ir]
 
-        # Axis constraint: r=0 �?single point (axis)
+        # Axis constraint: r=0 -> single point (axis)
         # Only prepend r=0 if not already present in r_norms
         if r_norms[0] > 1e-6:
             r_ext = np.concatenate([[0.0], r_norms])
@@ -637,10 +637,10 @@ class IslandHealedCoordMap:
 
     The coordinate system has three zones:
 
-    Zone I   (r �?r_inner_fit):
+    Zone I   (r <= r_inner_fit):
         Pure inner-Fourier surfaces.  θ is geometric arctan2 from axis.
 
-    Zone II  (r_inner_fit < r �?r_island):
+    Zone II  (r_inner_fit < r <= r_island):
         Blend zone.  θ is linearly interpolated between the inner-Fourier
         θ_inner and the island-frame θ_island, controlled by a sigmoid.
         At r = r_island, the Ocyc is at θ = θ_O (default 0) and the
@@ -707,7 +707,7 @@ class IslandHealedCoordMap:
             if unwrap:
                 arr = np.unwrap(arr)
             if len(phi_a) == 1:
-                # Constant interpolant �?return a callable that ignores phi
+                # Constant interpolant -> return a callable that ignores phi
                 _c = float(arr[0])
                 return type('_Const', (), {'__call__': lambda self, x: _c})()
             if len(phi_a) == 2:
@@ -752,7 +752,7 @@ class IslandHealedCoordMap:
         R_ax_arr, Z_ax_arr : ndarray, shape (n_phi_sections,)
             Magnetic axis positions.
         r_norms : ndarray, shape (n_r,)
-            Normalised r of inner surfaces (should all be �?r_inner_fit).
+            Normalised r of inner surfaces (should all be <= r_inner_fit).
         R_surf_3d, Z_surf_3d : ndarray, shape (n_r, n_theta, n_phi_sections)
             Surface (R, Z) grids.
         theta_arr : ndarray, shape (n_theta,)
@@ -772,7 +772,7 @@ class IslandHealedCoordMap:
         theta_X, theta_O : float
             Island-frame θ values assigned to X- and Ocycs.
         """
-        # Filter to r �?r_inner_fit
+        # Filter to r <= r_inner_fit
         mask = r_norms <= r_inner_fit
         r_fit = r_norms[mask]
 
@@ -823,8 +823,8 @@ class IslandHealedCoordMap:
         """Convert inner-Fourier θ to island-frame θ.
 
         The island frame is defined by a linear rescaling such that:
-          θ_inner = θ_o_inner  �? island θ = self.theta_O   (Ocyc)
-          θ_inner = θ_x_inner  �? island θ = self.theta_X   (Xcyc)
+          θ_inner = θ_o_inner  -> island θ = self.theta_O   (Ocyc)
+          θ_inner = θ_x_inner  -> island θ = self.theta_X   (Xcyc)
 
         This is a piecewise-linear wrapping on the circle.
 
@@ -838,14 +838,14 @@ class IslandHealedCoordMap:
         Returns
         -------
         float
-            Island-frame θ �?(-π, π].
+            Island-frame θ in (-π, π].
         """
         # Angular separation X→O going counter-clockwise (positive direction)
         dxo = (theta_o_inner - theta_x_inner + np.pi) % (2 * np.pi) - np.pi
         # Angular separation X→point
         dxp = (theta_inner - theta_x_inner + np.pi) % (2 * np.pi) - np.pi
 
-        # Scale: map [θ_x_inner, θ_o_inner] �?[theta_X, theta_O]
+        # Scale: map [θ_x_inner, θ_o_inner] -> [theta_X, theta_O]
         if abs(dxo) < 1e-6:
             return self.theta_X
         # Fraction along arc from X to O
@@ -876,7 +876,7 @@ class IslandHealedCoordMap:
         Returns
         -------
         r, theta : float
-            Healed coordinate (r in [0, �?, θ �?(-π, π]).
+            Healed coordinate (r in [0, infinity), θ in (-π, π]).
         """
         sec, _ = self._nearest_section(phi)
         r_raw, theta_inner = sec.project(R, Z, r_init=r_init)
@@ -886,7 +886,7 @@ class IslandHealedCoordMap:
                                self.r_inner_fit - self.blend_width,
                                self.r_inner_fit + self.blend_width)
         if alpha < 1e-6:
-            # Pure inner zone �?θ is geometric
+            # Pure inner zone -> θ is geometric
             return float(r_raw), float(theta_inner)
 
         # Island-frame θ at this phi
@@ -902,11 +902,11 @@ class IslandHealedCoordMap:
     def eval_RZ(
         self, r: float, theta: float, phi: float
     ) -> Tuple[float, float]:
-        """Forward map (r, θ, φ) �?(R, Z).
+        """Forward map (r, θ, φ) -> (R, Z).
 
-        For r �?r_inner_fit: uses inner Fourier surfaces directly.
+        For r <= r_inner_fit: uses inner Fourier surfaces directly.
         For r > r_inner_fit: uses inner Fourier extrapolation (the
-        island frame adjusts θ but not the spatial map �?use with caution
+        island frame adjusts θ but not the spatial map -> use with caution
         far from the fit region).
 
         Parameters
@@ -929,7 +929,7 @@ class IslandHealedCoordMap:
             theta_inner = theta
         else:
             theta_x_inn, theta_o_inn = self._xoring_theta_at_phi(phi)
-            # Inverse of island_frame_theta: inner �?island was linear
+            # Inverse of island_frame_theta: inner -> island was linear
             dxo = (theta_o_inn - theta_x_inn + np.pi) % (2 * np.pi) - np.pi
             dxo_out = self.theta_O - self.theta_X
             if abs(dxo_out) < 1e-6 or abs(dxo) < 1e-6:
@@ -947,7 +947,7 @@ class IslandHealedCoordMap:
     def grad_r_direction(
         self, r: float, theta: float, phi: float, dr: float = 0.025
     ) -> Tuple[float, float]:
-        """Unit vector ê_r = �?R,Z)/∂r / |�?R,Z)/∂r| at (r, θ, φ).
+        """Unit vector ê_r = ∂(R,Z)/∂r / |∂(R,Z)/∂r| at (r, θ, φ).
 
         Uses finite differences in r with the forward map eval_RZ.
 
