@@ -84,7 +84,7 @@
 ----------------------------------
 
 在磁约束工作中，场线流会被 Poincare 截面切开。可执行教程
-:doc:`/notebooks/tutorials/RMP_resonance_analysis` 现在包含完整的可视化计算：
+:doc:`/notebooks/i18n/zh/tutorials/RMP_resonance_analysis` 现在包含完整的可视化计算：
 
 1. 构建公开的解析 stellarator 模型；
 2. 验证无散度的 ``m=1`` 和 ``m>1`` RMP 模板；

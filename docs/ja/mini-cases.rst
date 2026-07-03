@@ -86,7 +86,7 @@
 ------------------------------------
 
 磁場閉じ込めの作業では、磁力線 flow は Poincare 断面で切られます。実行可能な
-チュートリアル :doc:`/notebooks/tutorials/RMP_resonance_analysis` には、完全な
+チュートリアル :doc:`/notebooks/i18n/ja/tutorials/RMP_resonance_analysis` には、完全な
 可視化計算が含まれています。
 
 1. 公開されている解析 stellarator モデルを構築する。

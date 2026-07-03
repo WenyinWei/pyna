@@ -230,9 +230,9 @@ devraient commencer par la facade de workflow.
 - **Tutoriels** - exemples travailles avec figures :
   :doc:`/fr/mini-cases`,
   :doc:`/fr/tutorials/sde-monte-carlo`,
-  :doc:`/notebooks/tutorials/RMP_resonance_analysis`,
-  :doc:`/notebooks/tutorials/magnetic_coordinates_comparison`,
-  :doc:`/notebooks/tutorials/RMP_island_validation_solovev`
+  :doc:`/notebooks/i18n/fr/tutorials/RMP_resonance_analysis`,
+  :doc:`/notebooks/i18n/fr/tutorials/magnetic_coordinates_comparison`,
+  :doc:`/notebooks/i18n/fr/tutorials/RMP_island_validation_solovev`
 
 - **Référence API** - docstrings completes :
   :doc:`/fr/api/index`

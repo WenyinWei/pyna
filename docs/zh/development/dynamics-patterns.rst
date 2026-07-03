@@ -31,7 +31,7 @@ Workflow Facade
 
 紧凑的 workflow 概览可从 :doc:`/zh/mini-cases` 开始。若需要把同样的提升思想用于真实
 环形计算的完整可视化教程，请使用
-:doc:`/notebooks/tutorials/RMP_resonance_analysis`。它展示了采样 Poincare 截面点、
+:doc:`/notebooks/i18n/zh/tutorials/RMP_resonance_analysis`。它展示了采样 Poincare 截面点、
 显式 X/O 固定点几何、坐标网格叠加和局部流形分支。
 
 短小的可复制配方见 :doc:`/zh/mini-cases`。该页面是快速开始和完整 API 参考之间的

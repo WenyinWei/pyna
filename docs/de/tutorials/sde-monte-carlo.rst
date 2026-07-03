@@ -3,7 +3,7 @@ SDE-Monte-Carlo-Verteilungen
 
 Dieses Tutorial zeigt den praktischen SDE-Workflow in pyna:
 
-1. ein Ito-Modell mit ``BrownianMotion``, ``GeometricBrownianMotion`` oder
+1. ein Itô-Modell mit ``BrownianMotion``, ``GeometricBrownianMotion`` oder
    ``ItoSDE`` definieren;
 2. einen reproduzierbaren Abtastpfad als ``Trajectory`` erzeugen;
 3. ein vektorisiertes Monte-Carlo-Ensemble für Verteilungsschätzungen
@@ -27,7 +27,7 @@ ist.
 
 Ausführbares Notebook:
 
-- :doc:`/notebooks/tutorials/sde_monte_carlo_distribution`
+- :doc:`/notebooks/i18n/de/tutorials/sde_monte_carlo_distribution`
 
 Copy-Paste-Muster
 -----------------

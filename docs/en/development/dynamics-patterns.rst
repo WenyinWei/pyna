@@ -35,7 +35,7 @@ Worked Tutorial
 
 For a compact workflow overview, start with :doc:`/en/mini-cases`.  For a
 complete visual tutorial that applies the same promotion ideas to a real
-toroidal calculation, use :doc:`/notebooks/tutorials/RMP_resonance_analysis`.
+toroidal calculation, use :doc:`/notebooks/i18n/en/tutorials/RMP_resonance_analysis`.
 It shows sampled Poincare crossings, explicit X/O fixed-point geometry,
 coordinate-grid overlays and local manifold branches.
 

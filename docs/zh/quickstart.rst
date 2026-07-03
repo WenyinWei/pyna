@@ -213,9 +213,9 @@ pyna 不局限于环形场线。同一套拓扑对象模型也可用于 Hamilton
 - **教程** -- 带图的完整示例：
   :doc:`/zh/mini-cases`,
   :doc:`/zh/tutorials/sde-monte-carlo`,
-  :doc:`/notebooks/tutorials/RMP_resonance_analysis`,
-  :doc:`/notebooks/tutorials/magnetic_coordinates_comparison`,
-  :doc:`/notebooks/tutorials/RMP_island_validation_solovev`
+  :doc:`/notebooks/i18n/zh/tutorials/RMP_resonance_analysis`,
+  :doc:`/notebooks/i18n/zh/tutorials/magnetic_coordinates_comparison`,
+  :doc:`/notebooks/i18n/zh/tutorials/RMP_island_validation_solovev`
 
 - **API 参考** -- 完整 docstring：
   :doc:`/zh/api/index`

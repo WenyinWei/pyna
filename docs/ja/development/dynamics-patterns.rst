@@ -32,7 +32,7 @@ Workflow Facade
 
 コンパクトな workflow の概観は :doc:`/ja/mini-cases` から始めてください。同じ持ち上げの
 考え方を実際のトロイダル計算へ適用する完全な可視化チュートリアルには
-:doc:`/notebooks/tutorials/RMP_resonance_analysis` を使います。サンプルされた Poincare
+:doc:`/notebooks/i18n/ja/tutorials/RMP_resonance_analysis` を使います。サンプルされた Poincare
 交差、明示的な X/O 固定点幾何、座標格子 overlay、局所多様体枝が示されています。
 
 短いコピー&ペースト用レシピには :doc:`/ja/mini-cases` を使います。このページは

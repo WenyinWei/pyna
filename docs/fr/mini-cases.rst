@@ -88,7 +88,7 @@ Cas 3 : points O/X analytiques de stellarator
 
 Pour le confinement magnétique, un flot de lignes de champ est coupe par une
 section de Poincaré. Le tutoriel executable
-:doc:`/notebooks/tutorials/RMP_resonance_analysis` contient maintenant le
+:doc:`/notebooks/i18n/fr/tutorials/RMP_resonance_analysis` contient maintenant le
 calcul visuel complet :
 
 1. construire le modèle public de stellarator analytique ;

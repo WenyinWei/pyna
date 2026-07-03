@@ -150,14 +150,53 @@
     return parts[parts.length - 1].includes(".") ? parts.length - 1 : parts.length;
   }
 
+  function configuredLanguage() {
+    const lang = document.documentElement.dataset.pynaLang;
+    return availableCodes.has(lang) ? lang : undefined;
+  }
+
+  function notebookPath(parts) {
+    const index = parts.findIndex((part) => part === "notebooks");
+    if (index < 0) {
+      return null;
+    }
+
+    const tail = parts.slice(index + 1);
+    if (tail[0] === "i18n" && availableCodes.has(tail[1])) {
+      return {
+        root: parts.slice(0, index),
+        language: tail[1],
+        suffix: tail.slice(2),
+      };
+    }
+
+    return {
+      root: parts.slice(0, index),
+      language: undefined,
+      suffix: tail,
+    };
+  }
+
   function currentLanguage() {
+    const configured = configuredLanguage();
+    if (configured) {
+      return configured;
+    }
+
     const parts = pathParts();
-    return parts.find((part) => availableCodes.has(part)) || "en";
+    const notebook = notebookPath(parts);
+    return (notebook && notebook.language) || parts.find((part) => availableCodes.has(part)) || "en";
   }
 
   function targetPath(requestedCode) {
     const code = availableCodes.has(requestedCode) ? requestedCode : "en";
     const parts = pathParts();
+    const notebook = notebookPath(parts);
+    if (notebook) {
+      const suffix = notebook.suffix.length > 0 ? notebook.suffix : ["tutorials", "index.html"];
+      return "/" + notebook.root.concat(["notebooks", "i18n", code], suffix).join("/");
+    }
+
     const langIndex = parts.findIndex((part) => availableCodes.has(part));
 
     if (langIndex >= 0) {
@@ -166,33 +205,13 @@
       return "/" + next.join("/");
     }
 
-    const notebookIndex = parts.findIndex((part) => part === "notebooks");
-    if (notebookIndex >= 0) {
-      const root = parts.slice(0, notebookIndex);
-      return "/" + root.concat([code, "tutorials", "index.html"]).join("/");
-    }
-
     const rootIndex = docsRootIndex(parts);
     const root = parts.slice(0, rootIndex);
     return "/" + root.concat([code, "index.html"]).join("/");
   }
 
   function englishFallbackPath() {
-    const parts = pathParts();
-    const langIndex = parts.findIndex((part) => availableCodes.has(part));
-    if (langIndex >= 0) {
-      const next = parts.slice();
-      next[langIndex] = "en";
-      return "/" + next.join("/");
-    }
-    const notebookIndex = parts.findIndex((part) => part === "notebooks");
-    if (notebookIndex >= 0) {
-      const root = parts.slice(0, notebookIndex);
-      return "/" + root.concat(["en", "tutorials", "index.html"]).join("/");
-    }
-    const rootIndex = docsRootIndex(parts);
-    const root = parts.slice(0, rootIndex);
-    return "/" + root.concat(["en", "index.html"]).join("/");
+    return targetPath("en");
   }
 
   function withFallbackNotice(path, requestedCode) {
@@ -287,10 +306,44 @@
   function languageFromHref(href) {
     try {
       const url = new URL(href, window.location.href);
-      return url.pathname.split("/").filter(Boolean).find((part) => availableCodes.has(part));
+      if (url.origin !== window.location.origin) {
+        return undefined;
+      }
+
+      const parts = url.pathname.split("/").filter(Boolean);
+      const notebook = notebookPath(parts);
+      return (notebook && notebook.language) || parts.find((part) => availableCodes.has(part));
     } catch (_error) {
       return undefined;
     }
+  }
+
+  function containsCurrentPage(element) {
+    return Boolean(
+      element &&
+        (element.matches(".current, .active, [aria-current='page']") ||
+          element.querySelector(".current, .active, [aria-current='page']"))
+    );
+  }
+
+  function directDetails(element) {
+    return Array.from(element.children).find((child) => child.tagName === "DETAILS");
+  }
+
+  function keepCurrentBranchVisible() {
+    document
+      .querySelectorAll(".bd-sidebar-primary .current, .sidebar-tree .current, .toc-tree .current, a[aria-current='page']")
+      .forEach((current) => {
+        let item = current.closest("li, .nav-item");
+        while (item) {
+          item.hidden = false;
+          const details = directDetails(item);
+          if (details) {
+            details.open = true;
+          }
+          item = item.parentElement ? item.parentElement.closest("li, .nav-item") : null;
+        }
+      });
   }
 
   function hideOtherLanguageBranches() {
@@ -304,9 +357,14 @@
         }
         const item = link.closest("li, .nav-item");
         if (item) {
+          if (containsCurrentPage(item)) {
+            item.hidden = false;
+            return;
+          }
           item.hidden = true;
         }
       });
+    keepCurrentBranchVisible();
   }
 
   function buildFallbackBadge() {

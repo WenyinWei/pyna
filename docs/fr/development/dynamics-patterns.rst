@@ -38,7 +38,7 @@ Tutoriel travaille
 
 Pour un apercu compact du workflow, commencez par :doc:`/fr/mini-cases`. Pour
 un tutoriel visuel complet appliquant les memes idees de promotion à un calcul
-toroidal reel, utilisez :doc:`/notebooks/tutorials/RMP_resonance_analysis`. Il
+toroidal reel, utilisez :doc:`/notebooks/i18n/fr/tutorials/RMP_resonance_analysis`. Il
 montre des croisements de Poincaré échantillonnés, une géométrie explicite de
 points fixes X/O, des superpositions de grilles de coordonnées et des branches
 de variétés locales.

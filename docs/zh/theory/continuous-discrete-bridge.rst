@@ -33,6 +33,6 @@ builder 和 adapter 会让提升过程保持显式：用户可以要求闭合检
 ----
 
 - :doc:`/zh/mini-cases`
-- :doc:`/notebooks/tutorials/RMP_resonance_analysis`
-- :doc:`/notebooks/tutorials/monodromy_xcycle_analytic`
-- :doc:`/notebooks/tutorials/island_jacobian_analysis`
+- :doc:`/notebooks/i18n/zh/tutorials/RMP_resonance_analysis`
+- :doc:`/notebooks/i18n/zh/tutorials/monodromy_xcycle_analytic`
+- :doc:`/notebooks/i18n/zh/tutorials/island_jacobian_analysis`

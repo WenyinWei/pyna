@@ -86,7 +86,7 @@
 ----------------------------------
 
 자기 구속 작업에서는 자력선 흐름을 푸앵카레 단면으로 자릅니다. 실행 가능한
-튜토리얼 :doc:`/notebooks/tutorials/RMP_resonance_analysis` 는 이제 전체
+튜토리얼 :doc:`/notebooks/i18n/ko/tutorials/RMP_resonance_analysis` 는 이제 전체
 시각적 계산을 담고 있습니다.
 
 1. 공개 해석적 stellarator 모델을 만든다.

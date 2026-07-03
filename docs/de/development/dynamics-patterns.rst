@@ -35,14 +35,14 @@ hält Notebook-Code lesbar und macht zugleich jede Hochstufung explizit.
 Ausgearbeitetes Tutorial
 ------------------------
 
-Für einen kompakten Workflow-Überblick beginnen Sie mit :doc:`/en/mini-cases`.
+Für einen kompakten Workflow-Überblick beginnen Sie mit :doc:`/de/mini-cases`.
 Für ein vollständiges visuelles Tutorial, das dieselben Hochstufungsideen auf
 eine reale toroidale Rechnung anwendet, verwenden Sie
-:doc:`/notebooks/tutorials/RMP_resonance_analysis`.  Es zeigt abgetastete
-Poincare-Kreuzungen, explizite X/O-Fixpunktgeometrie, Überlagerungen von
+:doc:`/notebooks/i18n/de/tutorials/RMP_resonance_analysis`.  Es zeigt abgetastete
+Poincaré-Kreuzungen, explizite X/O-Fixpunktgeometrie, Überlagerungen von
 Koordinatengittern und lokale Mannigfaltigkeitszweige.
 
-Für kurze Copy-Paste-Rezepte verwenden Sie :doc:`/en/mini-cases`.  Diese Seite
+Für kurze Copy-Paste-Rezepte verwenden Sie :doc:`/de/mini-cases`.  Diese Seite
 ist als Brücke zwischen dem Schnelleinstieg und der vollständigen API-Referenz
 gedacht.
 

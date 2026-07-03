@@ -35,6 +35,6 @@ pyna は、連続時間と離散時間の力学系に別々のオブジェクト
 --------
 
 - :doc:`/ja/mini-cases`
-- :doc:`/notebooks/tutorials/RMP_resonance_analysis`
-- :doc:`/notebooks/tutorials/monodromy_xcycle_analytic`
-- :doc:`/notebooks/tutorials/island_jacobian_analysis`
+- :doc:`/notebooks/i18n/ja/tutorials/RMP_resonance_analysis`
+- :doc:`/notebooks/i18n/ja/tutorials/monodromy_xcycle_analytic`
+- :doc:`/notebooks/i18n/ja/tutorials/island_jacobian_analysis`

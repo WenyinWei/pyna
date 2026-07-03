@@ -25,7 +25,7 @@ a statistical estimator.
 
 Executable notebook:
 
-- :doc:`/notebooks/tutorials/sde_monte_carlo_distribution`
+- :doc:`/notebooks/i18n/en/tutorials/sde_monte_carlo_distribution`
 
 Copy-Paste Pattern
 ------------------

@@ -87,7 +87,7 @@ Case 3: Analytic Stellarator O/X Points
 ---------------------------------------
 
 For magnetic-confinement work, a field-line flow is cut by a Poincare section.
-The executable tutorial :doc:`/notebooks/tutorials/RMP_resonance_analysis`
+The executable tutorial :doc:`/notebooks/i18n/en/tutorials/RMP_resonance_analysis`
 now carries the complete visual calculation:
 
 1. build the public analytic stellarator model;

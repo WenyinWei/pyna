@@ -20,7 +20,7 @@ Diskrete Seite:
 - ``IslandChain`` ist die Inselkette auf Schnittebene.
 
 Die Brücke zwischen beiden Seiten ist ein Schnitt.  Das Schneiden eines
-``Cycle`` mit einem Poincare-Schnitt erzeugt einen ``PeriodicOrbit`` der
+``Cycle`` mit einem Poincaré-Schnitt erzeugt einen ``PeriodicOrbit`` der
 Return Map.  Das Schneiden eines ``Tube`` erzeugt eine ``IslandChain``.  Das
 Schneiden einer ``TubeChain`` führt die Inselketten ihrer Tubes zusammen.
 
@@ -39,7 +39,7 @@ toroidale Defaults bleiben als ``pyna.topo.Tube``, ``pyna.topo.Cycle`` und
 Siehe auch
 ----------
 
-- :doc:`/en/mini-cases`
-- :doc:`/notebooks/tutorials/RMP_resonance_analysis`
-- :doc:`/notebooks/tutorials/monodromy_xcycle_analytic`
-- :doc:`/notebooks/tutorials/island_jacobian_analysis`
+- :doc:`/de/mini-cases`
+- :doc:`/notebooks/i18n/de/tutorials/RMP_resonance_analysis`
+- :doc:`/notebooks/i18n/de/tutorials/monodromy_xcycle_analytic`
+- :doc:`/notebooks/i18n/de/tutorials/island_jacobian_analysis`

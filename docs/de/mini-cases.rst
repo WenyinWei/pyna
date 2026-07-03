@@ -87,18 +87,18 @@ Attribut ``phase_space``.
 Fall 3: Analytische Stellarator-O/X-Punkte
 ------------------------------------------
 
-Für Arbeiten zur magnetischen Einschließung wird ein Feldlinienfluss durch
-einen Poincare-Schnitt geschnitten.  Das ausführbare Tutorial
-:doc:`/notebooks/tutorials/RMP_resonance_analysis` enthält jetzt die
+Für Arbeiten zur magnetischen Einschließung schneidet man den Feldlinienfluss
+mit einem Poincaré-Schnitt.  Das ausführbare Tutorial
+:doc:`/notebooks/i18n/de/tutorials/RMP_resonance_analysis` enthält jetzt die
 vollständige visuelle Rechnung:
 
 1. Aufbau des öffentlichen analytischen Stellarator-Modells;
 2. Validierung divergenzfreier ``m=1``- und ``m>1``-RMP-Templates;
-3. Verfolgung ungestörter und gestörter Poincare-Schnitte;
+3. Verfolgung ungestörter und gestörter Poincaré-Schnitte;
 4. Vergleich analytischer resonanter X/O-Phasen mit ``cyna``-Newton-Fixpunkten;
 5. Analyse mehrkomponentiger RMP-Spektren mit kontravarianten ``B^r``-
    pcolormesh-Atlanten, ``q``/``m/n``-Resonanzkarten mit optionalen
-   Poincare-Projektionen, interaktiven Plotly-3-D-Balken, radialen Karten mit
+   Poincaré-Projektionen, interaktiven Plotly-3-D-Balken, radialen Karten mit
    festem ``n``/festem ``m``, Resonanzkurven und umschaltbaren
    Inselbreitenmarkern;
 6. Berechnung der gesamten nRMP-Antwort aus allen nichtresonanten Spektralzeilen;
@@ -167,9 +167,9 @@ Ensemble-Objekt erhält.
    terminal = 100.0 * np.exp(gbm.expected_log_growth()[0] + gbm.sigma[0] * z)
    print(np.mean(terminal), np.quantile(terminal, [0.05, 0.5, 0.95]))
 
-Ein vollständig ausgeführtes Beispiel mit Verteilungen für Brownian,
-Ornstein-Uhlenbeck und geometrische Brownian motion finden Sie unter
-:doc:`/en/tutorials/sde-monte-carlo`.
+Ein vollständig ausgeführtes Beispiel mit Verteilungen für brownsche Bewegung,
+Ornstein-Uhlenbeck und geometrische brownsche Bewegung finden Sie unter
+:doc:`/de/tutorials/sde-monte-carlo`.
 
 Fall 6: Wo anpassen?
 --------------------
@@ -211,8 +211,8 @@ Vor der Veröffentlichung der Dokumentation:
 .. code-block:: bash
 
    .venv/bin/python -m pytest --nbmake \
-     notebooks/tutorials/RMP_resonance_analysis.ipynb \
-     notebooks/tutorials/island_jacobian_analysis.ipynb
+     notebooks/i18n/de/tutorials/RMP_resonance_analysis.ipynb \
+     notebooks/i18n/de/tutorials/island_jacobian_analysis.ipynb
 
 Für schwere Notebooks mit gespeicherten Ausgaben führen Sie sie lokal aus und
 committen Sie die aktualisierte ``.ipynb``-Datei:
@@ -220,7 +220,7 @@ committen Sie die aktualisierte ``.ipynb``-Datei:
 .. code-block:: bash
 
    .venv/bin/jupyter nbconvert --to notebook --execute --inplace \
-     notebooks/tutorials/sde_monte_carlo_distribution.ipynb
+     notebooks/i18n/de/tutorials/sde_monte_carlo_distribution.ipynb
 
 Für denselben Notebook-Satz, der von GitHub Pages verwendet wird, bauen Sie die
 Sphinx-Dokumentation lokal:

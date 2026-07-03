@@ -38,6 +38,6 @@ See Also
 --------
 
 - :doc:`/en/mini-cases`
-- :doc:`/notebooks/tutorials/RMP_resonance_analysis`
-- :doc:`/notebooks/tutorials/monodromy_xcycle_analytic`
-- :doc:`/notebooks/tutorials/island_jacobian_analysis`
+- :doc:`/notebooks/i18n/en/tutorials/RMP_resonance_analysis`
+- :doc:`/notebooks/i18n/en/tutorials/monodromy_xcycle_analytic`
+- :doc:`/notebooks/i18n/en/tutorials/island_jacobian_analysis`

@@ -1,5 +1,5 @@
-SDE Monte Carlo 分布
-====================
+SDEのモンテカルロ分布
+======================
 
 この tutorial は、pyna での実用的な SDE workflow を示します。
 
@@ -9,10 +9,10 @@ SDE Monte Carlo 分布
 3. 分布推定のため、ベクトル化した Monte Carlo ensemble を実行する。
 4. 利用可能な場合は、経験平均、分散、分位点を解析式と比較する。
 
-モデル境界と単一 path 幾何には pyna の SDE クラスを使ってください。大きな ensemble には、
-pyna が専用の ensemble 幾何クラスを持つまで、ベクトル化 NumPy 配列を使います。これにより
-数学的オブジェクトモデルを正直に保てます。単一実現はサンプル trajectory であり、実現の
-雲は統計推定器です。
+モデル境界と単一 path 幾何には pyna の SDE クラスを使ってください。大規模 ensemble には、
+pyna が専用の ensemble 幾何クラスを持つまで、ベクトル化 NumPy 配列を使います。これにより、
+数学的 object model と統計 estimator を混同せずに済みます。単一実現はサンプル trajectory
+であり、実現の集合は統計推定器です。
 
 .. note::
 
@@ -20,9 +20,9 @@ pyna が専用の ensemble 幾何クラスを持つまで、ベクトル化 NumP
    無効化されています。数値パラメータを変更するときはローカルで再実行してください。
    docs workflow は GitHub Pages で保存済み出力を描画します。
 
-実行可能 notebook:
+実行可能な notebook:
 
-- :doc:`/notebooks/tutorials/sde_monte_carlo_distribution`
+- :doc:`/notebooks/i18n/ja/tutorials/sde_monte_carlo_distribution`
 
 コピー&ペースト用パターン
 --------------------------

@@ -227,11 +227,11 @@ Workflow-Fassade beginnen.
 -------------------
 
 - **Tutorials** — ausgearbeitete Beispiele mit Diagrammen:
-  :doc:`/en/mini-cases`,
-  :doc:`/en/tutorials/sde-monte-carlo`,
-  :doc:`/notebooks/tutorials/RMP_resonance_analysis`,
-  :doc:`/notebooks/tutorials/magnetic_coordinates_comparison`,
-  :doc:`/notebooks/tutorials/RMP_island_validation_solovev`
+  :doc:`/de/mini-cases`,
+  :doc:`/de/tutorials/sde-monte-carlo`,
+  :doc:`/notebooks/i18n/de/tutorials/RMP_resonance_analysis`,
+  :doc:`/notebooks/i18n/de/tutorials/magnetic_coordinates_comparison`,
+  :doc:`/notebooks/i18n/de/tutorials/RMP_island_validation_solovev`
 
 - **API-Referenz** — vollständige Docstrings:
   :doc:`/en/api/index`

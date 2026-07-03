@@ -222,9 +222,9 @@ library authors, but most notebooks should start with the workflow facade.
 - **Tutorials** — worked examples with plots:
   :doc:`/en/mini-cases`,
   :doc:`/en/tutorials/sde-monte-carlo`,
-  :doc:`/notebooks/tutorials/RMP_resonance_analysis`,
-  :doc:`/notebooks/tutorials/magnetic_coordinates_comparison`,
-  :doc:`/notebooks/tutorials/RMP_island_validation_solovev`
+  :doc:`/notebooks/i18n/en/tutorials/RMP_resonance_analysis`,
+  :doc:`/notebooks/i18n/en/tutorials/magnetic_coordinates_comparison`,
+  :doc:`/notebooks/i18n/en/tutorials/RMP_island_validation_solovev`
 
 - **API reference** — full docstrings:
   :doc:`/en/api/index`

@@ -13,10 +13,10 @@ workflow, stochastic models, and then toroidal monodromy/RMP examples:
 
 1. :doc:`/en/mini-cases`
 2. :doc:`sde-monte-carlo`
-3. :doc:`/notebooks/tutorials/RMP_resonance_analysis`
-4. :doc:`/notebooks/tutorials/monodromy_xcycle_analytic`
-5. :doc:`/notebooks/tutorials/island_jacobian_analysis`
-6. :doc:`/notebooks/tutorials/RMP_island_validation_solovev`
+3. :doc:`/notebooks/i18n/en/tutorials/RMP_resonance_analysis`
+4. :doc:`/notebooks/i18n/en/tutorials/monodromy_xcycle_analytic`
+5. :doc:`/notebooks/i18n/en/tutorials/island_jacobian_analysis`
+6. :doc:`/notebooks/i18n/en/tutorials/RMP_island_validation_solovev`
 
 General Dynamical Systems
 -------------------------
@@ -43,7 +43,7 @@ the saved outputs instead of spending CI time on the heavy sampling cells.
    :maxdepth: 1
    :hidden:
 
-   /notebooks/tutorials/sde_monte_carlo_distribution
+   /notebooks/i18n/en/tutorials/sde_monte_carlo_distribution
 
 Magnetic Coordinates and Equilibria
 -----------------------------------
@@ -51,7 +51,7 @@ Magnetic Coordinates and Equilibria
 .. toctree::
    :maxdepth: 1
 
-   /notebooks/tutorials/magnetic_coordinates_comparison
+   /notebooks/i18n/en/tutorials/magnetic_coordinates_comparison
 
 RMPs, Islands and Poincare Analysis
 -----------------------------------
@@ -66,9 +66,9 @@ modes, field-line speed modulation, and perturbation-order checks.
 .. toctree::
    :maxdepth: 1
 
-   /notebooks/tutorials/RMP_resonance_analysis
-   /notebooks/tutorials/RMP_island_validation_solovev
-   /notebooks/tutorials/island_jacobian_analysis
+   /notebooks/i18n/en/tutorials/RMP_resonance_analysis
+   /notebooks/i18n/en/tutorials/RMP_island_validation_solovev
+   /notebooks/i18n/en/tutorials/island_jacobian_analysis
 
 ``RMP_resonance_exec.ipynb`` is kept in the repository as an execution/cache
 variant of the resonance analysis workflow, but the public documentation links
@@ -80,8 +80,8 @@ Monodromy and Manifolds
 .. toctree::
    :maxdepth: 1
 
-   /notebooks/tutorials/monodromy_mobius_saddle
-   /notebooks/tutorials/monodromy_xcycle_analytic
+   /notebooks/i18n/en/tutorials/monodromy_mobius_saddle
+   /notebooks/i18n/en/tutorials/monodromy_xcycle_analytic
 
 Classical and General Dynamical Systems
 ---------------------------------------

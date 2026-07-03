@@ -228,6 +228,13 @@ def _page_language(pagename):
     parts = pagename.split('/')
     if parts and parts[0] in translation_languages:
         return parts[0]
+    if (
+        len(parts) >= 3
+        and parts[0] == 'notebooks'
+        and parts[1] == 'i18n'
+        and parts[2] in translation_languages
+    ):
+        return parts[2]
     if parts and parts[0] == 'notebooks':
         return 'en'
     return None
@@ -237,13 +244,27 @@ def _english_counterpart(pagename, lang):
     parts = pagename.split('/')
     if not parts:
         return 'en/index'
+    if (
+        len(parts) >= 3
+        and parts[0] == 'notebooks'
+        and parts[1] == 'i18n'
+        and parts[2] in translation_languages
+    ):
+        if lang == 'en':
+            return pagename
+        return '/'.join(['notebooks', 'i18n', 'en'] + parts[3:])
     if lang == 'en':
         return pagename
     return '/'.join(['en'] + parts[1:])
 
 
-def _rst_source_path(srcdir, pagename):
-    return Path(srcdir).joinpath(*pagename.split('/')).with_suffix('.rst')
+def _source_path(srcdir, pagename):
+    source_base = Path(srcdir).joinpath(*pagename.split('/'))
+    for suffix in ('.rst', '.md', '.ipynb'):
+        candidate = source_base.with_suffix(suffix)
+        if candidate.exists():
+            return candidate
+    return source_base.with_suffix('.rst')
 
 
 @lru_cache(maxsize=None)
@@ -280,9 +301,9 @@ def _translation_badge_for_page(app, pagename):
     if not lang or lang == 'en':
         return None
 
-    source = _rst_source_path(app.srcdir, pagename)
+    source = _source_path(app.srcdir, pagename)
     english_page = _english_counterpart(pagename, lang)
-    english_source = _rst_source_path(app.srcdir, english_page)
+    english_source = _source_path(app.srcdir, english_page)
     if not english_source.exists():
         return None
 

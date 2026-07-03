@@ -113,7 +113,7 @@ Stochastische Differentialgleichungen
 Die SDE-Schicht verwendet die Ito-Form ``dX = a(X,t) dt + B(X,t) dW`` und eine
 deterministische Euler-Maruyama-Implementierung für reproduzierbare Forschung
 und Lehrbeispiele.  Für Workflows zur Verteilungsschätzung siehe
-:doc:`/en/tutorials/sde-monte-carlo`.
+:doc:`/de/tutorials/sde-monte-carlo`.
 
 .. code-block:: python
 

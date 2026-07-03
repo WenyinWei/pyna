@@ -40,6 +40,6 @@ pyna использует отдельные семейства объектов
 ---------
 
 - :doc:`/ru/mini-cases`
-- :doc:`/notebooks/tutorials/RMP_resonance_analysis`
-- :doc:`/notebooks/tutorials/monodromy_xcycle_analytic`
-- :doc:`/notebooks/tutorials/island_jacobian_analysis`
+- :doc:`/notebooks/i18n/ru/tutorials/RMP_resonance_analysis`
+- :doc:`/notebooks/i18n/ru/tutorials/monodromy_xcycle_analytic`
+- :doc:`/notebooks/i18n/ru/tutorials/island_jacobian_analysis`
