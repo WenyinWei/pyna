@@ -4,13 +4,24 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   publish:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -35,21 +46,11 @@ jobs:
           cp -r ../notebooks notebooks
           make html SPHINXOPTS="-q"
 
-      - name: Publish static HTML to gh-pages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          pages_dir="${RUNNER_TEMP}/pyna-pages"
-          rm -rf "${pages_dir}"
-          mkdir -p "${pages_dir}"
-          cp -a docs/_build/html/. "${pages_dir}/"
-          touch "${pages_dir}/.nojekyll"
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs/_build/html
 
-          cd "${pages_dir}"
-          git init
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Deploy docs for ${GITHUB_SHA}"
-          git branch -M gh-pages
-          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
