@@ -1,0 +1,1145 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.flt &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/flt';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.flt</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.flt</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Field line tracing with parallel execution.</span>
+
+<span class="sd">Parallelism strategy (Windows + Python 3.13 standard GIL build):</span>
+<span class="sd">- Primary: ThreadPoolExecutor — works with any callable, numpy releases GIL</span>
+<span class="sd">  during integration loops, so real speedup is achievable</span>
+<span class="sd">- ProcessPoolExecutor: available but requires module-level picklable functions;</span>
+<span class="sd">  use only when explicitly requested and field_func is picklable</span>
+<span class="sd">- CUDA: CuPy backend for GPU-accelerated batch tracing</span>
+
+<span class="sd">Progress reporting</span>
+<span class="sd">------------------</span>
+<span class="sd">All batch methods accept an optional ``progress=`` parameter.  Pass any</span>
+<span class="sd">:class:`~pyna.progress.TraceProgressBase` instance to receive per-task or</span>
+<span class="sd">aggregate progress updates::</span>
+
+<span class="sd">    from pyna.progress import TqdmProgress, LogFileProgress, CompositeProgress</span>
+
+<span class="sd">    # tqdm bar in CLI / notebook</span>
+<span class="sd">    tracer.trace_many(starts, t_max, progress=TqdmProgress())</span>
+
+<span class="sd">    # bar + log file simultaneously</span>
+<span class="sd">    prog = CompositeProgress([TqdmProgress(), LogFileProgress(&quot;run.jsonl&quot;)])</span>
+<span class="sd">    tracer.trace_many(starts, t_max, progress=prog)</span>
+
+<span class="sd">Wall-hit handling (boundary field lines)</span>
+<span class="sd">-----------------------------------------</span>
+<span class="sd">Near the plasma boundary, field lines may strike the first wall after only</span>
+<span class="sd">a few integration steps.  ``FieldLineTracer.trace_many`` marks these as</span>
+<span class="sd">&quot;wall-hit&quot; (non-blocking) and returns the short trajectory.  Use</span>
+<span class="sd">:func:`reseed_boundary_field_lines` to automatically add extra seed points</span>
+<span class="sd">around the boundary where the hit-fraction is high, ensuring the boundary</span>
+<span class="sd">topology is still captured.</span>
+
+<span class="sd">Legacy API</span>
+<span class="sd">----------</span>
+<span class="sd">已移除。原 ``bundle_tracing_with_t_as_DeltaPhi``、``save_Poincare_orbits``、</span>
+<span class="sd">``load_Poincare_orbits`` 及 ``OdeSolution.mat_interp`` monkey-patch 已删除。</span>
+<span class="sd">请使用 ``FieldLineTracer.trace_many`` 替代。</span>
+
+<span class="sd">New API</span>
+<span class="sd">-------</span>
+<span class="sd">FieldLineTracer</span>
+<span class="sd">    RK4 integrator with .trace() / .trace_many() (ThreadPoolExecutor).</span>
+<span class="sd">    当传入网格数据时底层由 cyna C++ 扩展驱动；若只有 callable 场函数，</span>
+<span class="sd">    则使用纯 Python RK4 fallback（向后兼容）。</span>
+<span class="sd">    若要完全使用 C++ 底层加速，请使用</span>
+<span class="sd">    ``pyna.toroidal.flt.trace_poincare_batch`` 并传入网格数组。</span>
+<span class="sd">WallModel</span>
+<span class="sd">    Parametric / polygon wall geometry for wall-hit detection.</span>
+<span class="sd">reseed_boundary_field_lines</span>
+<span class="sd">    Adaptively add more seed points where wall-hits are dense.</span>
+<span class="sd">get_backend(mode, **kwargs)</span>
+<span class="sd">    Factory: &#39;cpu&#39;, &#39;cuda&#39;, &#39;opencl&#39;.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sysconfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">ProcessPoolExecutor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.fields.cylindrical</span><span class="w"> </span><span class="kn">import</span> <span class="n">VectorFieldCylind</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.progress</span><span class="w"> </span><span class="kn">import</span> <span class="n">TraceProgressBase</span><span class="p">,</span> <span class="n">_coerce_progress</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">RegularGridInterpolator</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># New API — RK4 integrator</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_rk4_step_py</span><span class="p">(</span><span class="n">f</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;纯 Python RK4 步骤（仅用于 callable 场函数的 fallback 路径）。</span>
+
+<span class="sd">    当 FieldLineTracer 以任意 callable 构建时（而非网格数据）使用此函数。</span>
+<span class="sd">    若已提供网格数据，底层将使用 cyna C++ 积分器。</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f : callable</span>
+<span class="sd">        Vector field ``f(y) -&gt; dy``.  Takes/returns 1-D array of length 3.</span>
+<span class="sd">    y : ndarray</span>
+<span class="sd">        Current state (R, Z, phi).</span>
+<span class="sd">    dt : float</span>
+<span class="sd">        Step size.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ndarray</span>
+<span class="sd">        New state after one RK4 step.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">k1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">k2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">k1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">k3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">k2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">k4</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">k3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">y</span> <span class="o">+</span> <span class="p">(</span><span class="n">dt</span> <span class="o">/</span> <span class="mf">6.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">k1</span> <span class="o">+</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">k2</span> <span class="o">+</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">k3</span> <span class="o">+</span> <span class="n">k4</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="FieldLineTracer">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.FieldLineTracer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FieldLineTracer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;RK4 field-line integrator with parallel trace_many.</span>
+
+<span class="sd">    The field function signature::</span>
+
+<span class="sd">        f(rzphi: ndarray[3]) -&gt; ndarray[3]   # (dR/dl, dZ/dl, dphi/dl)</span>
+
+<span class="sd">    where ``rzphi = [R, Z, phi]`` is the current position.</span>
+
+<span class="sd">    Parallelism uses :class:`~concurrent.futures.ThreadPoolExecutor` on all</span>
+<span class="sd">    platforms.  This is deliberately chosen over ProcessPoolExecutor because:</span>
+
+<span class="sd">    * Works with *any* callable — no pickle requirement (important on Windows).</span>
+<span class="sd">    * NumPy/SciPy release the GIL during heavy computation, so threads achieve</span>
+<span class="sd">      real parallel speedup.</span>
+<span class="sd">    * No process-spawn overhead on Windows.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    field_func : callable</span>
+<span class="sd">        Unit tangent vector field.</span>
+<span class="sd">    dt : float</span>
+<span class="sd">        Integration step size (arc length).</span>
+<span class="sd">    RZlimit : tuple or None</span>
+<span class="sd">        Optional ``(R_min, R_max, Z_min, Z_max)`` domain boundary.</span>
+<span class="sd">        Integration stops when the trajectory leaves this box.</span>
+<span class="sd">    n_workers : int or None</span>
+<span class="sd">        Default thread-pool size for :meth:`trace_many`.</span>
+<span class="sd">        ``None`` → ``min(os.cpu_count(), 16)``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+        <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.04</span><span class="p">,</span>
+        <span class="n">RZlimit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">n_workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="FieldLineTracer.field_func">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.FieldLineTracer.field_func">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">field_func</span> <span class="o">=</span> <span class="n">field_func</span></div>
+
+<div class="viewcode-block" id="FieldLineTracer.dt">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.FieldLineTracer.dt">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="n">dt</span></div>
+
+<div class="viewcode-block" id="FieldLineTracer.RZlimit">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.FieldLineTracer.RZlimit">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">RZlimit</span> <span class="o">=</span> <span class="n">RZlimit</span></div>
+
+<div class="viewcode-block" id="FieldLineTracer.n_workers">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.FieldLineTracer.n_workers">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_workers</span> <span class="o">=</span> <span class="n">n_workers</span> <span class="ow">or</span> <span class="nb">min</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="ow">or</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FieldLineTracer.trace">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.FieldLineTracer.trace">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_pt</span><span class="p">,</span> <span class="n">t_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Trace a single field line with fixed-step RK4.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        start_pt : array-like of length 3</span>
+<span class="sd">            Starting point (R, Z, phi).</span>
+<span class="sd">        t_max : float</span>
+<span class="sd">            Maximum arc-length parameter.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ndarray, shape (N, 3)</span>
+<span class="sd">            Trajectory points (R, Z, phi).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">start_pt</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span>
+        <span class="n">n_steps</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">t_max</span> <span class="o">/</span> <span class="n">dt</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span><span class="o">.</span><span class="n">copy</span><span class="p">()]</span>
+
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_steps</span><span class="p">):</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">_rk4_step_py</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field_func</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">RZlimit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">R_min</span><span class="p">,</span> <span class="n">R_max</span><span class="p">,</span> <span class="n">Z_min</span><span class="p">,</span> <span class="n">Z_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">RZlimit</span>
+                <span class="k">if</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">R_min</span> <span class="ow">or</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">R_max</span> <span class="ow">or</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">Z_min</span> <span class="ow">or</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">Z_max</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FieldLineTracer.trace_many">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.FieldLineTracer.trace_many">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trace_many</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">start_pts</span><span class="p">,</span>
+        <span class="n">t_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">n_workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">progress</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TraceProgressBase</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parallel field-line tracing using ThreadPoolExecutor.</span>
+
+<span class="sd">        ThreadPoolExecutor is used (not ProcessPool) because:</span>
+
+<span class="sd">        1. Works with any callable (no pickle requirement).</span>
+<span class="sd">        2. NumPy/SciPy release the GIL during computation → real parallel</span>
+<span class="sd">           speedup even without the free-threading build.</span>
+<span class="sd">        3. Avoids Windows process-spawn overhead.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        start_pts : array-like, shape (N, 3)</span>
+<span class="sd">            Starting points.</span>
+<span class="sd">        t_max : float</span>
+<span class="sd">            Maximum arc-length for each field line.</span>
+<span class="sd">        n_workers : int or None</span>
+<span class="sd">            Override the default worker count.</span>
+<span class="sd">        progress : TraceProgressBase or None</span>
+<span class="sd">            Optional progress reporter.  ``None`` → silent.  Pass a</span>
+<span class="sd">            :class:`~pyna.progress.TqdmProgress` for an interactive bar or</span>
+<span class="sd">            :class:`~pyna.progress.LogFileProgress` to write a heartbeat</span>
+<span class="sd">            file for staleness monitoring.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of ndarray</span>
+<span class="sd">            One (n_steps, 3) trajectory per starting point.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">start_pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">start_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">workers</span> <span class="o">=</span> <span class="n">n_workers</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_workers</span>
+        <span class="n">n_tasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">start_pts</span><span class="p">)</span>
+        <span class="n">n_steps_planned</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">t_max</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">prog</span> <span class="o">=</span> <span class="n">_coerce_progress</span><span class="p">(</span><span class="n">progress</span><span class="p">)</span>
+        <span class="n">prog</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">n_tasks</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;field-line tracing&quot;</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_trace_one</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+            <span class="n">idx</span><span class="p">,</span> <span class="n">pt</span> <span class="o">=</span> <span class="n">args</span>
+            <span class="n">traj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">pt</span><span class="p">,</span> <span class="n">t_max</span><span class="p">)</span>
+            <span class="n">prog</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">steps_done</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">steps_total</span><span class="o">=</span><span class="n">n_steps_planned</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">traj</span>
+
+        <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_trace_one</span><span class="p">,</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">start_pts</span><span class="p">)))</span>
+
+        <span class="n">prog</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">results</span></div>
+</div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Backend factory</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="get_backend">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.get_backend">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_backend</span><span class="p">(</span><span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;cpu&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a field-line tracer backend.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mode : str</span>
+<span class="sd">        ``&#39;cpu&#39;``    — :class:`FieldLineTracer` with ThreadPoolExecutor</span>
+<span class="sd">                       (always available).</span>
+<span class="sd">        ``&#39;cuda&#39;``   — :class:`~pyna.flt_cuda.FieldLineTracerCUDA`</span>
+<span class="sd">                       (requires CuPy, only for analytic fields).</span>
+<span class="sd">        ``&#39;opencl&#39;`` — reserved, not yet implemented.</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Passed to the backend constructor.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Backend object with ``.trace_many(start_pts, t_max)`` method.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    CPU::</span>
+
+<span class="sd">        tracer = get_backend(&#39;cpu&#39;, field_func=my_field, dt=0.02)</span>
+<span class="sd">        trajs  = tracer.trace_many(starts, t_max=100.0)</span>
+
+<span class="sd">    CUDA::</span>
+
+<span class="sd">        tracer = get_backend(&#39;cuda&#39;, R0=1.0, a=0.3, B0=1.0, q0=2.0)</span>
+<span class="sd">        trajs  = tracer.trace_many(starts, t_max=100.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;cpu&#39;</span><span class="p">:</span>
+        <span class="n">field_func</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;field_func&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">field_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_CPUBackend</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">FieldLineTracer</span><span class="p">(</span><span class="n">field_func</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;cuda&#39;</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.flt_cuda</span><span class="w"> </span><span class="kn">import</span> <span class="n">FieldLineTracerCUDA</span>  <span class="c1"># noqa: PLC0415</span>
+        <span class="k">return</span> <span class="n">FieldLineTracerCUDA</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;opencl&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;OpenCL backend is reserved for future implementation. &quot;</span>
+            <span class="s2">&quot;Use mode=&#39;cpu&#39; or mode=&#39;cuda&#39; (requires cupy).&quot;</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Unknown backend mode: </span><span class="si">{</span><span class="n">mode</span><span class="si">!r}</span><span class="s2">. Choose &#39;cpu&#39;, &#39;cuda&#39;, or &#39;opencl&#39;.&quot;</span>
+        <span class="p">)</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_CPUBackend</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Lazy CPU backend — call :meth:`get_tracer` to create a FieldLineTracer.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_tracer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FieldLineTracer</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a :class:`FieldLineTracer` for *field_func*.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">FieldLineTracer</span><span class="p">(</span><span class="n">field_func</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="c1"># Convenience: allow trace_many to be called directly if field_func</span>
+    <span class="c1"># was stored separately (e.g. via kwargs).</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trace_many</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_pts</span><span class="p">,</span> <span class="n">t_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="n">field_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;field_func&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">field_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;_CPUBackend.trace_many requires &#39;field_func&#39; in kwargs. &quot;</span>
+                <span class="s2">&quot;Use get_backend(&#39;cpu&#39;, field_func=...) or call .get_tracer(f).trace_many(...).&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">FieldLineTracer</span><span class="p">(</span><span class="n">field_func</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">trace_many</span><span class="p">(</span><span class="n">start_pts</span><span class="p">,</span> <span class="n">t_max</span><span class="p">)</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Wall geometry model</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="WallModel">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.WallModel">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WallModel</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;First-wall geometry for wall-hit detection during field-line tracing.</span>
+
+<span class="sd">    A wall is represented as a closed polygon in the (R, Z) poloidal cross-</span>
+<span class="sd">    section.  The same shape is assumed toroidally symmetric (axisymmetric</span>
+<span class="sd">    wall).  More complex 3-D first-wall descriptions can be approximated by</span>
+<span class="sd">    providing an appropriate 2-D outline.</span>
+
+<span class="sd">    The model also provides a *minimum clearance* check so that trajectories</span>
+<span class="sd">    that approach very close to the wall but haven&#39;t yet crossed it can be</span>
+<span class="sd">    flagged for early termination.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    R_wall : array_like of shape (N,)</span>
+<span class="sd">        R-coordinates of the wall polygon vertices (m).  The polygon is</span>
+<span class="sd">        closed automatically; do not repeat the first point.</span>
+<span class="sd">    Z_wall : array_like of shape (N,)</span>
+<span class="sd">        Z-coordinates of the wall polygon vertices (m).</span>
+<span class="sd">    min_clearance : float, optional</span>
+<span class="sd">        Minimum distance from wall (m) before a point is considered a</span>
+<span class="sd">        near-miss / wall-hit.  ``0`` means only count true crossings.</span>
+<span class="sd">        Default 0.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; theta = np.linspace(0, 2*np.pi, 64, endpoint=False)</span>
+<span class="sd">    &gt;&gt;&gt; wall = WallModel(2.0 + 0.5*np.cos(theta), 0.5*np.sin(theta))</span>
+<span class="sd">    &gt;&gt;&gt; wall.is_outside(np.array([2.6, 0.0]))</span>
+<span class="sd">    True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">R_wall</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">Z_wall</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">min_clearance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="WallModel.R_wall">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.WallModel.R_wall">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">R_wall</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">R_wall</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WallModel.Z_wall">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.WallModel.Z_wall">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Z_wall</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Z_wall</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WallModel.min_clearance">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.WallModel.min_clearance">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_clearance</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">min_clearance</span><span class="p">)</span></div>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">R_wall</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wall polygon must have at least 3 vertices.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">R_wall</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z_wall</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;R_wall and Z_wall must have the same shape.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="WallModel.is_outside">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.WallModel.is_outside">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_outside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">RZ</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return True if the point (R, Z) is outside the wall polygon.</span>
+
+<span class="sd">        Uses the ray-casting (winding-number) algorithm.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        RZ : array_like of shape (2,)</span>
+<span class="sd">            Point [R, Z] to test (m).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">R</span><span class="p">,</span> <span class="n">Z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">RZ</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">RZ</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_clearance</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_min_polygon_distance</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dist</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_clearance</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_point_in_polygon</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_point_in_polygon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Z</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ray-casting test for point-in-polygon.&quot;&quot;&quot;</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">R_wall</span><span class="p">)</span>
+        <span class="n">inside</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">Ri</span><span class="p">,</span> <span class="n">Zi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">R_wall</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z_wall</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">Rj</span><span class="p">,</span> <span class="n">Zj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">R_wall</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z_wall</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+            <span class="k">if</span> <span class="p">((</span><span class="n">Zi</span> <span class="o">&gt;</span> <span class="n">Z</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">Zj</span> <span class="o">&gt;</span> <span class="n">Z</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="n">R</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">Rj</span> <span class="o">-</span> <span class="n">Ri</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">Z</span> <span class="o">-</span> <span class="n">Zi</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">Zj</span> <span class="o">-</span> <span class="n">Zi</span><span class="p">)</span> <span class="o">+</span> <span class="n">Ri</span><span class="p">):</span>
+                <span class="n">inside</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">inside</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="k">return</span> <span class="n">inside</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_min_polygon_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Z</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Minimum distance from (R, Z) to any edge of the wall polygon.&quot;&quot;&quot;</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">R_wall</span><span class="p">)</span>
+        <span class="n">min_d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">n</span>
+            <span class="c1"># Segment from (R_wall[i], Z_wall[i]) to (R_wall[j], Z_wall[j])</span>
+            <span class="n">dR</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">R_wall</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">R_wall</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">dZ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z_wall</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z_wall</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">seg_len2</span> <span class="o">=</span> <span class="n">dR</span> <span class="o">*</span> <span class="n">dR</span> <span class="o">+</span> <span class="n">dZ</span> <span class="o">*</span> <span class="n">dZ</span>
+            <span class="k">if</span> <span class="n">seg_len2</span> <span class="o">&lt;</span> <span class="mf">1e-30</span><span class="p">:</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">R</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">R_wall</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Z</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z_wall</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span>
+                    <span class="p">((</span><span class="n">R</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">R_wall</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">*</span> <span class="n">dR</span> <span class="o">+</span> <span class="p">(</span><span class="n">Z</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z_wall</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">*</span> <span class="n">dZ</span><span class="p">)</span> <span class="o">/</span> <span class="n">seg_len2</span><span class="p">))</span>
+                <span class="n">proj_R</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">R_wall</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">t</span> <span class="o">*</span> <span class="n">dR</span>
+                <span class="n">proj_Z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z_wall</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">t</span> <span class="o">*</span> <span class="n">dZ</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">R</span> <span class="o">-</span> <span class="n">proj_R</span><span class="p">,</span> <span class="n">Z</span> <span class="o">-</span> <span class="n">proj_Z</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">d</span> <span class="o">&lt;</span> <span class="n">min_d</span><span class="p">:</span>
+                <span class="n">min_d</span> <span class="o">=</span> <span class="n">d</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">min_d</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="WallModel.circular">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.WallModel.circular">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">circular</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">R0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">n_vertices</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
+        <span class="n">min_clearance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;WallModel&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct a circular (axisymmetric) wall.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        R0, a : float</span>
+<span class="sd">            Major radius and minor radius of the circular wall.</span>
+<span class="sd">        n_vertices : int</span>
+<span class="sd">            Number of polygon vertices.</span>
+<span class="sd">        min_clearance : float</span>
+<span class="sd">            Proximity clearance (m).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        WallModel</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">n_vertices</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">R0</span> <span class="o">+</span> <span class="n">a</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span>
+            <span class="n">a</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span>
+            <span class="n">min_clearance</span><span class="o">=</span><span class="n">min_clearance</span><span class="p">,</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Update FieldLineTracer.trace to accept a wall model</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="n">_original_trace</span> <span class="o">=</span> <span class="n">FieldLineTracer</span><span class="o">.</span><span class="n">trace</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_trace_with_wall</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">start_pt</span><span class="p">,</span>
+    <span class="n">t_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">wall</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;WallModel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Trace a single field line, optionally stopping at a wall.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    start_pt : array-like of length 3</span>
+<span class="sd">        Starting point (R, Z, phi).</span>
+<span class="sd">    t_max : float</span>
+<span class="sd">        Maximum arc-length parameter.</span>
+<span class="sd">    wall : WallModel or None</span>
+<span class="sd">        Wall model for early-termination on wall hit.  ``None`` uses the</span>
+<span class="sd">        ``RZlimit`` box-boundary from the constructor.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ndarray, shape (N, 3)</span>
+<span class="sd">        Trajectory points (R, Z, phi).  For wall-hit cases N may be much</span>
+<span class="sd">        smaller than ``int(t_max / dt)``; the trajectory is *not* padded.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">start_pt</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span>
+    <span class="n">n_steps</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">t_max</span> <span class="o">/</span> <span class="n">dt</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span><span class="o">.</span><span class="n">copy</span><span class="p">()]</span>
+
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_steps</span><span class="p">):</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">_rk4_step_py</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field_func</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">wall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">wall</span><span class="o">.</span><span class="n">is_outside</span><span class="p">(</span><span class="n">y</span><span class="p">[:</span><span class="mi">2</span><span class="p">]):</span>
+            <span class="k">break</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">RZlimit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">R_min</span><span class="p">,</span> <span class="n">R_max</span><span class="p">,</span> <span class="n">Z_min</span><span class="p">,</span> <span class="n">Z_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">RZlimit</span>
+            <span class="k">if</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">R_min</span> <span class="ow">or</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">R_max</span> <span class="ow">or</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">Z_min</span> <span class="ow">or</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">Z_max</span><span class="p">:</span>
+                <span class="k">break</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+
+<span class="n">FieldLineTracer</span><span class="o">.</span><span class="n">trace</span> <span class="o">=</span> <span class="n">_trace_with_wall</span>  <span class="c1"># type: ignore[assignment]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_trace_many_with_wall</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">start_pts</span><span class="p">,</span>
+    <span class="n">t_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">n_workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">progress</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TraceProgressBase</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">wall</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;WallModel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_valid_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parallel field-line tracing with optional wall-hit handling.</span>
+
+<span class="sd">    Wall-hitting trajectories are returned as short arrays and do **not**</span>
+<span class="sd">    block or slow down other traces in the same batch.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    start_pts : array-like, shape (N, 3)</span>
+<span class="sd">        Starting points.</span>
+<span class="sd">    t_max : float</span>
+<span class="sd">        Maximum arc-length for each field line.</span>
+<span class="sd">    n_workers : int or None</span>
+<span class="sd">        Override the default worker count.</span>
+<span class="sd">    progress : TraceProgressBase or None</span>
+<span class="sd">        Optional progress reporter.</span>
+<span class="sd">    wall : WallModel or None</span>
+<span class="sd">        Wall model.  When provided, trajectories that hit the wall are</span>
+<span class="sd">        returned early (shorter arrays).</span>
+<span class="sd">    min_valid_steps : int</span>
+<span class="sd">        If &gt; 0, trajectories with fewer than this many steps are flagged</span>
+<span class="sd">        as &quot;wall-hit&quot; in the returned metadata.  This does not discard</span>
+<span class="sd">        the trajectory — callers can filter using the returned list.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of ndarray</span>
+<span class="sd">        One trajectory per starting point.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start_pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">start_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">workers</span> <span class="o">=</span> <span class="n">n_workers</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_workers</span>
+    <span class="n">n_tasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">start_pts</span><span class="p">)</span>
+    <span class="n">n_steps_planned</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">t_max</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">prog</span> <span class="o">=</span> <span class="n">_coerce_progress</span><span class="p">(</span><span class="n">progress</span><span class="p">)</span>
+    <span class="n">prog</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">n_tasks</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;field-line tracing&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_trace_one</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">idx</span><span class="p">,</span> <span class="n">pt</span> <span class="o">=</span> <span class="n">args</span>
+        <span class="n">traj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">pt</span><span class="p">,</span> <span class="n">t_max</span><span class="p">,</span> <span class="n">wall</span><span class="o">=</span><span class="n">wall</span><span class="p">)</span>
+        <span class="n">prog</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">steps_done</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">steps_total</span><span class="o">=</span><span class="n">n_steps_planned</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">traj</span>
+
+    <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_trace_one</span><span class="p">,</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">start_pts</span><span class="p">)))</span>
+
+    <span class="n">prog</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">results</span>
+
+
+<span class="n">FieldLineTracer</span><span class="o">.</span><span class="n">trace_many</span> <span class="o">=</span> <span class="n">_trace_many_with_wall</span>  <span class="c1"># type: ignore[assignment]</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Boundary reseeding helper</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="reseed_boundary_field_lines">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt/index.html#pyna.flt.reseed_boundary_field_lines">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">reseed_boundary_field_lines</span><span class="p">(</span>
+    <span class="n">tracer</span><span class="p">:</span> <span class="s2">&quot;FieldLineTracer&quot;</span><span class="p">,</span>
+    <span class="n">start_pts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">trajs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+    <span class="n">t_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">wall</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;WallModel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_valid_fraction</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">n_reseed_factor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="n">reseed_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.02</span><span class="p">,</span>
+    <span class="n">n_workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">progress</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TraceProgressBase</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adaptively reseed field lines near wall-hit starting points.</span>
+
+<span class="sd">    Near the plasma boundary, a fraction of seed points may produce very</span>
+<span class="sd">    short trajectories (wall hits).  This function:</span>
+
+<span class="sd">    1. Identifies seeds with trajectories shorter than</span>
+<span class="sd">       ``min_valid_fraction * t_max / dt`` steps.</span>
+<span class="sd">    2. Surrounds each such seed with ``n_reseed_factor`` new seeds in a</span>
+<span class="sd">       small circle of radius ``reseed_radius``.</span>
+<span class="sd">    3. Traces the new seeds and returns *all* trajectories (original +</span>
+<span class="sd">       reseeded).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tracer : FieldLineTracer</span>
+<span class="sd">        Tracer used for the original batch.</span>
+<span class="sd">    start_pts : array, shape (N, 3)</span>
+<span class="sd">        Original starting points [R, Z, phi].</span>
+<span class="sd">    trajs : list of ndarray</span>
+<span class="sd">        Trajectories from the original batch (one per start point).</span>
+<span class="sd">    t_max : float</span>
+<span class="sd">        Arc-length used in the original batch.</span>
+<span class="sd">    wall : WallModel or None</span>
+<span class="sd">        Wall model passed to the new traces.</span>
+<span class="sd">    min_valid_fraction : float</span>
+<span class="sd">        Fraction of ``t_max / dt`` steps below which a trajectory is</span>
+<span class="sd">        considered a wall hit.  Default 0.5.</span>
+<span class="sd">    n_reseed_factor : int</span>
+<span class="sd">        Number of new seeds to place around each wall-hit seed.  Default 4.</span>
+<span class="sd">    reseed_radius : float</span>
+<span class="sd">        Radius (m) of the reseeding circle around each hit seed.  Default 0.02.</span>
+<span class="sd">    n_workers : int or None</span>
+<span class="sd">        Worker count for the reseeded traces.</span>
+<span class="sd">    progress : TraceProgressBase or None</span>
+<span class="sd">        Progress reporter for the reseeded traces.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of ndarray</span>
+<span class="sd">        Original trajectories plus new reseeded trajectories (appended).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start_pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">start_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">n_planned</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">t_max</span> <span class="o">/</span> <span class="n">tracer</span><span class="o">.</span><span class="n">dt</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">threshold</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_valid_fraction</span> <span class="o">*</span> <span class="n">n_planned</span><span class="p">))</span>
+
+    <span class="c1"># Identify wall-hit seeds</span>
+    <span class="n">hit_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trajs</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">threshold</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">hit_indices</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">trajs</span><span class="p">)</span>
+
+    <span class="c1"># Build reseeded starts</span>
+    <span class="n">new_starts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">angles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">n_reseed_factor</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">hit_indices</span><span class="p">:</span>
+        <span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span><span class="p">,</span> <span class="n">phi0</span> <span class="o">=</span> <span class="n">start_pts</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">theta</span> <span class="ow">in</span> <span class="n">angles</span><span class="p">:</span>
+            <span class="n">new_starts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+                <span class="n">R0</span> <span class="o">+</span> <span class="n">reseed_radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span>
+                <span class="n">Z0</span> <span class="o">+</span> <span class="n">reseed_radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span>
+                <span class="n">phi0</span><span class="p">,</span>
+            <span class="p">])</span>
+
+    <span class="n">new_starts_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new_starts</span><span class="p">)</span>
+    <span class="n">new_trajs</span> <span class="o">=</span> <span class="n">tracer</span><span class="o">.</span><span class="n">trace_many</span><span class="p">(</span>
+        <span class="n">new_starts_arr</span><span class="p">,</span> <span class="n">t_max</span><span class="p">,</span> <span class="n">n_workers</span><span class="o">=</span><span class="n">n_workers</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="n">progress</span><span class="p">,</span> <span class="n">wall</span><span class="o">=</span><span class="n">wall</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">trajs</span><span class="p">)</span> <span class="o">+</span> <span class="n">new_trajs</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

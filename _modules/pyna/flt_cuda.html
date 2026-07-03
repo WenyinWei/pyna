@@ -1,0 +1,753 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.flt_cuda &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/flt_cuda';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.flt_cuda</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.flt_cuda</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;CUDA-accelerated field line tracing via CuPy.</span>
+
+<span class="sd">Uses a custom CUDA kernel for batched Euler integration of field lines</span>
+<span class="sd">(one GPU thread per field line — all lines traced simultaneously).</span>
+
+<span class="sd">The magnetic field is encoded directly in the kernel as a Solov&#39;ev</span>
+<span class="sd">equilibrium (with optional helical perturbation) for maximum throughput.</span>
+
+<span class="sd">Requirements</span>
+<span class="sd">------------</span>
+<span class="sd">cupy (``pip install cupy-cuda12x``)</span>
+
+<span class="sd">Notes</span>
+<span class="sd">-----</span>
+<span class="sd">The kernel uses a simple Euler integrator rather than RK4 because</span>
+<span class="sd">device-function calls inside RawKernel require CUDA ``__device__`` helpers,</span>
+<span class="sd">which would significantly increase kernel complexity.  For physics-accurate</span>
+<span class="sd">work, use smaller *dt* values to compensate.  A proper RK4 version can be</span>
+<span class="sd">added later via CuPy ``__device__`` helper strings.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+    <span class="n">_CUPY_AVAILABLE</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">_CUPY_AVAILABLE</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># CUDA kernel — batched Euler field-line integration (Solov&#39;ev equilibrium)</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="n">_TRACE_KERNEL_CODE</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">extern &quot;C&quot; __global__</span>
+<span class="s2">void rk4_trace_kernel(</span>
+<span class="s2">    const double* __restrict__ start_pts,  // (n_lines, 3): R, Z, phi</span>
+<span class="s2">    double*       __restrict__ traj_out,   // (n_lines, max_steps, 3)</span>
+<span class="s2">    int*          __restrict__ n_steps_out,// (n_lines,)</span>
+<span class="s2">    int    n_lines,</span>
+<span class="s2">    int    max_steps,</span>
+<span class="s2">    double dt,</span>
+<span class="s2">    double R_min, double R_max,</span>
+<span class="s2">    double Z_min, double Z_max,</span>
+<span class="s2">    // Solov&#39;ev equilibrium parameters</span>
+<span class="s2">    double R0, double a, double B0, double q0,</span>
+<span class="s2">    // Optional helical perturbation</span>
+<span class="s2">    double epsilon_h,</span>
+<span class="s2">    double m_h,</span>
+<span class="s2">    double n_h</span>
+<span class="s2">) {</span>
+<span class="s2">    int idx = blockIdx.x * blockDim.x + threadIdx.x;</span>
+<span class="s2">    if (idx &gt;= n_lines) return;</span>
+
+<span class="s2">    double R   = start_pts[idx * 3 + 0];</span>
+<span class="s2">    double Z   = start_pts[idx * 3 + 1];</span>
+<span class="s2">    double phi = start_pts[idx * 3 + 2];</span>
+
+<span class="s2">    // Helper: compute field derivatives at (R, Z, phi)</span>
+<span class="s2">    // Solov&#39;ev: psi = [(R^2 - R0^2)^2] / (4 R0^2 a^2) + Z^2/a^2</span>
+<span class="s2">    // lambda = B0*a / (q0*R0)</span>
+<span class="s2">    // BR   = -lam/R * dpsi/dZ</span>
+<span class="s2">    // BZ   =  lam/R * dpsi/dR</span>
+<span class="s2">    // Bphi = B0*R0/R</span>
+<span class="s2">    #define FIELD(R_, Z_, phi_, BR_, BZ_, Bphi_)                         \</span>
+<span class="s2">    {                                                                      \</span>
+<span class="s2">        double lam_     = B0 * a / (q0 * R0);                             \</span>
+<span class="s2">        double dpsi_dR_ = (R_*R_ - R0*R0) * R_ / (R0*R0 * a*a);          \</span>
+<span class="s2">        double dpsi_dZ_ = 2.0 * Z_ / (a*a);                               \</span>
+<span class="s2">        BR_   = -lam_ / R_ * dpsi_dZ_;                                    \</span>
+<span class="s2">        BZ_   =  lam_ / R_ * dpsi_dR_;                                    \</span>
+<span class="s2">        Bphi_ = B0 * R0 / R_;                                             \</span>
+<span class="s2">        if (epsilon_h &gt; 0.0) {                                             \</span>
+<span class="s2">            double psi_n_  = ((R_*R_ - R0*R0)*(R_*R_ - R0*R0))           \</span>
+<span class="s2">                             / (4.0*R0*R0*a*a) + Z_*Z_/(a*a);             \</span>
+<span class="s2">            double theta_  = atan2(Z_, R_ - R0);                          \</span>
+<span class="s2">            double env_    = psi_n_ * (1.0 - psi_n_);                     \</span>
+<span class="s2">            double phase_  = m_h * theta_ - n_h * phi_;                   \</span>
+<span class="s2">            BR_   += epsilon_h * B0 * env_ * cos(phase_);                 \</span>
+<span class="s2">            BZ_   += epsilon_h * B0 * env_ * sin(phase_);                 \</span>
+<span class="s2">        }                                                                  \</span>
+<span class="s2">    }</span>
+
+<span class="s2">    // Store initial position</span>
+<span class="s2">    traj_out[idx * max_steps * 3 + 0] = R;</span>
+<span class="s2">    traj_out[idx * max_steps * 3 + 1] = Z;</span>
+<span class="s2">    traj_out[idx * max_steps * 3 + 2] = phi;</span>
+
+<span class="s2">    int step;</span>
+<span class="s2">    for (step = 1; step &lt; max_steps; step++) {</span>
+
+<span class="s2">        // ---- RK4 stage 1 ----</span>
+<span class="s2">        double BR1, BZ1, Bphi1;</span>
+<span class="s2">        FIELD(R, Z, phi, BR1, BZ1, Bphi1);</span>
+<span class="s2">        double Bmag1 = sqrt(BR1*BR1 + BZ1*BZ1 + Bphi1*Bphi1) + 1e-30;</span>
+<span class="s2">        double dR1   = BR1 / Bmag1 * dt;</span>
+<span class="s2">        double dZ1   = BZ1 / Bmag1 * dt;</span>
+<span class="s2">        double dphi1 = Bphi1 / (R * Bmag1) * dt;</span>
+
+<span class="s2">        // ---- RK4 stage 2 ----</span>
+<span class="s2">        double R2    = R   + 0.5*dR1;</span>
+<span class="s2">        double Z2    = Z   + 0.5*dZ1;</span>
+<span class="s2">        double phi2  = phi + 0.5*dphi1;</span>
+<span class="s2">        double BR2, BZ2, Bphi2;</span>
+<span class="s2">        FIELD(R2, Z2, phi2, BR2, BZ2, Bphi2);</span>
+<span class="s2">        double Bmag2 = sqrt(BR2*BR2 + BZ2*BZ2 + Bphi2*Bphi2) + 1e-30;</span>
+<span class="s2">        double dR2   = BR2 / Bmag2 * dt;</span>
+<span class="s2">        double dZ2   = BZ2 / Bmag2 * dt;</span>
+<span class="s2">        double dphi2 = Bphi2 / (R2 * Bmag2) * dt;</span>
+
+<span class="s2">        // ---- RK4 stage 3 ----</span>
+<span class="s2">        double R3    = R   + 0.5*dR2;</span>
+<span class="s2">        double Z3    = Z   + 0.5*dZ2;</span>
+<span class="s2">        double phi3  = phi + 0.5*dphi2;</span>
+<span class="s2">        double BR3, BZ3, Bphi3;</span>
+<span class="s2">        FIELD(R3, Z3, phi3, BR3, BZ3, Bphi3);</span>
+<span class="s2">        double Bmag3 = sqrt(BR3*BR3 + BZ3*BZ3 + Bphi3*Bphi3) + 1e-30;</span>
+<span class="s2">        double dR3   = BR3 / Bmag3 * dt;</span>
+<span class="s2">        double dZ3   = BZ3 / Bmag3 * dt;</span>
+<span class="s2">        double dphi3 = Bphi3 / (R3 * Bmag3) * dt;</span>
+
+<span class="s2">        // ---- RK4 stage 4 ----</span>
+<span class="s2">        double R4    = R   + dR3;</span>
+<span class="s2">        double Z4    = Z   + dZ3;</span>
+<span class="s2">        double phi4  = phi + dphi3;</span>
+<span class="s2">        double BR4, BZ4, Bphi4;</span>
+<span class="s2">        FIELD(R4, Z4, phi4, BR4, BZ4, Bphi4);</span>
+<span class="s2">        double Bmag4 = sqrt(BR4*BR4 + BZ4*BZ4 + Bphi4*Bphi4) + 1e-30;</span>
+<span class="s2">        double dR4   = BR4 / Bmag4 * dt;</span>
+<span class="s2">        double dZ4   = BZ4 / Bmag4 * dt;</span>
+<span class="s2">        double dphi4 = Bphi4 / (R4 * Bmag4) * dt;</span>
+
+<span class="s2">        // ---- Combine ----</span>
+<span class="s2">        R   += (dR1   + 2.0*dR2   + 2.0*dR3   + dR4)   / 6.0;</span>
+<span class="s2">        Z   += (dZ1   + 2.0*dZ2   + 2.0*dZ3   + dZ4)   / 6.0;</span>
+<span class="s2">        phi += (dphi1 + 2.0*dphi2 + 2.0*dphi3 + dphi4) / 6.0;</span>
+
+<span class="s2">        traj_out[(idx * max_steps + step) * 3 + 0] = R;</span>
+<span class="s2">        traj_out[(idx * max_steps + step) * 3 + 1] = Z;</span>
+<span class="s2">        traj_out[(idx * max_steps + step) * 3 + 2] = phi;</span>
+
+<span class="s2">        // Domain check</span>
+<span class="s2">        if (R &lt; R_min || R &gt; R_max || Z &lt; Z_min || Z &gt; Z_max) {</span>
+<span class="s2">            step++;</span>
+<span class="s2">            break;</span>
+<span class="s2">        }</span>
+<span class="s2">    }</span>
+
+<span class="s2">    n_steps_out[idx] = step;</span>
+<span class="s2">    #undef FIELD</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Python class</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="FieldLineTracerCUDA">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt_cuda/index.html#pyna.flt_cuda.FieldLineTracerCUDA">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FieldLineTracerCUDA</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;GPU-accelerated batched field-line tracer for Solov&#39;ev equilibria.</span>
+
+<span class="sd">    All field lines are traced simultaneously on the GPU; each CUDA thread</span>
+<span class="sd">    handles one field line using a 4th-order Runge-Kutta integrator.</span>
+
+<span class="sd">    The magnetic field is hard-coded in the kernel as a Solov&#39;ev equilibrium</span>
+<span class="sd">    (optionally with a helical perturbation).  For arbitrary numerical fields</span>
+<span class="sd">    use the CPU :class:`~pyna.flt.FieldLineTracer` instead.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    R0, a, B0, q0 : float</span>
+<span class="sd">        Solov&#39;ev equilibrium parameters.</span>
+<span class="sd">    epsilon_h : float</span>
+<span class="sd">        Helical perturbation amplitude (0 = pure axisymmetric tokamak).</span>
+<span class="sd">    m_h, n_h : float</span>
+<span class="sd">        Poloidal and toroidal mode numbers of the helical perturbation.</span>
+<span class="sd">    dt : float</span>
+<span class="sd">        Integration step size (arc length).</span>
+<span class="sd">    RZlimit : tuple ``(Rmin, Rmax, Zmin, Zmax)`` or None</span>
+<span class="sd">        Domain boundary.  Defaults to ``(R0-1.5a, R0+1.5a, -1.5a, 1.5a)``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">R0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">B0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">q0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">epsilon_h</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">m_h</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">n_h</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.04</span><span class="p">,</span>
+        <span class="n">RZlimit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_CUPY_AVAILABLE</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+                <span class="s2">&quot;CuPy not installed.  Run:  pip install cupy-cuda12x&quot;</span>
+            <span class="p">)</span>
+<div class="viewcode-block" id="FieldLineTracerCUDA.R0">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt_cuda/index.html#pyna.flt_cuda.FieldLineTracerCUDA.R0">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">R0</span> <span class="o">=</span> <span class="n">R0</span></div>
+
+<div class="viewcode-block" id="FieldLineTracerCUDA.a">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt_cuda/index.html#pyna.flt_cuda.FieldLineTracerCUDA.a">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">a</span></div>
+
+<div class="viewcode-block" id="FieldLineTracerCUDA.B0">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt_cuda/index.html#pyna.flt_cuda.FieldLineTracerCUDA.B0">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">B0</span> <span class="o">=</span> <span class="n">B0</span></div>
+
+<div class="viewcode-block" id="FieldLineTracerCUDA.q0">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt_cuda/index.html#pyna.flt_cuda.FieldLineTracerCUDA.q0">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q0</span> <span class="o">=</span> <span class="n">q0</span></div>
+
+<div class="viewcode-block" id="FieldLineTracerCUDA.epsilon_h">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt_cuda/index.html#pyna.flt_cuda.FieldLineTracerCUDA.epsilon_h">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_h</span> <span class="o">=</span> <span class="n">epsilon_h</span></div>
+
+<div class="viewcode-block" id="FieldLineTracerCUDA.m_h">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt_cuda/index.html#pyna.flt_cuda.FieldLineTracerCUDA.m_h">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">m_h</span> <span class="o">=</span> <span class="n">m_h</span></div>
+
+<div class="viewcode-block" id="FieldLineTracerCUDA.n_h">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt_cuda/index.html#pyna.flt_cuda.FieldLineTracerCUDA.n_h">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_h</span> <span class="o">=</span> <span class="n">n_h</span></div>
+
+<div class="viewcode-block" id="FieldLineTracerCUDA.dt">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt_cuda/index.html#pyna.flt_cuda.FieldLineTracerCUDA.dt">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="n">dt</span></div>
+
+<div class="viewcode-block" id="FieldLineTracerCUDA.RZlimit">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt_cuda/index.html#pyna.flt_cuda.FieldLineTracerCUDA.RZlimit">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">RZlimit</span> <span class="o">=</span> <span class="n">RZlimit</span> <span class="ow">or</span> <span class="p">(</span><span class="n">R0</span> <span class="o">-</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="n">a</span><span class="p">,</span> <span class="n">R0</span> <span class="o">+</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="n">a</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.5</span> <span class="o">*</span> <span class="n">a</span><span class="p">,</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="n">a</span><span class="p">)</span></div>
+
+        <span class="c1"># Compile kernel (JIT — happens once per process)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">RawKernel</span><span class="p">(</span><span class="n">_TRACE_KERNEL_CODE</span><span class="p">,</span> <span class="s1">&#39;rk4_trace_kernel&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FieldLineTracerCUDA.trace_many">
+<a class="viewcode-back" href="../../en/api/generated/pyna/flt_cuda/index.html#pyna.flt_cuda.FieldLineTracerCUDA.trace_many">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trace_many</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_pts</span><span class="p">,</span> <span class="n">t_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Trace all field lines simultaneously on the GPU.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        start_pts : array-like, shape ``(n_lines, 3)``</span>
+<span class="sd">            Starting ``(R, Z, phi)`` for each field line.</span>
+<span class="sd">        t_max : float</span>
+<span class="sd">            Maximum integration arc length.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of ndarray</span>
+<span class="sd">            Each element is an ``(n_steps, 3)`` trajectory array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">start_pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">start_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">n_lines</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">start_pts</span><span class="p">)</span>
+        <span class="n">max_steps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">t_max</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="c1"># Allocate GPU arrays</span>
+        <span class="n">d_starts</span>  <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">start_pts</span><span class="p">)</span>
+        <span class="n">d_traj</span>    <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_lines</span><span class="p">,</span> <span class="n">max_steps</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">d_nsteps</span>  <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_lines</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+
+        <span class="c1"># Launch</span>
+        <span class="n">block_size</span> <span class="o">=</span> <span class="mi">128</span>
+        <span class="n">grid_size</span>  <span class="o">=</span> <span class="p">(</span><span class="n">n_lines</span> <span class="o">+</span> <span class="n">block_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">block_size</span>
+        <span class="n">Rmin</span><span class="p">,</span> <span class="n">Rmax</span><span class="p">,</span> <span class="n">Zmin</span><span class="p">,</span> <span class="n">Zmax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">RZlimit</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">grid_size</span><span class="p">,),</span>
+            <span class="p">(</span><span class="n">block_size</span><span class="p">,),</span>
+            <span class="p">(</span>
+                <span class="n">d_starts</span><span class="p">,</span> <span class="n">d_traj</span><span class="p">,</span> <span class="n">d_nsteps</span><span class="p">,</span>
+                <span class="n">n_lines</span><span class="p">,</span> <span class="n">max_steps</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span>
+                <span class="n">Rmin</span><span class="p">,</span> <span class="n">Rmax</span><span class="p">,</span> <span class="n">Zmin</span><span class="p">,</span> <span class="n">Zmax</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">R0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">B0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">q0</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_h</span><span class="p">,</span>
+                <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m_h</span><span class="p">),</span>
+                <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_h</span><span class="p">),</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Stream</span><span class="o">.</span><span class="n">null</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+
+        <span class="n">traj_np</span>   <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">asnumpy</span><span class="p">(</span><span class="n">d_traj</span><span class="p">)</span>
+        <span class="n">nsteps_np</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">asnumpy</span><span class="p">(</span><span class="n">d_nsteps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">traj_np</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="n">nsteps_np</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_lines</span><span class="p">)]</span></div>
+</div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

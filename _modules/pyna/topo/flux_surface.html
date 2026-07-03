@@ -1,0 +1,1155 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.topo.flux_surface &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/topo/flux_surface';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../topo.html" class="nav-link">pyna.topo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.topo.flux_surface</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.topo.flux_surface</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;flux_surface.py</span>
+<span class="sd">=================</span>
+<span class="sd">Fourier-based magnetic flux surface representation, flux-surface coordinate map,</span>
+<span class="sd">and X-point orbit tracing.</span>
+
+<span class="sd">Classes</span>
+<span class="sd">-------</span>
+<span class="sd">FluxSurface</span>
+<span class="sd">    A single r=const poloidal cross-section represented by Fourier series.</span>
+<span class="sd">FluxSurfaceMap</span>
+<span class="sd">    Continuous (r, θ, φ) coordinate system built from a set of FluxSurface objects.</span>
+<span class="sd">XPointOrbit</span>
+<span class="sd">    Three-dimensional periodic orbit of an X-point.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">CubicSpline</span><span class="p">,</span> <span class="n">interp1d</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">minimize</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># FluxSurface</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="FluxSurface">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurface">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FluxSurface</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Single magnetic flux surface (poloidal cross-section, r=const).</span>
+
+<span class="sd">    Parametrised by poloidal angle θ ∈ [0, 2π):</span>
+
+<span class="sd">        R(θ) = Σ_n [R_cos[n] cos(nθ) + R_sin[n] sin(nθ)]</span>
+<span class="sd">        Z(θ) = Σ_n [Z_cos[n] cos(nθ) + Z_sin[n] sin(nθ)]</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    r_norm : float</span>
+<span class="sd">        Normalised flux-surface label (0 = axis, 1 = LCFS).</span>
+<span class="sd">    phi : float</span>
+<span class="sd">        Toroidal angle of this cross-section [rad].</span>
+<span class="sd">    R_ax : float</span>
+<span class="sd">        Magnetic axis R at this toroidal section [m].</span>
+<span class="sd">    Z_ax : float</span>
+<span class="sd">        Magnetic axis Z at this toroidal section [m].</span>
+<span class="sd">    R_cos, R_sin, Z_cos, Z_sin : ndarray, shape (n_fourier+1,)</span>
+<span class="sd">        Fourier coefficients.</span>
+<span class="sd">    fit_residual : float</span>
+<span class="sd">        RMS residual of the Fourier fit [m].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="FluxSurface.r_norm">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurface.r_norm">[docs]</a>
+    <span class="n">r_norm</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="FluxSurface.phi">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurface.phi">[docs]</a>
+    <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="FluxSurface.R_ax">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurface.R_ax">[docs]</a>
+    <span class="n">R_ax</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="FluxSurface.Z_ax">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurface.Z_ax">[docs]</a>
+    <span class="n">Z_ax</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="FluxSurface.R_cos">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurface.R_cos">[docs]</a>
+    <span class="n">R_cos</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="FluxSurface.R_sin">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurface.R_sin">[docs]</a>
+    <span class="n">R_sin</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="FluxSurface.Z_cos">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurface.Z_cos">[docs]</a>
+    <span class="n">Z_cos</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="FluxSurface.Z_sin">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurface.Z_sin">[docs]</a>
+    <span class="n">Z_sin</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="FluxSurface.fit_residual">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurface.fit_residual">[docs]</a>
+    <span class="n">fit_residual</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="FluxSurface.from_poincare">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurface.from_poincare">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_poincare</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">R_pts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">Z_pts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">R_ax</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">Z_ax</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">r_norm</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">n_fourier</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;FluxSurface&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fit Fourier coefficients to a Poincaré scatter cloud.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        R_pts, Z_pts : array-like</span>
+<span class="sd">            Points on the flux surface in the (R, Z) plane.</span>
+<span class="sd">        R_ax, Z_ax : float</span>
+<span class="sd">            Magnetic axis position (used to compute poloidal angle).</span>
+<span class="sd">        r_norm : float</span>
+<span class="sd">            Normalised label for this surface.</span>
+<span class="sd">        phi : float</span>
+<span class="sd">            Toroidal angle of this section.</span>
+<span class="sd">        n_fourier : int</span>
+<span class="sd">            Number of Fourier harmonics (0..n_fourier).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        FluxSurface</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">R_pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">R_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">Z_pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Z_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="c1"># Compute poloidal angle w.r.t. magnetic axis</span>
+        <span class="n">dR</span> <span class="o">=</span> <span class="n">R_pts</span> <span class="o">-</span> <span class="n">R_ax</span>
+        <span class="n">dZ</span> <span class="o">=</span> <span class="n">Z_pts</span> <span class="o">-</span> <span class="n">Z_ax</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">dZ</span><span class="p">,</span> <span class="n">dR</span><span class="p">)</span>  <span class="c1"># in (-π, π]</span>
+
+        <span class="c1"># Sort by theta for a clean 1-to-1 mapping</span>
+        <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+        <span class="n">theta_s</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[</span><span class="n">order</span><span class="p">]</span>
+        <span class="n">R_s</span> <span class="o">=</span> <span class="n">R_pts</span><span class="p">[</span><span class="n">order</span><span class="p">]</span>
+        <span class="n">Z_s</span> <span class="o">=</span> <span class="n">Z_pts</span><span class="p">[</span><span class="n">order</span><span class="p">]</span>
+
+        <span class="c1"># Build design matrix for least-squares Fourier fit</span>
+        <span class="n">ns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_fourier</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># columns: cos(0*θ), cos(1*θ), ..., cos(n*θ), sin(1*θ), ..., sin(n*θ)</span>
+        <span class="n">cos_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">theta_s</span><span class="p">,</span> <span class="n">ns</span><span class="p">))</span>                     <span class="c1"># (N, n+1)</span>
+        <span class="n">sin_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">theta_s</span><span class="p">,</span> <span class="n">ns</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>                 <span class="c1"># (N, n)</span>
+
+        <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">cos_mat</span><span class="p">,</span> <span class="n">sin_mat</span><span class="p">])</span>                           <span class="c1"># (N, 2n+1)</span>
+
+        <span class="c1"># Solve with least squares</span>
+        <span class="n">c_R</span><span class="p">,</span> <span class="n">res_R</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">R_s</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">c_Z</span><span class="p">,</span> <span class="n">res_Z</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">Z_s</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">R_cos</span> <span class="o">=</span> <span class="n">c_R</span><span class="p">[:</span><span class="n">n_fourier</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">R_sin_full</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_fourier</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">R_sin_full</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">c_R</span><span class="p">[</span><span class="n">n_fourier</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+
+        <span class="n">Z_cos</span> <span class="o">=</span> <span class="n">c_Z</span><span class="p">[:</span><span class="n">n_fourier</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">Z_sin_full</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_fourier</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">Z_sin_full</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">c_Z</span><span class="p">[</span><span class="n">n_fourier</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+
+        <span class="c1"># RMS residual</span>
+        <span class="n">R_fit</span> <span class="o">=</span> <span class="n">A</span> <span class="o">@</span> <span class="n">c_R</span>
+        <span class="n">Z_fit</span> <span class="o">=</span> <span class="n">A</span> <span class="o">@</span> <span class="n">c_Z</span>
+        <span class="n">residual</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">R_s</span> <span class="o">-</span> <span class="n">R_fit</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">Z_s</span> <span class="o">-</span> <span class="n">Z_fit</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">r_norm</span><span class="o">=</span><span class="n">r_norm</span><span class="p">,</span>
+            <span class="n">phi</span><span class="o">=</span><span class="n">phi</span><span class="p">,</span>
+            <span class="n">R_ax</span><span class="o">=</span><span class="n">R_ax</span><span class="p">,</span>
+            <span class="n">Z_ax</span><span class="o">=</span><span class="n">Z_ax</span><span class="p">,</span>
+            <span class="n">R_cos</span><span class="o">=</span><span class="n">R_cos</span><span class="p">,</span>
+            <span class="n">R_sin</span><span class="o">=</span><span class="n">R_sin_full</span><span class="p">,</span>
+            <span class="n">Z_cos</span><span class="o">=</span><span class="n">Z_cos</span><span class="p">,</span>
+            <span class="n">Z_sin</span><span class="o">=</span><span class="n">Z_sin_full</span><span class="p">,</span>
+            <span class="n">fit_residual</span><span class="o">=</span><span class="n">residual</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+<div class="viewcode-block" id="FluxSurface.RZ">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurface.RZ">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">RZ</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate (R, Z) at given poloidal angles.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        theta : array-like</span>
+<span class="sd">            Poloidal angles [rad].</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        R, Z : ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+        <span class="n">ns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">R_cos</span><span class="p">))</span>
+        <span class="n">cos_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">ns</span><span class="p">))</span>
+        <span class="n">sin_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">ns</span><span class="p">))</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">cos_mat</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">R_cos</span> <span class="o">+</span> <span class="n">sin_mat</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">R_sin</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="n">cos_mat</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z_cos</span> <span class="o">+</span> <span class="n">sin_mat</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z_sin</span>
+        <span class="k">return</span> <span class="n">R</span><span class="p">,</span> <span class="n">Z</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+<div class="viewcode-block" id="FluxSurface.contains">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurface.contains">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">contains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Z</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test whether point (R, Z) is inside this flux surface.</span>
+
+<span class="sd">        Uses the winding number algorithm on the Fourier-parametrised boundary.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        R, Z : float</span>
+<span class="sd">            Test point.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">Rc</span><span class="p">,</span> <span class="n">Zc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">RZ</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+        <span class="c1"># Winding number via cross products</span>
+        <span class="n">dR</span> <span class="o">=</span> <span class="n">Rc</span> <span class="o">-</span> <span class="n">R</span>
+        <span class="n">dZ</span> <span class="o">=</span> <span class="n">Zc</span> <span class="o">-</span> <span class="n">Z</span>
+        <span class="n">winding</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">theta</span><span class="p">)):</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+            <span class="n">cross</span> <span class="o">=</span> <span class="n">dR</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">dZ</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-</span> <span class="n">dR</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">dZ</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">dot</span> <span class="o">=</span> <span class="n">dR</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">dR</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+</span> <span class="n">dZ</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">dZ</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+            <span class="n">winding</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">cross</span><span class="p">,</span> <span class="n">dot</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">winding</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>  <span class="c1"># |winding| ~ 2π for inside</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+<div class="viewcode-block" id="FluxSurface.area">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurface.area">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">area</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Area enclosed by this flux surface using the shoelace formula.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Area [m²].</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">R</span><span class="p">,</span> <span class="n">Z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">RZ</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+        <span class="c1"># Shoelace</span>
+        <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">Z</span><span class="p">))</span></div>
+</div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># FluxSurfaceMap</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="FluxSurfaceMap">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurfaceMap">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FluxSurfaceMap</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Continuous (r, θ, φ) magnetic flux-surface coordinate system.</span>
+
+<span class="sd">    Built from a collection of ``FluxSurface`` objects at discrete r values.</span>
+<span class="sd">    Fourier coefficients are interpolated/extrapolated as cubic splines in r.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    surfaces : list of FluxSurface</span>
+<span class="sd">        Source surfaces (sorted by r_norm).</span>
+<span class="sd">    r_nodes : ndarray</span>
+<span class="sd">        r values of the spline knots.</span>
+<span class="sd">    phi_ref : float</span>
+<span class="sd">        Representative toroidal section (all surfaces should share the same φ).</span>
+<span class="sd">    splines : dict</span>
+<span class="sd">        CubicSpline objects for each Fourier coefficient.</span>
+<span class="sd">    r_max : float</span>
+<span class="sd">        Maximum r in the extrapolated domain.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">surfaces</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FluxSurface</span><span class="p">],</span>
+        <span class="n">r_nodes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">splines</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">phi_ref</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">R_ax</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">Z_ax</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">r_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="p">):</span>
+<div class="viewcode-block" id="FluxSurfaceMap.surfaces">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurfaceMap.surfaces">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surfaces</span> <span class="o">=</span> <span class="n">surfaces</span></div>
+
+<div class="viewcode-block" id="FluxSurfaceMap.r_nodes">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurfaceMap.r_nodes">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r_nodes</span> <span class="o">=</span> <span class="n">r_nodes</span></div>
+
+<div class="viewcode-block" id="FluxSurfaceMap.splines">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurfaceMap.splines">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">splines</span> <span class="o">=</span> <span class="n">splines</span></div>
+
+<div class="viewcode-block" id="FluxSurfaceMap.phi_ref">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurfaceMap.phi_ref">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phi_ref</span> <span class="o">=</span> <span class="n">phi_ref</span></div>
+
+<div class="viewcode-block" id="FluxSurfaceMap.R_ax">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurfaceMap.R_ax">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">R_ax</span> <span class="o">=</span> <span class="n">R_ax</span></div>
+
+<div class="viewcode-block" id="FluxSurfaceMap.Z_ax">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurfaceMap.Z_ax">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Z_ax</span> <span class="o">=</span> <span class="n">Z_ax</span></div>
+
+<div class="viewcode-block" id="FluxSurfaceMap.r_max">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurfaceMap.r_max">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r_max</span> <span class="o">=</span> <span class="n">r_max</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="FluxSurfaceMap.from_surfaces">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurfaceMap.from_surfaces">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_surfaces</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">surfaces</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FluxSurface</span><span class="p">],</span>
+        <span class="n">r_max_fit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.85</span><span class="p">,</span>
+        <span class="n">r_extrapolate_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;FluxSurfaceMap&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build a FluxSurfaceMap from a list of FluxSurface objects.</span>
+
+<span class="sd">        Surfaces with r_norm &gt; r_max_fit are excluded from the spline fit</span>
+<span class="sd">        (island healing: stochastic layer near rational surface).</span>
+<span class="sd">        The spline is then extrapolated to r_extrapolate_max.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        surfaces : list of FluxSurface</span>
+<span class="sd">            At least 3 surfaces required for a cubic spline.</span>
+<span class="sd">        r_max_fit : float</span>
+<span class="sd">            Only surfaces with r_norm &lt;= r_max_fit are used for fitting.</span>
+<span class="sd">        r_extrapolate_max : float</span>
+<span class="sd">            Maximum r for extrapolation (e.g. 2.0 covers coil positions).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        FluxSurfaceMap</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Filter and sort</span>
+        <span class="n">fit_surfs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">surfaces</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">r_norm</span> <span class="o">&lt;=</span> <span class="n">r_max_fit</span><span class="p">],</span>
+            <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">r_norm</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fit_surfs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Need at least 3 surfaces with r_norm &lt;= </span><span class="si">{</span><span class="n">r_max_fit</span><span class="si">}</span><span class="s2">, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">fit_surfs</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">r_nodes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">r_norm</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">fit_surfs</span><span class="p">])</span>
+
+        <span class="n">n_fourier</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fit_surfs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">R_cos</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">phi_ref</span> <span class="o">=</span> <span class="n">fit_surfs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">phi</span>
+        <span class="n">R_ax</span> <span class="o">=</span> <span class="n">fit_surfs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">R_ax</span>
+        <span class="n">Z_ax</span> <span class="o">=</span> <span class="n">fit_surfs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">Z_ax</span>
+
+        <span class="c1"># Build splines for each Fourier coefficient</span>
+        <span class="n">coeff_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;R_cos&quot;</span><span class="p">,</span> <span class="s2">&quot;R_sin&quot;</span><span class="p">,</span> <span class="s2">&quot;Z_cos&quot;</span><span class="p">,</span> <span class="s2">&quot;Z_sin&quot;</span><span class="p">]</span>
+        <span class="n">splines</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">coeff_names</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">getattr</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">fit_surfs</span><span class="p">])</span>  <span class="c1"># (n_surf, n_fourier+1)</span>
+            <span class="n">splines</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">CubicSpline</span><span class="p">(</span><span class="n">r_nodes</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">extrapolate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Store R_ax, Z_ax as functions of r (constant ≈ axis value, but spline if varies)</span>
+        <span class="n">splines</span><span class="p">[</span><span class="s2">&quot;R_ax&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CubicSpline</span><span class="p">(</span>
+            <span class="n">r_nodes</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">R_ax</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">fit_surfs</span><span class="p">]),</span> <span class="n">extrapolate</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="n">splines</span><span class="p">[</span><span class="s2">&quot;Z_ax&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CubicSpline</span><span class="p">(</span>
+            <span class="n">r_nodes</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">Z_ax</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">fit_surfs</span><span class="p">]),</span> <span class="n">extrapolate</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">surfaces</span><span class="o">=</span><span class="nb">sorted</span><span class="p">(</span><span class="n">surfaces</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">r_norm</span><span class="p">),</span>
+            <span class="n">r_nodes</span><span class="o">=</span><span class="n">r_nodes</span><span class="p">,</span>
+            <span class="n">splines</span><span class="o">=</span><span class="n">splines</span><span class="p">,</span>
+            <span class="n">phi_ref</span><span class="o">=</span><span class="n">phi_ref</span><span class="p">,</span>
+            <span class="n">R_ax</span><span class="o">=</span><span class="n">R_ax</span><span class="p">,</span>
+            <span class="n">Z_ax</span><span class="o">=</span><span class="n">Z_ax</span><span class="p">,</span>
+            <span class="n">r_max</span><span class="o">=</span><span class="n">r_extrapolate_max</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fourier_coeffs_at_r</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate Fourier coefficients at arbitrary r (spline evaluation).&quot;&quot;&quot;</span>
+        <span class="n">R_cos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splines</span><span class="p">[</span><span class="s2">&quot;R_cos&quot;</span><span class="p">](</span><span class="n">r</span><span class="p">)</span>
+        <span class="n">R_sin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splines</span><span class="p">[</span><span class="s2">&quot;R_sin&quot;</span><span class="p">](</span><span class="n">r</span><span class="p">)</span>
+        <span class="n">Z_cos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splines</span><span class="p">[</span><span class="s2">&quot;Z_cos&quot;</span><span class="p">](</span><span class="n">r</span><span class="p">)</span>
+        <span class="n">Z_sin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splines</span><span class="p">[</span><span class="s2">&quot;Z_sin&quot;</span><span class="p">](</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">R_cos</span><span class="p">,</span> <span class="n">R_sin</span><span class="p">,</span> <span class="n">Z_cos</span><span class="p">,</span> <span class="n">Z_sin</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_RZ_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">theta</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate (R, Z) at (r, θ) using spline coefficients.&quot;&quot;&quot;</span>
+        <span class="n">R_cos</span><span class="p">,</span> <span class="n">R_sin</span><span class="p">,</span> <span class="n">Z_cos</span><span class="p">,</span> <span class="n">Z_sin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fourier_coeffs_at_r</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="n">ns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">R_cos</span><span class="p">))</span>
+        <span class="n">cos_v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">ns</span> <span class="o">*</span> <span class="n">theta</span><span class="p">)</span>
+        <span class="n">sin_v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">ns</span> <span class="o">*</span> <span class="n">theta</span><span class="p">)</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">cos_v</span><span class="p">,</span> <span class="n">R_cos</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">sin_v</span><span class="p">,</span> <span class="n">R_sin</span><span class="p">))</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">cos_v</span><span class="p">,</span> <span class="n">Z_cos</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">sin_v</span><span class="p">,</span> <span class="n">Z_sin</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">R</span><span class="p">,</span> <span class="n">Z</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+<div class="viewcode-block" id="FluxSurfaceMap.to_RZ">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurfaceMap.to_RZ">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_RZ</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">theta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert flux-surface coordinates (r, θ, φ) → (R, Z).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        r : float</span>
+<span class="sd">            Normalised flux-surface label.</span>
+<span class="sd">        theta : float</span>
+<span class="sd">            Poloidal angle [rad].</span>
+<span class="sd">        phi : float</span>
+<span class="sd">            Toroidal angle [rad] (used for future phi-dependent maps; currently</span>
+<span class="sd">            the stored phi_ref is assumed representative for all sections).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        R, Z : float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_RZ_at</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+<div class="viewcode-block" id="FluxSurfaceMap.to_rtheta">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurfaceMap.to_rtheta">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_rtheta</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">R</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">Z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">r_init</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Project a physical point (R, Z, φ) to flux-surface coordinates (r, θ).</span>
+
+<span class="sd">        Uses scipy.optimize.minimize to find the (r, θ) that minimises the</span>
+<span class="sd">        distance ‖(R_model(r,θ), Z_model(r,θ)) − (R, Z)‖.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        R, Z : float</span>
+<span class="sd">            Target physical coordinates [m].</span>
+<span class="sd">        phi : float</span>
+<span class="sd">            Toroidal angle (currently unused; future extension).</span>
+<span class="sd">        r_init : float</span>
+<span class="sd">            Initial guess for r.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        r, theta : float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">R_ax</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">splines</span><span class="p">[</span><span class="s2">&quot;R_ax&quot;</span><span class="p">](</span><span class="n">r_init</span><span class="p">))</span>
+        <span class="n">Z_ax</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">splines</span><span class="p">[</span><span class="s2">&quot;Z_ax&quot;</span><span class="p">](</span><span class="n">r_init</span><span class="p">))</span>
+        <span class="n">theta_init</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">Z</span> <span class="o">-</span> <span class="n">Z_ax</span><span class="p">,</span> <span class="n">R</span> <span class="o">-</span> <span class="n">R_ax</span><span class="p">))</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">objective</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="n">r_</span><span class="p">,</span> <span class="n">t_</span> <span class="o">=</span> <span class="n">x</span>
+            <span class="k">if</span> <span class="n">r_</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">r_</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">r_max</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mf">1e6</span>
+            <span class="n">Rm</span><span class="p">,</span> <span class="n">Zm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_RZ_at</span><span class="p">(</span><span class="n">r_</span><span class="p">,</span> <span class="n">t_</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">Rm</span> <span class="o">-</span> <span class="n">R</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">Zm</span> <span class="o">-</span> <span class="n">Z</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span>
+            <span class="n">objective</span><span class="p">,</span>
+            <span class="n">x0</span><span class="o">=</span><span class="p">[</span><span class="n">r_init</span><span class="p">,</span> <span class="n">theta_init</span><span class="p">],</span>
+            <span class="n">method</span><span class="o">=</span><span class="s2">&quot;Nelder-Mead&quot;</span><span class="p">,</span>
+            <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;xatol&quot;</span><span class="p">:</span> <span class="mf">1e-7</span><span class="p">,</span> <span class="s2">&quot;fatol&quot;</span><span class="p">:</span> <span class="mf">1e-14</span><span class="p">,</span> <span class="s2">&quot;maxiter&quot;</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
+        <span class="p">)</span>
+        <span class="n">r_opt</span><span class="p">,</span> <span class="n">theta_opt</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">x</span>
+        <span class="c1"># Wrap theta to [0, 2π)</span>
+        <span class="n">theta_opt</span> <span class="o">=</span> <span class="n">theta_opt</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">r_opt</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">theta_opt</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+<div class="viewcode-block" id="FluxSurfaceMap.project_points">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.FluxSurfaceMap.project_points">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">project_points</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">R_arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">Z_arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">phi_arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Batch projection of physical points to (r, θ).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        R_arr, Z_arr, phi_arr : array-like</span>
+<span class="sd">            Arrays of equal length.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        r_arr, theta_arr : ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">R_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">R_arr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">Z_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Z_arr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">phi_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">phi_arr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">R_arr</span><span class="p">)</span>
+        <span class="n">r_out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">theta_out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">r_out</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">theta_out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_rtheta</span><span class="p">(</span><span class="n">R_arr</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Z_arr</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">phi_arr</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">r_out</span><span class="p">,</span> <span class="n">theta_out</span></div>
+</div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># XPointOrbit</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="XPointOrbit">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.XPointOrbit">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">XPointOrbit</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Three-dimensional periodic orbit of a magnetic X-point.</span>
+
+<span class="sd">    For an m/n island chain the X-point returns to its starting position</span>
+<span class="sd">    after m toroidal turns.  When projected into the flux-surface coordinate</span>
+<span class="sd">    system, the orbit traces out a curve θ_Xpt(φ).</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    phi_arr : ndarray</span>
+<span class="sd">        Toroidal angles along the orbit [rad], 0 … 2π·m.</span>
+<span class="sd">    R_arr, Z_arr : ndarray</span>
+<span class="sd">        Physical coordinates along the orbit.</span>
+<span class="sd">    period : int</span>
+<span class="sd">        Number of toroidal turns (= m for m/n chain).</span>
+<span class="sd">    r_arr : ndarray or None</span>
+<span class="sd">        Normalised flux-surface label r(φ).</span>
+<span class="sd">    theta_arr : ndarray or None</span>
+<span class="sd">        Poloidal angle θ(φ) in the flux-surface map.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="XPointOrbit.phi_arr">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.XPointOrbit.phi_arr">[docs]</a>
+    <span class="n">phi_arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="XPointOrbit.R_arr">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.XPointOrbit.R_arr">[docs]</a>
+    <span class="n">R_arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="XPointOrbit.Z_arr">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.XPointOrbit.Z_arr">[docs]</a>
+    <span class="n">Z_arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="XPointOrbit.period">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.XPointOrbit.period">[docs]</a>
+    <span class="n">period</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="XPointOrbit.r_arr">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.XPointOrbit.r_arr">[docs]</a>
+    <span class="n">r_arr</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="XPointOrbit.theta_arr">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.XPointOrbit.theta_arr">[docs]</a>
+    <span class="n">theta_arr</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="XPointOrbit.trace">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.XPointOrbit.trace">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trace</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">R_xpt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">Z_xpt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">phi0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">period</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">field_cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">dphi_out</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;XPointOrbit&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Trace the X-point orbit for ``period`` toroidal turns.</span>
+
+<span class="sd">        Calls ``_cyna_trace_orbit`` from pyna.topo.topology_eval.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        R_xpt, Z_xpt : float</span>
+<span class="sd">            Starting (R, Z) of the X-point.</span>
+<span class="sd">        phi0 : float</span>
+<span class="sd">            Starting toroidal angle [rad].</span>
+<span class="sd">        period : int</span>
+<span class="sd">            Number of toroidal turns (e.g. 10 for m/n=10/3).</span>
+<span class="sd">        field_cache : dict</span>
+<span class="sd">            Dict with keys R_grid, Z_grid, Phi_grid, BR, BZ, BPhi.</span>
+<span class="sd">        dphi_out : float</span>
+<span class="sd">            Output step in φ [rad].</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        XPointOrbit</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.topology_eval</span><span class="w"> </span><span class="kn">import</span> <span class="n">_cyna_trace_orbit</span><span class="p">,</span> <span class="n">_FC</span>
+
+        <span class="n">fc</span> <span class="o">=</span> <span class="n">_FC</span><span class="p">(</span><span class="n">field_cache</span><span class="p">)</span>
+        <span class="n">phi_span</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">period</span><span class="p">)</span> <span class="o">*</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+
+        <span class="n">R_t</span><span class="p">,</span> <span class="n">Z_t</span><span class="p">,</span> <span class="n">phi_t</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">alive_t</span> <span class="o">=</span> <span class="n">_cyna_trace_orbit</span><span class="p">(</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">R_xpt</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">Z_xpt</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">phi0</span><span class="p">),</span>
+            <span class="n">phi_span</span><span class="p">,</span> <span class="n">dphi_out</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="n">dphi_out</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">,</span>
+            <span class="n">fc</span><span class="o">.</span><span class="n">BR</span><span class="p">,</span> <span class="n">fc</span><span class="o">.</span><span class="n">BZ</span><span class="p">,</span> <span class="n">fc</span><span class="o">.</span><span class="n">BPhi</span><span class="p">,</span>
+            <span class="n">fc</span><span class="o">.</span><span class="n">Rg</span><span class="p">,</span> <span class="n">fc</span><span class="o">.</span><span class="n">Zg</span><span class="p">,</span> <span class="n">fc</span><span class="o">.</span><span class="n">Pg_ext</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">alive</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">alive_t</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="n">R_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">R_t</span><span class="p">)[</span><span class="n">alive</span><span class="p">]</span>
+        <span class="n">Z_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Z_t</span><span class="p">)[</span><span class="n">alive</span><span class="p">]</span>
+        <span class="n">phi_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">phi_t</span><span class="p">)[</span><span class="n">alive</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">phi_arr</span><span class="o">=</span><span class="n">phi_t</span><span class="p">,</span>
+            <span class="n">R_arr</span><span class="o">=</span><span class="n">R_t</span><span class="p">,</span>
+            <span class="n">Z_arr</span><span class="o">=</span><span class="n">Z_t</span><span class="p">,</span>
+            <span class="n">period</span><span class="o">=</span><span class="n">period</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+<div class="viewcode-block" id="XPointOrbit.project_to_map">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.XPointOrbit.project_to_map">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">project_to_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmap</span><span class="p">:</span> <span class="n">FluxSurfaceMap</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;XPointOrbit&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Project the orbit into flux-surface coordinates.</span>
+
+<span class="sd">        Fills ``r_arr`` and ``theta_arr`` by calling</span>
+<span class="sd">        :meth:`FluxSurfaceMap.to_rtheta` for each point.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fmap : FluxSurfaceMap</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        XPointOrbit</span>
+<span class="sd">            Self with r_arr and theta_arr populated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phi_arr</span><span class="p">)</span>
+        <span class="n">r_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">theta_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">r_guess</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">r</span><span class="p">,</span> <span class="n">th</span> <span class="o">=</span> <span class="n">fmap</span><span class="o">.</span><span class="n">to_rtheta</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">R_arr</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z_arr</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi_arr</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">r_init</span><span class="o">=</span><span class="n">r_guess</span><span class="p">)</span>
+            <span class="n">r_arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span>
+            <span class="n">theta_arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">th</span>
+            <span class="n">r_guess</span> <span class="o">=</span> <span class="n">r</span>  <span class="c1"># warm-start for next point</span>
+
+        <span class="k">return</span> <span class="n">XPointOrbit</span><span class="p">(</span>
+            <span class="n">phi_arr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">phi_arr</span><span class="p">,</span>
+            <span class="n">R_arr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">R_arr</span><span class="p">,</span>
+            <span class="n">Z_arr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">Z_arr</span><span class="p">,</span>
+            <span class="n">period</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">period</span><span class="p">,</span>
+            <span class="n">r_arr</span><span class="o">=</span><span class="n">r_arr</span><span class="p">,</span>
+            <span class="n">theta_arr</span><span class="o">=</span><span class="n">theta_arr</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+<div class="viewcode-block" id="XPointOrbit.theta_at_phi">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/flux_surface/index.html#pyna.topo.flux_surface.XPointOrbit.theta_at_phi">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">theta_at_phi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Interpolate θ_Xpt at arbitrary φ (wrapped to [0, 2π)).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        phi : float</span>
+<span class="sd">            Toroidal angle [rad].</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            θ_Xpt(φ) ∈ [0, 2π).</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If ``project_to_map`` has not been called yet.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta_arr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Call project_to_map() first to populate theta_arr.&quot;</span><span class="p">)</span>
+        <span class="n">itp</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">phi_arr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta_arr</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="s2">&quot;extrapolate&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">itp</span><span class="p">(</span><span class="n">phi</span><span class="p">))</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

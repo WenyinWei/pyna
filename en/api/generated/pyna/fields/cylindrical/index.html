@@ -1,0 +1,1353 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>pyna.fields.cylindrical &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'en/api/generated/pyna/fields/cylindrical/index';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../search.html" />
+    <link rel="next" title="pyna.fields.diff_ops" href="../diff_ops/index.html" />
+    <link rel="prev" title="pyna.fields.coords" href="../coords/index.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../../../../_static/searchtools.js"></script>
+    <script src="../../../../../../_static/language_data.js"></script>
+    <script src="../../../../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "en";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../../index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../../index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar"><svg class="pst-icon svg-inline--fa" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../mini-cases.html">Mini Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/index.html">Tutorials and Examples</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../../index.html">API Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../../dynamics.html">General Dynamics (<code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../dynamics-patterns.html">Dynamics Workflows and Extension Helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../flt.html">Field-line Tracing (<code class="docutils literal notranslate"><span class="pre">pyna.flt</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../topo.html">Topology (<code class="docutils literal notranslate"><span class="pre">pyna.topo</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../toroidal.html">Toroidal Physics (<code class="docutils literal notranslate"><span class="pre">pyna.toroidal</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../control.html">FPT Topology Control (<code class="docutils literal notranslate"><span class="pre">pyna.control</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../cyna.html">cyna Acceleration Layer</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="../../index.html">pyna</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../../cache/index.html">pyna.cache</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../connection_length/index.html">pyna.connection_length</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../context/index.html">pyna.context</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../control/index.html">pyna.control</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../diff/index.html">pyna.diff</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../draw/index.html">pyna.draw</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../dynamics/index.html">pyna.dynamics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../field_data/index.html">pyna.field_data</a></li>
+<li class="toctree-l3 current active has-children"><a class="reference internal" href="../index.html">pyna.fields</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../base/index.html">pyna.fields.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../coords/index.html">pyna.fields.coords</a></li>
+<li class="toctree-l4 current active"><a class="current reference internal" href="#">pyna.fields.cylindrical</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../diff_ops/index.html">pyna.fields.diff_ops</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../properties/index.html">pyna.fields.properties</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tensor/index.html">pyna.fields.tensor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../toroidal/index.html">pyna.fields.toroidal</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3"><a class="reference internal" href="../../flow/index.html">pyna.flow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../flt/index.html">pyna.flt</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../flt_cuda/index.html">pyna.flt_cuda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../imas_compat/index.html">pyna.imas_compat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../io/index.html">pyna.io</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../mag/index.html">pyna.mag</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../map/index.html">pyna.map</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../plot/index.html">pyna.plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../polymap/index.html">pyna.polymap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../polynomial/index.html">pyna.polynomial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../progress/index.html">pyna.progress</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../system/index.html">pyna.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../sysutil/index.html">pyna.sysutil</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../topo/index.html">pyna.topo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../toroidal/index.html">pyna.toroidal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../utils/index.html">pyna.utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../vector_calc/index.html">pyna.vector_calc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../withparam/index.html">pyna.withparam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../workflow/index.html">pyna.workflow</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../theory/index.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../development/index.html">Development</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../../../index.html" class="nav-link">pyna - Python DYNAmics</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">pyna</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">pyna.fields</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.fields.cylindrical</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-pyna.fields.cylindrical">
+<span id="pyna-fields-cylindrical"></span><h1>pyna.fields.cylindrical<a class="headerlink" href="#module-pyna.fields.cylindrical" title="Link to this heading">#</a></h1>
+<p>Concrete cylindrical-coordinate field implementations.</p>
+<dl class="simple">
+<dt>These replace (and are backward-compatible with):</dt><dd><ul class="simple">
+<li><p>pyna.field_data.CylindricalScalarField</p></li>
+<li><p>pyna.field_data.CylindricalVectorField</p></li>
+</ul>
+</dd>
+</dl>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.fields.cylindrical.as_vector_field_cylind" title="pyna.fields.cylindrical.as_vector_field_cylind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">as_vector_field_cylind</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.fields.cylindrical.as_scalar_field_cylind" title="pyna.fields.cylindrical.as_scalar_field_cylind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">as_scalar_field_cylind</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.fields.cylindrical.CylindricalFieldArrays" title="pyna.fields.cylindrical.CylindricalFieldArrays"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CylindricalFieldArrays</span></code></a></p></td>
+<td><p>Contiguous cylindrical field arrays for low-level backends.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.fields.cylindrical.ScalarFieldCylind" title="pyna.fields.cylindrical.ScalarFieldCylind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ScalarFieldCylind</span></code></a></p></td>
+<td><p>Scalar field f(R, Z, φ) on a regular cylindrical grid.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VectorFieldCylind</span></code></a></p></td>
+<td><p>Vector field (BR, BZ, BPhi)(R, Z, φ) on a regular cylindrical grid.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.fields.cylindrical.VectorFieldCylindAxisym" title="pyna.fields.cylindrical.VectorFieldCylindAxisym"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VectorFieldCylindAxisym</span></code></a></p></td>
+<td><p>Axisymmetric vector field: components depend only on (R, Z).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.fields.cylindrical.ScalarFieldCylindAxisym" title="pyna.fields.cylindrical.ScalarFieldCylindAxisym"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ScalarFieldCylindAxisym</span></code></a></p></td>
+<td><p>Axisymmetric scalar field: value depends only on (R, Z).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.fields.cylindrical.validate_phi_grid" title="pyna.fields.cylindrical.validate_phi_grid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_phi_grid</span></code></a>(→ numpy.ndarray)</p></td>
+<td><p>Validate and return a cylindrical toroidal-angle grid.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.fields.cylindrical.close_periodic_phi_grid" title="pyna.fields.cylindrical.close_periodic_phi_grid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">close_periodic_phi_grid</span></code></a>(→ tuple[numpy.ndarray, Ellipsis])</p></td>
+<td><p>Return a phi grid closed by a duplicate first slice.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.fields.cylindrical.close_periodic_field_cache_phi" title="pyna.fields.cylindrical.close_periodic_field_cache_phi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">close_periodic_field_cache_phi</span></code></a>(→ dict[str, Any])</p></td>
+<td><p>Return a field-cache copy whose <code class="docutils literal notranslate"><span class="pre">Phi_grid</span></code> is closed periodically.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.fields.cylindrical.as_scalar_field_cylindrical" title="pyna.fields.cylindrical.as_scalar_field_cylindrical"><code class="xref py py-obj docutils literal notranslate"><span class="pre">as_scalar_field_cylindrical</span></code></a>(→ ScalarFieldCylind)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.fields.cylindrical.as_vector_field_cylindrical" title="pyna.fields.cylindrical.as_vector_field_cylindrical"><code class="xref py py-obj docutils literal notranslate"><span class="pre">as_vector_field_cylindrical</span></code></a>(→ VectorFieldCylind)</p></td>
+<td><p>Normalize common cylindrical field inputs to <a class="reference internal" href="#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><code class="xref py py-class docutils literal notranslate"><span class="pre">VectorFieldCylind</span></code></a>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.validate_phi_grid">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.cylindrical.</span></span><span class="sig-name descname"><span class="pre">validate_phi_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">nfp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Phi'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_single</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#validate_phi_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.validate_phi_grid" title="Link to this definition">#</a></dt>
+<dd><p>Validate and return a cylindrical toroidal-angle grid.</p>
+<p>The grid is expected to be one-dimensional, finite, and strictly
+increasing.  For <code class="docutils literal notranslate"><span class="pre">nfp</span> <span class="pre">&gt;</span> <span class="pre">1</span></code> it must describe one field period, because
+field evaluation wraps query angles modulo <code class="docutils literal notranslate"><span class="pre">2*pi/nfp</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.close_periodic_phi_grid">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.cylindrical.</span></span><span class="sig-name descname"><span class="pre">close_periodic_phi_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">period</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Ellipsis</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#close_periodic_phi_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.close_periodic_phi_grid" title="Link to this definition">#</a></dt>
+<dd><p>Return a phi grid closed by a duplicate first slice.</p>
+<p>If <em>period</em> is not supplied, the period is inferred as <code class="docutils literal notranslate"><span class="pre">phi[-1]</span> <span class="pre">+</span> <span class="pre">dphi</span></code> for
+endpoint=False grids.  A grid that already spans <code class="docutils literal notranslate"><span class="pre">2*pi/Nfp</span></code> and whose
+endpoint values match the first slice is treated as already closed.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.close_periodic_field_cache_phi">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.cylindrical.</span></span><span class="sig-name descname"><span class="pre">close_periodic_field_cache_phi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field_cache</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#close_periodic_field_cache_phi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.close_periodic_field_cache_phi" title="Link to this definition">#</a></dt>
+<dd><p>Return a field-cache copy whose <code class="docutils literal notranslate"><span class="pre">Phi_grid</span></code> is closed periodically.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.CylindricalFieldArrays">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.fields.cylindrical.</span></span><span class="sig-name descname"><span class="pre">CylindricalFieldArrays</span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#CylindricalFieldArrays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.CylindricalFieldArrays" title="Link to this definition">#</a></dt>
+<dd><p>Contiguous cylindrical field arrays for low-level backends.</p>
+<p>High-level APIs should accept <a class="reference internal" href="#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><code class="xref py py-class docutils literal notranslate"><span class="pre">VectorFieldCylind</span></code></a>.  This container
+exists only at bridge boundaries such as cyna, where flat component arrays
+are unavoidable.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.CylindricalFieldArrays.R_grid">
+<span class="sig-name descname"><span class="pre">R_grid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#CylindricalFieldArrays.R_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.CylindricalFieldArrays.R_grid" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.CylindricalFieldArrays.Z_grid">
+<span class="sig-name descname"><span class="pre">Z_grid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#CylindricalFieldArrays.Z_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.CylindricalFieldArrays.Z_grid" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.CylindricalFieldArrays.Phi_grid">
+<span class="sig-name descname"><span class="pre">Phi_grid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#CylindricalFieldArrays.Phi_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.CylindricalFieldArrays.Phi_grid" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.CylindricalFieldArrays.BR">
+<span class="sig-name descname"><span class="pre">BR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#CylindricalFieldArrays.BR"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.CylindricalFieldArrays.BR" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.CylindricalFieldArrays.BZ">
+<span class="sig-name descname"><span class="pre">BZ</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#CylindricalFieldArrays.BZ"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.CylindricalFieldArrays.BZ" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.CylindricalFieldArrays.BPhi">
+<span class="sig-name descname"><span class="pre">BPhi</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#CylindricalFieldArrays.BPhi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.CylindricalFieldArrays.BPhi" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.CylindricalFieldArrays.field_periods">
+<span class="sig-name descname"><span class="pre">field_periods</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#CylindricalFieldArrays.field_periods"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.CylindricalFieldArrays.field_periods" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.CylindricalFieldArrays.BR_flat">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">BR_flat</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#CylindricalFieldArrays.BR_flat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.CylindricalFieldArrays.BR_flat" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.CylindricalFieldArrays.BZ_flat">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">BZ_flat</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#CylindricalFieldArrays.BZ_flat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.CylindricalFieldArrays.BZ_flat" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.CylindricalFieldArrays.BPhi_flat">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">BPhi_flat</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#CylindricalFieldArrays.BPhi_flat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.CylindricalFieldArrays.BPhi_flat" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.CylindricalFieldArrays.shape">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#CylindricalFieldArrays.shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.CylindricalFieldArrays.shape" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.CylindricalFieldArrays.as_field_cache">
+<span class="sig-name descname"><span class="pre">as_field_cache</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#CylindricalFieldArrays.as_field_cache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.CylindricalFieldArrays.as_field_cache" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.CylindricalFieldArrays.cyna_component_args">
+<span class="sig-name descname"><span class="pre">cyna_component_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#CylindricalFieldArrays.cyna_component_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.CylindricalFieldArrays.cyna_component_args" title="Link to this definition">#</a></dt>
+<dd><p>Return component arrays in the public cyna ABI order.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.CylindricalFieldArrays.cyna_grid_args">
+<span class="sig-name descname"><span class="pre">cyna_grid_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#CylindricalFieldArrays.cyna_grid_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.CylindricalFieldArrays.cyna_grid_args" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.fields.cylindrical.</span></span><span class="sig-name descname"><span class="pre">ScalarFieldCylind</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_periods</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nfp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../properties/index.html#pyna.fields.properties.FieldProperty" title="pyna.fields.properties.FieldProperty"><span class="pre">pyna.fields.properties.FieldProperty</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">FieldProperty.NONE</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">axisymmetric</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../base/index.html#pyna.fields.base.ScalarField3D" title="pyna.fields.base.ScalarField3D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pyna.fields.base.ScalarField3D</span></code></a></p>
+<p>Scalar field f(R, Z, φ) on a regular cylindrical grid.</p>
+<p>Replaces pyna.field_data.CylindricalScalarField.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>R</strong> (<em>1D ndarray</em>) – Grid axes.</p></li>
+<li><p><strong>Z</strong> (<em>1D ndarray</em>) – Grid axes.</p></li>
+<li><p><strong>Phi</strong> (<em>1D ndarray</em>) – Grid axes.</p></li>
+<li><p><strong>value</strong> (<em>ndarray</em><em>, </em><a class="reference internal" href="#pyna.fields.cylindrical.ScalarFieldCylind.shape" title="pyna.fields.cylindrical.ScalarFieldCylind.shape"><em>shape</em></a><em> (</em><a class="reference internal" href="#pyna.fields.cylindrical.ScalarFieldCylind.nR" title="pyna.fields.cylindrical.ScalarFieldCylind.nR"><em>nR</em></a><em>, </em><a class="reference internal" href="#pyna.fields.cylindrical.ScalarFieldCylind.nZ" title="pyna.fields.cylindrical.ScalarFieldCylind.nZ"><em>nZ</em></a><em>, </em><a class="reference internal" href="#pyna.fields.cylindrical.ScalarFieldCylind.nPhi" title="pyna.fields.cylindrical.ScalarFieldCylind.nPhi"><em>nPhi</em></a><em>)</em>) – Field values.</p></li>
+<li><p><strong>field_periods</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Toroidal field periods. If &gt; 1, Phi covers [0, 2π/N_fp].</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>units</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>properties</strong> (<a class="reference internal" href="../properties/index.html#pyna.fields.properties.FieldProperty" title="pyna.fields.properties.FieldProperty"><em>FieldProperty</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.field_periods">
+<span class="sig-name descname"><span class="pre">field_periods</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.field_periods"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.field_periods" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.R">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">R</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.R"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.R" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.Z">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Z</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.Z"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.Z" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.Phi">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Phi</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.Phi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.Phi" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.value">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">value</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.value" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.B">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">B</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.B"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.B" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.nfp">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nfp</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.nfp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.nfp" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.field_period">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">field_period</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.field_period"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.field_period" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.interpolate_at">
+<span class="sig-name descname"><span class="pre">interpolate_at</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.interpolate_at"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.interpolate_at" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.to_npz">
+<span class="sig-name descname"><span class="pre">to_npz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.to_npz"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.to_npz" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.from_npz">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_npz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.fields.cylindrical.ScalarFieldCylind" title="pyna.fields.cylindrical.ScalarFieldCylind"><span class="pre">ScalarFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.from_npz"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.from_npz" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.is_axisymmetric">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_axisymmetric</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.is_axisymmetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.is_axisymmetric" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.shape">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.shape" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.nR">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.nR"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.nR" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.nZ">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nZ</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.nZ"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.nZ" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.nPhi">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nPhi</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.nPhi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.nPhi" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.data">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">data</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.data" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.grad">
+<span class="sig-name descname"><span class="pre">grad</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><span class="pre">VectorFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.grad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.grad" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.gradient">
+<span class="sig-name descname"><span class="pre">gradient</span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.gradient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.gradient" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.laplacian">
+<span class="sig-name descname"><span class="pre">laplacian</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.fields.cylindrical.ScalarFieldCylind" title="pyna.fields.cylindrical.ScalarFieldCylind"><span class="pre">ScalarFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.laplacian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.laplacian" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylind.hessian">
+<span class="sig-name descname"><span class="pre">hessian</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylind.hessian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylind.hessian" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.fields.cylindrical.</span></span><span class="sig-name descname"><span class="pre">VectorFieldCylind</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">VR</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">VZ</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">VPhi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_periods</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nfp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../properties/index.html#pyna.fields.properties.FieldProperty" title="pyna.fields.properties.FieldProperty"><span class="pre">pyna.fields.properties.FieldProperty</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">FieldProperty.NONE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axisymmetric</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../base/index.html#pyna.fields.base.VectorField3D" title="pyna.fields.base.VectorField3D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pyna.fields.base.VectorField3D</span></code></a></p>
+<p>Vector field (BR, BZ, BPhi)(R, Z, φ) on a regular cylindrical grid.</p>
+<dl class="simple">
+<dt>Replaces BOTH:</dt><dd><ul class="simple">
+<li><p>pyna.field_data.CylindricalVectorField  (VR/VZ/VPhi naming)</p></li>
+<li><p>legacy toroidal coil-field wrappers (eliminated) (BR/BZ/BPhi naming)</p></li>
+</ul>
+</dd>
+</dl>
+<p><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind</span></code> is the canonical public name.  The old
+<code class="docutils literal notranslate"><span class="pre">VectorFieldCylind</span></code> name remains as a compatibility alias.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>R</strong> (<em>1D ndarray</em>) – Grid axes.  <code class="docutils literal notranslate"><span class="pre">Phi</span></code> may be omitted for a fixed-section 2-D field.</p></li>
+<li><p><strong>Z</strong> (<em>1D ndarray</em>) – Grid axes.  <code class="docutils literal notranslate"><span class="pre">Phi</span></code> may be omitted for a fixed-section 2-D field.</p></li>
+<li><p><strong>Phi</strong> (<em>1D ndarray</em>) – Grid axes.  <code class="docutils literal notranslate"><span class="pre">Phi</span></code> may be omitted for a fixed-section 2-D field.</p></li>
+<li><p><strong>VR</strong> (<em>ndarray</em>) – Vector components in canonical <code class="docutils literal notranslate"><span class="pre">R,</span> <span class="pre">Z,</span> <span class="pre">Phi</span></code> order.</p></li>
+<li><p><strong>VZ</strong> (<em>ndarray</em>) – Vector components in canonical <code class="docutils literal notranslate"><span class="pre">R,</span> <span class="pre">Z,</span> <span class="pre">Phi</span></code> order.</p></li>
+<li><p><strong>BR</strong> (<em>VPhi or</em>) – Vector components in canonical <code class="docutils literal notranslate"><span class="pre">R,</span> <span class="pre">Z,</span> <span class="pre">Phi</span></code> order.</p></li>
+<li><p><strong>BZ</strong> (<em>ndarray</em>) – Vector components in canonical <code class="docutils literal notranslate"><span class="pre">R,</span> <span class="pre">Z,</span> <span class="pre">Phi</span></code> order.</p></li>
+<li><p><strong>BPhi</strong> (<em>ndarray</em>) – Vector components in canonical <code class="docutils literal notranslate"><span class="pre">R,</span> <span class="pre">Z,</span> <span class="pre">Phi</span></code> order.</p></li>
+<li><p><strong>field_periods</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>nfp</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Alias for <code class="docutils literal notranslate"><span class="pre">field_periods</span></code>.  If <code class="docutils literal notranslate"><span class="pre">nfp</span> <span class="pre">&gt;</span> <span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">Phi</span></code> must cover one
+field period, not a full torus.</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>units</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>properties</strong> (<a class="reference internal" href="../properties/index.html#pyna.fields.properties.FieldProperty" title="pyna.fields.properties.FieldProperty"><em>FieldProperty</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.component_order">
+<span class="sig-name descname"><span class="pre">component_order</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('R',</span> <span class="pre">'Z',</span> <span class="pre">'Phi')</span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.component_order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.component_order" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.magnetic_component_order">
+<span class="sig-name descname"><span class="pre">magnetic_component_order</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('BR',</span> <span class="pre">'BZ',</span> <span class="pre">'BPhi')</span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.magnetic_component_order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.magnetic_component_order" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.phi">
+<span class="sig-name descname"><span class="pre">phi</span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.phi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.phi" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.label">
+<span class="sig-name descname"><span class="pre">label</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.label" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.field_periods">
+<span class="sig-name descname"><span class="pre">field_periods</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.field_periods"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.field_periods" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.R">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">R</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.R"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.R" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.Z">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Z</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.Z"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.Z" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.Phi">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Phi</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.Phi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.Phi" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.R_arr">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">R_arr</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.R_arr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.R_arr" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.Z_arr">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Z_arr</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.Z_arr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.Z_arr" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.coordinate_names">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">coordinate_names</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.coordinate_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.coordinate_names" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.is_section">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_section</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.is_section"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.is_section" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.nPhi">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nPhi</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.nPhi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.nPhi" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.nfp">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nfp</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.nfp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.nfp" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.field_period">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">field_period</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.field_period"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.field_period" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.VR">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">VR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.VR"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.VR" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.VZ">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">VZ</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.VZ"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.VZ" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.VPhi">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">VPhi</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.VPhi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.VPhi" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.BR">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">BR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.BR"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.BR" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.BZ">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">BZ</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.BZ"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.BZ" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.BPhi">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">BPhi</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.BPhi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.BPhi" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.components">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">components</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.components"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.components" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.components_3d">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">components_3d</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.components_3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.components_3d" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.rms">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">rms</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.rms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.rms" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.shape">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Ellipsis</span><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.shape" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.nR">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.nR"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.nR" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.nZ">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nZ</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.nZ"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.nZ" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.abs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">abs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.abs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.abs" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.poloidal_abs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">poloidal_abs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.poloidal_abs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.poloidal_abs" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.is_axisymmetric">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_axisymmetric</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.is_axisymmetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.is_axisymmetric" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.interpolate_at">
+<span class="sig-name descname"><span class="pre">interpolate_at</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.interpolate_at"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.interpolate_at" title="Link to this definition">#</a></dt>
+<dd><p>Legacy convenience: returns (VR, VZ, VPhi) at given coordinates.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.zero_like">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">zero_like</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><span class="pre">VectorFieldCylind</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><span class="pre">VectorFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.zero_like"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.zero_like" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.from_components">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_components</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_periods</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><span class="pre">VectorFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.from_components"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.from_components" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.from_field_cache">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_field_cache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cache</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><span class="pre">VectorFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.from_field_cache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.from_field_cache" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.from_cache">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_cache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cache</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><span class="pre">VectorFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.from_cache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.from_cache" title="Link to this definition">#</a></dt>
+<dd><p>Backward-compatible fixed-section constructor.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.downsample">
+<span class="sig-name descname"><span class="pre">downsample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skip</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><span class="pre">VectorFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.downsample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.downsample" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.div">
+<span class="sig-name descname"><span class="pre">div</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.fields.cylindrical.ScalarFieldCylind" title="pyna.fields.cylindrical.ScalarFieldCylind"><span class="pre">ScalarFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.div"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.div" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.divergence">
+<span class="sig-name descname"><span class="pre">divergence</span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.divergence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.divergence" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.curl">
+<span class="sig-name descname"><span class="pre">curl</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><span class="pre">VectorFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.curl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.curl" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.jacobian">
+<span class="sig-name descname"><span class="pre">jacobian</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.jacobian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.jacobian" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.dot">
+<span class="sig-name descname"><span class="pre">dot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.fields.cylindrical.ScalarFieldCylind" title="pyna.fields.cylindrical.ScalarFieldCylind"><span class="pre">ScalarFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.dot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.dot" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.cross">
+<span class="sig-name descname"><span class="pre">cross</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><span class="pre">VectorFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.cross"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.cross" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.magnitude">
+<span class="sig-name descname"><span class="pre">magnitude</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.fields.cylindrical.ScalarFieldCylind" title="pyna.fields.cylindrical.ScalarFieldCylind"><span class="pre">ScalarFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.magnitude"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.magnitude" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.norm">
+<span class="sig-name descname"><span class="pre">norm</span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.norm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.norm" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.cyna_arrays">
+<span class="sig-name descname"><span class="pre">cyna_arrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.fields.cylindrical.CylindricalFieldArrays" title="pyna.fields.cylindrical.CylindricalFieldArrays"><span class="pre">CylindricalFieldArrays</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.cyna_arrays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.cyna_arrays" title="Link to this definition">#</a></dt>
+<dd><p>Return contiguous arrays for cyna without exposing tuple order.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.to_field_cache">
+<span class="sig-name descname"><span class="pre">to_field_cache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.to_field_cache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.to_field_cache" title="Link to this definition">#</a></dt>
+<dd><p>Return a named field-cache dict in <code class="docutils literal notranslate"><span class="pre">BR,</span> <span class="pre">BZ,</span> <span class="pre">BPhi</span></code> order.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.from_callable">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_callable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.from_callable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.from_callable" title="Link to this definition">#</a></dt>
+<dd><p>Build from a callable.</p>
+<p>Supports two calling conventions:
+- New: <code class="docutils literal notranslate"><span class="pre">func(R_arr,</span> <span class="pre">Z_arr,</span> <span class="pre">Phi_arr)</span> <span class="pre">-&gt;</span> <span class="pre">(VR,</span> <span class="pre">VZ,</span> <span class="pre">VPhi)</span></code>  (vectorised)
+- Legacy: <code class="docutils literal notranslate"><span class="pre">func(np.array([R,</span> <span class="pre">Z,</span> <span class="pre">phi]))</span> <span class="pre">-&gt;</span> <span class="pre">(VR,</span> <span class="pre">VZ,</span> <span class="pre">VPhi)</span></code>  (point-by-point)</p>
+<p>The convention is auto-detected by trying the new signature first.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.to_npz">
+<span class="sig-name descname"><span class="pre">to_npz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.to_npz"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.to_npz" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylind.from_npz">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_npz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><span class="pre">VectorFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylind.from_npz"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylind.from_npz" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylindAxisym">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.fields.cylindrical.</span></span><span class="sig-name descname"><span class="pre">VectorFieldCylindAxisym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">VR_2d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">VZ_2d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">VPhi_2d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">FieldProperty.NONE</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylindAxisym"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylindAxisym" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VectorFieldCylind</span></code></a></p>
+<p>Axisymmetric vector field: components depend only on (R, Z).</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.VectorFieldCylindAxisym.interpolate_at">
+<span class="sig-name descname"><span class="pre">interpolate_at</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#VectorFieldCylindAxisym.interpolate_at"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.VectorFieldCylindAxisym.interpolate_at" title="Link to this definition">#</a></dt>
+<dd><p>Override: ignore Phi.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylindAxisym">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.fields.cylindrical.</span></span><span class="sig-name descname"><span class="pre">ScalarFieldCylindAxisym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_2d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">FieldProperty.NONE</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylindAxisym"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylindAxisym" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyna.fields.cylindrical.ScalarFieldCylind" title="pyna.fields.cylindrical.ScalarFieldCylind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ScalarFieldCylind</span></code></a></p>
+<p>Axisymmetric scalar field: value depends only on (R, Z).</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylindAxisym.is_axisymmetric">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_axisymmetric</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylindAxisym.is_axisymmetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylindAxisym.is_axisymmetric" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylindAxisym.value_2d">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">value_2d</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylindAxisym.value_2d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylindAxisym.value_2d" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.ScalarFieldCylindAxisym.B">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">B</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#ScalarFieldCylindAxisym.B"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.ScalarFieldCylindAxisym.B" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.as_scalar_field_cylindrical">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.cylindrical.</span></span><span class="sig-name descname"><span class="pre">as_scalar_field_cylindrical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field_like</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.fields.cylindrical.ScalarFieldCylind" title="pyna.fields.cylindrical.ScalarFieldCylind"><span class="pre">ScalarFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#as_scalar_field_cylindrical"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.as_scalar_field_cylindrical" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.as_vector_field_cylindrical">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.cylindrical.</span></span><span class="sig-name descname"><span class="pre">as_vector_field_cylindrical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field_like</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><span class="pre">VectorFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#as_vector_field_cylindrical"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.as_vector_field_cylindrical" title="Link to this definition">#</a></dt>
+<dd><p>Normalize common cylindrical field inputs to <a class="reference internal" href="#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><code class="xref py py-class docutils literal notranslate"><span class="pre">VectorFieldCylind</span></code></a>.</p>
+<p>New code should pass a <code class="docutils literal notranslate"><span class="pre">VectorFieldCylind</span></code> object.  Dict and tuple support
+exists to bridge legacy field-cache code while the rest of the repository
+migrates away from component tuples.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.as_vector_field_cylind">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.cylindrical.</span></span><span class="sig-name descname"><span class="pre">as_vector_field_cylind</span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#as_vector_field_cylind"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.as_vector_field_cylind" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="pyna.fields.cylindrical.as_scalar_field_cylind">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.cylindrical.</span></span><span class="sig-name descname"><span class="pre">as_scalar_field_cylind</span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/cylindrical.html#as_scalar_field_cylind"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.cylindrical.as_scalar_field_cylind" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../coords/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">pyna.fields.coords</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../diff_ops/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">pyna.fields.diff_ops</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.validate_phi_grid"><code class="docutils literal notranslate"><span class="pre">validate_phi_grid()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.close_periodic_phi_grid"><code class="docutils literal notranslate"><span class="pre">close_periodic_phi_grid()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.close_periodic_field_cache_phi"><code class="docutils literal notranslate"><span class="pre">close_periodic_field_cache_phi()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.CylindricalFieldArrays"><code class="docutils literal notranslate"><span class="pre">CylindricalFieldArrays</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.CylindricalFieldArrays.R_grid"><code class="docutils literal notranslate"><span class="pre">CylindricalFieldArrays.R_grid</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.CylindricalFieldArrays.Z_grid"><code class="docutils literal notranslate"><span class="pre">CylindricalFieldArrays.Z_grid</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.CylindricalFieldArrays.Phi_grid"><code class="docutils literal notranslate"><span class="pre">CylindricalFieldArrays.Phi_grid</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.CylindricalFieldArrays.BR"><code class="docutils literal notranslate"><span class="pre">CylindricalFieldArrays.BR</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.CylindricalFieldArrays.BZ"><code class="docutils literal notranslate"><span class="pre">CylindricalFieldArrays.BZ</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.CylindricalFieldArrays.BPhi"><code class="docutils literal notranslate"><span class="pre">CylindricalFieldArrays.BPhi</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.CylindricalFieldArrays.field_periods"><code class="docutils literal notranslate"><span class="pre">CylindricalFieldArrays.field_periods</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.CylindricalFieldArrays.BR_flat"><code class="docutils literal notranslate"><span class="pre">CylindricalFieldArrays.BR_flat</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.CylindricalFieldArrays.BZ_flat"><code class="docutils literal notranslate"><span class="pre">CylindricalFieldArrays.BZ_flat</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.CylindricalFieldArrays.BPhi_flat"><code class="docutils literal notranslate"><span class="pre">CylindricalFieldArrays.BPhi_flat</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.CylindricalFieldArrays.shape"><code class="docutils literal notranslate"><span class="pre">CylindricalFieldArrays.shape</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.CylindricalFieldArrays.as_field_cache"><code class="docutils literal notranslate"><span class="pre">CylindricalFieldArrays.as_field_cache()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.CylindricalFieldArrays.cyna_component_args"><code class="docutils literal notranslate"><span class="pre">CylindricalFieldArrays.cyna_component_args()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.CylindricalFieldArrays.cyna_grid_args"><code class="docutils literal notranslate"><span class="pre">CylindricalFieldArrays.cyna_grid_args()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.field_periods"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.field_periods</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.R"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.R</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.Z"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.Z</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.Phi"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.Phi</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.value"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.value</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.B"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.B</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.nfp"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.nfp</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.field_period"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.field_period</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.interpolate_at"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.interpolate_at()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.to_npz"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.to_npz()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.from_npz"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.from_npz()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.is_axisymmetric"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.is_axisymmetric</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.shape"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.shape</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.nR"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.nR</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.nZ"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.nZ</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.nPhi"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.nPhi</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.data"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.data</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.grad"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.grad()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.gradient"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.gradient</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.laplacian"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.laplacian()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylind.hessian"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylind.hessian()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.component_order"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.component_order</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.magnetic_component_order"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.magnetic_component_order</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.phi"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.phi</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.label"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.label</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.field_periods"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.field_periods</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.R"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.R</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.Z"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.Z</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.Phi"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.Phi</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.R_arr"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.R_arr</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.Z_arr"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.Z_arr</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.coordinate_names"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.coordinate_names</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.is_section"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.is_section</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.nPhi"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.nPhi</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.nfp"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.nfp</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.field_period"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.field_period</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.VR"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.VR</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.VZ"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.VZ</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.VPhi"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.VPhi</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.BR"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.BR</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.BZ"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.BZ</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.BPhi"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.BPhi</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.components"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.components</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.components_3d"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.components_3d</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.rms"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.rms</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.shape"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.shape</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.nR"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.nR</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.nZ"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.nZ</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.abs"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.abs</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.poloidal_abs"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.poloidal_abs</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.is_axisymmetric"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.is_axisymmetric</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.interpolate_at"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.interpolate_at()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.zero_like"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.zero_like()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.from_components"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.from_components()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.from_field_cache"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.from_field_cache()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.from_cache"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.from_cache()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.downsample"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.downsample()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.div"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.div()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.divergence"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.divergence</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.curl"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.curl()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.jacobian"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.jacobian()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.dot"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.dot()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.cross"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.cross()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.magnitude"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.magnitude()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.norm"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.norm</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.cyna_arrays"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.cyna_arrays()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.to_field_cache"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.to_field_cache()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.from_callable"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.from_callable()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.to_npz"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.to_npz()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylind.from_npz"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylind.from_npz()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylindAxisym"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylindAxisym</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.VectorFieldCylindAxisym.interpolate_at"><code class="docutils literal notranslate"><span class="pre">VectorFieldCylindAxisym.interpolate_at()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylindAxisym"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylindAxisym</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylindAxisym.is_axisymmetric"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylindAxisym.is_axisymmetric</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylindAxisym.value_2d"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylindAxisym.value_2d</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.ScalarFieldCylindAxisym.B"><code class="docutils literal notranslate"><span class="pre">ScalarFieldCylindAxisym.B</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.as_scalar_field_cylindrical"><code class="docutils literal notranslate"><span class="pre">as_scalar_field_cylindrical()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.as_vector_field_cylindrical"><code class="docutils literal notranslate"><span class="pre">as_vector_field_cylindrical()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.as_vector_field_cylind"><code class="docutils literal notranslate"><span class="pre">as_vector_field_cylind</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.cylindrical.as_scalar_field_cylind"><code class="docutils literal notranslate"><span class="pre">as_scalar_field_cylind</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,1013 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.topo.variational &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/topo/variational';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../topo.html" class="nav-link">pyna.topo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.topo.variational</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.topo.variational</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Variational equations for the Poincaré map and high-order tangent maps.</span>
+
+<span class="sd">For a field-line / Hamiltonian system</span>
+
+<span class="sd">    dX/dφ = f(X, φ),   X = (R, Z)</span>
+
+<span class="sd">the *variational equations* describe how a small perturbation δX evolves:</span>
+
+<span class="sd">    d(δXᵢ)/dφ = Σⱼ (∂fᵢ/∂Xⱼ) δXⱼ           (order 1, linearised flow)</span>
+
+<span class="sd">The Jacobian (monodromy) matrix  M = ∂X(φ_end)/∂X(φ_start) is the</span>
+<span class="sd">fundamental matrix of the linearised flow evaluated over one toroidal turn.</span>
+
+<span class="sd">For an area-preserving Poincaré map, det(M) = 1.</span>
+
+<span class="sd">Higher-order variational equations are formed by differentiating the ODE</span>
+<span class="sd">and augmenting the state vector.  The Jacobian of f is approximated by</span>
+<span class="sd">finite differences so that an arbitrary callable ``f(r, z, phi)`` can be</span>
+<span class="sd">used without symbolic differentiation.</span>
+
+<span class="sd">Order-k tensor notation</span>
+<span class="sd">-----------------------</span>
+<span class="sd">The k-th order derivative tensor of the flow map is</span>
+
+<span class="sd">    D^k P^m [i, j₁, …, jₖ] = ∂^k Xᵢ(φ_end) / (∂X₀ⱼ₁ … ∂X₀ⱼₖ)</span>
+
+<span class="sd">For k=1 this is the monodromy matrix M (shape (2,2)).</span>
+<span class="sd">For k=2 this is the tensor T (shape (2,2,2)).</span>
+<span class="sd">For k=3 this is the tensor Q (shape (2,2,2,2)).</span>
+
+<span class="sd">The ODE for the k-th order tensor U^(k) in multi-index notation is:</span>
+
+<span class="sd">    dU^(k)_{i,J}/dφ = Σₗ A_{il} U^(k)_{l,J}</span>
+<span class="sd">                    + Σ_{p=2}^{k} Σ_{partitions S_p of J into p parts}</span>
+<span class="sd">                        F^(p)_{i,l₁,…,lₚ} Π_q U^(|S_q|)_{lq, S_q}</span>
+
+<span class="sd">where F^(p) is the p-th derivative tensor of f w.r.t. x, and the sum</span>
+<span class="sd">runs over all ways to partition the multi-index J into p non-empty parts.</span>
+
+<span class="sd">In practice only k≤3 is implemented here; going beyond that is possible</span>
+<span class="sd">but the number of terms grows rapidly.</span>
+
+<span class="sd">Classes</span>
+<span class="sd">-------</span>
+<span class="sd">PoincareMapVariationalEquations</span>
+<span class="sd">    Encapsulates the variational ODE system and provides integration methods.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo._rk4</span><span class="w"> </span><span class="kn">import</span> <span class="n">rk4_integrate</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Finite-difference Jacobian and Hessian helpers</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_fd_jacobian</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the Jacobian ∂f/∂x by central finite differences.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f : callable</span>
+<span class="sd">        ``f(r, z, phi)`` returning array_like of shape (2,).</span>
+<span class="sd">    x : array_like, shape (2,)</span>
+<span class="sd">        State vector [R, Z].</span>
+<span class="sd">    phi : float</span>
+<span class="sd">        Current toroidal angle.</span>
+<span class="sd">    eps : float, optional</span>
+<span class="sd">        Finite-difference step size.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    J : ndarray, shape (2, 2)</span>
+<span class="sd">        Jacobian matrix  J[i, j] = ∂fᵢ/∂xⱼ.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">J</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">xp</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">xp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="n">eps</span>
+        <span class="n">xm</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">xm</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-=</span> <span class="n">eps</span>
+        <span class="n">J</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">xp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xp</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                   <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">xm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xm</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">eps</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">J</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_fd_hessian</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the Hessian tensor ∂²f/∂x² by central finite differences.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f : callable</span>
+<span class="sd">        ``f(r, z, phi)`` returning array_like of shape (n,).</span>
+<span class="sd">    x : array_like, shape (n,)</span>
+<span class="sd">        State vector.</span>
+<span class="sd">    phi : float</span>
+<span class="sd">        Current toroidal angle.</span>
+<span class="sd">    eps : float, optional</span>
+<span class="sd">        Finite-difference step size.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    H : ndarray, shape (n, n, n)</span>
+<span class="sd">        Hessian tensor  H[i, j, k] = ∂²fᵢ / (∂xⱼ ∂xₖ).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">f0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">j</span> <span class="o">==</span> <span class="n">k</span><span class="p">:</span>
+                <span class="n">xp</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">xp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="n">eps</span>
+                <span class="n">xm</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">xm</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-=</span> <span class="n">eps</span>
+                <span class="n">fp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">xp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xp</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                <span class="n">fm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">xm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xm</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                <span class="n">H</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">fp</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f0</span> <span class="o">+</span> <span class="n">fm</span><span class="p">)</span> <span class="o">/</span> <span class="n">eps</span><span class="o">**</span><span class="mi">2</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">xpp</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">xpp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="n">eps</span>
+                <span class="n">xpp</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+=</span> <span class="n">eps</span>
+                <span class="n">xpm</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">xpm</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="n">eps</span>
+                <span class="n">xpm</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-=</span> <span class="n">eps</span>
+                <span class="n">xmp</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">xmp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-=</span> <span class="n">eps</span>
+                <span class="n">xmp</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+=</span> <span class="n">eps</span>
+                <span class="n">xmm</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">xmm</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-=</span> <span class="n">eps</span>
+                <span class="n">xmm</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-=</span> <span class="n">eps</span>
+                <span class="n">fpp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">xpp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xpp</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                <span class="n">fpm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">xpm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xpm</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                <span class="n">fmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">xmp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xmp</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                <span class="n">fmm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">xmm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xmm</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="p">(</span><span class="n">fpp</span> <span class="o">-</span> <span class="n">fpm</span> <span class="o">-</span> <span class="n">fmp</span> <span class="o">+</span> <span class="n">fmm</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">eps</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">H</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                <span class="n">H</span><span class="p">[:,</span> <span class="n">k</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>  <span class="c1"># symmetry</span>
+    <span class="k">return</span> <span class="n">H</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_fd_third_derivative</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the 3rd-order derivative tensor ∂³f/∂x³ by finite differences.</span>
+
+<span class="sd">    Uses a combination of central-difference formulae.  The result is</span>
+<span class="sd">    symmetric in the last three indices (j, k, l).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f : callable</span>
+<span class="sd">        ``f(r, z, phi)`` returning array_like of shape (n,).</span>
+<span class="sd">    x : array_like, shape (n,)</span>
+<span class="sd">        State vector [R, Z].</span>
+<span class="sd">    phi : float</span>
+<span class="sd">        Current toroidal angle.</span>
+<span class="sd">    eps : float, optional</span>
+<span class="sd">        Finite-difference step size.  A larger step than the Hessian is</span>
+<span class="sd">        recommended because third differences amplify round-off.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    D3 : ndarray, shape (n, n, n, n)</span>
+<span class="sd">        Third derivative tensor  D3[i, j, k, l] = ∂³fᵢ / (∂xⱼ ∂xₖ ∂xₗ).</span>
+<span class="sd">        Symmetric in j, k, l.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">D3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_eval</span><span class="p">(</span><span class="n">dx</span><span class="p">):</span>
+        <span class="n">xd</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">dx</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">xd</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xd</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+                <span class="n">ej</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">);</span> <span class="n">ej</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">eps</span>
+                <span class="n">ek</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">);</span> <span class="n">ek</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">eps</span>
+                <span class="n">el</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">);</span> <span class="n">el</span><span class="p">[</span><span class="n">l</span><span class="p">]</span> <span class="o">=</span> <span class="n">eps</span>
+
+                <span class="k">if</span> <span class="n">j</span> <span class="o">==</span> <span class="n">k</span> <span class="o">==</span> <span class="n">l</span><span class="p">:</span>
+                    <span class="c1"># ∂³f/∂xⱼ³ ≈ (-f(x+2e)+2f(x+e)-2f(x-e)+f(x-2e)) / (2eps³)</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="p">(</span><span class="n">_eval</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">ej</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">_eval</span><span class="p">(</span><span class="n">ej</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">_eval</span><span class="p">(</span><span class="o">-</span><span class="n">ej</span><span class="p">)</span> <span class="o">-</span> <span class="n">_eval</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">ej</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">eps</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">j</span> <span class="o">==</span> <span class="n">k</span><span class="p">:</span>
+                    <span class="c1"># mixed ∂³f/(∂xⱼ²∂xₗ) using cross-central differences</span>
+                    <span class="c1"># ≈ [f(x+ej+el) - 2f(x+el) + f(x-ej+el)</span>
+                    <span class="c1">#   - f(x+ej-el) + 2f(x-el) - f(x-ej-el)] / (2*eps² * (2*eps))</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="p">(</span><span class="n">_eval</span><span class="p">(</span><span class="n">ej</span><span class="o">+</span><span class="n">el</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">_eval</span><span class="p">(</span><span class="n">el</span><span class="p">)</span> <span class="o">+</span> <span class="n">_eval</span><span class="p">(</span><span class="o">-</span><span class="n">ej</span><span class="o">+</span><span class="n">el</span><span class="p">)</span>
+                           <span class="o">-</span> <span class="n">_eval</span><span class="p">(</span><span class="n">ej</span><span class="o">-</span><span class="n">el</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">_eval</span><span class="p">(</span><span class="o">-</span><span class="n">el</span><span class="p">)</span> <span class="o">-</span> <span class="n">_eval</span><span class="p">(</span><span class="o">-</span><span class="n">ej</span><span class="o">-</span><span class="n">el</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">eps</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">k</span> <span class="o">==</span> <span class="n">l</span><span class="p">:</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="p">(</span><span class="n">_eval</span><span class="p">(</span><span class="n">ek</span><span class="o">+</span><span class="n">ej</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">_eval</span><span class="p">(</span><span class="n">ej</span><span class="p">)</span> <span class="o">+</span> <span class="n">_eval</span><span class="p">(</span><span class="o">-</span><span class="n">ek</span><span class="o">+</span><span class="n">ej</span><span class="p">)</span>
+                           <span class="o">-</span> <span class="n">_eval</span><span class="p">(</span><span class="n">ek</span><span class="o">-</span><span class="n">ej</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">_eval</span><span class="p">(</span><span class="o">-</span><span class="n">ej</span><span class="p">)</span> <span class="o">-</span> <span class="n">_eval</span><span class="p">(</span><span class="o">-</span><span class="n">ek</span><span class="o">-</span><span class="n">ej</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">eps</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">j</span> <span class="o">==</span> <span class="n">l</span><span class="p">:</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="p">(</span><span class="n">_eval</span><span class="p">(</span><span class="n">ej</span><span class="o">+</span><span class="n">ek</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">_eval</span><span class="p">(</span><span class="n">ek</span><span class="p">)</span> <span class="o">+</span> <span class="n">_eval</span><span class="p">(</span><span class="o">-</span><span class="n">ej</span><span class="o">+</span><span class="n">ek</span><span class="p">)</span>
+                           <span class="o">-</span> <span class="n">_eval</span><span class="p">(</span><span class="n">ej</span><span class="o">-</span><span class="n">ek</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">_eval</span><span class="p">(</span><span class="o">-</span><span class="n">ek</span><span class="p">)</span> <span class="o">-</span> <span class="n">_eval</span><span class="p">(</span><span class="o">-</span><span class="n">ej</span><span class="o">-</span><span class="n">ek</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">eps</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># All distinct: use 8-point formula</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="p">(</span><span class="n">_eval</span><span class="p">(</span><span class="n">ej</span><span class="o">+</span><span class="n">ek</span><span class="o">+</span><span class="n">el</span><span class="p">)</span> <span class="o">-</span> <span class="n">_eval</span><span class="p">(</span><span class="n">ej</span><span class="o">+</span><span class="n">ek</span><span class="o">-</span><span class="n">el</span><span class="p">)</span> <span class="o">-</span> <span class="n">_eval</span><span class="p">(</span><span class="n">ej</span><span class="o">-</span><span class="n">ek</span><span class="o">+</span><span class="n">el</span><span class="p">)</span>
+                           <span class="o">+</span> <span class="n">_eval</span><span class="p">(</span><span class="n">ej</span><span class="o">-</span><span class="n">ek</span><span class="o">-</span><span class="n">el</span><span class="p">)</span> <span class="o">-</span> <span class="n">_eval</span><span class="p">(</span><span class="o">-</span><span class="n">ej</span><span class="o">+</span><span class="n">ek</span><span class="o">+</span><span class="n">el</span><span class="p">)</span> <span class="o">+</span> <span class="n">_eval</span><span class="p">(</span><span class="o">-</span><span class="n">ej</span><span class="o">+</span><span class="n">ek</span><span class="o">-</span><span class="n">el</span><span class="p">)</span>
+                           <span class="o">+</span> <span class="n">_eval</span><span class="p">(</span><span class="o">-</span><span class="n">ej</span><span class="o">-</span><span class="n">ek</span><span class="o">+</span><span class="n">el</span><span class="p">)</span> <span class="o">-</span> <span class="n">_eval</span><span class="p">(</span><span class="o">-</span><span class="n">ej</span><span class="o">-</span><span class="n">ek</span><span class="o">-</span><span class="n">el</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">8</span> <span class="o">*</span> <span class="n">eps</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
+
+                <span class="c1"># Assign all permutations (symmetry in j,k,l)</span>
+                <span class="k">for</span> <span class="n">pj</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">pl</span> <span class="ow">in</span> <span class="n">_permutations3</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">):</span>
+                    <span class="n">D3</span><span class="p">[:,</span> <span class="n">pj</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">pl</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">return</span> <span class="n">D3</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_permutations3</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the (up to 6) permutations of three indices.&quot;&quot;&quot;</span>
+    <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[(</span><span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">),</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">k</span><span class="p">),</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">l</span><span class="p">),</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">),</span> <span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">j</span><span class="p">)]:</span>
+        <span class="k">if</span> <span class="n">p</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Main class</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="PoincareMapVariationalEquations">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/variational/index.html#pyna.topo.variational.PoincareMapVariationalEquations">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PoincareMapVariationalEquations</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Variational equations for the Poincaré map of a 2-D field-line system.</span>
+
+<span class="sd">    The field-line ODE is</span>
+
+<span class="sd">        dR/dφ = fR(R, Z, φ)</span>
+<span class="sd">        dZ/dφ = fZ(R, Z, φ)</span>
+
+<span class="sd">    The order-1 variational (linearised) equation for the Jacobian matrix</span>
+<span class="sd">    M(φ) = ∂(R,Z)/∂(R₀,Z₀) reads</span>
+
+<span class="sd">        dM/dφ = A(X(φ), φ) · M,   M(φ₀) = I,</span>
+
+<span class="sd">    where  A_ij = ∂fᵢ/∂Xⱼ  is the Jacobian of the right-hand side.</span>
+
+<span class="sd">    The order-2 variational equation for the second-derivative tensor</span>
+<span class="sd">    T_{ijk}(φ) = ∂²Xᵢ/∂X₀ⱼ∂X₀ₖ reads</span>
+
+<span class="sd">        dT_{ijk}/dφ = Σₗ A_{il} T_{ljk} + Σₗ,ₘ H_{ilm} M_{lj} M_{mk},</span>
+<span class="sd">        T(φ₀) = 0,</span>
+
+<span class="sd">    where H_{ilm} = ∂²fᵢ/∂Xₗ∂Xₘ is the Hessian of the right-hand side.</span>
+
+<span class="sd">    The order-3 variational equation for Q_{ijkl}(φ) = ∂³Xᵢ/∂X₀ⱼ∂X₀ₖ∂X₀ₗ reads</span>
+
+<span class="sd">        dQ_{ijkl}/dφ = Σₐ A_{ia} Q_{ajkl}</span>
+<span class="sd">                      + Σₐ,ᵦ H_{iaβ} [T_{ajk} M_{βl} + T_{ajl} M_{βk} + T_{akl} M_{βj}]</span>
+<span class="sd">                      + Σₐ,ᵦ,γ D³f_{iaβγ} M_{aj} M_{βk} M_{γl}   (+ all permutations),</span>
+<span class="sd">        Q(φ₀) = 0.</span>
+
+<span class="sd">    Here D³f_{iaβγ} is the third-derivative tensor of f w.r.t. x.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    field_func : callable</span>
+<span class="sd">        ``field_func(r, z, phi)`` → array_like of shape (2,) giving</span>
+<span class="sd">        (dR/dφ, dZ/dφ).</span>
+<span class="sd">    fd_eps : float, optional</span>
+<span class="sd">        Finite-difference step for computing the Jacobian A.  Default 1e-6.</span>
+<span class="sd">    fd_eps2 : float, optional</span>
+<span class="sd">        Finite-difference step for computing the Hessian H (order-2 only).</span>
+<span class="sd">        Default 1e-5.</span>
+<span class="sd">    fd_eps3 : float, optional</span>
+<span class="sd">        Finite-difference step for computing the third-derivative tensor</span>
+<span class="sd">        D³f (order-3 only).  A slightly larger step than ``fd_eps2`` is</span>
+<span class="sd">        recommended to keep round-off under control.  Default 1e-4.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; def f(r, z, phi):</span>
+<span class="sd">    ...     return np.array([-z, r])          # circular motion placeholder</span>
+<span class="sd">    &gt;&gt;&gt; vq = PoincareMapVariationalEquations(f)</span>
+<span class="sd">    &gt;&gt;&gt; M = vq.jacobian_matrix([1.8, 0.0], [0.0, 2*np.pi])</span>
+<span class="sd">    &gt;&gt;&gt; np.linalg.det(M)   # ≈ 1 for area-preserving map</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_func</span><span class="p">,</span> <span class="n">fd_eps</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">fd_eps2</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">fd_eps3</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">):</span>
+<div class="viewcode-block" id="PoincareMapVariationalEquations.field_func">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/variational/index.html#pyna.topo.variational.PoincareMapVariationalEquations.field_func">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">field_func</span> <span class="o">=</span> <span class="n">field_func</span></div>
+
+<div class="viewcode-block" id="PoincareMapVariationalEquations.fd_eps">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/variational/index.html#pyna.topo.variational.PoincareMapVariationalEquations.fd_eps">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fd_eps</span> <span class="o">=</span> <span class="n">fd_eps</span></div>
+
+<div class="viewcode-block" id="PoincareMapVariationalEquations.fd_eps2">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/variational/index.html#pyna.topo.variational.PoincareMapVariationalEquations.fd_eps2">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fd_eps2</span> <span class="o">=</span> <span class="n">fd_eps2</span></div>
+
+<div class="viewcode-block" id="PoincareMapVariationalEquations.fd_eps3">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/variational/index.html#pyna.topo.variational.PoincareMapVariationalEquations.fd_eps3">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fd_eps3</span> <span class="o">=</span> <span class="n">fd_eps3</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Internal ODE builders</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_augmented_rhs_order1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Augmented RHS for the order-1 variational system.</span>
+
+<span class="sd">        State layout: [R, Z, M00, M10, M01, M11]</span>
+<span class="sd">        (M is stored column-major: first column then second column)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">state</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">f_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field_func</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">_fd_jacobian</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field_func</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fd_eps</span><span class="p">)</span>
+
+        <span class="n">dM</span> <span class="o">=</span> <span class="n">A</span> <span class="o">@</span> <span class="n">M</span>  <span class="c1"># dM/dφ = A(x) · M</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">f_val</span><span class="p">,</span> <span class="n">dM</span><span class="o">.</span><span class="n">flatten</span><span class="p">()])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_augmented_rhs_order2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Augmented RHS for the order-1 + order-2 variational system.</span>
+
+<span class="sd">        State layout: [R, Z,            (2)</span>
+<span class="sd">                       M00,M10,M01,M11, (4, column-major)</span>
+<span class="sd">                       T000,T100,       (8, T[:,j,k] column-major over jk)</span>
+<span class="sd">                       T010,T110,</span>
+<span class="sd">                       T001,T101,</span>
+<span class="sd">                       T011,T111]</span>
+
+<span class="sd">        The second-order ODE is:</span>
+<span class="sd">            dT_{ijk}/dφ = Σₗ A_{il} T_{ljk} + Σₗ,ₘ H_{ilm} M_{lj} M_{mk}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">state</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="mi">6</span><span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>   <span class="c1"># T[i,j,k]</span>
+
+        <span class="n">f_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field_func</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">_fd_jacobian</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field_func</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fd_eps</span><span class="p">)</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="n">_fd_hessian</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field_func</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fd_eps2</span><span class="p">)</span>
+
+        <span class="n">dM</span> <span class="o">=</span> <span class="n">A</span> <span class="o">@</span> <span class="n">M</span>  <span class="c1"># shape (2,2)</span>
+
+        <span class="c1"># dT_{ijk}/dφ = Σₗ A_{il} T_{ljk} + Σₗ,ₘ H_{ilm} M_{lj} M_{mk}</span>
+        <span class="c1"># First term: A @ T reshaped appropriately</span>
+        <span class="n">dT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;il,ljk-&gt;ijk&#39;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+        <span class="c1"># Second term: H_{ilm} M_{lj} M_{mk}  →  contract l,m</span>
+        <span class="n">dT</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ilm,lj,mk-&gt;ijk&#39;</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">f_val</span><span class="p">,</span> <span class="n">dM</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">dT</span><span class="o">.</span><span class="n">flatten</span><span class="p">()])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_augmented_rhs_order3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Augmented RHS for the order-1 + order-2 + order-3 variational system.</span>
+
+<span class="sd">        State layout: [x(2), M(4), T(8), Q(16)]</span>
+
+<span class="sd">        The third-order ODE is:</span>
+<span class="sd">            dQ_{ijkl}/dφ = Σₐ A_{ia} Q_{ajkl}</span>
+<span class="sd">                         + Σₐ,ᵦ H_{iaβ} (T_{ajk} M_{βl} + T_{ajl} M_{βk} + T_{akl} M_{βj})</span>
+<span class="sd">                         + Σₐ,ᵦ,γ D³f_{iaβγ} M_{aj} M_{βk} M_{γl}</span>
+<span class="sd">                           (plus the 5 other permutations of (j,k,l))</span>
+<span class="sd">        Since j,k,l are symmetric, the sum over permutations gives a factor-of-6</span>
+<span class="sd">        term but only 1 unique term for distinct j,k,l.  We implement it</span>
+<span class="sd">        symmetrically by summing over all 6 permutations and dividing by the</span>
+<span class="sd">        number of equal permutations (handled implicitly via the einsum).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">state</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="mi">14</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>    <span class="c1"># T[i,j,k]</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="mi">14</span><span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># Q[i,j,k,l]</span>
+
+        <span class="n">f_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field_func</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">_fd_jacobian</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field_func</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fd_eps</span><span class="p">)</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="n">_fd_hessian</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field_func</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fd_eps2</span><span class="p">)</span>
+        <span class="n">D3</span> <span class="o">=</span> <span class="n">_fd_third_derivative</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field_func</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fd_eps3</span><span class="p">)</span>
+
+        <span class="n">dM</span> <span class="o">=</span> <span class="n">A</span> <span class="o">@</span> <span class="n">M</span>  <span class="c1"># (2,2)</span>
+
+        <span class="c1"># dT_{ijk} = Σₗ A_{il} T_{ljk} + Σₗ,ₘ H_{ilm} M_{lj} M_{mk}</span>
+        <span class="n">dT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;il,ljk-&gt;ijk&#39;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+        <span class="n">dT</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ilm,lj,mk-&gt;ijk&#39;</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+
+        <span class="c1"># dQ_{ijkl} = Σₐ A_{ia} Q_{ajkl}</span>
+        <span class="n">dQ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ia,ajkl-&gt;ijkl&#39;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">Q</span><span class="p">)</span>
+
+        <span class="c1"># + Σₐ,ᵦ H_{iaβ} (T_{ajk} M_{βl} + T_{ajl} M_{βk} + T_{akl} M_{βj})</span>
+        <span class="c1"># Term 1: contract over (a,β), free (j,k), contribute to l</span>
+        <span class="n">dQ</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;iab,ajk,bl-&gt;ijkl&#39;</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+        <span class="c1"># Term 2: contract over (a,β), free (j,l), contribute to k</span>
+        <span class="n">dQ</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;iab,ajl,bk-&gt;ijkl&#39;</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+        <span class="c1"># Term 3: contract over (a,β), free (k,l), contribute to j</span>
+        <span class="n">dQ</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;iab,akl,bj-&gt;ijkl&#39;</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+
+        <span class="c1"># + Σₐ,ᵦ,γ D³f_{iaβγ} M_{aj} M_{βk} M_{γl}</span>
+        <span class="n">dQ</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;iabg,aj,bk,gl-&gt;ijkl&#39;</span><span class="p">,</span> <span class="n">D3</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">f_val</span><span class="p">,</span> <span class="n">dM</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">dT</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">dQ</span><span class="o">.</span><span class="n">flatten</span><span class="p">()])</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Public methods</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="PoincareMapVariationalEquations.jacobian_matrix">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/variational/index.html#pyna.topo.variational.PoincareMapVariationalEquations.jacobian_matrix">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">jacobian_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">phi_span</span><span class="p">,</span> <span class="n">solve_ivp_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Integrate the linearised equations to obtain the monodromy matrix.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x0 : array_like, shape (2,)</span>
+<span class="sd">            Initial position [R₀, Z₀].</span>
+<span class="sd">        phi_span : tuple of float</span>
+<span class="sd">            (φ_start, φ_end) — integration range. phi_span should span m full</span>
+<span class="sd">            toroidal turns: phi_span=(0, m*2*pi) for the m-turn monodromy matrix.</span>
+<span class="sd">            One toroidal turn is typically 0 to 2π.</span>
+<span class="sd">        solve_ivp_kwargs : dict, optional</span>
+<span class="sd">            Extra keyword arguments. For rk4_integrate, only rtol is used</span>
+<span class="sd">            to estimate max_step (smaller rtol -&gt; smaller step).</span>
+<span class="sd">            Defaults to ``{&quot;method&quot;: &quot;DOP853&quot;, &quot;rtol&quot;: 1e-9, &quot;atol&quot;: 1e-12}``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        M : ndarray, shape (2, 2)</span>
+<span class="sd">            Monodromy (Jacobian / fundamental) matrix of the Poincaré map.</span>
+<span class="sd">            For a Hamiltonian / area-preserving map, det(M) ≈ 1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">solve_ivp_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">solve_ivp_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;DOP853&quot;</span><span class="p">,</span> <span class="s2">&quot;rtol&quot;</span><span class="p">:</span> <span class="mf">1e-9</span><span class="p">,</span> <span class="s2">&quot;atol&quot;</span><span class="p">:</span> <span class="mf">1e-12</span><span class="p">}</span>
+
+        <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="c1"># Initial condition: x₀ and M = I</span>
+        <span class="n">y0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">x0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()])</span>
+
+        <span class="c1"># Convert rtol to max_step (heuristic)</span>
+        <span class="n">rtol</span> <span class="o">=</span> <span class="n">solve_ivp_kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rtol&#39;</span><span class="p">,</span> <span class="mf">1e-9</span><span class="p">)</span>
+        <span class="n">max_step</span> <span class="o">=</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1e-9</span> <span class="o">/</span> <span class="n">rtol</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.2</span>  <span class="c1"># Smaller step for tighter tolerance</span>
+
+        <span class="n">sol</span> <span class="o">=</span> <span class="n">rk4_integrate</span><span class="p">(</span>
+            <span class="n">fun</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_augmented_rhs_order1</span><span class="p">,</span>
+            <span class="n">t_span</span><span class="o">=</span><span class="n">phi_span</span><span class="p">,</span>
+            <span class="n">y0</span><span class="o">=</span><span class="n">y0</span><span class="p">,</span>
+            <span class="n">max_step</span><span class="o">=</span><span class="n">max_step</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">M</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">2</span><span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">M</span></div>
+
+
+<div class="viewcode-block" id="PoincareMapVariationalEquations.tangent_map">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/variational/index.html#pyna.topo.variational.PoincareMapVariationalEquations.tangent_map">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tangent_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">phi_span</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">solve_ivp_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Integrate variational equations up to the given order.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x0 : array_like, shape (2,)</span>
+<span class="sd">            Initial position.</span>
+<span class="sd">        phi_span : tuple of float</span>
+<span class="sd">            (φ_start, φ_end).</span>
+<span class="sd">        order : int, optional</span>
+<span class="sd">            Order of the tangent map.</span>
+
+<span class="sd">            * ``1`` — returns ``(x_end, M)``; M is the monodromy matrix</span>
+<span class="sd">              D¹P = ∂X(φ_end)/∂X(φ_start), shape (2, 2).</span>
+<span class="sd">            * ``2`` — returns ``(x_end, M, T)``; T is the second-derivative</span>
+<span class="sd">              tensor D²P, shape (2, 2, 2).</span>
+<span class="sd">            * ``3`` — returns ``(x_end, M, T, Q)``; Q is the third-derivative</span>
+<span class="sd">              tensor D³P, shape (2, 2, 2, 2).  More expensive than order 2</span>
+<span class="sd">              because it requires 3rd-order finite differences and 30 state</span>
+<span class="sd">              variables.</span>
+
+<span class="sd">            Default 1.</span>
+<span class="sd">        solve_ivp_kwargs : dict, optional</span>
+<span class="sd">            For rk4_integrate, only rtol is used to estimate max_step.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        x_end : ndarray, shape (2,)</span>
+<span class="sd">            Final position after integration.</span>
+<span class="sd">        M : ndarray, shape (2, 2)</span>
+<span class="sd">            Order-1 monodromy matrix DP = ∂X(φ_end)/∂X(φ_start).</span>
+<span class="sd">        T : ndarray, shape (2, 2, 2), only returned when order &gt;= 2</span>
+<span class="sd">            Order-2 second-derivative tensor</span>
+<span class="sd">            T[i,j,k] = ∂²Xᵢ(φ_end) / (∂X₀ⱼ ∂X₀ₖ).</span>
+<span class="sd">        Q : ndarray, shape (2, 2, 2, 2), only returned when order &gt;= 3</span>
+<span class="sd">            Order-3 third-derivative tensor</span>
+<span class="sd">            Q[i,j,k,l] = ∂³Xᵢ(φ_end) / (∂X₀ⱼ ∂X₀ₖ ∂X₀ₗ).</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        NotImplementedError</span>
+<span class="sd">            If ``order`` &gt; 3.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">order</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;Only order=1, 2, and 3 are currently implemented. &quot;</span>
+                <span class="s2">&quot;Higher-order variational equations are a planned extension.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">solve_ivp_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">solve_ivp_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;DOP853&quot;</span><span class="p">,</span> <span class="s2">&quot;rtol&quot;</span><span class="p">:</span> <span class="mf">1e-9</span><span class="p">,</span> <span class="s2">&quot;atol&quot;</span><span class="p">:</span> <span class="mf">1e-12</span><span class="p">}</span>
+
+        <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="c1"># Convert rtol to max_step (heuristic)</span>
+        <span class="n">rtol</span> <span class="o">=</span> <span class="n">solve_ivp_kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rtol&#39;</span><span class="p">,</span> <span class="mf">1e-9</span><span class="p">)</span>
+        <span class="n">max_step</span> <span class="o">=</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1e-9</span> <span class="o">/</span> <span class="n">rtol</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.2</span>
+
+        <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">y0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">x0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()])</span>
+            <span class="n">sol</span> <span class="o">=</span> <span class="n">rk4_integrate</span><span class="p">(</span>
+                <span class="n">fun</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_augmented_rhs_order1</span><span class="p">,</span>
+                <span class="n">t_span</span><span class="o">=</span><span class="n">phi_span</span><span class="p">,</span>
+                <span class="n">y0</span><span class="o">=</span><span class="n">y0</span><span class="p">,</span>
+                <span class="n">max_step</span><span class="o">=</span><span class="n">max_step</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">x_end</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">[:</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">M</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">2</span><span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">x_end</span><span class="p">,</span> <span class="n">M</span>
+
+        <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># State: [x(2), M(4), T(8)]  — T starts as zero tensor</span>
+            <span class="n">y0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">x0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">8</span><span class="p">)])</span>
+            <span class="n">sol</span> <span class="o">=</span> <span class="n">rk4_integrate</span><span class="p">(</span>
+                <span class="n">fun</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_augmented_rhs_order2</span><span class="p">,</span>
+                <span class="n">t_span</span><span class="o">=</span><span class="n">phi_span</span><span class="p">,</span>
+                <span class="n">y0</span><span class="o">=</span><span class="n">y0</span><span class="p">,</span>
+                <span class="n">max_step</span><span class="o">=</span><span class="n">max_step</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">x_end</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">[:</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">M</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">6</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">T</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">6</span><span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">x_end</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">T</span>
+
+        <span class="c1"># order == 3</span>
+        <span class="c1"># State: [x(2), M(4), T(8), Q(16)]  — T and Q start as zero</span>
+        <span class="n">y0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">x0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">8</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">16</span><span class="p">)])</span>
+        <span class="n">sol</span> <span class="o">=</span> <span class="n">rk4_integrate</span><span class="p">(</span>
+            <span class="n">fun</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_augmented_rhs_order3</span><span class="p">,</span>
+            <span class="n">t_span</span><span class="o">=</span><span class="n">phi_span</span><span class="p">,</span>
+            <span class="n">y0</span><span class="o">=</span><span class="n">y0</span><span class="p">,</span>
+            <span class="n">max_step</span><span class="o">=</span><span class="n">max_step</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">x_end</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">[:</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">6</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="mi">14</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">14</span><span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x_end</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">Q</span></div>
+</div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

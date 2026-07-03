@@ -1,0 +1,1337 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>pyna.topo.topology_analysis &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'en/api/generated/pyna/topo/topology_analysis/index';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../search.html" />
+    <link rel="next" title="pyna.topo.topology_eval" href="../topology_eval/index.html" />
+    <link rel="prev" title="pyna.topo.section_view" href="../section_view/index.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../../../../_static/searchtools.js"></script>
+    <script src="../../../../../../_static/language_data.js"></script>
+    <script src="../../../../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "en";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../../index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../../index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar"><svg class="pst-icon svg-inline--fa" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../mini-cases.html">Mini Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/index.html">Tutorials and Examples</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../../index.html">API Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../../dynamics.html">General Dynamics (<code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../dynamics-patterns.html">Dynamics Workflows and Extension Helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../flt.html">Field-line Tracing (<code class="docutils literal notranslate"><span class="pre">pyna.flt</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../topo.html">Topology (<code class="docutils literal notranslate"><span class="pre">pyna.topo</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../toroidal.html">Toroidal Physics (<code class="docutils literal notranslate"><span class="pre">pyna.toroidal</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../control.html">FPT Topology Control (<code class="docutils literal notranslate"><span class="pre">pyna.control</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../cyna.html">cyna Acceleration Layer</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="../../index.html">pyna</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../../cache/index.html">pyna.cache</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../connection_length/index.html">pyna.connection_length</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../context/index.html">pyna.context</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../control/index.html">pyna.control</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../diff/index.html">pyna.diff</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../draw/index.html">pyna.draw</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../dynamics/index.html">pyna.dynamics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../field_data/index.html">pyna.field_data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../fields/index.html">pyna.fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../flow/index.html">pyna.flow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../flt/index.html">pyna.flt</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../flt_cuda/index.html">pyna.flt_cuda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../imas_compat/index.html">pyna.imas_compat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../io/index.html">pyna.io</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../mag/index.html">pyna.mag</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../map/index.html">pyna.map</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../plot/index.html">pyna.plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../polymap/index.html">pyna.polymap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../polynomial/index.html">pyna.polynomial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../progress/index.html">pyna.progress</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../system/index.html">pyna.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../sysutil/index.html">pyna.sysutil</a></li>
+<li class="toctree-l3 current active has-children"><a class="reference internal" href="../index.html">pyna.topo</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../adapters/index.html">pyna.topo.adapters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../bridges/index.html">pyna.topo.bridges</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../builders/index.html">pyna.topo.builders</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../chaos/index.html">pyna.topo.chaos</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../classical_maps/index.html">pyna.topo.classical_maps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core/index.html">pyna.topo.core</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../cycle/index.html">pyna.topo.cycle</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../dynamics/index.html">pyna.topo.dynamics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../factories/index.html">pyna.topo.factories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../fast_metrics/index.html">pyna.topo.fast_metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../field/index.html">pyna.topo.field</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../fixed_points/index.html">pyna.topo.fixed_points</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../flux_surface/index.html">pyna.topo.flux_surface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../fpt/index.html">pyna.topo.fpt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../healed_flux_coords/index.html">pyna.topo.healed_flux_coords</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../identity/index.html">pyna.topo.identity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../invariant/index.html">pyna.topo.invariant</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../invariant_torus/index.html">pyna.topo.invariant_torus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../invariants/index.html">pyna.topo.invariants</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../island_extract/index.html">pyna.topo.island_extract</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../island_healed_coords/index.html">pyna.topo.island_healed_coords</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manifold/index.html">pyna.topo.manifold</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manifold_improve/index.html">pyna.topo.manifold_improve</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../monodromy/index.html">pyna.topo.monodromy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../perturbation/index.html">pyna.topo.perturbation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../poincare/index.html">pyna.topo.poincare</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../protocols/index.html">pyna.topo.protocols</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../regularity/index.html">pyna.topo.regularity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../resonance/index.html">pyna.topo.resonance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../section/index.html">pyna.topo.section</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../section_view/index.html">pyna.topo.section_view</a></li>
+<li class="toctree-l4 current active"><a class="current reference internal" href="#">pyna.topo.topology_analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../topology_eval/index.html">pyna.topo.topology_eval</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../toroidal/index.html">pyna.topo.toroidal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../toroidal_cycle/index.html">pyna.topo.toroidal_cycle</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../toroidal_island/index.html">pyna.topo.toroidal_island</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../toroidal_section_view/index.html">pyna.topo.toroidal_section_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../toroidal_trajectory/index.html">pyna.topo.toroidal_trajectory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trajectory3d/index.html">pyna.topo.trajectory3d</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../variational/index.html">pyna.topo.variational</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../workflow/index.html">pyna.topo.workflow</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3"><a class="reference internal" href="../../toroidal/index.html">pyna.toroidal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../utils/index.html">pyna.utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../vector_calc/index.html">pyna.vector_calc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../withparam/index.html">pyna.withparam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../workflow/index.html">pyna.workflow</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../theory/index.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../development/index.html">Development</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../../../index.html" class="nav-link">pyna - Python DYNAmics</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">pyna</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">pyna.topo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.topo.topology_analysis</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-pyna.topo.topology_analysis">
+<span id="pyna-topo-topology-analysis"></span><h1>pyna.topo.topology_analysis<a class="headerlink" href="#module-pyna.topo.topology_analysis" title="Link to this heading">#</a></h1>
+<p>Facade for exploratory magnetic-field topology analysis.</p>
+<p>Given a 3-D magnetic field in cylindrical coordinates (R, Z, φ) expressed as
+a callable <code class="docutils literal notranslate"><span class="pre">field_func(rzphi)</span> <span class="pre">-&gt;</span> <span class="pre">[dR/ds,</span> <span class="pre">dZ/ds,</span> <span class="pre">dφ/ds]</span></code>, this module
+provides a single high-level entry point:</p>
+<blockquote>
+<div><p>result = analyse_topology(field_func, …)</p>
+</div></blockquote>
+<p>that returns a <a class="reference internal" href="#pyna.topo.topology_analysis.TopologyReport" title="pyna.topo.topology_analysis.TopologyReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">TopologyReport</span></code></a> with:</p>
+<ol class="arabic simple">
+<li><p><strong>Chaos / regularity boundary</strong> – FTLE-based partition of the Poincaré
+section into chaotic and regular zones.</p></li>
+<li><p><strong>Rotational-transform (q) profile</strong> – for each identified regular zone,
+a radial q-profile estimated from field-line winding numbers.</p></li>
+<li><p><strong>Island-around-island hierarchy</strong> – rational surfaces and their island
+chains nested to a configurable depth.</p></li>
+<li><p><strong>Fixed-point catalogue</strong> – O- and X-points on one or more Poincaré
+sections, together with the monodromy matrix eigenvalues/vectors of the
+m-th return map (DPᵐ).</p></li>
+</ol>
+<section id="typical-usage">
+<h2>Typical usage<a class="headerlink" href="#typical-usage" title="Link to this heading">#</a></h2>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.topology_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">analyse_topology</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">report</span> <span class="o">=</span> <span class="n">analyse_topology</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">field_func</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">R_range</span><span class="o">=</span><span class="p">(</span><span class="mf">1.2</span><span class="p">,</span> <span class="mf">2.4</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">Z_range</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">phi_sections</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">q_range</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">n_ftle_pts</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">ftle_turns</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">island_m_max</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">island_n_max</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">island_depth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">report</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">report</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.topo.topology_analysis.FixedPointInfo" title="pyna.topo.topology_analysis.FixedPointInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FixedPointInfo</span></code></a></p></td>
+<td><p>O- or X-point on a Poincaré section with monodromy data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.topo.topology_analysis.IslandChain" title="pyna.topo.topology_analysis.IslandChain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IslandChain</span></code></a></p></td>
+<td><p>One island chain at a rational surface.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.topo.topology_analysis.RegularZone" title="pyna.topo.topology_analysis.RegularZone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RegularZone</span></code></a></p></td>
+<td><p>A connected regular (KAM) region in the Poincaré section.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.topo.topology_analysis.TopologyReport" title="pyna.topo.topology_analysis.TopologyReport"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TopologyReport</span></code></a></p></td>
+<td><p>Full topology analysis result.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.topo.topology_analysis.analyse_topology" title="pyna.topo.topology_analysis.analyse_topology"><code class="xref py py-obj docutils literal notranslate"><span class="pre">analyse_topology</span></code></a>(, n_q_radial, n_q_turns, ...)</p></td>
+<td><p>Perform a full topology analysis of a 3-D magnetic field.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.FixedPointInfo">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.topo.topology_analysis.</span></span><span class="sig-name descname"><span class="pre">FixedPointInfo</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#FixedPointInfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.FixedPointInfo" title="Link to this definition">#</a></dt>
+<dd><p>O- or X-point on a Poincaré section with monodromy data.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.FixedPointInfo.rzphi0">
+<span class="sig-name descname"><span class="pre">rzphi0</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#FixedPointInfo.rzphi0"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.FixedPointInfo.rzphi0" title="Link to this definition">#</a></dt>
+<dd><p>Location [R, Z, φ] of the fixed point (first pierce of the orbit).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray, <a class="reference internal" href="../../fields/cylindrical/index.html#pyna.fields.cylindrical.CylindricalFieldArrays.shape" title="pyna.fields.cylindrical.CylindricalFieldArrays.shape">shape</a> (3,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.FixedPointInfo.orbit_type">
+<span class="sig-name descname"><span class="pre">orbit_type</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#FixedPointInfo.orbit_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.FixedPointInfo.orbit_type" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">'O'</span></code> for elliptic (stable island centre) or <code class="docutils literal notranslate"><span class="pre">'X'</span></code> for hyperbolic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">m,</span> <span class="pre">n</span></span></dt>
+<dd><p>Mode numbers defining the resonance q = m/n.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.FixedPointInfo.period">
+<span class="sig-name descname"><span class="pre">period</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#FixedPointInfo.period"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.FixedPointInfo.period" title="Link to this definition">#</a></dt>
+<dd><p>Orbit period in toroidal turns (= n for q = m/n convention).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.FixedPointInfo.eigenvalues">
+<span class="sig-name descname"><span class="pre">eigenvalues</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#FixedPointInfo.eigenvalues"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.FixedPointInfo.eigenvalues" title="Link to this definition">#</a></dt>
+<dd><p>Eigenvalues of the monodromy matrix DPᵐ (m = period).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray, <a class="reference internal" href="../../fields/cylindrical/index.html#pyna.fields.cylindrical.CylindricalFieldArrays.shape" title="pyna.fields.cylindrical.CylindricalFieldArrays.shape">shape</a> (2,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.FixedPointInfo.eigenvectors">
+<span class="sig-name descname"><span class="pre">eigenvectors</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#FixedPointInfo.eigenvectors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.FixedPointInfo.eigenvectors" title="Link to this definition">#</a></dt>
+<dd><p>Corresponding eigenvectors (columns).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray, <a class="reference internal" href="../../fields/cylindrical/index.html#pyna.fields.cylindrical.CylindricalFieldArrays.shape" title="pyna.fields.cylindrical.CylindricalFieldArrays.shape">shape</a> (2, 2)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.FixedPointInfo.monodromy">
+<span class="sig-name descname"><span class="pre">monodromy</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#FixedPointInfo.monodromy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.FixedPointInfo.monodromy" title="Link to this definition">#</a></dt>
+<dd><p>Full 2×2 monodromy matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray, <a class="reference internal" href="../../fields/cylindrical/index.html#pyna.fields.cylindrical.CylindricalFieldArrays.shape" title="pyna.fields.cylindrical.CylindricalFieldArrays.shape">shape</a> (2, 2)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.FixedPointInfo.stability_index">
+<span class="sig-name descname"><span class="pre">stability_index</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#FixedPointInfo.stability_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.FixedPointInfo.stability_index" title="Link to this definition">#</a></dt>
+<dd><p>k = (λ₁ + λ₂) / 2.  <a href="#id25"><span class="problematic" id="id26">|k|</span></a> &lt; 1 → elliptic, <a href="#id27"><span class="problematic" id="id28">|k|</span></a> &gt; 1 → hyperbolic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">rzphi0</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#FixedPointInfo.rzphi0"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">orbit_type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#FixedPointInfo.orbit_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id2" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.FixedPointInfo.m">
+<span class="sig-name descname"><span class="pre">m</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#FixedPointInfo.m"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.FixedPointInfo.m" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.FixedPointInfo.n">
+<span class="sig-name descname"><span class="pre">n</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#FixedPointInfo.n"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.FixedPointInfo.n" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">period</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#FixedPointInfo.period"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id3" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id4">
+<span class="sig-name descname"><span class="pre">eigenvalues</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#FixedPointInfo.eigenvalues"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id4" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id5">
+<span class="sig-name descname"><span class="pre">eigenvectors</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#FixedPointInfo.eigenvectors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id5" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id6">
+<span class="sig-name descname"><span class="pre">monodromy</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#FixedPointInfo.monodromy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id6" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id7">
+<span class="sig-name descname"><span class="pre">stability_index</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#FixedPointInfo.stability_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id7" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.IslandChain">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.topo.topology_analysis.</span></span><span class="sig-name descname"><span class="pre">IslandChain</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#IslandChain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.IslandChain" title="Link to this definition">#</a></dt>
+<dd><p>One island chain at a rational surface.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">m,</span> <span class="pre">n</span></span></dt>
+<dd><p>Resonance q = m/n.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.IslandChain.S_res">
+<span class="sig-name descname"><span class="pre">S_res</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#IslandChain.S_res"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.IslandChain.S_res" title="Link to this definition">#</a></dt>
+<dd><p>Radial label of the resonant surface (S = √ψ_norm or winding-number
+based, depending on the equilibrium source).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.IslandChain.q_res">
+<span class="sig-name descname"><span class="pre">q_res</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#IslandChain.q_res"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.IslandChain.q_res" title="Link to this definition">#</a></dt>
+<dd><p>Safety factor at the resonant surface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.IslandChain.half_width">
+<span class="sig-name descname"><span class="pre">half_width</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#IslandChain.half_width"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.IslandChain.half_width" title="Link to this definition">#</a></dt>
+<dd><p>Estimated island half-width in S (from Chirikov formula if available,
+else from Poincaré extraction).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.IslandChain.chirikov_sigma">
+<span class="sig-name descname"><span class="pre">chirikov_sigma</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#IslandChain.chirikov_sigma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.IslandChain.chirikov_sigma" title="Link to this definition">#</a></dt>
+<dd><p>Overlap parameter with the neighbouring chain (None if not computed).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.IslandChain.fixed_points">
+<span class="sig-name descname"><span class="pre">fixed_points</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#IslandChain.fixed_points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.IslandChain.fixed_points" title="Link to this definition">#</a></dt>
+<dd><p>O- and X-points found for this chain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#pyna.topo.topology_analysis.FixedPointInfo" title="pyna.topo.topology_analysis.FixedPointInfo">FixedPointInfo</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.IslandChain.children">
+<span class="sig-name descname"><span class="pre">children</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#IslandChain.children"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.IslandChain.children" title="Link to this definition">#</a></dt>
+<dd><p>Sub-islands nested inside this chain (island-around-island hierarchy).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[‘IslandChain’]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.IslandChain.m">
+<span class="sig-name descname"><span class="pre">m</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#IslandChain.m"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.IslandChain.m" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.IslandChain.n">
+<span class="sig-name descname"><span class="pre">n</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#IslandChain.n"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.IslandChain.n" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id8">
+<span class="sig-name descname"><span class="pre">S_res</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#IslandChain.S_res"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id8" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id9">
+<span class="sig-name descname"><span class="pre">q_res</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#IslandChain.q_res"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id9" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id10">
+<span class="sig-name descname"><span class="pre">half_width</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#IslandChain.half_width"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id10" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id11">
+<span class="sig-name descname"><span class="pre">chirikov_sigma</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#IslandChain.chirikov_sigma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id11" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id12">
+<span class="sig-name descname"><span class="pre">fixed_points</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pyna.topo.topology_analysis.FixedPointInfo" title="pyna.topo.topology_analysis.FixedPointInfo"><span class="pre">FixedPointInfo</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#IslandChain.fixed_points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id12" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id13">
+<span class="sig-name descname"><span class="pre">children</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pyna.topo.topology_analysis.IslandChain" title="pyna.topo.topology_analysis.IslandChain"><span class="pre">IslandChain</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#IslandChain.children"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id13" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.RegularZone">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.topo.topology_analysis.</span></span><span class="sig-name descname"><span class="pre">RegularZone</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#RegularZone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.RegularZone" title="Link to this definition">#</a></dt>
+<dd><p>A connected regular (KAM) region in the Poincaré section.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.RegularZone.label">
+<span class="sig-name descname"><span class="pre">label</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#RegularZone.label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.RegularZone.label" title="Link to this definition">#</a></dt>
+<dd><p>Human-readable label (e.g. <code class="docutils literal notranslate"><span class="pre">'core'</span></code>, <code class="docutils literal notranslate"><span class="pre">'secondary_q41'</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.RegularZone.S_range">
+<span class="sig-name descname"><span class="pre">S_range</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#RegularZone.S_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.RegularZone.S_range" title="Link to this definition">#</a></dt>
+<dd><p>Radial extent in normalised flux-surface label.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a> (S_min, S_max)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.RegularZone.q_profile_S">
+<span class="sig-name descname"><span class="pre">q_profile_S</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#RegularZone.q_profile_S"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.RegularZone.q_profile_S" title="Link to this definition">#</a></dt>
+<dd><p>Radial grid of S values for the q profile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.RegularZone.q_profile">
+<span class="sig-name descname"><span class="pre">q_profile</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#RegularZone.q_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.RegularZone.q_profile" title="Link to this definition">#</a></dt>
+<dd><p>Safety-factor values on q_profile_S.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.RegularZone.island_chains">
+<span class="sig-name descname"><span class="pre">island_chains</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#RegularZone.island_chains"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.RegularZone.island_chains" title="Link to this definition">#</a></dt>
+<dd><p>All island chains found inside this zone.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#pyna.topo.topology_analysis.IslandChain" title="pyna.topo.topology_analysis.IslandChain">IslandChain</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id14">
+<span class="sig-name descname"><span class="pre">label</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#RegularZone.label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id14" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id15">
+<span class="sig-name descname"><span class="pre">S_range</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#RegularZone.S_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id15" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id16">
+<span class="sig-name descname"><span class="pre">q_profile_S</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#RegularZone.q_profile_S"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id16" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id17">
+<span class="sig-name descname"><span class="pre">q_profile</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#RegularZone.q_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id17" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id18">
+<span class="sig-name descname"><span class="pre">island_chains</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pyna.topo.topology_analysis.IslandChain" title="pyna.topo.topology_analysis.IslandChain"><span class="pre">IslandChain</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#RegularZone.island_chains"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id18" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.TopologyReport">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.topo.topology_analysis.</span></span><span class="sig-name descname"><span class="pre">TopologyReport</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#TopologyReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.TopologyReport" title="Link to this definition">#</a></dt>
+<dd><p>Full topology analysis result.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.TopologyReport.field_func">
+<span class="sig-name descname"><span class="pre">field_func</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#TopologyReport.field_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.TopologyReport.field_func" title="Link to this definition">#</a></dt>
+<dd><p>The original field function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>callable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.TopologyReport.phi_sections">
+<span class="sig-name descname"><span class="pre">phi_sections</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#TopologyReport.phi_sections"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.TopologyReport.phi_sections" title="Link to this definition">#</a></dt>
+<dd><p>Poincaré section angles used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.TopologyReport.ftle">
+<span class="sig-name descname"><span class="pre">ftle</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#TopologyReport.ftle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.TopologyReport.ftle" title="Link to this definition">#</a></dt>
+<dd><p>FTLE field on the analysis grid (None if not computed).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">R_grid,</span> <span class="pre">Z_grid</span></span></dt>
+<dd><p>Spatial grids for FTLE.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">chaotic_boundary_R,</span> <span class="pre">chaotic_boundary_Z</span></span></dt>
+<dd><p>Approximate boundary of the chaotic zone.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.TopologyReport.regular_zones">
+<span class="sig-name descname"><span class="pre">regular_zones</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#TopologyReport.regular_zones"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.TopologyReport.regular_zones" title="Link to this definition">#</a></dt>
+<dd><p>Identified regular zones (innermost first).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#pyna.topo.topology_analysis.RegularZone" title="pyna.topo.topology_analysis.RegularZone">RegularZone</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.TopologyReport.all_fixed_points">
+<span class="sig-name descname"><span class="pre">all_fixed_points</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#TopologyReport.all_fixed_points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.TopologyReport.all_fixed_points" title="Link to this definition">#</a></dt>
+<dd><p>Flat list of every fixed point found across all sections.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#pyna.topo.topology_analysis.FixedPointInfo" title="pyna.topo.topology_analysis.FixedPointInfo">FixedPointInfo</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.TopologyReport.warnings">
+<span class="sig-name descname"><span class="pre">warnings</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#TopologyReport.warnings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.TopologyReport.warnings" title="Link to this definition">#</a></dt>
+<dd><p>Non-fatal warnings accumulated during analysis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id19">
+<span class="sig-name descname"><span class="pre">field_func</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#TopologyReport.field_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id19" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id20">
+<span class="sig-name descname"><span class="pre">phi_sections</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#TopologyReport.phi_sections"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id20" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id21">
+<span class="sig-name descname"><span class="pre">ftle</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#TopologyReport.ftle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id21" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.TopologyReport.R_grid">
+<span class="sig-name descname"><span class="pre">R_grid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#TopologyReport.R_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.TopologyReport.R_grid" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.TopologyReport.Z_grid">
+<span class="sig-name descname"><span class="pre">Z_grid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#TopologyReport.Z_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.TopologyReport.Z_grid" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.TopologyReport.chaotic_boundary_R">
+<span class="sig-name descname"><span class="pre">chaotic_boundary_R</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#TopologyReport.chaotic_boundary_R"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.TopologyReport.chaotic_boundary_R" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.TopologyReport.chaotic_boundary_Z">
+<span class="sig-name descname"><span class="pre">chaotic_boundary_Z</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#TopologyReport.chaotic_boundary_Z"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.TopologyReport.chaotic_boundary_Z" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id22">
+<span class="sig-name descname"><span class="pre">regular_zones</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pyna.topo.topology_analysis.RegularZone" title="pyna.topo.topology_analysis.RegularZone"><span class="pre">RegularZone</span></a><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#TopologyReport.regular_zones"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id22" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id23">
+<span class="sig-name descname"><span class="pre">all_fixed_points</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pyna.topo.topology_analysis.FixedPointInfo" title="pyna.topo.topology_analysis.FixedPointInfo"><span class="pre">FixedPointInfo</span></a><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#TopologyReport.all_fixed_points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id23" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id24">
+<span class="sig-name descname"><span class="pre">warnings</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#TopologyReport.warnings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id24" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.TopologyReport.summary">
+<span class="sig-name descname"><span class="pre">summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#TopologyReport.summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.TopologyReport.summary" title="Link to this definition">#</a></dt>
+<dd><p>Return a human-readable text summary.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.TopologyReport.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_ftle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_fixedpoints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_manifolds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_turns_manifold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(7,</span> <span class="pre">8)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#TopologyReport.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.TopologyReport.plot" title="Link to this definition">#</a></dt>
+<dd><p>Plot the Poincaré section with topology overlays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> (<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="(in Matplotlib v3.11.0)"><em>matplotlib.axes.Axes</em></a><em> or </em><em>None</em>) – If None, a new figure is created.</p></li>
+<li><p><strong>phi_idx</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Which section in <code class="docutils literal notranslate"><span class="pre">phi_sections</span></code> to visualise.</p></li>
+<li><p><strong>show_ftle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Overlay the FTLE field as a background heatmap.</p></li>
+<li><p><strong>show_fixedpoints</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Mark O-points (circles) and X-points (crosses).</p></li>
+<li><p><strong>show_manifolds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Grow and plot stable/unstable manifolds for each X-point.</p></li>
+<li><p><strong>n_turns_manifold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of map iterations for manifold growth.</p></li>
+<li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a>) – Figure size if ax is None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>fig, ax</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.topo.topology_analysis.analyse_topology">
+<span class="sig-prename descclassname"><span class="pre">pyna.topo.topology_analysis.</span></span><span class="sig-name descname"><span class="pre">analyse_topology</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_sections</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(1.0,</span> <span class="pre">5.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_q_radial</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_q_turns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_ftle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_ftle_pts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">24</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ftle_turns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ftle_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">island_m_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">island_n_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">island_depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_island_seeds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">find_fixed_points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fp_tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fp_max_iter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fp_fd_eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.topo.topology_analysis.TopologyReport" title="pyna.topo.topology_analysis.TopologyReport"><span class="pre">TopologyReport</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/topology_analysis.html#analyse_topology"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.topology_analysis.analyse_topology" title="Link to this definition">#</a></dt>
+<dd><p>Perform a full topology analysis of a 3-D magnetic field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>field_func</strong> (<em>callable</em>) – <code class="docutils literal notranslate"><span class="pre">field_func(rzphi)</span></code> → array-like <code class="docutils literal notranslate"><span class="pre">[dR/ds,</span> <span class="pre">dZ/ds,</span> <span class="pre">dφ/ds]</span></code> in
+cylindrical coordinates.  The parameter <code class="docutils literal notranslate"><span class="pre">s</span></code> may be arc length,
+toroidal angle, or time — the function only needs to return a vector
+tangent to the field line at every point.</p></li>
+<li><p><strong>R_range</strong> (<em>(</em><em>R_min</em><em>, </em><em>R_max</em><em>)</em>) – Radial extent of the analysis domain (metres).</p></li>
+<li><p><strong>Z_range</strong> (<em>(</em><em>Z_min</em><em>, </em><em>Z_max</em><em>)</em>) – Vertical extent of the analysis domain (metres).</p></li>
+<li><p><strong>phi_sections</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Toroidal angles (radians) at which Poincaré sections are taken.
+Default <code class="docutils literal notranslate"><span class="pre">[0.0]</span></code>.</p></li>
+<li><p><strong>R_axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Major radius of the magnetic axis.  If None, estimated as the
+midpoint of R_range.</p></li>
+<li><p><strong>Z_axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Vertical position of the magnetic axis.  Default 0.</p></li>
+<li><p><strong>q_range</strong> (<em>(</em><em>q_min</em><em>, </em><em>q_max</em><em>)</em>) – Range of safety factors to consider.</p></li>
+<li><p><strong>n_q_radial</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of radial points for q-profile estimation.</p></li>
+<li><p><strong>n_q_turns</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of toroidal turns for winding-number estimation.</p></li>
+<li><p><strong>compute_ftle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to compute the FTLE field.  Can be slow for large grids.</p></li>
+<li><p><strong>n_ftle_pts</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Grid resolution (n × n) for the FTLE computation.</p></li>
+<li><p><strong>ftle_turns</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of toroidal turns for FTLE integration.</p></li>
+<li><p><strong>ftle_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> or </em><em>None</em>) – FTLE threshold for the chaotic-boundary extraction.  If None,
+automatically set to the 75th percentile of the FTLE field.</p></li>
+<li><p><strong>island_m_max</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Maximum poloidal mode number to search for island chains.</p></li>
+<li><p><strong>island_n_max</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Maximum toroidal mode number to search for island chains.</p></li>
+<li><p><strong>island_depth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Recursion depth for island-around-island hierarchy (1 = top-level
+only, 2 = one level of sub-islands, etc.).</p></li>
+<li><p><strong>n_island_seeds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Angular seeds per expected fixed point.</p></li>
+<li><p><strong>dt</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Integration step for field-line tracing.</p></li>
+<li><p><strong>find_fixed_points</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to run the fixed-point Newton solver.</p></li>
+<li><p><strong>fp_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Newton solver convergence tolerance.</p></li>
+<li><p><strong>fp_max_iter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Maximum Newton iterations.</p></li>
+<li><p><strong>fp_fd_eps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Finite-difference step for monodromy matrix computation.</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Print progress messages.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>TopologyReport</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../section_view/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">pyna.topo.section_view</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../topology_eval/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">pyna.topo.topology_eval</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#typical-usage">Typical usage</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.FixedPointInfo"><code class="docutils literal notranslate"><span class="pre">FixedPointInfo</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.FixedPointInfo.rzphi0"><code class="docutils literal notranslate"><span class="pre">FixedPointInfo.rzphi0</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.FixedPointInfo.orbit_type"><code class="docutils literal notranslate"><span class="pre">FixedPointInfo.orbit_type</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.FixedPointInfo.period"><code class="docutils literal notranslate"><span class="pre">FixedPointInfo.period</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.FixedPointInfo.eigenvalues"><code class="docutils literal notranslate"><span class="pre">FixedPointInfo.eigenvalues</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.FixedPointInfo.eigenvectors"><code class="docutils literal notranslate"><span class="pre">FixedPointInfo.eigenvectors</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.FixedPointInfo.monodromy"><code class="docutils literal notranslate"><span class="pre">FixedPointInfo.monodromy</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.FixedPointInfo.stability_index"><code class="docutils literal notranslate"><span class="pre">FixedPointInfo.stability_index</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id0"><code class="docutils literal notranslate"><span class="pre">FixedPointInfo.rzphi0</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id2"><code class="docutils literal notranslate"><span class="pre">FixedPointInfo.orbit_type</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.FixedPointInfo.m"><code class="docutils literal notranslate"><span class="pre">FixedPointInfo.m</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.FixedPointInfo.n"><code class="docutils literal notranslate"><span class="pre">FixedPointInfo.n</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id3"><code class="docutils literal notranslate"><span class="pre">FixedPointInfo.period</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id4"><code class="docutils literal notranslate"><span class="pre">FixedPointInfo.eigenvalues</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id5"><code class="docutils literal notranslate"><span class="pre">FixedPointInfo.eigenvectors</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id6"><code class="docutils literal notranslate"><span class="pre">FixedPointInfo.monodromy</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id7"><code class="docutils literal notranslate"><span class="pre">FixedPointInfo.stability_index</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.IslandChain"><code class="docutils literal notranslate"><span class="pre">IslandChain</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.IslandChain.S_res"><code class="docutils literal notranslate"><span class="pre">IslandChain.S_res</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.IslandChain.q_res"><code class="docutils literal notranslate"><span class="pre">IslandChain.q_res</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.IslandChain.half_width"><code class="docutils literal notranslate"><span class="pre">IslandChain.half_width</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.IslandChain.chirikov_sigma"><code class="docutils literal notranslate"><span class="pre">IslandChain.chirikov_sigma</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.IslandChain.fixed_points"><code class="docutils literal notranslate"><span class="pre">IslandChain.fixed_points</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.IslandChain.children"><code class="docutils literal notranslate"><span class="pre">IslandChain.children</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.IslandChain.m"><code class="docutils literal notranslate"><span class="pre">IslandChain.m</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.IslandChain.n"><code class="docutils literal notranslate"><span class="pre">IslandChain.n</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id8"><code class="docutils literal notranslate"><span class="pre">IslandChain.S_res</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id9"><code class="docutils literal notranslate"><span class="pre">IslandChain.q_res</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id10"><code class="docutils literal notranslate"><span class="pre">IslandChain.half_width</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id11"><code class="docutils literal notranslate"><span class="pre">IslandChain.chirikov_sigma</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id12"><code class="docutils literal notranslate"><span class="pre">IslandChain.fixed_points</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id13"><code class="docutils literal notranslate"><span class="pre">IslandChain.children</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.RegularZone"><code class="docutils literal notranslate"><span class="pre">RegularZone</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.RegularZone.label"><code class="docutils literal notranslate"><span class="pre">RegularZone.label</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.RegularZone.S_range"><code class="docutils literal notranslate"><span class="pre">RegularZone.S_range</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.RegularZone.q_profile_S"><code class="docutils literal notranslate"><span class="pre">RegularZone.q_profile_S</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.RegularZone.q_profile"><code class="docutils literal notranslate"><span class="pre">RegularZone.q_profile</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.RegularZone.island_chains"><code class="docutils literal notranslate"><span class="pre">RegularZone.island_chains</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id14"><code class="docutils literal notranslate"><span class="pre">RegularZone.label</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id15"><code class="docutils literal notranslate"><span class="pre">RegularZone.S_range</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id16"><code class="docutils literal notranslate"><span class="pre">RegularZone.q_profile_S</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id17"><code class="docutils literal notranslate"><span class="pre">RegularZone.q_profile</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id18"><code class="docutils literal notranslate"><span class="pre">RegularZone.island_chains</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.TopologyReport"><code class="docutils literal notranslate"><span class="pre">TopologyReport</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.TopologyReport.field_func"><code class="docutils literal notranslate"><span class="pre">TopologyReport.field_func</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.TopologyReport.phi_sections"><code class="docutils literal notranslate"><span class="pre">TopologyReport.phi_sections</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.TopologyReport.ftle"><code class="docutils literal notranslate"><span class="pre">TopologyReport.ftle</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.TopologyReport.regular_zones"><code class="docutils literal notranslate"><span class="pre">TopologyReport.regular_zones</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.TopologyReport.all_fixed_points"><code class="docutils literal notranslate"><span class="pre">TopologyReport.all_fixed_points</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.TopologyReport.warnings"><code class="docutils literal notranslate"><span class="pre">TopologyReport.warnings</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id19"><code class="docutils literal notranslate"><span class="pre">TopologyReport.field_func</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id20"><code class="docutils literal notranslate"><span class="pre">TopologyReport.phi_sections</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id21"><code class="docutils literal notranslate"><span class="pre">TopologyReport.ftle</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.TopologyReport.R_grid"><code class="docutils literal notranslate"><span class="pre">TopologyReport.R_grid</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.TopologyReport.Z_grid"><code class="docutils literal notranslate"><span class="pre">TopologyReport.Z_grid</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.TopologyReport.chaotic_boundary_R"><code class="docutils literal notranslate"><span class="pre">TopologyReport.chaotic_boundary_R</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.TopologyReport.chaotic_boundary_Z"><code class="docutils literal notranslate"><span class="pre">TopologyReport.chaotic_boundary_Z</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id22"><code class="docutils literal notranslate"><span class="pre">TopologyReport.regular_zones</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id23"><code class="docutils literal notranslate"><span class="pre">TopologyReport.all_fixed_points</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id24"><code class="docutils literal notranslate"><span class="pre">TopologyReport.warnings</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.TopologyReport.summary"><code class="docutils literal notranslate"><span class="pre">TopologyReport.summary()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.TopologyReport.plot"><code class="docutils literal notranslate"><span class="pre">TopologyReport.plot()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.topology_analysis.analyse_topology"><code class="docutils literal notranslate"><span class="pre">analyse_topology()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

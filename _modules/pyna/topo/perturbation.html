@@ -1,0 +1,1119 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.topo.perturbation &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/topo/perturbation';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../topo.html" class="nav-link">pyna.topo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.topo.perturbation</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.topo.perturbation</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">DPm (monodromy matrix) change under magnetic field perturbation.</span>
+
+<span class="sd">Physics summary</span>
+<span class="sd">---------------</span>
+<span class="sd">Given a base periodic orbit with monodromy matrix DPm and a perturbation</span>
+<span class="sd">field Î´B, we compute:</span>
+
+<span class="sd">1. **Î´X_cyc** : shift of the periodic orbit position in (R, Z).</span>
+<span class="sd">   Integrates  dÎ´X/dÏ† = A(x,Ï†)Â·Î´X + Î´f(x,Ï†)  along the orbit (m turns),</span>
+<span class="sd">   where Î´f = f_pert(R,Z,Ï†) âˆ?f_base(R,Z,Ï†).</span>
+<span class="sd">   Initial condition from the self-consistency condition:</span>
+<span class="sd">       (DPm âˆ?I) Â· Î´X_cyc(Ï†â‚€) = âˆ’âˆ® Î´f dÏ†</span>
+
+<span class="sd">2. **Î´DPm** : change in the monodromy matrix.</span>
+<span class="sd">   Primary method (cyna available): ``trace_orbit_along_phi`` for both</span>
+<span class="sd">   base and perturbed fields â†?DPm_pert âˆ?DPm_base (C++ FD Jacobian).</span>
+<span class="sd">   Fallback (Python): variational equations via ``PoincareMapVariationalEquations``.</span>
+
+<span class="sd">3. **Î´Î»_u** : first-order shift of the hyperbolic eigenvalue.</span>
+<span class="sd">       Î´Î»_u = (w_u^T Â· Î´DPm Â· v_u) / (w_u^T Â· v_u)</span>
+<span class="sd">   where v_u is the right and w_u the left eigenvector of DPm.</span>
+
+<span class="sd">C++ acceleration</span>
+<span class="sd">----------------</span>
+<span class="sd">When ``base_field_cache`` and ``pert_field_cache`` are supplied as dicts with</span>
+<span class="sd">keys ``BR, BZ, BPhi, R_grid, Z_grid, Phi_grid`` (matching pyna&#39;s field-cache</span>
+<span class="sd">convention), the following cyna functions are used:</span>
+
+<span class="sd">* ``pyna._cyna.trace_orbit_along_phi`` â€?orbit tracing + DPm in C++.</span>
+<span class="sd">* ``pyna._cyna.compute_A_matrix_batch`` â€?batch A-matrix for Î´X_cyc integral.</span>
+
+<span class="sd">Without caches (or when cyna is unavailable) the code falls back to Python</span>
+<span class="sd">RK4 + finite-difference Jacobians (``PoincareMapVariationalEquations``).</span>
+
+<span class="sd">Field-cache convention (identical to pyna.topo.island_chain)</span>
+<span class="sd">-------------------------------------------------------------</span>
+<span class="sd">``field_cache = dict(BR=..., BZ=..., BPhi=..., R_grid=..., Z_grid=...,</span>
+<span class="sd">                     Phi_grid=...)``</span>
+<span class="sd">Arrays must be C-contiguous float64; BR/BZ/BPhi have shape</span>
+<span class="sd">``(nR, nZ, nPhi)`` or compatible layout accepted by cyna.</span>
+
+<span class="sd">References</span>
+<span class="sd">----------</span>
+<span class="sd">W7-X Jacobian analysis Julia notebook</span>
+<span class="sd">``W7X_Jac_change_under_perturbation.ipynb``, cells 43â€?6.</span>
+<span class="sd">``pyna.control.FPT_3d`` â€?related non-axisymmetric FPT implementation.</span>
+<span class="sd">X-point displacement criterion</span>
+<span class="sd">------------------------------</span>
+<span class="sd">The complete X-point displacement stability criterion</span>
+<span class="sd">    dx_Xpt = -A_inv @ (R_Xpt * dB_pol(Xpt) / BPhi(Xpt))</span>
+<span class="sd">is implemented in ``topoquest.analysis.beta_limits.xpoint_displacement_stability``.</span>
+<span class="sd">This module (pyna) provides the underlying ``compute_A_matrix_batch`` (via</span>
+<span class="sd">``pyna._cyna``), which computes the Poincare map tangent matrix (FPT A-matrix)</span>
+<span class="sd">used in the X-point displacement instability calculation.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna._cyna.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">prepare_field_cache</span>
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Optional cyna C++ backend</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pyna._cyna</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">trace_orbit_along_phi</span> <span class="k">as</span> <span class="n">_cyna_trace_orbit</span><span class="p">,</span>
+        <span class="n">compute_A_matrix_batch</span> <span class="k">as</span> <span class="n">_cyna_A_batch</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">_HAS_CYNA</span> <span class="o">=</span> <span class="p">(</span><span class="n">_cyna_trace_orbit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">_cyna_A_batch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">_cyna_trace_orbit</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_cyna_A_batch</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_HAS_CYNA</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo._rk4</span><span class="w"> </span><span class="kn">import</span> <span class="n">rk4_integrate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.variational</span><span class="w"> </span><span class="kn">import</span> <span class="n">PoincareMapVariationalEquations</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;CyclePerturbationShift&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DPm_finite_difference&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DPm_shift_under_field_perturbation&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;eigenvalue_perturbation&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="CyclePerturbationShift">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/perturbation/index.html#pyna.topo.perturbation.CyclePerturbationShift">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CyclePerturbationShift</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compatibility wrapper for DPm and periodic-cycle shift calculations.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">orbit</span><span class="p">,</span> <span class="n">delta_B_func</span><span class="p">,</span> <span class="n">propagator</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="CyclePerturbationShift.orbit">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/perturbation/index.html#pyna.topo.perturbation.CyclePerturbationShift.orbit">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">orbit</span> <span class="o">=</span> <span class="n">orbit</span></div>
+
+<div class="viewcode-block" id="CyclePerturbationShift.delta_B_func">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/perturbation/index.html#pyna.topo.perturbation.CyclePerturbationShift.delta_B_func">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delta_B_func</span> <span class="o">=</span> <span class="n">delta_B_func</span></div>
+
+<div class="viewcode-block" id="CyclePerturbationShift.propagator">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/perturbation/index.html#pyna.topo.perturbation.CyclePerturbationShift.propagator">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">propagator</span> <span class="o">=</span> <span class="n">propagator</span></div>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_result</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_field_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">propagator</span><span class="p">,</span> <span class="s2">&quot;field&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">propagator</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">propagator</span><span class="p">,</span> <span class="s2">&quot;field_func&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">propagator</span><span class="o">.</span><span class="n">field_func</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">propagator</span><span class="p">,</span> <span class="s2">&quot;__call__&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">propagator</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;propagator must expose field, field_func, or __call__&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_cycle_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">class</span><span class="w"> </span><span class="nc">_CycleData</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">_CycleData</span><span class="p">()</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">trajectory</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">orbit</span><span class="o">.</span><span class="n">rzphi0</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)])</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">DPm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">orbit</span><span class="o">.</span><span class="n">DPm</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_delta_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_B_func</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span>
+        <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]]</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;delta_B_func must return two field-line components or three cylindrical B components&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dphi</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="o">=</span> <span class="n">DPm_shift_under_field_perturbation</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cycle_data</span><span class="p">(),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_delta_f</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_field_func</span><span class="p">,</span>
+                <span class="n">phi_start</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">orbit</span><span class="o">.</span><span class="n">rzphi0</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+                <span class="n">island_period</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">DPhi</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">dphi</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result</span>
+
+<div class="viewcode-block" id="CyclePerturbationShift.compute_delta_Pm">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/perturbation/index.html#pyna.topo.perturbation.CyclePerturbationShift.compute_delta_Pm">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_delta_Pm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dphi</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute</span><span class="p">(</span><span class="n">dphi</span><span class="p">)[</span><span class="s2">&quot;delta_DPm&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CyclePerturbationShift.compute_delta_x_cyc">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/perturbation/index.html#pyna.topo.perturbation.CyclePerturbationShift.compute_delta_x_cyc">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_delta_x_cyc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dphi</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute</span><span class="p">(</span><span class="n">dphi</span><span class="p">)[</span><span class="s2">&quot;delta_X_cyc&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Internal: cyna-based DPm computation</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_DPm_via_cyna</span><span class="p">(</span>
+    <span class="n">R0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">Z0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">phi_start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">phi_span</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">island_period</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">field_cache</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">DPhi</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+    <span class="n">fd_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute DPm using cyna trace_orbit_along_phi.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    R0, Z0 : float</span>
+<span class="sd">        Starting position.</span>
+<span class="sd">    phi_start : float</span>
+<span class="sd">        Starting toroidal angle.</span>
+<span class="sd">    phi_span : float</span>
+<span class="sd">        Total integration span = island_period * 2Ï€.</span>
+<span class="sd">    island_period : int</span>
+<span class="sd">        Number of toroidal turns (m) for the DPm Jacobian.</span>
+<span class="sd">    field_cache : VectorFieldCylind-compatible object or dict</span>
+<span class="sd">        Prefer a cylindrical vector field. Legacy dicts must contain</span>
+<span class="sd">        BR, BZ, BPhi, R_grid, Z_grid, Phi_grid.</span>
+<span class="sd">    DPhi : float</span>
+<span class="sd">        RK4 step size inside cyna.</span>
+<span class="sd">    fd_eps : float</span>
+<span class="sd">        FD step for cyna A-matrix computation.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    DPm : ndarray, shape (2, 2)</span>
+<span class="sd">    trajectory : ndarray, shape (N, 3)  â€?columns [R, Z, phi]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_c</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="n">fc</span> <span class="o">=</span> <span class="n">prepare_field_cache</span><span class="p">(</span><span class="n">field_cache</span><span class="p">,</span> <span class="n">extend_phi</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">BR</span>    <span class="o">=</span> <span class="n">_c</span><span class="p">(</span><span class="n">fc</span><span class="p">[</span><span class="s1">&#39;BR&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="k">if</span> <span class="n">fc</span><span class="p">[</span><span class="s1">&#39;BR&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="k">else</span> <span class="n">fc</span><span class="p">[</span><span class="s1">&#39;BR&#39;</span><span class="p">])</span>
+    <span class="n">BZ</span>    <span class="o">=</span> <span class="n">_c</span><span class="p">(</span><span class="n">fc</span><span class="p">[</span><span class="s1">&#39;BZ&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="k">if</span> <span class="n">fc</span><span class="p">[</span><span class="s1">&#39;BZ&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="k">else</span> <span class="n">fc</span><span class="p">[</span><span class="s1">&#39;BZ&#39;</span><span class="p">])</span>
+    <span class="n">BPhi</span>  <span class="o">=</span> <span class="n">_c</span><span class="p">(</span><span class="n">fc</span><span class="p">[</span><span class="s1">&#39;BPhi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="k">if</span> <span class="n">fc</span><span class="p">[</span><span class="s1">&#39;BPhi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="k">else</span> <span class="n">fc</span><span class="p">[</span><span class="s1">&#39;BPhi&#39;</span><span class="p">])</span>
+    <span class="n">Rg</span>    <span class="o">=</span> <span class="n">_c</span><span class="p">(</span><span class="n">fc</span><span class="p">[</span><span class="s1">&#39;R_grid&#39;</span><span class="p">])</span>
+    <span class="n">Zg</span>    <span class="o">=</span> <span class="n">_c</span><span class="p">(</span><span class="n">fc</span><span class="p">[</span><span class="s1">&#39;Z_grid&#39;</span><span class="p">])</span>
+    <span class="n">Phig</span>  <span class="o">=</span> <span class="n">_c</span><span class="p">(</span><span class="n">fc</span><span class="p">[</span><span class="s1">&#39;Phi_grid&#39;</span><span class="p">])</span>
+
+    <span class="c1"># dphi_out: output every DPhi radians</span>
+    <span class="n">dphi_out</span> <span class="o">=</span> <span class="n">DPhi</span> <span class="o">*</span> <span class="mi">4</span>  <span class="c1"># coarser output for speed</span>
+
+    <span class="n">R_arr</span><span class="p">,</span> <span class="n">Z_arr</span><span class="p">,</span> <span class="n">phi_arr</span><span class="p">,</span> <span class="n">DPm_flat</span><span class="p">,</span> <span class="n">alive_arr</span> <span class="o">=</span> <span class="n">_cyna_trace_orbit</span><span class="p">(</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">R0</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">Z0</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">phi_start</span><span class="p">),</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">phi_span</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">dphi_out</span><span class="p">),</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">island_period</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">DPhi</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">fd_eps</span><span class="p">),</span>
+        <span class="n">BR</span><span class="p">,</span> <span class="n">BZ</span><span class="p">,</span> <span class="n">BPhi</span><span class="p">,</span> <span class="n">Rg</span><span class="p">,</span> <span class="n">Zg</span><span class="p">,</span> <span class="n">Phig</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">R_arr</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">R_arr</span><span class="p">)</span>
+    <span class="n">Z_arr</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Z_arr</span><span class="p">)</span>
+    <span class="n">phi_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">phi_arr</span><span class="p">)</span>
+    <span class="n">DPm_flat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">DPm_flat</span><span class="p">)</span>  <span class="c1"># shape (N, 4)</span>
+
+    <span class="c1"># The cyna DPm at each output step is the m-turn Jacobian; we want the</span>
+    <span class="c1"># final one (the full m-turn monodromy matrix).</span>
+    <span class="n">DPm</span> <span class="o">=</span> <span class="n">DPm_flat</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">trajectory</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">R_arr</span><span class="p">,</span> <span class="n">Z_arr</span><span class="p">,</span> <span class="n">phi_arr</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">DPm</span><span class="p">,</span> <span class="n">trajectory</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_DPm_via_python</span><span class="p">(</span>
+    <span class="n">x0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">field_func</span><span class="p">,</span>
+    <span class="n">phi_span</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span>
+    <span class="n">fd_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute DPm using Python variational equations (fallback).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    DPm : ndarray (2, 2)</span>
+<span class="sd">    x_end : ndarray (2,)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">veq</span> <span class="o">=</span> <span class="n">PoincareMapVariationalEquations</span><span class="p">(</span><span class="n">field_func</span><span class="p">,</span> <span class="n">fd_eps</span><span class="o">=</span><span class="n">fd_eps</span><span class="p">)</span>
+    <span class="n">x_end</span><span class="p">,</span> <span class="n">DPm</span> <span class="o">=</span> <span class="n">veq</span><span class="o">.</span><span class="n">tangent_map</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">phi_span</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">DPm</span><span class="p">,</span> <span class="n">x_end</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Eigenvalue perturbation theory</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="eigenvalue_perturbation">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/perturbation/index.html#pyna.topo.perturbation.eigenvalue_perturbation">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">eigenvalue_perturbation</span><span class="p">(</span><span class="n">DPm</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">delta_DPm</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;First-order perturbation theory for the eigenvalues of DPm.</span>
+
+<span class="sd">    For a 2Ã—2 area-preserving matrix DPm with eigenvalues Î» (|Î»| &gt; 1</span>
+<span class="sd">    for a hyperbolic fixed point), computes:</span>
+<span class="sd">        Î´Î» = (w^T Â· Î´DPm Â· v) / (w^T Â· v)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    DPm : ndarray, shape (2, 2)</span>
+<span class="sd">        Base monodromy matrix.</span>
+<span class="sd">    delta_DPm : ndarray, shape (2, 2)</span>
+<span class="sd">        Perturbation to the monodromy matrix.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict with keys:</span>
+<span class="sd">        eigenvalues        ndarray (2,)  eigenvalues of DPm</span>
+<span class="sd">        delta_eigenvalues  ndarray (2,)  first-order shifts Î´Î»</span>
+<span class="sd">        new_eigenvalues    ndarray (2,)  eigenvalues + Î´Î»</span>
+<span class="sd">        lambda_u           complex       hyperbolic eigenvalue (|Î»| &gt; 1)</span>
+<span class="sd">        delta_lambda_u     complex       its perturbation</span>
+<span class="sd">        new_lambda_u       complex       estimated new hyperbolic eigenvalue</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">eigenvalues</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">DPm</span><span class="p">)</span>        <span class="c1"># right eigenvectors</span>
+    <span class="n">eigs_left</span><span class="p">,</span> <span class="n">W</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">DPm</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>      <span class="c1"># left eigenvectors</span>
+
+    <span class="n">delta_eigs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">V</span><span class="p">[:,</span> <span class="n">k</span><span class="p">]</span>
+        <span class="n">lam</span> <span class="o">=</span> <span class="n">eigenvalues</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="c1"># Match left eigenvector to this eigenvalue</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">eigs_left</span> <span class="o">-</span> <span class="n">lam</span><span class="p">)))</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">W</span><span class="p">[:,</span> <span class="n">idx</span><span class="p">]</span>
+        <span class="n">denom</span> <span class="o">=</span> <span class="nb">complex</span><span class="p">(</span><span class="n">w</span> <span class="o">@</span> <span class="n">v</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">denom</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-14</span><span class="p">:</span>
+            <span class="n">delta_eigs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">delta_eigs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">complex</span><span class="p">(</span><span class="n">w</span> <span class="o">@</span> <span class="n">delta_DPm</span> <span class="o">@</span> <span class="n">v</span><span class="p">)</span> <span class="o">/</span> <span class="n">denom</span>
+
+    <span class="n">abs_eigs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">eigenvalues</span><span class="p">)</span>
+    <span class="n">idx_u</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">abs_eigs</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;eigenvalues&quot;</span><span class="p">:</span>       <span class="n">eigenvalues</span><span class="p">,</span>
+        <span class="s2">&quot;delta_eigenvalues&quot;</span><span class="p">:</span> <span class="n">delta_eigs</span><span class="p">,</span>
+        <span class="s2">&quot;new_eigenvalues&quot;</span><span class="p">:</span>   <span class="n">eigenvalues</span> <span class="o">+</span> <span class="n">delta_eigs</span><span class="p">,</span>
+        <span class="s2">&quot;lambda_u&quot;</span><span class="p">:</span>          <span class="nb">complex</span><span class="p">(</span><span class="n">eigenvalues</span><span class="p">[</span><span class="n">idx_u</span><span class="p">]),</span>
+        <span class="s2">&quot;delta_lambda_u&quot;</span><span class="p">:</span>    <span class="nb">complex</span><span class="p">(</span><span class="n">delta_eigs</span><span class="p">[</span><span class="n">idx_u</span><span class="p">]),</span>
+        <span class="s2">&quot;new_lambda_u&quot;</span><span class="p">:</span>      <span class="nb">complex</span><span class="p">(</span><span class="n">eigenvalues</span><span class="p">[</span><span class="n">idx_u</span><span class="p">]</span> <span class="o">+</span> <span class="n">delta_eigs</span><span class="p">[</span><span class="n">idx_u</span><span class="p">]),</span>
+    <span class="p">}</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Î´X_cyc: orbit position shift under perturbation</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_delta_X_cyc</span><span class="p">(</span>
+    <span class="n">x0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">DPm</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">field_func</span><span class="p">,</span>
+    <span class="n">delta_f_func</span><span class="p">,</span>
+    <span class="n">phi_start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">phi_end</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">trajectory_RZphi</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">A_arr</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the periodic orbit position shift Î´X_cyc.</span>
+
+<span class="sd">    Integrates the inhomogeneous variational equation:</span>
+<span class="sd">        dÎ´X/dÏ† = A(x, Ï†) Â· Î´X + Î´f(x, Ï†)</span>
+
+<span class="sd">    The initial condition is from the periodicity condition:</span>
+<span class="sd">        (DPm âˆ?I) Â· Î´X_cyc = âˆ’âˆ® Î´f dÏ†</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x0 : ndarray (2,)</span>
+<span class="sd">        Orbit start position.</span>
+<span class="sd">    DPm : ndarray (2, 2)</span>
+<span class="sd">        Base monodromy matrix.</span>
+<span class="sd">    field_func : callable</span>
+<span class="sd">        Base field ``(R, Z, phi)`` â†?array (2,).</span>
+<span class="sd">    delta_f_func : callable</span>
+<span class="sd">        Perturbation ``(R, Z, phi)`` â†?array (2,).</span>
+<span class="sd">    phi_start, phi_end : float</span>
+<span class="sd">        Integration limits.</span>
+<span class="sd">    trajectory_RZphi : ndarray (N, 3), optional</span>
+<span class="sd">        Pre-traced orbit for A-matrix evaluation (avoids re-integration).</span>
+<span class="sd">    A_arr : ndarray (N, 2, 2), optional</span>
+<span class="sd">        Pre-computed A matrices at each orbit point.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    delta_X_cyc : ndarray (2,)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n_steps</span> <span class="o">=</span> <span class="mi">400</span>
+    <span class="n">phi_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">phi_start</span><span class="p">,</span> <span class="n">phi_end</span><span class="p">,</span> <span class="n">n_steps</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">phi_end</span> <span class="o">-</span> <span class="n">phi_start</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_steps</span>
+
+    <span class="c1"># Propagate base orbit, accumulating âˆ?Î´f dÏ† via trapezoidal rule</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">x0</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">integral_df</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">df_prev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">delta_f_func</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi_arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_steps</span><span class="p">):</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="n">phi_arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">phi_next</span> <span class="o">=</span> <span class="n">phi_arr</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">r</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">k1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">field_func</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">r2</span><span class="p">,</span> <span class="n">z2</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span><span class="o">*</span><span class="n">k1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">z</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span><span class="o">*</span><span class="n">k1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">k2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">field_func</span><span class="p">(</span><span class="n">r2</span><span class="p">,</span> <span class="n">z2</span><span class="p">,</span> <span class="n">phi</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">r3</span><span class="p">,</span> <span class="n">z3</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span><span class="o">*</span><span class="n">k2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">z</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span><span class="o">*</span><span class="n">k2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">k3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">field_func</span><span class="p">(</span><span class="n">r3</span><span class="p">,</span> <span class="n">z3</span><span class="p">,</span> <span class="n">phi</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">r4</span><span class="p">,</span> <span class="n">z4</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="n">h</span><span class="o">*</span><span class="n">k3</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">z</span> <span class="o">+</span> <span class="n">h</span><span class="o">*</span><span class="n">k3</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">k4</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">field_func</span><span class="p">(</span><span class="n">r4</span><span class="p">,</span> <span class="n">z4</span><span class="p">,</span> <span class="n">phi_next</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="p">(</span><span class="n">h</span> <span class="o">/</span> <span class="mf">6.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">k1</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">k2</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">k3</span> <span class="o">+</span> <span class="n">k4</span><span class="p">)</span>
+
+        <span class="n">df_curr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">delta_f_func</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi_next</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">integral_df</span> <span class="o">+=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">h</span> <span class="o">*</span> <span class="p">(</span><span class="n">df_prev</span> <span class="o">+</span> <span class="n">df_curr</span><span class="p">)</span>
+        <span class="n">df_prev</span> <span class="o">=</span> <span class="n">df_curr</span>
+
+    <span class="c1"># Solve (DPm âˆ?I) Â· Î´X_cyc = âˆ’âˆ® Î´f dÏ†</span>
+    <span class="n">lhs</span> <span class="o">=</span> <span class="n">DPm</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">rhs_vec</span> <span class="o">=</span> <span class="o">-</span><span class="n">integral_df</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">delta_X0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">lhs</span><span class="p">,</span> <span class="n">rhs_vec</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">LinAlgError</span><span class="p">:</span>
+        <span class="n">delta_X0</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">lhs</span><span class="p">,</span> <span class="n">rhs_vec</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">delta_X0</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Finite-difference DPm (primary Î´DPm method)</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="DPm_finite_difference">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/perturbation/index.html#pyna.topo.perturbation.DPm_finite_difference">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">DPm_finite_difference</span><span class="p">(</span>
+    <span class="n">x0</span><span class="p">,</span>
+    <span class="n">field_func_base</span><span class="p">,</span>
+    <span class="n">field_func_pert</span><span class="p">,</span>
+    <span class="n">phi_span</span><span class="p">,</span>
+    <span class="n">fd_eps_state</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">,</span>
+    <span class="n">base_field_cache</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">pert_field_cache</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">island_period</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">DPhi</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+    <span class="n">fd_eps_cyna</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute Î´DPm by finite difference between base and perturbed field.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x0 : array_like, shape (2,)</span>
+<span class="sd">        Initial position (R, Z) of the periodic orbit.</span>
+<span class="sd">    field_func_base : callable</span>
+<span class="sd">        Base field: ``field_func_base(R, Z, phi)`` â†?array (dR/dÏ†, dZ/dÏ†).</span>
+<span class="sd">        Used for Python fallback path only.</span>
+<span class="sd">    field_func_pert : callable</span>
+<span class="sd">        Perturbed field: same signature.</span>
+<span class="sd">        Used for Python fallback path only.</span>
+<span class="sd">    phi_span : tuple of float</span>
+<span class="sd">        (phi_start, phi_end).</span>
+<span class="sd">    fd_eps_state : float, optional</span>
+<span class="sd">        FD step for Python variational equations. Default 1e-6.</span>
+<span class="sd">    base_field_cache : VectorFieldCylind-compatible object or dict, optional</span>
+<span class="sd">        Base field for the cyna path. Legacy dicts use</span>
+<span class="sd">        BR, BZ, BPhi, R_grid, Z_grid, Phi_grid.</span>
+<span class="sd">    pert_field_cache : VectorFieldCylind-compatible object or dict, optional</span>
+<span class="sd">        Perturbed field for the cyna path.</span>
+<span class="sd">    island_period : int, optional</span>
+<span class="sd">        Number of toroidal turns (used by cyna path). Default 1.</span>
+<span class="sd">    DPhi : float, optional</span>
+<span class="sd">        RK4 step for cyna. Default 0.05.</span>
+<span class="sd">    fd_eps_cyna : float, optional</span>
+<span class="sd">        FD step for cyna A-matrix. Default 1e-4.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    DPm_base : ndarray, shape (2, 2)</span>
+<span class="sd">    DPm_pert : ndarray, shape (2, 2)</span>
+<span class="sd">    delta_DPm : ndarray, shape (2, 2)</span>
+<span class="sd">    trajectory_base : ndarray, shape (N, 3) or None</span>
+<span class="sd">        Base orbit points [R, Z, phi] (available from cyna path only).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">phi_start</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">phi_span</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">phi_span_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">phi_span</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="n">phi_start</span>
+    <span class="n">trajectory_base</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">_HAS_CYNA</span> <span class="ow">and</span> <span class="n">base_field_cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">pert_field_cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># â”€â”€ C++ path (preferred) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</span>
+        <span class="n">DPm_base</span><span class="p">,</span> <span class="n">trajectory_base</span> <span class="o">=</span> <span class="n">_compute_DPm_via_cyna</span><span class="p">(</span>
+            <span class="n">x0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x0</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi_start</span><span class="p">,</span> <span class="n">phi_span_val</span><span class="p">,</span>
+            <span class="n">island_period</span><span class="p">,</span> <span class="n">base_field_cache</span><span class="p">,</span> <span class="n">DPhi</span><span class="p">,</span> <span class="n">fd_eps_cyna</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">DPm_pert</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_compute_DPm_via_cyna</span><span class="p">(</span>
+            <span class="n">x0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x0</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi_start</span><span class="p">,</span> <span class="n">phi_span_val</span><span class="p">,</span>
+            <span class="n">island_period</span><span class="p">,</span> <span class="n">pert_field_cache</span><span class="p">,</span> <span class="n">DPhi</span><span class="p">,</span> <span class="n">fd_eps_cyna</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># â”€â”€ Python fallback â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</span>
+        <span class="n">veq_base</span> <span class="o">=</span> <span class="n">PoincareMapVariationalEquations</span><span class="p">(</span><span class="n">field_func_base</span><span class="p">,</span> <span class="n">fd_eps</span><span class="o">=</span><span class="n">fd_eps_state</span><span class="p">)</span>
+        <span class="n">veq_pert</span> <span class="o">=</span> <span class="n">PoincareMapVariationalEquations</span><span class="p">(</span><span class="n">field_func_pert</span><span class="p">,</span> <span class="n">fd_eps</span><span class="o">=</span><span class="n">fd_eps_state</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">DPm_base</span> <span class="o">=</span> <span class="n">veq_base</span><span class="o">.</span><span class="n">tangent_map</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">phi_span</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">DPm_pert</span> <span class="o">=</span> <span class="n">veq_pert</span><span class="o">.</span><span class="n">tangent_map</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">phi_span</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">delta_DPm</span> <span class="o">=</span> <span class="n">DPm_pert</span> <span class="o">-</span> <span class="n">DPm_base</span>
+    <span class="k">return</span> <span class="n">DPm_base</span><span class="p">,</span> <span class="n">DPm_pert</span><span class="p">,</span> <span class="n">delta_DPm</span><span class="p">,</span> <span class="n">trajectory_base</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Main entry point</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="DPm_shift_under_field_perturbation">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/perturbation/index.html#pyna.topo.perturbation.DPm_shift_under_field_perturbation">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">DPm_shift_under_field_perturbation</span><span class="p">(</span>
+    <span class="n">cycle_data</span><span class="p">,</span>
+    <span class="n">delta_B_func</span><span class="p">,</span>
+    <span class="n">field_func</span><span class="p">,</span>
+    <span class="n">phi_start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">island_period</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">fd_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">,</span>
+    <span class="n">field_func_pert</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">base_field_cache</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">pert_field_cache</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">DPhi</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+    <span class="n">fd_eps_cyna</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the shift of DPm, eigenvalues, and orbit position under a</span>
+<span class="sd">    magnetic field perturbation Î´B.</span>
+
+<span class="sd">    Acceleration: when ``base_field_cache`` and ``pert_field_cache`` are</span>
+<span class="sd">    supplied, the cyna C++ backend is used for orbit tracing and A-matrix</span>
+<span class="sd">    computation (much faster than Python FD).  The Python path is used as a</span>
+<span class="sd">    fallback when cyna is unavailable or caches are not provided.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cycle_data : CycleVariationalData</span>
+<span class="sd">        Result from ``pyna.topo.monodromy.evolve_DPm_along_cycle``.</span>
+<span class="sd">        Provides ``trajectory`` (NÃ—2) and ``DPm`` (2Ã—2).</span>
+<span class="sd">    delta_B_func : callable or None</span>
+<span class="sd">        Perturbation to the field direction:</span>
+<span class="sd">        ``delta_B_func(R, Z, phi)`` â†?array (2,) = (Î´fR, Î´fZ).</span>
+<span class="sd">        If ``None``, ``field_func_pert`` must be given.</span>
+<span class="sd">    field_func : callable</span>
+<span class="sd">        Base field: ``(R, Z, phi)`` â†?array (dR/dÏ†, dZ/dÏ†).</span>
+<span class="sd">        Used for Python fallback and Î´X_cyc integration.</span>
+<span class="sd">    phi_start : float</span>
+<span class="sd">        Starting Ï†. Default 0.</span>
+<span class="sd">    island_period : int</span>
+<span class="sd">        Number of toroidal turns per island period. Default 1.</span>
+<span class="sd">    fd_eps : float</span>
+<span class="sd">        FD step for Python variational equations. Default 1e-6.</span>
+<span class="sd">    field_func_pert : callable, optional</span>
+<span class="sd">        Fully perturbed field function ``(R, Z, phi)`` â†?array (2,).</span>
+<span class="sd">        If given, takes precedence over building one from ``delta_B_func``.</span>
+<span class="sd">    base_field_cache : VectorFieldCylind-compatible object or dict, optional</span>
+<span class="sd">        Base field for the cyna path.</span>
+<span class="sd">    pert_field_cache : VectorFieldCylind-compatible object or dict, optional</span>
+<span class="sd">        Perturbed field for the cyna path.</span>
+<span class="sd">    DPhi : float</span>
+<span class="sd">        RK4 step for cyna orbit tracing. Default 0.05.</span>
+<span class="sd">    fd_eps_cyna : float</span>
+<span class="sd">        FD step for cyna A-matrix batch computation. Default 1e-4.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict with keys:</span>
+
+<span class="sd">    delta_X_cyc : ndarray (2,)</span>
+<span class="sd">        Shift of the periodic orbit&#39;s starting position (R, Z).</span>
+<span class="sd">    delta_DPm : ndarray (2, 2)</span>
+<span class="sd">        Shift of the monodromy matrix DPm_pert âˆ?DPm_base.</span>
+<span class="sd">    DPm_base : ndarray (2, 2)</span>
+<span class="sd">        Base monodromy matrix (should match ``cycle_data.DPm``).</span>
+<span class="sd">    DPm_pert : ndarray (2, 2)</span>
+<span class="sd">        Perturbed monodromy matrix.</span>
+<span class="sd">    delta_lambda_u : complex</span>
+<span class="sd">        First-order shift of the hyperbolic eigenvalue.</span>
+<span class="sd">    new_lambda_u : complex</span>
+<span class="sd">        Estimated new hyperbolic eigenvalue (Î»_u + Î´Î»_u).</span>
+<span class="sd">    lambda_u : complex</span>
+<span class="sd">        Base hyperbolic eigenvalue.</span>
+<span class="sd">    eigenvalue_analysis : dict</span>
+<span class="sd">        Full output of ``eigenvalue_perturbation(DPm, Î´DPm)``.</span>
+<span class="sd">    used_cyna : bool</span>
+<span class="sd">        True if the cyna C++ backend was used for DPm computation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">delta_B_func</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">field_func_pert</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must supply either delta_B_func or field_func_pert.&quot;</span><span class="p">)</span>
+
+    <span class="n">phi_end</span> <span class="o">=</span> <span class="n">phi_start</span> <span class="o">+</span> <span class="n">island_period</span> <span class="o">*</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+    <span class="n">phi_span</span> <span class="o">=</span> <span class="p">(</span><span class="n">phi_start</span><span class="p">,</span> <span class="n">phi_end</span><span class="p">)</span>
+
+    <span class="c1"># Starting position</span>
+    <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cycle_data</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Build perturbed field function if not supplied</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="k">if</span> <span class="n">field_func_pert</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">field_func_pert</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span>
+                            <span class="n">_ff</span><span class="o">=</span><span class="n">field_func</span><span class="p">,</span> <span class="n">_df</span><span class="o">=</span><span class="n">delta_B_func</span><span class="p">):</span>
+            <span class="n">f0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">_ff</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">_df</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">f0</span> <span class="o">+</span> <span class="n">df</span>
+
+    <span class="c1"># Î´f function (difference of field directions)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delta_f_func</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span>
+                     <span class="n">_base</span><span class="o">=</span><span class="n">field_func</span><span class="p">,</span> <span class="n">_pert</span><span class="o">=</span><span class="n">field_func_pert</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">_pert</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">_base</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># 1. Compute Î´DPm by finite difference</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="n">use_cyna</span> <span class="o">=</span> <span class="p">(</span><span class="n">_HAS_CYNA</span>
+                <span class="ow">and</span> <span class="n">base_field_cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="n">pert_field_cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">DPm_base</span><span class="p">,</span> <span class="n">DPm_pert</span><span class="p">,</span> <span class="n">delta_DPm</span><span class="p">,</span> <span class="n">trajectory_cyna</span> <span class="o">=</span> <span class="n">DPm_finite_difference</span><span class="p">(</span>
+        <span class="n">x0</span><span class="p">,</span>
+        <span class="n">field_func_base</span><span class="o">=</span><span class="n">field_func</span><span class="p">,</span>
+        <span class="n">field_func_pert</span><span class="o">=</span><span class="n">field_func_pert</span><span class="p">,</span>
+        <span class="n">phi_span</span><span class="o">=</span><span class="n">phi_span</span><span class="p">,</span>
+        <span class="n">fd_eps_state</span><span class="o">=</span><span class="n">fd_eps</span><span class="p">,</span>
+        <span class="n">base_field_cache</span><span class="o">=</span><span class="n">base_field_cache</span><span class="p">,</span>
+        <span class="n">pert_field_cache</span><span class="o">=</span><span class="n">pert_field_cache</span><span class="p">,</span>
+        <span class="n">island_period</span><span class="o">=</span><span class="n">island_period</span><span class="p">,</span>
+        <span class="n">DPhi</span><span class="o">=</span><span class="n">DPhi</span><span class="p">,</span>
+        <span class="n">fd_eps_cyna</span><span class="o">=</span><span class="n">fd_eps_cyna</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># 2. Compute Î´X_cyc (orbit position shift)</span>
+    <span class="c1">#    A-matrix: use cyna batch if available, else rely on Python RK4</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># When cyna is available and we have base_field_cache, compute A_arr</span>
+    <span class="n">A_arr</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">trajectory_for_xcyc</span> <span class="o">=</span> <span class="n">trajectory_cyna</span>  <span class="c1"># may be None (Python path)</span>
+    <span class="k">if</span> <span class="n">use_cyna</span> <span class="ow">and</span> <span class="n">trajectory_cyna</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">traj</span> <span class="o">=</span> <span class="n">trajectory_cyna</span>  <span class="c1"># shape (N, 3): R, Z, phi</span>
+        <span class="n">R_arr</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">traj</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">Z_arr</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">traj</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">phi_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">traj</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_c</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">base_fc</span> <span class="o">=</span> <span class="n">prepare_field_cache</span><span class="p">(</span><span class="n">base_field_cache</span><span class="p">,</span> <span class="n">extend_phi</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">A_arr</span> <span class="o">=</span> <span class="n">_cyna_A_batch</span><span class="p">(</span>
+            <span class="n">R_arr</span><span class="p">,</span> <span class="n">Z_arr</span><span class="p">,</span> <span class="n">phi_arr</span><span class="p">,</span>
+            <span class="n">_c</span><span class="p">(</span><span class="n">base_fc</span><span class="p">[</span><span class="s1">&#39;BR&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+               <span class="k">if</span> <span class="n">base_fc</span><span class="p">[</span><span class="s1">&#39;BR&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span>
+               <span class="k">else</span> <span class="n">base_fc</span><span class="p">[</span><span class="s1">&#39;BR&#39;</span><span class="p">]),</span>
+            <span class="n">_c</span><span class="p">(</span><span class="n">base_fc</span><span class="p">[</span><span class="s1">&#39;BZ&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+               <span class="k">if</span> <span class="n">base_fc</span><span class="p">[</span><span class="s1">&#39;BZ&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span>
+               <span class="k">else</span> <span class="n">base_fc</span><span class="p">[</span><span class="s1">&#39;BZ&#39;</span><span class="p">]),</span>
+            <span class="n">_c</span><span class="p">(</span><span class="n">base_fc</span><span class="p">[</span><span class="s1">&#39;BPhi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+               <span class="k">if</span> <span class="n">base_fc</span><span class="p">[</span><span class="s1">&#39;BPhi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span>
+               <span class="k">else</span> <span class="n">base_fc</span><span class="p">[</span><span class="s1">&#39;BPhi&#39;</span><span class="p">]),</span>
+            <span class="n">_c</span><span class="p">(</span><span class="n">base_fc</span><span class="p">[</span><span class="s1">&#39;R_grid&#39;</span><span class="p">]),</span>
+            <span class="n">_c</span><span class="p">(</span><span class="n">base_fc</span><span class="p">[</span><span class="s1">&#39;Z_grid&#39;</span><span class="p">]),</span>
+            <span class="n">_c</span><span class="p">(</span><span class="n">base_fc</span><span class="p">[</span><span class="s1">&#39;Phi_grid&#39;</span><span class="p">]),</span>
+            <span class="n">fd_eps_cyna</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">delta_X_cyc</span> <span class="o">=</span> <span class="n">_compute_delta_X_cyc</span><span class="p">(</span>
+        <span class="n">x0</span><span class="o">=</span><span class="n">x0</span><span class="p">,</span>
+        <span class="n">DPm</span><span class="o">=</span><span class="n">DPm_base</span><span class="p">,</span>
+        <span class="n">field_func</span><span class="o">=</span><span class="n">field_func</span><span class="p">,</span>
+        <span class="n">delta_f_func</span><span class="o">=</span><span class="n">delta_f_func</span><span class="p">,</span>
+        <span class="n">phi_start</span><span class="o">=</span><span class="n">phi_start</span><span class="p">,</span>
+        <span class="n">phi_end</span><span class="o">=</span><span class="n">phi_end</span><span class="p">,</span>
+        <span class="n">trajectory_RZphi</span><span class="o">=</span><span class="n">trajectory_for_xcyc</span><span class="p">,</span>
+        <span class="n">A_arr</span><span class="o">=</span><span class="n">A_arr</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># 3. Eigenvalue perturbation theory</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="n">eig_analysis</span> <span class="o">=</span> <span class="n">eigenvalue_perturbation</span><span class="p">(</span><span class="n">DPm_base</span><span class="p">,</span> <span class="n">delta_DPm</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;delta_X_cyc&quot;</span><span class="p">:</span>        <span class="n">delta_X_cyc</span><span class="p">,</span>
+        <span class="s2">&quot;delta_DPm&quot;</span><span class="p">:</span>          <span class="n">delta_DPm</span><span class="p">,</span>
+        <span class="s2">&quot;DPm_base&quot;</span><span class="p">:</span>           <span class="n">DPm_base</span><span class="p">,</span>
+        <span class="s2">&quot;DPm_pert&quot;</span><span class="p">:</span>           <span class="n">DPm_pert</span><span class="p">,</span>
+        <span class="s2">&quot;delta_lambda_u&quot;</span><span class="p">:</span>     <span class="n">eig_analysis</span><span class="p">[</span><span class="s2">&quot;delta_lambda_u&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;new_lambda_u&quot;</span><span class="p">:</span>       <span class="n">eig_analysis</span><span class="p">[</span><span class="s2">&quot;new_lambda_u&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;lambda_u&quot;</span><span class="p">:</span>           <span class="n">eig_analysis</span><span class="p">[</span><span class="s2">&quot;lambda_u&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;eigenvalue_analysis&quot;</span><span class="p">:</span> <span class="n">eig_analysis</span><span class="p">,</span>
+        <span class="s2">&quot;used_cyna&quot;</span><span class="p">:</span>          <span class="n">use_cyna</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

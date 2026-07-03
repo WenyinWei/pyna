@@ -1,0 +1,1059 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.fields.diff_ops &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/fields/diff_ops';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.fields.diff_ops</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.fields.diff_ops</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Differential operators in cylindrical coordinates.</span>
+
+<span class="sd">Extends and consolidates pyna.vector_calc with a complete set of</span>
+<span class="sd">field-returning operators that produce typed Field objects.</span>
+
+<span class="sd">All operators use second-order finite differences on the structured</span>
+<span class="sd">cylindrical grid (R, Z, phi), with periodic BCs in phi.</span>
+
+<span class="sd">Currently all operators assume cylindrical (R, Z, phi) coordinates.</span>
+<span class="sd">Use field.coords to verify, or pass coords= explicitly.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.fields.properties</span><span class="w"> </span><span class="kn">import</span> <span class="n">FieldProperty</span>
+
+
+<span class="c1"># ── Low-level finite-difference helpers (mirrored from vector_calc.py) ───────</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_grad_R</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Second-order central differences along R (axis 0), one-sided at boundaries.&quot;&quot;&quot;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+    <span class="n">dR</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span> <span class="o">-</span> <span class="n">R</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span> <span class="o">-</span> <span class="n">arr</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="n">dR</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="o">=</span> <span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="o">-</span> <span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  <span class="o">/</span> <span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="o">-</span> <span class="n">R</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">arr</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_grad_Z</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">Z</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Second-order central differences along Z (axis 1), one-sided at boundaries.&quot;&quot;&quot;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+    <span class="n">dZ</span> <span class="o">=</span> <span class="n">Z</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span> <span class="o">-</span> <span class="n">Z</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">out</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">arr</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">arr</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:])</span> <span class="o">/</span> <span class="n">dZ</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">out</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span>  <span class="p">:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">arr</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span>  <span class="p">:]</span> <span class="o">-</span> <span class="n">arr</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span>  <span class="p">:])</span> <span class="o">/</span> <span class="p">(</span><span class="n">Z</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="o">-</span> <span class="n">Z</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">out</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">arr</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">arr</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:])</span> <span class="o">/</span> <span class="p">(</span><span class="n">Z</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">Z</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_grad_phi</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">Phi</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Second-order central differences along phi (axis 2), periodic or one-sided.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">Phi</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">periodic</span><span class="p">:</span>
+        <span class="n">dphi</span> <span class="o">=</span> <span class="n">Phi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">Phi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">dphi</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+    <span class="n">dPhi</span> <span class="o">=</span> <span class="n">Phi</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span> <span class="o">-</span> <span class="n">Phi</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">out</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">arr</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">:]</span> <span class="o">-</span> <span class="n">arr</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="n">dPhi</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">out</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>  <span class="o">=</span> <span class="p">(</span><span class="n">arr</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span>  <span class="o">-</span> <span class="n">arr</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">])</span>  <span class="o">/</span> <span class="p">(</span><span class="n">Phi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="o">-</span> <span class="n">Phi</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">out</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">arr</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">arr</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">Phi</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">Phi</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="c1"># ── Public operators ──────────────────────────────────────────────────────────</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_coords</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">coords_override</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Warn/raise if field&#39;s coordinate system is not cylindrical.&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.fields.coords</span><span class="w"> </span><span class="kn">import</span> <span class="n">Coords3DCylindrical</span>
+    <span class="n">cs</span> <span class="o">=</span> <span class="n">coords_override</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="s1">&#39;coords&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cs</span><span class="p">,</span> <span class="n">Coords3DCylindrical</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;diff_ops currently only supports Coords3DCylindrical, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">. &quot;</span>
+            <span class="s2">&quot;Pass coords=Coords3DCylindrical() to override, or implement the coordinate system.&quot;</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_components_3d</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">&quot;components_3d&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">components_3d</span>
+    <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">VR</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">VZ</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">VPhi</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_axisym</span><span class="p">(</span><span class="n">field</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.fields.cylindrical</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScalarFieldCylindAxisym</span><span class="p">,</span> <span class="n">VectorFieldCylindAxisym</span>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="p">(</span><span class="n">ScalarFieldCylindAxisym</span><span class="p">,</span> <span class="n">VectorFieldCylindAxisym</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_scalar_result_like</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">FieldProperty</span><span class="o">.</span><span class="n">NONE</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.fields.cylindrical</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScalarFieldCylind</span><span class="p">,</span> <span class="n">ScalarFieldCylindAxisym</span>
+    <span class="k">if</span> <span class="n">_is_axisym</span><span class="p">(</span><span class="n">field</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ScalarFieldCylindAxisym</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">Z</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span>
+                                      <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">properties</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ScalarFieldCylind</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">Z</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">Phi</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span>
+                             <span class="n">field_periods</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="s2">&quot;field_periods&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                             <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">properties</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_vector_result_like</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">BR</span><span class="p">,</span> <span class="n">BZ</span><span class="p">,</span> <span class="n">BPhi</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">FieldProperty</span><span class="o">.</span><span class="n">NONE</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.fields.cylindrical</span><span class="w"> </span><span class="kn">import</span> <span class="n">VectorFieldCylind</span><span class="p">,</span> <span class="n">VectorFieldCylindAxisym</span>
+    <span class="k">if</span> <span class="n">_is_axisym</span><span class="p">(</span><span class="n">field</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">VectorFieldCylindAxisym</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">Z</span><span class="p">,</span> <span class="n">BR</span><span class="o">=</span><span class="n">BR</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">BZ</span><span class="o">=</span><span class="n">BZ</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span>
+                                      <span class="n">BPhi</span><span class="o">=</span><span class="n">BPhi</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span>
+                                      <span class="n">properties</span><span class="o">=</span><span class="n">properties</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="s2">&quot;is_section&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">VectorFieldCylind</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">Z</span><span class="p">,</span> <span class="n">BR</span><span class="o">=</span><span class="n">BR</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">BZ</span><span class="o">=</span><span class="n">BZ</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span>
+                                 <span class="n">BPhi</span><span class="o">=</span><span class="n">BPhi</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">phi</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">Phi</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                                 <span class="n">field_periods</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="s2">&quot;field_periods&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                                 <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">properties</span><span class="p">,</span>
+                                 <span class="n">section_mode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">VectorFieldCylind</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">Z</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">Phi</span><span class="p">,</span> <span class="n">BR</span><span class="p">,</span> <span class="n">BZ</span><span class="p">,</span> <span class="n">BPhi</span><span class="p">,</span>
+                             <span class="n">field_periods</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="s2">&quot;field_periods&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                             <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">properties</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_tensor2_result_like</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">FieldProperty</span><span class="o">.</span><span class="n">NONE</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.fields.tensor</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tensor2FieldCylind</span><span class="p">,</span> <span class="n">Tensor2FieldCylindAxisym</span>
+    <span class="k">if</span> <span class="n">_is_axisym</span><span class="p">(</span><span class="n">field</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Tensor2FieldCylindAxisym</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">Z</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span>
+                                       <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">properties</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Tensor2FieldCylind</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">Z</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">Phi</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span>
+                              <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">properties</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="gradient">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/fields/diff_ops/index.html#pyna.fields.diff_ops.gradient">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">gradient</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;VectorFieldCylind&quot;</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gradient of a scalar field in cylindrical coordinates.</span>
+
+<span class="sd">    ∇f = (∂f/∂R,  ∂f/∂Z,  (1/R)·∂f/∂φ)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f : ScalarFieldCylind</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    VectorFieldCylind</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_check_coords</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span>
+    <span class="n">R3d</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">R</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">df_dR</span>   <span class="o">=</span> <span class="n">_grad_R</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">R</span><span class="p">)</span>
+    <span class="n">df_dZ</span>   <span class="o">=</span> <span class="n">_grad_Z</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span>
+    <span class="n">df_dphi</span> <span class="o">=</span> <span class="n">_grad_phi</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">Phi</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_vector_result_like</span><span class="p">(</span>
+        <span class="n">f</span><span class="p">,</span>
+        <span class="n">df_dR</span><span class="p">,</span>
+        <span class="n">df_dZ</span><span class="p">,</span>
+        <span class="n">df_dphi</span> <span class="o">/</span> <span class="n">R3d</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;grad(</span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">units</span><span class="si">}</span><span class="s2">/m&quot;</span><span class="p">,</span>
+        <span class="n">properties</span><span class="o">=</span><span class="n">FieldProperty</span><span class="o">.</span><span class="n">NONE</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="divergence">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/fields/diff_ops/index.html#pyna.fields.diff_ops.divergence">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">divergence</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ScalarFieldCylind&quot;</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Divergence of a vector field in cylindrical coordinates.</span>
+
+<span class="sd">    ∇·V = ∂V_R/∂R + ∂V_Z/∂Z + (V_R + ∂V_φ/∂φ) / R</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    v : VectorFieldCylind</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ScalarFieldCylind</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">R3d</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">VR</span><span class="p">,</span> <span class="n">VZ</span><span class="p">,</span> <span class="n">VPhi</span> <span class="o">=</span> <span class="n">_components_3d</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+    <span class="n">dVR_dR</span>      <span class="o">=</span> <span class="n">_grad_R</span><span class="p">(</span><span class="n">VR</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span><span class="p">)</span>
+    <span class="n">dVZ_dZ</span>      <span class="o">=</span> <span class="n">_grad_Z</span><span class="p">(</span><span class="n">VZ</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span>
+    <span class="n">dVPhi_dphi</span>  <span class="o">=</span> <span class="n">_grad_phi</span><span class="p">(</span><span class="n">VPhi</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">Phi</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">div</span> <span class="o">=</span> <span class="n">dVR_dR</span> <span class="o">+</span> <span class="n">dVZ_dZ</span> <span class="o">+</span> <span class="p">(</span><span class="n">VR</span> <span class="o">+</span> <span class="n">dVPhi_dphi</span><span class="p">)</span> <span class="o">/</span> <span class="n">R3d</span>
+    <span class="k">return</span> <span class="n">_scalar_result_like</span><span class="p">(</span>
+        <span class="n">v</span><span class="p">,</span>
+        <span class="n">div</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;div(</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">properties</span><span class="o">=</span><span class="n">FieldProperty</span><span class="o">.</span><span class="n">NONE</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="curl">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/fields/diff_ops/index.html#pyna.fields.diff_ops.curl">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">curl</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;VectorFieldCylind&quot;</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Curl of a vector field in cylindrical coordinates.</span>
+
+<span class="sd">    (∇×V)_R   = (1/R)·∂V_Z/∂φ  - ∂V_φ/∂Z</span>
+<span class="sd">    (∇×V)_Z   = ∂V_φ/∂R + V_φ/R - (1/R)·∂V_R/∂φ</span>
+<span class="sd">    (∇×V)_φ   = ∂V_R/∂Z - ∂V_Z/∂R</span>
+
+<span class="sd">    The result is automatically tagged DIVERGENCE_FREE (curl is always solenoidal).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    v : VectorFieldCylind</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    VectorFieldCylind  (with FieldProperty.DIVERGENCE_FREE)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">R3d</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">VR</span><span class="p">,</span> <span class="n">VZ</span><span class="p">,</span> <span class="n">VPhi</span> <span class="o">=</span> <span class="n">_components_3d</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+    <span class="n">dVZ_dphi</span>   <span class="o">=</span> <span class="n">_grad_phi</span><span class="p">(</span><span class="n">VZ</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">Phi</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dVPhi_dZ</span>   <span class="o">=</span> <span class="n">_grad_Z</span><span class="p">(</span><span class="n">VPhi</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span>
+    <span class="n">dVPhi_dR</span>   <span class="o">=</span> <span class="n">_grad_R</span><span class="p">(</span><span class="n">VPhi</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span><span class="p">)</span>
+    <span class="n">dVR_dphi</span>   <span class="o">=</span> <span class="n">_grad_phi</span><span class="p">(</span><span class="n">VR</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">Phi</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dVR_dZ</span>     <span class="o">=</span> <span class="n">_grad_Z</span><span class="p">(</span><span class="n">VR</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span>
+    <span class="n">dVZ_dR</span>     <span class="o">=</span> <span class="n">_grad_R</span><span class="p">(</span><span class="n">VZ</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span><span class="p">)</span>
+
+    <span class="n">curl_R</span>   <span class="o">=</span> <span class="n">dVZ_dphi</span> <span class="o">/</span> <span class="n">R3d</span> <span class="o">-</span> <span class="n">dVPhi_dZ</span>
+    <span class="n">curl_Z</span>   <span class="o">=</span> <span class="n">dVPhi_dR</span> <span class="o">+</span> <span class="n">VPhi</span> <span class="o">/</span> <span class="n">R3d</span> <span class="o">-</span> <span class="n">dVR_dphi</span> <span class="o">/</span> <span class="n">R3d</span>
+    <span class="n">curl_Phi</span> <span class="o">=</span> <span class="n">dVR_dZ</span> <span class="o">-</span> <span class="n">dVZ_dR</span>
+
+    <span class="k">return</span> <span class="n">_vector_result_like</span><span class="p">(</span>
+        <span class="n">v</span><span class="p">,</span>
+        <span class="n">curl_R</span><span class="p">,</span>
+        <span class="n">curl_Z</span><span class="p">,</span>
+        <span class="n">curl_Phi</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;curl(</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">units</span><span class="si">}</span><span class="s2">/m&quot;</span><span class="p">,</span>
+        <span class="n">properties</span><span class="o">=</span><span class="n">FieldProperty</span><span class="o">.</span><span class="n">DIVERGENCE_FREE</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="laplacian">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/fields/diff_ops/index.html#pyna.fields.diff_ops.laplacian">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">laplacian</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ScalarFieldCylind&quot;</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scalar Laplacian in cylindrical coordinates.</span>
+
+<span class="sd">    ∇²f = (1/R)·∂/∂R(R·∂f/∂R) + ∂²f/∂Z² + (1/R²)·∂²f/∂φ²</span>
+
+<span class="sd">    Computed via ∇²f = ∇·(∇f) using the gradient and divergence operators.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f : ScalarFieldCylind</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ScalarFieldCylind</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">grad_f</span> <span class="o">=</span> <span class="n">gradient</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">lap</span> <span class="o">=</span> <span class="n">divergence</span><span class="p">(</span><span class="n">grad_f</span><span class="p">)</span>
+    <span class="c1"># rename</span>
+    <span class="k">return</span> <span class="n">_scalar_result_like</span><span class="p">(</span>
+        <span class="n">f</span><span class="p">,</span>
+        <span class="n">lap</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;laplacian(</span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">units</span><span class="si">}</span><span class="s2">/m²&quot;</span><span class="p">,</span>
+        <span class="n">properties</span><span class="o">=</span><span class="n">FieldProperty</span><span class="o">.</span><span class="n">NONE</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="hessian">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/fields/diff_ops/index.html#pyna.fields.diff_ops.hessian">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">hessian</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Tensor2FieldCylind&quot;</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Hessian tensor H_ij = ∇_i ∇_j f in cylindrical coordinates.</span>
+
+<span class="sd">    Computed by taking the gradient of each component of ∇f, including</span>
+<span class="sd">    Christoffel connection corrections:</span>
+
+<span class="sd">      H_RR   = ∂²f/∂R²</span>
+<span class="sd">      H_ZZ   = ∂²f/∂Z²</span>
+<span class="sd">      H_φφ   = (1/R²)·∂²f/∂φ² + (1/R)·∂f/∂R</span>
+<span class="sd">      H_RZ   = H_ZR = ∂²f/∂R∂Z</span>
+<span class="sd">      H_Rφ   = H_φR = (1/R)·∂²f/∂R∂φ - (1/R²)·∂f/∂φ</span>
+<span class="sd">      H_Zφ   = H_φZ = (1/R)·∂²f/∂Z∂φ</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f : ScalarFieldCylind</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Tensor2FieldCylind</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">R3d</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">R</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">nR</span><span class="p">,</span> <span class="n">nZ</span><span class="p">,</span> <span class="n">nPhi</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">R</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">Z</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">Phi</span><span class="p">)</span>
+
+    <span class="n">df_dR</span>   <span class="o">=</span> <span class="n">_grad_R</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">R</span><span class="p">)</span>
+    <span class="n">df_dZ</span>   <span class="o">=</span> <span class="n">_grad_Z</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span>
+    <span class="n">df_dphi</span> <span class="o">=</span> <span class="n">_grad_phi</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">Phi</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Second derivatives</span>
+    <span class="n">d2f_dR2</span>    <span class="o">=</span> <span class="n">_grad_R</span><span class="p">(</span><span class="n">df_dR</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">R</span><span class="p">)</span>
+    <span class="n">d2f_dZ2</span>    <span class="o">=</span> <span class="n">_grad_Z</span><span class="p">(</span><span class="n">df_dZ</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span>
+    <span class="n">d2f_dphi2</span>  <span class="o">=</span> <span class="n">_grad_phi</span><span class="p">(</span><span class="n">df_dphi</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">Phi</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">d2f_dRdZ</span>   <span class="o">=</span> <span class="n">_grad_Z</span><span class="p">(</span><span class="n">df_dR</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span>
+    <span class="n">d2f_dRdphi</span> <span class="o">=</span> <span class="n">_grad_phi</span><span class="p">(</span><span class="n">df_dR</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">Phi</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">d2f_dZdphi</span> <span class="o">=</span> <span class="n">_grad_phi</span><span class="p">(</span><span class="n">df_dZ</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">Phi</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nR</span><span class="p">,</span> <span class="n">nZ</span><span class="p">,</span> <span class="n">nPhi</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="c1"># index: 0=R, 1=Z, 2=phi</span>
+    <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">d2f_dR2</span>
+    <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">d2f_dZ2</span>
+    <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">d2f_dphi2</span> <span class="o">/</span> <span class="n">R3d</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">df_dR</span> <span class="o">/</span> <span class="n">R3d</span>
+    <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">d2f_dRdZ</span>
+    <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">d2f_dRdZ</span>
+    <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">d2f_dRdphi</span> <span class="o">/</span> <span class="n">R3d</span> <span class="o">-</span> <span class="n">df_dphi</span> <span class="o">/</span> <span class="n">R3d</span><span class="o">**</span><span class="mi">2</span>
+    <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">d2f_dZdphi</span> <span class="o">/</span> <span class="n">R3d</span>
+    <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">_tensor2_result_like</span><span class="p">(</span>
+        <span class="n">f</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;hessian(</span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">units</span><span class="si">}</span><span class="s2">/m²&quot;</span><span class="p">,</span>
+        <span class="n">properties</span><span class="o">=</span><span class="n">FieldProperty</span><span class="o">.</span><span class="n">SYMMETRIC</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="jacobian_field">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/fields/diff_ops/index.html#pyna.fields.diff_ops.jacobian_field">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">jacobian_field</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Tensor2FieldCylind&quot;</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Jacobian tensor J_ij = ∂V_i/∂x^j in cylindrical coordinates.</span>
+
+<span class="sd">    Includes connection (Christoffel) corrections for curvilinear basis:</span>
+<span class="sd">      J_RR   = ∂V_R/∂R</span>
+<span class="sd">      J_RZ   = ∂V_R/∂Z</span>
+<span class="sd">      J_Rphi = (1/R)·∂V_R/∂φ - V_φ/R</span>
+<span class="sd">      J_ZR   = ∂V_Z/∂R</span>
+<span class="sd">      J_ZZ   = ∂V_Z/∂Z</span>
+<span class="sd">      J_Zphi = (1/R)·∂V_Z/∂φ</span>
+<span class="sd">      J_phiR  = ∂V_φ/∂R - V_φ/R   (note: ∂(V_φ/R)/∂R + V_R/R style depends on convention)</span>
+<span class="sd">      Actually using covariant derivative convention with Christoffel:</span>
+<span class="sd">        ∇_j V_i = ∂_j V_i - Γ^k_ij V_k</span>
+
+<span class="sd">    For practical purposes we return the coordinate-component Jacobian</span>
+<span class="sd">    ∂V_i/∂x^j (without Christoffel corrections) plus the diagonal</span>
+<span class="sd">    1/R terms that arise from the phi derivatives:</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    v : VectorFieldCylind</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Tensor2FieldCylind, shape (nR, nZ, nPhi, 3, 3)</span>
+<span class="sd">      J[..., i, j] = ∂V_i/∂x^j  with phi-axis scaled by 1/R</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">R3d</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">nR</span><span class="p">,</span> <span class="n">nZ</span><span class="p">,</span> <span class="n">nPhi</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">R</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">Z</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">Phi</span><span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nR</span><span class="p">,</span> <span class="n">nZ</span><span class="p">,</span> <span class="n">nPhi</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i_comp</span><span class="p">,</span> <span class="n">arr</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">_components_3d</span><span class="p">(</span><span class="n">v</span><span class="p">)):</span>
+        <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i_comp</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">_grad_R</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i_comp</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">_grad_Z</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i_comp</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">_grad_phi</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">Phi</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">/</span> <span class="n">R3d</span>
+
+    <span class="k">return</span> <span class="n">_tensor2_result_like</span><span class="p">(</span>
+        <span class="n">v</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;jacobian(</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">units</span><span class="si">}</span><span class="s2">/m&quot;</span><span class="p">,</span>
+        <span class="n">properties</span><span class="o">=</span><span class="n">FieldProperty</span><span class="o">.</span><span class="n">NONE</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="field_line_curvature">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/fields/diff_ops/index.html#pyna.fields.diff_ops.field_line_curvature">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">field_line_curvature</span><span class="p">(</span><span class="n">B</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;VectorFieldCylind&quot;</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Magnetic field-line curvature vector κ = (b̂·∇)b̂.</span>
+
+<span class="sd">    Where b̂ = B/|B| is the unit vector along the field.</span>
+
+<span class="sd">    This uses the directional derivative of a vector field in cylindrical</span>
+<span class="sd">    coordinates (with Christoffel corrections):</span>
+
+<span class="sd">    (b̂·∇b̂)_R   = b_R·∂b_R/∂R + b_Z·∂b_R/∂Z + (b_φ/R)·∂b_R/∂φ - b_φ²/R</span>
+<span class="sd">    (b̂·∇b̂)_Z   = b_R·∂b_Z/∂R + b_Z·∂b_Z/∂Z + (b_φ/R)·∂b_Z/∂φ</span>
+<span class="sd">    (b̂·∇b̂)_φ   = b_R·∂b_φ/∂R + b_Z·∂b_φ/∂Z + (b_φ/R)·∂b_φ/∂φ + b_φ·b_R/R</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    B : VectorFieldCylind</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    VectorFieldCylind</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">R3d</span> <span class="o">=</span> <span class="n">B</span><span class="o">.</span><span class="n">R</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">BR</span><span class="p">,</span> <span class="n">BZ</span><span class="p">,</span> <span class="n">BPhi</span> <span class="o">=</span> <span class="n">_components_3d</span><span class="p">(</span><span class="n">B</span><span class="p">)</span>
+
+    <span class="n">Bmag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">BR</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">BZ</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">BPhi</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-30</span>
+    <span class="n">bR</span>   <span class="o">=</span> <span class="n">BR</span>   <span class="o">/</span> <span class="n">Bmag</span>
+    <span class="n">bZ</span>   <span class="o">=</span> <span class="n">BZ</span>   <span class="o">/</span> <span class="n">Bmag</span>
+    <span class="n">bPhi</span> <span class="o">=</span> <span class="n">BPhi</span> <span class="o">/</span> <span class="n">Bmag</span>
+
+    <span class="n">bphi_over_R</span> <span class="o">=</span> <span class="n">bPhi</span> <span class="o">/</span> <span class="n">R3d</span>
+
+    <span class="c1"># Derivatives of unit-vector components</span>
+    <span class="n">dbR_dR</span>    <span class="o">=</span> <span class="n">_grad_R</span><span class="p">(</span><span class="n">bR</span><span class="p">,</span>   <span class="n">B</span><span class="o">.</span><span class="n">R</span><span class="p">)</span>
+    <span class="n">dbR_dZ</span>    <span class="o">=</span> <span class="n">_grad_Z</span><span class="p">(</span><span class="n">bR</span><span class="p">,</span>   <span class="n">B</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span>
+    <span class="n">dbR_dphi</span>  <span class="o">=</span> <span class="n">_grad_phi</span><span class="p">(</span><span class="n">bR</span><span class="p">,</span> <span class="n">B</span><span class="o">.</span><span class="n">Phi</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">dbZ_dR</span>    <span class="o">=</span> <span class="n">_grad_R</span><span class="p">(</span><span class="n">bZ</span><span class="p">,</span>   <span class="n">B</span><span class="o">.</span><span class="n">R</span><span class="p">)</span>
+    <span class="n">dbZ_dZ</span>    <span class="o">=</span> <span class="n">_grad_Z</span><span class="p">(</span><span class="n">bZ</span><span class="p">,</span>   <span class="n">B</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span>
+    <span class="n">dbZ_dphi</span>  <span class="o">=</span> <span class="n">_grad_phi</span><span class="p">(</span><span class="n">bZ</span><span class="p">,</span> <span class="n">B</span><span class="o">.</span><span class="n">Phi</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">dbPhi_dR</span>  <span class="o">=</span> <span class="n">_grad_R</span><span class="p">(</span><span class="n">bPhi</span><span class="p">,</span>   <span class="n">B</span><span class="o">.</span><span class="n">R</span><span class="p">)</span>
+    <span class="n">dbPhi_dZ</span>  <span class="o">=</span> <span class="n">_grad_Z</span><span class="p">(</span><span class="n">bPhi</span><span class="p">,</span>   <span class="n">B</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span>
+    <span class="n">dbPhi_dphi</span> <span class="o">=</span> <span class="n">_grad_phi</span><span class="p">(</span><span class="n">bPhi</span><span class="p">,</span> <span class="n">B</span><span class="o">.</span><span class="n">Phi</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">kappa_R</span>   <span class="o">=</span> <span class="p">(</span><span class="n">bR</span> <span class="o">*</span> <span class="n">dbR_dR</span>   <span class="o">+</span> <span class="n">bZ</span> <span class="o">*</span> <span class="n">dbR_dZ</span>   <span class="o">+</span> <span class="n">bphi_over_R</span> <span class="o">*</span> <span class="n">dbR_dphi</span>
+                 <span class="o">-</span> <span class="n">bPhi</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">R3d</span><span class="p">)</span>
+    <span class="n">kappa_Z</span>   <span class="o">=</span>  <span class="n">bR</span> <span class="o">*</span> <span class="n">dbZ_dR</span>   <span class="o">+</span> <span class="n">bZ</span> <span class="o">*</span> <span class="n">dbZ_dZ</span>   <span class="o">+</span> <span class="n">bphi_over_R</span> <span class="o">*</span> <span class="n">dbZ_dphi</span>
+    <span class="n">kappa_Phi</span> <span class="o">=</span> <span class="p">(</span><span class="n">bR</span> <span class="o">*</span> <span class="n">dbPhi_dR</span> <span class="o">+</span> <span class="n">bZ</span> <span class="o">*</span> <span class="n">dbPhi_dZ</span> <span class="o">+</span> <span class="n">bphi_over_R</span> <span class="o">*</span> <span class="n">dbPhi_dphi</span>
+                 <span class="o">+</span> <span class="n">bPhi</span> <span class="o">*</span> <span class="n">bR</span> <span class="o">/</span> <span class="n">R3d</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_vector_result_like</span><span class="p">(</span>
+        <span class="n">B</span><span class="p">,</span>
+        <span class="n">kappa_R</span><span class="p">,</span>
+        <span class="n">kappa_Z</span><span class="p">,</span>
+        <span class="n">kappa_Phi</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;curvature(</span><span class="si">{</span><span class="n">B</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="s2">&quot;1/m&quot;</span><span class="p">,</span>
+        <span class="n">properties</span><span class="o">=</span><span class="n">FieldProperty</span><span class="o">.</span><span class="n">NONE</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="covariant_derivative_of_vector">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/fields/diff_ops/index.html#pyna.fields.diff_ops.covariant_derivative_of_vector">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">covariant_derivative_of_vector</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Covariant derivative nabla_i V^j of a vector field.</span>
+
+<span class="sd">    Returns the (i,j) component tensor:</span>
+<span class="sd">        (nablaV)^j_i = d_i V^j + Gamma^j_{ik} V^k</span>
+
+<span class="sd">    For cylindrical coordinates this gives the correct connection terms</span>
+<span class="sd">    (identical to the Jacobian plus Christoffel correction).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    v : VectorFieldCylind</span>
+<span class="sd">    coords : CoordinateSystem, optional</span>
+<span class="sd">        Defaults to Coords3DCylindrical().</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Tensor2FieldCylind, shape (nR, nZ, nPhi, 3, 3)</span>
+<span class="sd">        Component [i,j] = nabla_i V^j</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.fields.coords</span><span class="w"> </span><span class="kn">import</span> <span class="n">Coords3DCylindrical</span>
+
+    <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">Coords3DCylindrical</span><span class="p">()</span>
+
+    <span class="c1"># Get ordinary Jacobian (d_i V^j)</span>
+    <span class="n">J</span> <span class="o">=</span> <span class="n">jacobian_field</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>  <span class="c1"># Tensor2FieldCylind, [i,j] = d_i V^j</span>
+
+    <span class="c1"># Add Christoffel correction: Gamma^j_{ik} V^k</span>
+    <span class="c1"># Evaluate Christoffel at every grid point</span>
+    <span class="n">RR</span><span class="p">,</span> <span class="n">ZZ</span><span class="p">,</span> <span class="n">PP</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">Z</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">Phi</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">RR</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">ZZ</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">PP</span><span class="o">.</span><span class="n">ravel</span><span class="p">()],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># christoffel_symbols returns (N, dim, dim, dim): [k, i, j] = Gamma^k_ij</span>
+    <span class="n">Gamma</span> <span class="o">=</span> <span class="n">coords</span><span class="o">.</span><span class="n">christoffel_symbols</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+    <span class="n">shape3d</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">R</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">Z</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">Phi</span><span class="p">))</span>
+    <span class="n">Gamma</span> <span class="o">=</span> <span class="n">Gamma</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape3d</span> <span class="o">+</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>  <span class="c1"># (nR,nZ,nPhi, k, i, j)</span>
+
+    <span class="c1"># V components on grid</span>
+    <span class="n">V</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">_components_3d</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># (nR,nZ,nPhi, 3)</span>
+
+    <span class="c1"># Correction: sum_k Gamma^j_{ik} V^k  -&gt; result[..., i, j]</span>
+    <span class="c1"># Gamma[..., k, i, j] summed over k with V[..., k]</span>
+    <span class="n">correction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;...kij,...k-&gt;...ij&#39;</span><span class="p">,</span> <span class="n">Gamma</span><span class="p">,</span> <span class="n">V</span><span class="p">)</span>
+
+    <span class="n">cov_data</span> <span class="o">=</span> <span class="n">J</span><span class="o">.</span><span class="n">data</span> <span class="o">+</span> <span class="n">correction</span>  <span class="c1"># (nR,nZ,nPhi,3,3)</span>
+
+    <span class="k">return</span> <span class="n">_tensor2_result_like</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">cov_data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;nabla(</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">units</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="riemann_tensor">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/fields/diff_ops/index.html#pyna.fields.diff_ops.riemann_tensor">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">riemann_tensor</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute Riemann curvature tensor R^l_ijk at a point.</span>
+
+<span class="sd">    R^l_ijk = d_j Gamma^l_ik - d_k Gamma^l_ij + Gamma^l_jm Gamma^m_ik - Gamma^l_km Gamma^m_ij</span>
+
+<span class="sd">    Uses central finite differences for d_j Gamma.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    coords : CoordinateSystem</span>
+<span class="sd">    pt : ndarray, shape (dim,)</span>
+<span class="sd">        Point at which to evaluate.</span>
+<span class="sd">    eps : float</span>
+<span class="sd">        Finite difference step.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ndarray, shape (dim, dim, dim, dim)</span>
+<span class="sd">        R[l, i, j, k] = R^l_ijk</span>
+
+<span class="sd">    Note: Near or inside the Schwarzschild radius (r &lt;= 2GM/c^2),</span>
+<span class="sd">    numerical singularities will occur.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dim</span> <span class="o">=</span> <span class="n">coords</span><span class="o">.</span><span class="n">dim</span>
+    <span class="n">pt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pt</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">gamma_at</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">coords</span><span class="o">.</span><span class="n">christoffel_symbols</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># (dim, dim, dim)</span>
+
+    <span class="c1"># d_j Gamma^l_ik via central differences</span>
+    <span class="n">dGamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="p">))</span>  <span class="c1"># dGamma[l, i, k, j] = d_j Gamma^l_ik</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="p">):</span>
+        <span class="n">ep</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">copy</span><span class="p">();</span> <span class="n">ep</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="n">eps</span>
+        <span class="n">em</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">copy</span><span class="p">();</span> <span class="n">em</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-=</span> <span class="n">eps</span>
+        <span class="n">dGamma</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">gamma_at</span><span class="p">(</span><span class="n">ep</span><span class="p">)</span> <span class="o">-</span> <span class="n">gamma_at</span><span class="p">(</span><span class="n">em</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">eps</span><span class="p">)</span>
+
+    <span class="n">G</span> <span class="o">=</span> <span class="n">gamma_at</span><span class="p">(</span><span class="n">pt</span><span class="p">)</span>  <span class="c1"># Gamma^l_ij at pt</span>
+
+    <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="p">))</span>  <span class="c1"># R[l, i, j, k]</span>
+    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="p">):</span>
+                    <span class="n">R</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">dGamma</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">-</span> <span class="n">dGamma</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span>
+                        <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span><span class="n">G</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span> <span class="o">*</span> <span class="n">G</span><span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">G</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span> <span class="o">*</span> <span class="n">G</span><span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+                              <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="p">))</span>
+                    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">R</span></div>
+
+
+
+<div class="viewcode-block" id="ricci_tensor">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/fields/diff_ops/index.html#pyna.fields.diff_ops.ricci_tensor">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ricci_tensor</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ricci tensor R_ij = R^k_ikj (contraction of Riemann tensor).</span>
+
+<span class="sd">    Returns ndarray shape (dim, dim).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">R_full</span> <span class="o">=</span> <span class="n">riemann_tensor</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">eps</span><span class="p">)</span>  <span class="c1"># (dim, dim, dim, dim)</span>
+    <span class="n">dim</span> <span class="o">=</span> <span class="n">coords</span><span class="o">.</span><span class="n">dim</span>
+    <span class="c1"># R_ij = R^k_ikj = R[k, i, k, j] summed over k</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">R_full</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="p">:,</span> <span class="n">k</span><span class="p">,</span> <span class="p">:]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="ricci_scalar">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/fields/diff_ops/index.html#pyna.fields.diff_ops.ricci_scalar">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ricci_scalar</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ricci scalar R = g^{ij} R_ij.&quot;&quot;&quot;</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">coords</span><span class="o">.</span><span class="n">metric_tensor</span><span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">g_inv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+    <span class="n">Ric</span> <span class="o">=</span> <span class="n">ricci_tensor</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">eps</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,ij-&gt;&#39;</span><span class="p">,</span> <span class="n">g_inv</span><span class="p">,</span> <span class="n">Ric</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="strain_rate_tensor">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/fields/diff_ops/index.html#pyna.fields.diff_ops.strain_rate_tensor">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">strain_rate_tensor</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Strain-rate tensor S = 1/2 (Dv + Dv^T) where Dv is the Jacobian field.</span>
+
+<span class="sd">    Used in viscous flow, MHD transport, and deformation analysis.</span>
+<span class="sd">    Result is always symmetric.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">J</span> <span class="o">=</span> <span class="n">jacobian_field</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">J</span><span class="o">.</span><span class="n">symmetrize</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="helmholtz_decomposition">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/fields/diff_ops/index.html#pyna.fields.diff_ops.helmholtz_decomposition">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">helmholtz_decomposition</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helmholtz decomposition: v = nabla phi + nabla x A + harmonic.</span>
+
+<span class="sd">    Simplified version: returns divergence-free part and curl-free part.</span>
+
+<span class="sd">    WARNING: This is an approximate decomposition using finite differences.</span>
+<span class="sd">    The divergence-free part is approximated by curl(v), not by a proper</span>
+<span class="sd">    Leray projection / Poisson solve. For production use, a proper</span>
+<span class="sd">    Poisson solver is recommended.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    (v_div_free, v_curl_free) : tuple of VectorFieldCylind</span>
+<span class="sd">        v_div_free  -- curl(v), annotated as DIVERGENCE_FREE</span>
+<span class="sd">        v_curl_free -- v - curl(v), annotated as CURL_FREE</span>
+<span class="sd">        v ≈ v_div_free + v_curl_free  (approximate)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.fields.properties</span><span class="w"> </span><span class="kn">import</span> <span class="n">FieldProperty</span>
+
+    <span class="n">curl_v</span> <span class="o">=</span> <span class="n">curl</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+    <span class="n">v_div_free</span> <span class="o">=</span> <span class="n">curl_v</span>
+    <span class="n">v_div_free</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;divfree(</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">v_div_free</span><span class="o">.</span><span class="n">_properties</span> <span class="o">=</span> <span class="n">FieldProperty</span><span class="o">.</span><span class="n">DIVERGENCE_FREE</span>
+
+    <span class="n">v_curl_free</span> <span class="o">=</span> <span class="n">v</span> <span class="o">-</span> <span class="n">curl_v</span>
+    <span class="n">v_curl_free</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;curlfree(</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">v_curl_free</span><span class="o">.</span><span class="n">_properties</span> <span class="o">=</span> <span class="n">FieldProperty</span><span class="o">.</span><span class="n">CURL_FREE</span>
+    <span class="k">return</span> <span class="n">v_div_free</span><span class="p">,</span> <span class="n">v_curl_free</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

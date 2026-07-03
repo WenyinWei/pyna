@@ -1,0 +1,777 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>pyna.topo.regularity &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'en/api/generated/pyna/topo/regularity/index';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../search.html" />
+    <link rel="next" title="pyna.topo.resonance" href="../resonance/index.html" />
+    <link rel="prev" title="pyna.topo.protocols" href="../protocols/index.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../../../../_static/searchtools.js"></script>
+    <script src="../../../../../../_static/language_data.js"></script>
+    <script src="../../../../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "en";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../../index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../../index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar"><svg class="pst-icon svg-inline--fa" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../mini-cases.html">Mini Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/index.html">Tutorials and Examples</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../../index.html">API Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../../dynamics.html">General Dynamics (<code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../dynamics-patterns.html">Dynamics Workflows and Extension Helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../flt.html">Field-line Tracing (<code class="docutils literal notranslate"><span class="pre">pyna.flt</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../topo.html">Topology (<code class="docutils literal notranslate"><span class="pre">pyna.topo</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../toroidal.html">Toroidal Physics (<code class="docutils literal notranslate"><span class="pre">pyna.toroidal</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../control.html">FPT Topology Control (<code class="docutils literal notranslate"><span class="pre">pyna.control</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../cyna.html">cyna Acceleration Layer</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="../../index.html">pyna</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../../cache/index.html">pyna.cache</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../connection_length/index.html">pyna.connection_length</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../context/index.html">pyna.context</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../control/index.html">pyna.control</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../diff/index.html">pyna.diff</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../draw/index.html">pyna.draw</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../dynamics/index.html">pyna.dynamics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../field_data/index.html">pyna.field_data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../fields/index.html">pyna.fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../flow/index.html">pyna.flow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../flt/index.html">pyna.flt</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../flt_cuda/index.html">pyna.flt_cuda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../imas_compat/index.html">pyna.imas_compat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../io/index.html">pyna.io</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../mag/index.html">pyna.mag</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../map/index.html">pyna.map</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../plot/index.html">pyna.plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../polymap/index.html">pyna.polymap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../polynomial/index.html">pyna.polynomial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../progress/index.html">pyna.progress</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../system/index.html">pyna.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../sysutil/index.html">pyna.sysutil</a></li>
+<li class="toctree-l3 current active has-children"><a class="reference internal" href="../index.html">pyna.topo</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../adapters/index.html">pyna.topo.adapters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../bridges/index.html">pyna.topo.bridges</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../builders/index.html">pyna.topo.builders</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../chaos/index.html">pyna.topo.chaos</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../classical_maps/index.html">pyna.topo.classical_maps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core/index.html">pyna.topo.core</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../cycle/index.html">pyna.topo.cycle</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../dynamics/index.html">pyna.topo.dynamics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../factories/index.html">pyna.topo.factories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../fast_metrics/index.html">pyna.topo.fast_metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../field/index.html">pyna.topo.field</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../fixed_points/index.html">pyna.topo.fixed_points</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../flux_surface/index.html">pyna.topo.flux_surface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../fpt/index.html">pyna.topo.fpt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../healed_flux_coords/index.html">pyna.topo.healed_flux_coords</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../identity/index.html">pyna.topo.identity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../invariant/index.html">pyna.topo.invariant</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../invariant_torus/index.html">pyna.topo.invariant_torus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../invariants/index.html">pyna.topo.invariants</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../island_extract/index.html">pyna.topo.island_extract</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../island_healed_coords/index.html">pyna.topo.island_healed_coords</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manifold/index.html">pyna.topo.manifold</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manifold_improve/index.html">pyna.topo.manifold_improve</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../monodromy/index.html">pyna.topo.monodromy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../perturbation/index.html">pyna.topo.perturbation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../poincare/index.html">pyna.topo.poincare</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../protocols/index.html">pyna.topo.protocols</a></li>
+<li class="toctree-l4 current active"><a class="current reference internal" href="#">pyna.topo.regularity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../resonance/index.html">pyna.topo.resonance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../section/index.html">pyna.topo.section</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../section_view/index.html">pyna.topo.section_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../topology_analysis/index.html">pyna.topo.topology_analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../topology_eval/index.html">pyna.topo.topology_eval</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../toroidal/index.html">pyna.topo.toroidal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../toroidal_cycle/index.html">pyna.topo.toroidal_cycle</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../toroidal_island/index.html">pyna.topo.toroidal_island</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../toroidal_section_view/index.html">pyna.topo.toroidal_section_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../toroidal_trajectory/index.html">pyna.topo.toroidal_trajectory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trajectory3d/index.html">pyna.topo.trajectory3d</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../variational/index.html">pyna.topo.variational</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../workflow/index.html">pyna.topo.workflow</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3"><a class="reference internal" href="../../toroidal/index.html">pyna.toroidal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../utils/index.html">pyna.utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../vector_calc/index.html">pyna.vector_calc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../withparam/index.html">pyna.withparam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../workflow/index.html">pyna.workflow</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../theory/index.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../development/index.html">Development</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../../../index.html" class="nav-link">pyna - Python DYNAmics</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">pyna</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">pyna.topo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.topo.regularity</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-pyna.topo.regularity">
+<span id="pyna-topo-regularity"></span><h1>pyna.topo.regularity<a class="headerlink" href="#module-pyna.topo.regularity" title="Link to this heading">#</a></h1>
+<p>pyna.topo.regularity – Spectral regularity diagnostics for dynamical systems.</p>
+<p>In a <strong>regular</strong> region (composed of stacked invariant tori), the
+eigenvalues of the variational / monodromy matrices evolve smoothly and
+approach 1 at the full period.  In a <strong>chaotic</strong> region they fluctuate
+erratically and diverge exponentially.</p>
+<p>This module provides:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>spectral_regularity(DPk_sequence)</dt><dd><p>Regularity index from a sequence of intermediate monodromy matrices.</p>
+</dd>
+<dt>spectral_regularity_single(eigenvalues)</dt><dd><p>Quick estimate from the eigenvalues of the full-period matrix.</p>
+</dd>
+<dt>classify_orbit(eigenvalue_evolution)</dt><dd><p>Classify an orbit as regular, resonant, weakly chaotic, or strongly
+chaotic based on the eigenvalue modulus evolution.</p>
+</dd>
+<dt>hessian_regularity(D2Pm)</dt><dd><p>Regularity diagnostic using the second-order variational tensor
+(Hessian of the Poincaré map), available when <code class="docutils literal notranslate"><span class="pre">tangent_map(order=3)</span></code>
+has been called.</p>
+</dd>
+</dl>
+</div></blockquote>
+<section id="theory">
+<h2>Theory<a class="headerlink" href="#theory" title="Link to this heading">#</a></h2>
+<p>For a discrete map P with period m, the iterate P^k has monodromy DP^k.
+In a regular region (invariant torus), the eigenvalues λ_i(DP^k)
+satisfy <a href="#id1"><span class="problematic" id="id2">|λ_i|</span></a> ≈ 1 for all k, and converge smoothly to exactly 1 as
+k → m (the full-period identity on the torus).</p>
+<p>For a continuous flow φ^t with orbit period T, the same principle holds
+for the variational matrix DX_t at intermediate times t ∈ (0, T).</p>
+<p>The <strong>regularity index</strong> R quantifies the deviation from this ideal:</p>
+<blockquote>
+<div><p>R = (1/m) Σ_{k=1}^{m} max_i <a href="#id3"><span class="problematic" id="id4">|log|λ_i(DP^k)||</span></a></p>
+</div></blockquote>
+<p>R ≈ 0 for regular orbits, R &gt; 0 for chaotic.</p>
+<p>The regularity index is closely related to the finite-time Lyapunov
+exponent (FTLE) but provides a <em>per-period</em> normalised diagnostic that
+allows comparison across different resonance orders.</p>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.topo.regularity.spectral_regularity" title="pyna.topo.regularity.spectral_regularity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spectral_regularity</span></code></a>(→ float)</p></td>
+<td><p>Regularity index from a sequence [DP^1, DP^2, …, DP^m].</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.topo.regularity.spectral_regularity_single" title="pyna.topo.regularity.spectral_regularity_single"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spectral_regularity_single</span></code></a>(→ float)</p></td>
+<td><p>Quick regularity estimate from eigenvalues of one monodromy matrix.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.topo.regularity.classify_orbit" title="pyna.topo.regularity.classify_orbit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">classify_orbit</span></code></a>(→ str)</p></td>
+<td><p>Classify an orbit from its eigenvalue modulus evolution.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.topo.regularity.hessian_regularity" title="pyna.topo.regularity.hessian_regularity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hessian_regularity</span></code></a>(→ float)</p></td>
+<td><p>Regularity diagnostic from the Hessian (second-order variational tensor).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.topo.regularity.eigenvalue_evolution_from_sequence" title="pyna.topo.regularity.eigenvalue_evolution_from_sequence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eigenvalue_evolution_from_sequence</span></code></a>(→ numpy.ndarray)</p></td>
+<td><p>Extract eigenvalue modulus evolution from a monodromy sequence.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.topo.regularity.spectral_regularity">
+<span class="sig-prename descclassname"><span class="pre">pyna.topo.regularity.</span></span><span class="sig-name descname"><span class="pre">spectral_regularity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">DPk_sequence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/regularity.html#spectral_regularity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.regularity.spectral_regularity" title="Link to this definition">#</a></dt>
+<dd><p>Regularity index from a sequence [DP^1, DP^2, …, DP^m].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>DPk_sequence</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em> of </em><em>ndarray</em><em>, </em><a class="reference internal" href="../../fields/cylindrical/index.html#pyna.fields.cylindrical.CylindricalFieldArrays.shape" title="pyna.fields.cylindrical.CylindricalFieldArrays.shape"><em>shape</em></a><em> (</em><em>d</em><em>, </em><em>d</em><em>)</em>) – Intermediate monodromy matrices at iterates k = 1, …, m.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>float</em> – Regularity index ≥ 0.  Near 0 → regular, larger → chaotic.</p>
+</dd>
+</dl>
+<div class="admonition-notes admonition">
+<p class="admonition-title">Notes</p>
+<div class="math notranslate nohighlight">
+\[R = \frac{1}{m} \sum_{k=1}^{m} \max_i \bigl|\ln|\lambda_i(DP^k)|\bigr|\]</div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.topo.regularity.spectral_regularity_single">
+<span class="sig-prename descclassname"><span class="pre">pyna.topo.regularity.</span></span><span class="sig-name descname"><span class="pre">spectral_regularity_single</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eigenvalues</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/regularity.html#spectral_regularity_single"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.regularity.spectral_regularity_single" title="Link to this definition">#</a></dt>
+<dd><p>Quick regularity estimate from eigenvalues of one monodromy matrix.</p>
+<p>Returns <code class="docutils literal notranslate"><span class="pre">max_i</span> <span class="pre">|log|λ_i||</span></code>.  For a perfectly regular orbit at the
+full period all <a href="#id5"><span class="problematic" id="id6">|λ|</span></a> = 1, giving 0.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.topo.regularity.classify_orbit">
+<span class="sig-prename descclassname"><span class="pre">pyna.topo.regularity.</span></span><span class="sig-name descname"><span class="pre">classify_orbit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eigenvalue_evolution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">regular_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weak_chaos_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.3</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/regularity.html#classify_orbit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.regularity.classify_orbit" title="Link to this definition">#</a></dt>
+<dd><p>Classify an orbit from its eigenvalue modulus evolution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>eigenvalue_evolution</strong> (<em>ndarray</em><em>, </em><a class="reference internal" href="../../fields/cylindrical/index.html#pyna.fields.cylindrical.CylindricalFieldArrays.shape" title="pyna.fields.cylindrical.CylindricalFieldArrays.shape"><em>shape</em></a><em> (</em><a class="reference internal" href="../identity/index.html#pyna.topo.identity.ResonanceID.m" title="pyna.topo.identity.ResonanceID.m"><em>m</em></a><em>, </em><em>d</em><em>) or </em><em>(</em><a class="reference internal" href="../identity/index.html#pyna.topo.identity.ResonanceID.m" title="pyna.topo.identity.ResonanceID.m"><em>m</em></a><em>,</em><em>)</em>) – <a href="#id7"><span class="problematic" id="id8">|λ_i(DP^k)|</span></a> for k = 1, …, m.  If 2-D, the maximum over eigenvalue
+index <em>i</em> is taken.  If 1-D, interpreted as the dominant eigenvalue
+modulus at each iterate.</p></li>
+<li><p><strong>regular_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Maximum mean <a href="#id9"><span class="problematic" id="id10">|log|λ||</span></a> for an orbit to be classified as <em>regular</em>.</p></li>
+<li><p><strong>weak_chaos_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Boundary between <em>weakly_chaotic</em> and <em>strongly_chaotic</em>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>str</em> – One of <code class="docutils literal notranslate"><span class="pre">'regular'</span></code>, <code class="docutils literal notranslate"><span class="pre">'resonant'</span></code>, <code class="docutils literal notranslate"><span class="pre">'weakly_chaotic'</span></code>,
+<code class="docutils literal notranslate"><span class="pre">'strongly_chaotic'</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.topo.regularity.hessian_regularity">
+<span class="sig-prename descclassname"><span class="pre">pyna.topo.regularity.</span></span><span class="sig-name descname"><span class="pre">hessian_regularity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">D2Pm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/regularity.html#hessian_regularity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.regularity.hessian_regularity" title="Link to this definition">#</a></dt>
+<dd><p>Regularity diagnostic from the Hessian (second-order variational tensor).</p>
+<p>The Hessian D²P^m encodes how the linear monodromy varies across
+neighbouring orbits.  In a regular region D²P^m is bounded and varies
+smoothly; in a chaotic region it grows without bound.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>D2Pm</strong> (<em>ndarray</em><em>, </em><a class="reference internal" href="../../fields/cylindrical/index.html#pyna.fields.cylindrical.CylindricalFieldArrays.shape" title="pyna.fields.cylindrical.CylindricalFieldArrays.shape"><em>shape</em></a><em> (</em><em>d</em><em>, </em><em>d</em><em>, </em><em>d</em><em>)</em>) – Second-order variational tensor at the full period.  This is the
+<em>Q</em> tensor returned by <code class="docutils literal notranslate"><span class="pre">tangent_map(order=3)</span></code> reshaped to 3-D.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>float</em> – Frobenius norm of D²P^m, normalised by the dimension.
+Larger values indicate stronger local chaos.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.topo.regularity.eigenvalue_evolution_from_sequence">
+<span class="sig-prename descclassname"><span class="pre">pyna.topo.regularity.</span></span><span class="sig-name descname"><span class="pre">eigenvalue_evolution_from_sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">DPk_sequence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/topo/regularity.html#eigenvalue_evolution_from_sequence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.topo.regularity.eigenvalue_evolution_from_sequence" title="Link to this definition">#</a></dt>
+<dd><p>Extract eigenvalue modulus evolution from a monodromy sequence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>DPk_sequence</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em> of </em><em>ndarray</em><em>, </em><a class="reference internal" href="../../fields/cylindrical/index.html#pyna.fields.cylindrical.CylindricalFieldArrays.shape" title="pyna.fields.cylindrical.CylindricalFieldArrays.shape"><em>shape</em></a><em> (</em><em>d</em><em>, </em><em>d</em><em>)</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>ndarray, shape (m, d)</em> – <a href="#id11"><span class="problematic" id="id12">|λ_i(DP^k)|</span></a> for k = 1, …, m.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../protocols/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">pyna.topo.protocols</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../resonance/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">pyna.topo.resonance</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#theory">Theory</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.regularity.spectral_regularity"><code class="docutils literal notranslate"><span class="pre">spectral_regularity()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.regularity.spectral_regularity_single"><code class="docutils literal notranslate"><span class="pre">spectral_regularity_single()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.regularity.classify_orbit"><code class="docutils literal notranslate"><span class="pre">classify_orbit()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.regularity.hessian_regularity"><code class="docutils literal notranslate"><span class="pre">hessian_regularity()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.topo.regularity.eigenvalue_evolution_from_sequence"><code class="docutils literal notranslate"><span class="pre">eigenvalue_evolution_from_sequence()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

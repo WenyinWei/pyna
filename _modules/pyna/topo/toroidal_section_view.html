@@ -1,0 +1,916 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.topo.toroidal_section_view &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/topo/toroidal_section_view';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../topo.html" class="nav-link">pyna.topo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.topo.toroidal_section_view</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.topo.toroidal_section_view</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Bridge objects between continuous-time tube geometry and discrete map chains.&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.identity</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResonanceID</span><span class="p">,</span> <span class="n">TubeID</span><span class="p">,</span> <span class="n">IslandID</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.toroidal</span><span class="w"> </span><span class="kn">import</span> <span class="n">IslandChain</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_unique_cut_points</span><span class="p">(</span><span class="n">cut_points</span><span class="p">,</span> <span class="n">dedup_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">):</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">cp</span> <span class="ow">in</span> <span class="n">cut_points</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">R</span> <span class="o">-</span> <span class="n">keep</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">Z</span> <span class="o">-</span> <span class="n">keep</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">dedup_tol</span> <span class="k">for</span> <span class="n">keep</span> <span class="ow">in</span> <span class="n">out</span><span class="p">):</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cp</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.toroidal</span><span class="w"> </span><span class="kn">import</span> <span class="n">FixedPoint</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.toroidal</span><span class="w"> </span><span class="kn">import</span> <span class="n">TubeChain</span>
+
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="SectionViewPoint">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionViewPoint">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SectionViewPoint</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;One point in a section view, with optional continuous/discrete identity.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SectionViewPoint.phi">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionViewPoint.phi">[docs]</a>
+    <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="SectionViewPoint.R">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionViewPoint.R">[docs]</a>
+    <span class="n">R</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="SectionViewPoint.Z">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionViewPoint.Z">[docs]</a>
+    <span class="n">Z</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="SectionViewPoint.kind">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionViewPoint.kind">[docs]</a>
+    <span class="n">kind</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="SectionViewPoint.tube_id">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionViewPoint.tube_id">[docs]</a>
+    <span class="n">tube_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TubeID</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="SectionViewPoint.island_id">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionViewPoint.island_id">[docs]</a>
+    <span class="n">island_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">IslandID</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="SectionViewPoint.fixed_point">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionViewPoint.fixed_point">[docs]</a>
+    <span class="n">fixed_point</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FixedPoint</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="SectionViewPoint.source">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionViewPoint.source">[docs]</a>
+    <span class="n">source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span></div>
+
+<div class="viewcode-block" id="SectionViewPoint.raw_center">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionViewPoint.raw_center">[docs]</a>
+    <span class="n">raw_center</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="SectionViewPoint.debug_info">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionViewPoint.debug_info">[docs]</a>
+    <span class="n">debug_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SectionViewPoint.greene_residue">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionViewPoint.greene_residue">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">greene_residue</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_point</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fixed_point</span><span class="o">.</span><span class="n">greene_residue</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SectionViewPoint.as_array">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionViewPoint.as_array">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">as_array</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="SectionCorrespondence">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionCorrespondence">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SectionCorrespondence</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Structured correspondence between tube IDs and section-view points.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SectionCorrespondence.resonance_id">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionCorrespondence.resonance_id">[docs]</a>
+    <span class="n">resonance_id</span><span class="p">:</span> <span class="n">ResonanceID</span></div>
+
+<div class="viewcode-block" id="SectionCorrespondence.phi">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionCorrespondence.phi">[docs]</a>
+    <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="SectionCorrespondence.tube_to_point_indices">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionCorrespondence.tube_to_point_indices">[docs]</a>
+    <span class="n">tube_to_point_indices</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">TubeID</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SectionCorrespondence.island_to_point_indices">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionCorrespondence.island_to_point_indices">[docs]</a>
+    <span class="n">island_to_point_indices</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">IslandID</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SectionCorrespondence.missing_tube_ids">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionCorrespondence.missing_tube_ids">[docs]</a>
+    <span class="n">missing_tube_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TubeID</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SectionCorrespondence.duplicate_tube_ids">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionCorrespondence.duplicate_tube_ids">[docs]</a>
+    <span class="n">duplicate_tube_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TubeID</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SectionCorrespondence.reconstructed_tube_ids">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionCorrespondence.reconstructed_tube_ids">[docs]</a>
+    <span class="n">reconstructed_tube_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TubeID</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SectionCorrespondence.debug_info">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionCorrespondence.debug_info">[docs]</a>
+    <span class="n">debug_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SectionCorrespondence.is_complete">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionCorrespondence.is_complete">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">missing_tube_ids</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">duplicate_tube_ids</span></div>
+
+
+<div class="viewcode-block" id="SectionCorrespondence.diagnostics">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionCorrespondence.diagnostics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">diagnostics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;resonance&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">resonance_id</span><span class="o">.</span><span class="n">short_label</span><span class="p">(),</span>
+            <span class="s1">&#39;phi&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phi</span><span class="p">),</span>
+            <span class="s1">&#39;missing_tube_ids&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">tid</span><span class="o">.</span><span class="n">short_label</span><span class="p">()</span> <span class="k">for</span> <span class="n">tid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">missing_tube_ids</span><span class="p">],</span>
+            <span class="s1">&#39;duplicate_tube_ids&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">tid</span><span class="o">.</span><span class="n">short_label</span><span class="p">()</span> <span class="k">for</span> <span class="n">tid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">duplicate_tube_ids</span><span class="p">],</span>
+            <span class="s1">&#39;reconstructed_tube_ids&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">tid</span><span class="o">.</span><span class="n">short_label</span><span class="p">()</span> <span class="k">for</span> <span class="n">tid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reconstructed_tube_ids</span><span class="p">],</span>
+            <span class="s1">&#39;n_tubes_mapped&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tube_to_point_indices</span><span class="p">),</span>
+            <span class="s1">&#39;n_islands_mapped&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">island_to_point_indices</span><span class="p">),</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="SectionView">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SectionView</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Bridge-layer representation of one resonance at one Poincar茅 section.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SectionView.phi">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionView.phi">[docs]</a>
+    <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="SectionView.resonance_id">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionView.resonance_id">[docs]</a>
+    <span class="n">resonance_id</span><span class="p">:</span> <span class="n">ResonanceID</span></div>
+
+<div class="viewcode-block" id="SectionView.points">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionView.points">[docs]</a>
+    <span class="n">points</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SectionViewPoint</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="SectionView.kind">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionView.kind">[docs]</a>
+    <span class="n">kind</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="SectionView.correspondence">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionView.correspondence">[docs]</a>
+    <span class="n">correspondence</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">SectionCorrespondence</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="SectionView.debug_info">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionView.debug_info">[docs]</a>
+    <span class="n">debug_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SectionView.n_points">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionView.n_points">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">n_points</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SectionView.unique_points">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionView.unique_points">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">unique_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dedup_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">SectionViewPoint</span><span class="p">]:</span>
+        <span class="n">out</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SectionViewPoint</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">R</span> <span class="o">-</span> <span class="n">keep</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">Z</span> <span class="o">-</span> <span class="n">keep</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">dedup_tol</span> <span class="k">for</span> <span class="n">keep</span> <span class="ow">in</span> <span class="n">out</span><span class="p">):</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pt</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="SectionView.fixed_points">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionView.fixed_points">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fixed_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dedup_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return unique fixed-point objects carried by this section view.&quot;&quot;&quot;</span>
+        <span class="n">fps</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">seen</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unique_points</span><span class="p">(</span><span class="n">dedup_tol</span><span class="o">=</span><span class="n">dedup_tol</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">pt</span><span class="o">.</span><span class="n">fixed_point</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">fp</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">fixed_point</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">fp</span><span class="o">.</span><span class="n">R</span> <span class="o">-</span> <span class="n">R0</span><span class="p">,</span> <span class="n">fp</span><span class="o">.</span><span class="n">Z</span> <span class="o">-</span> <span class="n">Z0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">dedup_tol</span> <span class="k">for</span> <span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">seen</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">float</span><span class="p">(</span><span class="n">fp</span><span class="o">.</span><span class="n">R</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">fp</span><span class="o">.</span><span class="n">Z</span><span class="p">)))</span>
+            <span class="n">fps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fps</span></div>
+
+
+<div class="viewcode-block" id="SectionView.to_fixed_point_dict">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionView.to_fixed_point_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_fixed_point_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dedup_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a legacy-style ``{&#39;xpts&#39;: [...], &#39;opts&#39;: [...]}`` dict.&quot;&quot;&quot;</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_points</span><span class="p">(</span><span class="n">dedup_tol</span><span class="o">=</span><span class="n">dedup_tol</span><span class="p">)</span>
+        <span class="n">kind</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;X&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;xpts&#39;</span><span class="p">:</span> <span class="n">pts</span><span class="p">,</span> <span class="s1">&#39;opts&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;O&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;xpts&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;opts&#39;</span><span class="p">:</span> <span class="n">pts</span><span class="p">}</span>
+        <span class="n">xpts</span> <span class="o">=</span> <span class="p">[</span><span class="n">fp</span> <span class="k">for</span> <span class="n">fp</span> <span class="ow">in</span> <span class="n">pts</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="s1">&#39;kind&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;X&#39;</span><span class="p">]</span>
+        <span class="n">opts</span> <span class="o">=</span> <span class="p">[</span><span class="n">fp</span> <span class="k">for</span> <span class="n">fp</span> <span class="ow">in</span> <span class="n">pts</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="s1">&#39;kind&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;O&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;xpts&#39;</span><span class="p">:</span> <span class="n">xpts</span><span class="p">,</span> <span class="s1">&#39;opts&#39;</span><span class="p">:</span> <span class="n">opts</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="SectionView.diagnostics">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionView.diagnostics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">diagnostics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;phi&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phi</span><span class="p">),</span>
+            <span class="s1">&#39;resonance&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">resonance_id</span><span class="o">.</span><span class="n">short_label</span><span class="p">(),</span>
+            <span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="p">,</span>
+            <span class="s1">&#39;n_points&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_points</span><span class="p">),</span>
+            <span class="s1">&#39;correspondence&#39;</span><span class="p">:</span> <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">correspondence</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">correspondence</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">(),</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="SectionView.summary">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionView.summary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">diag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;SectionView(phi=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">phi</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">, resonance=</span><span class="si">{</span><span class="n">diag</span><span class="p">[</span><span class="s1">&#39;resonance&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, kind=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="si">}</span><span class="s2">, &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;n_points=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_points</span><span class="si">}</span><span class="s2">, corr=</span><span class="si">{</span><span class="n">diag</span><span class="p">[</span><span class="s1">&#39;correspondence&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SectionView.to_island_chain">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionView.to_island_chain">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_island_chain</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">x_section_view</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;SectionView&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">proximity_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">dedup_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IslandChain</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a bridge-layer section view into a discrete ``IslandChain``.&quot;&quot;&quot;</span>
+        <span class="n">O_points</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="o">.</span><span class="n">as_array</span><span class="p">()</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unique_points</span><span class="p">(</span><span class="n">dedup_tol</span><span class="o">=</span><span class="n">dedup_tol</span><span class="p">)]</span>
+        <span class="n">X_points</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">x_section_view</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">X_points</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="o">.</span><span class="n">as_array</span><span class="p">()</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">x_section_view</span><span class="o">.</span><span class="n">unique_points</span><span class="p">(</span><span class="n">dedup_tol</span><span class="o">=</span><span class="n">dedup_tol</span><span class="p">)]</span>
+        <span class="n">chain</span> <span class="o">=</span> <span class="n">IslandChain</span><span class="o">.</span><span class="n">from_fixed_points</span><span class="p">(</span>
+            <span class="n">O_points</span><span class="o">=</span><span class="n">O_points</span><span class="p">,</span>
+            <span class="n">X_points</span><span class="o">=</span><span class="n">X_points</span><span class="p">,</span>
+            <span class="n">m</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">resonance_id</span><span class="o">.</span><span class="n">m</span><span class="p">,</span>
+            <span class="n">n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">resonance_id</span><span class="o">.</span><span class="n">n</span><span class="p">,</span>
+            <span class="n">proximity_tol</span><span class="o">=</span><span class="n">proximity_tol</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">chain</span></div>
+
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="SectionView.from_island_chain">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionView.from_island_chain">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_island_chain</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">chain</span><span class="p">:</span> <span class="n">IslandChain</span><span class="p">,</span>
+        <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">resonance_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ResonanceID</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">kind</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;O&quot;</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SectionView&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct a section view from a discrete ``IslandChain``.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">resonance_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">resonance_id</span> <span class="o">=</span> <span class="n">ResonanceID</span><span class="p">(</span><span class="n">m</span><span class="o">=</span><span class="n">chain</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">chain</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="n">Np</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">points</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SectionViewPoint</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">tube_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">TubeID</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">island_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">IslandID</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">isl</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">islands</span><span class="p">):</span>
+            <span class="n">tube_id</span> <span class="o">=</span> <span class="n">TubeID</span><span class="p">(</span><span class="n">resonance</span><span class="o">=</span><span class="n">resonance_id</span><span class="p">,</span> <span class="n">tube_index</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">)</span>
+            <span class="n">island_id</span> <span class="o">=</span> <span class="n">IslandID</span><span class="p">(</span><span class="n">resonance</span><span class="o">=</span><span class="n">resonance_id</span><span class="p">,</span> <span class="n">phi</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">phi</span><span class="p">),</span> <span class="n">island_index</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">)</span>
+            <span class="n">pt</span> <span class="o">=</span> <span class="n">SectionViewPoint</span><span class="p">(</span>
+                <span class="n">phi</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">phi</span><span class="p">),</span>
+                <span class="n">R</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">isl</span><span class="o">.</span><span class="n">O_point</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="n">Z</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">isl</span><span class="o">.</span><span class="n">O_point</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span>
+                <span class="n">tube_id</span><span class="o">=</span><span class="n">tube_id</span><span class="p">,</span>
+                <span class="n">island_id</span><span class="o">=</span><span class="n">island_id</span><span class="p">,</span>
+                <span class="n">source</span><span class="o">=</span><span class="s2">&quot;projected-from-discrete&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pt</span><span class="p">)</span>
+            <span class="n">tube_map</span><span class="p">[</span><span class="n">tube_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="n">island_map</span><span class="p">[</span><span class="n">island_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">corr</span> <span class="o">=</span> <span class="n">SectionCorrespondence</span><span class="p">(</span>
+            <span class="n">resonance_id</span><span class="o">=</span><span class="n">resonance_id</span><span class="p">,</span>
+            <span class="n">phi</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">phi</span><span class="p">),</span>
+            <span class="n">tube_to_point_indices</span><span class="o">=</span><span class="n">tube_map</span><span class="p">,</span>
+            <span class="n">island_to_point_indices</span><span class="o">=</span><span class="n">island_map</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">phi</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">phi</span><span class="p">),</span> <span class="n">resonance_id</span><span class="o">=</span><span class="n">resonance_id</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="n">points</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span> <span class="n">correspondence</span><span class="o">=</span><span class="n">corr</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="SectionViewBuilder">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionViewBuilder">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SectionViewBuilder</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Builder/adaptor between TubeChain section cuts and SectionView.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SectionViewBuilder.resonance_id">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionViewBuilder.resonance_id">[docs]</a>
+    <span class="n">resonance_id</span><span class="p">:</span> <span class="n">ResonanceID</span></div>
+
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="SectionViewBuilder.from_tubechain">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionViewBuilder.from_tubechain">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_tubechain</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">tubechain</span><span class="p">:</span> <span class="s2">&quot;TubeChain&quot;</span><span class="p">,</span>
+        <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">kind</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">reconstruct</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">,</span>
+        <span class="n">dedup_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">,</span>
+        <span class="n">section_reconstructor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SectionView</span><span class="p">:</span>
+        <span class="n">resonance_id</span> <span class="o">=</span> <span class="n">ResonanceID</span><span class="p">(</span>
+            <span class="n">m</span><span class="o">=</span><span class="n">tubechain</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">tubechain</span><span class="o">.</span><span class="n">n</span><span class="p">,</span>
+            <span class="n">Np</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">tubechain</span><span class="p">,</span> <span class="s1">&#39;Np&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">tubechain</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">builder</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">resonance_id</span><span class="o">=</span><span class="n">resonance_id</span><span class="p">)</span>
+        <span class="n">section_data</span> <span class="o">=</span> <span class="n">tubechain</span><span class="o">.</span><span class="n">_section_view_data</span><span class="p">(</span>
+            <span class="n">phi</span><span class="p">,</span>
+            <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">,</span>
+            <span class="n">dedup_tol</span><span class="o">=</span><span class="n">dedup_tol</span><span class="p">,</span>
+            <span class="n">reconstruct</span><span class="o">=</span><span class="n">reconstruct</span><span class="p">,</span>
+            <span class="n">section_reconstructor</span><span class="o">=</span><span class="n">section_reconstructor</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">view_kind</span> <span class="o">=</span> <span class="n">kind</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">tubechain</span><span class="p">,</span> <span class="s1">&#39;kind&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">builder</span><span class="o">.</span><span class="n">from_section_data</span><span class="p">(</span><span class="n">section_data</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">view_kind</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SectionViewBuilder.from_section_data">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.SectionViewBuilder.from_section_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_section_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">kind</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SectionView</span><span class="p">:</span>
+        <span class="n">points</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SectionViewPoint</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">tube_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">TubeID</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">island_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">IslandID</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">duplicate_tube_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TubeID</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">reconstructed_tube_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TubeID</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Build point list with stable tube IDs.</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">cp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">section_data</span><span class="p">[</span><span class="s1">&#39;cut_points&#39;</span><span class="p">]):</span>
+            <span class="n">tube_id</span> <span class="o">=</span> <span class="n">TubeID</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resonance_id</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">tube_index</span><span class="p">),</span> <span class="n">cp</span><span class="o">.</span><span class="n">kind</span> <span class="ow">or</span> <span class="n">kind</span><span class="p">)</span>
+            <span class="n">pt</span> <span class="o">=</span> <span class="n">SectionViewPoint</span><span class="p">(</span>
+                <span class="n">phi</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">section_data</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]),</span>
+                <span class="n">R</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">R</span><span class="p">),</span>
+                <span class="n">Z</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Z</span><span class="p">),</span>
+                <span class="n">kind</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">kind</span> <span class="ow">or</span> <span class="n">kind</span><span class="p">,</span>
+                <span class="n">tube_id</span><span class="o">=</span><span class="n">tube_id</span><span class="p">,</span>
+                <span class="n">fixed_point</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">fixed_point</span><span class="p">,</span>
+                <span class="n">source</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">source</span><span class="p">,</span>
+                <span class="n">raw_center</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">raw_center</span><span class="p">,</span>
+                <span class="n">debug_info</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">debug_info</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="n">points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pt</span><span class="p">)</span>
+            <span class="n">tube_map</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">tube_id</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">pt</span><span class="o">.</span><span class="n">source</span> <span class="o">!=</span> <span class="s2">&quot;exact-cut&quot;</span><span class="p">:</span>
+                <span class="n">reconstructed_tube_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tube_id</span><span class="p">)</span>
+
+        <span class="c1"># Assign island IDs by geometric ordering on the unique point set.</span>
+        <span class="n">ordered_unique</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">_unique_cut_points</span><span class="p">(</span><span class="n">section_data</span><span class="p">[</span><span class="s1">&#39;cut_points&#39;</span><span class="p">]),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cp</span><span class="p">:</span> <span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">island_idx</span><span class="p">,</span> <span class="n">cp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ordered_unique</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">pt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">points</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">R</span> <span class="o">-</span> <span class="n">cp</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">Z</span> <span class="o">-</span> <span class="n">cp</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-12</span><span class="p">:</span>
+                    <span class="n">island_id</span> <span class="o">=</span> <span class="n">IslandID</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resonance_id</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">section_data</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]),</span> <span class="n">island_idx</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span>
+                    <span class="n">pt</span><span class="o">.</span><span class="n">island_id</span> <span class="o">=</span> <span class="n">island_id</span>
+                    <span class="n">island_map</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">island_id</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+
+        <span class="n">missing_tube_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">TubeID</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resonance_id</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">kind</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">section_data</span><span class="p">[</span><span class="s1">&#39;missing_tube_indices&#39;</span><span class="p">]]</span>
+        <span class="k">for</span> <span class="n">grp</span> <span class="ow">in</span> <span class="n">section_data</span><span class="p">[</span><span class="s1">&#39;duplicate_groups&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">grp</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">first</span> <span class="o">=</span> <span class="n">section_data</span><span class="p">[</span><span class="s1">&#39;cut_points&#39;</span><span class="p">][</span><span class="n">grp</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">duplicate_tube_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TubeID</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resonance_id</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">first</span><span class="o">.</span><span class="n">tube_index</span><span class="p">),</span> <span class="n">first</span><span class="o">.</span><span class="n">kind</span> <span class="ow">or</span> <span class="n">kind</span><span class="p">))</span>
+
+        <span class="n">corr</span> <span class="o">=</span> <span class="n">SectionCorrespondence</span><span class="p">(</span>
+            <span class="n">resonance_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">resonance_id</span><span class="p">,</span>
+            <span class="n">phi</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">section_data</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]),</span>
+            <span class="n">tube_to_point_indices</span><span class="o">=</span><span class="n">tube_map</span><span class="p">,</span>
+            <span class="n">island_to_point_indices</span><span class="o">=</span><span class="n">island_map</span><span class="p">,</span>
+            <span class="n">missing_tube_ids</span><span class="o">=</span><span class="n">missing_tube_ids</span><span class="p">,</span>
+            <span class="n">duplicate_tube_ids</span><span class="o">=</span><span class="n">duplicate_tube_ids</span><span class="p">,</span>
+            <span class="n">reconstructed_tube_ids</span><span class="o">=</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">reconstructed_tube_ids</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">tube_index</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">SectionView</span><span class="p">(</span>
+            <span class="n">phi</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">section_data</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]),</span>
+            <span class="n">resonance_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">resonance_id</span><span class="p">,</span>
+            <span class="n">points</span><span class="o">=</span><span class="n">points</span><span class="p">,</span>
+            <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span>
+            <span class="n">correspondence</span><span class="o">=</span><span class="n">corr</span><span class="p">,</span>
+            <span class="n">debug_info</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">section_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;debug_info&#39;</span><span class="p">,</span> <span class="p">{})),</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ToroidalSectionViewPoint">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.ToroidalSectionViewPoint">[docs]</a>
+<span class="n">ToroidalSectionViewPoint</span> <span class="o">=</span> <span class="n">SectionViewPoint</span></div>
+
+<div class="viewcode-block" id="ToroidalSectionCorrespondence">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.ToroidalSectionCorrespondence">[docs]</a>
+<span class="n">ToroidalSectionCorrespondence</span> <span class="o">=</span> <span class="n">SectionCorrespondence</span></div>
+
+<div class="viewcode-block" id="ToroidalSectionView">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.ToroidalSectionView">[docs]</a>
+<span class="n">ToroidalSectionView</span> <span class="o">=</span> <span class="n">SectionView</span></div>
+
+<div class="viewcode-block" id="ToroidalSectionViewBuilder">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/toroidal_section_view/index.html#pyna.topo.toroidal_section_view.ToroidalSectionViewBuilder">[docs]</a>
+<span class="n">ToroidalSectionViewBuilder</span> <span class="o">=</span> <span class="n">SectionViewBuilder</span></div>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;SectionViewPoint&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SectionCorrespondence&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SectionView&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SectionViewBuilder&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ToroidalSectionViewPoint&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ToroidalSectionCorrespondence&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ToroidalSectionView&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ToroidalSectionViewBuilder&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

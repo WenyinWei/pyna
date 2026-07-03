@@ -1,0 +1,965 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.toroidal.flt.postcompute &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/toroidal/flt/postcompute';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../../_static/searchtools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.toroidal.flt.postcompute</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.toroidal.flt.postcompute</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Post-compute views for toroidal field-line wall traces.&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Sequence</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.toroidal.flt.numba_poincare</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">strike_line_from_wall_hits</span><span class="p">,</span>
+    <span class="n">trace_wall_hits_twall_field</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.toroidal.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">coerce_toroidal_surface_arrays</span>
+
+
+<span class="n">_VIEW_ALIASES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;+&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_plus&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;plus&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_plus&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;forward&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_plus&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fwd&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_plus&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Lc+&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_plus&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Lc_plus&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_plus&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;-&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_minus&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;minus&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_minus&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;backward&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_minus&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;bwd&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_minus&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Lc-&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_minus&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Lc_minus&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_minus&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;sum&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_sum&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;total&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_sum&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Lc_total&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_sum&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Lc_sum&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_sum&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;max&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_max&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;maximum&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_max&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Lc_max&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_max&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;min&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_min&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;minimum&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_min&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Lc_min&quot;</span><span class="p">:</span> <span class="s2">&quot;Lc_min&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_json_default</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">generic</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Path</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;object of type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> is not JSON serializable&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_array_digest</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">()</span>
+    <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
+    <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">h</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_field_array_signature</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">attr_names</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">attr_names</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;attr&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+            <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span>
+            <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span>
+            <span class="s2">&quot;sha256&quot;</span><span class="p">:</span> <span class="n">_array_digest</span><span class="p">(</span><span class="n">arr</span><span class="p">),</span>
+        <span class="p">}</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_field_cache_signature</span><span class="p">(</span><span class="n">field</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a stable, compact cache signature for known field objects.&quot;&quot;&quot;</span>
+
+    <span class="n">signature</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">field</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">field</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__qualname__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="n">signature</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;nfp&quot;</span><span class="p">,</span> <span class="s2">&quot;field_periods&quot;</span><span class="p">,</span> <span class="s2">&quot;nPhi&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="n">signature</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;field_period&quot;</span><span class="p">,):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="n">signature</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">attr_names</span> <span class="ow">in</span> <span class="p">{</span>
+        <span class="s2">&quot;R&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;R_arr&quot;</span><span class="p">,</span> <span class="s2">&quot;R&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;Z&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Z_arr&quot;</span><span class="p">,</span> <span class="s2">&quot;Z&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;Phi&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Phi&quot;</span><span class="p">,),</span>
+        <span class="s2">&quot;BR&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;BR&quot;</span><span class="p">,</span> <span class="s2">&quot;VR&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;BZ&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;BZ&quot;</span><span class="p">,</span> <span class="s2">&quot;VZ&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;BPhi&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;BPhi&quot;</span><span class="p">,</span> <span class="s2">&quot;VPhi&quot;</span><span class="p">),</span>
+    <span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">field_array</span> <span class="o">=</span> <span class="n">_field_array_signature</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">attr_names</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">field_array</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">signature</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">field_array</span>
+    <span class="k">return</span> <span class="n">signature</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_wall_trace_cache_signature</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">field_signature</span><span class="p">,</span>
+    <span class="n">seed_R</span><span class="p">,</span>
+    <span class="n">seed_Z</span><span class="p">,</span>
+    <span class="n">phi_start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">max_turns</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">DPhi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">wall_phi</span><span class="p">,</span>
+    <span class="n">wall_R_all</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">wall_Z_all</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">extend_phi</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="n">field_signature</span><span class="p">,</span>
+        <span class="s2">&quot;seed_R&quot;</span><span class="p">:</span> <span class="n">_array_digest</span><span class="p">(</span><span class="n">seed_R</span><span class="p">),</span>
+        <span class="s2">&quot;seed_Z&quot;</span><span class="p">:</span> <span class="n">_array_digest</span><span class="p">(</span><span class="n">seed_Z</span><span class="p">),</span>
+        <span class="s2">&quot;phi_start&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">phi_start</span><span class="p">),</span>
+        <span class="s2">&quot;max_turns&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_turns</span><span class="p">),</span>
+        <span class="s2">&quot;DPhi&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">DPhi</span><span class="p">),</span>
+        <span class="s2">&quot;wall_phi&quot;</span><span class="p">:</span> <span class="n">_array_digest</span><span class="p">(</span><span class="n">wall_phi</span><span class="p">),</span>
+        <span class="s2">&quot;wall_R_all&quot;</span><span class="p">:</span> <span class="n">_array_digest</span><span class="p">(</span><span class="n">wall_R_all</span><span class="p">),</span>
+        <span class="s2">&quot;wall_Z_all&quot;</span><span class="p">:</span> <span class="n">_array_digest</span><span class="p">(</span><span class="n">wall_Z_all</span><span class="p">),</span>
+        <span class="s2">&quot;extend_phi&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">extend_phi</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="n">encoded</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">_json_default</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">encoded</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="normalize_connection_length_view">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.postcompute.normalize_connection_length_view">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_connection_length_view</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the canonical connection-length view key.&quot;&quot;&quot;</span>
+
+    <span class="n">key</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_VIEW_ALIASES</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unknown connection-length view: </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_VIEW_ALIASES</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="connection_length_views_from_wall_hits">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.postcompute.connection_length_views_from_wall_hits">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">connection_length_views_from_wall_hits</span><span class="p">(</span>
+    <span class="n">wall_hits</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+    <span class="n">views</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Lc_plus&quot;</span><span class="p">,</span> <span class="s2">&quot;Lc_minus&quot;</span><span class="p">,</span> <span class="s2">&quot;Lc_sum&quot;</span><span class="p">,</span> <span class="s2">&quot;Lc_max&quot;</span><span class="p">),</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute requested scalar Lc views from one bidirectional wall-hit trace.&quot;&quot;&quot;</span>
+
+    <span class="n">plus</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">wall_hits</span><span class="p">[</span><span class="s2">&quot;Lc_plus&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">minus</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">wall_hits</span><span class="p">[</span><span class="s2">&quot;Lc_minus&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;Lc_plus&quot;</span><span class="p">:</span> <span class="n">plus</span><span class="p">,</span>
+        <span class="s2">&quot;Lc_minus&quot;</span><span class="p">:</span> <span class="n">minus</span><span class="p">,</span>
+        <span class="s2">&quot;Lc_sum&quot;</span><span class="p">:</span> <span class="n">plus</span> <span class="o">+</span> <span class="n">minus</span><span class="p">,</span>
+        <span class="s2">&quot;Lc_max&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">plus</span><span class="p">,</span> <span class="n">minus</span><span class="p">),</span>
+        <span class="s2">&quot;Lc_min&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">plus</span><span class="p">,</span> <span class="n">minus</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">normalize_connection_length_view</span><span class="p">(</span><span class="n">view</span><span class="p">):</span> <span class="n">base</span><span class="p">[</span><span class="n">normalize_connection_length_view</span><span class="p">(</span><span class="n">view</span><span class="p">)]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">view</span> <span class="ow">in</span> <span class="n">views</span><span class="p">}</span></div>
+
+
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="ToroidalWallTraceData">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.postcompute.ToroidalWallTraceData">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ToroidalWallTraceData</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reusable raw toroidal-wall trace result plus post-compute helpers.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ToroidalWallTraceData.seed_R">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/postcompute/index.html#pyna.toroidal.flt.postcompute.ToroidalWallTraceData.seed_R">[docs]</a>
+    <span class="n">seed_R</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="ToroidalWallTraceData.seed_Z">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/postcompute/index.html#pyna.toroidal.flt.postcompute.ToroidalWallTraceData.seed_Z">[docs]</a>
+    <span class="n">seed_Z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="ToroidalWallTraceData.phi_start">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/postcompute/index.html#pyna.toroidal.flt.postcompute.ToroidalWallTraceData.phi_start">[docs]</a>
+    <span class="n">phi_start</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="ToroidalWallTraceData.max_turns">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/postcompute/index.html#pyna.toroidal.flt.postcompute.ToroidalWallTraceData.max_turns">[docs]</a>
+    <span class="n">max_turns</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="ToroidalWallTraceData.DPhi">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/postcompute/index.html#pyna.toroidal.flt.postcompute.ToroidalWallTraceData.DPhi">[docs]</a>
+    <span class="n">DPhi</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="ToroidalWallTraceData.wall_hits">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/postcompute/index.html#pyna.toroidal.flt.postcompute.ToroidalWallTraceData.wall_hits">[docs]</a>
+    <span class="n">wall_hits</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="ToroidalWallTraceData.metadata">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/postcompute/index.html#pyna.toroidal.flt.postcompute.ToroidalWallTraceData.metadata">[docs]</a>
+    <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed_R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed_R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed_Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed_Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed_R</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed_Z</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;seed_R and seed_Z must have the same length&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phi_start</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phi_start</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_turns</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_turns</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DPhi</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DPhi</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wall_hits</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">wall_hits</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ToroidalWallTraceData.n_seed">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/postcompute/index.html#pyna.toroidal.flt.postcompute.ToroidalWallTraceData.n_seed">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">n_seed</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed_R</span><span class="o">.</span><span class="n">size</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ToroidalWallTraceData.view">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.postcompute.ToroidalWallTraceData.view">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return one scalar connection-length view without retracing.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">connection_length_views_from_wall_hits</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wall_hits</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,))[</span><span class="n">normalize_connection_length_view</span><span class="p">(</span><span class="n">name</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="ToroidalWallTraceData.views">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.postcompute.ToroidalWallTraceData.views">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">views</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">names</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return multiple scalar connection-length views without retracing.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">connection_length_views_from_wall_hits</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wall_hits</span><span class="p">,</span> <span class="n">names</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ToroidalWallTraceData.strike">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.postcompute.ToroidalWallTraceData.strike">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">strike</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="n">wall_term</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return strike points derived from cached wall-hit data.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">strike_line_from_wall_hits</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wall_hits</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span> <span class="n">wall_term</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">wall_term</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="ToroidalWallTraceData.save_npz">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.postcompute.ToroidalWallTraceData.save_npz">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_npz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Persist this raw trace and metadata for later post-compute views.&quot;&quot;&quot;</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">arrays</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;seed_R&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed_R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+            <span class="s2">&quot;seed_Z&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed_Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+            <span class="s2">&quot;phi_start&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phi_start</span><span class="p">)),</span>
+            <span class="s2">&quot;max_turns&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_turns</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span>
+            <span class="s2">&quot;DPhi&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DPhi</span><span class="p">)),</span>
+            <span class="s2">&quot;metadata_json&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">_json_default</span><span class="p">)),</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">wall_hits</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">arrays</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;wall_hits_</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">savez</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">out</span><span class="p">),</span> <span class="o">**</span><span class="n">arrays</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ToroidalWallTraceData.save_views_npz">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.postcompute.ToroidalWallTraceData.save_views_npz">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_views_npz</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+        <span class="n">views</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Lc_plus&quot;</span><span class="p">,</span> <span class="s2">&quot;Lc_minus&quot;</span><span class="p">,</span> <span class="s2">&quot;Lc_sum&quot;</span><span class="p">,</span> <span class="s2">&quot;Lc_max&quot;</span><span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save derived connection-length views without retracing.&quot;&quot;&quot;</span>
+
+        <span class="n">derived</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">views</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">views</span><span class="p">))</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">savez</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">out</span><span class="p">),</span> <span class="o">**</span><span class="n">derived</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">derived</span></div>
+
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="ToroidalWallTraceData.load_npz">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.postcompute.ToroidalWallTraceData.load_npz">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_npz</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ToroidalWallTraceData&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a cached raw wall trace from :meth:`save_npz` output.&quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()),</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">metadata_raw</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;metadata_json&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+            <span class="n">wall_hits</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">key</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="s2">&quot;wall_hits_&quot;</span><span class="p">):]:</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">files</span>
+                <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;wall_hits_&quot;</span><span class="p">)</span>
+            <span class="p">}</span>
+            <span class="n">seed_R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;seed_R&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">seed_Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;seed_Z&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">phi_start</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;phi_start&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+            <span class="n">max_turns</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;max_turns&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+            <span class="n">DPhi</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;DPhi&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">seed_R</span><span class="o">=</span><span class="n">seed_R</span><span class="p">,</span>
+            <span class="n">seed_Z</span><span class="o">=</span><span class="n">seed_Z</span><span class="p">,</span>
+            <span class="n">phi_start</span><span class="o">=</span><span class="n">phi_start</span><span class="p">,</span>
+            <span class="n">max_turns</span><span class="o">=</span><span class="n">max_turns</span><span class="p">,</span>
+            <span class="n">DPhi</span><span class="o">=</span><span class="n">DPhi</span><span class="p">,</span>
+            <span class="n">wall_hits</span><span class="o">=</span><span class="n">wall_hits</span><span class="p">,</span>
+            <span class="n">metadata</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">metadata_raw</span><span class="p">)</span> <span class="k">if</span> <span class="n">metadata_raw</span> <span class="k">else</span> <span class="p">{},</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="trace_toroidal_wall_data_field">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.postcompute.trace_toroidal_wall_data_field">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">trace_toroidal_wall_data_field</span><span class="p">(</span>
+    <span class="n">field</span><span class="p">,</span>
+    <span class="n">seed_R</span><span class="p">,</span>
+    <span class="n">seed_Z</span><span class="p">,</span>
+    <span class="n">phi_start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">max_turns</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">DPhi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">wall_phi</span><span class="p">,</span>
+    <span class="n">wall_R_all</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">wall_Z_all</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">extend_phi</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">cache_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">validate_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">allow_legacy_unsigned_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">field_signature</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ToroidalWallTraceData</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Trace bidirectional toroidal-wall hits once, optionally caching raw data.&quot;&quot;&quot;</span>
+
+    <span class="n">wall_phi</span><span class="p">,</span> <span class="n">wall_R_all</span><span class="p">,</span> <span class="n">wall_Z_all</span> <span class="o">=</span> <span class="n">coerce_toroidal_surface_arrays</span><span class="p">(</span><span class="n">wall_phi</span><span class="p">,</span> <span class="n">wall_R_all</span><span class="p">,</span> <span class="n">wall_Z_all</span><span class="p">)</span>
+    <span class="n">resolved_field_signature</span> <span class="o">=</span> <span class="n">_field_cache_signature</span><span class="p">(</span><span class="n">field</span><span class="p">)</span> <span class="k">if</span> <span class="n">field_signature</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">field_signature</span>
+    <span class="n">signature</span> <span class="o">=</span> <span class="n">_wall_trace_cache_signature</span><span class="p">(</span>
+        <span class="n">field_signature</span><span class="o">=</span><span class="n">resolved_field_signature</span><span class="p">,</span>
+        <span class="n">seed_R</span><span class="o">=</span><span class="n">seed_R</span><span class="p">,</span>
+        <span class="n">seed_Z</span><span class="o">=</span><span class="n">seed_Z</span><span class="p">,</span>
+        <span class="n">phi_start</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">phi_start</span><span class="p">),</span>
+        <span class="n">max_turns</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">max_turns</span><span class="p">),</span>
+        <span class="n">DPhi</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">DPhi</span><span class="p">),</span>
+        <span class="n">wall_phi</span><span class="o">=</span><span class="n">wall_phi</span><span class="p">,</span>
+        <span class="n">wall_R_all</span><span class="o">=</span><span class="n">wall_R_all</span><span class="p">,</span>
+        <span class="n">wall_Z_all</span><span class="o">=</span><span class="n">wall_Z_all</span><span class="p">,</span>
+        <span class="n">extend_phi</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">extend_phi</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">cache_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">cache_path</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
+            <span class="n">cached</span> <span class="o">=</span> <span class="n">ToroidalWallTraceData</span><span class="o">.</span><span class="n">load_npz</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="n">cached_signature</span> <span class="o">=</span> <span class="n">cached</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cache_signature&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">validate_cache</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">cached_signature</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="n">allow_legacy_unsigned_cache</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">&quot;cached toroidal wall trace lacks cache signature; &quot;</span>
+                            <span class="s2">&quot;use a different cache_path, pass overwrite=True, or explicitly &quot;</span>
+                            <span class="s2">&quot;pass allow_legacy_unsigned_cache=True&quot;</span>
+                        <span class="p">)</span>
+                <span class="k">elif</span> <span class="n">cached_signature</span> <span class="o">!=</span> <span class="n">signature</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;cached toroidal wall trace does not match requested inputs; &quot;</span>
+                        <span class="s2">&quot;use a different cache_path or pass overwrite=True&quot;</span>
+                    <span class="p">)</span>
+            <span class="k">return</span> <span class="n">cached</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">hits</span> <span class="o">=</span> <span class="n">trace_wall_hits_twall_field</span><span class="p">(</span>
+        <span class="n">field</span><span class="p">,</span>
+        <span class="n">seed_R</span><span class="p">,</span>
+        <span class="n">seed_Z</span><span class="p">,</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">phi_start</span><span class="p">),</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">max_turns</span><span class="p">),</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">DPhi</span><span class="p">),</span>
+        <span class="n">wall_phi</span><span class="p">,</span>
+        <span class="n">wall_R_all</span><span class="p">,</span>
+        <span class="n">wall_Z_all</span><span class="p">,</span>
+        <span class="n">extend_phi</span><span class="o">=</span><span class="n">extend_phi</span><span class="p">,</span>
+        <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="n">ToroidalWallTraceData</span><span class="p">(</span>
+        <span class="n">seed_R</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">seed_R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+        <span class="n">seed_Z</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">seed_Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+        <span class="n">phi_start</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">phi_start</span><span class="p">),</span>
+        <span class="n">max_turns</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">max_turns</span><span class="p">),</span>
+        <span class="n">DPhi</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">DPhi</span><span class="p">),</span>
+        <span class="n">wall_hits</span><span class="o">=</span><span class="n">hits</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="p">{</span>
+            <span class="o">**</span><span class="p">(</span><span class="n">metadata</span> <span class="ow">or</span> <span class="p">{}),</span>
+            <span class="s2">&quot;trace_source&quot;</span><span class="p">:</span> <span class="s2">&quot;trace_wall_hits_twall_field&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;post_compute_reusable&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;field_signature&quot;</span><span class="p">:</span> <span class="n">resolved_field_signature</span><span class="p">,</span>
+            <span class="s2">&quot;cache_signature&quot;</span><span class="p">:</span> <span class="n">signature</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">payload</span><span class="o">.</span><span class="n">save_npz</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">payload</span></div>
+
+
+
+<div class="viewcode-block" id="wall_trace_post_compute_task">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.postcompute.wall_trace_post_compute_task">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">wall_trace_post_compute_task</span><span class="p">(</span>
+    <span class="n">cache_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">views</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load one cached raw trace and derive scalar Lc views.&quot;&quot;&quot;</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">ToroidalWallTraceData</span><span class="o">.</span><span class="n">load_npz</span><span class="p">(</span><span class="n">cache_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">out_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">save_views_npz</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">views</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">views</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">views</span><span class="p">))</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_optional_prefect_flow_task</span><span class="p">():</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.workflow.prefect</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_prefect</span>
+    <span class="k">except</span> <span class="ne">ModuleNotFoundError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">exc</span><span class="o">.</span><span class="n">name</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="n">exc</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;pyna.workflow&quot;</span> <span class="ow">or</span> <span class="n">exc</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;pyna.workflow.&quot;</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;Prefect is required for workflow runtime support. &quot;</span>
+                <span class="s2">&quot;Install it with `pyna-chaos[workflow]` or `pyna-chaos[prefect]`.&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="k">raise</span>
+    <span class="k">return</span> <span class="n">optional_prefect</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_make_prefect_wall_post_compute_flow</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+    <span class="nd">@task</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pyna-wall-trace-post-compute-task&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_wall_trace_post_compute_task</span><span class="p">(</span>
+        <span class="n">cache_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">views</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">wall_trace_post_compute_task</span><span class="p">(</span><span class="n">cache_path</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">views</span><span class="p">),</span> <span class="n">out_path</span><span class="p">)</span>
+
+    <span class="nd">@flow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pyna-wall-trace-post-compute&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_wall_trace_post_compute_flow</span><span class="p">(</span>
+        <span class="n">cache_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">views</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Lc_plus&quot;</span><span class="p">,</span> <span class="s2">&quot;Lc_minus&quot;</span><span class="p">,</span> <span class="s2">&quot;Lc_sum&quot;</span><span class="p">,</span> <span class="s2">&quot;Lc_max&quot;</span><span class="p">),</span>
+        <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">return</span> <span class="n">_wall_trace_post_compute_task</span><span class="p">(</span><span class="n">cache_path</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">views</span><span class="p">),</span> <span class="n">out_path</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_wall_trace_post_compute_flow</span>
+
+
+<div class="viewcode-block" id="wall_trace_post_compute_flow">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.postcompute.wall_trace_post_compute_flow">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">wall_trace_post_compute_flow</span><span class="p">(</span>
+    <span class="n">cache_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">views</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Lc_plus&quot;</span><span class="p">,</span> <span class="s2">&quot;Lc_minus&quot;</span><span class="p">,</span> <span class="s2">&quot;Lc_sum&quot;</span><span class="p">,</span> <span class="s2">&quot;Lc_max&quot;</span><span class="p">),</span>
+    <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Prefect flow for post-compute views from cached wall-hit data.&quot;&quot;&quot;</span>
+
+    <span class="n">flow</span><span class="p">,</span> <span class="n">task</span> <span class="o">=</span> <span class="n">_optional_prefect_flow_task</span><span class="p">()</span>
+    <span class="n">prefect_flow</span> <span class="o">=</span> <span class="n">_make_prefect_wall_post_compute_flow</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">prefect_flow</span><span class="p">(</span><span class="n">cache_path</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">views</span><span class="p">),</span> <span class="n">out_path</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="build_prefect_wall_post_compute_flow">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.postcompute.build_prefect_wall_post_compute_flow">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_prefect_wall_post_compute_flow</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the canonical Prefect flow for wall-trace post-compute views.&quot;&quot;&quot;</span>
+
+    <span class="n">flow</span><span class="p">,</span> <span class="n">task</span> <span class="o">=</span> <span class="n">_optional_prefect_flow_task</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">_make_prefect_wall_post_compute_flow</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span></div>
+
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;ToroidalWallTraceData&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;build_prefect_wall_post_compute_flow&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;connection_length_views_from_wall_hits&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;normalize_connection_length_view&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;trace_toroidal_wall_data_field&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;wall_trace_post_compute_flow&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;wall_trace_post_compute_task&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

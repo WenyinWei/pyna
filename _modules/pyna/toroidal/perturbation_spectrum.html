@@ -1,0 +1,1313 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.toroidal.perturbation_spectrum &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/toroidal/perturbation_spectrum';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.toroidal.perturbation_spectrum</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.toroidal.perturbation_spectrum</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Radial magnetic-perturbation projection and Fourier spectra on flux surfaces.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.toroidal._periodic_grid</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TWOPI</span><span class="p">,</span>
+    <span class="n">drop_endpoint</span><span class="p">,</span>
+    <span class="n">prepare_surface_arrays</span><span class="p">,</span>
+    <span class="n">periodic_derivative</span><span class="p">,</span>
+    <span class="n">strip_field_grid</span><span class="p">,</span>
+    <span class="n">strip_periodic_endpoint</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="viewcode-block" id="RadialPerturbationFourierSpectrum">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.RadialPerturbationFourierSpectrum">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RadialPerturbationFourierSpectrum</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fourier spectrum of the magnetic perturbation normal to a flux surface.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="RadialPerturbationFourierSpectrum.m">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.RadialPerturbationFourierSpectrum.m">[docs]</a>
+    <span class="n">m</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="RadialPerturbationFourierSpectrum.n">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.RadialPerturbationFourierSpectrum.n">[docs]</a>
+    <span class="n">n</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="RadialPerturbationFourierSpectrum.dBr">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.RadialPerturbationFourierSpectrum.dBr">[docs]</a>
+    <span class="n">dBr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="RadialPerturbationFourierSpectrum.dBr_grid">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.RadialPerturbationFourierSpectrum.dBr_grid">[docs]</a>
+    <span class="n">dBr_grid</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="RadialPerturbationFourierSpectrum.theta">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.RadialPerturbationFourierSpectrum.theta">[docs]</a>
+    <span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="RadialPerturbationFourierSpectrum.phi">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.RadialPerturbationFourierSpectrum.phi">[docs]</a>
+    <span class="n">phi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="RadialPerturbationFourierSpectrum.radial_labels">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.RadialPerturbationFourierSpectrum.radial_labels">[docs]</a>
+    <span class="n">radial_labels</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="RadialPerturbationFourierSpectrum.amplitude">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.RadialPerturbationFourierSpectrum.amplitude">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">amplitude</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Complex-mode amplitudes ``abs(dBr_mn)``.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dBr</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="RadialPerturbationFourierSpectrum.phase">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.RadialPerturbationFourierSpectrum.phase">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Complex-mode phases ``arg(dBr_mn)`` in radians.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dBr</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RadialPerturbationFourierSpectrum.split">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.RadialPerturbationFourierSpectrum.split">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iota</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">resonance_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0e-9</span><span class="p">,</span> <span class="n">radial_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Split this radial spectrum into resonant and non-resonant modes.&quot;&quot;&quot;</span>
+
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.toroidal.torus_deformation</span><span class="w"> </span><span class="kn">import</span> <span class="n">split_radial_perturbation_spectrum</span>
+
+        <span class="n">dBr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dBr</span>
+        <span class="k">if</span> <span class="n">dBr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">radial_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;radial_index is required when splitting a radial stack spectrum&quot;</span><span class="p">)</span>
+            <span class="n">dBr</span> <span class="o">=</span> <span class="n">dBr</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">radial_index</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">split_radial_perturbation_spectrum</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span>
+            <span class="n">dBr</span><span class="p">,</span>
+            <span class="n">iota</span><span class="o">=</span><span class="n">iota</span><span class="p">,</span>
+            <span class="n">resonance_tol</span><span class="o">=</span><span class="n">resonance_tol</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RadialPerturbationFourierSpectrum.mode_index">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.RadialPerturbationFourierSpectrum.mode_index">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mode_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the packed-mode index for ``(m, n)``, or ``None`` if absent.&quot;&quot;&quot;</span>
+
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">m</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="p">))</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">idx</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="RadialPerturbationFourierSpectrum.mode_coefficient">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.RadialPerturbationFourierSpectrum.mode_coefficient">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mode_coefficient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">radial_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">complex</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return one Fourier coefficient from the packed spectrum.&quot;&quot;&quot;</span>
+
+        <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode_index</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span> <span class="o">+</span> <span class="mf">0.0</span><span class="n">j</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dBr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">complex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dBr</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">radial_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;radial_index is required for a radial stack spectrum&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">complex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dBr</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">radial_index</span><span class="p">),</span> <span class="n">idx</span><span class="p">])</span></div>
+</div>
+
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="viewcode-block" id="ResonantIslandChain">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.ResonantIslandChain">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ResonantIslandChain</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Nardon-style resonant island-chain estimate from ``tilde_b^1_{m,-n}``.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ResonantIslandChain.m">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.ResonantIslandChain.m">[docs]</a>
+    <span class="n">m</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="ResonantIslandChain.n">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.ResonantIslandChain.n">[docs]</a>
+    <span class="n">n</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="ResonantIslandChain.radial_label">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.ResonantIslandChain.radial_label">[docs]</a>
+    <span class="n">radial_label</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="ResonantIslandChain.q">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.ResonantIslandChain.q">[docs]</a>
+    <span class="n">q</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="ResonantIslandChain.q_prime">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.ResonantIslandChain.q_prime">[docs]</a>
+    <span class="n">q_prime</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="ResonantIslandChain.coefficient">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.ResonantIslandChain.coefficient">[docs]</a>
+    <span class="n">coefficient</span><span class="p">:</span> <span class="nb">complex</span></div>
+
+<div class="viewcode-block" id="ResonantIslandChain.b_res">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.ResonantIslandChain.b_res">[docs]</a>
+    <span class="n">b_res</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="ResonantIslandChain.half_width">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.ResonantIslandChain.half_width">[docs]</a>
+    <span class="n">half_width</span><span class="p">:</span> <span class="nb">float</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ResonantIslandChain.phase">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.ResonantIslandChain.phase">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Phase ``arg(tilde_b^1_{m,-n})`` in radians.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coefficient</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="ResonantIslandChain.fixed_points">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.ResonantIslandChain.fixed_points">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fixed_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">q_prime_sign</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return O/X poloidal angles for one or more toroidal sections.</span>
+
+<span class="sd">        The convention is the Nardon expansion</span>
+<span class="sd">        ``tilde_b^1 = sum b_mn exp(i(m theta* + n phi))``.  For the resonant</span>
+<span class="sd">        coefficient ``b_{m,-n}``, fixed points satisfy</span>
+<span class="sd">        ``m theta* - n phi + arg(b_{m,-n}) = +/- pi/2``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">sign</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q_prime</span><span class="p">))</span> <span class="k">if</span> <span class="n">q_prime_sign</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">q_prime_sign</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">sign</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sign</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">island_chain_fixed_points</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coefficient</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">q_prime_sign</span><span class="o">=</span><span class="n">sign</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ResonantIslandChain.with_phase_shift">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.ResonantIslandChain.with_phase_shift">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">with_phase_shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase_shift</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ResonantIslandChain&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a copy with ``arg(coefficient)`` advanced by ``phase_shift``.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">ResonantIslandChain</span><span class="p">(</span>
+            <span class="n">m</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span>
+            <span class="n">n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span>
+            <span class="n">radial_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">radial_label</span><span class="p">,</span>
+            <span class="n">q</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
+            <span class="n">q_prime</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">q_prime</span><span class="p">,</span>
+            <span class="n">coefficient</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">coefficient</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">phase_shift</span><span class="p">)),</span>
+            <span class="n">b_res</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">b_res</span><span class="p">,</span>
+            <span class="n">half_width</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">half_width</span><span class="p">,</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="viewcode-block" id="ChirikovOverlap">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.ChirikovOverlap">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ChirikovOverlap</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Chirikov overlap between two adjacent resonant island chains.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ChirikovOverlap.left">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.ChirikovOverlap.left">[docs]</a>
+    <span class="n">left</span><span class="p">:</span> <span class="n">ResonantIslandChain</span></div>
+
+<div class="viewcode-block" id="ChirikovOverlap.right">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.ChirikovOverlap.right">[docs]</a>
+    <span class="n">right</span><span class="p">:</span> <span class="n">ResonantIslandChain</span></div>
+
+<div class="viewcode-block" id="ChirikovOverlap.separation">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.ChirikovOverlap.separation">[docs]</a>
+    <span class="n">separation</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="ChirikovOverlap.sigma">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.ChirikovOverlap.sigma">[docs]</a>
+    <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ChirikovOverlap.modes">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.ChirikovOverlap.modes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">modes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return ``((m_left, n_left), (m_right, n_right))``.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">n</span><span class="p">),</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">n</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="surface_unit_normal_cylindrical">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.surface_unit_normal_cylindrical">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">surface_unit_normal_cylindrical</span><span class="p">(</span>
+    <span class="n">R_surf</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">Z_surf</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">phi_vals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">theta_vals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">normalize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute outward surface normals in cylindrical components.&quot;&quot;&quot;</span>
+
+    <span class="n">R_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">R_surf</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">Z_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Z_surf</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">squeeze_r</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">R_arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">R_arr</span> <span class="o">=</span> <span class="n">R_arr</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">Z_arr</span> <span class="o">=</span> <span class="n">Z_arr</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">squeeze_r</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">prepare_surface_arrays</span><span class="p">(</span><span class="n">R_arr</span><span class="p">,</span> <span class="n">Z_arr</span><span class="p">,</span> <span class="n">phi_vals</span><span class="p">,</span> <span class="n">theta_vals</span><span class="p">)</span>
+    <span class="n">dR_dtheta</span> <span class="o">=</span> <span class="n">periodic_derivative</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">TWOPI</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">dZ_dtheta</span> <span class="o">=</span> <span class="n">periodic_derivative</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">TWOPI</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">dR_dphi</span> <span class="o">=</span> <span class="n">periodic_derivative</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">TWOPI</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">dZ_dphi</span> <span class="o">=</span> <span class="n">periodic_derivative</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">TWOPI</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">n_R</span> <span class="o">=</span> <span class="n">R</span> <span class="o">*</span> <span class="n">dZ_dtheta</span>
+    <span class="n">n_phi</span> <span class="o">=</span> <span class="n">dZ_dphi</span> <span class="o">*</span> <span class="n">dR_dtheta</span> <span class="o">-</span> <span class="n">dR_dphi</span> <span class="o">*</span> <span class="n">dZ_dtheta</span>
+    <span class="n">n_Z</span> <span class="o">=</span> <span class="o">-</span><span class="n">R</span> <span class="o">*</span> <span class="n">dR_dtheta</span>
+    <span class="k">if</span> <span class="n">normalize</span><span class="p">:</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n_R</span> <span class="o">*</span> <span class="n">n_R</span> <span class="o">+</span> <span class="n">n_Z</span> <span class="o">*</span> <span class="n">n_Z</span> <span class="o">+</span> <span class="n">n_phi</span> <span class="o">*</span> <span class="n">n_phi</span><span class="p">)</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">norm</span><span class="p">,</span> <span class="mf">1.0e-300</span><span class="p">)</span>
+        <span class="n">n_R</span> <span class="o">=</span> <span class="n">n_R</span> <span class="o">/</span> <span class="n">norm</span>
+        <span class="n">n_Z</span> <span class="o">=</span> <span class="n">n_Z</span> <span class="o">/</span> <span class="n">norm</span>
+        <span class="n">n_phi</span> <span class="o">=</span> <span class="n">n_phi</span> <span class="o">/</span> <span class="n">norm</span>
+    <span class="k">if</span> <span class="n">squeeze_r</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">n_R</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">n_Z</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">n_phi</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">n_R</span><span class="p">,</span> <span class="n">n_Z</span><span class="p">,</span> <span class="n">n_phi</span></div>
+
+
+
+<div class="viewcode-block" id="radial_perturbation_component">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.radial_perturbation_component">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">radial_perturbation_component</span><span class="p">(</span>
+    <span class="n">R_surf</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">Z_surf</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">phi_vals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">theta_vals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">delta_B_R</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">delta_B_Z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">delta_B_phi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">normalize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Project an external magnetic perturbation onto the surface-normal direction.&quot;&quot;&quot;</span>
+
+    <span class="n">n_R</span><span class="p">,</span> <span class="n">n_Z</span><span class="p">,</span> <span class="n">n_phi</span> <span class="o">=</span> <span class="n">surface_unit_normal_cylindrical</span><span class="p">(</span>
+        <span class="n">R_surf</span><span class="p">,</span>
+        <span class="n">Z_surf</span><span class="p">,</span>
+        <span class="n">phi_vals</span><span class="p">,</span>
+        <span class="n">theta_vals</span><span class="p">,</span>
+        <span class="n">normalize</span><span class="o">=</span><span class="n">normalize</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">dBR</span> <span class="o">=</span> <span class="n">strip_field_grid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">delta_B_R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span> <span class="n">theta_vals</span><span class="p">,</span> <span class="n">phi_vals</span><span class="p">)</span>
+    <span class="n">dBZ</span> <span class="o">=</span> <span class="n">strip_field_grid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">delta_B_Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span> <span class="n">theta_vals</span><span class="p">,</span> <span class="n">phi_vals</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">delta_B_phi</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dBphi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">dBR</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dBphi</span> <span class="o">=</span> <span class="n">strip_field_grid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">delta_B_phi</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span> <span class="n">theta_vals</span><span class="p">,</span> <span class="n">phi_vals</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dBR</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">n_R</span><span class="o">.</span><span class="n">shape</span> <span class="ow">or</span> <span class="n">dBZ</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">n_R</span><span class="o">.</span><span class="n">shape</span> <span class="ow">or</span> <span class="n">dBphi</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">n_R</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;delta_B arrays must match the surface shape after removing endpoints&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dBR</span> <span class="o">*</span> <span class="n">n_R</span> <span class="o">+</span> <span class="n">dBZ</span> <span class="o">*</span> <span class="n">n_Z</span> <span class="o">+</span> <span class="n">dBphi</span> <span class="o">*</span> <span class="n">n_phi</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_validate_radial_labels</span><span class="p">(</span><span class="n">radial_labels</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n_r</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">radial_labels</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">labels</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">labels</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_r</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;radial_labels must be one-dimensional and match the radial surface count&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;radial_labels must be finite and strictly increasing&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">labels</span>
+
+
+<div class="viewcode-block" id="contravariant_radial_component">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.contravariant_radial_component">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">contravariant_radial_component</span><span class="p">(</span>
+    <span class="n">R_surf</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">Z_surf</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">phi_vals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">theta_vals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">B_R</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">B_Z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">B_phi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">radial_labels</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute ``B^1 = B dot grad(s)`` and ``B^3 = B dot grad(phi)``.</span>
+
+<span class="sd">    ``R_surf`` and ``Z_surf`` must be a radial stack with shape</span>
+<span class="sd">    ``(n_phi, n_r, n_theta)``.  The returned arrays have the same stripped</span>
+<span class="sd">    shape, after any duplicated periodic endpoints have been removed.</span>
+<span class="sd">    Cylindrical field components use the physical orthonormal basis</span>
+<span class="sd">    ``(e_R, e_phi, e_Z)``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">prepare_surface_arrays</span><span class="p">(</span><span class="n">R_surf</span><span class="p">,</span> <span class="n">Z_surf</span><span class="p">,</span> <span class="n">phi_vals</span><span class="p">,</span> <span class="n">theta_vals</span><span class="p">)</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">_validate_radial_labels</span><span class="p">(</span><span class="n">radial_labels</span><span class="p">,</span> <span class="n">R</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">BR</span> <span class="o">=</span> <span class="n">strip_field_grid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">B_R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span> <span class="n">theta_vals</span><span class="p">,</span> <span class="n">phi_vals</span><span class="p">)</span>
+    <span class="n">BZ</span> <span class="o">=</span> <span class="n">strip_field_grid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">B_Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span> <span class="n">theta_vals</span><span class="p">,</span> <span class="n">phi_vals</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">B_phi</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">Bphi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Bphi</span> <span class="o">=</span> <span class="n">strip_field_grid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">B_phi</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span> <span class="n">theta_vals</span><span class="p">,</span> <span class="n">phi_vals</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">BR</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">R</span><span class="o">.</span><span class="n">shape</span> <span class="ow">or</span> <span class="n">BZ</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">R</span><span class="o">.</span><span class="n">shape</span> <span class="ow">or</span> <span class="n">Bphi</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">R</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;field arrays must match the surface shape after removing endpoints&quot;</span><span class="p">)</span>
+
+    <span class="n">edge_order</span> <span class="o">=</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">labels</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;=</span> <span class="mi">3</span> <span class="k">else</span> <span class="mi">1</span>
+    <span class="n">dR_ds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">edge_order</span><span class="o">=</span><span class="n">edge_order</span><span class="p">)</span>
+    <span class="n">dZ_ds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">edge_order</span><span class="o">=</span><span class="n">edge_order</span><span class="p">)</span>
+    <span class="n">dR_dtheta</span> <span class="o">=</span> <span class="n">periodic_derivative</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">TWOPI</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">dZ_dtheta</span> <span class="o">=</span> <span class="n">periodic_derivative</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">TWOPI</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">dR_dphi</span> <span class="o">=</span> <span class="n">periodic_derivative</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">TWOPI</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">dZ_dphi</span> <span class="o">=</span> <span class="n">periodic_derivative</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">TWOPI</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># Reciprocal basis: grad(s) = (e_theta x e_phi) / J.</span>
+    <span class="c1"># Components are in the local right-handed cylindrical basis</span>
+    <span class="c1"># (e_R, e_phi, e_Z).</span>
+    <span class="n">cross_R</span> <span class="o">=</span> <span class="o">-</span><span class="n">R</span> <span class="o">*</span> <span class="n">dZ_dtheta</span>
+    <span class="n">cross_phi</span> <span class="o">=</span> <span class="n">dZ_dtheta</span> <span class="o">*</span> <span class="n">dR_dphi</span> <span class="o">-</span> <span class="n">dR_dtheta</span> <span class="o">*</span> <span class="n">dZ_dphi</span>
+    <span class="n">cross_Z</span> <span class="o">=</span> <span class="n">R</span> <span class="o">*</span> <span class="n">dR_dtheta</span>
+    <span class="n">jac</span> <span class="o">=</span> <span class="n">dR_ds</span> <span class="o">*</span> <span class="n">cross_R</span> <span class="o">+</span> <span class="n">dZ_ds</span> <span class="o">*</span> <span class="n">cross_Z</span>
+    <span class="n">jac</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">jac</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1.0e-300</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">jac</span><span class="p">)</span>
+    <span class="n">grad_s_R</span> <span class="o">=</span> <span class="n">cross_R</span> <span class="o">/</span> <span class="n">jac</span>
+    <span class="n">grad_s_phi</span> <span class="o">=</span> <span class="n">cross_phi</span> <span class="o">/</span> <span class="n">jac</span>
+    <span class="n">grad_s_Z</span> <span class="o">=</span> <span class="n">cross_Z</span> <span class="o">/</span> <span class="n">jac</span>
+
+    <span class="n">B1</span> <span class="o">=</span> <span class="n">BR</span> <span class="o">*</span> <span class="n">grad_s_R</span> <span class="o">+</span> <span class="n">Bphi</span> <span class="o">*</span> <span class="n">grad_s_phi</span> <span class="o">+</span> <span class="n">BZ</span> <span class="o">*</span> <span class="n">grad_s_Z</span>
+    <span class="n">B3</span> <span class="o">=</span> <span class="n">Bphi</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="mf">1.0e-300</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">B1</span><span class="p">,</span> <span class="n">B3</span></div>
+
+
+
+<div class="viewcode-block" id="nardon_radial_perturbation">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.nardon_radial_perturbation">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">nardon_radial_perturbation</span><span class="p">(</span>
+    <span class="n">R_surf</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">Z_surf</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">phi_vals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">theta_vals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">delta_B_R</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">delta_B_Z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">delta_B_phi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">radial_labels</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">denominator_B_phi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">denominator_B3</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0e-300</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute Nardon&#39;s ``tilde_b^1 = delta B^1 / B_0^3`` on surfaces.</span>
+
+<span class="sd">    Pass ``denominator_B_phi`` when the denominator should be the background</span>
+<span class="sd">    toroidal contravariant field ``B_0 dot grad(phi)``.  Pass</span>
+<span class="sd">    ``denominator_B3`` directly if it is already available on the same</span>
+<span class="sd">    ``(phi, radial, theta)`` surface grid.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">delta_B1</span><span class="p">,</span> <span class="n">delta_B3</span> <span class="o">=</span> <span class="n">contravariant_radial_component</span><span class="p">(</span>
+        <span class="n">R_surf</span><span class="p">,</span>
+        <span class="n">Z_surf</span><span class="p">,</span>
+        <span class="n">phi_vals</span><span class="p">,</span>
+        <span class="n">theta_vals</span><span class="p">,</span>
+        <span class="n">delta_B_R</span><span class="p">,</span>
+        <span class="n">delta_B_Z</span><span class="p">,</span>
+        <span class="n">delta_B_phi</span><span class="p">,</span>
+        <span class="n">radial_labels</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">denominator_B3</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">denom</span> <span class="o">=</span> <span class="n">strip_field_grid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">denominator_B3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span> <span class="n">theta_vals</span><span class="p">,</span> <span class="n">phi_vals</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">denominator_B_phi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">R</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">prepare_surface_arrays</span><span class="p">(</span><span class="n">R_surf</span><span class="p">,</span> <span class="n">Z_surf</span><span class="p">,</span> <span class="n">phi_vals</span><span class="p">,</span> <span class="n">theta_vals</span><span class="p">)</span>
+        <span class="n">denom</span> <span class="o">=</span> <span class="n">strip_field_grid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">denominator_B_phi</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span> <span class="n">theta_vals</span><span class="p">,</span> <span class="n">phi_vals</span><span class="p">)</span>
+        <span class="n">denom</span> <span class="o">=</span> <span class="n">denom</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="mf">1.0e-300</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">denom</span> <span class="o">=</span> <span class="n">delta_B3</span>
+    <span class="k">if</span> <span class="n">denom</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">delta_B1</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;denominator field must match the surface shape after removing endpoints&quot;</span><span class="p">)</span>
+    <span class="n">denom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">denom</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">float</span><span class="p">(</span><span class="n">eps</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="o">+</span> <span class="mf">0.0</span><span class="n">j</span><span class="p">,</span> <span class="n">denom</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">delta_B1</span> <span class="o">/</span> <span class="n">denom</span></div>
+
+
+
+<div class="viewcode-block" id="radial_perturbation_Fourier_spectrum">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.radial_perturbation_Fourier_spectrum">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">radial_perturbation_Fourier_spectrum</span><span class="p">(</span>
+    <span class="n">dBr_grid</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">theta_vals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">phi_vals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">radial_labels</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">m_max</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">n_max</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_amplitude</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RadialPerturbationFourierSpectrum</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute ``dBr_mn`` for ``f(theta, phi)=sum dBr_mn exp(i(m theta+n phi))``.</span>
+
+<span class="sd">    ``dBr_grid`` may be a single surface with shape ``(n_phi, n_theta)``, a</span>
+<span class="sd">    radial-first stack ``(n_r, n_phi, n_theta)``, or the phi-first stack</span>
+<span class="sd">    ``(n_phi, n_r, n_theta)`` returned by :func:`radial_perturbation_component`.</span>
+<span class="sd">    For radial stacks, ``dBr`` has shape ``(n_r, n_modes)``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">dBr_grid</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">grid</span><span class="o">.</span><span class="n">ndim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;dBr_grid must have shape (n_phi, n_theta) or (n_r, n_phi, n_theta)&quot;</span><span class="p">)</span>
+    <span class="n">theta</span><span class="p">,</span> <span class="n">theta_has_endpoint</span> <span class="o">=</span> <span class="n">strip_periodic_endpoint</span><span class="p">(</span><span class="n">theta_vals</span><span class="p">,</span> <span class="n">TWOPI</span><span class="p">,</span> <span class="s2">&quot;theta_vals&quot;</span><span class="p">)</span>
+    <span class="n">phi</span><span class="p">,</span> <span class="n">phi_has_endpoint</span> <span class="o">=</span> <span class="n">strip_periodic_endpoint</span><span class="p">(</span><span class="n">phi_vals</span><span class="p">,</span> <span class="n">TWOPI</span><span class="p">,</span> <span class="s2">&quot;phi_vals&quot;</span><span class="p">)</span>
+    <span class="n">phi_input_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">phi_vals</span><span class="p">)</span><span class="o">.</span><span class="n">size</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">drop_endpoint</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">has_endpoint</span><span class="o">=</span><span class="n">theta_has_endpoint</span><span class="p">)</span>
+
+    <span class="n">single_surface</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span>
+    <span class="k">if</span> <span class="n">single_surface</span><span class="p">:</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">drop_endpoint</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">has_endpoint</span><span class="o">=</span><span class="n">phi_has_endpoint</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">grid</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="n">phi_input_size</span><span class="p">,</span> <span class="n">phi</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">drop_endpoint</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">has_endpoint</span><span class="o">=</span><span class="n">phi_has_endpoint</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">grid</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="n">phi_input_size</span><span class="p">,</span> <span class="n">phi</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">drop_endpoint</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">has_endpoint</span><span class="o">=</span><span class="n">phi_has_endpoint</span><span class="p">)</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;3-D dBr_grid must be radial-first (n_r, n_phi, n_theta) or &quot;</span>
+            <span class="s2">&quot;phi-first (n_phi, n_r, n_theta)&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">grid</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span> <span class="o">!=</span> <span class="p">(</span><span class="n">phi</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">theta</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;dBr_grid shape must match phi_vals and theta_vals&quot;</span><span class="p">)</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">radial_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">single_surface</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;radial_labels are only valid for radial stack spectra&quot;</span><span class="p">)</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">_validate_radial_labels</span><span class="p">(</span><span class="n">radial_labels</span><span class="p">,</span> <span class="n">grid</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">fft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">theta</span><span class="o">.</span><span class="n">size</span> <span class="o">*</span> <span class="n">phi</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">m_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftfreq</span><span class="p">(</span><span class="n">theta</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">theta</span><span class="o">.</span><span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">n_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftfreq</span><span class="p">(</span><span class="n">phi</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">phi</span><span class="o">.</span><span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">m_limit</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">m_freq</span><span class="p">))</span> <span class="k">if</span> <span class="n">m_max</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">m_max</span><span class="p">)</span>
+    <span class="n">n_limit</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">n_freq</span><span class="p">))</span> <span class="k">if</span> <span class="n">n_max</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">n_max</span><span class="p">)</span>
+
+    <span class="n">modes_m</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">modes_n</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">coeffs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">m_val</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">m_limit</span><span class="p">,</span> <span class="n">m_limit</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">m_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">m_freq</span> <span class="o">==</span> <span class="n">m_val</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">m_idx</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">n_val</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">n_limit</span><span class="p">,</span> <span class="n">n_limit</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">n_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">n_freq</span> <span class="o">==</span> <span class="n">n_val</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">n_idx</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">coeff</span> <span class="o">=</span> <span class="n">fft</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">m_idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_idx</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coeff</span><span class="p">))</span> <span class="o">&lt;</span> <span class="nb">float</span><span class="p">(</span><span class="n">min_amplitude</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">modes_m</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m_val</span><span class="p">)</span>
+            <span class="n">modes_n</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n_val</span><span class="p">)</span>
+            <span class="n">coeffs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coeff</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">coeffs</span><span class="p">:</span>
+        <span class="n">dBr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dBr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">0</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">single_surface</span><span class="p">:</span>
+        <span class="n">dBr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">dBr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">RadialPerturbationFourierSpectrum</span><span class="p">(</span>
+        <span class="n">m</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">modes_m</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span>
+        <span class="n">n</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">modes_n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span>
+        <span class="n">dBr</span><span class="o">=</span><span class="n">dBr</span><span class="p">,</span>
+        <span class="n">dBr_grid</span><span class="o">=</span><span class="n">grid</span><span class="p">,</span>
+        <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span>
+        <span class="n">phi</span><span class="o">=</span><span class="n">phi</span><span class="p">,</span>
+        <span class="n">radial_labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="island_chain_fixed_points">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.island_chain_fixed_points">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">island_chain_fixed_points</span><span class="p">(</span>
+    <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">coefficient</span><span class="p">:</span> <span class="nb">complex</span><span class="p">,</span>
+    <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">q_prime_sign</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return O/X poloidal angles implied by ``tilde_b^1_{m,-n}``.</span>
+
+<span class="sd">    The returned ``theta_O`` and ``theta_X`` arrays have shape ``(n_phi, m)``.</span>
+<span class="sd">    A phase change ``coefficient *= exp(1j * alpha)`` rotates every branch by</span>
+<span class="sd">    ``-alpha / m`` at fixed toroidal section.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">m_int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+    <span class="n">n_int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m_int</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">n_int</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;m and n must be positive resonant mode numbers&quot;</span><span class="p">)</span>
+    <span class="n">sign</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">q_prime_sign</span><span class="p">))</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">phi_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">))</span>
+    <span class="n">phase</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">coefficient</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">sign</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">base_O</span> <span class="o">=</span> <span class="n">n_int</span> <span class="o">*</span> <span class="n">phi_arr</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">phase</span>
+        <span class="n">base_X</span> <span class="o">=</span> <span class="n">n_int</span> <span class="o">*</span> <span class="n">phi_arr</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">phase</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">base_O</span> <span class="o">=</span> <span class="n">n_int</span> <span class="o">*</span> <span class="n">phi_arr</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">phase</span>
+        <span class="n">base_X</span> <span class="o">=</span> <span class="n">n_int</span> <span class="o">*</span> <span class="n">phi_arr</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">phase</span>
+    <span class="n">branches</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">m_int</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">theta_O</span> <span class="o">=</span> <span class="p">(</span><span class="n">base_O</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="n">TWOPI</span> <span class="o">*</span> <span class="n">branches</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">m_int</span><span class="p">)</span>
+    <span class="n">theta_X</span> <span class="o">=</span> <span class="p">(</span><span class="n">base_X</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="n">TWOPI</span> <span class="o">*</span> <span class="n">branches</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">m_int</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;phi&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">phi_arr</span><span class="p">,</span> <span class="n">TWOPI</span><span class="p">),</span>
+        <span class="s2">&quot;theta_O&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">theta_O</span><span class="p">,</span> <span class="n">TWOPI</span><span class="p">),</span>
+        <span class="s2">&quot;theta_X&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">theta_X</span><span class="p">,</span> <span class="n">TWOPI</span><span class="p">),</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="nardon_resonant_amplitude">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.nardon_resonant_amplitude">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">nardon_resonant_amplitude</span><span class="p">(</span><span class="n">coefficient</span><span class="p">:</span> <span class="nb">complex</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return ``tilde_b_res^1 = 2 |tilde_b^1_{m,-n}|``.&quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">coefficient</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="nardon_island_half_width">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.nardon_island_half_width">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">nardon_island_half_width</span><span class="p">(</span><span class="n">q</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">q_prime</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">b_res</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return Nardon&#39;s magnetic-island half-width in the radial coordinate.</span>
+
+<span class="sd">    The thesis formula is ``sqrt(4 q^2 b_res / (q&#39; m))``.  This implementation</span>
+<span class="sd">    returns a positive geometric width and therefore uses ``abs(q&#39; m)`` in the</span>
+<span class="sd">    denominator.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">m_int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m_int</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;m must be positive&quot;</span><span class="p">)</span>
+    <span class="n">denom</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">q_prime</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">m_int</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">denom</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">)</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="mf">4.0</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">q</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">q</span><span class="p">)</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">b_res</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">/</span> <span class="n">denom</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">value</span><span class="p">))</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_as_mode_values</span><span class="p">(</span><span class="n">m_values</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">q_profile</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">m_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">m_values</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">out</span>
+    <span class="n">q_min</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">q_profile</span><span class="p">))</span>
+    <span class="n">q_max</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">q_profile</span><span class="p">))</span>
+    <span class="n">lo</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">q_min</span><span class="p">,</span> <span class="n">q_max</span><span class="p">)</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)))</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">hi</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">q_min</span><span class="p">,</span> <span class="n">q_max</span><span class="p">)</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)))</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">lo</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">hi</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_find_crossings</span><span class="p">(</span><span class="n">radial</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+    <span class="n">roots</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">radial</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">f0</span> <span class="o">=</span> <span class="n">diff</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">f1</span> <span class="o">=</span> <span class="n">diff</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">f0</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">f1</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">f0</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">roots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">radial</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">f0</span> <span class="o">*</span> <span class="n">f1</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="o">-</span><span class="n">f0</span> <span class="o">/</span> <span class="p">(</span><span class="n">f1</span> <span class="o">-</span> <span class="n">f0</span><span class="p">)</span>
+            <span class="n">roots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">radial</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">t</span> <span class="o">*</span> <span class="p">(</span><span class="n">radial</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">radial</span><span class="p">[</span><span class="n">i</span><span class="p">])))</span>
+    <span class="k">if</span> <span class="n">diff</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">roots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">radial</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">roots</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_interp_complex</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x0</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">complex</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">complex</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x0</span><span class="p">),</span> <span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">y</span><span class="p">)),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x0</span><span class="p">),</span> <span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">y</span><span class="p">)),</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="analyze_resonant_island_chains">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.analyze_resonant_island_chains">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">analyze_resonant_island_chains</span><span class="p">(</span>
+    <span class="n">spectrum</span><span class="p">:</span> <span class="n">RadialPerturbationFourierSpectrum</span><span class="p">,</span>
+    <span class="n">q_profile</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">radial_labels</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">m_values</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_b_res</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ResonantIslandChain</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Analyze resonant island chains from a radial Fourier spectrum.</span>
+
+<span class="sd">    For each requested ``m`` this finds roots of ``q(s) = m/n``, interpolates</span>
+<span class="sd">    the resonant coefficient ``tilde_b^1_{m,-n}``, and evaluates Nardon&#39;s</span>
+<span class="sd">    island half-width formula in the same radial coordinate ``s``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">dBr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;analyze_resonant_island_chains requires a radial stack spectrum&quot;</span><span class="p">)</span>
+    <span class="n">n_int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n_int</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;n must be positive&quot;</span><span class="p">)</span>
+    <span class="n">radial</span> <span class="o">=</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">radial_labels</span> <span class="k">if</span> <span class="n">radial_labels</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">radial_labels</span>
+    <span class="k">if</span> <span class="n">radial</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;radial_labels are required&quot;</span><span class="p">)</span>
+    <span class="n">radial</span> <span class="o">=</span> <span class="n">_validate_radial_labels</span><span class="p">(</span><span class="n">radial</span><span class="p">,</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">dBr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">q_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">q_profile</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">q_arr</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">radial</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;q_profile must have the same shape as radial_labels&quot;</span><span class="p">)</span>
+    <span class="n">q_prime_profile</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">q_arr</span><span class="p">,</span> <span class="n">radial</span><span class="p">,</span> <span class="n">edge_order</span><span class="o">=</span><span class="mi">2</span> <span class="k">if</span> <span class="n">radial</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;=</span> <span class="mi">3</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">chains</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ResonantIslandChain</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">m_int</span> <span class="ow">in</span> <span class="n">_as_mode_values</span><span class="p">(</span><span class="n">m_values</span><span class="p">,</span> <span class="n">q_arr</span><span class="p">,</span> <span class="n">n_int</span><span class="p">):</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">mode_index</span><span class="p">(</span><span class="n">m_int</span><span class="p">,</span> <span class="o">-</span><span class="n">n_int</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">roots</span> <span class="o">=</span> <span class="n">_find_crossings</span><span class="p">(</span><span class="n">radial</span><span class="p">,</span> <span class="n">q_arr</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">m_int</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">n_int</span><span class="p">))</span>
+        <span class="n">coeff_profile</span> <span class="o">=</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">dBr</span><span class="p">[:,</span> <span class="n">idx</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">s_res</span> <span class="ow">in</span> <span class="n">roots</span><span class="p">:</span>
+            <span class="n">q_res</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">s_res</span><span class="p">,</span> <span class="n">radial</span><span class="p">,</span> <span class="n">q_arr</span><span class="p">))</span>
+            <span class="n">q_prime</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">s_res</span><span class="p">,</span> <span class="n">radial</span><span class="p">,</span> <span class="n">q_prime_profile</span><span class="p">))</span>
+            <span class="n">coeff</span> <span class="o">=</span> <span class="n">_interp_complex</span><span class="p">(</span><span class="n">radial</span><span class="p">,</span> <span class="n">coeff_profile</span><span class="p">,</span> <span class="n">s_res</span><span class="p">)</span>
+            <span class="n">b_res</span> <span class="o">=</span> <span class="n">nardon_resonant_amplitude</span><span class="p">(</span><span class="n">coeff</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">b_res</span> <span class="o">&lt;</span> <span class="nb">float</span><span class="p">(</span><span class="n">min_b_res</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">chains</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">ResonantIslandChain</span><span class="p">(</span>
+                    <span class="n">m</span><span class="o">=</span><span class="n">m_int</span><span class="p">,</span>
+                    <span class="n">n</span><span class="o">=</span><span class="n">n_int</span><span class="p">,</span>
+                    <span class="n">radial_label</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">s_res</span><span class="p">),</span>
+                    <span class="n">q</span><span class="o">=</span><span class="n">q_res</span><span class="p">,</span>
+                    <span class="n">q_prime</span><span class="o">=</span><span class="n">q_prime</span><span class="p">,</span>
+                    <span class="n">coefficient</span><span class="o">=</span><span class="n">coeff</span><span class="p">,</span>
+                    <span class="n">b_res</span><span class="o">=</span><span class="n">b_res</span><span class="p">,</span>
+                    <span class="n">half_width</span><span class="o">=</span><span class="n">nardon_island_half_width</span><span class="p">(</span><span class="n">q_res</span><span class="p">,</span> <span class="n">q_prime</span><span class="p">,</span> <span class="n">m_int</span><span class="p">,</span> <span class="n">b_res</span><span class="p">),</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+    <span class="n">chains</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">chain</span><span class="p">:</span> <span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">radial_label</span><span class="p">,</span> <span class="n">chain</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">chain</span><span class="o">.</span><span class="n">n</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">chains</span></div>
+
+
+
+<div class="viewcode-block" id="analyze_resonant_island_chains_multi_n">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.analyze_resonant_island_chains_multi_n">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">analyze_resonant_island_chains_multi_n</span><span class="p">(</span>
+    <span class="n">spectrum</span><span class="p">:</span> <span class="n">RadialPerturbationFourierSpectrum</span><span class="p">,</span>
+    <span class="n">q_profile</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">n_values</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">radial_labels</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">m_values</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_b_res</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ResonantIslandChain</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Analyze all requested resonant ``(m, n)`` island chains together.</span>
+
+<span class="sd">    This is the multi-component counterpart to</span>
+<span class="sd">    :func:`analyze_resonant_island_chains`.  For each positive toroidal mode</span>
+<span class="sd">    number ``n`` it finds every requested ``q(s)=m/n`` crossing, interpolates</span>
+<span class="sd">    the resonant coefficient ``tilde_b^1_{m,-n}``, and returns one combined</span>
+<span class="sd">    list sorted by radial position and mode number.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    spectrum:</span>
+<span class="sd">        Radial stack of ``tilde_b^1_{mn}`` Fourier coefficients.</span>
+<span class="sd">    q_profile:</span>
+<span class="sd">        Safety-factor profile sampled on ``radial_labels``.</span>
+<span class="sd">    n_values:</span>
+<span class="sd">        Positive physical toroidal mode numbers to scan.  If omitted, all</span>
+<span class="sd">        positive ``abs(n)`` values present in ``spectrum`` are scanned.</span>
+<span class="sd">    radial_labels:</span>
+<span class="sd">        Optional radial labels overriding ``spectrum.radial_labels``.</span>
+<span class="sd">    m_values:</span>
+<span class="sd">        Optional positive poloidal mode numbers.  Pass a mapping ``{n: m_list}``</span>
+<span class="sd">        when different toroidal families need different candidate ``m`` values.</span>
+<span class="sd">    min_b_res:</span>
+<span class="sd">        Drop chains with ``2*abs(tilde_b^1_{m,-n})`` below this threshold.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">n_values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">n_scan</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">n_val</span><span class="p">))</span> <span class="k">for</span> <span class="n">n_val</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">spectrum</span><span class="o">.</span><span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_val</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">})</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n_scan</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="nb">int</span><span class="p">(</span><span class="n">n_val</span><span class="p">)</span> <span class="k">for</span> <span class="n">n_val</span> <span class="ow">in</span> <span class="n">n_values</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_val</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">})</span>
+    <span class="n">chains</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ResonantIslandChain</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">n_int</span> <span class="ow">in</span> <span class="n">n_scan</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m_values</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+            <span class="n">m_for_n</span> <span class="o">=</span> <span class="n">m_values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">n_int</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">m_for_n</span> <span class="o">=</span> <span class="n">m_values</span>
+        <span class="n">chains</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+            <span class="n">analyze_resonant_island_chains</span><span class="p">(</span>
+                <span class="n">spectrum</span><span class="p">,</span>
+                <span class="n">q_profile</span><span class="p">,</span>
+                <span class="n">n</span><span class="o">=</span><span class="n">n_int</span><span class="p">,</span>
+                <span class="n">radial_labels</span><span class="o">=</span><span class="n">radial_labels</span><span class="p">,</span>
+                <span class="n">m_values</span><span class="o">=</span><span class="n">m_for_n</span><span class="p">,</span>
+                <span class="n">min_b_res</span><span class="o">=</span><span class="n">min_b_res</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="n">chains</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">chain</span><span class="p">:</span> <span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">radial_label</span><span class="p">,</span> <span class="n">chain</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="n">chain</span><span class="o">.</span><span class="n">m</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">chains</span></div>
+
+
+
+<div class="viewcode-block" id="chirikov_overlaps">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.chirikov_overlaps">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">chirikov_overlaps</span><span class="p">(</span><span class="n">chains</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">ResonantIslandChain</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ChirikovOverlap</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute Chirikov overlap for adjacent chains with the same toroidal ``n``.&quot;&quot;&quot;</span>
+
+    <span class="n">grouped</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">ResonantIslandChain</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">chain</span> <span class="ow">in</span> <span class="n">chains</span><span class="p">:</span>
+        <span class="n">grouped</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span>
+    <span class="n">overlaps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ChirikovOverlap</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">same_n</span> <span class="ow">in</span> <span class="n">grouped</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">ordered</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">same_n</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">chain</span><span class="p">:</span> <span class="n">chain</span><span class="o">.</span><span class="n">radial_label</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ordered</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">ordered</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+            <span class="n">separation</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">right</span><span class="o">.</span><span class="n">radial_label</span> <span class="o">-</span> <span class="n">left</span><span class="o">.</span><span class="n">radial_label</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">separation</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="n">sigma</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sigma</span> <span class="o">=</span> <span class="nb">float</span><span class="p">((</span><span class="n">left</span><span class="o">.</span><span class="n">half_width</span> <span class="o">+</span> <span class="n">right</span><span class="o">.</span><span class="n">half_width</span><span class="p">)</span> <span class="o">/</span> <span class="n">separation</span><span class="p">)</span>
+            <span class="n">overlaps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ChirikovOverlap</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="n">right</span><span class="p">,</span> <span class="n">separation</span><span class="o">=</span><span class="n">separation</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">overlaps</span></div>
+
+
+
+<div class="viewcode-block" id="sample_cylindrical_vector_grid_on_surfaces">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.perturbation_spectrum.sample_cylindrical_vector_grid_on_surfaces">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sample_cylindrical_vector_grid_on_surfaces</span><span class="p">(</span>
+    <span class="n">grid_R</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">grid_Z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">grid_phi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">field_R</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">field_phi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">field_Z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">R_surf</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">Z_surf</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">phi_vals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">theta_vals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">bounds_error</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">fill_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sample a rectilinear cylindrical vector grid on ``(phi, radial, theta)`` surfaces.&quot;&quot;&quot;</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">RegularGridInterpolator</span>
+
+    <span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">prepare_surface_arrays</span><span class="p">(</span><span class="n">R_surf</span><span class="p">,</span> <span class="n">Z_surf</span><span class="p">,</span> <span class="n">phi_vals</span><span class="p">,</span> <span class="n">theta_vals</span><span class="p">)</span>
+    <span class="n">axis_R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grid_R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">axis_Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grid_Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">axis_phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grid_phi</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">axis_phi</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">axis_phi</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;grid_phi must be one-dimensional with at least two points&quot;</span><span class="p">)</span>
+    <span class="n">phi0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">axis_phi</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">phi_stripped</span><span class="p">,</span> <span class="n">phi_has_endpoint</span> <span class="o">=</span> <span class="n">strip_periodic_endpoint</span><span class="p">(</span><span class="n">axis_phi</span><span class="p">,</span> <span class="n">TWOPI</span><span class="p">,</span> <span class="s2">&quot;grid_phi&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">extend</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">drop_endpoint</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">has_endpoint</span><span class="o">=</span><span class="n">phi_has_endpoint</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">vals</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="n">axis_R</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">axis_Z</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">phi_stripped</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;field arrays must have shape (n_R, n_Z, n_phi)&quot;</span><span class="p">)</span>
+        <span class="n">vals_ext</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">vals</span><span class="p">,</span> <span class="n">vals</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="mi">1</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">phi_ext</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">phi_stripped</span><span class="p">,</span> <span class="p">[</span><span class="n">phi0</span> <span class="o">+</span> <span class="n">TWOPI</span><span class="p">]])</span>
+        <span class="k">return</span> <span class="n">phi_ext</span><span class="p">,</span> <span class="n">vals_ext</span>
+
+    <span class="n">phi_ext</span><span class="p">,</span> <span class="n">vals_R</span> <span class="o">=</span> <span class="n">extend</span><span class="p">(</span><span class="n">field_R</span><span class="p">)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">vals_phi</span> <span class="o">=</span> <span class="n">extend</span><span class="p">(</span><span class="n">field_phi</span><span class="p">)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">vals_Z</span> <span class="o">=</span> <span class="n">extend</span><span class="p">(</span><span class="n">field_Z</span><span class="p">)</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">R</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span>
+            <span class="n">Z</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span>
+            <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">phi</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">R</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">R</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="o">-</span> <span class="n">phi0</span><span class="p">,</span> <span class="n">TWOPI</span><span class="p">)</span> <span class="o">+</span> <span class="n">phi0</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;bounds_error&quot;</span><span class="p">:</span> <span class="n">bounds_error</span><span class="p">,</span> <span class="s2">&quot;fill_value&quot;</span><span class="p">:</span> <span class="n">fill_value</span><span class="p">}</span>
+    <span class="n">interp_R</span> <span class="o">=</span> <span class="n">RegularGridInterpolator</span><span class="p">((</span><span class="n">axis_R</span><span class="p">,</span> <span class="n">axis_Z</span><span class="p">,</span> <span class="n">phi_ext</span><span class="p">),</span> <span class="n">vals_R</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">interp_phi</span> <span class="o">=</span> <span class="n">RegularGridInterpolator</span><span class="p">((</span><span class="n">axis_R</span><span class="p">,</span> <span class="n">axis_Z</span><span class="p">,</span> <span class="n">phi_ext</span><span class="p">),</span> <span class="n">vals_phi</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">interp_Z</span> <span class="o">=</span> <span class="n">RegularGridInterpolator</span><span class="p">((</span><span class="n">axis_R</span><span class="p">,</span> <span class="n">axis_Z</span><span class="p">,</span> <span class="n">phi_ext</span><span class="p">),</span> <span class="n">vals_Z</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">out_shape</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">interp_R</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">out_shape</span><span class="p">),</span>
+        <span class="n">interp_phi</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">out_shape</span><span class="p">),</span>
+        <span class="n">interp_Z</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">out_shape</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;ChirikovOverlap&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RadialPerturbationFourierSpectrum&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ResonantIslandChain&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;analyze_resonant_island_chains&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;analyze_resonant_island_chains_multi_n&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;chirikov_overlaps&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;contravariant_radial_component&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;island_chain_fixed_points&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;nardon_island_half_width&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;nardon_radial_perturbation&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;nardon_resonant_amplitude&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;radial_perturbation_Fourier_spectrum&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;radial_perturbation_component&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;sample_cylindrical_vector_grid_on_surfaces&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;surface_unit_normal_cylindrical&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

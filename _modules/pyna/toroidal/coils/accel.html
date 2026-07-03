@@ -1,0 +1,1134 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.toroidal.coils.accel &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/toroidal/coils/accel';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../../_static/searchtools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.toroidal.coils.accel</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.toroidal.coils.accel</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;pyna.toroidal.coils.accel — GPU/CPU-accelerated circular coil field computation.</span>
+
+<span class="sd">This module provides fast magnetic field evaluation for arrays of circular</span>
+<span class="sd">(ring) coils, using either GPU (CuPy) or CPU (NumPy/SciPy) backends.</span>
+
+<span class="sd">Two computation strategies are offered:</span>
+
+<span class="sd">1. **Direct analytic** (``analytic_coil_field_batched_gpu``):</span>
+<span class="sd">   Exact Smythe/Schill elliptic-integral formula evaluated on GPU.</span>
+<span class="sd">   Cost: O(N_coils × N_pts) elliptic-integral evaluations.</span>
+
+<span class="sd">2. **Template fast-path** (``CircularCoilTemplate``):</span>
+<span class="sd">   Pre-compute a single normalised 2-D table f_ρ(ρ&#39;, z&#39;), f_z(ρ&#39;, z&#39;) for</span>
+<span class="sd">   the unit coil (a=1, I=1) once.  For every real coil the field is obtained</span>
+<span class="sd">   by translate → rotate → normalise → bilinear lookup → scale back.</span>
+<span class="sd">   Cost: O(1) table build  +  O(N_coils × N_pts) bilinear interpolations.</span>
+
+<span class="sd">Scaling law (exact)</span>
+<span class="sd">-------------------</span>
+<span class="sd">For a circular coil with radius *a* and current *I*:</span>
+
+<span class="sd">    B_ρ(ρ, z; a, I) = (I / a) · f_ρ(ρ/a, z/a)</span>
+<span class="sd">    B_z(ρ, z; a, I) = (I / a) · f_z(ρ/a, z/a)</span>
+
+<span class="sd">This follows directly from the Smythe formulae, so **one template covers</span>
+<span class="sd">all circular coils regardless of radius or current**.</span>
+
+<span class="sd">Template grid design</span>
+<span class="sd">--------------------</span>
+<span class="sd">The normalised domain must cover the farthest coil/field-point pair.</span>
+<span class="sd">For a machine with typical size ~1 m and smallest coil radius a_min ≈ 0.04 m,</span>
+<span class="sd">the worst-case normalised distance is ~(2R₀ / a_min) ≈ 50-60.</span>
+
+<span class="sd">Spacing: near-coil region (ρ&#39; &lt; ``rho_join``) uses fine uniform spacing</span>
+<span class="sd">to resolve the 1/r singularity; far field uses log-uniform spacing since</span>
+<span class="sd">B ~ 1/r³ and relative interpolation error scales with the fractional step.</span>
+
+<span class="sd">Performance (RTX 3060, 336 dipoles × 614 400 pts)</span>
+<span class="sd">-------------------------------------------------</span>
+<span class="sd">* Direct analytic: ~18 s</span>
+<span class="sd">* Template build:  ~0.5 s (once)</span>
+<span class="sd">* Template query:  ~5 s</span>
+<span class="sd">* Accuracy in plasma (|B| &lt; 5 T): mean rel ≈ 5e-4, p99 ≈ 6e-3</span>
+
+<span class="sd">Public API</span>
+<span class="sd">----------</span>
+<span class="sd">analytic_coil_field_batched_gpu(centers, radii, normals, currents, field_pts)</span>
+<span class="sd">biot_savart_all_coils_gpu(coils, field_pts)</span>
+<span class="sd">CircularCoilTemplate(rho_max, z_max, N_near, N_far, N_z, rho_join, use_gpu)</span>
+<span class="sd">get_template(**kwargs) -&gt; CircularCoilTemplate  (module singleton)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+    <span class="n">_CUPY_AVAILABLE</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">cp</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: ignore[assignment]</span>
+    <span class="n">_CUPY_AVAILABLE</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+        <span class="s2">&quot;CuPy not available; pyna.toroidal.coils.accel will fall back to CPU.&quot;</span><span class="p">,</span>
+        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="MU0_OVER_4PI">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/accel/index.html#pyna.toroidal.coils.accel.MU0_OVER_4PI">[docs]</a>
+<span class="n">MU0_OVER_4PI</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-7</span>   <span class="c1"># T·m/A</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># AGM-based complete elliptic integrals (NumPy / CuPy compatible)</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ellipk_agm</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">xp</span><span class="o">=</span><span class="n">np</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Complete elliptic integral K(m) via AGM iteration.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    m : array-like, m ∈ [0, 1)</span>
+<span class="sd">    xp : numpy or cupy</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    10 AGM iterations give relative error &lt; 1e-14 for float64.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">xp</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">m</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+        <span class="n">a_new</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span>
+        <span class="n">b</span>     <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">)</span>
+        <span class="n">a</span>     <span class="o">=</span> <span class="n">a_new</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">xp</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">/</span> <span class="n">a</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ellipe_agm</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">xp</span><span class="o">=</span><span class="n">np</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Complete elliptic integral E(m) via AGM (Abramowitz &amp; Stegun §17.6).</span>
+
+<span class="sd">    14 iterations give relative error &lt; 1e-15 for float64 over m ∈ [0, 1-1e-3].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">xp</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">m</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+    <span class="n">S</span>     <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">m</span>
+    <span class="n">power</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">14</span><span class="p">):</span>
+        <span class="n">c</span>     <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span>
+        <span class="n">a_new</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span>
+        <span class="n">b</span>     <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">)</span>
+        <span class="n">a</span>     <span class="o">=</span> <span class="n">a_new</span>
+        <span class="n">S</span>    <span class="o">+=</span> <span class="n">power</span> <span class="o">*</span> <span class="n">c</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="n">power</span> <span class="o">*=</span> <span class="mf">2.0</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="p">(</span><span class="n">xp</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">/</span> <span class="n">a</span>
+    <span class="k">return</span> <span class="n">K</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">S</span><span class="p">)</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Rotation matrices: ẑ → normals[k]  (Rodrigues formula, batched)</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_batch_rotation_matrices</span><span class="p">(</span><span class="n">normals</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">xp</span><span class="o">=</span><span class="n">np</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute N rotation matrices mapping ẑ → normals[k].</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    normals : (N, 3) array  (need not be unit; normalised internally)</span>
+<span class="sd">    xp : numpy or cupy</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    R : (N, 3, 3)  R[k] @ ẑ = normals[k] / ‖normals[k]‖</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">normals</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">normals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">N</span>   <span class="o">=</span> <span class="n">normals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">nrm</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">normals</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">normals</span> <span class="o">=</span> <span class="n">normals</span> <span class="o">/</span> <span class="n">xp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">nrm</span> <span class="o">&gt;</span> <span class="mf">1e-30</span><span class="p">,</span> <span class="n">nrm</span><span class="p">,</span> <span class="n">xp</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">nrm</span><span class="p">))</span>
+
+    <span class="n">z_hat</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+    <span class="n">v</span>  <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">z_hat</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="n">normals</span><span class="p">)</span>           <span class="c1"># (N, 3)</span>
+    <span class="n">s</span>  <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>    <span class="c1"># (N, 1)</span>
+    <span class="n">c</span>  <span class="o">=</span> <span class="n">normals</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>                              <span class="c1"># (N, 1)</span>
+
+    <span class="n">vx</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">vx</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">v</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">];</span>  <span class="n">vx</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span>  <span class="n">v</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">vx</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span>  <span class="n">v</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">];</span>  <span class="n">vx</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">v</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">vx</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">v</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">];</span>  <span class="n">vx</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span>  <span class="n">v</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">eye</span>    <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">xp</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">s2</span>     <span class="o">=</span> <span class="p">(</span><span class="n">s</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">safe_s2</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">s2</span> <span class="o">&gt;</span> <span class="mf">1e-24</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">xp</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">s2</span><span class="p">))</span>
+    <span class="n">factor</span>  <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">c</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">])</span> <span class="o">/</span> <span class="n">safe_s2</span>
+
+    <span class="n">R</span> <span class="o">=</span> <span class="n">eye</span> <span class="o">+</span> <span class="n">vx</span> <span class="o">+</span> <span class="n">xp</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;nij,njk-&gt;nik&#39;</span><span class="p">,</span> <span class="n">vx</span><span class="p">,</span> <span class="n">vx</span><span class="p">)</span> <span class="o">*</span> <span class="n">factor</span>
+
+    <span class="c1"># Degenerate cases: normal ≈ ±ẑ</span>
+    <span class="n">near_z</span>  <span class="o">=</span> <span class="p">(</span><span class="n">s</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">1e-12</span><span class="p">)</span>
+    <span class="n">flip_z</span>  <span class="o">=</span> <span class="p">(</span><span class="n">c</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">R</span><span class="p">[</span><span class="n">near_z</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">flip_z</span><span class="p">]</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">flip_mat</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">xp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">xp</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">near_z</span> <span class="o">&amp;</span> <span class="n">flip_z</span><span class="p">):</span>
+        <span class="n">R</span><span class="p">[</span><span class="n">near_z</span> <span class="o">&amp;</span> <span class="n">flip_z</span><span class="p">]</span> <span class="o">=</span> <span class="n">flip_mat</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">R</span>   <span class="c1"># (N, 3, 3)</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Direct GPU analytic field (all coils × all points, vectorised)</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="analytic_coil_field_batched_gpu">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/accel/index.html#pyna.toroidal.coils.accel.analytic_coil_field_batched_gpu">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">analytic_coil_field_batched_gpu</span><span class="p">(</span>
+    <span class="n">centers</span><span class="p">:</span>  <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">radii</span><span class="p">:</span>    <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">normals</span><span class="p">:</span>  <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">currents</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">field_pts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">coil_batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>   <span class="c1"># kept for API compatibility</span>
+    <span class="n">pt_batch_size</span><span class="p">:</span>   <span class="nb">int</span> <span class="o">=</span> <span class="mi">16384</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Exact field of N circular coils at M field points via elliptic integrals.</span>
+
+<span class="sd">    All coil parameters are pushed to GPU once; field points are processed in</span>
+<span class="sd">    batches of ``pt_batch_size`` to fit VRAM.</span>
+
+<span class="sd">    Falls back to a NumPy/SciPy implementation when CuPy is unavailable.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    centers : (N, 3) float64</span>
+<span class="sd">    radii   : (N,)   float64</span>
+<span class="sd">    normals : (N, 3) float64  coil axis unit vectors (need not be normalised)</span>
+<span class="sd">    currents: (N,)   float64  A (signed)</span>
+<span class="sd">    field_pts : (M, 3) float64  Cartesian evaluation points</span>
+<span class="sd">    coil_batch_size : ignored (kept for API compat)</span>
+<span class="sd">    pt_batch_size   : int  field-point GPU batch size</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    B : (M, 3) float64  Cartesian field in Tesla (NaN at near-wire points)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_CUPY_AVAILABLE</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_analytic_coil_field_cpu</span><span class="p">(</span><span class="n">centers</span><span class="p">,</span> <span class="n">radii</span><span class="p">,</span> <span class="n">normals</span><span class="p">,</span> <span class="n">currents</span><span class="p">,</span> <span class="n">field_pts</span><span class="p">)</span>
+
+    <span class="n">xp</span> <span class="o">=</span> <span class="n">cp</span>
+    <span class="n">M</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">field_pts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">centers</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">c_gpu</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">centers</span><span class="p">,</span>   <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">a_gpu</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span>     <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">I_gpu</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">currents</span><span class="p">,</span>  <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">R_all</span>    <span class="o">=</span> <span class="n">_batch_rotation_matrices</span><span class="p">(</span><span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">normals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">xp</span><span class="o">=</span><span class="n">xp</span><span class="p">)</span>
+    <span class="n">Rinv_all</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">R_all</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">fp_gpu</span>   <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">field_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">B_total</span>  <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">M</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">p0</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">pt_batch_size</span><span class="p">):</span>
+        <span class="n">p1</span>  <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">p0</span> <span class="o">+</span> <span class="n">pt_batch_size</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="n">fp_gpu</span><span class="p">[</span><span class="n">p0</span><span class="p">:</span><span class="n">p1</span><span class="p">]</span>                                      <span class="c1"># (mb, 3)</span>
+
+        <span class="n">delta</span>   <span class="o">=</span> <span class="n">pts</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">c_gpu</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>           <span class="c1"># (N, mb, 3)</span>
+        <span class="n">p_local</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;kij,kmj-&gt;kmi&#39;</span><span class="p">,</span> <span class="n">Rinv_all</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span>    <span class="c1"># (N, mb, 3)</span>
+        <span class="n">x_l</span><span class="p">,</span> <span class="n">y_l</span><span class="p">,</span> <span class="n">z_l</span> <span class="o">=</span> <span class="n">p_local</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">p_local</span><span class="p">[:,:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">p_local</span><span class="p">[:,:,</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">rho_l</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x_l</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">y_l</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">phi_l</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">y_l</span><span class="p">,</span> <span class="n">x_l</span><span class="p">)</span>
+
+        <span class="n">a</span> <span class="o">=</span> <span class="n">a_gpu</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">denom_sq</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">rho_l</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">z_l</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">m_arg</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="n">denom_sq</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="n">xp</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mf">4.0</span> <span class="o">*</span> <span class="n">a</span> <span class="o">*</span> <span class="n">rho_l</span> <span class="o">/</span> <span class="n">denom_sq</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="mf">1e-12</span><span class="p">),</span>
+            <span class="n">xp</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">denom_sq</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">K</span> <span class="o">=</span> <span class="n">_ellipk_agm</span><span class="p">(</span><span class="n">m_arg</span><span class="p">,</span> <span class="n">xp</span><span class="o">=</span><span class="n">xp</span><span class="p">)</span>
+        <span class="n">E</span> <span class="o">=</span> <span class="n">_ellipe_agm</span><span class="p">(</span><span class="n">m_arg</span><span class="p">,</span> <span class="n">xp</span><span class="o">=</span><span class="n">xp</span><span class="p">)</span>
+
+        <span class="n">sqrt_denom</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">xp</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">denom_sq</span><span class="p">,</span> <span class="mf">1e-30</span><span class="p">))</span>
+        <span class="n">denom2</span>   <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="n">rho_l</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">z_l</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">safe_d2</span>  <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">denom2</span>  <span class="o">&gt;</span> <span class="mf">1e-30</span><span class="p">,</span> <span class="n">denom2</span><span class="p">,</span>  <span class="n">xp</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">denom2</span><span class="p">,</span>  <span class="mf">1e-30</span><span class="p">))</span>
+        <span class="n">safe_rho</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">rho_l</span>   <span class="o">&gt;</span> <span class="mf">1e-15</span><span class="p">,</span> <span class="n">rho_l</span><span class="p">,</span>   <span class="n">xp</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">rho_l</span><span class="p">,</span>   <span class="mf">1e-15</span><span class="p">))</span>
+
+        <span class="c1"># Near-wire singularity: set to NaN so field-line tracers stop</span>
+        <span class="n">near_wire</span>   <span class="o">=</span> <span class="p">(</span><span class="n">rho_l</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">z_l</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mf">0.05</span> <span class="o">*</span> <span class="n">a</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">safe_denom</span>  <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">near_wire</span><span class="p">,</span> <span class="n">xp</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">sqrt_denom</span><span class="p">,</span> <span class="n">xp</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span> <span class="n">sqrt_denom</span><span class="p">)</span>
+
+        <span class="n">coeff</span>  <span class="o">=</span> <span class="p">(</span><span class="n">MU0_OVER_4PI</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">I_gpu</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">/</span> <span class="n">safe_denom</span>
+        <span class="n">Bz_l</span>   <span class="o">=</span> <span class="n">coeff</span> <span class="o">*</span> <span class="p">(</span><span class="n">K</span> <span class="o">+</span> <span class="p">(</span><span class="n">a</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">rho_l</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">z_l</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">safe_d2</span> <span class="o">*</span> <span class="n">E</span><span class="p">)</span>
+        <span class="n">Brho_l</span> <span class="o">=</span> <span class="n">coeff</span> <span class="o">*</span> <span class="n">z_l</span> <span class="o">/</span> <span class="n">safe_rho</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="n">K</span> <span class="o">+</span> <span class="p">(</span><span class="n">a</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">rho_l</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">z_l</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">safe_d2</span> <span class="o">*</span> <span class="n">E</span><span class="p">)</span>
+        <span class="n">Brho_l</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">rho_l</span> <span class="o">&gt;</span> <span class="mf">1e-15</span><span class="p">,</span> <span class="n">Brho_l</span><span class="p">,</span> <span class="n">xp</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">Brho_l</span><span class="p">))</span>
+
+        <span class="n">B_local</span>  <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">Brho_l</span><span class="o">*</span><span class="n">xp</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi_l</span><span class="p">),</span> <span class="n">Brho_l</span><span class="o">*</span><span class="n">xp</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi_l</span><span class="p">),</span> <span class="n">Bz_l</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">B_global</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;kij,kmj-&gt;kmi&#39;</span><span class="p">,</span> <span class="n">R_all</span><span class="p">,</span> <span class="n">B_local</span><span class="p">)</span>    <span class="c1"># (N, mb, 3)</span>
+
+        <span class="n">B_total</span><span class="p">[</span><span class="n">p0</span><span class="p">:</span><span class="n">p1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">xp</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">B_global</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">has_nan</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">xp</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">B_global</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">B_total</span><span class="p">[</span><span class="n">p0</span><span class="p">:</span><span class="n">p1</span><span class="p">][</span><span class="n">has_nan</span><span class="p">]</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">return</span> <span class="n">cp</span><span class="o">.</span><span class="n">asnumpy</span><span class="p">(</span><span class="n">B_total</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_analytic_coil_field_cpu</span><span class="p">(</span><span class="n">centers</span><span class="p">,</span> <span class="n">radii</span><span class="p">,</span> <span class="n">normals</span><span class="p">,</span> <span class="n">currents</span><span class="p">,</span> <span class="n">field_pts</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;CPU fallback using scipy&#39;s elliptic integrals (pyna.toroidal.coils.coil).&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.toroidal.coils.coil</span><span class="w"> </span><span class="kn">import</span> <span class="n">BRBZ_induced_by_current_loop</span>
+
+    <span class="n">M</span> <span class="o">=</span> <span class="n">field_pts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">B_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">M</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="n">R_all</span>    <span class="o">=</span> <span class="n">_batch_rotation_matrices</span><span class="p">(</span><span class="n">normals</span><span class="p">,</span> <span class="n">xp</span><span class="o">=</span><span class="n">np</span><span class="p">)</span>
+    <span class="n">Rinv_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">R_all</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">c_k</span><span class="p">,</span> <span class="n">a_k</span><span class="p">,</span> <span class="n">I_k</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">centers</span><span class="p">,</span> <span class="n">radii</span><span class="p">,</span> <span class="n">currents</span><span class="p">)):</span>
+        <span class="n">delta</span>   <span class="o">=</span> <span class="n">field_pts</span> <span class="o">-</span> <span class="n">c_k</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>          <span class="c1"># (M, 3)</span>
+        <span class="n">p_local</span> <span class="o">=</span> <span class="n">delta</span> <span class="o">@</span> <span class="n">Rinv_all</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>             <span class="c1"># (M, 3)</span>
+        <span class="n">rho_l</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">p_local</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">p_local</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">phi_l</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">p_local</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">p_local</span><span class="p">[:,</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">z_l</span>     <span class="o">=</span> <span class="n">p_local</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="n">BR</span><span class="p">,</span> <span class="n">BZ</span>  <span class="o">=</span> <span class="n">BRBZ_induced_by_current_loop</span><span class="p">(</span><span class="n">a_k</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">I_k</span><span class="p">,</span> <span class="n">rho_l</span><span class="p">,</span> <span class="n">z_l</span><span class="p">)</span>
+
+        <span class="n">B_local</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">BR</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi_l</span><span class="p">),</span> <span class="n">BR</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi_l</span><span class="p">),</span> <span class="n">BZ</span><span class="p">])</span>
+        <span class="n">B_global</span> <span class="o">=</span> <span class="n">B_local</span> <span class="o">@</span> <span class="n">R_all</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">B_total</span> <span class="o">+=</span> <span class="n">B_global</span>
+
+    <span class="k">return</span> <span class="n">B_total</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># GPU Biot-Savart: arbitrary coils (duck-typed interface)</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="biot_savart_all_coils_gpu">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/accel/index.html#pyna.toroidal.coils.accel.biot_savart_all_coils_gpu">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">biot_savart_all_coils_gpu</span><span class="p">(</span>
+    <span class="n">coils</span><span class="p">,</span>
+    <span class="n">field_pts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">pt_batch</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8192</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Biot-Savart field of arbitrary coils, GPU-accelerated.</span>
+
+<span class="sd">    Coil interface (duck typing)</span>
+<span class="sd">    ----------------------------</span>
+<span class="sd">    Each coil object must expose:</span>
+<span class="sd">      - ``.closed_points() -&gt; np.ndarray (K+1, 3)``</span>
+<span class="sd">        Ordered polyline that closes the loop (first == last, or wraps around).</span>
+<span class="sd">      - ``.current : float``  current in amperes.</span>
+
+<span class="sd">    All coil segments are concatenated into one GPU kernel launch.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    coils : list of coil-like objects</span>
+<span class="sd">    field_pts : (M, 3) float64</span>
+<span class="sd">    pt_batch : int  field-point batch size (tune to VRAM)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    B : (M, 3) float64  total field in Tesla</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xp</span>
+        <span class="n">_gpu</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="n">xp</span>   <span class="o">=</span> <span class="n">np</span>
+        <span class="n">_gpu</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">mu0_4pi</span> <span class="o">=</span> <span class="mf">1e-7</span>
+
+    <span class="n">dl_list</span><span class="p">,</span> <span class="n">mid_list</span><span class="p">,</span> <span class="n">I_list</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">coil</span> <span class="ow">in</span> <span class="n">coils</span><span class="p">:</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="n">coil</span><span class="o">.</span><span class="n">closed_points</span><span class="p">()</span>
+        <span class="n">dl</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">mid</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">pts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">pts</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="n">I</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dl</span><span class="p">),</span> <span class="n">coil</span><span class="o">.</span><span class="n">current</span><span class="p">)</span>
+        <span class="n">dl_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dl</span><span class="p">);</span> <span class="n">mid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mid</span><span class="p">);</span> <span class="n">I_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">I</span><span class="p">)</span>
+
+    <span class="n">dl_all</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">dl_list</span><span class="p">,</span>  <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">mid_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">mid_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">I_all</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">I_list</span><span class="p">,</span>   <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">N_seg</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dl_all</span><span class="p">)</span>
+    <span class="n">M</span>     <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">field_pts</span><span class="p">)</span>
+    <span class="n">fp</span>    <span class="o">=</span> <span class="n">field_pts</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Biot-Savart GPU: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">coils</span><span class="p">)</span><span class="si">}</span><span class="s2"> coils → </span><span class="si">{</span><span class="n">N_seg</span><span class="si">}</span><span class="s2"> segs, </span><span class="si">{</span><span class="n">M</span><span class="si">}</span><span class="s2"> pts &quot;</span>
+          <span class="sa">f</span><span class="s2">&quot;(pt_batch=</span><span class="si">{</span><span class="n">pt_batch</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">dl_gpu</span>  <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">dl_all</span><span class="p">)</span>
+    <span class="n">mid_gpu</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mid_all</span><span class="p">)</span>
+    <span class="n">I_gpu</span>   <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">I_all</span><span class="p">)</span>
+    <span class="n">seg_len</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dl_gpu</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">B_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">M</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">p0</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">pt_batch</span><span class="p">):</span>
+        <span class="n">p1</span>  <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">p0</span> <span class="o">+</span> <span class="n">pt_batch</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">fp</span><span class="p">[</span><span class="n">p0</span><span class="p">:</span><span class="n">p1</span><span class="p">])</span>                    <span class="c1"># (nb, 3)</span>
+
+        <span class="n">r_vec</span> <span class="o">=</span> <span class="n">pts</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">mid_gpu</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>  <span class="c1"># (nb, N_seg, 3)</span>
+        <span class="n">r_mag</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">r_vec</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">r3</span>    <span class="o">=</span> <span class="n">r_mag</span> <span class="o">**</span> <span class="mi">3</span>
+        <span class="n">near</span>  <span class="o">=</span> <span class="n">r_mag</span> <span class="o">&lt;</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">seg_len</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">r3</span>    <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">near</span><span class="p">,</span> <span class="n">xp</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">r3</span><span class="p">)</span>
+
+        <span class="n">dl_cross_r</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">dl_gpu</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span> <span class="n">r_vec</span><span class="p">)</span>
+        <span class="n">weight</span> <span class="o">=</span> <span class="n">I_gpu</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span> <span class="o">/</span> <span class="n">r3</span>
+        <span class="n">dB</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">dl_cross_r</span> <span class="o">*</span> <span class="n">weight</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>   <span class="c1"># (nb, 3)</span>
+
+        <span class="n">B_total</span><span class="p">[</span><span class="n">p0</span><span class="p">:</span><span class="n">p1</span><span class="p">]</span> <span class="o">=</span> <span class="n">mu0_4pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">asnumpy</span><span class="p">(</span><span class="n">dB</span><span class="p">)</span> <span class="k">if</span> <span class="n">_gpu</span> <span class="k">else</span> <span class="n">dB</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">B_total</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Template fast-path: CircularCoilTemplate</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="CircularCoilTemplate">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/accel/index.html#pyna.toroidal.coils.accel.CircularCoilTemplate">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CircularCoilTemplate</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Pre-computed unit-coil field on a 2-D normalised (ρ&#39;, z&#39;) grid.</span>
+
+<span class="sd">    The scaling law for a circular coil is exact:</span>
+
+<span class="sd">        B_ρ(ρ, z; a, I) = (I / a) · f_ρ(ρ/a, z/a)</span>
+<span class="sd">        B_z(ρ, z; a, I) = (I / a) · f_z(ρ/a, z/a)</span>
+
+<span class="sd">    One template therefore covers all circular coils regardless of radius or</span>
+<span class="sd">    current — only translation + rotation of the evaluation points is needed</span>
+<span class="sd">    before a cheap GPU bilinear lookup.</span>
+
+<span class="sd">    Grid design</span>
+<span class="sd">    -----------</span>
+<span class="sd">    rho_max / z_max must satisfy:</span>
+<span class="sd">        rho_max ≥ max_over_all_coils(max_dist_to_grid_corner / coil_radius)</span>
+
+<span class="sd">    For a machine of size ~1 m with smallest coil a_min ≈ 0.04 m, a value</span>
+<span class="sd">    of 60 is safe (max normalised distance ≈ 52 with 10 % margin → 57).</span>
+
+<span class="sd">    The ρ&#39; axis uses a hybrid grid:</span>
+<span class="sd">      [0, rho_join] : uniform   (resolves near-coil 1/r singularity)</span>
+<span class="sd">      [rho_join, rho_max] : log-uniform  (B ~ 1/r³ → relative error uniform)</span>
+<span class="sd">    The z&#39; axis uses a uniform symmetric grid.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    rho_max  : float  maximum ρ/a to tabulate  (default 60)</span>
+<span class="sd">    z_max    : float  maximum |z/a| to tabulate (default 60)</span>
+<span class="sd">    N_near   : int    uniform points in [0, rho_join]</span>
+<span class="sd">    N_far    : int    log-uniform points in [rho_join, rho_max]</span>
+<span class="sd">    N_z      : int    total z points</span>
+<span class="sd">    rho_join : float  uniform/log-uniform transition</span>
+<span class="sd">    use_gpu  : bool   build and query on GPU</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">rho_max</span><span class="p">:</span>  <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span><span class="p">,</span>
+        <span class="n">z_max</span><span class="p">:</span>    <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span><span class="p">,</span>
+        <span class="n">N_near</span><span class="p">:</span>   <span class="nb">int</span>   <span class="o">=</span> <span class="mi">1200</span><span class="p">,</span>
+        <span class="n">N_far</span><span class="p">:</span>    <span class="nb">int</span>   <span class="o">=</span> <span class="mi">500</span><span class="p">,</span>
+        <span class="n">N_z</span><span class="p">:</span>      <span class="nb">int</span>   <span class="o">=</span> <span class="mi">3200</span><span class="p">,</span>
+        <span class="n">rho_join</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+        <span class="n">use_gpu</span><span class="p">:</span>  <span class="nb">bool</span>  <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+<div class="viewcode-block" id="CircularCoilTemplate.rho_max">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/accel/index.html#pyna.toroidal.coils.accel.CircularCoilTemplate.rho_max">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rho_max</span>  <span class="o">=</span> <span class="n">rho_max</span></div>
+
+<div class="viewcode-block" id="CircularCoilTemplate.z_max">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/accel/index.html#pyna.toroidal.coils.accel.CircularCoilTemplate.z_max">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_max</span>    <span class="o">=</span> <span class="n">z_max</span></div>
+
+<div class="viewcode-block" id="CircularCoilTemplate.rho_join">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/accel/index.html#pyna.toroidal.coils.accel.CircularCoilTemplate.rho_join">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rho_join</span> <span class="o">=</span> <span class="n">rho_join</span></div>
+
+
+        <span class="n">rho_near</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">rho_join</span><span class="p">,</span> <span class="n">N_near</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">rho_far</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">rho_join</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">rho_max</span><span class="p">),</span> <span class="n">N_far</span><span class="p">))</span>
+<div class="viewcode-block" id="CircularCoilTemplate.rho_grid">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/accel/index.html#pyna.toroidal.coils.accel.CircularCoilTemplate.rho_grid">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rho_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">rho_near</span><span class="p">,</span> <span class="n">rho_far</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="CircularCoilTemplate.z_grid">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/accel/index.html#pyna.toroidal.coils.accel.CircularCoilTemplate.z_grid">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_grid</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="n">z_max</span><span class="p">,</span> <span class="n">z_max</span><span class="p">,</span> <span class="n">N_z</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CircularCoilTemplate.N_rho">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/accel/index.html#pyna.toroidal.coils.accel.CircularCoilTemplate.N_rho">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">N_rho</span>    <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho_grid</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CircularCoilTemplate.N_z">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/accel/index.html#pyna.toroidal.coils.accel.CircularCoilTemplate.N_z">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">N_z</span>      <span class="o">=</span> <span class="n">N_z</span></div>
+
+
+        <span class="kn">import</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_time</span>
+        <span class="n">t0</span> <span class="o">=</span> <span class="n">_time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">(</span><span class="n">use_gpu</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;[CircularCoilTemplate] built </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">N_rho</span><span class="si">}</span><span class="s2">×</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">N_z</span><span class="si">}</span><span class="s2"> grid in &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">t0</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s  &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;(rho_max=</span><span class="si">{</span><span class="n">rho_max</span><span class="si">}</span><span class="s2">, z_max=</span><span class="si">{</span><span class="n">z_max</span><span class="si">}</span><span class="s2">, rho_join=</span><span class="si">{</span><span class="n">rho_join</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">xp</span> <span class="o">=</span> <span class="n">cp</span> <span class="k">if</span> <span class="p">(</span><span class="n">use_gpu</span> <span class="ow">and</span> <span class="n">_CUPY_AVAILABLE</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span>
+
+        <span class="n">rho</span>  <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho_grid</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">z</span>    <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_grid</span><span class="p">,</span>   <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">rho2</span> <span class="o">=</span> <span class="n">rho</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">z2</span>   <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+
+        <span class="n">a</span>        <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">denom_sq</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">rho2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">z2</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">m_arg</span>    <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="n">denom_sq</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="n">xp</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mf">4.0</span> <span class="o">*</span> <span class="n">a</span> <span class="o">*</span> <span class="n">rho2</span> <span class="o">/</span> <span class="n">denom_sq</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="mf">1e-12</span><span class="p">),</span>
+            <span class="n">xp</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">denom_sq</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">K</span> <span class="o">=</span> <span class="n">_ellipk_agm</span><span class="p">(</span><span class="n">m_arg</span><span class="p">,</span> <span class="n">xp</span><span class="o">=</span><span class="n">xp</span><span class="p">)</span>
+        <span class="n">E</span> <span class="o">=</span> <span class="n">_ellipe_agm</span><span class="p">(</span><span class="n">m_arg</span><span class="p">,</span> <span class="n">xp</span><span class="o">=</span><span class="n">xp</span><span class="p">)</span>
+
+        <span class="n">sqrt_d</span>   <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">xp</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">denom_sq</span><span class="p">,</span> <span class="mf">1e-30</span><span class="p">))</span>
+        <span class="n">denom2</span>   <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="n">rho2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">z2</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">safe_d2</span>  <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">denom2</span> <span class="o">&gt;</span> <span class="mf">1e-30</span><span class="p">,</span> <span class="n">denom2</span><span class="p">,</span> <span class="n">xp</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">denom2</span><span class="p">,</span> <span class="mf">1e-30</span><span class="p">))</span>
+        <span class="n">safe_rho</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">rho2</span>   <span class="o">&gt;</span> <span class="mf">1e-15</span><span class="p">,</span> <span class="n">rho2</span><span class="p">,</span>   <span class="n">xp</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">rho2</span><span class="p">,</span>   <span class="mf">1e-15</span><span class="p">))</span>
+
+        <span class="n">coeff</span> <span class="o">=</span> <span class="n">MU0_OVER_4PI</span> <span class="o">*</span> <span class="mf">2.0</span> <span class="o">/</span> <span class="n">sqrt_d</span>
+        <span class="n">f_z</span>   <span class="o">=</span> <span class="n">coeff</span> <span class="o">*</span> <span class="p">(</span><span class="n">K</span> <span class="o">+</span> <span class="p">(</span><span class="n">a</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">rho2</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">z2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">safe_d2</span> <span class="o">*</span> <span class="n">E</span><span class="p">)</span>
+        <span class="n">f_rho</span> <span class="o">=</span> <span class="n">coeff</span> <span class="o">*</span> <span class="n">z2</span> <span class="o">/</span> <span class="n">safe_rho</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="n">K</span> <span class="o">+</span> <span class="p">(</span><span class="n">a</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">rho2</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">z2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">safe_d2</span> <span class="o">*</span> <span class="n">E</span><span class="p">)</span>
+        <span class="n">f_rho</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">rho2</span> <span class="o">&gt;</span> <span class="mf">1e-15</span><span class="p">,</span> <span class="n">f_rho</span><span class="p">,</span> <span class="n">xp</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">f_rho</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_use_gpu</span> <span class="o">=</span> <span class="n">use_gpu</span> <span class="ow">and</span> <span class="n">_CUPY_AVAILABLE</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_gpu</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_f_rho_gpu</span> <span class="o">=</span> <span class="n">f_rho</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>   <span class="c1"># (Nr, Nz)  on GPU</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_f_z_gpu</span>   <span class="o">=</span> <span class="n">f_z</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rho_gpu</span>   <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho_grid</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_Nr</span>        <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">N_rho</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_Nz</span>        <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">N_z</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_z0_g</span>      <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_grid</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dz</span>        <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_grid</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_grid</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">RegularGridInterpolator</span> <span class="k">as</span> <span class="n">_RGI</span>
+            <span class="n">f_rho_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">f_rho</span><span class="p">)</span>
+            <span class="n">f_z_np</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">f_z</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_itp_frho</span> <span class="o">=</span> <span class="n">_RGI</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">rho_grid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_grid</span><span class="p">),</span> <span class="n">f_rho_np</span><span class="p">,</span>
+                                   <span class="n">method</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_itp_fz</span>   <span class="o">=</span> <span class="n">_RGI</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">rho_grid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_grid</span><span class="p">),</span> <span class="n">f_z_np</span><span class="p">,</span>
+                                   <span class="n">method</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_gpu_bilinear</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rho_n</span><span class="p">,</span> <span class="n">z_n</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Bilinear interpolation on the hybrid ρ / uniform z GPU tables.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        rho_n, z_n : cp.ndarray (...) float64  normalised coords (ρ/a, z/a)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        f_rho, f_z : cp.ndarray same shape, float32</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Nr</span><span class="p">,</span> <span class="n">Nz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Nr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Nz</span>
+        <span class="n">shape</span>  <span class="o">=</span> <span class="n">rho_n</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">flat_r</span> <span class="o">=</span> <span class="n">rho_n</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">flat_z</span> <span class="o">=</span> <span class="n">z_n</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+        <span class="c1"># ρ: searchsorted (non-uniform grid)</span>
+        <span class="n">i0</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rho_gpu</span><span class="p">,</span> <span class="n">flat_r</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">i0</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">i0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">Nr</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="n">i1</span> <span class="o">=</span> <span class="n">i0</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">r0v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rho_gpu</span><span class="p">[</span><span class="n">i0</span><span class="p">];</span>  <span class="n">r1v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rho_gpu</span><span class="p">[</span><span class="n">i1</span><span class="p">]</span>
+        <span class="n">wr</span>  <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">clip</span><span class="p">((</span><span class="n">flat_r</span> <span class="o">-</span> <span class="n">r0v</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">r1v</span> <span class="o">-</span> <span class="n">r0v</span> <span class="o">+</span> <span class="mf">1e-30</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+        <span class="c1"># z: direct index (uniform grid)</span>
+        <span class="n">iz</span>  <span class="o">=</span> <span class="p">(</span><span class="n">flat_z</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z0_g</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dz</span>
+        <span class="n">j0</span>  <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">iz</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">Nz</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">j1</span>  <span class="o">=</span> <span class="n">j0</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">wz</span>  <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">iz</span> <span class="o">-</span> <span class="n">j0</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_blerp</span><span class="p">(</span><span class="n">tbl</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">tbl</span><span class="p">[</span><span class="n">i0</span><span class="p">,</span> <span class="n">j0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">wr</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">wz</span><span class="p">)</span> <span class="o">+</span>
+                    <span class="n">tbl</span><span class="p">[</span><span class="n">i1</span><span class="p">,</span> <span class="n">j0</span><span class="p">]</span> <span class="o">*</span>      <span class="n">wr</span>   <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">wz</span><span class="p">)</span> <span class="o">+</span>
+                    <span class="n">tbl</span><span class="p">[</span><span class="n">i0</span><span class="p">,</span> <span class="n">j1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">wr</span><span class="p">)</span> <span class="o">*</span>      <span class="n">wz</span>   <span class="o">+</span>
+                    <span class="n">tbl</span><span class="p">[</span><span class="n">i1</span><span class="p">,</span> <span class="n">j1</span><span class="p">]</span> <span class="o">*</span>      <span class="n">wr</span>   <span class="o">*</span>      <span class="n">wz</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">_blerp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_f_rho_gpu</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> \
+               <span class="n">_blerp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_f_z_gpu</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+<div class="viewcode-block" id="CircularCoilTemplate.field_all_coils">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/accel/index.html#pyna.toroidal.coils.accel.CircularCoilTemplate.field_all_coils">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">field_all_coils</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">centers</span><span class="p">:</span>   <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">radii</span><span class="p">:</span>     <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">normals</span><span class="p">:</span>   <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">currents</span><span class="p">:</span>  <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">field_pts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">pt_batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32768</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Summed field of N circular coils at M field points via template.</span>
+
+<span class="sd">        Coordinate pipeline (GPU):</span>
+<span class="sd">          field_pt  →  translate  →  rotate to local  →  normalise (/a)</span>
+<span class="sd">          →  bilinear lookup  →  scale (×I/a)  →  rotate to global  →  sum</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        centers   : (N, 3)</span>
+<span class="sd">        radii     : (N,)</span>
+<span class="sd">        normals   : (N, 3)</span>
+<span class="sd">        currents  : (N,)</span>
+<span class="sd">        field_pts : (M, 3)</span>
+<span class="sd">        pt_batch_size : int  field-point batch (GPU memory control)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        B : (M, 3) float64  total field in Cartesian</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">xp</span> <span class="o">=</span> <span class="n">cp</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_gpu</span> <span class="k">else</span> <span class="n">np</span>
+        <span class="n">M</span>  <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">field_pts</span><span class="p">)</span>
+
+        <span class="n">c_gpu</span>    <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">centers</span><span class="p">,</span>   <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">a_gpu</span>    <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span>     <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">I_gpu</span>    <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">currents</span><span class="p">,</span>  <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">R_all</span>    <span class="o">=</span> <span class="n">_batch_rotation_matrices</span><span class="p">(</span><span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">normals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">xp</span><span class="o">=</span><span class="n">xp</span><span class="p">)</span>
+        <span class="n">Rinv_all</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">R_all</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">fp_gpu</span>   <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">field_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">B_total</span>  <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">M</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">p0</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">pt_batch_size</span><span class="p">):</span>
+            <span class="n">p1</span>  <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">p0</span> <span class="o">+</span> <span class="n">pt_batch_size</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+            <span class="n">pts</span> <span class="o">=</span> <span class="n">fp_gpu</span><span class="p">[</span><span class="n">p0</span><span class="p">:</span><span class="n">p1</span><span class="p">]</span>                                     <span class="c1"># (mb, 3)</span>
+
+            <span class="n">delta</span>   <span class="o">=</span> <span class="n">pts</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">c_gpu</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>          <span class="c1"># (N, mb, 3)</span>
+            <span class="n">p_local</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;kij,kmj-&gt;kmi&#39;</span><span class="p">,</span> <span class="n">Rinv_all</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span>
+
+            <span class="n">x_l</span><span class="p">,</span> <span class="n">y_l</span><span class="p">,</span> <span class="n">z_l</span> <span class="o">=</span> <span class="n">p_local</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">p_local</span><span class="p">[:,:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">p_local</span><span class="p">[:,:,</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">rho_l</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x_l</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">y_l</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">phi_l</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">y_l</span><span class="p">,</span> <span class="n">x_l</span><span class="p">)</span>
+            <span class="n">a</span>     <span class="o">=</span> <span class="n">a_gpu</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
+            <span class="n">rho_n</span> <span class="o">=</span> <span class="n">rho_l</span> <span class="o">/</span> <span class="n">a</span>
+            <span class="n">z_n</span>   <span class="o">=</span> <span class="n">z_l</span>   <span class="o">/</span> <span class="n">a</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_gpu</span><span class="p">:</span>
+                <span class="n">f_rho</span><span class="p">,</span> <span class="n">f_z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gpu_bilinear</span><span class="p">(</span><span class="n">rho_n</span><span class="p">,</span> <span class="n">z_n</span><span class="p">)</span>
+                <span class="n">f_rho</span> <span class="o">=</span> <span class="n">f_rho</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+                <span class="n">f_z</span>   <span class="o">=</span> <span class="n">f_z</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pts_n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">rho_n</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">z_n</span><span class="o">.</span><span class="n">ravel</span><span class="p">()],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">f_rho</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_itp_frho</span><span class="p">(</span><span class="n">pts_n</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">rho_n</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="n">f_z</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_itp_fz</span><span class="p">(</span><span class="n">pts_n</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">rho_n</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+            <span class="n">scale</span>  <span class="o">=</span> <span class="n">I_gpu</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">/</span> <span class="n">a</span>
+            <span class="n">Brho_l</span> <span class="o">=</span> <span class="n">scale</span> <span class="o">*</span> <span class="n">f_rho</span>
+            <span class="n">Bz_l</span>   <span class="o">=</span> <span class="n">scale</span> <span class="o">*</span> <span class="n">f_z</span>
+
+            <span class="n">B_local</span>  <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">Brho_l</span><span class="o">*</span><span class="n">xp</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi_l</span><span class="p">),</span> <span class="n">Brho_l</span><span class="o">*</span><span class="n">xp</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi_l</span><span class="p">),</span> <span class="n">Bz_l</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">B_global</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;kij,kmj-&gt;kmi&#39;</span><span class="p">,</span> <span class="n">R_all</span><span class="p">,</span> <span class="n">B_local</span><span class="p">)</span>
+            <span class="n">B_total</span><span class="p">[</span><span class="n">p0</span><span class="p">:</span><span class="n">p1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">B_global</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">cp</span><span class="o">.</span><span class="n">asnumpy</span><span class="p">(</span><span class="n">B_total</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_gpu</span> <span class="k">else</span> <span class="n">B_total</span></div>
+</div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Module-level singleton + convenience accessor</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="n">_template</span><span class="p">:</span> <span class="n">CircularCoilTemplate</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="get_template">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/accel/index.html#pyna.toroidal.coils.accel.get_template">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_template</span><span class="p">(</span>
+    <span class="n">rho_max</span><span class="p">:</span>  <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span><span class="p">,</span>
+    <span class="n">z_max</span><span class="p">:</span>    <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span><span class="p">,</span>
+    <span class="n">N_near</span><span class="p">:</span>   <span class="nb">int</span>   <span class="o">=</span> <span class="mi">1200</span><span class="p">,</span>
+    <span class="n">N_far</span><span class="p">:</span>    <span class="nb">int</span>   <span class="o">=</span> <span class="mi">500</span><span class="p">,</span>
+    <span class="n">N_z</span><span class="p">:</span>      <span class="nb">int</span>   <span class="o">=</span> <span class="mi">3200</span><span class="p">,</span>
+    <span class="n">rho_join</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+    <span class="n">use_gpu</span><span class="p">:</span>  <span class="nb">bool</span>  <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CircularCoilTemplate</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return (and lazily build) the module-level ``CircularCoilTemplate``.</span>
+
+<span class="sd">    The template is built only once per process; subsequent calls return the</span>
+<span class="sd">    cached instance regardless of the arguments.</span>
+
+<span class="sd">    Default parameters are sized for machine radius ~1 m, smallest coil</span>
+<span class="sd">    a_min = 0.04 m:</span>
+
+<span class="sd">    * Build time  : ~0.5 s (GPU)</span>
+<span class="sd">    * Query time  : ~5 s for 336 coils × 614 400 pts</span>
+<span class="sd">    * Plasma accuracy (|B| &lt; 5 T): mean rel ≈ 5e-4, p99 ≈ 6e-3</span>
+<span class="sd">    * Near-wire (|B| ≫ 5 T): larger errors, but those points should be</span>
+<span class="sd">      NaN-masked in the field-line tracer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">_template</span>
+    <span class="k">if</span> <span class="n">_template</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_template</span> <span class="o">=</span> <span class="n">CircularCoilTemplate</span><span class="p">(</span>
+            <span class="n">rho_max</span><span class="p">,</span> <span class="n">z_max</span><span class="p">,</span> <span class="n">N_near</span><span class="p">,</span> <span class="n">N_far</span><span class="p">,</span> <span class="n">N_z</span><span class="p">,</span> <span class="n">rho_join</span><span class="p">,</span> <span class="n">use_gpu</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_template</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

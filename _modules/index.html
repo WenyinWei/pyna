@@ -1,0 +1,604 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Overview: module code &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=30646c52"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/index';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Overview: module code</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>All modules for which code is available</h1>
+<ul><li><a href="EBField.html">EBField</a></li>
+<li><a href="LoopBetweenCapacitor.html">LoopBetweenCapacitor</a></li>
+<li><a href="_cyna_ext.html">_cyna_ext</a></li>
+<li><a href="electromagnetics.html">electromagnetics</a></li>
+<li><a href="matplotlib/pickpoints.html">matplotlib.pickpoints</a></li>
+<li><a href="motion.html">motion</a></li>
+<li><a href="pyna/_cyna.html">pyna._cyna</a></li>
+<ul><li><a href="pyna/_cyna/utils.html">pyna._cyna.utils</a></li>
+</ul><li><a href="pyna/cache.html">pyna.cache</a></li>
+<li><a href="pyna/connection_length.html">pyna.connection_length</a></li>
+<li><a href="pyna/context.html">pyna.context</a></li>
+<li><a href="pyna/control/FPT.html">pyna.control.FPT</a></li>
+<li><a href="pyna/control/FPT_3d.html">pyna.control.FPT_3d</a></li>
+<li><a href="pyna/control/optimizer.html">pyna.control.optimizer</a></li>
+<li><a href="pyna/control/response_matrix.html">pyna.control.response_matrix</a></li>
+<li><a href="pyna/control/surface_fate.html">pyna.control.surface_fate</a></li>
+<li><a href="pyna/control/topology_state.html">pyna.control.topology_state</a></li>
+<li><a href="pyna/diff/cycle.html">pyna.diff.cycle</a></li>
+<li><a href="pyna/diff/diff.html">pyna.diff.diff</a></li>
+<li><a href="pyna/diff/fieldline.html">pyna.diff.fieldline</a></li>
+<li><a href="pyna/diff/fixedpoint.html">pyna.diff.fixedpoint</a></li>
+<li><a href="pyna/draw/manifold.html">pyna.draw.manifold</a></li>
+<li><a href="pyna/draw/resonant.html">pyna.draw.resonant</a></li>
+<li><a href="pyna/dynamics.html">pyna.dynamics</a></li>
+<li><a href="pyna/fields/base.html">pyna.fields.base</a></li>
+<li><a href="pyna/fields/coords.html">pyna.fields.coords</a></li>
+<li><a href="pyna/fields/cylindrical.html">pyna.fields.cylindrical</a></li>
+<li><a href="pyna/fields/diff_ops.html">pyna.fields.diff_ops</a></li>
+<li><a href="pyna/fields/properties.html">pyna.fields.properties</a></li>
+<li><a href="pyna/fields/tensor.html">pyna.fields.tensor</a></li>
+<li><a href="pyna/fields/toroidal.html">pyna.fields.toroidal</a></li>
+<li><a href="pyna/flow.html">pyna.flow</a></li>
+<li><a href="pyna/flt.html">pyna.flt</a></li>
+<li><a href="pyna/flt_cuda.html">pyna.flt_cuda</a></li>
+<li><a href="pyna/imas_compat.html">pyna.imas_compat</a></li>
+<li><a href="pyna/io/mgrid.html">pyna.io.mgrid</a></li>
+<li><a href="pyna/io/poincare_io.html">pyna.io.poincare_io</a></li>
+<li><a href="pyna/map.html">pyna.map</a></li>
+<li><a href="pyna/plot/boundary_island.html">pyna.plot.boundary_island</a></li>
+<li><a href="pyna/plot/island.html">pyna.plot.island</a></li>
+<li><a href="pyna/plot/island_chain.html">pyna.plot.island_chain</a></li>
+<li><a href="pyna/plot/mgrid.html">pyna.plot.mgrid</a></li>
+<li><a href="pyna/plot/poincare_beta.html">pyna.plot.poincare_beta</a></li>
+<li><a href="pyna/plot/rmp.html">pyna.plot.rmp</a></li>
+<li><a href="pyna/plot/section_geometry.html">pyna.plot.section_geometry</a></li>
+<li><a href="pyna/plot/tube.html">pyna.plot.tube</a></li>
+<li><a href="pyna/plot/xo_points.html">pyna.plot.xo_points</a></li>
+<li><a href="pyna/polymap.html">pyna.polymap</a></li>
+<li><a href="pyna/polynomial.html">pyna.polynomial</a></li>
+<li><a href="pyna/progress.html">pyna.progress</a></li>
+<li><a href="pyna/system.html">pyna.system</a></li>
+<li><a href="pyna/sysutil.html">pyna.sysutil</a></li>
+<li><a href="pyna/topo.html">pyna.topo</a></li>
+<ul><li><a href="pyna/topo/_base.html">pyna.topo._base</a></li>
+<li><a href="pyna/topo/adapters.html">pyna.topo.adapters</a></li>
+<li><a href="pyna/topo/bridges.html">pyna.topo.bridges</a></li>
+<li><a href="pyna/topo/builders.html">pyna.topo.builders</a></li>
+<li><a href="pyna/topo/chaos.html">pyna.topo.chaos</a></li>
+<li><a href="pyna/topo/classical_maps.html">pyna.topo.classical_maps</a></li>
+<li><a href="pyna/topo/core.html">pyna.topo.core</a></li>
+<li><a href="pyna/topo/cycle.html">pyna.topo.cycle</a></li>
+<li><a href="pyna/topo/dynamics.html">pyna.topo.dynamics</a></li>
+<li><a href="pyna/topo/factories.html">pyna.topo.factories</a></li>
+<li><a href="pyna/topo/fast_metrics.html">pyna.topo.fast_metrics</a></li>
+<li><a href="pyna/topo/fixed_points.html">pyna.topo.fixed_points</a></li>
+<li><a href="pyna/topo/flux_surface.html">pyna.topo.flux_surface</a></li>
+<li><a href="pyna/topo/fpt.html">pyna.topo.fpt</a></li>
+<li><a href="pyna/topo/healed_flux_coords.html">pyna.topo.healed_flux_coords</a></li>
+<li><a href="pyna/topo/identity.html">pyna.topo.identity</a></li>
+<li><a href="pyna/topo/invariant.html">pyna.topo.invariant</a></li>
+<li><a href="pyna/topo/invariant_torus.html">pyna.topo.invariant_torus</a></li>
+<li><a href="pyna/topo/invariants.html">pyna.topo.invariants</a></li>
+<li><a href="pyna/topo/island_extract.html">pyna.topo.island_extract</a></li>
+<li><a href="pyna/topo/island_healed_coords.html">pyna.topo.island_healed_coords</a></li>
+<li><a href="pyna/topo/manifold.html">pyna.topo.manifold</a></li>
+<li><a href="pyna/topo/manifold_improve.html">pyna.topo.manifold_improve</a></li>
+<li><a href="pyna/topo/monodromy.html">pyna.topo.monodromy</a></li>
+<li><a href="pyna/topo/perturbation.html">pyna.topo.perturbation</a></li>
+<li><a href="pyna/topo/poincare.html">pyna.topo.poincare</a></li>
+<li><a href="pyna/topo/protocols.html">pyna.topo.protocols</a></li>
+<li><a href="pyna/topo/regularity.html">pyna.topo.regularity</a></li>
+<li><a href="pyna/topo/resonance.html">pyna.topo.resonance</a></li>
+<li><a href="pyna/topo/section.html">pyna.topo.section</a></li>
+<li><a href="pyna/topo/topology_analysis.html">pyna.topo.topology_analysis</a></li>
+<li><a href="pyna/topo/topology_eval.html">pyna.topo.topology_eval</a></li>
+<li><a href="pyna/topo/toroidal.html">pyna.topo.toroidal</a></li>
+<ul><li><a href="pyna/topo/toroidal/_cycle.html">pyna.topo.toroidal._cycle</a></li>
+<li><a href="pyna/topo/toroidal/_fixed_point.html">pyna.topo.toroidal._fixed_point</a></li>
+<li><a href="pyna/topo/toroidal/_island.html">pyna.topo.toroidal._island</a></li>
+<li><a href="pyna/topo/toroidal/_manifold.html">pyna.topo.toroidal._manifold</a></li>
+<li><a href="pyna/topo/toroidal/_monodromy.html">pyna.topo.toroidal._monodromy</a></li>
+<li><a href="pyna/topo/toroidal/_tube.html">pyna.topo.toroidal._tube</a></li>
+<li><a href="pyna/topo/toroidal/_utils.html">pyna.topo.toroidal._utils</a></li>
+</ul><li><a href="pyna/topo/toroidal_cycle.html">pyna.topo.toroidal_cycle</a></li>
+<li><a href="pyna/topo/toroidal_section_view.html">pyna.topo.toroidal_section_view</a></li>
+<li><a href="pyna/topo/toroidal_trajectory.html">pyna.topo.toroidal_trajectory</a></li>
+<li><a href="pyna/topo/trajectory3d.html">pyna.topo.trajectory3d</a></li>
+<li><a href="pyna/topo/variational.html">pyna.topo.variational</a></li>
+<li><a href="pyna/topo/workflow.html">pyna.topo.workflow</a></li>
+</ul><li><a href="pyna/toroidal/boozer_coords.html">pyna.toroidal.boozer_coords</a></li>
+<li><a href="pyna/toroidal/coils/accel.html">pyna.toroidal.coils.accel</a></li>
+<li><a href="pyna/toroidal/coils/base.html">pyna.toroidal.coils.base</a></li>
+<li><a href="pyna/toroidal/coils/coil.html">pyna.toroidal.coils.coil</a></li>
+<li><a href="pyna/toroidal/coils/coil_system.html">pyna.toroidal.coils.coil_system</a></li>
+<li><a href="pyna/toroidal/coils/cuda_kernels.html">pyna.toroidal.coils.cuda_kernels</a></li>
+<li><a href="pyna/toroidal/coils/vector_potential.html">pyna.toroidal.coils.vector_potential</a></li>
+<li><a href="pyna/toroidal/control/gap_response.html">pyna.toroidal.control.gap_response</a></li>
+<li><a href="pyna/toroidal/control/island_control.html">pyna.toroidal.control.island_control</a></li>
+<li><a href="pyna/toroidal/control/island_optimizer.html">pyna.toroidal.control.island_optimizer</a></li>
+<li><a href="pyna/toroidal/control/qprofile_response.html">pyna.toroidal.control.qprofile_response</a></li>
+<li><a href="pyna/toroidal/control/wall.html">pyna.toroidal.control.wall</a></li>
+<li><a href="pyna/toroidal/coords/Boozer.html">pyna.toroidal.coords.Boozer</a></li>
+<li><a href="pyna/toroidal/coords/EqualArc.html">pyna.toroidal.coords.EqualArc</a></li>
+<li><a href="pyna/toroidal/coords/Hamada.html">pyna.toroidal.coords.Hamada</a></li>
+<li><a href="pyna/toroidal/coords/PEST.html">pyna.toroidal.coords.PEST</a></li>
+<li><a href="pyna/toroidal/coords/coordinate.html">pyna.toroidal.coords.coordinate</a></li>
+<li><a href="pyna/toroidal/coords/island_healing.html">pyna.toroidal.coords.island_healing</a></li>
+<li><a href="pyna/toroidal/diagnostics/measure.html">pyna.toroidal.diagnostics.measure</a></li>
+<li><a href="pyna/toroidal/diagnostics/mgrid.html">pyna.toroidal.diagnostics.mgrid</a></li>
+<li><a href="pyna/toroidal/equilibrium/GradShafranov.html">pyna.toroidal.equilibrium.GradShafranov</a></li>
+<li><a href="pyna/toroidal/equilibrium/Solovev.html">pyna.toroidal.equilibrium.Solovev</a></li>
+<li><a href="pyna/toroidal/equilibrium/axisymmetric.html">pyna.toroidal.equilibrium.axisymmetric</a></li>
+<li><a href="pyna/toroidal/equilibrium/stellarator.html">pyna.toroidal.equilibrium.stellarator</a></li>
+<li><a href="pyna/toroidal/flt/adaptive_density.html">pyna.toroidal.flt.adaptive_density</a></li>
+<li><a href="pyna/toroidal/flt/cycle_shift.html">pyna.toroidal.flt.cycle_shift</a></li>
+<li><a href="pyna/toroidal/flt/island_chain.html">pyna.toroidal.flt.island_chain</a></li>
+<li><a href="pyna/toroidal/flt/numba_poincare.html">pyna.toroidal.flt.numba_poincare</a></li>
+<li><a href="pyna/toroidal/flt/postcompute.html">pyna.toroidal.flt.postcompute</a></li>
+<li><a href="pyna/toroidal/flt/trajectory.html">pyna.toroidal.flt.trajectory</a></li>
+<li><a href="pyna/toroidal/geometry.html">pyna.toroidal.geometry</a></li>
+<li><a href="pyna/toroidal/minor_radius.html">pyna.toroidal.minor_radius</a></li>
+<li><a href="pyna/toroidal/optimize/objectives.html">pyna.toroidal.optimize.objectives</a></li>
+<li><a href="pyna/toroidal/perturbation_spectrum.html">pyna.toroidal.perturbation_spectrum</a></li>
+<li><a href="pyna/toroidal/pest_coords.html">pyna.toroidal.pest_coords</a></li>
+<li><a href="pyna/toroidal/torus_deformation.html">pyna.toroidal.torus_deformation</a></li>
+<li><a href="pyna/toroidal/visual/RMP_spectrum.html">pyna.toroidal.visual.RMP_spectrum</a></li>
+<li><a href="pyna/toroidal/visual/equilibrium.html">pyna.toroidal.visual.equilibrium</a></li>
+<li><a href="pyna/toroidal/visual/magnetic_spectrum.html">pyna.toroidal.visual.magnetic_spectrum</a></li>
+<li><a href="pyna/toroidal/visual/tokamak_manifold.html">pyna.toroidal.visual.tokamak_manifold</a></li>
+<li><a href="pyna/utils/symutil/basics.html">pyna.utils.symutil.basics</a></li>
+<li><a href="pyna/utils/symutil/characteristics.html">pyna.utils.symutil.characteristics</a></li>
+<li><a href="pyna/utils/symutil/op.html">pyna.utils.symutil.op</a></li>
+<li><a href="pyna/utils/symutil/vector.html">pyna.utils.symutil.vector</a></li>
+<li><a href="pyna/vector_calc.html">pyna.vector_calc</a></li>
+<li><a href="pyna/withparam.html">pyna.withparam</a></li>
+<li><a href="pyna/workflow/prefect.html">pyna.workflow.prefect</a></li>
+<li><a href="pyna/workflow/tracing.html">pyna.workflow.tracing</a></li>
+</ul>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

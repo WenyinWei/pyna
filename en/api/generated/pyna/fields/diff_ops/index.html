@@ -1,0 +1,886 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>pyna.fields.diff_ops &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'en/api/generated/pyna/fields/diff_ops/index';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../search.html" />
+    <link rel="next" title="pyna.fields.properties" href="../properties/index.html" />
+    <link rel="prev" title="pyna.fields.cylindrical" href="../cylindrical/index.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../../../../_static/searchtools.js"></script>
+    <script src="../../../../../../_static/language_data.js"></script>
+    <script src="../../../../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "en";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../../index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../../index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar"><svg class="pst-icon svg-inline--fa" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../mini-cases.html">Mini Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/index.html">Tutorials and Examples</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../../index.html">API Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../../dynamics.html">General Dynamics (<code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../dynamics-patterns.html">Dynamics Workflows and Extension Helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../flt.html">Field-line Tracing (<code class="docutils literal notranslate"><span class="pre">pyna.flt</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../topo.html">Topology (<code class="docutils literal notranslate"><span class="pre">pyna.topo</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../toroidal.html">Toroidal Physics (<code class="docutils literal notranslate"><span class="pre">pyna.toroidal</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../control.html">FPT Topology Control (<code class="docutils literal notranslate"><span class="pre">pyna.control</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../cyna.html">cyna Acceleration Layer</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="../../index.html">pyna</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../../cache/index.html">pyna.cache</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../connection_length/index.html">pyna.connection_length</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../context/index.html">pyna.context</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../control/index.html">pyna.control</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../diff/index.html">pyna.diff</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../draw/index.html">pyna.draw</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../dynamics/index.html">pyna.dynamics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../field_data/index.html">pyna.field_data</a></li>
+<li class="toctree-l3 current active has-children"><a class="reference internal" href="../index.html">pyna.fields</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../base/index.html">pyna.fields.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../coords/index.html">pyna.fields.coords</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../cylindrical/index.html">pyna.fields.cylindrical</a></li>
+<li class="toctree-l4 current active"><a class="current reference internal" href="#">pyna.fields.diff_ops</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../properties/index.html">pyna.fields.properties</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tensor/index.html">pyna.fields.tensor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../toroidal/index.html">pyna.fields.toroidal</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3"><a class="reference internal" href="../../flow/index.html">pyna.flow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../flt/index.html">pyna.flt</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../flt_cuda/index.html">pyna.flt_cuda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../imas_compat/index.html">pyna.imas_compat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../io/index.html">pyna.io</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../mag/index.html">pyna.mag</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../map/index.html">pyna.map</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../plot/index.html">pyna.plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../polymap/index.html">pyna.polymap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../polynomial/index.html">pyna.polynomial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../progress/index.html">pyna.progress</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../system/index.html">pyna.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../sysutil/index.html">pyna.sysutil</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../topo/index.html">pyna.topo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../toroidal/index.html">pyna.toroidal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../utils/index.html">pyna.utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../vector_calc/index.html">pyna.vector_calc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../withparam/index.html">pyna.withparam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../workflow/index.html">pyna.workflow</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../theory/index.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../development/index.html">Development</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../../../index.html" class="nav-link">pyna - Python DYNAmics</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">pyna</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">pyna.fields</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.fields.diff_ops</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-pyna.fields.diff_ops">
+<span id="pyna-fields-diff-ops"></span><h1>pyna.fields.diff_ops<a class="headerlink" href="#module-pyna.fields.diff_ops" title="Link to this heading">#</a></h1>
+<p>Differential operators in cylindrical coordinates.</p>
+<p>Extends and consolidates pyna.vector_calc with a complete set of
+field-returning operators that produce typed Field objects.</p>
+<p>All operators use second-order finite differences on the structured
+cylindrical grid (R, Z, phi), with periodic BCs in phi.</p>
+<p>Currently all operators assume cylindrical (R, Z, phi) coordinates.
+Use field.coords to verify, or pass coords= explicitly.</p>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.fields.diff_ops.gradient" title="pyna.fields.diff_ops.gradient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient</span></code></a>(→ VectorFieldCylind)</p></td>
+<td><p>Gradient of a scalar field in cylindrical coordinates.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.fields.diff_ops.divergence" title="pyna.fields.diff_ops.divergence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">divergence</span></code></a>(→ ScalarFieldCylind)</p></td>
+<td><p>Divergence of a vector field in cylindrical coordinates.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.fields.diff_ops.curl" title="pyna.fields.diff_ops.curl"><code class="xref py py-obj docutils literal notranslate"><span class="pre">curl</span></code></a>(→ VectorFieldCylind)</p></td>
+<td><p>Curl of a vector field in cylindrical coordinates.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.fields.diff_ops.laplacian" title="pyna.fields.diff_ops.laplacian"><code class="xref py py-obj docutils literal notranslate"><span class="pre">laplacian</span></code></a>(→ ScalarFieldCylind)</p></td>
+<td><p>Scalar Laplacian in cylindrical coordinates.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.fields.diff_ops.hessian" title="pyna.fields.diff_ops.hessian"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hessian</span></code></a>(→ Tensor2FieldCylind)</p></td>
+<td><p>Hessian tensor H_ij = ∇_i ∇_j f in cylindrical coordinates.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.fields.diff_ops.jacobian_field" title="pyna.fields.diff_ops.jacobian_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">jacobian_field</span></code></a>(→ Tensor2FieldCylind)</p></td>
+<td><p>Jacobian tensor J_ij = ∂V_i/∂x^j in cylindrical coordinates.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.fields.diff_ops.field_line_curvature" title="pyna.fields.diff_ops.field_line_curvature"><code class="xref py py-obj docutils literal notranslate"><span class="pre">field_line_curvature</span></code></a>(→ VectorFieldCylind)</p></td>
+<td><p>Magnetic field-line curvature vector κ = (b̂·∇)b̂.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.fields.diff_ops.covariant_derivative_of_vector" title="pyna.fields.diff_ops.covariant_derivative_of_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">covariant_derivative_of_vector</span></code></a>(v[, coords])</p></td>
+<td><p>Covariant derivative nabla_i V^j of a vector field.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.fields.diff_ops.riemann_tensor" title="pyna.fields.diff_ops.riemann_tensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">riemann_tensor</span></code></a>(coords, pt[, eps])</p></td>
+<td><p>Compute Riemann curvature tensor R^l_ijk at a point.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.fields.diff_ops.ricci_tensor" title="pyna.fields.diff_ops.ricci_tensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ricci_tensor</span></code></a>(coords, pt[, eps])</p></td>
+<td><p>Ricci tensor R_ij = R^k_ikj (contraction of Riemann tensor).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.fields.diff_ops.ricci_scalar" title="pyna.fields.diff_ops.ricci_scalar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ricci_scalar</span></code></a>(coords, pt[, eps])</p></td>
+<td><p>Ricci scalar R = g^{ij} R_ij.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.fields.diff_ops.strain_rate_tensor" title="pyna.fields.diff_ops.strain_rate_tensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">strain_rate_tensor</span></code></a>(v)</p></td>
+<td><p>Strain-rate tensor S = 1/2 (Dv + Dv^T) where Dv is the Jacobian field.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.fields.diff_ops.helmholtz_decomposition" title="pyna.fields.diff_ops.helmholtz_decomposition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">helmholtz_decomposition</span></code></a>(v[, tol])</p></td>
+<td><p>Helmholtz decomposition: v = nabla phi + nabla x A + harmonic.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.fields.diff_ops.gradient">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.diff_ops.</span></span><span class="sig-name descname"><span class="pre">gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../cylindrical/index.html#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><span class="pre">VectorFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/diff_ops.html#gradient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.diff_ops.gradient" title="Link to this definition">#</a></dt>
+<dd><p>Gradient of a scalar field in cylindrical coordinates.</p>
+<p>∇f = (∂f/∂R,  ∂f/∂Z,  (1/R)·∂f/∂φ)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>f</strong> (<a class="reference internal" href="../cylindrical/index.html#pyna.fields.cylindrical.ScalarFieldCylind" title="pyna.fields.cylindrical.ScalarFieldCylind"><em>ScalarFieldCylind</em></a>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>VectorFieldCylind</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.fields.diff_ops.divergence">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.diff_ops.</span></span><span class="sig-name descname"><span class="pre">divergence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../cylindrical/index.html#pyna.fields.cylindrical.ScalarFieldCylind" title="pyna.fields.cylindrical.ScalarFieldCylind"><span class="pre">ScalarFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/diff_ops.html#divergence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.diff_ops.divergence" title="Link to this definition">#</a></dt>
+<dd><p>Divergence of a vector field in cylindrical coordinates.</p>
+<p>∇·V = ∂V_R/∂R + ∂V_Z/∂Z + (V_R + ∂V_φ/∂φ) / R</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> (<a class="reference internal" href="../cylindrical/index.html#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><em>VectorFieldCylind</em></a>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>ScalarFieldCylind</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.fields.diff_ops.curl">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.diff_ops.</span></span><span class="sig-name descname"><span class="pre">curl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../cylindrical/index.html#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><span class="pre">VectorFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/diff_ops.html#curl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.diff_ops.curl" title="Link to this definition">#</a></dt>
+<dd><p>Curl of a vector field in cylindrical coordinates.</p>
+<p>(∇×V)_R   = (1/R)·∂V_Z/∂φ  - ∂V_φ/∂Z
+(∇×V)_Z   = ∂V_φ/∂R + V_φ/R - (1/R)·∂V_R/∂φ
+(∇×V)_φ   = ∂V_R/∂Z - ∂V_Z/∂R</p>
+<p>The result is automatically tagged DIVERGENCE_FREE (curl is always solenoidal).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> (<a class="reference internal" href="../cylindrical/index.html#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><em>VectorFieldCylind</em></a>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>VectorFieldCylind  (with FieldProperty.DIVERGENCE_FREE)</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.fields.diff_ops.laplacian">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.diff_ops.</span></span><span class="sig-name descname"><span class="pre">laplacian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../cylindrical/index.html#pyna.fields.cylindrical.ScalarFieldCylind" title="pyna.fields.cylindrical.ScalarFieldCylind"><span class="pre">ScalarFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/diff_ops.html#laplacian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.diff_ops.laplacian" title="Link to this definition">#</a></dt>
+<dd><p>Scalar Laplacian in cylindrical coordinates.</p>
+<p>∇²f = (1/R)·∂/∂R(R·∂f/∂R) + ∂²f/∂Z² + (1/R²)·∂²f/∂φ²</p>
+<p>Computed via ∇²f = ∇·(∇f) using the gradient and divergence operators.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>f</strong> (<a class="reference internal" href="../cylindrical/index.html#pyna.fields.cylindrical.ScalarFieldCylind" title="pyna.fields.cylindrical.ScalarFieldCylind"><em>ScalarFieldCylind</em></a>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>ScalarFieldCylind</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.fields.diff_ops.hessian">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.diff_ops.</span></span><span class="sig-name descname"><span class="pre">hessian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../tensor/index.html#pyna.fields.tensor.Tensor2FieldCylind" title="pyna.fields.tensor.Tensor2FieldCylind"><span class="pre">Tensor2FieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/diff_ops.html#hessian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.diff_ops.hessian" title="Link to this definition">#</a></dt>
+<dd><p>Hessian tensor H_ij = ∇_i ∇_j f in cylindrical coordinates.</p>
+<p>Computed by taking the gradient of each component of ∇f, including
+Christoffel connection corrections:</p>
+<blockquote>
+<div><p>H_RR   = ∂²f/∂R²
+H_ZZ   = ∂²f/∂Z²
+H_φφ   = (1/R²)·∂²f/∂φ² + (1/R)·∂f/∂R
+H_RZ   = H_ZR = ∂²f/∂R∂Z
+H_Rφ   = H_φR = (1/R)·∂²f/∂R∂φ - (1/R²)·∂f/∂φ
+H_Zφ   = H_φZ = (1/R)·∂²f/∂Z∂φ</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>f</strong> (<a class="reference internal" href="../cylindrical/index.html#pyna.fields.cylindrical.ScalarFieldCylind" title="pyna.fields.cylindrical.ScalarFieldCylind"><em>ScalarFieldCylind</em></a>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tensor2FieldCylind</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.fields.diff_ops.jacobian_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.diff_ops.</span></span><span class="sig-name descname"><span class="pre">jacobian_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../tensor/index.html#pyna.fields.tensor.Tensor2FieldCylind" title="pyna.fields.tensor.Tensor2FieldCylind"><span class="pre">Tensor2FieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/diff_ops.html#jacobian_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.diff_ops.jacobian_field" title="Link to this definition">#</a></dt>
+<dd><p>Jacobian tensor J_ij = ∂V_i/∂x^j in cylindrical coordinates.</p>
+<dl>
+<dt>Includes connection (Christoffel) corrections for curvilinear basis:</dt><dd><p>J_RR   = ∂V_R/∂R
+J_RZ   = ∂V_R/∂Z
+J_Rphi = (1/R)·∂V_R/∂φ - V_φ/R
+J_ZR   = ∂V_Z/∂R
+J_ZZ   = ∂V_Z/∂Z
+J_Zphi = (1/R)·∂V_Z/∂φ
+J_phiR  = ∂V_φ/∂R - V_φ/R   (note: ∂(V_φ/R)/∂R + V_R/R style depends on convention)
+Actually using covariant derivative convention with Christoffel:</p>
+<blockquote>
+<div><p>∇_j V_i = ∂_j V_i - Γ^k_ij V_k</p>
+</div></blockquote>
+</dd>
+</dl>
+<p>For practical purposes we return the coordinate-component Jacobian
+∂V_i/∂x^j (without Christoffel corrections) plus the diagonal
+1/R terms that arise from the phi derivatives:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> (<a class="reference internal" href="../cylindrical/index.html#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><em>VectorFieldCylind</em></a>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tensor2FieldCylind, shape (nR, nZ, nPhi, 3, 3)</em> – J[…, i, j] = ∂V_i/∂x^j  with phi-axis scaled by 1/R</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.fields.diff_ops.field_line_curvature">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.diff_ops.</span></span><span class="sig-name descname"><span class="pre">field_line_curvature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">B</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../cylindrical/index.html#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><span class="pre">VectorFieldCylind</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/fields/diff_ops.html#field_line_curvature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.diff_ops.field_line_curvature" title="Link to this definition">#</a></dt>
+<dd><p>Magnetic field-line curvature vector κ = (b̂·∇)b̂.</p>
+<p>Where b̂ = B/<a href="#id1"><span class="problematic" id="id2">|B|</span></a> is the unit vector along the field.</p>
+<p>This uses the directional derivative of a vector field in cylindrical
+coordinates (with Christoffel corrections):</p>
+<p>(b̂·∇b̂)_R   = b_R·∂b_R/∂R + b_Z·∂b_R/∂Z + (b_φ/R)·∂b_R/∂φ - b_φ²/R
+(b̂·∇b̂)_Z   = b_R·∂b_Z/∂R + b_Z·∂b_Z/∂Z + (b_φ/R)·∂b_Z/∂φ
+(b̂·∇b̂)_φ   = b_R·∂b_φ/∂R + b_Z·∂b_φ/∂Z + (b_φ/R)·∂b_φ/∂φ + b_φ·b_R/R</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>B</strong> (<a class="reference internal" href="../cylindrical/index.html#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><em>VectorFieldCylind</em></a>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>VectorFieldCylind</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.fields.diff_ops.covariant_derivative_of_vector">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.diff_ops.</span></span><span class="sig-name descname"><span class="pre">covariant_derivative_of_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pyna/fields/diff_ops.html#covariant_derivative_of_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.diff_ops.covariant_derivative_of_vector" title="Link to this definition">#</a></dt>
+<dd><p>Covariant derivative nabla_i V^j of a vector field.</p>
+<dl class="simple">
+<dt>Returns the (i,j) component tensor:</dt><dd><p>(nablaV)^j_i = d_i V^j + Gamma^j_{ik} V^k</p>
+</dd>
+</dl>
+<p>For cylindrical coordinates this gives the correct connection terms
+(identical to the Jacobian plus Christoffel correction).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>v</strong> (<a class="reference internal" href="../cylindrical/index.html#pyna.fields.cylindrical.VectorFieldCylind" title="pyna.fields.cylindrical.VectorFieldCylind"><em>VectorFieldCylind</em></a>)</p></li>
+<li><p><strong>coords</strong> (<a class="reference internal" href="../coords/index.html#pyna.fields.coords.CoordinateSystem" title="pyna.fields.coords.CoordinateSystem"><em>CoordinateSystem</em></a><em>, </em><em>optional</em>) – Defaults to Coords3DCylindrical().</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tensor2FieldCylind, shape (nR, nZ, nPhi, 3, 3)</em> – Component [i,j] = nabla_i V^j</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.fields.diff_ops.riemann_tensor">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.diff_ops.</span></span><span class="sig-name descname"><span class="pre">riemann_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pyna/fields/diff_ops.html#riemann_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.diff_ops.riemann_tensor" title="Link to this definition">#</a></dt>
+<dd><p>Compute Riemann curvature tensor R^l_ijk at a point.</p>
+<p>R^l_ijk = d_j Gamma^l_ik - d_k Gamma^l_ij + Gamma^l_jm Gamma^m_ik - Gamma^l_km Gamma^m_ij</p>
+<p>Uses central finite differences for d_j Gamma.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coords</strong> (<a class="reference internal" href="../coords/index.html#pyna.fields.coords.CoordinateSystem" title="pyna.fields.coords.CoordinateSystem"><em>CoordinateSystem</em></a>)</p></li>
+<li><p><strong>pt</strong> (<em>ndarray</em><em>, </em><a class="reference internal" href="../cylindrical/index.html#pyna.fields.cylindrical.CylindricalFieldArrays.shape" title="pyna.fields.cylindrical.CylindricalFieldArrays.shape"><em>shape</em></a><em> (</em><a class="reference internal" href="../../dynamics/index.html#pyna.dynamics.ItoSDE.dim" title="pyna.dynamics.ItoSDE.dim"><em>dim</em></a><em>,</em><em>)</em>) – Point at which to evaluate.</p></li>
+<li><p><strong>eps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Finite difference step.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>ndarray, shape (dim, dim, dim, dim)</em> – R[l, i, j, k] = R^l_ijk</p></li>
+<li><p><strong>Note</strong> (<em>Near or inside the Schwarzschild radius (r &lt;= 2GM/c^2),</em>)</p></li>
+<li><p><em>numerical singularities will occur.</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.fields.diff_ops.ricci_tensor">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.diff_ops.</span></span><span class="sig-name descname"><span class="pre">ricci_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pyna/fields/diff_ops.html#ricci_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.diff_ops.ricci_tensor" title="Link to this definition">#</a></dt>
+<dd><p>Ricci tensor R_ij = R^k_ikj (contraction of Riemann tensor).</p>
+<p>Returns ndarray shape (dim, dim).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.fields.diff_ops.ricci_scalar">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.diff_ops.</span></span><span class="sig-name descname"><span class="pre">ricci_scalar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pyna/fields/diff_ops.html#ricci_scalar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.diff_ops.ricci_scalar" title="Link to this definition">#</a></dt>
+<dd><p>Ricci scalar R = g^{ij} R_ij.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.fields.diff_ops.strain_rate_tensor">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.diff_ops.</span></span><span class="sig-name descname"><span class="pre">strain_rate_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pyna/fields/diff_ops.html#strain_rate_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.diff_ops.strain_rate_tensor" title="Link to this definition">#</a></dt>
+<dd><p>Strain-rate tensor S = 1/2 (Dv + Dv^T) where Dv is the Jacobian field.</p>
+<p>Used in viscous flow, MHD transport, and deformation analysis.
+Result is always symmetric.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.fields.diff_ops.helmholtz_decomposition">
+<span class="sig-prename descclassname"><span class="pre">pyna.fields.diff_ops.</span></span><span class="sig-name descname"><span class="pre">helmholtz_decomposition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pyna/fields/diff_ops.html#helmholtz_decomposition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.fields.diff_ops.helmholtz_decomposition" title="Link to this definition">#</a></dt>
+<dd><p>Helmholtz decomposition: v = nabla phi + nabla x A + harmonic.</p>
+<p>Simplified version: returns divergence-free part and curl-free part.</p>
+<p>WARNING: This is an approximate decomposition using finite differences.
+The divergence-free part is approximated by curl(v), not by a proper
+Leray projection / Poisson solve. For production use, a proper
+Poisson solver is recommended.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>(v_div_free, v_curl_free)</strong> (<em>tuple of VectorFieldCylind</em>) – v_div_free  – curl(v), annotated as DIVERGENCE_FREE
+v_curl_free – v - curl(v), annotated as CURL_FREE
+v ≈ v_div_free + v_curl_free  (approximate)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../cylindrical/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">pyna.fields.cylindrical</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../properties/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">pyna.fields.properties</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.diff_ops.gradient"><code class="docutils literal notranslate"><span class="pre">gradient()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.diff_ops.divergence"><code class="docutils literal notranslate"><span class="pre">divergence()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.diff_ops.curl"><code class="docutils literal notranslate"><span class="pre">curl()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.diff_ops.laplacian"><code class="docutils literal notranslate"><span class="pre">laplacian()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.diff_ops.hessian"><code class="docutils literal notranslate"><span class="pre">hessian()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.diff_ops.jacobian_field"><code class="docutils literal notranslate"><span class="pre">jacobian_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.diff_ops.field_line_curvature"><code class="docutils literal notranslate"><span class="pre">field_line_curvature()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.diff_ops.covariant_derivative_of_vector"><code class="docutils literal notranslate"><span class="pre">covariant_derivative_of_vector()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.diff_ops.riemann_tensor"><code class="docutils literal notranslate"><span class="pre">riemann_tensor()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.diff_ops.ricci_tensor"><code class="docutils literal notranslate"><span class="pre">ricci_tensor()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.diff_ops.ricci_scalar"><code class="docutils literal notranslate"><span class="pre">ricci_scalar()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.diff_ops.strain_rate_tensor"><code class="docutils literal notranslate"><span class="pre">strain_rate_tensor()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.fields.diff_ops.helmholtz_decomposition"><code class="docutils literal notranslate"><span class="pre">helmholtz_decomposition()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

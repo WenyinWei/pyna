@@ -1,0 +1,747 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.topo.workflow &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/topo/workflow';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../topo.html" class="nav-link">pyna.topo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.topo.workflow</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.topo.workflow</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Workflow facade for teaching and day-to-day topology construction.</span>
+
+<span class="sd">``TopologyWorkflow`` composes factories, builders and bridges into the sequence</span>
+<span class="sd">users actually perform in notebooks:</span>
+
+<span class="sd">1. create or receive a flow/map,</span>
+<span class="sd">2. integrate trajectories or iterate orbits,</span>
+<span class="sd">3. explicitly promote closed samples to invariant objects,</span>
+<span class="sd">4. cut continuous geometry into section-level discrete geometry.</span>
+
+<span class="sd">It is a facade, not a new mathematical layer.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.adapters</span><span class="w"> </span><span class="kn">import</span> <span class="n">as_cycle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.bridges</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreSectionCutBridge</span><span class="p">,</span> <span class="n">SectionCutBridge</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.builders</span><span class="w"> </span><span class="kn">import</span> <span class="n">GeometryBuilder</span><span class="p">,</span> <span class="n">IslandChainBuilder</span><span class="p">,</span> <span class="n">TubeChainBuilder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cycle</span><span class="p">,</span> <span class="n">IslandChain</span><span class="p">,</span> <span class="n">Orbit</span><span class="p">,</span> <span class="n">PeriodicOrbit</span><span class="p">,</span> <span class="n">Trajectory</span><span class="p">,</span> <span class="n">Tube</span><span class="p">,</span> <span class="n">TubeChain</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.factories</span><span class="w"> </span><span class="kn">import</span> <span class="n">DynamicalSystemFactory</span><span class="p">,</span> <span class="n">GeometryFactory</span><span class="p">,</span> <span class="n">PoincareMapFactory</span>
+
+
+<div class="viewcode-block" id="orbit_from_map">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.orbit_from_map">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">orbit_from_map</span><span class="p">(</span><span class="n">map_obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">x0</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">n_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Orbit</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Iterate a map-like object and return an ``Orbit`` geometry object.&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">map_obj</span><span class="p">,</span> <span class="s2">&quot;orbit_geometry&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">map_obj</span><span class="o">.</span><span class="n">orbit_geometry</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">n_iter</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">map_obj</span><span class="p">,</span> <span class="s2">&quot;orbit&quot;</span><span class="p">):</span>
+        <span class="n">states</span> <span class="o">=</span> <span class="n">map_obj</span><span class="o">.</span><span class="n">orbit</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_iter</span><span class="p">))</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">map_obj</span><span class="p">,</span> <span class="s2">&quot;phase_space&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">&quot;coordinate_names&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Orbit</span><span class="p">(</span><span class="n">states</span><span class="o">=</span><span class="n">states</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">coordinate_names</span><span class="o">=</span><span class="n">names</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">map_obj</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> cannot produce a discrete orbit.&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="make_poincare_map">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.make_poincare_map">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_poincare_map</span><span class="p">(</span><span class="n">flow</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">section</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create an executable Poincare map for ``flow`` and ``section``.&quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">PoincareMapFactory</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="n">flow</span><span class="p">,</span> <span class="n">section</span><span class="o">=</span><span class="n">section</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="section_cut">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.section_cut">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">section_cut</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">section</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">bridge</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">SectionCutBridge</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Cut a supported continuous-time geometry object by ``section``.&quot;&quot;&quot;</span>
+
+    <span class="n">section_bridge</span> <span class="o">=</span> <span class="n">CoreSectionCutBridge</span><span class="p">()</span> <span class="k">if</span> <span class="n">bridge</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">bridge</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">TubeChain</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">section_bridge</span><span class="o">.</span><span class="n">cut_tube_chain</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Tube</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">section_bridge</span><span class="o">.</span><span class="n">cut_tube</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;section_cut&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">section_cut</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> does not implement section_cut().&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="TopologyWorkflow">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TopologyWorkflow</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;High-level workflow facade for examples and user scripts.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TopologyWorkflow.closure_tol">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.closure_tol">[docs]</a>
+    <span class="n">closure_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-8</span></div>
+
+<div class="viewcode-block" id="TopologyWorkflow.geometry">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.geometry">[docs]</a>
+    <span class="n">geometry</span><span class="p">:</span> <span class="n">GeometryBuilder</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TopologyWorkflow.section_bridge">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.section_bridge">[docs]</a>
+    <span class="n">section_bridge</span><span class="p">:</span> <span class="n">SectionCutBridge</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">CoreSectionCutBridge</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">GeometryBuilder</span><span class="p">(</span><span class="n">closure_tol</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">closure_tol</span><span class="p">))</span>
+
+    <span class="c1"># ── System construction ────────────────────────────────────────────────</span>
+
+<div class="viewcode-block" id="TopologyWorkflow.system">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.system">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build a ready-to-use dynamical system by stable factory key.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">DynamicalSystemFactory</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TopologyWorkflow.geometry_object">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.geometry_object">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">geometry_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build a topology object through the geometry factory.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">GeometryFactory</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ── Continuous-time workflow ───────────────────────────────────────────</span>
+
+<div class="viewcode-block" id="TopologyWorkflow.trajectory">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.trajectory">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">x0</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">t_span</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Trajectory</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Integrate ``flow`` and return a sampled trajectory.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="s2">&quot;trajectory&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">flow</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> does not expose trajectory(); &quot;</span>
+                <span class="s2">&quot;wrap it with pyna.dynamics.CallableFlow or implement trajectory().&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">flow</span><span class="o">.</span><span class="n">trajectory</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TopologyWorkflow.closed_cycle">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.closed_cycle">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">closed_cycle</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">trajectory</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">period_value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">closure_tol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Cycle</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Promote a closed sampled trajectory to a ``Cycle``.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">cycle</span><span class="p">(</span>
+            <span class="n">trajectory</span><span class="p">,</span>
+            <span class="n">require_closed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">closure_tol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">closure_tol</span> <span class="k">if</span> <span class="n">closure_tol</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">closure_tol</span><span class="p">),</span>
+            <span class="n">period_value</span><span class="o">=</span><span class="n">period_value</span><span class="p">,</span>
+            <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TopologyWorkflow.cycle">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.cycle">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cycle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">require_closed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Cycle</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build a ``Cycle`` with an explicit closure policy.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">cycle</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">require_closed</span><span class="o">=</span><span class="n">require_closed</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TopologyWorkflow.poincare_map">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.poincare_map">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">poincare_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">section</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create an executable Poincare map for ``flow`` and ``section``.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">make_poincare_map</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ── Discrete-time workflow ─────────────────────────────────────────────</span>
+
+<div class="viewcode-block" id="TopologyWorkflow.orbit">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.orbit">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">orbit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">map_obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">x0</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">n_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Orbit</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Iterate ``map_obj`` and return a sampled orbit.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">orbit_from_map</span><span class="p">(</span><span class="n">map_obj</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">n_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TopologyWorkflow.periodic_orbit">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.periodic_orbit">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">periodic_orbit</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">samples</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">map_obj</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">verify</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PeriodicOrbit</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Promote map samples to a ``PeriodicOrbit``.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">periodic_orbit</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">map_obj</span><span class="o">=</span><span class="n">map_obj</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ── Resonance objects ──────────────────────────────────────────────────</span>
+
+<div class="viewcode-block" id="TopologyWorkflow.tube">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.tube">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tube</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">O_cycle</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">X_cycles</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">label</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">require_closed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">closure_tol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tube</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build a generic ``Tube`` from one O-cycle and optional X-cycles.&quot;&quot;&quot;</span>
+
+        <span class="n">tol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">closure_tol</span> <span class="k">if</span> <span class="n">closure_tol</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">closure_tol</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Tube</span><span class="p">(</span>
+            <span class="n">O_cycle</span><span class="o">=</span><span class="n">as_cycle</span><span class="p">(</span><span class="n">O_cycle</span><span class="p">,</span> <span class="n">require_closed</span><span class="o">=</span><span class="n">require_closed</span><span class="p">,</span> <span class="n">closure_tol</span><span class="o">=</span><span class="n">tol</span><span class="p">),</span>
+            <span class="n">X_cycles</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">as_cycle</span><span class="p">(</span><span class="n">cycle</span><span class="p">,</span> <span class="n">require_closed</span><span class="o">=</span><span class="n">require_closed</span><span class="p">,</span> <span class="n">closure_tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">cycle</span> <span class="ow">in</span> <span class="p">(</span><span class="n">X_cycles</span> <span class="ow">or</span> <span class="p">[])</span>
+            <span class="p">],</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TopologyWorkflow.tube_chain">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.tube_chain">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tube_chain</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">O_cycles</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span>
+        <span class="n">X_cycles</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">label</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">require_closed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TubeChain</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build a generic ``TubeChain`` through ``TubeChainBuilder``.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">TubeChainBuilder</span><span class="o">.</span><span class="n">from_cycles</span><span class="p">(</span>
+            <span class="n">O_cycles</span><span class="p">,</span>
+            <span class="n">X_cycles</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+            <span class="n">require_closed</span><span class="o">=</span><span class="n">require_closed</span><span class="p">,</span>
+            <span class="n">closure_tol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">closure_tol</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TopologyWorkflow.island_chain">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.island_chain">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">island_chain</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">O_orbits</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span>
+        <span class="n">X_orbits</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">label</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">proximity_tol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IslandChain</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build a generic ``IslandChain`` from O/X periodic orbits.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">IslandChainBuilder</span><span class="o">.</span><span class="n">from_periodic_orbits</span><span class="p">(</span>
+            <span class="n">O_orbits</span><span class="p">,</span>
+            <span class="n">X_orbits</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+            <span class="n">proximity_tol</span><span class="o">=</span><span class="n">proximity_tol</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TopologyWorkflow.section_cut">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.section_cut">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">section_cut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">section</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Cut any supported object by a section.</span>
+
+<span class="sd">        Core ``Tube`` and ``TubeChain`` objects use the configured bridge.</span>
+<span class="sd">        Other objects delegate to their own ``section_cut`` implementation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">section_cut</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">bridge</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">section_bridge</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ── Small teaching helpers ─────────────────────────────────────────────</span>
+
+<div class="viewcode-block" id="TopologyWorkflow.closing_error">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/workflow/index.html#pyna.dynamics.TopologyWorkflow.closing_error">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">closing_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return ``||x_final - x_initial||`` for trajectory/orbit-like samples.&quot;&quot;&quot;</span>
+
+        <span class="n">states</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="s2">&quot;states&quot;</span><span class="p">,</span> <span class="n">samples</span><span class="p">)</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;closing_error requires samples with shape (n_samples, dim).&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span></div>
+</div>
+
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;TopologyWorkflow&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;make_poincare_map&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orbit_from_map&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;section_cut&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

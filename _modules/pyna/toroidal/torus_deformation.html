@@ -1,0 +1,1179 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.toroidal.torus_deformation &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/toroidal/torus_deformation';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.toroidal.torus_deformation</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.toroidal.torus_deformation</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Non-resonant torus (flux-surface) deformation under external perturbation.</span>
+
+<span class="sd">Canonical implementation for :mod:`pyna.toroidal`.</span>
+
+<span class="sd">Implements the analytic spectral theory derived in:</span>
+<span class="sd">    W. Wei, &quot;Non-resonant perturbation effects on invariant tori (flux surfaces)&quot;,</span>
+<span class="sd">    (internal document, 2025).</span>
+
+<span class="sd">All formulas work in flux coordinates (r, θ, φ) with the covariant decomposition</span>
+<span class="sd">convention of that document.  Specifically:</span>
+
+<span class="sd">    B  = B_r g^r + B_θ g^θ + B_φ g^φ       (covariant components)</span>
+
+<span class="sd">where  B_α = B · g_α  (dimension = field × length).</span>
+
+<span class="sd">The perturbation is described by its three covariant Fourier spectra</span>
+<span class="sd">  (δB_r)_mn,  (δB_θ)_mn,  (δB_φ)_mn</span>
+
+<span class="sd">and the unperturbed equilibrium supplies the scalars</span>
+<span class="sd">  B_φ(r),  B_θ(r),  ι(r),  ι&#39;(r),</span>
+<span class="sd">  and the contravariant metric components g^{rθ}(r), g^{rφ}(r).</span>
+
+<span class="sd">Public API</span>
+<span class="sd">----------</span>
+<span class="sd">TorusDeformationSpectrum</span>
+<span class="sd">    Container for the full (δr, δθ, δφ) Fourier spectra — Theorem 2 of the paper.</span>
+
+<span class="sd">RadialPerturbationSplit</span>
+<span class="sd">    Container that separates radial perturbation Fourier modes into resonant</span>
+<span class="sd">    components (island-width drivers) and non-resonant components</span>
+<span class="sd">    (surface-deformation drivers).</span>
+
+<span class="sd">split_radial_perturbation_spectrum</span>
+<span class="sd">    Classify a B^r Fourier spectrum against the local rotational transform.</span>
+
+<span class="sd">non_resonant_deformation_spectrum</span>
+<span class="sd">    Compute (δr)_mn, (δθ)_mn, (δφ)_mn for every (m,n) pair in the input.</span>
+
+<span class="sd">poincare_section_deformation</span>
+<span class="sd">    Project the 3-D torus deformation onto an arbitrary Poincaré section φ = φ_0</span>
+<span class="sd">    — Theorem 3 (universal 1-D ring deformation).</span>
+
+<span class="sd">iota_variation_pf</span>
+<span class="sd">    First-order rotational-transform variation δι for an axisymmetric (n=0) PF</span>
+<span class="sd">    coil perturbation — Eq. (4.1).</span>
+
+<span class="sd">mean_radial_displacement</span>
+<span class="sd">    &lt;δr&gt; = −δι / ι&#39;  — core identity Eq. (3.1).</span>
+
+<span class="sd">mean_radial_displacement_pf</span>
+<span class="sd">    Full axisymmetric PF spectral formula — boxed Eq. (4.2).</span>
+
+<span class="sd">mean_radial_displacement_dc</span>
+<span class="sd">    DC (m=n=0) simplification — boxed Eq. (4.3).</span>
+
+<span class="sd">mean_radial_displacement_second_order</span>
+<span class="sd">    General non-axisymmetric second-order formula — boxed Eq. (5.1).</span>
+
+<span class="sd">deformation_peak_valley</span>
+<span class="sd">    Phase-based peak / valley coordinates of a single (m,n) harmonic — Section 6.</span>
+
+<span class="sd">green_function_spectrum</span>
+<span class="sd">    Fourier coefficients of the deformation Green&#39;s function G(Θ, Φ; r) — Eq. (2.8).</span>
+
+<span class="sd">Notes</span>
+<span class="sd">-----</span>
+<span class="sd">*Sign convention*:  The Fourier convention throughout is</span>
+<span class="sd">    f(θ, φ) = Σ_mn  f_mn  exp[i(mθ + nφ)].</span>
+<span class="sd">Real fields satisfy  f_{-m,-n} = f_{mn}*.</span>
+
+<span class="sd">*Units*:  All B_α carry units of  [T·m].  The radial label r is in [m].</span>
+<span class="sd">  ι and ι&#39; are dimensionless and [1/m] respectively.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ndarray</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;TorusDeformationSpectrum&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RadialPerturbationSplit&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;split_radial_perturbation_spectrum&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;non_resonant_deformation_spectrum&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fieldline_deformation_spectrum&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;poincare_section_deformation&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;iota_variation_pf&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;mean_radial_displacement&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;mean_radial_displacement_pf&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;mean_radial_displacement_dc&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;mean_radial_displacement_second_order&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;deformation_peak_valley&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;green_function_spectrum&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;iota_to_q&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;q_to_iota&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;iota_prime_from_q_prime&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_resonant</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">iota</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                    <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return boolean mask: True where (m, n) is resonant with ι.&quot;&quot;&quot;</span>
+    <span class="n">denom</span> <span class="o">=</span> <span class="n">m</span> <span class="o">*</span> <span class="n">iota</span> <span class="o">+</span> <span class="n">n</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">denom</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">tol</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_safe_denom</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">iota</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;m*ι + n, optionally regularised by eps (Eq. 2.9 of the paper).&quot;&quot;&quot;</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">complex</span><span class="p">)</span> <span class="o">*</span> <span class="n">iota</span> <span class="o">+</span> <span class="n">n</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">eps</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">d</span> <span class="o">+=</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">eps</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">real</span> <span class="o">+</span> <span class="mf">1e-300</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">d</span>
+
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="TorusDeformationSpectrum">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.TorusDeformationSpectrum">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TorusDeformationSpectrum</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fourier spectra of the full 3-D torus deformation vector δχ.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    m, n : 1-D int arrays of shape (K,)</span>
+<span class="sd">        Poloidal and toroidal mode numbers.</span>
+<span class="sd">    delta_r : complex 1-D array of shape (K,)</span>
+<span class="sd">        Radial displacement Fourier coefficients (δr)_mn  [m].</span>
+<span class="sd">    delta_theta : complex 1-D array of shape (K,)</span>
+<span class="sd">        Poloidal-angle displacement (δθ)_mn  [rad].</span>
+<span class="sd">    delta_phi : complex 1-D array of shape (K,)</span>
+<span class="sd">        Toroidal-angle displacement (δφ)_mn  [rad].</span>
+<span class="sd">    resonant_mask : bool 1-D array of shape (K,)</span>
+<span class="sd">        True for (m,n) pairs that are resonant with ι — these are set to NaN.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="TorusDeformationSpectrum.m">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.m">[docs]</a>
+    <span class="n">m</span><span class="p">:</span> <span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="TorusDeformationSpectrum.n">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.n">[docs]</a>
+    <span class="n">n</span><span class="p">:</span> <span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="TorusDeformationSpectrum.delta_r">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.delta_r">[docs]</a>
+    <span class="n">delta_r</span><span class="p">:</span> <span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="TorusDeformationSpectrum.delta_theta">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.delta_theta">[docs]</a>
+    <span class="n">delta_theta</span><span class="p">:</span> <span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="TorusDeformationSpectrum.delta_phi">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.delta_phi">[docs]</a>
+    <span class="n">delta_phi</span><span class="p">:</span> <span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="TorusDeformationSpectrum.resonant_mask">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.resonant_mask">[docs]</a>
+    <span class="n">resonant_mask</span><span class="p">:</span> <span class="n">ndarray</span></div>
+
+
+<div class="viewcode-block" id="TorusDeformationSpectrum.real_field_r">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.real_field_r">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">real_field_r</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">phi</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate the real-space radial displacement δr(θ, φ).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">_eval_real_field</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TorusDeformationSpectrum.real_field_theta">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.real_field_theta">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">real_field_theta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">phi</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate δθ(θ, φ).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">_eval_real_field</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_theta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TorusDeformationSpectrum.real_field_phi">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.real_field_phi">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">real_field_phi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">phi</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate δφ(θ, φ).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">_eval_real_field</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_phi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TorusDeformationSpectrum.section_r">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.section_r">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">section_r</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">phi0</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;δr on a Poincaré section φ = φ0 (Theorem 3).&quot;&quot;&quot;</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_r</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">*</span> <span class="n">phi0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_eval_real_field_1d</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TorusDeformationSpectrum.section_theta">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.section_theta">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">section_theta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">phi0</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;δθ on a Poincaré section φ = φ0.&quot;&quot;&quot;</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_theta</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">*</span> <span class="n">phi0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_eval_real_field_1d</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="RadialPerturbationSplit">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.RadialPerturbationSplit">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RadialPerturbationSplit</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Resonant/non-resonant split of a radial magnetic perturbation spectrum.</span>
+
+<span class="sd">    The resonant part ``m*ι+n≈0`` is the input for island-width estimates; the</span>
+<span class="sd">    non-resonant part is the input for flux-surface deformation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="RadialPerturbationSplit.m">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.RadialPerturbationSplit.m">[docs]</a>
+    <span class="n">m</span><span class="p">:</span> <span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="RadialPerturbationSplit.n">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.RadialPerturbationSplit.n">[docs]</a>
+    <span class="n">n</span><span class="p">:</span> <span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="RadialPerturbationSplit.dBr">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.RadialPerturbationSplit.dBr">[docs]</a>
+    <span class="n">dBr</span><span class="p">:</span> <span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="RadialPerturbationSplit.resonant_mask">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.RadialPerturbationSplit.resonant_mask">[docs]</a>
+    <span class="n">resonant_mask</span><span class="p">:</span> <span class="n">ndarray</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="RadialPerturbationSplit.nonresonant_mask">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_mask">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nonresonant_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Boolean mask selecting modes that deform nested flux surfaces.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="o">~</span><span class="bp">self</span><span class="o">.</span><span class="n">resonant_mask</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="RadialPerturbationSplit.resonant_m">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.RadialPerturbationSplit.resonant_m">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">resonant_m</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">resonant_mask</span><span class="p">]</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="RadialPerturbationSplit.resonant_n">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.RadialPerturbationSplit.resonant_n">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">resonant_n</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">resonant_mask</span><span class="p">]</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="RadialPerturbationSplit.resonant_dBr">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.RadialPerturbationSplit.resonant_dBr">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">resonant_dBr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dBr</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">resonant_mask</span><span class="p">]</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="RadialPerturbationSplit.nonresonant_m">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_m">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nonresonant_m</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nonresonant_mask</span><span class="p">]</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="RadialPerturbationSplit.nonresonant_n">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_n">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nonresonant_n</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nonresonant_mask</span><span class="p">]</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="RadialPerturbationSplit.nonresonant_dBr">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_dBr">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nonresonant_dBr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dBr</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nonresonant_mask</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="RadialPerturbationSplit.nonresonant_deformation">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_deformation">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nonresonant_deformation</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">iota</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">Bphi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">Btheta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">dBth_mn</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">dBph_mn</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">g_r_theta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">g_r_phi</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">regularise_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TorusDeformationSpectrum</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute torus deformation using only non-resonant modes.&quot;&quot;&quot;</span>
+        <span class="n">keep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nonresonant_mask</span>
+        <span class="n">dBth</span> <span class="o">=</span> <span class="n">_optional_component</span><span class="p">(</span><span class="n">dBth_mn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s2">&quot;dBth_mn&quot;</span><span class="p">)[</span><span class="n">keep</span><span class="p">]</span>
+        <span class="n">dBph</span> <span class="o">=</span> <span class="n">_optional_component</span><span class="p">(</span><span class="n">dBph_mn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s2">&quot;dBph_mn&quot;</span><span class="p">)[</span><span class="n">keep</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">non_resonant_deformation_spectrum</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dBr</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span>
+            <span class="n">dBth</span><span class="p">,</span>
+            <span class="n">dBph</span><span class="p">,</span>
+            <span class="n">iota</span><span class="o">=</span><span class="n">iota</span><span class="p">,</span>
+            <span class="n">Bphi</span><span class="o">=</span><span class="n">Bphi</span><span class="p">,</span>
+            <span class="n">Btheta</span><span class="o">=</span><span class="n">Btheta</span><span class="p">,</span>
+            <span class="n">g_r_theta</span><span class="o">=</span><span class="n">g_r_theta</span><span class="p">,</span>
+            <span class="n">g_r_phi</span><span class="o">=</span><span class="n">g_r_phi</span><span class="p">,</span>
+            <span class="n">resonance_tol</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">regularise_eps</span><span class="o">=</span><span class="n">regularise_eps</span><span class="p">,</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_optional_component</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return an optional perturbation component as a validated complex array.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    values</span>
+<span class="sd">        Input component values, or ``None`` to use a zero array.</span>
+<span class="sd">    shape</span>
+<span class="sd">        Required shape, matching the radial spectrum arrays.</span>
+<span class="sd">    name</span>
+<span class="sd">        Component name used in validation errors.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">shape</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> must have shape </span><span class="si">{</span><span class="n">shape</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">arr</span>
+
+
+<div class="viewcode-block" id="split_radial_perturbation_spectrum">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.split_radial_perturbation_spectrum">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">split_radial_perturbation_spectrum</span><span class="p">(</span>
+    <span class="n">m</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">n</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">dBr_mn</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">iota</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">resonance_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RadialPerturbationSplit</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Split B^r Fourier modes into island-driving and deformation-driving parts.</span>
+
+<span class="sd">    Modes satisfying ``abs(m*ι+n) &lt; resonance_tol`` are resonant and should be</span>
+<span class="sd">    passed to island-chain / island-width analysis.  All remaining modes can be</span>
+<span class="sd">    sent to :func:`non_resonant_deformation_spectrum` to compute smooth flux</span>
+<span class="sd">    surface deformation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">dBr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">dBr_mn</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">n</span><span class="o">.</span><span class="n">shape</span> <span class="ow">or</span> <span class="n">m</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">dBr</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;m, n, and dBr_mn must have identical shapes; &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;got </span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">n</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, and </span><span class="si">{</span><span class="n">dBr</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">RadialPerturbationSplit</span><span class="p">(</span>
+        <span class="n">m</span><span class="o">=</span><span class="n">m</span><span class="p">,</span>
+        <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span>
+        <span class="n">dBr</span><span class="o">=</span><span class="n">dBr</span><span class="p">,</span>
+        <span class="n">resonant_mask</span><span class="o">=</span><span class="n">_check_resonant</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">iota</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">resonance_tol</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_eval_real_field</span><span class="p">(</span><span class="n">coeffs</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">m</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+                     <span class="n">theta</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">phi</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sum Re[Σ_mn c_mn exp(i(mθ+nφ))] over all (m,n) pairs.&quot;&quot;&quot;</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+    <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">broadcast_shapes</span><span class="p">(</span><span class="n">theta</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">phi</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">ck</span><span class="p">,</span> <span class="n">mk</span><span class="p">,</span> <span class="n">nk</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ck</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">mk</span> <span class="o">*</span> <span class="n">theta</span> <span class="o">+</span> <span class="n">nk</span> <span class="o">*</span> <span class="n">phi</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">out</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">ck</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">phase</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_eval_real_field_1d</span><span class="p">(</span><span class="n">coeffs</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">m</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">theta</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sum Re[Σ_m c_m exp(imθ)] for a section at fixed φ.&quot;&quot;&quot;</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">theta</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ck</span><span class="p">,</span> <span class="n">mk</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ck</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">out</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">ck</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">mk</span> <span class="o">*</span> <span class="n">theta</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<div class="viewcode-block" id="non_resonant_deformation_spectrum">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.non_resonant_deformation_spectrum">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">non_resonant_deformation_spectrum</span><span class="p">(</span>
+    <span class="n">m</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">n</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">dBr_mn</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">dBth_mn</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">dBph_mn</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">iota</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">Bphi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">Btheta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">g_r_theta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">g_r_phi</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">resonance_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span><span class="p">,</span>
+    <span class="n">regularise_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TorusDeformationSpectrum</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the Fourier spectra of the full torus deformation vector δχ.&quot;&quot;&quot;</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">dBr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">dBr_mn</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="n">dBth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">dBth_mn</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="n">dBph</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">dBph_mn</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">m</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">n</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">dBr</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">dBth</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">dBph</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="n">denom</span> <span class="o">=</span> <span class="n">_safe_denom</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">iota</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">regularise_eps</span><span class="p">)</span>
+    <span class="n">res_mask</span> <span class="o">=</span> <span class="n">_check_resonant</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">iota</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">resonance_tol</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">res_mask</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">res_mask</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s2"> resonant mode(s) found and set to NaN. &quot;</span>
+            <span class="s2">&quot;Non-resonant deformation theory does not apply to these modes.&quot;</span><span class="p">,</span>
+            <span class="ne">UserWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">dr_mn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+        <span class="n">res_mask</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="o">+</span> <span class="mi">0</span><span class="n">j</span><span class="p">,</span>
+        <span class="n">dBr</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">Bphi</span> <span class="o">*</span> <span class="n">denom</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">dth_mn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+        <span class="n">res_mask</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="o">+</span> <span class="mi">0</span><span class="n">j</span><span class="p">,</span>
+        <span class="n">iota</span> <span class="o">*</span> <span class="p">(</span><span class="n">dBth</span> <span class="o">/</span> <span class="n">Btheta</span> <span class="o">-</span> <span class="n">dBr</span> <span class="o">*</span> <span class="n">g_r_theta</span> <span class="o">/</span> <span class="p">(</span><span class="n">Bphi</span> <span class="o">*</span> <span class="n">denom</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">denom</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">dph_mn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+        <span class="n">res_mask</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="o">+</span> <span class="mi">0</span><span class="n">j</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">dBph</span> <span class="o">/</span> <span class="n">Bphi</span> <span class="o">-</span> <span class="n">dBr</span> <span class="o">*</span> <span class="n">g_r_phi</span> <span class="o">/</span> <span class="p">(</span><span class="n">Bphi</span> <span class="o">*</span> <span class="n">denom</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">denom</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">TorusDeformationSpectrum</span><span class="p">(</span>
+        <span class="n">m</span><span class="o">=</span><span class="n">m</span><span class="p">,</span>
+        <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span>
+        <span class="n">delta_r</span><span class="o">=</span><span class="n">dr_mn</span><span class="p">,</span>
+        <span class="n">delta_theta</span><span class="o">=</span><span class="n">dth_mn</span><span class="p">,</span>
+        <span class="n">delta_phi</span><span class="o">=</span><span class="n">dph_mn</span><span class="p">,</span>
+        <span class="n">resonant_mask</span><span class="o">=</span><span class="n">res_mask</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="fieldline_deformation_spectrum">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.fieldline_deformation_spectrum">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fieldline_deformation_spectrum</span><span class="p">(</span>
+    <span class="n">m</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">n</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">radial_velocity_mn</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">poloidal_velocity_mn</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">iota</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">iota_prime</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">include_shear</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">resonance_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span><span class="p">,</span>
+    <span class="n">regularise_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TorusDeformationSpectrum</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute non-resonant torus deformation from field-line velocity spectra.</span>
+
+<span class="sd">    This is the field-line ODE form of</span>
+<span class="sd">    :func:`non_resonant_deformation_spectrum`.  It expects Fourier</span>
+<span class="sd">    coefficients of the perturbation to</span>
+
+<span class="sd">    ``dr/dphi = F_r(theta, phi)`` and ``dtheta/dphi = iota + F_theta(theta, phi)``,</span>
+
+<span class="sd">    using the same convention ``exp(i*(m*theta+n*phi))``.  For each</span>
+<span class="sd">    non-resonant mode ``alpha = m*iota+n`` it solves the homological equations</span>
+
+<span class="sd">    ``i*alpha*delta_r = F_r`` and</span>
+<span class="sd">    ``i*alpha*delta_theta = F_theta``.</span>
+
+<span class="sd">    If ``include_shear`` is true, the angular equation uses</span>
+<span class="sd">    ``F_theta + iota_prime*delta_r``.  This is the invariant-torus conjugacy</span>
+<span class="sd">    form and is the one whose map residual should scale quadratically with the</span>
+<span class="sd">    perturbation amplitude.  The default leaves the shear term out because some</span>
+<span class="sd">    section-geometry comparisons only need the direct coordinate displacement.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">Fr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">radial_velocity_mn</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">poloidal_velocity_mn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">Ft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">Fr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Ft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">poloidal_velocity_mn</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">n</span><span class="o">.</span><span class="n">shape</span> <span class="ow">or</span> <span class="n">m</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">Fr</span><span class="o">.</span><span class="n">shape</span> <span class="ow">or</span> <span class="n">Ft</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">Fr</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;m, n, radial_velocity_mn, and poloidal_velocity_mn must have identical shapes&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">denom</span> <span class="o">=</span> <span class="n">_safe_denom</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">iota</span><span class="p">),</span> <span class="n">eps</span><span class="o">=</span><span class="n">regularise_eps</span><span class="p">)</span>
+    <span class="n">res_mask</span> <span class="o">=</span> <span class="n">_check_resonant</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">iota</span><span class="p">),</span> <span class="n">tol</span><span class="o">=</span><span class="n">resonance_tol</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">res_mask</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">res_mask</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s2"> resonant mode(s) found and set to NaN. &quot;</span>
+            <span class="s2">&quot;Non-resonant deformation theory does not apply to these modes.&quot;</span><span class="p">,</span>
+            <span class="ne">UserWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">keep</span> <span class="o">=</span> <span class="o">~</span><span class="n">res_mask</span>
+    <span class="n">delta_r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">Fr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="o">+</span> <span class="mi">0</span><span class="n">j</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="n">delta_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">Fr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="o">+</span> <span class="mi">0</span><span class="n">j</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="n">delta_r</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span> <span class="o">=</span> <span class="n">Fr</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">denom</span><span class="p">[</span><span class="n">keep</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">include_shear</span><span class="p">:</span>
+        <span class="n">theta_forcing</span> <span class="o">=</span> <span class="n">Ft</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">iota_prime</span><span class="p">)</span> <span class="o">*</span> <span class="n">delta_r</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">theta_forcing</span> <span class="o">=</span> <span class="n">Ft</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+    <span class="n">delta_theta</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span> <span class="o">=</span> <span class="n">theta_forcing</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">denom</span><span class="p">[</span><span class="n">keep</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">TorusDeformationSpectrum</span><span class="p">(</span>
+        <span class="n">m</span><span class="o">=</span><span class="n">m</span><span class="p">,</span>
+        <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span>
+        <span class="n">delta_r</span><span class="o">=</span><span class="n">delta_r</span><span class="p">,</span>
+        <span class="n">delta_theta</span><span class="o">=</span><span class="n">delta_theta</span><span class="p">,</span>
+        <span class="n">delta_phi</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">delta_r</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span>
+        <span class="n">resonant_mask</span><span class="o">=</span><span class="n">res_mask</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="poincare_section_deformation">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.poincare_section_deformation">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">poincare_section_deformation</span><span class="p">(</span>
+    <span class="n">spec</span><span class="p">:</span> <span class="n">TorusDeformationSpectrum</span><span class="p">,</span>
+    <span class="n">phi0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">theta</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Evaluate the 1-D ring deformation on the Poincaré section φ = φ0.&quot;&quot;&quot;</span>
+    <span class="n">dr_sec</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">section_r</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi0</span><span class="p">)</span>
+    <span class="n">dth_sec</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">section_theta</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dr_sec</span><span class="p">,</span> <span class="n">dth_sec</span></div>
+
+
+
+<div class="viewcode-block" id="iota_variation_pf">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.iota_variation_pf">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">iota_variation_pf</span><span class="p">(</span>
+    <span class="n">m</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">dBtheta_m0</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">iota</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">Btheta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">complex</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;First-order rotational-transform variation δι for an n=0 PF perturbation.&quot;&quot;&quot;</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">dBth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">dBtheta_m0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="n">nonzero</span> <span class="o">=</span> <span class="n">m</span> <span class="o">!=</span> <span class="mi">0</span>
+
+    <span class="n">m_nz</span> <span class="o">=</span> <span class="n">m</span><span class="p">[</span><span class="n">nonzero</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="n">dBth_nz</span> <span class="o">=</span> <span class="n">dBth</span><span class="p">[</span><span class="n">nonzero</span><span class="p">]</span>
+
+    <span class="n">phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">m_nz</span> <span class="o">*</span> <span class="n">iota</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span>
+    <span class="n">factor</span> <span class="o">=</span> <span class="n">phase</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">m_nz</span> <span class="o">*</span> <span class="n">iota</span><span class="p">)</span>
+
+    <span class="n">delta_iota</span> <span class="o">=</span> <span class="n">iota</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dBth_nz</span> <span class="o">/</span> <span class="n">Btheta</span> <span class="o">*</span> <span class="n">factor</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">delta_iota</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="mean_radial_displacement">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.mean_radial_displacement">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mean_radial_displacement</span><span class="p">(</span><span class="n">delta_iota</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">iota_prime</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mean radial displacement from the core identity &lt;δr&gt; = −δι / ι&#39;.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">iota_prime</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;ι&#39; = 0 (zero magnetic shear): core identity is singular. &quot;</span>
+            <span class="s2">&quot;The surface is at a shear reversal point.&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="o">-</span><span class="n">delta_iota</span> <span class="o">/</span> <span class="n">iota_prime</span></div>
+
+
+
+<div class="viewcode-block" id="mean_radial_displacement_pf">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.mean_radial_displacement_pf">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mean_radial_displacement_pf</span><span class="p">(</span>
+    <span class="n">m</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">dBtheta_m0</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">iota</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">iota_prime</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">Btheta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mean radial displacement for an axisymmetric (n=0) PF coil perturbation.&quot;&quot;&quot;</span>
+    <span class="n">delta_iota</span> <span class="o">=</span> <span class="n">iota_variation_pf</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">dBtheta_m0</span><span class="p">,</span> <span class="n">iota</span><span class="p">,</span> <span class="n">Btheta</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mean_radial_displacement</span><span class="p">(</span><span class="n">delta_iota</span><span class="p">,</span> <span class="n">iota_prime</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="mean_radial_displacement_dc">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.mean_radial_displacement_dc">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mean_radial_displacement_dc</span><span class="p">(</span>
+    <span class="n">dBtheta_00</span><span class="p">:</span> <span class="nb">complex</span><span class="p">,</span>
+    <span class="n">iota</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">iota_prime</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">Btheta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mean radial displacement for a uniform (m=n=0) poloidal-field perturbation.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">iota_prime</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ι&#39; = 0: core identity singular at shear reversal.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="o">-</span><span class="n">iota</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dBtheta_00</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">iota_prime</span> <span class="o">*</span> <span class="n">Btheta</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="mean_radial_displacement_second_order">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.mean_radial_displacement_second_order">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mean_radial_displacement_second_order</span><span class="p">(</span>
+    <span class="n">m</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">n</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">dBr_mn</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">iota</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">iota_prime</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">Bphi</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">resonance_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mean radial displacement to second order for a general non-axisymmetric perturbation.&quot;&quot;&quot;</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">dBr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">dBr_mn</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+
+    <span class="n">res_mask</span> <span class="o">=</span> <span class="n">_check_resonant</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">iota</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">resonance_tol</span><span class="p">)</span>
+    <span class="n">dc_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">m</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">keep</span> <span class="o">=</span> <span class="o">~</span><span class="n">res_mask</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">dc_mask</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">keep</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+
+    <span class="n">alpha</span> <span class="o">=</span> <span class="n">m</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span> <span class="o">*</span> <span class="n">iota</span> <span class="o">+</span> <span class="n">n</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+    <span class="n">numer</span> <span class="o">=</span> <span class="n">m</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dBr</span><span class="p">[</span><span class="n">keep</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">numer</span> <span class="o">/</span> <span class="n">alpha</span> <span class="o">**</span> <span class="mi">3</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="o">-</span><span class="mf">4.0</span> <span class="o">*</span> <span class="n">iota_prime</span> <span class="o">/</span> <span class="n">Bphi</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">total</span></div>
+
+
+
+<div class="viewcode-block" id="deformation_peak_valley">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.deformation_peak_valley">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">deformation_peak_valley</span><span class="p">(</span>
+    <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">dBr_mn</span><span class="p">:</span> <span class="nb">complex</span><span class="p">,</span>
+    <span class="n">iota</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">Bphi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">n_peaks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Phase-based peak and valley coordinates of the (m,n) deformation harmonic.&quot;&quot;&quot;</span>
+    <span class="n">denom</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="o">*</span> <span class="n">iota</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">denom</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-12</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Mode (</span><span class="si">{</span><span class="n">m</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">) is resonant with ι=</span><span class="si">{</span><span class="n">iota</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2"> (mι+n=</span><span class="si">{</span><span class="n">denom</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">). &quot;</span>
+            <span class="s2">&quot;Peak/valley formula requires non-resonant condition.&quot;</span>
+        <span class="p">)</span>
+    <span class="n">dr_mn</span> <span class="o">=</span> <span class="n">dBr_mn</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">Bphi</span> <span class="o">*</span> <span class="n">denom</span><span class="p">)</span>
+    <span class="n">phase_dr</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">dr_mn</span><span class="p">))</span>
+    <span class="n">amplitude</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dr_mn</span><span class="p">)</span>
+
+    <span class="n">k_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_peaks</span><span class="p">)</span>
+    <span class="n">peak_phase</span> <span class="o">=</span> <span class="o">-</span><span class="n">phase_dr</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">k_arr</span>
+    <span class="n">valley_phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">phase_dr</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">k_arr</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;dr_mn&quot;</span><span class="p">:</span> <span class="n">dr_mn</span><span class="p">,</span>
+        <span class="s2">&quot;amplitude&quot;</span><span class="p">:</span> <span class="n">amplitude</span><span class="p">,</span>
+        <span class="s2">&quot;phase_dr&quot;</span><span class="p">:</span> <span class="n">phase_dr</span><span class="p">,</span>
+        <span class="s2">&quot;peak_phase&quot;</span><span class="p">:</span> <span class="n">peak_phase</span><span class="p">,</span>
+        <span class="s2">&quot;valley_phase&quot;</span><span class="p">:</span> <span class="n">valley_phase</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="green_function_spectrum">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.green_function_spectrum">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">green_function_spectrum</span><span class="p">(</span>
+    <span class="n">m</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">n</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">iota</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">Bphi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">regularise_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">resonance_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fourier coefficients of the deformation Green&#39;s function G(Θ, Φ; r).&quot;&quot;&quot;</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">denom</span> <span class="o">=</span> <span class="n">_safe_denom</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">iota</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">regularise_eps</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">_check_resonant</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">iota</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">resonance_tol</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="o">+</span> <span class="mi">0</span><span class="n">j</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">Bphi</span> <span class="o">*</span> <span class="n">denom</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="iota_to_q">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.iota_to_q">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">iota_to_q</span><span class="p">(</span><span class="n">iota</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Safety factor q = 1/ι.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">iota</span></div>
+
+
+
+<div class="viewcode-block" id="q_to_iota">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.q_to_iota">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">q_to_iota</span><span class="p">(</span><span class="n">q</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Rotational transform ι = 1/q.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">q</span></div>
+
+
+
+<div class="viewcode-block" id="iota_prime_from_q_prime">
+<a class="viewcode-back" href="../../../en/theory/torus_deformation.html#pyna.toroidal.torus_deformation.iota_prime_from_q_prime">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">iota_prime_from_q_prime</span><span class="p">(</span><span class="n">q</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">q_prime</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;ι&#39; = dι/dr = −q&#39;/q².&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="o">-</span><span class="n">q_prime</span> <span class="o">/</span> <span class="p">(</span><span class="n">q</span> <span class="o">*</span> <span class="n">q</span><span class="p">)</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

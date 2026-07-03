@@ -1,0 +1,1073 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>pyna.toroidal.torus_deformation &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'en/api/generated/pyna/toroidal/torus_deformation/index';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../search.html" />
+    <link rel="next" title="pyna.toroidal.visual" href="../visual/index.html" />
+    <link rel="prev" title="pyna.toroidal.surface_coordinates" href="../surface_coordinates/index.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../../../../_static/searchtools.js"></script>
+    <script src="../../../../../../_static/language_data.js"></script>
+    <script src="../../../../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "en";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../../index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../../index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar"><svg class="pst-icon svg-inline--fa" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../mini-cases.html">Mini Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/index.html">Tutorials and Examples</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../../index.html">API Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../../dynamics.html">General Dynamics (<code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../dynamics-patterns.html">Dynamics Workflows and Extension Helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../flt.html">Field-line Tracing (<code class="docutils literal notranslate"><span class="pre">pyna.flt</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../topo.html">Topology (<code class="docutils literal notranslate"><span class="pre">pyna.topo</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../toroidal.html">Toroidal Physics (<code class="docutils literal notranslate"><span class="pre">pyna.toroidal</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../control.html">FPT Topology Control (<code class="docutils literal notranslate"><span class="pre">pyna.control</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../cyna.html">cyna Acceleration Layer</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="../../index.html">pyna</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../../cache/index.html">pyna.cache</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../connection_length/index.html">pyna.connection_length</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../context/index.html">pyna.context</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../control/index.html">pyna.control</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../diff/index.html">pyna.diff</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../draw/index.html">pyna.draw</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../dynamics/index.html">pyna.dynamics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../field_data/index.html">pyna.field_data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../fields/index.html">pyna.fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../flow/index.html">pyna.flow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../flt/index.html">pyna.flt</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../flt_cuda/index.html">pyna.flt_cuda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../imas_compat/index.html">pyna.imas_compat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../io/index.html">pyna.io</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../mag/index.html">pyna.mag</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../map/index.html">pyna.map</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../plot/index.html">pyna.plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../polymap/index.html">pyna.polymap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../polynomial/index.html">pyna.polynomial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../progress/index.html">pyna.progress</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../system/index.html">pyna.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../sysutil/index.html">pyna.sysutil</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../topo/index.html">pyna.topo</a></li>
+<li class="toctree-l3 current active has-children"><a class="reference internal" href="../index.html">pyna.toroidal</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../boozer_coords/index.html">pyna.toroidal.boozer_coords</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../coils/index.html">pyna.toroidal.coils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../control/index.html">pyna.toroidal.control</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../coords/index.html">pyna.toroidal.coords</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../diagnostics/index.html">pyna.toroidal.diagnostics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../equilibrium/index.html">pyna.toroidal.equilibrium</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../flt/index.html">pyna.toroidal.flt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../geometry/index.html">pyna.toroidal.geometry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../minor_radius/index.html">pyna.toroidal.minor_radius</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../optimize/index.html">pyna.toroidal.optimize</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../perturbation/index.html">pyna.toroidal.perturbation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../perturbation_spectrum/index.html">pyna.toroidal.perturbation_spectrum</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pest_coords/index.html">pyna.toroidal.pest_coords</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../plasma_response/index.html">pyna.toroidal.plasma_response</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../surface_coordinates/index.html">pyna.toroidal.surface_coordinates</a></li>
+<li class="toctree-l4 current active"><a class="current reference internal" href="#">pyna.toroidal.torus_deformation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../visual/index.html">pyna.toroidal.visual</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3"><a class="reference internal" href="../../utils/index.html">pyna.utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../vector_calc/index.html">pyna.vector_calc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../withparam/index.html">pyna.withparam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../workflow/index.html">pyna.workflow</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../theory/index.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../development/index.html">Development</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../../../index.html" class="nav-link">pyna - Python DYNAmics</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">pyna</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">pyna.toroidal</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.toroidal.torus_deformation</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-pyna.toroidal.torus_deformation">
+<span id="pyna-toroidal-torus-deformation"></span><h1>pyna.toroidal.torus_deformation<a class="headerlink" href="#module-pyna.toroidal.torus_deformation" title="Link to this heading">#</a></h1>
+<p>Non-resonant torus (flux-surface) deformation under external perturbation.</p>
+<p>Canonical implementation for <a class="reference internal" href="../index.html#module-pyna.toroidal" title="pyna.toroidal"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pyna.toroidal</span></code></a>.</p>
+<dl class="simple">
+<dt>Implements the analytic spectral theory derived in:</dt><dd><p>W. Wei, “Non-resonant perturbation effects on invariant tori (flux surfaces)”,
+(internal document, 2025).</p>
+</dd>
+</dl>
+<p>All formulas work in flux coordinates (r, θ, φ) with the covariant decomposition
+convention of that document.  Specifically:</p>
+<blockquote>
+<div><p>B  = B_r g^r + B_θ g^θ + B_φ g^φ       (covariant components)</p>
+</div></blockquote>
+<p>where  B_α = B · g_α  (dimension = field × length).</p>
+<dl class="simple">
+<dt>The perturbation is described by its three covariant Fourier spectra</dt><dd><p>(δB_r)_mn,  (δB_θ)_mn,  (δB_φ)_mn</p>
+</dd>
+<dt>and the unperturbed equilibrium supplies the scalars</dt><dd><p>B_φ(r),  B_θ(r),  ι(r),  ι’(r),
+and the contravariant metric components g^{rθ}(r), g^{rφ}(r).</p>
+</dd>
+</dl>
+<section id="public-api">
+<h2>Public API<a class="headerlink" href="#public-api" title="Link to this heading">#</a></h2>
+<dl class="simple">
+<dt>TorusDeformationSpectrum</dt><dd><p>Container for the full (δr, δθ, δφ) Fourier spectra — Theorem 2 of the paper.</p>
+</dd>
+<dt>RadialPerturbationSplit</dt><dd><p>Container that separates radial perturbation Fourier modes into resonant
+components (island-width drivers) and non-resonant components
+(surface-deformation drivers).</p>
+</dd>
+<dt>split_radial_perturbation_spectrum</dt><dd><p>Classify a B^r Fourier spectrum against the local rotational transform.</p>
+</dd>
+<dt>non_resonant_deformation_spectrum</dt><dd><p>Compute (δr)_mn, (δθ)_mn, (δφ)_mn for every (m,n) pair in the input.</p>
+</dd>
+<dt>poincare_section_deformation</dt><dd><p>Project the 3-D torus deformation onto an arbitrary Poincaré section φ = φ_0
+— Theorem 3 (universal 1-D ring deformation).</p>
+</dd>
+<dt>iota_variation_pf</dt><dd><p>First-order rotational-transform variation δι for an axisymmetric (n=0) PF
+coil perturbation — Eq. (4.1).</p>
+</dd>
+<dt>mean_radial_displacement</dt><dd><p>&lt;δr&gt; = −δι / ι’  — core identity Eq. (3.1).</p>
+</dd>
+<dt>mean_radial_displacement_pf</dt><dd><p>Full axisymmetric PF spectral formula — boxed Eq. (4.2).</p>
+</dd>
+<dt>mean_radial_displacement_dc</dt><dd><p>DC (m=n=0) simplification — boxed Eq. (4.3).</p>
+</dd>
+<dt>mean_radial_displacement_second_order</dt><dd><p>General non-axisymmetric second-order formula — boxed Eq. (5.1).</p>
+</dd>
+<dt>deformation_peak_valley</dt><dd><p>Phase-based peak / valley coordinates of a single (m,n) harmonic — Section 6.</p>
+</dd>
+<dt>green_function_spectrum</dt><dd><p>Fourier coefficients of the deformation Green’s function G(Θ, Φ; r) — Eq. (2.8).</p>
+</dd>
+</dl>
+<div class="admonition-notes admonition">
+<p class="admonition-title">Notes</p>
+<dl class="simple">
+<dt><em>Sign convention</em>:  The Fourier convention throughout is</dt><dd><p>f(θ, φ) = Σ_mn  f_mn  exp[i(mθ + nφ)].</p>
+</dd>
+</dl>
+<p>Real fields satisfy  f_{-m,-n} = f_{mn}*.</p>
+<dl class="simple">
+<dt><em>Units</em>:  All B_α carry units of  [T·m].  The radial label r is in [m].</dt><dd><p>ι and ι’ are dimensionless and [1/m] respectively.</p>
+</dd>
+</dl>
+</div>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum" title="pyna.toroidal.torus_deformation.TorusDeformationSpectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TorusDeformationSpectrum</span></code></a></p></td>
+<td><p>Fourier spectra of the full 3-D torus deformation vector δχ.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit" title="pyna.toroidal.torus_deformation.RadialPerturbationSplit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RadialPerturbationSplit</span></code></a></p></td>
+<td><p>Resonant/non-resonant split of a radial magnetic perturbation spectrum.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.torus_deformation.split_radial_perturbation_spectrum" title="pyna.toroidal.torus_deformation.split_radial_perturbation_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">split_radial_perturbation_spectrum</span></code></a>(...)</p></td>
+<td><p>Split B^r Fourier modes into island-driving and deformation-driving parts.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.torus_deformation.non_resonant_deformation_spectrum" title="pyna.toroidal.torus_deformation.non_resonant_deformation_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">non_resonant_deformation_spectrum</span></code></a>(...)</p></td>
+<td><p>Compute the Fourier spectra of the full torus deformation vector δχ.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.torus_deformation.fieldline_deformation_spectrum" title="pyna.toroidal.torus_deformation.fieldline_deformation_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fieldline_deformation_spectrum</span></code></a>(→ TorusDeformationSpectrum)</p></td>
+<td><p>Compute non-resonant torus deformation from field-line velocity spectra.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.torus_deformation.poincare_section_deformation" title="pyna.toroidal.torus_deformation.poincare_section_deformation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">poincare_section_deformation</span></code></a>(→ tuple[numpy.ndarray, ...)</p></td>
+<td><p>Evaluate the 1-D ring deformation on the Poincaré section φ = φ0.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.torus_deformation.iota_variation_pf" title="pyna.toroidal.torus_deformation.iota_variation_pf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iota_variation_pf</span></code></a>(→ complex)</p></td>
+<td><p>First-order rotational-transform variation δι for an n=0 PF perturbation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.torus_deformation.mean_radial_displacement" title="pyna.toroidal.torus_deformation.mean_radial_displacement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mean_radial_displacement</span></code></a>(→ float)</p></td>
+<td><p>Mean radial displacement from the core identity &lt;δr&gt; = −δι / ι'.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.torus_deformation.mean_radial_displacement_pf" title="pyna.toroidal.torus_deformation.mean_radial_displacement_pf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mean_radial_displacement_pf</span></code></a>(→ float)</p></td>
+<td><p>Mean radial displacement for an axisymmetric (n=0) PF coil perturbation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.torus_deformation.mean_radial_displacement_dc" title="pyna.toroidal.torus_deformation.mean_radial_displacement_dc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mean_radial_displacement_dc</span></code></a>(→ float)</p></td>
+<td><p>Mean radial displacement for a uniform (m=n=0) poloidal-field perturbation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.torus_deformation.mean_radial_displacement_second_order" title="pyna.toroidal.torus_deformation.mean_radial_displacement_second_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mean_radial_displacement_second_order</span></code></a>(→ float)</p></td>
+<td><p>Mean radial displacement to second order for a general non-axisymmetric perturbation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.torus_deformation.deformation_peak_valley" title="pyna.toroidal.torus_deformation.deformation_peak_valley"><code class="xref py py-obj docutils literal notranslate"><span class="pre">deformation_peak_valley</span></code></a>(→ dict)</p></td>
+<td><p>Phase-based peak and valley coordinates of the (m,n) deformation harmonic.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.torus_deformation.green_function_spectrum" title="pyna.toroidal.torus_deformation.green_function_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">green_function_spectrum</span></code></a>(→ numpy.ndarray)</p></td>
+<td><p>Fourier coefficients of the deformation Green's function G(Θ, Φ; r).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.torus_deformation.iota_to_q" title="pyna.toroidal.torus_deformation.iota_to_q"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iota_to_q</span></code></a>(→ float)</p></td>
+<td><p>Safety factor q = 1/ι.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.torus_deformation.q_to_iota" title="pyna.toroidal.torus_deformation.q_to_iota"><code class="xref py py-obj docutils literal notranslate"><span class="pre">q_to_iota</span></code></a>(→ float)</p></td>
+<td><p>Rotational transform ι = 1/q.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.torus_deformation.iota_prime_from_q_prime" title="pyna.toroidal.torus_deformation.iota_prime_from_q_prime"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iota_prime_from_q_prime</span></code></a>(→ float)</p></td>
+<td><p>ι' = dι/dr = −q'/q².</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.TorusDeformationSpectrum">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.toroidal.torus_deformation.</span></span><span class="sig-name descname"><span class="pre">TorusDeformationSpectrum</span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#TorusDeformationSpectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum" title="Link to this definition">#</a></dt>
+<dd><p>Fourier spectra of the full 3-D torus deformation vector δχ.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">m,</span> <span class="pre">n</span></span></dt>
+<dd><p>Poloidal and toroidal mode numbers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>1-D int arrays of <a class="reference internal" href="../../fields/cylindrical/index.html#pyna.fields.cylindrical.CylindricalFieldArrays.shape" title="pyna.fields.cylindrical.CylindricalFieldArrays.shape">shape</a> (<a class="reference internal" href="../../topo/classical_maps/index.html#pyna.topo.classical_maps.HenonMap.K" title="pyna.topo.classical_maps.HenonMap.K">K</a>,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.TorusDeformationSpectrum.delta_r">
+<span class="sig-name descname"><span class="pre">delta_r</span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#TorusDeformationSpectrum.delta_r"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.delta_r" title="Link to this definition">#</a></dt>
+<dd><p>Radial displacement Fourier coefficients (δr)_mn  [m].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>complex 1-D array of <a class="reference internal" href="../../fields/cylindrical/index.html#pyna.fields.cylindrical.CylindricalFieldArrays.shape" title="pyna.fields.cylindrical.CylindricalFieldArrays.shape">shape</a> (<a class="reference internal" href="../../topo/classical_maps/index.html#pyna.topo.classical_maps.HenonMap.K" title="pyna.topo.classical_maps.HenonMap.K">K</a>,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.TorusDeformationSpectrum.delta_theta">
+<span class="sig-name descname"><span class="pre">delta_theta</span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#TorusDeformationSpectrum.delta_theta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.delta_theta" title="Link to this definition">#</a></dt>
+<dd><p>Poloidal-angle displacement (δθ)_mn  [rad].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>complex 1-D array of <a class="reference internal" href="../../fields/cylindrical/index.html#pyna.fields.cylindrical.CylindricalFieldArrays.shape" title="pyna.fields.cylindrical.CylindricalFieldArrays.shape">shape</a> (<a class="reference internal" href="../../topo/classical_maps/index.html#pyna.topo.classical_maps.HenonMap.K" title="pyna.topo.classical_maps.HenonMap.K">K</a>,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.TorusDeformationSpectrum.delta_phi">
+<span class="sig-name descname"><span class="pre">delta_phi</span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#TorusDeformationSpectrum.delta_phi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.delta_phi" title="Link to this definition">#</a></dt>
+<dd><p>Toroidal-angle displacement (δφ)_mn  [rad].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>complex 1-D array of <a class="reference internal" href="../../fields/cylindrical/index.html#pyna.fields.cylindrical.CylindricalFieldArrays.shape" title="pyna.fields.cylindrical.CylindricalFieldArrays.shape">shape</a> (<a class="reference internal" href="../../topo/classical_maps/index.html#pyna.topo.classical_maps.HenonMap.K" title="pyna.topo.classical_maps.HenonMap.K">K</a>,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.TorusDeformationSpectrum.resonant_mask">
+<span class="sig-name descname"><span class="pre">resonant_mask</span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#TorusDeformationSpectrum.resonant_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.resonant_mask" title="Link to this definition">#</a></dt>
+<dd><p>True for (m,n) pairs that are resonant with ι — these are set to NaN.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool 1-D array of <a class="reference internal" href="../../fields/cylindrical/index.html#pyna.fields.cylindrical.CylindricalFieldArrays.shape" title="pyna.fields.cylindrical.CylindricalFieldArrays.shape">shape</a> (<a class="reference internal" href="../../topo/classical_maps/index.html#pyna.topo.classical_maps.HenonMap.K" title="pyna.topo.classical_maps.HenonMap.K">K</a>,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.TorusDeformationSpectrum.m">
+<span class="sig-name descname"><span class="pre">m</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#TorusDeformationSpectrum.m"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.m" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.TorusDeformationSpectrum.n">
+<span class="sig-name descname"><span class="pre">n</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#TorusDeformationSpectrum.n"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.n" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">delta_r</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#TorusDeformationSpectrum.delta_r"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">delta_theta</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#TorusDeformationSpectrum.delta_theta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id1" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">delta_phi</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#TorusDeformationSpectrum.delta_phi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id2" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">resonant_mask</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#TorusDeformationSpectrum.resonant_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id3" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.TorusDeformationSpectrum.real_field_r">
+<span class="sig-name descname"><span class="pre">real_field_r</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#TorusDeformationSpectrum.real_field_r"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.real_field_r" title="Link to this definition">#</a></dt>
+<dd><p>Evaluate the real-space radial displacement δr(θ, φ).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.TorusDeformationSpectrum.real_field_theta">
+<span class="sig-name descname"><span class="pre">real_field_theta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#TorusDeformationSpectrum.real_field_theta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.real_field_theta" title="Link to this definition">#</a></dt>
+<dd><p>Evaluate δθ(θ, φ).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.TorusDeformationSpectrum.real_field_phi">
+<span class="sig-name descname"><span class="pre">real_field_phi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#TorusDeformationSpectrum.real_field_phi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.real_field_phi" title="Link to this definition">#</a></dt>
+<dd><p>Evaluate δφ(θ, φ).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.TorusDeformationSpectrum.section_r">
+<span class="sig-name descname"><span class="pre">section_r</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#TorusDeformationSpectrum.section_r"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.section_r" title="Link to this definition">#</a></dt>
+<dd><p>δr on a Poincaré section φ = φ0 (Theorem 3).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.TorusDeformationSpectrum.section_theta">
+<span class="sig-name descname"><span class="pre">section_theta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#TorusDeformationSpectrum.section_theta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.section_theta" title="Link to this definition">#</a></dt>
+<dd><p>δθ on a Poincaré section φ = φ0.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.RadialPerturbationSplit">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyna.toroidal.torus_deformation.</span></span><span class="sig-name descname"><span class="pre">RadialPerturbationSplit</span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#RadialPerturbationSplit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit" title="Link to this definition">#</a></dt>
+<dd><p>Resonant/non-resonant split of a radial magnetic perturbation spectrum.</p>
+<p>The resonant part <code class="docutils literal notranslate"><span class="pre">m*ι+n≈0</span></code> is the input for island-width estimates; the
+non-resonant part is the input for flux-surface deformation.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.RadialPerturbationSplit.m">
+<span class="sig-name descname"><span class="pre">m</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#RadialPerturbationSplit.m"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.m" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.RadialPerturbationSplit.n">
+<span class="sig-name descname"><span class="pre">n</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#RadialPerturbationSplit.n"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.n" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.RadialPerturbationSplit.dBr">
+<span class="sig-name descname"><span class="pre">dBr</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#RadialPerturbationSplit.dBr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.dBr" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.RadialPerturbationSplit.resonant_mask">
+<span class="sig-name descname"><span class="pre">resonant_mask</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#RadialPerturbationSplit.resonant_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.resonant_mask" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_mask">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nonresonant_mask</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#RadialPerturbationSplit.nonresonant_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_mask" title="Link to this definition">#</a></dt>
+<dd><p>Boolean mask selecting modes that deform nested flux surfaces.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.RadialPerturbationSplit.resonant_m">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">resonant_m</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#RadialPerturbationSplit.resonant_m"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.resonant_m" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.RadialPerturbationSplit.resonant_n">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">resonant_n</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#RadialPerturbationSplit.resonant_n"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.resonant_n" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.RadialPerturbationSplit.resonant_dBr">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">resonant_dBr</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#RadialPerturbationSplit.resonant_dBr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.resonant_dBr" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_m">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nonresonant_m</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#RadialPerturbationSplit.nonresonant_m"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_m" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_n">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nonresonant_n</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#RadialPerturbationSplit.nonresonant_n"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_n" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_dBr">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nonresonant_dBr</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#RadialPerturbationSplit.nonresonant_dBr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_dBr" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_deformation">
+<span class="sig-name descname"><span class="pre">nonresonant_deformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iota</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">Bphi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">Btheta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dBth_mn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dBph_mn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g_r_theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g_r_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regularise_eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum" title="pyna.toroidal.torus_deformation.TorusDeformationSpectrum"><span class="pre">TorusDeformationSpectrum</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#RadialPerturbationSplit.nonresonant_deformation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_deformation" title="Link to this definition">#</a></dt>
+<dd><p>Compute torus deformation using only non-resonant modes.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.split_radial_perturbation_spectrum">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.torus_deformation.</span></span><span class="sig-name descname"><span class="pre">split_radial_perturbation_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dBr_mn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">iota</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">resonance_tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-09</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit" title="pyna.toroidal.torus_deformation.RadialPerturbationSplit"><span class="pre">RadialPerturbationSplit</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#split_radial_perturbation_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.split_radial_perturbation_spectrum" title="Link to this definition">#</a></dt>
+<dd><p>Split B^r Fourier modes into island-driving and deformation-driving parts.</p>
+<p>Modes satisfying <code class="docutils literal notranslate"><span class="pre">abs(m*ι+n)</span> <span class="pre">&lt;</span> <span class="pre">resonance_tol</span></code> are resonant and should be
+passed to island-chain / island-width analysis.  All remaining modes can be
+sent to <a class="reference internal" href="#pyna.toroidal.torus_deformation.non_resonant_deformation_spectrum" title="pyna.toroidal.torus_deformation.non_resonant_deformation_spectrum"><code class="xref py py-func docutils literal notranslate"><span class="pre">non_resonant_deformation_spectrum()</span></code></a> to compute smooth flux
+surface deformation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.non_resonant_deformation_spectrum">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.torus_deformation.</span></span><span class="sig-name descname"><span class="pre">non_resonant_deformation_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dBr_mn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dBth_mn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dBph_mn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">iota</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">Bphi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">Btheta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">g_r_theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g_r_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resonance_tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-09</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regularise_eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum" title="pyna.toroidal.torus_deformation.TorusDeformationSpectrum"><span class="pre">TorusDeformationSpectrum</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#non_resonant_deformation_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.non_resonant_deformation_spectrum" title="Link to this definition">#</a></dt>
+<dd><p>Compute the Fourier spectra of the full torus deformation vector δχ.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.fieldline_deformation_spectrum">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.torus_deformation.</span></span><span class="sig-name descname"><span class="pre">fieldline_deformation_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">radial_velocity_mn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">poloidal_velocity_mn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">iota</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">iota_prime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_shear</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resonance_tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-09</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regularise_eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum" title="pyna.toroidal.torus_deformation.TorusDeformationSpectrum"><span class="pre">TorusDeformationSpectrum</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#fieldline_deformation_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.fieldline_deformation_spectrum" title="Link to this definition">#</a></dt>
+<dd><p>Compute non-resonant torus deformation from field-line velocity spectra.</p>
+<p>This is the field-line ODE form of
+<a class="reference internal" href="#pyna.toroidal.torus_deformation.non_resonant_deformation_spectrum" title="pyna.toroidal.torus_deformation.non_resonant_deformation_spectrum"><code class="xref py py-func docutils literal notranslate"><span class="pre">non_resonant_deformation_spectrum()</span></code></a>.  It expects Fourier
+coefficients of the perturbation to</p>
+<p><code class="docutils literal notranslate"><span class="pre">dr/dphi</span> <span class="pre">=</span> <span class="pre">F_r(theta,</span> <span class="pre">phi)</span></code> and <code class="docutils literal notranslate"><span class="pre">dtheta/dphi</span> <span class="pre">=</span> <span class="pre">iota</span> <span class="pre">+</span> <span class="pre">F_theta(theta,</span> <span class="pre">phi)</span></code>,</p>
+<p>using the same convention <code class="docutils literal notranslate"><span class="pre">exp(i*(m*theta+n*phi))</span></code>.  For each
+non-resonant mode <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">=</span> <span class="pre">m*iota+n</span></code> it solves the homological equations</p>
+<p><code class="docutils literal notranslate"><span class="pre">i*alpha*delta_r</span> <span class="pre">=</span> <span class="pre">F_r</span></code> and
+<code class="docutils literal notranslate"><span class="pre">i*alpha*delta_theta</span> <span class="pre">=</span> <span class="pre">F_theta</span></code>.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">include_shear</span></code> is true, the angular equation uses
+<code class="docutils literal notranslate"><span class="pre">F_theta</span> <span class="pre">+</span> <span class="pre">iota_prime*delta_r</span></code>.  This is the invariant-torus conjugacy
+form and is the one whose map residual should scale quadratically with the
+perturbation amplitude.  The default leaves the shear term out because some
+section-geometry comparisons only need the direct coordinate displacement.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.poincare_section_deformation">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.torus_deformation.</span></span><span class="sig-name descname"><span class="pre">poincare_section_deformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum" title="pyna.toroidal.torus_deformation.TorusDeformationSpectrum"><span class="pre">TorusDeformationSpectrum</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#poincare_section_deformation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.poincare_section_deformation" title="Link to this definition">#</a></dt>
+<dd><p>Evaluate the 1-D ring deformation on the Poincaré section φ = φ0.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.iota_variation_pf">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.torus_deformation.</span></span><span class="sig-name descname"><span class="pre">iota_variation_pf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dBtheta_m0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">iota</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">Btheta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.14)"><span class="pre">complex</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#iota_variation_pf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.iota_variation_pf" title="Link to this definition">#</a></dt>
+<dd><p>First-order rotational-transform variation δι for an n=0 PF perturbation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.mean_radial_displacement">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.torus_deformation.</span></span><span class="sig-name descname"><span class="pre">mean_radial_displacement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delta_iota</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">iota_prime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#mean_radial_displacement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.mean_radial_displacement" title="Link to this definition">#</a></dt>
+<dd><p>Mean radial displacement from the core identity &lt;δr&gt; = −δι / ι’.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.mean_radial_displacement_pf">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.torus_deformation.</span></span><span class="sig-name descname"><span class="pre">mean_radial_displacement_pf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dBtheta_m0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">iota</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">iota_prime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">Btheta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#mean_radial_displacement_pf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.mean_radial_displacement_pf" title="Link to this definition">#</a></dt>
+<dd><p>Mean radial displacement for an axisymmetric (n=0) PF coil perturbation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.mean_radial_displacement_dc">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.torus_deformation.</span></span><span class="sig-name descname"><span class="pre">mean_radial_displacement_dc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dBtheta_00</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.14)"><span class="pre">complex</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">iota</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">iota_prime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">Btheta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#mean_radial_displacement_dc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.mean_radial_displacement_dc" title="Link to this definition">#</a></dt>
+<dd><p>Mean radial displacement for a uniform (m=n=0) poloidal-field perturbation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.mean_radial_displacement_second_order">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.torus_deformation.</span></span><span class="sig-name descname"><span class="pre">mean_radial_displacement_second_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dBr_mn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">iota</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">iota_prime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">Bphi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resonance_tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-09</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#mean_radial_displacement_second_order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.mean_radial_displacement_second_order" title="Link to this definition">#</a></dt>
+<dd><p>Mean radial displacement to second order for a general non-axisymmetric perturbation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.deformation_peak_valley">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.torus_deformation.</span></span><span class="sig-name descname"><span class="pre">deformation_peak_valley</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dBr_mn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.14)"><span class="pre">complex</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">iota</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">Bphi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_peaks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#deformation_peak_valley"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.deformation_peak_valley" title="Link to this definition">#</a></dt>
+<dd><p>Phase-based peak and valley coordinates of the (m,n) deformation harmonic.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.green_function_spectrum">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.torus_deformation.</span></span><span class="sig-name descname"><span class="pre">green_function_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">iota</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">Bphi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">regularise_eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resonance_tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-09</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#green_function_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.green_function_spectrum" title="Link to this definition">#</a></dt>
+<dd><p>Fourier coefficients of the deformation Green’s function G(Θ, Φ; r).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.iota_to_q">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.torus_deformation.</span></span><span class="sig-name descname"><span class="pre">iota_to_q</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iota</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#iota_to_q"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.iota_to_q" title="Link to this definition">#</a></dt>
+<dd><p>Safety factor q = 1/ι.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.q_to_iota">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.torus_deformation.</span></span><span class="sig-name descname"><span class="pre">q_to_iota</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#q_to_iota"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.q_to_iota" title="Link to this definition">#</a></dt>
+<dd><p>Rotational transform ι = 1/q.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.torus_deformation.iota_prime_from_q_prime">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.torus_deformation.</span></span><span class="sig-name descname"><span class="pre">iota_prime_from_q_prime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_prime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pyna/toroidal/torus_deformation.html#iota_prime_from_q_prime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.torus_deformation.iota_prime_from_q_prime" title="Link to this definition">#</a></dt>
+<dd><p>ι’ = dι/dr = −q’/q².</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../surface_coordinates/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">pyna.toroidal.surface_coordinates</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../visual/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">pyna.toroidal.visual</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#public-api">Public API</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum"><code class="docutils literal notranslate"><span class="pre">TorusDeformationSpectrum</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.delta_r"><code class="docutils literal notranslate"><span class="pre">TorusDeformationSpectrum.delta_r</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.delta_theta"><code class="docutils literal notranslate"><span class="pre">TorusDeformationSpectrum.delta_theta</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.delta_phi"><code class="docutils literal notranslate"><span class="pre">TorusDeformationSpectrum.delta_phi</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.resonant_mask"><code class="docutils literal notranslate"><span class="pre">TorusDeformationSpectrum.resonant_mask</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.m"><code class="docutils literal notranslate"><span class="pre">TorusDeformationSpectrum.m</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.n"><code class="docutils literal notranslate"><span class="pre">TorusDeformationSpectrum.n</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id0"><code class="docutils literal notranslate"><span class="pre">TorusDeformationSpectrum.delta_r</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id1"><code class="docutils literal notranslate"><span class="pre">TorusDeformationSpectrum.delta_theta</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id2"><code class="docutils literal notranslate"><span class="pre">TorusDeformationSpectrum.delta_phi</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id3"><code class="docutils literal notranslate"><span class="pre">TorusDeformationSpectrum.resonant_mask</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.real_field_r"><code class="docutils literal notranslate"><span class="pre">TorusDeformationSpectrum.real_field_r()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.real_field_theta"><code class="docutils literal notranslate"><span class="pre">TorusDeformationSpectrum.real_field_theta()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.real_field_phi"><code class="docutils literal notranslate"><span class="pre">TorusDeformationSpectrum.real_field_phi()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.section_r"><code class="docutils literal notranslate"><span class="pre">TorusDeformationSpectrum.section_r()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.TorusDeformationSpectrum.section_theta"><code class="docutils literal notranslate"><span class="pre">TorusDeformationSpectrum.section_theta()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit"><code class="docutils literal notranslate"><span class="pre">RadialPerturbationSplit</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.m"><code class="docutils literal notranslate"><span class="pre">RadialPerturbationSplit.m</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.n"><code class="docutils literal notranslate"><span class="pre">RadialPerturbationSplit.n</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.dBr"><code class="docutils literal notranslate"><span class="pre">RadialPerturbationSplit.dBr</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.resonant_mask"><code class="docutils literal notranslate"><span class="pre">RadialPerturbationSplit.resonant_mask</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_mask"><code class="docutils literal notranslate"><span class="pre">RadialPerturbationSplit.nonresonant_mask</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.resonant_m"><code class="docutils literal notranslate"><span class="pre">RadialPerturbationSplit.resonant_m</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.resonant_n"><code class="docutils literal notranslate"><span class="pre">RadialPerturbationSplit.resonant_n</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.resonant_dBr"><code class="docutils literal notranslate"><span class="pre">RadialPerturbationSplit.resonant_dBr</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_m"><code class="docutils literal notranslate"><span class="pre">RadialPerturbationSplit.nonresonant_m</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_n"><code class="docutils literal notranslate"><span class="pre">RadialPerturbationSplit.nonresonant_n</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_dBr"><code class="docutils literal notranslate"><span class="pre">RadialPerturbationSplit.nonresonant_dBr</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.RadialPerturbationSplit.nonresonant_deformation"><code class="docutils literal notranslate"><span class="pre">RadialPerturbationSplit.nonresonant_deformation()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.split_radial_perturbation_spectrum"><code class="docutils literal notranslate"><span class="pre">split_radial_perturbation_spectrum()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.non_resonant_deformation_spectrum"><code class="docutils literal notranslate"><span class="pre">non_resonant_deformation_spectrum()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.fieldline_deformation_spectrum"><code class="docutils literal notranslate"><span class="pre">fieldline_deformation_spectrum()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.poincare_section_deformation"><code class="docutils literal notranslate"><span class="pre">poincare_section_deformation()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.iota_variation_pf"><code class="docutils literal notranslate"><span class="pre">iota_variation_pf()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.mean_radial_displacement"><code class="docutils literal notranslate"><span class="pre">mean_radial_displacement()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.mean_radial_displacement_pf"><code class="docutils literal notranslate"><span class="pre">mean_radial_displacement_pf()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.mean_radial_displacement_dc"><code class="docutils literal notranslate"><span class="pre">mean_radial_displacement_dc()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.mean_radial_displacement_second_order"><code class="docutils literal notranslate"><span class="pre">mean_radial_displacement_second_order()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.deformation_peak_valley"><code class="docutils literal notranslate"><span class="pre">deformation_peak_valley()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.green_function_spectrum"><code class="docutils literal notranslate"><span class="pre">green_function_spectrum()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.iota_to_q"><code class="docutils literal notranslate"><span class="pre">iota_to_q()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.q_to_iota"><code class="docutils literal notranslate"><span class="pre">q_to_iota()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.torus_deformation.iota_prime_from_q_prime"><code class="docutils literal notranslate"><span class="pre">iota_prime_from_q_prime()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

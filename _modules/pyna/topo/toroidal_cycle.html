@@ -1,0 +1,1029 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.topo.toroidal_cycle &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/topo/toroidal_cycle';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../topo.html" class="nav-link">pyna.topo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.topo.toroidal_cycle</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.topo.toroidal_cycle</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Toroidal periodic-orbit traces and Newton solvers.</span>
+
+<span class="sd">This module is explicitly for toroidal field-line dynamics parameterised by</span>
+<span class="sd">phi. It stores sampled toroidal periodic-orbit traces and provides Newton</span>
+<span class="sd">search utilities in (R, Z, phi).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo._monodromy_classification</span><span class="w"> </span><span class="kn">import</span> <span class="n">monodromy_kind</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo._rk4</span><span class="w"> </span><span class="kn">import</span> <span class="n">rk4_integrate</span>
+
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="ToroidalPeriodicOrbitTrace">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ToroidalPeriodicOrbitTrace</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A periodic field-line orbit.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    rzphi0 : ndarray, shape (3,)</span>
+<span class="sd">        Starting point (R, Z, phi0).</span>
+<span class="sd">    period_m : int</span>
+<span class="sd">        Number of toroidal turns (period of Poincaré map).</span>
+<span class="sd">        Corresponds to m in q=m/n notation: P^m(x) = x.</span>
+<span class="sd">    trajectory : ndarray, shape (N, 3)</span>
+<span class="sd">        Full orbit trajectory (R, Z, phi).</span>
+<span class="sd">    DPm : ndarray, shape (2, 2)</span>
+<span class="sd">        Monodromy matrix DPm = DX_pol(phi_end), phi_end = 2π·m. Eigenvalues characterize stability.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.rzphi0">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.rzphi0">[docs]</a>
+    <span class="n">rzphi0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.period_m">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.period_m">[docs]</a>
+    <span class="n">period_m</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.trajectory">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.trajectory">[docs]</a>
+    <span class="n">trajectory</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.DPm">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.DPm">[docs]</a>
+    <span class="n">DPm</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.period_n">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.period_n">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">period_n</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Alias for period_m (backward compatibility).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">period_m</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.Jac">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.Jac">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">Jac</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated alias for DPm.&quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;ToroidalPeriodicOrbitTrace.Jac is deprecated; use ToroidalPeriodicOrbitTrace.DPm instead.&quot;</span><span class="p">,</span>
+            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">DPm</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.is_stable">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.is_stable">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_stable</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;True if |eigenvalues| ≤ 1 (elliptic, O-point type).&quot;&quot;&quot;</span>
+        <span class="n">eigvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigvals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DPm</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">eigvals</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="mf">1e-6</span><span class="p">))</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.eigenvalues">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.eigenvalues">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">eigenvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigvals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DPm</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.stability_index">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.stability_index">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">stability_index</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tr(DPm)/2 for a 2x2 symplectic map. |k|&lt;1 → elliptic, |k|&gt;1 → hyperbolic.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DPm</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.kind">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.kind">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">kind</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return determinant-checked monodromy kind: X, O, P, or U.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">monodromy_kind</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DPm</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ── InvariantSet-style interface ───────────────────────────────────────</span>
+
+<div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.section_cut">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.section_cut">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">section_cut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the point(s) at which this orbit crosses a toroidal section.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        section : float | ToroidalSection</span>
+<span class="sd">            Toroidal section angle (radians) or a concrete ``ToroidalSection``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of dict, each with keys ``&#39;R&#39;``, ``&#39;Z&#39;``, ``&#39;phi&#39;``, ``&#39;kind&#39;``.</span>
+<span class="sd">        Returns an empty list if the trajectory is not available or no</span>
+<span class="sd">        crossing is found within tolerance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.section</span><span class="w"> </span><span class="kn">import</span> <span class="n">coerce_toroidal_section</span>
+
+        <span class="n">phi_target</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">coerce_toroidal_section</span><span class="p">(</span><span class="n">section</span><span class="p">)</span><span class="o">.</span><span class="n">phi</span><span class="p">)</span>
+
+        <span class="n">traj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>  <span class="c1"># (N, 3): R, Z, phi</span>
+        <span class="k">if</span> <span class="n">traj</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">traj</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="n">phi_arr</span> <span class="o">=</span> <span class="n">traj</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="c1"># Normalise all phi values to [0, 2π) for comparison</span>
+        <span class="n">phi_norm</span> <span class="o">=</span> <span class="n">phi_arr</span> <span class="o">%</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="n">phi_t_norm</span> <span class="o">=</span> <span class="n">phi_target</span> <span class="o">%</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+
+        <span class="n">crossings</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">phi_norm</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">p0</span><span class="p">,</span> <span class="n">p1</span> <span class="o">=</span> <span class="n">phi_norm</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">phi_norm</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># Detect sign change across phi_target (handle wrap-around)</span>
+            <span class="n">diff0</span> <span class="o">=</span> <span class="p">(</span><span class="n">p0</span> <span class="o">-</span> <span class="n">phi_t_norm</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+            <span class="n">diff1</span> <span class="o">=</span> <span class="p">(</span><span class="n">p1</span> <span class="o">-</span> <span class="n">phi_t_norm</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+            <span class="k">if</span> <span class="n">diff0</span> <span class="o">*</span> <span class="n">diff1</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">diff0</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">diff1</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="c1"># Linear interpolation</span>
+                <span class="n">denom</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">diff1</span> <span class="o">-</span> <span class="n">diff0</span><span class="p">)</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">diff0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">denom</span> <span class="o">+</span> <span class="mf">1e-30</span><span class="p">)</span>
+                <span class="n">R_cross</span> <span class="o">=</span> <span class="n">traj</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">t</span> <span class="o">*</span> <span class="p">(</span><span class="n">traj</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">traj</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+                <span class="n">Z_cross</span> <span class="o">=</span> <span class="n">traj</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">t</span> <span class="o">*</span> <span class="p">(</span><span class="n">traj</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">traj</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+                <span class="n">crossings</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                    <span class="s1">&#39;R&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">R_cross</span><span class="p">),</span>
+                    <span class="s1">&#39;Z&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">Z_cross</span><span class="p">),</span>
+                    <span class="s1">&#39;phi&#39;</span><span class="p">:</span> <span class="n">phi_target</span><span class="p">,</span>
+                    <span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="p">,</span>
+                    <span class="s1">&#39;DPm&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">DPm</span><span class="p">,</span>
+                <span class="p">})</span>
+        <span class="k">return</span> <span class="n">crossings</span></div>
+
+
+<div class="viewcode-block" id="ToroidalPeriodicOrbitTrace.diagnostics">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.toroidal_cycle.ToroidalPeriodicOrbitTrace.diagnostics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">diagnostics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="n">eigvals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigenvalues</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;invariant_type&#39;</span><span class="p">:</span> <span class="s1">&#39;ToroidalPeriodicOrbitTrace&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;rzphi0&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rzphi0</span><span class="p">),</span>
+            <span class="s1">&#39;period_m&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">period_m</span><span class="p">),</span>
+            <span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="p">,</span>
+            <span class="s1">&#39;stability_index&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stability_index</span><span class="p">,</span>
+            <span class="s1">&#39;eigenvalues&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">eigvals</span><span class="p">),</span>
+            <span class="s1">&#39;is_stable&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_stable</span><span class="p">),</span>
+        <span class="p">}</span></div>
+</div>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_field_func_phi_parameterized</span><span class="p">(</span><span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">rzphi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert field_func(rzphi)→(dR/dl, dZ/dl, dphi/dl) to phi-parameterized.</span>
+
+<span class="sd">    Returns (dR/dphi, dZ/dphi) = (dR/dl)/(dphi/dl).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">field_func</span><span class="p">(</span><span class="n">rzphi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="c1"># f[2] = dphi/dl; f[0]/f[2] = dR/dphi; f[1]/f[2] = dZ/dphi</span>
+    <span class="n">dphi_dl</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dphi_dl</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-30</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">dphi_dl</span><span class="p">,</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">dphi_dl</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="poincare_map_n">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.toroidal_cycle.poincare_map_n">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">poincare_map_n</span><span class="p">(</span>
+    <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">rzphi0</span><span class="p">,</span>
+    <span class="n">n_turns</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+    <span class="n">RZlimit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Integrate field line for n toroidal turns, return final (R, Z).</span>
+
+<span class="sd">    The integration uses the toroidal angle φ as the independent variable.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    field_func : callable</span>
+<span class="sd">        ``field_func(rzphi) → (dR/dl, dZ/dl, dphi/dl)``.</span>
+<span class="sd">    rzphi0 : array-like (3,)</span>
+<span class="sd">        Starting point (R, Z, phi).</span>
+<span class="sd">    n_turns : int</span>
+<span class="sd">        Number of toroidal turns to integrate (φ increases by 2π·n_turns).</span>
+<span class="sd">    dt : float</span>
+<span class="sd">        Step size in φ (radians) for the integrator.</span>
+<span class="sd">    RZlimit : tuple or None</span>
+<span class="sd">        Optional ``(R_min, R_max, Z_min, Z_max)`` domain boundary.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    (R_final, Z_final) or (nan, nan) if field left domain.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rzphi0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">rzphi0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span><span class="p">,</span> <span class="n">phi0</span> <span class="o">=</span> <span class="n">rzphi0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rzphi0</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">rzphi0</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">phi_end</span> <span class="o">=</span> <span class="n">phi0</span> <span class="o">+</span> <span class="n">n_turns</span> <span class="o">*</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">rhs</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">rz</span><span class="p">):</span>
+        <span class="n">rzphi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">rz</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rz</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">_field_func_phi_parameterized</span><span class="p">(</span><span class="n">field_func</span><span class="p">,</span> <span class="n">rzphi</span><span class="p">)</span>
+
+    <span class="n">events</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">RZlimit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">R_min</span><span class="p">,</span> <span class="n">R_max</span><span class="p">,</span> <span class="n">Z_min</span><span class="p">,</span> <span class="n">Z_max</span> <span class="o">=</span> <span class="n">RZlimit</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">hit_boundary</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">rz</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">rz</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">R_min</span><span class="p">,</span> <span class="n">R_max</span> <span class="o">-</span> <span class="n">rz</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rz</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">Z_min</span><span class="p">,</span> <span class="n">Z_max</span> <span class="o">-</span> <span class="n">rz</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">hit_boundary</span><span class="o">.</span><span class="n">terminal</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">hit_boundary</span><span class="o">.</span><span class="n">direction</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hit_boundary</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">sol</span> <span class="o">=</span> <span class="n">rk4_integrate</span><span class="p">(</span>
+            <span class="n">rhs</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">phi0</span><span class="p">,</span> <span class="n">phi_end</span><span class="p">),</span>
+            <span class="p">[</span><span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span><span class="p">],</span>
+            <span class="n">max_step</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span>
+            <span class="n">events</span><span class="o">=</span><span class="n">events</span> <span class="k">if</span> <span class="n">events</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">sol</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check if boundary event triggered</span>
+    <span class="k">if</span> <span class="n">events</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">t_events</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">sol</span><span class="o">.</span><span class="n">t_events</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="poincare_map_n_trajectory">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.toroidal_cycle.poincare_map_n_trajectory">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">poincare_map_n_trajectory</span><span class="p">(</span>
+    <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">rzphi0</span><span class="p">,</span>
+    <span class="n">n_turns</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+    <span class="n">RZlimit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Integrate field line for n_turns, return full (R, Z, phi) trajectory.&quot;&quot;&quot;</span>
+    <span class="n">rzphi0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">rzphi0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span><span class="p">,</span> <span class="n">phi0</span> <span class="o">=</span> <span class="n">rzphi0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rzphi0</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">rzphi0</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">phi_end</span> <span class="o">=</span> <span class="n">phi0</span> <span class="o">+</span> <span class="n">n_turns</span> <span class="o">*</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">rhs</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">rz</span><span class="p">):</span>
+        <span class="n">rzphi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">rz</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rz</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">_field_func_phi_parameterized</span><span class="p">(</span><span class="n">field_func</span><span class="p">,</span> <span class="n">rzphi</span><span class="p">)</span>
+
+    <span class="n">n_points</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">((</span><span class="n">phi_end</span> <span class="o">-</span> <span class="n">phi0</span><span class="p">)</span> <span class="o">/</span> <span class="n">dt</span><span class="p">),</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="n">t_eval</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">phi0</span><span class="p">,</span> <span class="n">phi_end</span><span class="p">,</span> <span class="n">n_points</span><span class="p">)</span>
+
+    <span class="n">events</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">RZlimit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">R_min</span><span class="p">,</span> <span class="n">R_max</span><span class="p">,</span> <span class="n">Z_min</span><span class="p">,</span> <span class="n">Z_max</span> <span class="o">=</span> <span class="n">RZlimit</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">hit_boundary</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">rz</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">rz</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">R_min</span><span class="p">,</span> <span class="n">R_max</span> <span class="o">-</span> <span class="n">rz</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rz</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">Z_min</span><span class="p">,</span> <span class="n">Z_max</span> <span class="o">-</span> <span class="n">rz</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">hit_boundary</span><span class="o">.</span><span class="n">terminal</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">hit_boundary</span><span class="o">.</span><span class="n">direction</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hit_boundary</span><span class="p">)</span>
+
+    <span class="n">sol</span> <span class="o">=</span> <span class="n">rk4_integrate</span><span class="p">(</span>
+        <span class="n">rhs</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">phi0</span><span class="p">,</span> <span class="n">phi_end</span><span class="p">),</span>
+        <span class="p">[</span><span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span><span class="p">],</span>
+        <span class="n">max_step</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span>
+        <span class="n">t_eval</span><span class="o">=</span><span class="n">t_eval</span><span class="p">,</span>
+        <span class="n">events</span><span class="o">=</span><span class="n">events</span> <span class="k">if</span> <span class="n">events</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Build (N, 3) trajectory</span>
+    <span class="n">traj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">sol</span><span class="o">.</span><span class="n">t</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">traj</span></div>
+
+
+
+<div class="viewcode-block" id="jacobian_of_poincare_map">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.toroidal_cycle.jacobian_of_poincare_map">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">jacobian_of_poincare_map</span><span class="p">(</span>
+    <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">rzphi0</span><span class="p">,</span>
+    <span class="n">n_turns</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+    <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-5</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Finite-difference Jacobian ∂(R_f, Z_f)/∂(R_0, Z_0) of n-turn Poincaré map.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    field_func : callable</span>
+<span class="sd">    rzphi0 : array-like (3,)</span>
+<span class="sd">    n_turns : int</span>
+<span class="sd">    dt : float</span>
+<span class="sd">        Integration step size.</span>
+<span class="sd">    eps : float</span>
+<span class="sd">        Finite-difference perturbation.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    DPm : ndarray, shape (2, 2)</span>
+<span class="sd">        Monodromy matrix (Jacobian of the n-turn Poincaré map). det(DPm) ≈ 1 for area-preserving.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span><span class="p">,</span> <span class="n">phi0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rzphi0</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">rzphi0</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">rzphi0</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">R_f</span><span class="p">,</span> <span class="n">Z_f</span> <span class="o">=</span> <span class="n">poincare_map_n</span><span class="p">(</span><span class="n">field_func</span><span class="p">,</span> <span class="n">rzphi0</span><span class="p">,</span> <span class="n">n_turns</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+
+    <span class="c1"># Perturb R</span>
+    <span class="n">R_fR</span><span class="p">,</span> <span class="n">Z_fR</span> <span class="o">=</span> <span class="n">poincare_map_n</span><span class="p">(</span><span class="n">field_func</span><span class="p">,</span> <span class="p">[</span><span class="n">R0</span> <span class="o">+</span> <span class="n">eps</span><span class="p">,</span> <span class="n">Z0</span><span class="p">,</span> <span class="n">phi0</span><span class="p">],</span> <span class="n">n_turns</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+    <span class="c1"># Perturb Z</span>
+    <span class="n">R_fZ</span><span class="p">,</span> <span class="n">Z_fZ</span> <span class="o">=</span> <span class="n">poincare_map_n</span><span class="p">(</span><span class="n">field_func</span><span class="p">,</span> <span class="p">[</span><span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span> <span class="o">+</span> <span class="n">eps</span><span class="p">,</span> <span class="n">phi0</span><span class="p">],</span> <span class="n">n_turns</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+
+    <span class="n">DPm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="p">[(</span><span class="n">R_fR</span> <span class="o">-</span> <span class="n">R_f</span><span class="p">)</span> <span class="o">/</span> <span class="n">eps</span><span class="p">,</span> <span class="p">(</span><span class="n">R_fZ</span> <span class="o">-</span> <span class="n">R_f</span><span class="p">)</span> <span class="o">/</span> <span class="n">eps</span><span class="p">],</span>
+        <span class="p">[(</span><span class="n">Z_fR</span> <span class="o">-</span> <span class="n">Z_f</span><span class="p">)</span> <span class="o">/</span> <span class="n">eps</span><span class="p">,</span> <span class="p">(</span><span class="n">Z_fZ</span> <span class="o">-</span> <span class="n">Z_f</span><span class="p">)</span> <span class="o">/</span> <span class="n">eps</span><span class="p">],</span>
+    <span class="p">])</span>
+    <span class="k">return</span> <span class="n">DPm</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Cycle finder</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_try_find_cycle_from_seed</span><span class="p">(</span>
+    <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">seed_rzphi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">n_turns</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">RZlimit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">],</span>
+    <span class="n">max_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">damping</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ToroidalPeriodicOrbitTrace</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Internal Newton-Raphson cycle finder from a single seed.&quot;&quot;&quot;</span>
+    <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">seed_rzphi</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">seed_rzphi</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">phi0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">seed_rzphi</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_iter</span><span class="p">):</span>
+        <span class="n">rzphi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x0</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">phi0</span><span class="p">])</span>
+        <span class="n">R_f</span><span class="p">,</span> <span class="n">Z_f</span> <span class="o">=</span> <span class="n">poincare_map_n</span><span class="p">(</span><span class="n">field_func</span><span class="p">,</span> <span class="n">rzphi</span><span class="p">,</span> <span class="n">n_turns</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">RZlimit</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">R_f</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">Z_f</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">G</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">R_f</span> <span class="o">-</span> <span class="n">x0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Z_f</span> <span class="o">-</span> <span class="n">x0</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">G</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">:</span>
+            <span class="c1"># Converged — compute trajectory and monodromy</span>
+            <span class="n">traj</span> <span class="o">=</span> <span class="n">poincare_map_n_trajectory</span><span class="p">(</span><span class="n">field_func</span><span class="p">,</span> <span class="n">rzphi</span><span class="p">,</span> <span class="n">n_turns</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">RZlimit</span><span class="p">)</span>
+            <span class="n">DPm</span> <span class="o">=</span> <span class="n">jacobian_of_poincare_map</span><span class="p">(</span><span class="n">field_func</span><span class="p">,</span> <span class="n">rzphi</span><span class="p">,</span> <span class="n">n_turns</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ToroidalPeriodicOrbitTrace</span><span class="p">(</span>
+                <span class="n">rzphi0</span><span class="o">=</span><span class="n">rzphi</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+                <span class="n">period_m</span><span class="o">=</span><span class="n">n_turns</span><span class="p">,</span>
+                <span class="n">trajectory</span><span class="o">=</span><span class="n">traj</span><span class="p">,</span>
+                <span class="n">DPm</span><span class="o">=</span><span class="n">DPm</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Jacobian of G = P^n - I: dG/dx0 = DPm_poincare - I</span>
+        <span class="n">DPm_p</span> <span class="o">=</span> <span class="n">jacobian_of_poincare_map</span><span class="p">(</span><span class="n">field_func</span><span class="p">,</span> <span class="n">rzphi</span><span class="p">,</span> <span class="n">n_turns</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+        <span class="n">dGdx</span> <span class="o">=</span> <span class="n">DPm_p</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">dGdx</span><span class="p">,</span> <span class="o">-</span><span class="n">G</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">LinAlgError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">x0</span> <span class="o">=</span> <span class="n">x0</span> <span class="o">+</span> <span class="n">damping</span> <span class="o">*</span> <span class="n">delta</span>
+
+        <span class="c1"># Domain check</span>
+        <span class="k">if</span> <span class="n">RZlimit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">R_min</span><span class="p">,</span> <span class="n">R_max</span><span class="p">,</span> <span class="n">Z_min</span><span class="p">,</span> <span class="n">Z_max</span> <span class="o">=</span> <span class="n">RZlimit</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">R_min</span> <span class="o">&lt;</span> <span class="n">x0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">R_max</span> <span class="ow">and</span> <span class="n">Z_min</span> <span class="o">&lt;</span> <span class="n">x0</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">Z_max</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">None</span>
+        <span class="c1"># Also cap step size to avoid wild Newton excursions</span>
+        <span class="n">step_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">delta</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">step_norm</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="find_cycle">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.toroidal_cycle.find_cycle">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_cycle</span><span class="p">(</span>
+    <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">init_rzphi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">n_turns</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+    <span class="n">RZlimit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">max_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
+    <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-8</span><span class="p">,</span>
+    <span class="n">n_fallback_seeds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">12</span><span class="p">,</span>
+    <span class="n">fallback_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ToroidalPeriodicOrbitTrace</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find a periodic orbit starting from init_rzphi using Newton-Raphson.</span>
+
+<span class="sd">    G(x0) = P^n(x0) - x0 = 0</span>
+
+<span class="sd">    If Newton diverges or leaves domain, automatically tries n_fallback_seeds</span>
+<span class="sd">    alternative starting points distributed on a circle of radius fallback_radius</span>
+<span class="sd">    around init_rzphi.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    field_func : callable</span>
+<span class="sd">        Field function ``f(rzphi) → (dR/dl, dZ/dl, dphi/dl)``.</span>
+<span class="sd">    init_rzphi : array (3,)</span>
+<span class="sd">        Initial guess (R0, Z0, phi0).</span>
+<span class="sd">    n_turns : int</span>
+<span class="sd">        Period (number of toroidal turns).</span>
+<span class="sd">    dt : float</span>
+<span class="sd">        Integration step size in φ.</span>
+<span class="sd">    RZlimit : tuple or None</span>
+<span class="sd">        Domain limits (R_min, R_max, Z_min, Z_max).</span>
+<span class="sd">    max_iter : int</span>
+<span class="sd">        Maximum Newton iterations.</span>
+<span class="sd">    tol : float</span>
+<span class="sd">        Convergence tolerance on |G(x0)|.</span>
+<span class="sd">    n_fallback_seeds : int</span>
+<span class="sd">        Number of fallback seeds to try if primary Newton fails.</span>
+<span class="sd">    fallback_radius : float</span>
+<span class="sd">        Radius around init_rzphi for fallback seeds.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ToroidalPeriodicOrbitTrace or None if not found.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">init_rzphi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">init_rzphi</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="c1"># Primary attempt</span>
+    <span class="n">orbit</span> <span class="o">=</span> <span class="n">_try_find_cycle_from_seed</span><span class="p">(</span>
+        <span class="n">field_func</span><span class="p">,</span> <span class="n">init_rzphi</span><span class="p">,</span> <span class="n">n_turns</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">RZlimit</span><span class="p">,</span> <span class="n">max_iter</span><span class="p">,</span> <span class="n">tol</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">orbit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">orbit</span>
+
+    <span class="c1"># Fallback: try seeds on a circle around the initial guess</span>
+    <span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span><span class="p">,</span> <span class="n">phi0</span> <span class="o">=</span> <span class="n">init_rzphi</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">init_rzphi</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">init_rzphi</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">angles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">n_fallback_seeds</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ang</span> <span class="ow">in</span> <span class="n">angles</span><span class="p">:</span>
+        <span class="n">seed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="n">R0</span> <span class="o">+</span> <span class="n">fallback_radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">ang</span><span class="p">),</span>
+            <span class="n">Z0</span> <span class="o">+</span> <span class="n">fallback_radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">ang</span><span class="p">),</span>
+            <span class="n">phi0</span><span class="p">,</span>
+        <span class="p">])</span>
+        <span class="n">orbit</span> <span class="o">=</span> <span class="n">_try_find_cycle_from_seed</span><span class="p">(</span>
+            <span class="n">field_func</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">n_turns</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">RZlimit</span><span class="p">,</span> <span class="n">max_iter</span><span class="p">,</span> <span class="n">tol</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">orbit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">orbit</span>
+
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Find all cycles near a resonant surface</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="find_all_cycles_near_resonance">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.toroidal_cycle.find_all_cycles_near_resonance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_all_cycles_near_resonance</span><span class="p">(</span>
+    <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">equilibrium</span><span class="p">,</span>
+    <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">n_seeds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+    <span class="n">RZlimit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find all O- and X-point cycles near the q=m/n resonant surface.</span>
+
+<span class="sd">    For a q = m/n resonance, there are m O-points and m X-points at</span>
+<span class="sd">    equally spaced angular positions around the resonant surface. This</span>
+<span class="sd">    function seeds the Newton-Raphson solver at 2·m·n_seeds angular</span>
+<span class="sd">    positions around the resonant flux surface and deduplicates the</span>
+<span class="sd">    resulting orbits.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    field_func : callable</span>
+<span class="sd">    equilibrium : StellaratorSimple or similar</span>
+<span class="sd">        Must have ``resonant_psi(m, n)`` and ``R0``, ``r0`` attributes.</span>
+<span class="sd">    m, n : int</span>
+<span class="sd">        Mode numbers defining the resonance q = m/n.</span>
+<span class="sd">    n_seeds : int</span>
+<span class="sd">        Number of angular seeds per expected fixed point.</span>
+<span class="sd">    dt : float</span>
+<span class="sd">        Integration step.</span>
+<span class="sd">    RZlimit : tuple or None</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of ToroidalPeriodicOrbitTrace</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">psi_list</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="o">.</span><span class="n">resonant_psi</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">psi_list</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;q=</span><span class="si">{</span><span class="n">m</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> resonance not found in equilibrium&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="n">psi_res</span> <span class="o">=</span> <span class="n">psi_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">r_res</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">psi_res</span><span class="p">))</span> <span class="o">*</span> <span class="n">equilibrium</span><span class="o">.</span><span class="n">r0</span>
+    <span class="n">R0</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="o">.</span><span class="n">R0</span>
+
+    <span class="c1"># Seed angles: 2*m angular positions around the resonant circle</span>
+    <span class="n">total_seeds</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">m</span> <span class="o">*</span> <span class="n">n_seeds</span>
+    <span class="n">seed_angles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">total_seeds</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">found_orbits</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ToroidalPeriodicOrbitTrace</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># For this stellarator model, q = m/n (tokamak convention: q = toroidal/poloidal).</span>
+    <span class="c1"># The orbit period in toroidal turns equals m (the numerator), not n.</span>
+    <span class="c1"># dθ/dφ = 1/q = n/m → after m toroidal turns, θ advances by 2πn → closed.</span>
+    <span class="n">orbit_period</span> <span class="o">=</span> <span class="n">m</span>
+
+    <span class="k">for</span> <span class="n">theta</span> <span class="ow">in</span> <span class="n">seed_angles</span><span class="p">:</span>
+        <span class="n">seed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="n">R0</span> <span class="o">+</span> <span class="n">r_res</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span>
+            <span class="n">r_res</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span>
+            <span class="mf">0.0</span><span class="p">,</span>
+        <span class="p">])</span>
+        <span class="n">orbit</span> <span class="o">=</span> <span class="n">find_cycle</span><span class="p">(</span>
+            <span class="n">field_func</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">n_turns</span><span class="o">=</span><span class="n">orbit_period</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span> <span class="n">RZlimit</span><span class="o">=</span><span class="n">RZlimit</span><span class="p">,</span>
+            <span class="n">max_iter</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span>
+            <span class="n">n_fallback_seeds</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">fallback_radius</span><span class="o">=</span><span class="mf">0.3</span> <span class="o">*</span> <span class="n">r_res</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">orbit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Deduplicate: check if this orbit is already in the list</span>
+        <span class="n">duplicate</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">existing</span> <span class="ow">in</span> <span class="n">found_orbits</span><span class="p">:</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">orbit</span><span class="o">.</span><span class="n">rzphi0</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">existing</span><span class="o">.</span><span class="n">rzphi0</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">dist</span> <span class="o">&lt;</span> <span class="mf">1e-4</span><span class="p">:</span>
+                <span class="n">duplicate</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">duplicate</span><span class="p">:</span>
+            <span class="n">found_orbits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">orbit</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">found_orbits</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

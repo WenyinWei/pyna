@@ -1,0 +1,1272 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.control.FPT &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/control/FPT';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.control.FPT</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.control.FPT</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Functional Perturbation Theory (FPT) for magnetic field topology.</span>
+
+
+
+<span class="sd">Theory reference:</span>
+
+<span class="sd">  Wei, W. et al. &quot;Functional perturbation theory under axisymmetry:</span>
+
+<span class="sd">  Simplified formulae and their uses for tokamaks&quot;</span>
+
+
+
+<span class="sd">Under strict axisymmetry, all formulae reduce to closed-form expressions</span>
+
+<span class="sd">(no ?-integration needed), enabling sub-millisecond real-time computation.</span>
+
+
+
+<span class="sd">For 3D configurations (stellarators, RMP tokamaks), the full ?-integration</span>
+
+<span class="sd">is required ??same mathematical structure, higher computational cost.</span>
+
+
+
+<span class="sd">Key objects</span>
+
+<span class="sd">-----------</span>
+
+<span class="sd">A_matrix : 2?2 Jacobian of (R?B_pol/B_phi) w.r.t. (R, Z)</span>
+
+<span class="sd">DPm      : Jacobian of full-period Poincar? map</span>
+
+<span class="sd">             axisymmetric: DPm = exp(2??A)  [exact, O(1) cost]</span>
+
+<span class="sd">             general:      integrate dDPm/dphi = [A, DPm]  [O(N) cost]</span>
+
+<span class="sd">?x_cyc   : X/O-cycle shift under perturbation</span>
+
+<span class="sd">             axisymmetric: ?x_cyc = -A???? ?(R?B_pol/B_phi)  [exact]</span>
+
+<span class="sd">?DPm     : DPm change under perturbation (affects L_c, detachment)</span>
+
+<span class="sd">?X^{u/s} : Stable/unstable manifold shift (LCFS shift)</span>
+
+<span class="sd">??(?,r)  : Flux surface deformation</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.linalg</span><span class="w"> </span><span class="kn">import</span> <span class="n">expm</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo._rk4</span><span class="w"> </span><span class="kn">import</span> <span class="n">rk4_integrate</span> <span class="k">as</span> <span class="n">solve_ivp</span>  <span class="c1"># noqa: F401 – kept for API compat</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
+
+
+
+
+
+<div class="viewcode-block" id="A_matrix">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/control/FPT/index.html#pyna.control.FPT.A_matrix">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">A_matrix</span><span class="p">(</span><span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">R</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+
+             <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the 2?2 A-matrix = ??R?B_pol/B_phi)/??R,Z) at (R, Z, phi).</span>
+
+
+
+<span class="sd">    A_ij = ??R?B_pol_i / B_phi) / ??_j</span>
+
+
+
+<span class="sd">    Uses central finite differences.</span>
+
+
+
+<span class="sd">    Parameters</span>
+
+<span class="sd">    ----------</span>
+
+<span class="sd">    field_func : callable</span>
+
+<span class="sd">        field_func([R, Z, phi]) -&gt; [dR/dl, dZ/dl, dphi/dl]</span>
+
+<span class="sd">        where dl is arc length. Components:</span>
+
+<span class="sd">          f[0] = BR/|B|, f[1] = BZ/|B|, f[2] = Bphi/(R|B|)</span>
+
+<span class="sd">        Hence g(R,Z,phi) = [R?BR/Bphi, R?BZ/Bphi] = [f[0]/f[2], f[1]/f[2]].</span>
+
+<span class="sd">    R, Z : float</span>
+
+<span class="sd">        Evaluation point.</span>
+
+<span class="sd">    phi : float</span>
+
+<span class="sd">        Toroidal angle (irrelevant under axisymmetry).</span>
+
+<span class="sd">    eps : float</span>
+
+<span class="sd">        Finite-difference step size.</span>
+
+
+
+<span class="sd">    Returns</span>
+
+<span class="sd">    -------</span>
+
+<span class="sd">    A : ndarray, shape (2,2)</span>
+
+<span class="sd">        A[0,0] = ??R?BR/Bphi)/??,  A[0,1] = ??R?BR/Bphi)/??</span>
+
+<span class="sd">        A[1,0] = ??R?BZ/Bphi)/??,  A[1,1] = ??R?BZ/Bphi)/??</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">g</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">field_func</span><span class="p">([</span><span class="n">r</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">phi</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">f</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">f</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>  <span class="c1"># [R?BR/Bphi, R?BZ/Bphi]</span>
+
+
+
+    <span class="n">gRp</span> <span class="o">=</span> <span class="n">g</span><span class="p">(</span><span class="n">R</span> <span class="o">+</span> <span class="n">eps</span><span class="p">,</span> <span class="n">Z</span><span class="p">)</span>
+
+    <span class="n">gRm</span> <span class="o">=</span> <span class="n">g</span><span class="p">(</span><span class="n">R</span> <span class="o">-</span> <span class="n">eps</span><span class="p">,</span> <span class="n">Z</span><span class="p">)</span>
+
+    <span class="n">gZp</span> <span class="o">=</span> <span class="n">g</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+
+    <span class="n">gZm</span> <span class="o">=</span> <span class="n">g</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span> <span class="o">-</span> <span class="n">eps</span><span class="p">)</span>
+
+
+
+    <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+
+        <span class="p">[(</span><span class="n">gRp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">gRm</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">eps</span><span class="p">),</span> <span class="p">(</span><span class="n">gZp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">gZm</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">eps</span><span class="p">)],</span>
+
+        <span class="p">[(</span><span class="n">gRp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">gRm</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">eps</span><span class="p">),</span> <span class="p">(</span><span class="n">gZp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">gZm</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">eps</span><span class="p">)],</span>
+
+    <span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">A</span></div>
+
+
+
+
+
+
+<div class="viewcode-block" id="DPm_axisymmetric">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/control/FPT/index.html#pyna.control.FPT.DPm_axisymmetric">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">DPm_axisymmetric</span><span class="p">(</span><span class="n">A</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">m_turns</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute DPm = exp(2??m?A) for axisymmetric equilibrium.</span>
+
+
+
+<span class="sd">    Under axisymmetry, A is constant along any X/O orbit, so</span>
+
+<span class="sd">    the full-period Poincar? map Jacobian is exactly exp(2??A).</span>
+
+
+
+<span class="sd">    Parameters</span>
+
+<span class="sd">    ----------</span>
+
+<span class="sd">    A : ndarray, shape (2,2)</span>
+
+<span class="sd">        A-matrix at the cycle position.</span>
+
+<span class="sd">    m_turns : float</span>
+
+<span class="sd">        Number of toroidal turns (usually 1.0 for simple cycle).</span>
+
+
+
+<span class="sd">    Returns</span>
+
+<span class="sd">    -------</span>
+
+<span class="sd">    DPm : ndarray, shape (2,2)</span>
+
+<span class="sd">        Poincar? map Jacobian.  det(DPm) = 1 (area-preserving).</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">expm</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">m_turns</span> <span class="o">*</span> <span class="n">A</span><span class="p">)</span></div>
+
+
+
+
+
+
+<div class="viewcode-block" id="cycle_shift">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/control/FPT/index.html#pyna.control.FPT.cycle_shift">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cycle_shift</span><span class="p">(</span><span class="n">A</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">delta_g</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute X/O-cycle shift under perturbation ?B (axisymmetric).</span>
+
+
+
+<span class="sd">    ?x_cyc = -A???? ?(R?B_pol/B_phi)|_{x_cyc}</span>
+
+
+
+<span class="sd">    Closed-form result from integrating the constant-coefficient</span>
+
+<span class="sd">    inhomogeneous ODE for ?X_pol and applying the periodic orbit condition.</span>
+
+<span class="sd">    Derivation: see Appendix A of Wei et al.</span>
+
+
+
+<span class="sd">    Parameters</span>
+
+<span class="sd">    ----------</span>
+
+<span class="sd">    A : ndarray, shape (2,2)</span>
+
+<span class="sd">        A-matrix at the unperturbed cycle position.</span>
+
+<span class="sd">    delta_g : ndarray, shape (2,)</span>
+
+<span class="sd">        Perturbation of g = (R?BR/Bphi, R?BZ/Bphi) at the cycle position.</span>
+
+<span class="sd">          delta_g[0] = R??BR/Bphi - R?BR??Bphi/Bphi?</span>
+
+<span class="sd">          delta_g[1] = R??BZ/Bphi - R?BZ??Bphi/Bphi?</span>
+
+
+
+<span class="sd">    Returns</span>
+
+<span class="sd">    -------</span>
+
+<span class="sd">    delta_xcyc : ndarray, shape (2,)</span>
+
+<span class="sd">        Cycle position shift (?R, ?Z).</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">delta_g</span><span class="p">)</span></div>
+
+
+
+
+
+
+<div class="viewcode-block" id="delta_g_from_delta_B">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/control/FPT/index.html#pyna.control.FPT.delta_g_from_delta_B">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">delta_g_from_delta_B</span><span class="p">(</span>
+
+    <span class="n">R</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+
+    <span class="n">BR</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">BZ</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Bphi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+
+    <span class="n">delta_BR</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">delta_BZ</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">delta_Bphi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute ?(R?B_pol/B_phi) from explicit field perturbation ?B.</span>
+
+
+
+<span class="sd">    ?(R?BR/Bphi) = R??BR/Bphi - R?BR??Bphi/Bphi?</span>
+
+<span class="sd">    ?(R?BZ/Bphi) = R??BZ/Bphi - R?BZ??Bphi/Bphi?</span>
+
+
+
+<span class="sd">    Parameters</span>
+
+<span class="sd">    ----------</span>
+
+<span class="sd">    R, Z, phi : float</span>
+
+<span class="sd">        Evaluation point.</span>
+
+<span class="sd">    BR, BZ, Bphi : float</span>
+
+<span class="sd">        Base magnetic field components.</span>
+
+<span class="sd">    delta_BR, delta_BZ, delta_Bphi : float</span>
+
+<span class="sd">        Perturbation field components.</span>
+
+
+
+<span class="sd">    Returns</span>
+
+<span class="sd">    -------</span>
+
+<span class="sd">    delta_g : ndarray, shape (2,)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+
+        <span class="n">R</span> <span class="o">*</span> <span class="n">delta_BR</span> <span class="o">/</span> <span class="n">Bphi</span> <span class="o">-</span> <span class="n">R</span> <span class="o">*</span> <span class="n">BR</span> <span class="o">*</span> <span class="n">delta_Bphi</span> <span class="o">/</span> <span class="n">Bphi</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+
+        <span class="n">R</span> <span class="o">*</span> <span class="n">delta_BZ</span> <span class="o">/</span> <span class="n">Bphi</span> <span class="o">-</span> <span class="n">R</span> <span class="o">*</span> <span class="n">BZ</span> <span class="o">*</span> <span class="n">delta_Bphi</span> <span class="o">/</span> <span class="n">Bphi</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+
+    <span class="p">])</span></div>
+
+
+
+
+
+
+<div class="viewcode-block" id="DPm_change">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/control/FPT/index.html#pyna.control.FPT.DPm_change">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">DPm_change</span><span class="p">(</span><span class="n">A</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">delta_A</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+
+               <span class="n">m_turns</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">n_quad</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute ?DPm under perturbation (axisymmetric).</span>
+
+
+
+<span class="sd">    ?DPm = ???? exp(??2??A) ? ?(2??A) ? exp((1-?)?2??A) d?</span>
+
+
+
+<span class="sd">    Uses Gauss-Legendre quadrature over ? ??[0,1].</span>
+
+
+
+<span class="sd">    Parameters</span>
+
+<span class="sd">    ----------</span>
+
+<span class="sd">    A : ndarray, shape (2,2)</span>
+
+<span class="sd">        Unperturbed A-matrix.</span>
+
+<span class="sd">    delta_A : ndarray, shape (2,2)</span>
+
+<span class="sd">        Total variation of A = ?A_direct + ?A_indirect.</span>
+
+<span class="sd">          ?A_direct   = ??/?? ? ?B  (local field change at x_cyc)</span>
+
+<span class="sd">          ?A_indirect = (?x_cyc ? ????R,Z)) A  (chain rule via cycle shift)</span>
+
+<span class="sd">    m_turns : float</span>
+
+<span class="sd">        Number of toroidal turns.</span>
+
+<span class="sd">    n_quad : int</span>
+
+<span class="sd">        Number of Gauss-Legendre quadrature points.</span>
+
+
+
+<span class="sd">    Returns</span>
+
+<span class="sd">    -------</span>
+
+<span class="sd">    delta_DPm : ndarray, shape (2,2)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">alphas</span><span class="p">,</span> <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polynomial</span><span class="o">.</span><span class="n">legendre</span><span class="o">.</span><span class="n">leggauss</span><span class="p">(</span><span class="n">n_quad</span><span class="p">)</span>
+
+    <span class="n">alphas</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">alphas</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>   <span class="c1"># map [-1,1] ??[0,1]</span>
+
+    <span class="n">weights</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">weights</span>
+
+
+
+    <span class="n">delta_DPm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+
+    <span class="n">twopiA</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">m_turns</span> <span class="o">*</span> <span class="n">A</span>
+
+    <span class="n">delta_2piA</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">m_turns</span> <span class="o">*</span> <span class="n">delta_A</span>
+
+
+
+    <span class="k">for</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">alphas</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
+
+        <span class="n">eL</span> <span class="o">=</span> <span class="n">expm</span><span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">twopiA</span><span class="p">)</span>
+
+        <span class="n">eR</span> <span class="o">=</span> <span class="n">expm</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">)</span> <span class="o">*</span> <span class="n">twopiA</span><span class="p">)</span>
+
+        <span class="n">delta_DPm</span> <span class="o">+=</span> <span class="n">w</span> <span class="o">*</span> <span class="n">eL</span> <span class="o">@</span> <span class="n">delta_2piA</span> <span class="o">@</span> <span class="n">eR</span>
+
+
+
+    <span class="k">return</span> <span class="n">delta_DPm</span></div>
+
+
+
+
+
+
+<div class="viewcode-block" id="delta_A_total">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/control/FPT/index.html#pyna.control.FPT.delta_A_total">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">delta_A_total</span><span class="p">(</span>
+
+    <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+
+    <span class="n">delta_field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+
+    <span class="n">R_cyc</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Z_cyc</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+
+    <span class="n">A</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+
+    <span class="n">delta_xcyc</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+
+    <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">,</span>
+
+    <span class="n">perturbed_field_func</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute total ?A = ?A_direct + ?A_indirect at cycle position.</span>
+
+
+
+<span class="sd">    ?A_direct   : perturbation to A from ?B at the (unperturbed) cycle position</span>
+
+<span class="sd">    ?A_indirect : chain-rule correction due to cycle shift ?x_cyc</span>
+
+<span class="sd">                  = ?x_cyc[0] * ??/?? + ?x_cyc[1] * ??/??</span>
+
+
+
+<span class="sd">    Parameters</span>
+
+<span class="sd">    ----------</span>
+
+<span class="sd">    field_func : callable</span>
+
+<span class="sd">        Base field function: [R,Z,phi] ??[BR/|B|, BZ/|B|, Bphi/(R|B|)].</span>
+
+<span class="sd">    delta_field_func : callable</span>
+
+<span class="sd">        **Deprecated / ignored when perturbed_field_func is supplied.**</span>
+
+<span class="sd">        If perturbed_field_func is None this is still used via</span>
+
+<span class="sd">        ``combined = field_func + delta_field_func``; in that case</span>
+
+<span class="sd">        delta_field_func must return the *difference* of properly normalized</span>
+
+<span class="sd">        direction vectors (not raw ?B components).</span>
+
+<span class="sd">    R_cyc, Z_cyc, phi : float</span>
+
+<span class="sd">        Cycle position and toroidal angle.</span>
+
+<span class="sd">    A : ndarray, shape (2,2)</span>
+
+<span class="sd">        Unperturbed A-matrix at (R_cyc, Z_cyc).</span>
+
+<span class="sd">    delta_xcyc : ndarray, shape (2,)</span>
+
+<span class="sd">        Cycle shift from cycle_shift().</span>
+
+<span class="sd">    eps : float</span>
+
+<span class="sd">        Finite-difference step.</span>
+
+<span class="sd">    perturbed_field_func : callable or None</span>
+
+<span class="sd">        If provided, used directly as the perturbed direction-vector function</span>
+
+<span class="sd">        (preferred).  Must have the same signature as field_func but return</span>
+
+<span class="sd">        the direction vector of the **perturbed** magnetic field:</span>
+
+<span class="sd">          normalize(B0 + ?B).</span>
+
+<span class="sd">        When supplied, delta_field_func is not called.</span>
+
+
+
+<span class="sd">    Returns</span>
+
+<span class="sd">    -------</span>
+
+<span class="sd">    delta_A : ndarray, shape (2,2)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">perturbed_field_func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="n">A_pert</span> <span class="o">=</span> <span class="n">A_matrix</span><span class="p">(</span><span class="n">perturbed_field_func</span><span class="p">,</span> <span class="n">R_cyc</span><span class="p">,</span> <span class="n">Z_cyc</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">eps</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">combined</span><span class="p">(</span><span class="n">rzphi</span><span class="p">):</span>
+
+            <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">field_func</span><span class="p">(</span><span class="n">rzphi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">+</span>
+
+                    <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">delta_field_func</span><span class="p">(</span><span class="n">rzphi</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+
+        <span class="n">A_pert</span> <span class="o">=</span> <span class="n">A_matrix</span><span class="p">(</span><span class="n">combined</span><span class="p">,</span> <span class="n">R_cyc</span><span class="p">,</span> <span class="n">Z_cyc</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">eps</span><span class="p">)</span>
+
+    <span class="n">delta_A_direct</span> <span class="o">=</span> <span class="n">A_pert</span> <span class="o">-</span> <span class="n">A</span>
+
+
+
+    <span class="c1"># Spatial gradient of A (base field only)</span>
+
+    <span class="n">A_dR</span> <span class="o">=</span> <span class="p">(</span><span class="n">A_matrix</span><span class="p">(</span><span class="n">field_func</span><span class="p">,</span> <span class="n">R_cyc</span> <span class="o">+</span> <span class="n">eps</span><span class="p">,</span> <span class="n">Z_cyc</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">eps</span><span class="p">)</span> <span class="o">-</span>
+
+            <span class="n">A_matrix</span><span class="p">(</span><span class="n">field_func</span><span class="p">,</span> <span class="n">R_cyc</span> <span class="o">-</span> <span class="n">eps</span><span class="p">,</span> <span class="n">Z_cyc</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">eps</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">eps</span><span class="p">)</span>
+
+    <span class="n">A_dZ</span> <span class="o">=</span> <span class="p">(</span><span class="n">A_matrix</span><span class="p">(</span><span class="n">field_func</span><span class="p">,</span> <span class="n">R_cyc</span><span class="p">,</span> <span class="n">Z_cyc</span> <span class="o">+</span> <span class="n">eps</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">eps</span><span class="p">)</span> <span class="o">-</span>
+
+            <span class="n">A_matrix</span><span class="p">(</span><span class="n">field_func</span><span class="p">,</span> <span class="n">R_cyc</span><span class="p">,</span> <span class="n">Z_cyc</span> <span class="o">-</span> <span class="n">eps</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">eps</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">eps</span><span class="p">)</span>
+
+    <span class="n">delta_A_indirect</span> <span class="o">=</span> <span class="n">delta_xcyc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">A_dR</span> <span class="o">+</span> <span class="n">delta_xcyc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">A_dZ</span>
+
+
+
+    <span class="k">return</span> <span class="n">delta_A_direct</span> <span class="o">+</span> <span class="n">delta_A_indirect</span></div>
+
+
+
+
+
+
+<div class="viewcode-block" id="manifold_shift">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/control/FPT/index.html#pyna.control.FPT.manifold_shift">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">manifold_shift</span><span class="p">(</span>
+
+    <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+
+    <span class="n">delta_field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+
+    <span class="n">manifold_points</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+
+    <span class="n">delta_xcyc</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+
+    <span class="n">stable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+
+    <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">,</span>
+
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute shift of stable/unstable manifold under perturbation ?B.</span>
+
+
+
+<span class="sd">    Solves the linear ODE (?-parameterized):</span>
+
+<span class="sd">      d/d? (?X^{u/s}) = ?{ ?B_pol + ??_pol/??R,Z) ? ?X^{u/s} }</span>
+
+
+
+<span class="sd">    with initial condition ?X^{u/s}(?=0) = ?x_cyc.</span>
+
+
+
+<span class="sd">    Uses a forward Euler integrator along the discrete manifold arc.</span>
+
+
+
+<span class="sd">    Parameters</span>
+
+<span class="sd">    ----------</span>
+
+<span class="sd">    field_func : callable</span>
+
+<span class="sd">        Base field function [R,Z,phi] -&gt; [dR/dl, dZ/dl, dphi/dl].</span>
+
+<span class="sd">    delta_field_func : callable</span>
+
+<span class="sd">        Perturbation field function (same signature).</span>
+
+<span class="sd">    manifold_points : ndarray, shape (N, 2)</span>
+
+<span class="sd">        (R, Z) points along the manifold (may be equally spaced in ? or arc).</span>
+
+<span class="sd">    delta_xcyc : ndarray, shape (2,)</span>
+
+<span class="sd">        Initial condition ??the cycle shift.</span>
+
+<span class="sd">    stable : bool</span>
+
+<span class="sd">        True for stable manifold (sign = ??), False for unstable (sign = +1).</span>
+
+<span class="sd">    eps : float</span>
+
+<span class="sd">        Finite-difference step for gradient computation.</span>
+
+
+
+<span class="sd">    Returns</span>
+
+<span class="sd">    -------</span>
+
+<span class="sd">    delta_manifold : ndarray, shape (N, 2)</span>
+
+<span class="sd">        (?R, ?Z) shifts along the manifold.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">sign</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="k">if</span> <span class="n">stable</span> <span class="k">else</span> <span class="o">+</span><span class="mf">1.0</span>
+
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">manifold_points</span><span class="p">)</span>
+
+    <span class="n">delta_X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+
+    <span class="n">delta_X</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">delta_xcyc</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+
+        <span class="n">R</span><span class="p">,</span> <span class="n">Z</span> <span class="o">=</span> <span class="n">manifold_points</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="n">phi</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># axisymmetric</span>
+
+
+
+        <span class="n">f0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">field_func</span><span class="p">([</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="n">fd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">delta_field_func</span><span class="p">([</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">Bpol_at</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+
+            <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">field_func</span><span class="p">([</span><span class="n">r</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">phi</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">f</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">f</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
+
+
+
+        <span class="n">Bpol0</span> <span class="o">=</span> <span class="n">Bpol_at</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">)</span>
+
+        <span class="n">Bpol_mag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">Bpol0</span><span class="p">)</span>
+
+
+
+        <span class="c1"># ?B_pol (approximate: first-order ratio perturbation)</span>
+
+        <span class="n">delta_Bpol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+
+            <span class="n">fd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">f0</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mf">1e-30</span><span class="p">)</span> <span class="o">-</span> <span class="n">f0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">fd</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">f0</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mf">1e-30</span><span class="p">),</span>
+
+            <span class="n">fd</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">f0</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mf">1e-30</span><span class="p">)</span> <span class="o">-</span> <span class="n">f0</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">fd</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">f0</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mf">1e-30</span><span class="p">),</span>
+
+        <span class="p">])</span>
+
+
+
+        <span class="c1"># ??_pol/??R,Z) ??shape (2,2), columns = ????, ????</span>
+
+        <span class="n">dBpol_dR</span> <span class="o">=</span> <span class="p">(</span><span class="n">Bpol_at</span><span class="p">(</span><span class="n">R</span> <span class="o">+</span> <span class="n">eps</span><span class="p">,</span> <span class="n">Z</span><span class="p">)</span> <span class="o">-</span> <span class="n">Bpol_at</span><span class="p">(</span><span class="n">R</span> <span class="o">-</span> <span class="n">eps</span><span class="p">,</span> <span class="n">Z</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">eps</span><span class="p">)</span>
+
+        <span class="n">dBpol_dZ</span> <span class="o">=</span> <span class="p">(</span><span class="n">Bpol_at</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span> <span class="o">-</span> <span class="n">Bpol_at</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span> <span class="o">-</span> <span class="n">eps</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">eps</span><span class="p">)</span>
+
+        <span class="n">grad_Bpol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">dBpol_dR</span><span class="p">,</span> <span class="n">dBpol_dZ</span><span class="p">])</span>  <span class="c1"># (2,2)</span>
+
+
+
+        <span class="c1"># Arc-length step ???-step</span>
+
+        <span class="n">dXpol</span> <span class="o">=</span> <span class="n">manifold_points</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">manifold_points</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="n">dzeta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dXpol</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">Bpol_mag</span> <span class="o">+</span> <span class="mf">1e-30</span><span class="p">)</span>
+
+
+
+        <span class="c1"># Forward Euler</span>
+
+        <span class="n">rhs</span> <span class="o">=</span> <span class="n">sign</span> <span class="o">*</span> <span class="p">(</span><span class="n">delta_Bpol</span> <span class="o">+</span> <span class="n">grad_Bpol</span> <span class="o">@</span> <span class="n">delta_X</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="n">delta_X</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">delta_X</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">dzeta</span> <span class="o">*</span> <span class="n">rhs</span>
+
+
+
+    <span class="k">return</span> <span class="n">delta_X</span></div>
+
+
+
+
+
+
+<div class="viewcode-block" id="flux_surface_deformation">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/control/FPT/index.html#pyna.control.FPT.flux_surface_deformation">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">flux_surface_deformation</span><span class="p">(</span>
+
+    <span class="n">poincare_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+
+    <span class="n">dpk_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+
+    <span class="n">delta_pk_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+
+    <span class="n">chi_grid</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+
+    <span class="n">theta_grid</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+
+    <span class="n">k_max</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+
+    <span class="n">delta_xcyc</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute flux surface deformation ??(?,r) under perturbation.</span>
+
+
+
+<span class="sd">    Solves the linearized Poincar? equation:</span>
+
+<span class="sd">      ?P^k(?(?,r)) + DP^k(?)???(?,r) = ??(? + k???, r)</span>
+
+
+
+<span class="sd">    for ?? by representing it in a Fourier basis and solving the</span>
+
+<span class="sd">    resulting (over-determined) linear system via least squares.</span>
+
+
+
+<span class="sd">    Parameters</span>
+
+<span class="sd">    ----------</span>
+
+<span class="sd">    poincare_func : callable</span>
+
+<span class="sd">        P^k(x0) ??x_final (k-turn Poincar? map).</span>
+
+<span class="sd">    dpk_func : callable</span>
+
+<span class="sd">        DP^k(x0) ??2?2 Jacobian.</span>
+
+<span class="sd">    delta_pk_func : callable</span>
+
+<span class="sd">        ?P^k(x0) ??2-vector, endpoint shift of k-turn orbit.</span>
+
+<span class="sd">    chi_grid : ndarray, shape (N_theta, 2)</span>
+
+<span class="sd">        (R, Z) on the unperturbed flux surface at theta_grid.</span>
+
+<span class="sd">    theta_grid : ndarray, shape (N_theta,)</span>
+
+<span class="sd">        Poloidal angle values in [0, 2?).</span>
+
+<span class="sd">    k_max : int</span>
+
+<span class="sd">        Maximum k used to build equations (currently ignored in this</span>
+
+<span class="sd">        simplified version; kept for API consistency).</span>
+
+<span class="sd">    delta_xcyc : ndarray or None</span>
+
+<span class="sd">        Constant anchoring shift. If None, zero.</span>
+
+
+
+<span class="sd">    Returns</span>
+
+<span class="sd">    -------</span>
+
+<span class="sd">    delta_chi : ndarray, shape (N_theta, 2)</span>
+
+<span class="sd">        (?R, ?Z) deformation at each ? grid point.</span>
+
+
+
+<span class="sd">    Notes</span>
+
+<span class="sd">    -----</span>
+
+<span class="sd">    The current implementation uses a constant-shift approximation</span>
+
+<span class="sd">    (?? ???x_cyc) as the zeroth-order solution.  A full implementation</span>
+
+<span class="sd">    would build the Fourier-coupled linear system and solve it.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">theta_grid</span><span class="p">)</span>
+
+    <span class="n">n_modes</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">N</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+
+
+
+    <span class="c1"># Fourier basis: [1, cos ?, sin ?, cos 2?, sin 2?, ...]</span>
+
+    <span class="n">basis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_modes</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="n">basis</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_modes</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+
+        <span class="n">basis</span><span class="p">[:,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">j</span> <span class="o">*</span> <span class="n">theta_grid</span><span class="p">)</span>
+
+        <span class="n">basis</span><span class="p">[:,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">j</span><span class="p">]</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">j</span> <span class="o">*</span> <span class="n">theta_grid</span><span class="p">)</span>
+
+
+
+    <span class="n">delta_chi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">delta_xcyc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="n">delta_chi</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">delta_xcyc</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+
+
+
+    <span class="k">return</span> <span class="n">delta_chi</span></div>
+
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

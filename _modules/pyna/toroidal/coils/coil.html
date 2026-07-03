@@ -1,0 +1,990 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.toroidal.coils.coil &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/toroidal/coils/coil';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../../_static/searchtools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.toroidal.coils.coil</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.toroidal.coils.coil</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Analytic magnetic field formulas for current loops and solenoids.</span>
+
+<span class="sd">Ported from ``mhdpy.field.axisym`` (Wenyin Wei, EAST/Tsinghua).</span>
+<span class="sd">All functions are pure NumPy/SciPy with no external data dependencies.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+
+<div class="viewcode-block" id="BRBZ_induced_by_current_loop">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/coil/index.html#pyna.toroidal.coils.coil.BRBZ_induced_by_current_loop">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">BRBZ_induced_by_current_loop</span><span class="p">(</span>
+    <span class="n">a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">Z_o</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">I</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">R</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">Z</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Magnetic field (B_R, B_Z) of a single circular current loop.</span>
+
+<span class="sd">    Uses the exact analytic formula based on complete elliptic integrals</span>
+<span class="sd">    (Smythe 1989, §7.10; Schill 2003):</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        B_R = \frac{\mu_0 I}{2\pi}</span>
+<span class="sd">              \frac{Z - Z_o}{R\,\sqrt{(R+a)^2+(Z-Z_o)^2}}</span>
+<span class="sd">              \left[-K(m) + \frac{a^2+R^2+(Z-Z_o)^2}{(a-R)^2+(Z-Z_o)^2}E(m)\right]</span>
+
+<span class="sd">        B_Z = \frac{\mu_0 I}{2\pi}</span>
+<span class="sd">              \frac{1}{\sqrt{(R+a)^2+(Z-Z_o)^2}}</span>
+<span class="sd">              \left[K(m) + \frac{a^2-R^2-(Z-Z_o)^2}{(a-R)^2+(Z-Z_o)^2}E(m)\right]</span>
+
+<span class="sd">    where :math:`m = 4aR / [(R+a)^2+(Z-Z_o)^2]`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    a:</span>
+<span class="sd">        Loop radius (m).</span>
+<span class="sd">    Z_o:</span>
+<span class="sd">        Axial position of the loop (m).</span>
+<span class="sd">    I:</span>
+<span class="sd">        Current (A).  Positive current produces positive B_Z on axis.</span>
+<span class="sd">    R:</span>
+<span class="sd">        Radial coordinate(s) of the evaluation point(s) (m).</span>
+<span class="sd">        Must be &gt; 0.</span>
+<span class="sd">    Z:</span>
+<span class="sd">        Axial coordinate(s) of the evaluation point(s) (m).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    (BR, BZ) : tuple of ndarray</span>
+<span class="sd">        Radial and axial field components (T).</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    * W. R. Smythe, *Static and Dynamic Electricity*, 3rd ed. (1989),</span>
+<span class="sd">      Taylor &amp; Francis, p. 291.</span>
+<span class="sd">    * R. A. Schill Jr., *IEEE Trans. Magn.* 39, 961 (2003).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">mu_0</span><span class="p">,</span> <span class="n">pi</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.special</span><span class="w"> </span><span class="kn">import</span> <span class="n">ellipk</span><span class="p">,</span> <span class="n">ellipe</span>
+
+    <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">Z_rel</span> <span class="o">=</span> <span class="n">Z</span> <span class="o">-</span> <span class="n">Z_o</span>
+    <span class="n">denom</span> <span class="o">=</span> <span class="p">(</span><span class="n">R</span> <span class="o">+</span> <span class="n">a</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">Z_rel</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">a</span> <span class="o">*</span> <span class="n">R</span> <span class="o">/</span> <span class="n">denom</span>
+    <span class="n">coeff</span> <span class="o">=</span> <span class="n">mu_0</span> <span class="o">*</span> <span class="n">I</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">pi</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">denom</span><span class="p">)</span>
+    <span class="n">d2</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="n">R</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">Z_rel</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="n">BR</span> <span class="o">=</span> <span class="n">coeff</span> <span class="o">*</span> <span class="n">Z_rel</span> <span class="o">/</span> <span class="n">R</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="n">ellipk</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">a</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">R</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">Z_rel</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">d2</span> <span class="o">*</span> <span class="n">ellipe</span><span class="p">(</span><span class="n">m</span><span class="p">))</span>
+    <span class="n">BZ</span> <span class="o">=</span> <span class="n">coeff</span> <span class="o">*</span> <span class="p">(</span><span class="n">ellipk</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">a</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">R</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">Z_rel</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">d2</span> <span class="o">*</span> <span class="n">ellipe</span><span class="p">(</span><span class="n">m</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">BR</span><span class="p">,</span> <span class="n">BZ</span></div>
+
+
+
+<div class="viewcode-block" id="BRBZ_induced_by_thick_finitelen_solenoid">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/coil/index.html#pyna.toroidal.coils.coil.BRBZ_induced_by_thick_finitelen_solenoid">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">BRBZ_induced_by_thick_finitelen_solenoid</span><span class="p">(</span>
+    <span class="n">a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">b</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">Z_solenoid_lowend</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">L</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">I</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">N</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">R</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">Z</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Magnetic field of a thick finite-length solenoid.</span>
+
+<span class="sd">    Uses the Labinac et al. (2006) formula based on Bessel functions</span>
+<span class="sd">    and Struve functions.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        The integral may be numerically unstable for extreme aspect</span>
+<span class="sd">        ratios.  Use with caution near the solenoid boundary.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    a:</span>
+<span class="sd">        Inner radius of the solenoid (m).</span>
+<span class="sd">    b:</span>
+<span class="sd">        Outer radius of the solenoid (m).</span>
+<span class="sd">    Z_solenoid_lowend:</span>
+<span class="sd">        Z coordinate of the lower end (m).</span>
+<span class="sd">    L:</span>
+<span class="sd">        Axial length of the solenoid (m).</span>
+<span class="sd">    I:</span>
+<span class="sd">        Current per wire (A).</span>
+<span class="sd">    N:</span>
+<span class="sd">        Total number of turns.</span>
+<span class="sd">    R, Z:</span>
+<span class="sd">        Evaluation point (m).  Scalar values only.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    (BR, BZ) : tuple of float</span>
+<span class="sd">        Field components at (R, Z) in Tesla.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    * V. Labinac, N. Erceg, D. Kotnik-Karuza, *Am. J. Phys.* 74,</span>
+<span class="sd">      621 (2006).  https://doi.org/10.1119/1.2198885</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">math</span><span class="w"> </span><span class="kn">import</span> <span class="n">exp</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">mu_0</span><span class="p">,</span> <span class="n">pi</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.special</span><span class="w"> </span><span class="kn">import</span> <span class="n">j0</span><span class="p">,</span> <span class="n">j1</span><span class="p">,</span> <span class="n">struve</span> <span class="k">as</span> <span class="n">H</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.integrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">quad</span>
+
+    <span class="n">R</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">R</span><span class="p">)</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+
+    <span class="c1"># Handle field points below the lower end by symmetry</span>
+    <span class="k">if</span> <span class="n">Z</span> <span class="o">&lt;</span> <span class="n">Z_solenoid_lowend</span><span class="p">:</span>
+        <span class="n">Z_mid</span> <span class="o">=</span> <span class="n">Z_solenoid_lowend</span> <span class="o">+</span> <span class="n">L</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">BR</span><span class="p">,</span> <span class="n">BZ</span> <span class="o">=</span> <span class="n">BRBZ_induced_by_thick_finitelen_solenoid</span><span class="p">(</span>
+            <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">Z_solenoid_lowend</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">Z_mid</span> <span class="o">+</span> <span class="p">(</span><span class="n">Z_mid</span> <span class="o">-</span> <span class="n">Z</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">BR</span><span class="p">,</span> <span class="n">BZ</span>
+
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">Z</span> <span class="o">-</span> <span class="n">Z_solenoid_lowend</span>  <span class="c1"># local Z from lower end</span>
+
+    <span class="n">B_inf</span> <span class="o">=</span> <span class="n">mu_0</span> <span class="o">*</span> <span class="n">N</span> <span class="o">*</span> <span class="n">I</span> <span class="o">/</span> <span class="n">L</span>  <span class="c1"># infinite solenoid field</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">g</span><span class="p">(</span><span class="n">k</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Eq. (23) of Labinac (2006).&quot;&quot;&quot;</span>
+        <span class="n">ka</span><span class="p">,</span> <span class="n">kb</span> <span class="o">=</span> <span class="n">k</span> <span class="o">*</span> <span class="n">a</span><span class="p">,</span> <span class="n">k</span> <span class="o">*</span> <span class="n">b</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">ka</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
+            <span class="o">-</span><span class="n">j1</span><span class="p">(</span><span class="n">ka</span><span class="p">)</span> <span class="o">*</span> <span class="n">H</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ka</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">b</span> <span class="o">/</span> <span class="n">a</span> <span class="o">*</span> <span class="n">j1</span><span class="p">(</span><span class="n">kb</span><span class="p">)</span> <span class="o">*</span> <span class="n">H</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">kb</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">j0</span><span class="p">(</span><span class="n">ka</span><span class="p">)</span> <span class="o">*</span> <span class="n">H</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ka</span><span class="p">)</span>
+            <span class="o">-</span> <span class="n">b</span> <span class="o">/</span> <span class="n">a</span> <span class="o">*</span> <span class="n">j0</span><span class="p">(</span><span class="n">kb</span><span class="p">)</span> <span class="o">*</span> <span class="n">H</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">kb</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">f</span><span class="p">(</span><span class="n">k</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Eq. (9) of Labinac (2006).&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">Z</span> <span class="o">&gt;=</span> <span class="n">L</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">k</span> <span class="o">*</span> <span class="p">(</span><span class="n">Z</span> <span class="o">-</span> <span class="n">L</span><span class="p">))</span> <span class="o">-</span> <span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">k</span> <span class="o">*</span> <span class="n">Z</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mf">2.0</span> <span class="o">-</span> <span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">k</span> <span class="o">*</span> <span class="p">(</span><span class="n">L</span> <span class="o">-</span> <span class="n">Z</span><span class="p">))</span> <span class="o">-</span> <span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">k</span> <span class="o">*</span> <span class="n">Z</span><span class="p">)</span>
+
+    <span class="c1"># Variable substitution k = x/(1-x) to map [0, ∞) → [0, 1)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">integrand_BR</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span>
+        <span class="n">dk_dx</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="n">j1</span><span class="p">(</span><span class="n">k</span> <span class="o">*</span> <span class="n">R</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">k</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Z</span> <span class="o">-</span> <span class="n">L</span><span class="p">))</span> <span class="o">-</span> <span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">k</span> <span class="o">*</span> <span class="n">Z</span><span class="p">))</span> <span class="o">*</span> <span class="n">g</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">*</span> <span class="n">dk_dx</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">integrand_BZ</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span>
+        <span class="n">dk_dx</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="n">j0</span><span class="p">(</span><span class="n">k</span> <span class="o">*</span> <span class="n">R</span><span class="p">)</span> <span class="o">*</span> <span class="n">f</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">*</span> <span class="n">g</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">*</span> <span class="n">dk_dx</span>
+
+    <span class="n">BR</span> <span class="o">=</span> <span class="n">B_inf</span> <span class="o">*</span> <span class="n">a</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">pi</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">))</span> <span class="o">*</span> <span class="n">quad</span><span class="p">(</span><span class="n">integrand_BR</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">200</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">BZ</span> <span class="o">=</span> <span class="n">B_inf</span> <span class="o">*</span> <span class="n">a</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">pi</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">))</span> <span class="o">*</span> <span class="n">quad</span><span class="p">(</span><span class="n">integrand_BZ</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">200</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">BR</span><span class="p">,</span> <span class="n">BZ</span></div>
+
+
+
+<div class="viewcode-block" id="BRBZ_induced_by_thick_finitelen_solenoid_multiprocessing">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/coil/index.html#pyna.toroidal.coils.coil.BRBZ_induced_by_thick_finitelen_solenoid_multiprocessing">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">BRBZ_induced_by_thick_finitelen_solenoid_multiprocessing</span><span class="p">(</span>
+    <span class="n">R</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">Z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">Rc</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">Zc</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">dR</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">dZ</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">turn</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">I</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parallel evaluation of :func:`BRBZ_induced_by_thick_finitelen_solenoid` on a grid.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    R:</span>
+<span class="sd">        1-D array of radial grid values (m).</span>
+<span class="sd">    Z:</span>
+<span class="sd">        1-D array of axial grid values (m).</span>
+<span class="sd">    Rc, Zc:</span>
+<span class="sd">        Centre position of the solenoid (m).</span>
+<span class="sd">    dR, dZ:</span>
+<span class="sd">        Half-width and half-height of the solenoid cross-section (m).</span>
+<span class="sd">    turn:</span>
+<span class="sd">        Number of turns.</span>
+<span class="sd">    I:</span>
+<span class="sd">        Current (A).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    (BR_grid, BZ_grid) : tuple of ndarray</span>
+<span class="sd">        Arrays of shape ``(len(R), len(Z))``.  Grid points inside</span>
+<span class="sd">        the solenoid body are set to NaN.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">joblib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Parallel</span><span class="p">,</span> <span class="n">delayed</span>
+
+    <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">BR_o</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">R</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">Z</span><span class="p">)))</span>
+    <span class="n">BZ_o</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">R</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">Z</span><span class="p">)))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_task</span><span class="p">(</span><span class="n">iR</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">iZ</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">Rval</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Zval</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">Rc</span> <span class="o">-</span> <span class="n">dR</span> <span class="o">&lt;=</span> <span class="n">Rval</span> <span class="o">&lt;=</span> <span class="n">Rc</span> <span class="o">+</span> <span class="n">dR</span> <span class="ow">and</span> <span class="n">Zc</span> <span class="o">-</span> <span class="n">dZ</span> <span class="o">&lt;=</span> <span class="n">Zval</span> <span class="o">&lt;=</span> <span class="n">Zc</span> <span class="o">+</span> <span class="n">dZ</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">iR</span><span class="p">,</span> <span class="n">iZ</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">br</span><span class="p">,</span> <span class="n">bz</span> <span class="o">=</span> <span class="n">BRBZ_induced_by_thick_finitelen_solenoid</span><span class="p">(</span>
+            <span class="n">Rc</span> <span class="o">-</span> <span class="n">dR</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">Rc</span> <span class="o">+</span> <span class="n">dR</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">Zc</span> <span class="o">-</span> <span class="n">dZ</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dZ</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">turn</span><span class="p">,</span> <span class="n">Rval</span><span class="p">,</span> <span class="n">Zval</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">iR</span><span class="p">,</span> <span class="n">iZ</span><span class="p">,</span> <span class="n">br</span><span class="p">,</span> <span class="n">bz</span>
+
+    <span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">iR</span><span class="p">,</span> <span class="n">iZ</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">Rval</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">Zval</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">iR</span><span class="p">,</span> <span class="n">Rval</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">R</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">iZ</span><span class="p">,</span> <span class="n">Zval</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="n">Parallel</span><span class="p">(</span><span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;loky&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">)(</span>
+        <span class="n">delayed</span><span class="p">(</span><span class="n">_task</span><span class="p">)(</span><span class="o">*</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tasks</span>
+    <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">res</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">iR</span><span class="p">,</span> <span class="n">iZ</span><span class="p">,</span> <span class="n">br</span><span class="p">,</span> <span class="n">bz</span> <span class="o">=</span> <span class="n">res</span>
+            <span class="n">BR_o</span><span class="p">[</span><span class="n">iR</span><span class="p">,</span> <span class="n">iZ</span><span class="p">]</span> <span class="o">=</span> <span class="n">br</span>
+            <span class="n">BZ_o</span><span class="p">[</span><span class="n">iR</span><span class="p">,</span> <span class="n">iZ</span><span class="p">]</span> <span class="o">=</span> <span class="n">bz</span>
+
+    <span class="k">return</span> <span class="n">BR_o</span><span class="p">,</span> <span class="n">BZ_o</span></div>
+
+
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.toroidal.coils.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoilFieldVacuum</span>
+
+
+<div class="viewcode-block" id="CoilFieldAnalyticCircular">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/coil/index.html#pyna.toroidal.coils.coil.CoilFieldAnalyticCircular">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CoilFieldAnalyticCircular</span><span class="p">(</span><span class="n">CoilFieldVacuum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Vacuum field of a circular current loop, using exact analytic formula.</span>
+
+<span class="sd">    The loop may be translated and tilted relative to the cylindrical</span>
+<span class="sd">    coordinate system via a center position and normal vector.</span>
+
+<span class="sd">    For an untilted loop (normal along Z), the exact Smythe formula is used.</span>
+<span class="sd">    For a tilted loop, evaluation points are first transformed into the loop&#39;s</span>
+<span class="sd">    local Cartesian frame, then the analytic formula is applied, and the result</span>
+<span class="sd">    is rotated back to the lab frame.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    radius : float</span>
+<span class="sd">        Loop radius (m).</span>
+<span class="sd">    center_xyz : array-like, shape (3,)</span>
+<span class="sd">        Center of the loop in lab Cartesian (X, Y, Z) coordinates (m).</span>
+<span class="sd">    normal_xyz : array-like, shape (3,)</span>
+<span class="sd">        Unit normal vector of the loop plane in lab Cartesian coordinates.</span>
+<span class="sd">        Defaults to (0, 0, 1) for a horizontal loop.</span>
+<span class="sd">    current : float</span>
+<span class="sd">        Loop current (A). Positive -&gt; right-hand rule along the normal.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">center_xyz</span><span class="p">,</span>
+        <span class="n">normal_xyz</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+        <span class="n">current</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_a</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_center</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">center_xyz</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">normal_xyz</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_normal</span> <span class="o">=</span> <span class="n">normal</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">normal</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_I</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">current</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_R_lab2loc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_R_loc2lab</span> <span class="o">=</span> <span class="n">_build_rotation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_normal</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CoilFieldAnalyticCircular.B_at">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/coil/index.html#pyna.toroidal.coils.coil.CoilFieldAnalyticCircular.B_at">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">B_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span><span class="p">):</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="p">(</span><span class="n">R</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">))</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="p">(</span><span class="n">R</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">))</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">Zlab</span> <span class="o">=</span> <span class="n">Z</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="k">if</span> <span class="n">Z</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">Z</span><span class="p">))</span>
+        <span class="n">pts_lab</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Zlab</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_center</span>
+        <span class="n">pts_loc</span> <span class="o">=</span> <span class="n">pts_lab</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">_R_lab2loc</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">R_loc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">pts_loc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">pts_loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">Z_loc</span> <span class="o">=</span> <span class="n">pts_loc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="n">phi_loc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">pts_loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">pts_loc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">BR_loc</span><span class="p">,</span> <span class="n">BZ_loc</span> <span class="o">=</span> <span class="n">BRBZ_induced_by_current_loop</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_a</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_I</span><span class="p">,</span> <span class="n">R_loc</span><span class="p">,</span> <span class="n">Z_loc</span>
+        <span class="p">)</span>
+        <span class="n">Bx_loc</span> <span class="o">=</span> <span class="n">BR_loc</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi_loc</span><span class="p">)</span>
+        <span class="n">By_loc</span> <span class="o">=</span> <span class="n">BR_loc</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi_loc</span><span class="p">)</span>
+        <span class="n">Bz_loc</span> <span class="o">=</span> <span class="n">BZ_loc</span>
+        <span class="n">B_loc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">Bx_loc</span><span class="p">,</span> <span class="n">By_loc</span><span class="p">,</span> <span class="n">Bz_loc</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">B_lab</span> <span class="o">=</span> <span class="n">B_loc</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">_R_loc2lab</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">phi_flat</span> <span class="o">=</span> <span class="n">phi</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">BR_lab</span> <span class="o">=</span> <span class="n">B_lab</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi_flat</span><span class="p">)</span> <span class="o">+</span> <span class="n">B_lab</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi_flat</span><span class="p">)</span>
+        <span class="n">Bp_lab</span> <span class="o">=</span> <span class="o">-</span><span class="n">B_lab</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi_flat</span><span class="p">)</span> <span class="o">+</span> <span class="n">B_lab</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi_flat</span><span class="p">)</span>
+        <span class="n">BZ_lab</span> <span class="o">=</span> <span class="n">B_lab</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">BR_lab</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> <span class="n">BZ_lab</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> <span class="n">Bp_lab</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CoilFieldAnalyticCircular.divergence_free">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/coil/index.html#pyna.toroidal.coils.coil.CoilFieldAnalyticCircular.divergence_free">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">divergence_free</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+</div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_build_rotation</span><span class="p">(</span><span class="n">normal</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build rotation matrices between lab frame and loop-local frame.&quot;&quot;&quot;</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">normal</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">normal</span><span class="p">)</span>
+    <span class="n">cross</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    <span class="n">sin_a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">cross</span><span class="p">)</span>
+    <span class="n">cos_a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sin_a</span> <span class="o">&lt;</span> <span class="mf">1e-12</span><span class="p">:</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="k">if</span> <span class="n">cos_a</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">R</span><span class="p">,</span> <span class="n">R</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="n">cross</span> <span class="o">/</span> <span class="n">sin_a</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">axis</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">axis</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+                  <span class="p">[</span><span class="n">axis</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">axis</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+                  <span class="p">[</span><span class="o">-</span><span class="n">axis</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">]])</span>
+    <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="n">sin_a</span> <span class="o">*</span> <span class="n">K</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">cos_a</span><span class="p">)</span> <span class="o">*</span> <span class="n">K</span> <span class="o">@</span> <span class="n">K</span>
+    <span class="k">return</span> <span class="n">R</span><span class="p">,</span> <span class="n">R</span><span class="o">.</span><span class="n">T</span>
+
+
+<div class="viewcode-block" id="CoilFieldAnalyticRectangularSection">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/coil/index.html#pyna.toroidal.coils.coil.CoilFieldAnalyticRectangularSection">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CoilFieldAnalyticRectangularSection</span><span class="p">(</span><span class="n">CoilFieldVacuum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Vacuum field of a tokamak PF coil with rectangular cross-section.</span>
+
+<span class="sd">    Uses the exact Labinac (2006) formula for a thick, finite-length axisymmetric solenoid.</span>
+<span class="sd">    This is more accurate than the thin-wire approximation for PF coils whose</span>
+<span class="sd">    cross-sectional dimensions are not negligible.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Rc : float</span>
+<span class="sd">        Radial center of the coil cross-section (m).</span>
+<span class="sd">    Zc : float</span>
+<span class="sd">        Axial center of the coil cross-section (m).</span>
+<span class="sd">    dR : float</span>
+<span class="sd">        Half-width of the cross-section in the R direction (m).</span>
+<span class="sd">        The coil spans [Rc - dR, Rc + dR].</span>
+<span class="sd">    dZ : float</span>
+<span class="sd">        Half-height of the cross-section in the Z direction (m).</span>
+<span class="sd">        The coil spans [Zc - dZ, Zc + dZ].</span>
+<span class="sd">    turns : int</span>
+<span class="sd">        Number of turns.</span>
+<span class="sd">    current : float</span>
+<span class="sd">        Current per turn (A). Positive current in the +phi direction</span>
+<span class="sd">        produces positive B_Z on axis.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The underlying formula is from:</span>
+<span class="sd">    * V. Labinac, N. Erceg, D. Kotnik-Karuza, *Am. J. Phys.* 74, 621 (2006).</span>
+<span class="sd">      https://doi.org/10.1119/1.2198885</span>
+
+<span class="sd">    For evaluation on a 2D (R, Z) grid, use :meth:`B_at_grid` with joblib</span>
+<span class="sd">    parallelism, which masks grid points inside the coil body as NaN.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">Rc</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">Zc</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">dR</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">dZ</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">turns</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">current</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Rc</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">Rc</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Zc</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">Zc</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dR</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">dR</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dZ</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">dZ</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_turns</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">turns</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_I</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">current</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="CoilFieldAnalyticRectangularSection.Rc">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/coil/index.html#pyna.toroidal.coils.coil.CoilFieldAnalyticRectangularSection.Rc">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">Rc</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Rc</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="CoilFieldAnalyticRectangularSection.Zc">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/coil/index.html#pyna.toroidal.coils.coil.CoilFieldAnalyticRectangularSection.Zc">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">Zc</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Zc</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="CoilFieldAnalyticRectangularSection.dR">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/coil/index.html#pyna.toroidal.coils.coil.CoilFieldAnalyticRectangularSection.dR">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dR</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dR</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="CoilFieldAnalyticRectangularSection.dZ">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/coil/index.html#pyna.toroidal.coils.coil.CoilFieldAnalyticRectangularSection.dZ">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dZ</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dZ</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="CoilFieldAnalyticRectangularSection.turns">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/coil/index.html#pyna.toroidal.coils.coil.CoilFieldAnalyticRectangularSection.turns">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">turns</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_turns</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="CoilFieldAnalyticRectangularSection.current">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/coil/index.html#pyna.toroidal.coils.coil.CoilFieldAnalyticRectangularSection.current">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">current</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_I</span></div>
+
+
+    <span class="nd">@current</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">current</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_I</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CoilFieldAnalyticRectangularSection.B_at">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/coil/index.html#pyna.toroidal.coils.coil.CoilFieldAnalyticRectangularSection.B_at">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">B_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate (B_R, B_Z, B_phi) at arbitrary (R, Z, phi) points.</span>
+
+<span class="sd">        For axisymmetric coils, B_phi = 0 and the result does not depend on phi.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        R, Z, phi : scalar or array-like, broadcast-compatible</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        (BR, BZ, Bphi) : tuple of ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">Z_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z_arr</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">R_flat</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="k">if</span> <span class="n">R</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">R</span><span class="p">)])</span>
+        <span class="n">Z_flat</span> <span class="o">=</span> <span class="n">Z_arr</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="k">if</span> <span class="n">Z_arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">Z_arr</span><span class="p">)])</span>
+
+        <span class="n">BR_out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">R_flat</span><span class="p">))</span>
+        <span class="n">BZ_out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">R_flat</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">Rv</span><span class="p">,</span> <span class="n">Zv</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">R_flat</span><span class="p">,</span> <span class="n">Z_flat</span><span class="p">)):</span>
+            <span class="n">br</span><span class="p">,</span> <span class="n">bz</span> <span class="o">=</span> <span class="n">BRBZ_induced_by_thick_finitelen_solenoid</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_Rc</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dR</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_Rc</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dR</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_Zc</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dZ</span><span class="p">,</span>
+                <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dZ</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_I</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_turns</span><span class="p">,</span>
+                <span class="n">Rv</span><span class="p">,</span>
+                <span class="n">Zv</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">BR_out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">br</span>
+            <span class="n">BZ_out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">bz</span>
+
+        <span class="n">Bphi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">BR_out</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">BR_out</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> <span class="n">BZ_out</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> <span class="n">Bphi</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CoilFieldAnalyticRectangularSection.B_at_grid">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/coil/index.html#pyna.toroidal.coils.coil.CoilFieldAnalyticRectangularSection.B_at_grid">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">B_at_grid</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">R</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">Z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">n_jobs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parallel evaluation on a 2D (R, Z) grid.</span>
+
+<span class="sd">        Grid points inside the coil body are set to NaN.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        R : 1-D array of radial grid values (m).</span>
+<span class="sd">        Z : 1-D array of axial grid values (m).</span>
+<span class="sd">        n_jobs : int</span>
+<span class="sd">            Number of parallel jobs (joblib). -1 uses all CPUs.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        (BR_grid, BZ_grid) : ndarray, shape (len(R), len(Z))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">BRBZ_induced_by_thick_finitelen_solenoid_multiprocessing</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_Rc</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_Zc</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dR</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dZ</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_turns</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_I</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CoilFieldAnalyticRectangularSection.divergence_free">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/coil/index.html#pyna.toroidal.coils.coil.CoilFieldAnalyticRectangularSection.divergence_free">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">divergence_free</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+</div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,925 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.topo &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/topo';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.topo</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.topo</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;pyna.topo — topology analysis subpackage.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo._base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">InvariantSet</span><span class="p">,</span> <span class="n">InvariantManifold</span><span class="p">,</span> <span class="n">SectionCuttable</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.toroidal_trajectory</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ToroidalTrajectory</span><span class="p">,</span>
+    <span class="n">trace_toroidal_trajectory</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.core</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Stability</span><span class="p">,</span>
+    <span class="n">LinearStabilityData</span><span class="p">,</span>
+    <span class="n">SectionPoint</span><span class="p">,</span>
+    <span class="n">Trajectory</span> <span class="k">as</span> <span class="n">CoreTrajectory</span><span class="p">,</span>
+    <span class="n">Orbit</span> <span class="k">as</span> <span class="n">CoreOrbit</span><span class="p">,</span>
+    <span class="n">PeriodicOrbit</span> <span class="k">as</span> <span class="n">CorePeriodicOrbit</span><span class="p">,</span>
+    <span class="n">Cycle</span> <span class="k">as</span> <span class="n">CoreCycle</span><span class="p">,</span>
+    <span class="n">Island</span> <span class="k">as</span> <span class="n">CoreIsland</span><span class="p">,</span>
+    <span class="n">IslandChain</span> <span class="k">as</span> <span class="n">CoreIslandChain</span><span class="p">,</span>
+    <span class="n">Tube</span> <span class="k">as</span> <span class="n">CoreTube</span><span class="p">,</span>
+    <span class="n">TubeChain</span> <span class="k">as</span> <span class="n">CoreTubeChain</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.protocols</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">FlowLike</span><span class="p">,</span>
+    <span class="n">MapLike</span><span class="p">,</span>
+    <span class="n">JacobianProvider</span><span class="p">,</span>
+    <span class="n">SectionLike</span><span class="p">,</span>
+    <span class="n">StabilityClassifier</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.adapters</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">as_section_point</span><span class="p">,</span>
+    <span class="n">as_trajectory</span><span class="p">,</span>
+    <span class="n">as_orbit</span><span class="p">,</span>
+    <span class="n">as_periodic_orbit</span><span class="p">,</span>
+    <span class="n">as_cycle</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.builders</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">GeometryBuilder</span><span class="p">,</span>
+    <span class="n">IslandChainBuilder</span><span class="p">,</span>
+    <span class="n">TubeChainBuilder</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.factories</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Registry</span><span class="p">,</span>
+    <span class="n">DynamicalSystemFactory</span><span class="p">,</span>
+    <span class="n">GeometryFactory</span><span class="p">,</span>
+    <span class="n">PoincareMapFactory</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.workflow</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TopologyWorkflow</span><span class="p">,</span>
+    <span class="n">make_poincare_map</span><span class="p">,</span>
+    <span class="n">orbit_from_map</span><span class="p">,</span>
+    <span class="n">section_cut</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.toroidal</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">PeriodicOrbit</span><span class="p">,</span>
+    <span class="n">Cycle</span><span class="p">,</span>
+    <span class="n">FixedPoint</span><span class="p">,</span>
+    <span class="n">MonodromyData</span><span class="p">,</span>
+    <span class="n">Tube</span><span class="p">,</span>
+    <span class="n">TubeChain</span><span class="p">,</span>
+    <span class="n">TubeCutPoint</span><span class="p">,</span>
+    <span class="n">Island</span><span class="p">,</span>
+    <span class="n">IslandChain</span><span class="p">,</span>
+    <span class="n">ChainRole</span><span class="p">,</span>
+    <span class="n">StableManifold</span><span class="p">,</span>
+    <span class="n">UnstableManifold</span><span class="p">,</span>
+    <span class="n">ToroidalSectionPoint</span><span class="p">,</span>
+    <span class="n">ToroidalPeriodicOrbit</span><span class="p">,</span>
+    <span class="n">ToroidalCycle</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.toroidal_island</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">locate_rational_surface</span><span class="p">,</span>
+    <span class="n">locate_all_rational_surfaces</span><span class="p">,</span>
+    <span class="n">island_halfwidth</span><span class="p">,</span>
+    <span class="n">all_rational_q</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Backward-compat aliases</span>
+<div class="viewcode-block" id="Trajectory">
+<a class="viewcode-back" href="../../en/api/generated/pyna/topo/index.html#pyna.topo.Trajectory">[docs]</a>
+<span class="n">Trajectory</span> <span class="o">=</span> <span class="n">CoreTrajectory</span></div>
+
+<div class="viewcode-block" id="Orbit">
+<a class="viewcode-back" href="../../en/api/generated/pyna/topo/index.html#pyna.topo.Orbit">[docs]</a>
+<span class="n">Orbit</span> <span class="o">=</span> <span class="n">CoreOrbit</span></div>
+
+<div class="viewcode-block" id="ToroidalIsland">
+<a class="viewcode-back" href="../../en/api/generated/pyna/topo/index.html#pyna.topo.ToroidalIsland">[docs]</a>
+<span class="n">ToroidalIsland</span> <span class="o">=</span> <span class="n">Island</span></div>
+
+<div class="viewcode-block" id="ToroidalIslandChain">
+<a class="viewcode-back" href="../../en/api/generated/pyna/topo/index.html#pyna.topo.ToroidalIslandChain">[docs]</a>
+<span class="n">ToroidalIslandChain</span> <span class="o">=</span> <span class="n">IslandChain</span></div>
+
+<div class="viewcode-block" id="ToroidalTube">
+<a class="viewcode-back" href="../../en/api/generated/pyna/topo/index.html#pyna.topo.ToroidalTube">[docs]</a>
+<span class="n">ToroidalTube</span> <span class="o">=</span> <span class="n">Tube</span></div>
+
+<div class="viewcode-block" id="ToroidalTubeChain">
+<a class="viewcode-back" href="../../en/api/generated/pyna/topo/index.html#pyna.topo.ToroidalTubeChain">[docs]</a>
+<span class="n">ToroidalTubeChain</span> <span class="o">=</span> <span class="n">TubeChain</span></div>
+
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.variational</span><span class="w"> </span><span class="kn">import</span> <span class="n">PoincareMapVariationalEquations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.manifold_improve</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScipyStableManifold</span><span class="p">,</span> <span class="n">ScipyUnstableManifold</span><span class="p">,</span> <span class="n">CynaStableManifold</span><span class="p">,</span> <span class="n">CynaUnstableManifold</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.chaos</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">chirikov_overlap</span><span class="p">,</span>
+    <span class="n">ftle_field</span><span class="p">,</span>
+    <span class="n">chaotic_boundary_estimate</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.topology_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">analyse_topology</span><span class="p">,</span> <span class="n">TopologyReport</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.fixed_points</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">find_periodic_orbit</span><span class="p">,</span>
+    <span class="n">classify_fixed_point</span><span class="p">,</span>
+    <span class="n">classify_fixed_point_higher_order</span><span class="p">,</span>
+    <span class="n">find_magnetic_axis</span><span class="p">,</span>
+    <span class="n">find_fixed_point_newton</span><span class="p">,</span>
+    <span class="n">refine_fixed_points_from_pkl</span><span class="p">,</span>
+    <span class="n">group_fixed_points_by_orbit</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.flux_surface</span><span class="w"> </span><span class="kn">import</span> <span class="n">FluxSurface</span><span class="p">,</span> <span class="n">FluxSurfaceMap</span><span class="p">,</span> <span class="n">XPointOrbit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.island_extract</span><span class="w"> </span><span class="kn">import</span> <span class="n">detect_residual_islands</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.poincare</span><span class="w"> </span><span class="kn">import</span> <span class="n">rotational_transform_from_trajectory</span><span class="p">,</span> <span class="n">PoincareAccumulator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.monodromy</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">evolve_DPm_along_cycle</span><span class="p">,</span>
+    <span class="n">CycleVariationalData</span><span class="p">,</span>
+    <span class="n">orbit_shift_under_perturbation</span><span class="p">,</span>
+    <span class="n">monodromy_change_under_perturbation</span><span class="p">,</span>
+    <span class="n">second_order_orbit_variation</span><span class="p">,</span>
+    <span class="n">monodromy_matrix</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.fpt</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">OrbitPerturbationShift</span><span class="p">,</span>
+    <span class="n">TrajectoryPerturbationShift</span><span class="p">,</span>
+    <span class="n">CyclePerturbationShift</span><span class="p">,</span>
+    <span class="n">InvariantTorusPerturbationShift</span><span class="p">,</span>
+    <span class="n">StableManifoldPerturbationShift</span><span class="p">,</span>
+    <span class="n">compute_cycle_shift</span><span class="p">,</span>
+    <span class="n">compute_cycle_shift_from_cache</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.identity</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResonanceID</span><span class="p">,</span> <span class="n">TubeID</span><span class="p">,</span> <span class="n">IslandID</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.toroidal_section_view</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">SectionViewPoint</span> <span class="k">as</span> <span class="n">ToroidalSectionViewPoint</span><span class="p">,</span>
+    <span class="n">SectionCorrespondence</span> <span class="k">as</span> <span class="n">ToroidalSectionCorrespondence</span><span class="p">,</span>
+    <span class="n">SectionView</span> <span class="k">as</span> <span class="n">ToroidalSectionView</span><span class="p">,</span>
+    <span class="n">SectionViewBuilder</span> <span class="k">as</span> <span class="n">ToroidalSectionViewBuilder</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.plot.island</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_island</span><span class="p">,</span> <span class="n">island_section_points</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.plot.island_chain</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_island_chain</span><span class="p">,</span> <span class="n">island_chain_section_points</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.fast_metrics</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">lcfs_effective_minor_radius</span><span class="p">,</span>
+    <span class="n">make_reff_profile_grid</span><span class="p">,</span>
+    <span class="n">compute_profile_objectives_fast</span><span class="p">,</span>
+    <span class="n">compute_beta_max_fast</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.regularity</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">spectral_regularity</span><span class="p">,</span>
+    <span class="n">spectral_regularity_single</span><span class="p">,</span>
+    <span class="n">classify_orbit</span><span class="p">,</span>
+    <span class="n">hessian_regularity</span><span class="p">,</span>
+    <span class="n">eigenvalue_evolution_from_sequence</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.island_healed_coords</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">IslandHealedCoordMap</span><span class="p">,</span>
+    <span class="n">InnerFourierSection</span><span class="p">,</span>
+    <span class="n">XOCycAnchor</span><span class="p">,</span>
+    <span class="n">make_xcyc_anchors</span><span class="p">,</span>
+    <span class="n">build_from_trajectory_npz</span><span class="p">,</span>
+    <span class="n">fp_by_section_from_orbits</span><span class="p">,</span>
+    <span class="n">build_from_orbits</span><span class="p">,</span>
+    <span class="n">build_from_island_chain</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.healed_flux_coords</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TransportedSection</span><span class="p">,</span>
+    <span class="n">SectionCorrespondence</span><span class="p">,</span>
+    <span class="n">BoundarySection</span><span class="p">,</span>
+    <span class="n">BoundaryConstraintSet</span><span class="p">,</span>
+    <span class="n">BoundaryFamily3D</span><span class="p">,</span>
+    <span class="n">FieldLineScaffold3D</span><span class="p">,</span>
+    <span class="n">trace_grid_to_phi</span><span class="p">,</span>
+    <span class="n">trace_section_curve_to_phi</span><span class="p">,</span>
+    <span class="n">trace_surface_family_to_sections</span><span class="p">,</span>
+    <span class="n">build_xo_sequence</span><span class="p">,</span>
+    <span class="n">xo_sequence_boundary_arcs</span><span class="p">,</span>
+    <span class="n">build_cxo_spline</span><span class="p">,</span>
+    <span class="n">correct_boundary_with_constraints</span><span class="p">,</span>
+    <span class="n">fit_ring_fourier</span><span class="p">,</span>
+    <span class="n">build_pchip_family</span><span class="p">,</span>
+    <span class="n">eval_fourier_family</span><span class="p">,</span>
+    <span class="n">build_section_scaffold_bundle</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Layer 0: Phase space and dynamics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.dynamics</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">PhaseSpace</span><span class="p">,</span> <span class="n">MCF_2D</span><span class="p">,</span> <span class="n">GC_4D</span><span class="p">,</span>
+    <span class="n">DynamicalSystem</span><span class="p">,</span> <span class="n">ContinuousFlow</span><span class="p">,</span> <span class="n">HamiltonianFlow</span><span class="p">,</span>
+    <span class="n">MagneticFieldLine</span><span class="p">,</span> <span class="n">DiscreteMap</span><span class="p">,</span> <span class="n">StandardMap</span><span class="p">,</span> <span class="n">PoincareMap</span><span class="p">,</span>
+    <span class="n">MCFPoincareMap</span><span class="p">,</span>
+    <span class="n">GeneralPoincareMap</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.dynamics</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TimeSeriesSolution</span><span class="p">,</span>
+    <span class="n">CallableFlow</span><span class="p">,</span>
+    <span class="n">HamiltonianSystem</span><span class="p">,</span>
+    <span class="n">SeparableHamiltonianSystem</span><span class="p">,</span>
+    <span class="n">NBodySystem</span><span class="p">,</span>
+    <span class="n">CallableMap</span><span class="p">,</span>
+    <span class="n">ItoSDE</span><span class="p">,</span>
+    <span class="n">BrownianMotion</span><span class="p">,</span>
+    <span class="n">GeometricBrownianMotion</span><span class="p">,</span>
+    <span class="n">finite_difference_jacobian</span><span class="p">,</span>
+    <span class="n">fixed_point_eigenspaces</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="c1"># Layer 0.5: Base hierarchy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo._base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">GeometricObject</span><span class="p">,</span>
+    <span class="n">InvariantSet</span><span class="p">,</span>
+    <span class="n">InvariantManifold</span><span class="p">,</span>
+    <span class="n">SectionCuttable</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.invariant</span><span class="w"> </span><span class="kn">import</span> <span class="n">InvariantTorus</span>
+<span class="c1"># Layer 3: Sections</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.section</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Section</span><span class="p">,</span> <span class="n">ToroidalSection</span><span class="p">,</span> <span class="n">HyperplaneSection</span><span class="p">,</span> <span class="n">ParametricSection</span><span class="p">,</span>
+    <span class="n">toroidal_sections</span><span class="p">,</span> <span class="n">TWO_PERIOD_SECTIONS</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="c1"># Layer 2: Resonance</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.resonance</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResonanceNumber</span>
+
+<span class="c1"># Field classes (new names + backward compat)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.field</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ScalarField</span><span class="p">,</span>
+    <span class="n">VectorField</span><span class="p">,</span>
+    <span class="n">TensorField</span><span class="p">,</span>
+    <span class="n">VectorFieldCylind</span><span class="p">,</span>
+    <span class="n">VectorFieldCylindAxisym</span><span class="p">,</span>
+    <span class="n">ToroidalField</span><span class="p">,</span>        <span class="c1"># backward compat = VectorFieldCylind</span>
+    <span class="n">AxisymmetricField</span><span class="p">,</span>    <span class="c1"># backward compat = VectorFieldCylindAxisym</span>
+    <span class="n">Equilibrium</span><span class="p">,</span>
+    <span class="n">EquilibriumLike</span><span class="p">,</span>
+    <span class="n">compute_J_by_curl</span><span class="p">,</span>
+    <span class="n">MU0</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># --- Toroidal specializations kept available explicitly ---</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.toroidal_cycle</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToroidalPeriodicOrbitTrace</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+<div class="viewcode-block" id="ToroidalPeriodicOrbitTrace">
+<a class="viewcode-back" href="../../en/api/generated/pyna/topo/index.html#pyna.topo.ToroidalPeriodicOrbitTrace">[docs]</a>
+    <span class="n">ToroidalPeriodicOrbitTrace</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="c1"># Base hierarchy</span>
+    <span class="s2">&quot;GeometricObject&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;InvariantSet&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;InvariantManifold&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SectionCuttable&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Trajectory&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Orbit&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SectionPoint&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Stability&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;LinearStabilityData&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CoreTrajectory&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CoreOrbit&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PeriodicOrbit&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Cycle&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CorePeriodicOrbit&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CoreCycle&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CoreIsland&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CoreIslandChain&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CoreTube&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CoreTubeChain&quot;</span><span class="p">,</span>
+    <span class="c1"># Protocols / adapters / builders / bridges / factories</span>
+    <span class="s2">&quot;FlowLike&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MapLike&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;JacobianProvider&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SectionLike&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;StabilityClassifier&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;as_section_point&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;as_trajectory&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;as_orbit&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;as_periodic_orbit&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;as_cycle&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;GeometryBuilder&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;IslandChainBuilder&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TubeChainBuilder&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Registry&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DynamicalSystemFactory&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;GeometryFactory&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PoincareMapFactory&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TopologyWorkflow&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;make_poincare_map&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orbit_from_map&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;section_cut&quot;</span><span class="p">,</span>
+    <span class="c1"># Toroidal sampled trajectories / specializations</span>
+    <span class="s2">&quot;ToroidalTrajectory&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ToroidalSectionPoint&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ToroidalPeriodicOrbit&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ToroidalCycle&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;FixedPoint&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MonodromyData&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ToroidalPeriodicOrbitTrace&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;trace_toroidal_trajectory&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PoincareMapVariationalEquations&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;StableManifold&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;UnstableManifold&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ScipyStableManifold&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ScipyUnstableManifold&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CynaStableManifold&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CynaUnstableManifold&quot;</span><span class="p">,</span>
+    <span class="c1"># Chaos diagnostics</span>
+    <span class="s2">&quot;chirikov_overlap&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ftle_field&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;chaotic_boundary_estimate&quot;</span><span class="p">,</span>
+    <span class="c1"># Spectral regularity diagnostics</span>
+    <span class="s2">&quot;spectral_regularity&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;spectral_regularity_single&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;classify_orbit&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hessian_regularity&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;eigenvalue_evolution_from_sequence&quot;</span><span class="p">,</span>
+    <span class="c1"># High-level facade</span>
+    <span class="s2">&quot;analyse_topology&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TopologyReport&quot;</span><span class="p">,</span>
+    <span class="c1"># Fixed points</span>
+    <span class="s2">&quot;find_periodic_orbit&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;classify_fixed_point&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;classify_fixed_point_higher_order&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;group_fixed_points_by_orbit&quot;</span><span class="p">,</span>
+    <span class="c1"># Island topology</span>
+    <span class="s2">&quot;Island&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;IslandChain&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ChainRole&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ToroidalIsland&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ToroidalIslandChain&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;FluxSurface&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;FluxSurfaceMap&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;XPointOrbit&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;detect_residual_islands&quot;</span><span class="p">,</span>
+    <span class="c1"># Rotational transform</span>
+    <span class="s2">&quot;rotational_transform_from_trajectory&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PoincareAccumulator&quot;</span><span class="p">,</span>
+    <span class="c1"># Monodromy / variational</span>
+    <span class="s2">&quot;evolve_DPm_along_cycle&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CycleVariationalData&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orbit_shift_under_perturbation&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;monodromy_change_under_perturbation&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;second_order_orbit_variation&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;monodromy_matrix&quot;</span><span class="p">,</span>
+    <span class="c1"># Functional perturbation theory response hierarchy</span>
+    <span class="s2">&quot;OrbitPerturbationShift&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TrajectoryPerturbationShift&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CyclePerturbationShift&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;InvariantTorusPerturbationShift&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;StableManifoldPerturbationShift&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;compute_cycle_shift&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;compute_cycle_shift_from_cache&quot;</span><span class="p">,</span>
+    <span class="c1"># Identity / bridge layer</span>
+    <span class="s2">&quot;ResonanceID&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TubeID&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;IslandID&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ToroidalSectionViewPoint&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ToroidalSectionCorrespondence&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ToroidalSectionView&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ToroidalSectionViewBuilder&quot;</span><span class="p">,</span>
+    <span class="c1"># Toroidal continuous-time resonance geometry</span>
+    <span class="s2">&quot;TubeCutPoint&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ToroidalTube&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ToroidalTubeChain&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Tube&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TubeChain&quot;</span><span class="p">,</span>
+    <span class="c1"># Island / island-chain plotting</span>
+    <span class="s2">&quot;plot_island&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;island_section_points&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;plot_island_chain&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;island_chain_section_points&quot;</span><span class="p">,</span>
+    <span class="c1"># Rational surface / island width utilities</span>
+    <span class="s2">&quot;locate_rational_surface&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;locate_all_rational_surfaces&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;island_halfwidth&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;all_rational_q&quot;</span><span class="p">,</span>
+    <span class="c1"># Island-constrained healed coordinates</span>
+    <span class="s2">&quot;IslandHealedCoordMap&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;InnerFourierSection&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;XOCycAnchor&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;make_xcyc_anchors&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;build_from_trajectory_npz&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fp_by_section_from_orbits&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;build_from_orbits&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;build_from_island_chain&quot;</span><span class="p">,</span>
+    <span class="c1"># Traced 3D healed scaffold</span>
+    <span class="s2">&quot;TransportedSection&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SectionCorrespondence&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;BoundarySection&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;BoundaryConstraintSet&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;BoundaryFamily3D&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;FieldLineScaffold3D&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;trace_grid_to_phi&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;trace_section_curve_to_phi&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;trace_surface_family_to_sections&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;build_xo_sequence&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;xo_sequence_boundary_arcs&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;build_cxo_spline&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;correct_boundary_with_constraints&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fit_ring_fourier&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;build_pchip_family&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;eval_fourier_family&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;build_section_scaffold_bundle&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;lcfs_effective_minor_radius&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;make_reff_profile_grid&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;compute_profile_objectives_fast&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;compute_beta_max_fast&quot;</span><span class="p">,</span>
+    <span class="c1"># Dynamics / Poincaré map</span>
+    <span class="s2">&quot;PhaseSpace&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MCF_2D&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;GC_4D&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DynamicalSystem&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ContinuousFlow&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;HamiltonianFlow&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MagneticFieldLine&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DiscreteMap&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;StandardMap&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PoincareMap&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MCFPoincareMap&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;GeneralPoincareMap&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TimeSeriesSolution&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CallableFlow&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;HamiltonianSystem&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SeparableHamiltonianSystem&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;NBodySystem&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CallableMap&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ItoSDE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;BrownianMotion&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;GeometricBrownianMotion&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;finite_difference_jacobian&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fixed_point_eigenspaces&quot;</span><span class="p">,</span>
+    <span class="c1"># Invariant / geometry layer</span>
+    <span class="s2">&quot;GeometricObject&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;InvariantSet&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;InvariantManifold&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SectionCuttable&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;InvariantTorus&quot;</span><span class="p">,</span>
+    <span class="c1"># Sections</span>
+    <span class="s2">&quot;Section&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ToroidalSection&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;HyperplaneSection&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ParametricSection&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;toroidal_sections&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TWO_PERIOD_SECTIONS&quot;</span><span class="p">,</span>
+    <span class="c1"># Resonance</span>
+    <span class="s2">&quot;ResonanceNumber&quot;</span><span class="p">,</span>
+    <span class="c1"># Field</span>
+    <span class="s2">&quot;ScalarField&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;VectorField&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TensorField&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;VectorFieldCylind&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;VectorFieldCylindAxisym&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ToroidalField&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;AxisymmetricField&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Equilibrium&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;EquilibriumLike&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;compute_J_by_curl&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MU0&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

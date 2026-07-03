@@ -1,0 +1,1415 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.topo.topology_analysis &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/topo/topology_analysis';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../topo.html" class="nav-link">pyna.topo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.topo.topology_analysis</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.topo.topology_analysis</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">pyna.topo.topology_analysis</span>
+<span class="sd">============================</span>
+<span class="sd">Facade for exploratory magnetic-field topology analysis.</span>
+
+<span class="sd">Given a 3-D magnetic field in cylindrical coordinates (R, Z, φ) expressed as</span>
+<span class="sd">a callable ``field_func(rzphi) -&gt; [dR/ds, dZ/ds, dφ/ds]``, this module</span>
+<span class="sd">provides a single high-level entry point:</span>
+
+<span class="sd">    result = analyse_topology(field_func, ...)</span>
+
+<span class="sd">that returns a :class:`TopologyReport` with:</span>
+
+<span class="sd">1. **Chaos / regularity boundary** – FTLE-based partition of the Poincaré</span>
+<span class="sd">   section into chaotic and regular zones.</span>
+<span class="sd">2. **Rotational-transform (q) profile** – for each identified regular zone,</span>
+<span class="sd">   a radial q-profile estimated from field-line winding numbers.</span>
+<span class="sd">3. **Island-around-island hierarchy** – rational surfaces and their island</span>
+<span class="sd">   chains nested to a configurable depth.</span>
+<span class="sd">4. **Fixed-point catalogue** – O- and X-points on one or more Poincaré</span>
+<span class="sd">   sections, together with the monodromy matrix eigenvalues/vectors of the</span>
+<span class="sd">   m-th return map (DPᵐ).</span>
+
+<span class="sd">Typical usage</span>
+<span class="sd">-------------</span>
+<span class="sd">&gt;&gt;&gt; from pyna.topo.topology_analysis import analyse_topology</span>
+<span class="sd">&gt;&gt;&gt; report = analyse_topology(</span>
+<span class="sd">...     field_func,</span>
+<span class="sd">...     R_range=(1.2, 2.4),</span>
+<span class="sd">...     Z_range=(-0.8, 0.8),</span>
+<span class="sd">...     phi_sections=[0.0],</span>
+<span class="sd">...     q_range=(1.0, 4.0),</span>
+<span class="sd">...     n_ftle_pts=30,</span>
+<span class="sd">...     ftle_turns=20,</span>
+<span class="sd">...     island_m_max=6,</span>
+<span class="sd">...     island_n_max=2,</span>
+<span class="sd">...     island_depth=2,</span>
+<span class="sd">... )</span>
+<span class="sd">&gt;&gt;&gt; report.summary()</span>
+<span class="sd">&gt;&gt;&gt; report.plot()</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnivariateSpline</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.section</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToroidalSection</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.poincare</span><span class="w"> </span><span class="kn">import</span> <span class="n">poincare_from_fieldlines</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.chaos</span><span class="w"> </span><span class="kn">import</span> <span class="n">ftle_field</span><span class="p">,</span> <span class="n">chaotic_boundary_estimate</span><span class="p">,</span> <span class="n">chirikov_overlap</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.toroidal_cycle</span><span class="w"> </span><span class="kn">import</span> <span class="n">find_cycle</span><span class="p">,</span> <span class="n">ToroidalPeriodicOrbitTrace</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.toroidal_island</span><span class="w"> </span><span class="kn">import</span> <span class="n">locate_all_rational_surfaces</span><span class="p">,</span> <span class="n">island_halfwidth</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.variational</span><span class="w"> </span><span class="kn">import</span> <span class="n">PoincareMapVariationalEquations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo._rk4</span><span class="w"> </span><span class="kn">import</span> <span class="n">rk4_integrate</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Data classes</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="FixedPointInfo">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.FixedPointInfo">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FixedPointInfo</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;O- or X-point on a Poincaré section with monodromy data.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    rzphi0 : ndarray, shape (3,)</span>
+<span class="sd">        Location [R, Z, φ] of the fixed point (first pierce of the orbit).</span>
+<span class="sd">    orbit_type : str</span>
+<span class="sd">        ``&#39;O&#39;`` for elliptic (stable island centre) or ``&#39;X&#39;`` for hyperbolic.</span>
+<span class="sd">    m, n : int</span>
+<span class="sd">        Mode numbers defining the resonance q = m/n.</span>
+<span class="sd">    period : int</span>
+<span class="sd">        Orbit period in toroidal turns (= n for q = m/n convention).</span>
+<span class="sd">    eigenvalues : ndarray, shape (2,)</span>
+<span class="sd">        Eigenvalues of the monodromy matrix DPᵐ (m = period).</span>
+<span class="sd">    eigenvectors : ndarray, shape (2, 2)</span>
+<span class="sd">        Corresponding eigenvectors (columns).</span>
+<span class="sd">    monodromy : ndarray, shape (2, 2)</span>
+<span class="sd">        Full 2×2 monodromy matrix.</span>
+<span class="sd">    stability_index : float</span>
+<span class="sd">        k = (λ₁ + λ₂) / 2.  |k| &lt; 1 → elliptic, |k| &gt; 1 → hyperbolic.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="FixedPointInfo.rzphi0">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.FixedPointInfo.rzphi0">[docs]</a>
+    <span class="n">rzphi0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="FixedPointInfo.orbit_type">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.FixedPointInfo.orbit_type">[docs]</a>
+    <span class="n">orbit_type</span><span class="p">:</span> <span class="nb">str</span>            <span class="c1"># &#39;O&#39; or &#39;X&#39;</span></div>
+
+<div class="viewcode-block" id="FixedPointInfo.m">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.FixedPointInfo.m">[docs]</a>
+    <span class="n">m</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="FixedPointInfo.n">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.FixedPointInfo.n">[docs]</a>
+    <span class="n">n</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="FixedPointInfo.period">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.FixedPointInfo.period">[docs]</a>
+    <span class="n">period</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="FixedPointInfo.eigenvalues">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.FixedPointInfo.eigenvalues">[docs]</a>
+    <span class="n">eigenvalues</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="FixedPointInfo.eigenvectors">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.FixedPointInfo.eigenvectors">[docs]</a>
+    <span class="n">eigenvectors</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="FixedPointInfo.monodromy">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.FixedPointInfo.monodromy">[docs]</a>
+    <span class="n">monodromy</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="FixedPointInfo.stability_index">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.FixedPointInfo.stability_index">[docs]</a>
+    <span class="n">stability_index</span><span class="p">:</span> <span class="nb">float</span></div>
+</div>
+
+
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="IslandChain">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.IslandChain">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IslandChain</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;One island chain at a rational surface.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    m, n : int</span>
+<span class="sd">        Resonance q = m/n.</span>
+<span class="sd">    S_res : float</span>
+<span class="sd">        Radial label of the resonant surface (S = √ψ_norm or winding-number</span>
+<span class="sd">        based, depending on the equilibrium source).</span>
+<span class="sd">    q_res : float</span>
+<span class="sd">        Safety factor at the resonant surface.</span>
+<span class="sd">    half_width : float</span>
+<span class="sd">        Estimated island half-width in S (from Chirikov formula if available,</span>
+<span class="sd">        else from Poincaré extraction).</span>
+<span class="sd">    chirikov_sigma : Optional[float]</span>
+<span class="sd">        Overlap parameter with the neighbouring chain (None if not computed).</span>
+<span class="sd">    fixed_points : List[FixedPointInfo]</span>
+<span class="sd">        O- and X-points found for this chain.</span>
+<span class="sd">    children : List[&#39;IslandChain&#39;]</span>
+<span class="sd">        Sub-islands nested inside this chain (island-around-island hierarchy).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="IslandChain.m">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.IslandChain.m">[docs]</a>
+    <span class="n">m</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="IslandChain.n">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.IslandChain.n">[docs]</a>
+    <span class="n">n</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="IslandChain.S_res">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.IslandChain.S_res">[docs]</a>
+    <span class="n">S_res</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="IslandChain.q_res">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.IslandChain.q_res">[docs]</a>
+    <span class="n">q_res</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="IslandChain.half_width">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.IslandChain.half_width">[docs]</a>
+    <span class="n">half_width</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="IslandChain.chirikov_sigma">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.IslandChain.chirikov_sigma">[docs]</a>
+    <span class="n">chirikov_sigma</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="IslandChain.fixed_points">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.IslandChain.fixed_points">[docs]</a>
+    <span class="n">fixed_points</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FixedPointInfo</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IslandChain.children">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.IslandChain.children">[docs]</a>
+    <span class="n">children</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;IslandChain&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="RegularZone">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.RegularZone">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RegularZone</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A connected regular (KAM) region in the Poincaré section.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    label : str</span>
+<span class="sd">        Human-readable label (e.g. ``&#39;core&#39;``, ``&#39;secondary_q41&#39;``).</span>
+<span class="sd">    S_range : tuple (S_min, S_max)</span>
+<span class="sd">        Radial extent in normalised flux-surface label.</span>
+<span class="sd">    q_profile_S : ndarray</span>
+<span class="sd">        Radial grid of S values for the q profile.</span>
+<span class="sd">    q_profile : ndarray</span>
+<span class="sd">        Safety-factor values on q_profile_S.</span>
+<span class="sd">    island_chains : List[IslandChain]</span>
+<span class="sd">        All island chains found inside this zone.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="RegularZone.label">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.RegularZone.label">[docs]</a>
+    <span class="n">label</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="RegularZone.S_range">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.RegularZone.S_range">[docs]</a>
+    <span class="n">S_range</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="RegularZone.q_profile_S">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.RegularZone.q_profile_S">[docs]</a>
+    <span class="n">q_profile_S</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="RegularZone.q_profile">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.RegularZone.q_profile">[docs]</a>
+    <span class="n">q_profile</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="RegularZone.island_chains">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.RegularZone.island_chains">[docs]</a>
+    <span class="n">island_chains</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">IslandChain</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="TopologyReport">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.TopologyReport">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TopologyReport</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Full topology analysis result.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    field_func : callable</span>
+<span class="sd">        The original field function.</span>
+<span class="sd">    phi_sections : list of float</span>
+<span class="sd">        Poincaré section angles used.</span>
+<span class="sd">    ftle : ndarray or None</span>
+<span class="sd">        FTLE field on the analysis grid (None if not computed).</span>
+<span class="sd">    R_grid, Z_grid : ndarray</span>
+<span class="sd">        Spatial grids for FTLE.</span>
+<span class="sd">    chaotic_boundary_R, chaotic_boundary_Z : ndarray or None</span>
+<span class="sd">        Approximate boundary of the chaotic zone.</span>
+<span class="sd">    regular_zones : List[RegularZone]</span>
+<span class="sd">        Identified regular zones (innermost first).</span>
+<span class="sd">    all_fixed_points : List[FixedPointInfo]</span>
+<span class="sd">        Flat list of every fixed point found across all sections.</span>
+<span class="sd">    warnings : List[str]</span>
+<span class="sd">        Non-fatal warnings accumulated during analysis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="TopologyReport.field_func">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.TopologyReport.field_func">[docs]</a>
+    <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span></div>
+
+<div class="viewcode-block" id="TopologyReport.phi_sections">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.TopologyReport.phi_sections">[docs]</a>
+    <span class="n">phi_sections</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="TopologyReport.ftle">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.TopologyReport.ftle">[docs]</a>
+    <span class="n">ftle</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="TopologyReport.R_grid">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.TopologyReport.R_grid">[docs]</a>
+    <span class="n">R_grid</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="TopologyReport.Z_grid">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.TopologyReport.Z_grid">[docs]</a>
+    <span class="n">Z_grid</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="TopologyReport.chaotic_boundary_R">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.TopologyReport.chaotic_boundary_R">[docs]</a>
+    <span class="n">chaotic_boundary_R</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="TopologyReport.chaotic_boundary_Z">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.TopologyReport.chaotic_boundary_Z">[docs]</a>
+    <span class="n">chaotic_boundary_Z</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="TopologyReport.regular_zones">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.TopologyReport.regular_zones">[docs]</a>
+    <span class="n">regular_zones</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">RegularZone</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="TopologyReport.all_fixed_points">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.TopologyReport.all_fixed_points">[docs]</a>
+    <span class="n">all_fixed_points</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FixedPointInfo</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="TopologyReport.warnings">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.TopologyReport.warnings">[docs]</a>
+    <span class="n">warnings</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Convenience output</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="TopologyReport.summary">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.TopologyReport.summary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a human-readable text summary.&quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">,</span> <span class="s2">&quot;Topology Analysis Report&quot;</span><span class="p">,</span> <span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">]</span>
+
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Poincaré sections: φ = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">phi_sections</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chaotic_boundary_R</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Chaotic boundary: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chaotic_boundary_R</span><span class="p">)</span><span class="si">}</span><span class="s2"> points&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Chaotic boundary: not computed&quot;</span><span class="p">)</span>
+
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Regular zones found: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">regular_zones</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">zone</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">regular_zones</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;  [</span><span class="si">{</span><span class="n">zone</span><span class="o">.</span><span class="n">label</span><span class="si">}</span><span class="s2">]  S ∈ [</span><span class="si">{</span><span class="n">zone</span><span class="o">.</span><span class="n">S_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">zone</span><span class="o">.</span><span class="n">S_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">]&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;  q ∈ [</span><span class="si">{</span><span class="n">zone</span><span class="o">.</span><span class="n">q_profile</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">zone</span><span class="o">.</span><span class="n">q_profile</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">]&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;  island chains: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">zone</span><span class="o">.</span><span class="n">island_chains</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">chain</span> <span class="ow">in</span> <span class="n">zone</span><span class="o">.</span><span class="n">island_chains</span><span class="p">:</span>
+                <span class="n">sigma_str</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  σ_Chirikov=</span><span class="si">{</span><span class="n">chain</span><span class="o">.</span><span class="n">chirikov_sigma</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span>
+                             <span class="k">if</span> <span class="n">chain</span><span class="o">.</span><span class="n">chirikov_sigma</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">fp_O</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">fp</span> <span class="ow">in</span> <span class="n">chain</span><span class="o">.</span><span class="n">fixed_points</span> <span class="k">if</span> <span class="n">fp</span><span class="o">.</span><span class="n">orbit_type</span> <span class="o">==</span> <span class="s1">&#39;O&#39;</span><span class="p">)</span>
+                <span class="n">fp_X</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">fp</span> <span class="ow">in</span> <span class="n">chain</span><span class="o">.</span><span class="n">fixed_points</span> <span class="k">if</span> <span class="n">fp</span><span class="o">.</span><span class="n">orbit_type</span> <span class="o">==</span> <span class="s1">&#39;X&#39;</span><span class="p">)</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;    q=</span><span class="si">{</span><span class="n">chain</span><span class="o">.</span><span class="n">m</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">chain</span><span class="o">.</span><span class="n">n</span><span class="si">}</span><span class="s2">  S=</span><span class="si">{</span><span class="n">chain</span><span class="o">.</span><span class="n">S_res</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;  w=</span><span class="si">{</span><span class="n">chain</span><span class="o">.</span><span class="n">half_width</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;  O-pts=</span><span class="si">{</span><span class="n">fp_O</span><span class="si">}</span><span class="s2">  X-pts=</span><span class="si">{</span><span class="n">fp_X</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="o">+</span> <span class="n">sigma_str</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">chain</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+                    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;      ↳ sub-island q=</span><span class="si">{</span><span class="n">child</span><span class="o">.</span><span class="n">m</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">child</span><span class="o">.</span><span class="n">n</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;  S=</span><span class="si">{</span><span class="n">child</span><span class="o">.</span><span class="n">S_res</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">  w=</span><span class="si">{</span><span class="n">child</span><span class="o">.</span><span class="n">half_width</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Total fixed points catalogued: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_fixed_points</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">fp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_fixed_points</span><span class="p">:</span>
+            <span class="n">lam_str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">v</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">fp</span><span class="o">.</span><span class="n">eigenvalues</span><span class="p">)</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">fp</span><span class="o">.</span><span class="n">orbit_type</span><span class="si">}</span><span class="s2">-pt q=</span><span class="si">{</span><span class="n">fp</span><span class="o">.</span><span class="n">m</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">fp</span><span class="o">.</span><span class="n">n</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;  R=</span><span class="si">{</span><span class="n">fp</span><span class="o">.</span><span class="n">rzphi0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">  Z=</span><span class="si">{</span><span class="n">fp</span><span class="o">.</span><span class="n">rzphi0</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;  λ=[</span><span class="si">{</span><span class="n">lam_str</span><span class="si">}</span><span class="s2">]  k=</span><span class="si">{</span><span class="n">fp</span><span class="o">.</span><span class="n">stability_index</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">warnings</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Warnings:&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">warnings</span><span class="p">:</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  ⚠ </span><span class="si">{</span><span class="n">w</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span></div>
+
+
+<div class="viewcode-block" id="TopologyReport.plot">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.TopologyReport.plot">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">phi_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">show_ftle</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">show_fixedpoints</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">show_manifolds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">n_turns_manifold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+        <span class="n">figsize</span><span class="p">:</span> <span class="n">Tuple</span> <span class="o">=</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the Poincaré section with topology overlays.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ax : matplotlib.axes.Axes or None</span>
+<span class="sd">            If None, a new figure is created.</span>
+<span class="sd">        phi_idx : int</span>
+<span class="sd">            Which section in ``phi_sections`` to visualise.</span>
+<span class="sd">        show_ftle : bool</span>
+<span class="sd">            Overlay the FTLE field as a background heatmap.</span>
+<span class="sd">        show_fixedpoints : bool</span>
+<span class="sd">            Mark O-points (circles) and X-points (crosses).</span>
+<span class="sd">        show_manifolds : bool</span>
+<span class="sd">            Grow and plot stable/unstable manifolds for each X-point.</span>
+<span class="sd">        n_turns_manifold : int</span>
+<span class="sd">            Number of map iterations for manifold growth.</span>
+<span class="sd">        figsize : tuple</span>
+<span class="sd">            Figure size if ax is None.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fig, ax</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogNorm</span>
+
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">figure</span>
+
+        <span class="n">phi0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi_sections</span><span class="p">[</span><span class="n">phi_idx</span><span class="p">]</span>
+
+        <span class="c1"># --- FTLE background ---</span>
+        <span class="k">if</span> <span class="n">show_ftle</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">ftle</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ftle_clipped</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ftle</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">R_grid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z_grid</span><span class="p">,</span> <span class="n">ftle_clipped</span><span class="p">,</span>
+                <span class="n">norm</span><span class="o">=</span><span class="n">LogNorm</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="n">ftle_clipped</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">vmax</span><span class="o">=</span><span class="n">ftle_clipped</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span>
+                <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;hot_r&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.55</span><span class="p">,</span> <span class="n">rasterized</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># --- Chaotic boundary ---</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chaotic_boundary_R</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">chaotic_boundary_R</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">chaotic_boundary_Z</span><span class="p">,</span>
+                <span class="s2">&quot;w--&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Chaotic boundary&quot;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># --- Fixed points ---</span>
+        <span class="k">if</span> <span class="n">show_fixedpoints</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">fp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_fixed_points</span><span class="p">:</span>
+                <span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">rzphi0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fp</span><span class="o">.</span><span class="n">rzphi0</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">fp</span><span class="o">.</span><span class="n">orbit_type</span> <span class="o">==</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;limegreen&quot;</span><span class="p">,</span>
+                            <span class="n">ms</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">mew</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+                            <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;O q=</span><span class="si">{</span><span class="n">fp</span><span class="o">.</span><span class="n">m</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">fp</span><span class="o">.</span><span class="n">n</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">fp</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_fixed_points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;tomato&quot;</span><span class="p">,</span>
+                            <span class="n">ms</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">mew</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+                    <span class="c1"># Draw eigenvectors</span>
+                    <span class="k">if</span> <span class="n">fp</span><span class="o">.</span><span class="n">eigenvectors</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">scale</span> <span class="o">=</span> <span class="mf">0.04</span>
+                        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+                            <span class="n">ev</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">eigenvectors</span><span class="p">[:,</span> <span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">real</span>
+                            <span class="n">ev</span> <span class="o">/=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">ev</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-30</span><span class="p">)</span>
+                            <span class="n">ax</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span>
+                                <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="n">R0</span> <span class="o">+</span> <span class="n">scale</span> <span class="o">*</span> <span class="n">ev</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Z0</span> <span class="o">+</span> <span class="n">scale</span> <span class="o">*</span> <span class="n">ev</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                                <span class="n">xytext</span><span class="o">=</span><span class="p">(</span><span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span><span class="p">),</span>
+                                <span class="n">arrowprops</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">arrowstyle</span><span class="o">=</span><span class="s2">&quot;-&gt;&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;cyan&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+                                <span class="n">zorder</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span>
+                            <span class="p">)</span>
+
+        <span class="c1"># --- Manifolds ---</span>
+        <span class="k">if</span> <span class="n">show_manifolds</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.manifold_improve</span><span class="w"> </span><span class="kn">import</span> <span class="n">StableManifold</span><span class="p">,</span> <span class="n">UnstableManifold</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.variational</span><span class="w"> </span><span class="kn">import</span> <span class="n">_fd_jacobian</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">_field_func_2d</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">_ff</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">field_func</span><span class="p">):</span>
+                <span class="n">tang</span> <span class="o">=</span> <span class="n">_ff</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span><span class="p">]))</span>
+                <span class="n">dphi</span> <span class="o">=</span> <span class="n">tang</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dphi</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-15</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">tang</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">dphi</span><span class="p">,</span> <span class="n">tang</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">dphi</span><span class="p">])</span>
+
+            <span class="k">for</span> <span class="n">fp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_fixed_points</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">fp</span><span class="o">.</span><span class="n">orbit_type</span> <span class="o">!=</span> <span class="s2">&quot;X&quot;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">phi_span</span> <span class="o">=</span> <span class="p">(</span><span class="n">phi0</span><span class="p">,</span> <span class="n">phi0</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">fp</span><span class="o">.</span><span class="n">period</span><span class="p">)</span>
+                <span class="n">sm</span> <span class="o">=</span> <span class="n">StableManifold</span><span class="p">(</span><span class="n">fp</span><span class="o">.</span><span class="n">rzphi0</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="n">fp</span><span class="o">.</span><span class="n">monodromy</span><span class="p">,</span>
+                                    <span class="n">_field_func_2d</span><span class="p">,</span> <span class="n">phi_span</span><span class="o">=</span><span class="n">phi_span</span><span class="p">)</span>
+                <span class="n">um</span> <span class="o">=</span> <span class="n">UnstableManifold</span><span class="p">(</span><span class="n">fp</span><span class="o">.</span><span class="n">rzphi0</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="n">fp</span><span class="o">.</span><span class="n">monodromy</span><span class="p">,</span>
+                                      <span class="n">_field_func_2d</span><span class="p">,</span> <span class="n">phi_span</span><span class="o">=</span><span class="n">phi_span</span><span class="p">)</span>
+                <span class="n">sm</span><span class="o">.</span><span class="n">grow</span><span class="p">(</span><span class="n">n_turns</span><span class="o">=</span><span class="n">n_turns_manifold</span><span class="p">,</span> <span class="n">init_length</span><span class="o">=</span><span class="mf">5e-5</span><span class="p">,</span> <span class="n">n_init_pts</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                        <span class="n">both_sides</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">)</span>
+                <span class="n">um</span><span class="o">.</span><span class="n">grow</span><span class="p">(</span><span class="n">n_turns</span><span class="o">=</span><span class="n">n_turns_manifold</span><span class="p">,</span> <span class="n">init_length</span><span class="o">=</span><span class="mf">5e-5</span><span class="p">,</span> <span class="n">n_init_pts</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                        <span class="n">both_sides</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">seg</span> <span class="ow">in</span> <span class="n">sm</span><span class="o">.</span><span class="n">segments</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">seg</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">seg</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">seg</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;steelblue&quot;</span><span class="p">,</span>
+                                <span class="n">lw</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.85</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">seg</span> <span class="ow">in</span> <span class="n">um</span><span class="o">.</span><span class="n">segments</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">seg</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">seg</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">seg</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;darkorange&quot;</span><span class="p">,</span>
+                                <span class="n">lw</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.85</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;R (m)&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Z (m)&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Poincaré section φ = </span><span class="si">{</span><span class="n">phi0</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span></div>
+</div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Internal helpers</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_winding_number</span><span class="p">(</span>
+    <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">R0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">Z0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">phi0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">n_turns</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Estimate safety factor q for a single field line by winding count.&quot;&quot;&quot;</span>
+    <span class="n">rzphi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">R0</span><span class="p">,</span> <span class="n">Z0</span><span class="p">,</span> <span class="n">phi0</span><span class="p">])</span>
+    <span class="n">total_dphi</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">total_dtheta</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">phi</span> <span class="o">=</span> <span class="n">phi0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">aug</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">tang</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">field_func</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tang</span>
+
+    <span class="c1"># Integrate for n_turns toroidal transits</span>
+    <span class="n">phi_end</span> <span class="o">=</span> <span class="n">phi0</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">n_turns</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">sol</span> <span class="o">=</span> <span class="n">rk4_integrate</span><span class="p">(</span>
+            <span class="n">aug</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">phi0</span><span class="p">,</span> <span class="n">phi_end</span><span class="p">),</span>
+            <span class="n">rzphi</span><span class="p">,</span>
+            <span class="n">max_step</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span>
+            <span class="n">dense_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sol</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># Count toroidal turns and poloidal angle advance</span>
+    <span class="n">phi_arr</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">t</span>
+    <span class="n">R_arr</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">Z_arr</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Reference centre (first point serves as approximate axis)</span>
+    <span class="n">R_ref</span> <span class="o">=</span> <span class="n">R_arr</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">Z_ref</span> <span class="o">=</span> <span class="n">Z_arr</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+    <span class="n">theta_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">Z_arr</span> <span class="o">-</span> <span class="n">Z_ref</span><span class="p">,</span> <span class="n">R_arr</span> <span class="o">-</span> <span class="n">R_ref</span><span class="p">)</span>
+    <span class="n">dtheta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">theta_arr</span><span class="p">))</span>
+    <span class="n">dphi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">phi_arr</span><span class="p">)</span>
+
+    <span class="n">valid</span> <span class="o">=</span> <span class="n">dphi</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">valid</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">q_est</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dphi</span><span class="p">[</span><span class="n">valid</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dtheta</span><span class="p">[</span><span class="n">valid</span><span class="p">])</span> <span class="o">+</span> <span class="mf">1e-30</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">q_est</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_make_field_func_2d</span><span class="p">(</span><span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrap a unit-tangent field_func into (dR/dφ, dZ/dφ) form.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ff2d</span><span class="p">(</span><span class="n">R</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">tang</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">field_func</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">phi</span><span class="p">])),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">dphi_ds</span> <span class="o">=</span> <span class="n">tang</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dphi_ds</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-15</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">tang</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">dphi_ds</span><span class="p">,</span> <span class="n">tang</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">dphi_ds</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">ff2d</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_classify_and_collect_orbit</span><span class="p">(</span>
+    <span class="n">orbit</span><span class="p">:</span> <span class="n">PeriodicOrbit</span><span class="p">,</span>
+    <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">field_func_2d</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">phi0</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">fd_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FixedPointInfo</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute monodromy and classify a PeriodicOrbit as O- or X-point.&quot;&quot;&quot;</span>
+    <span class="n">phi_span</span> <span class="o">=</span> <span class="p">(</span><span class="n">phi0</span><span class="p">,</span> <span class="n">phi0</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">orbit</span><span class="o">.</span><span class="n">period_n</span><span class="p">)</span>
+    <span class="n">vq</span> <span class="o">=</span> <span class="n">PoincareMapVariationalEquations</span><span class="p">(</span><span class="n">field_func_2d</span><span class="p">,</span> <span class="n">fd_eps</span><span class="o">=</span><span class="n">fd_eps</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">vq</span><span class="o">.</span><span class="n">jacobian_matrix</span><span class="p">(</span><span class="n">orbit</span><span class="o">.</span><span class="n">rzphi0</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="n">phi_span</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Monodromy computation failed for q=</span><span class="si">{</span><span class="n">m</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">eigvals</span><span class="p">,</span> <span class="n">eigvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="nb">float</span><span class="p">((</span><span class="n">eigvals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">eigvals</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">real</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="n">otype</span> <span class="o">=</span> <span class="s2">&quot;O&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">otype</span> <span class="o">=</span> <span class="s2">&quot;X&quot;</span>
+
+    <span class="k">return</span> <span class="n">FixedPointInfo</span><span class="p">(</span>
+        <span class="n">rzphi0</span><span class="o">=</span><span class="n">orbit</span><span class="o">.</span><span class="n">rzphi0</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+        <span class="n">orbit_type</span><span class="o">=</span><span class="n">otype</span><span class="p">,</span>
+        <span class="n">m</span><span class="o">=</span><span class="n">m</span><span class="p">,</span>
+        <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span>
+        <span class="n">period</span><span class="o">=</span><span class="n">orbit</span><span class="o">.</span><span class="n">period_n</span><span class="p">,</span>
+        <span class="n">eigenvalues</span><span class="o">=</span><span class="n">eigvals</span><span class="p">,</span>
+        <span class="n">eigenvectors</span><span class="o">=</span><span class="n">eigvecs</span><span class="p">,</span>
+        <span class="n">monodromy</span><span class="o">=</span><span class="n">M</span><span class="p">,</span>
+        <span class="n">stability_index</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_q_profile_from_fieldlines</span><span class="p">(</span>
+    <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">R_axis</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">Z_axis</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">R_range</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">phi0</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">n_radial</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
+    <span class="n">n_turns</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
+    <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Estimate q(S) by winding-number integration on the midplane.&quot;&quot;&quot;</span>
+    <span class="n">R_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">R_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">R_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_radial</span><span class="p">)</span>
+    <span class="n">S_vals</span> <span class="o">=</span> <span class="p">(</span><span class="n">R_vals</span> <span class="o">-</span> <span class="n">R_axis</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">R_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">R_axis</span><span class="p">)</span>  <span class="c1"># rough S proxy</span>
+    <span class="n">S_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">S_vals</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">)</span>
+
+    <span class="n">q_vals</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">R0</span> <span class="ow">in</span> <span class="n">R_vals</span><span class="p">:</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">_winding_number</span><span class="p">(</span><span class="n">field_func</span><span class="p">,</span> <span class="n">R0</span><span class="p">,</span> <span class="n">Z_axis</span><span class="p">,</span> <span class="n">phi0</span><span class="p">,</span> <span class="n">n_turns</span><span class="o">=</span><span class="n">n_turns</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>
+        <span class="n">q_vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">q</span> <span class="k">if</span> <span class="n">q</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">S_vals</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">q_vals</span><span class="p">)</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Main facade</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="analyse_topology">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/topology_analysis/index.html#pyna.topo.topology_analysis.analyse_topology">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">analyse_topology</span><span class="p">(</span>
+    <span class="n">field_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">R_range</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">Z_range</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">phi_sections</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="c1"># Q-profile estimation</span>
+    <span class="n">R_axis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">Z_axis</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">q_range</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">),</span>
+    <span class="n">n_q_radial</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
+    <span class="n">n_q_turns</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">40</span><span class="p">,</span>
+    <span class="c1"># FTLE / chaos detection</span>
+    <span class="n">compute_ftle</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">n_ftle_pts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">ftle_turns</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
+    <span class="n">ftle_threshold</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="c1"># Island chain detection</span>
+    <span class="n">island_m_max</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+    <span class="n">island_n_max</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="n">island_depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="n">n_island_seeds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+    <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+    <span class="c1"># Fixed-point solver</span>
+    <span class="n">find_fixed_points</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">fp_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-8</span><span class="p">,</span>
+    <span class="n">fp_max_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">60</span><span class="p">,</span>
+    <span class="n">fp_fd_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">,</span>
+    <span class="c1"># Verbosity</span>
+    <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TopologyReport</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Perform a full topology analysis of a 3-D magnetic field.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    field_func : callable</span>
+<span class="sd">        ``field_func(rzphi)`` → array-like ``[dR/ds, dZ/ds, dφ/ds]`` in</span>
+<span class="sd">        cylindrical coordinates.  The parameter ``s`` may be arc length,</span>
+<span class="sd">        toroidal angle, or time — the function only needs to return a vector</span>
+<span class="sd">        tangent to the field line at every point.</span>
+<span class="sd">    R_range : (R_min, R_max)</span>
+<span class="sd">        Radial extent of the analysis domain (metres).</span>
+<span class="sd">    Z_range : (Z_min, Z_max)</span>
+<span class="sd">        Vertical extent of the analysis domain (metres).</span>
+<span class="sd">    phi_sections : list of float, optional</span>
+<span class="sd">        Toroidal angles (radians) at which Poincaré sections are taken.</span>
+<span class="sd">        Default ``[0.0]``.</span>
+<span class="sd">    R_axis : float, optional</span>
+<span class="sd">        Major radius of the magnetic axis.  If None, estimated as the</span>
+<span class="sd">        midpoint of R_range.</span>
+<span class="sd">    Z_axis : float</span>
+<span class="sd">        Vertical position of the magnetic axis.  Default 0.</span>
+<span class="sd">    q_range : (q_min, q_max)</span>
+<span class="sd">        Range of safety factors to consider.</span>
+<span class="sd">    n_q_radial : int</span>
+<span class="sd">        Number of radial points for q-profile estimation.</span>
+<span class="sd">    n_q_turns : int</span>
+<span class="sd">        Number of toroidal turns for winding-number estimation.</span>
+<span class="sd">    compute_ftle : bool</span>
+<span class="sd">        Whether to compute the FTLE field.  Can be slow for large grids.</span>
+<span class="sd">    n_ftle_pts : int</span>
+<span class="sd">        Grid resolution (n × n) for the FTLE computation.</span>
+<span class="sd">    ftle_turns : int</span>
+<span class="sd">        Number of toroidal turns for FTLE integration.</span>
+<span class="sd">    ftle_threshold : float or None</span>
+<span class="sd">        FTLE threshold for the chaotic-boundary extraction.  If None,</span>
+<span class="sd">        automatically set to the 75th percentile of the FTLE field.</span>
+<span class="sd">    island_m_max : int</span>
+<span class="sd">        Maximum poloidal mode number to search for island chains.</span>
+<span class="sd">    island_n_max : int</span>
+<span class="sd">        Maximum toroidal mode number to search for island chains.</span>
+<span class="sd">    island_depth : int</span>
+<span class="sd">        Recursion depth for island-around-island hierarchy (1 = top-level</span>
+<span class="sd">        only, 2 = one level of sub-islands, etc.).</span>
+<span class="sd">    n_island_seeds : int</span>
+<span class="sd">        Angular seeds per expected fixed point.</span>
+<span class="sd">    dt : float</span>
+<span class="sd">        Integration step for field-line tracing.</span>
+<span class="sd">    find_fixed_points : bool</span>
+<span class="sd">        Whether to run the fixed-point Newton solver.</span>
+<span class="sd">    fp_tol : float</span>
+<span class="sd">        Newton solver convergence tolerance.</span>
+<span class="sd">    fp_max_iter : int</span>
+<span class="sd">        Maximum Newton iterations.</span>
+<span class="sd">    fp_fd_eps : float</span>
+<span class="sd">        Finite-difference step for monodromy matrix computation.</span>
+<span class="sd">    verbose : bool</span>
+<span class="sd">        Print progress messages.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TopologyReport</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">phi_sections</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">phi_sections</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">R_axis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">R_axis</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">R_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">R_range</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">warn_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">phi0</span> <span class="o">=</span> <span class="n">phi_sections</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_log</span><span class="p">(</span><span class="n">msg</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[topology] </span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Step 1 – FTLE and chaos / regularity boundary</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="n">ftle_arr</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">R_grid</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">Z_grid</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">chaos_R</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">chaos_Z</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">compute_ftle</span><span class="p">:</span>
+        <span class="n">_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Computing FTLE on </span><span class="si">{</span><span class="n">n_ftle_pts</span><span class="si">}</span><span class="s2">×</span><span class="si">{</span><span class="n">n_ftle_pts</span><span class="si">}</span><span class="s2"> grid &quot;</span>
+             <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">ftle_turns</span><span class="si">}</span><span class="s2"> turns)...&quot;</span><span class="p">)</span>
+        <span class="n">R_1d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">R_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">R_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_ftle_pts</span><span class="p">)</span>
+        <span class="n">Z_1d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">Z_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Z_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_ftle_pts</span><span class="p">)</span>
+        <span class="n">R_grid</span><span class="p">,</span> <span class="n">Z_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">R_1d</span><span class="p">,</span> <span class="n">Z_1d</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ftle_arr</span> <span class="o">=</span> <span class="n">ftle_field</span><span class="p">(</span>
+                <span class="n">field_func</span><span class="p">,</span> <span class="n">R_grid</span><span class="p">,</span> <span class="n">Z_grid</span><span class="p">,</span>
+                <span class="n">phi0</span><span class="o">=</span><span class="n">phi0</span><span class="p">,</span>
+                <span class="n">t_max</span><span class="o">=</span><span class="n">ftle_turns</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">threshold_pct</span> <span class="o">=</span> <span class="mf">75.0</span> <span class="k">if</span> <span class="n">ftle_threshold</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">ftle_threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># convert absolute threshold to percentile</span>
+                <span class="n">threshold_pct</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
+                    <span class="mf">100.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ftle_arr</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">ftle_arr</span><span class="p">)]</span>
+                                    <span class="o">&lt;=</span> <span class="n">ftle_threshold</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">chaos_R</span><span class="p">,</span> <span class="n">chaos_Z</span> <span class="o">=</span> <span class="n">chaotic_boundary_estimate</span><span class="p">(</span>
+                <span class="n">ftle_arr</span><span class="p">,</span> <span class="n">R_grid</span><span class="p">,</span> <span class="n">Z_grid</span><span class="p">,</span>
+                <span class="n">threshold_percentile</span><span class="o">=</span><span class="n">threshold_pct</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;FTLE done. Chaotic boundary threshold = </span><span class="si">{</span><span class="n">threshold</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">warn_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;FTLE computation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;FTLE failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Step 2 – q-profile estimation for the main regular zone</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="n">_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Estimating q-profile (</span><span class="si">{</span><span class="n">n_q_radial</span><span class="si">}</span><span class="s2"> radial pts, </span><span class="si">{</span><span class="n">n_q_turns</span><span class="si">}</span><span class="s2"> turns)...&quot;</span><span class="p">)</span>
+    <span class="n">R_inner</span> <span class="o">=</span> <span class="n">R_axis</span> <span class="o">+</span> <span class="mf">0.02</span> <span class="o">*</span> <span class="p">(</span><span class="n">R_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">R_axis</span><span class="p">)</span>
+    <span class="n">R_outer</span> <span class="o">=</span> <span class="n">R_axis</span> <span class="o">+</span> <span class="mf">0.92</span> <span class="o">*</span> <span class="p">(</span><span class="n">R_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">R_axis</span><span class="p">)</span>
+    <span class="n">S_vals</span><span class="p">,</span> <span class="n">q_vals</span> <span class="o">=</span> <span class="n">_q_profile_from_fieldlines</span><span class="p">(</span>
+        <span class="n">field_func</span><span class="p">,</span> <span class="n">R_axis</span><span class="p">,</span> <span class="n">Z_axis</span><span class="p">,</span>
+        <span class="n">R_range</span><span class="o">=</span><span class="p">(</span><span class="n">R_inner</span><span class="p">,</span> <span class="n">R_outer</span><span class="p">),</span>
+        <span class="n">phi0</span><span class="o">=</span><span class="n">phi0</span><span class="p">,</span>
+        <span class="n">n_radial</span><span class="o">=</span><span class="n">n_q_radial</span><span class="p">,</span>
+        <span class="n">n_turns</span><span class="o">=</span><span class="n">n_q_turns</span><span class="p">,</span>
+        <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># Mask NaN and clip to q_range</span>
+    <span class="n">valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">q_vals</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">q_vals</span> <span class="o">&gt;=</span> <span class="n">q_range</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">q_vals</span> <span class="o">&lt;=</span> <span class="n">q_range</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">valid</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">warn_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Fewer than 4 valid q values; q-profile may be unreliable.&quot;</span><span class="p">)</span>
+    <span class="n">S_valid</span> <span class="o">=</span> <span class="n">S_vals</span><span class="p">[</span><span class="n">valid</span><span class="p">]</span>
+    <span class="n">q_valid</span> <span class="o">=</span> <span class="n">q_vals</span><span class="p">[</span><span class="n">valid</span><span class="p">]</span>
+
+    <span class="n">main_zone</span> <span class="o">=</span> <span class="n">RegularZone</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;core&quot;</span><span class="p">,</span>
+        <span class="n">S_range</span><span class="o">=</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">S_valid</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">S_valid</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+                 <span class="nb">float</span><span class="p">(</span><span class="n">S_valid</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">S_valid</span><span class="p">)</span> <span class="k">else</span> <span class="mf">1.0</span><span class="p">),</span>
+        <span class="n">q_profile_S</span><span class="o">=</span><span class="n">S_valid</span><span class="p">,</span>
+        <span class="n">q_profile</span><span class="o">=</span><span class="n">q_valid</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;q range in core: [</span><span class="si">{</span><span class="n">q_valid</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">q_valid</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">]&quot;</span>
+         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">q_valid</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;q profile empty&quot;</span><span class="p">)</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Step 3 – Locate rational surfaces + island half-widths</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="n">_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Locating rational surfaces (m≤</span><span class="si">{</span><span class="n">island_m_max</span><span class="si">}</span><span class="s2">, n≤</span><span class="si">{</span><span class="n">island_n_max</span><span class="si">}</span><span class="s2">)...&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">S_valid</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">rational</span> <span class="o">=</span> <span class="n">locate_all_rational_surfaces</span><span class="p">(</span>
+            <span class="n">S_valid</span><span class="p">,</span> <span class="n">q_valid</span><span class="p">,</span>
+            <span class="n">m_max</span><span class="o">=</span><span class="n">island_m_max</span><span class="p">,</span>
+            <span class="n">n_max</span><span class="o">=</span><span class="n">island_n_max</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rational</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">warn_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Not enough valid q points to locate rational surfaces.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Collect (m, n, S_res, q_res) tuples, sorted by S_res</span>
+    <span class="n">surface_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">m_key</span><span class="p">,</span> <span class="n">n_dict</span> <span class="ow">in</span> <span class="n">rational</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">m_key</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">n_key</span><span class="p">,</span> <span class="n">S_list</span> <span class="ow">in</span> <span class="n">n_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">S_r</span> <span class="ow">in</span> <span class="n">S_list</span><span class="p">:</span>
+                <span class="c1"># interpolate q at S_r</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">S_valid</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">q_r</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">UnivariateSpline</span><span class="p">(</span><span class="n">S_valid</span><span class="p">,</span> <span class="n">q_valid</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)(</span><span class="n">S_r</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">q_r</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">m_key</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">n_key</span><span class="p">)</span>
+                <span class="n">surface_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">int</span><span class="p">(</span><span class="n">m_key</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_key</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">S_r</span><span class="p">),</span> <span class="n">q_r</span><span class="p">))</span>
+    <span class="n">surface_list</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>  <span class="c1"># sort by S_res</span>
+
+    <span class="n">_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">surface_list</span><span class="p">)</span><span class="si">}</span><span class="s2"> rational surfaces.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Step 4 – Fixed-point Newton solver + monodromy</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="n">ff2d</span> <span class="o">=</span> <span class="n">_make_field_func_2d</span><span class="p">(</span><span class="n">field_func</span><span class="p">)</span>
+    <span class="n">all_fixed_points</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FixedPointInfo</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">island_chains</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">IslandChain</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">RZlimit</span> <span class="o">=</span> <span class="p">(</span><span class="n">R_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">R_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">Z_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Z_range</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">mn_idx</span><span class="p">,</span> <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">S_r</span><span class="p">,</span> <span class="n">q_r</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">surface_list</span><span class="p">):</span>
+        <span class="n">_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  q=</span><span class="si">{</span><span class="n">m</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">  S=</span><span class="si">{</span><span class="n">S_r</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">  q_est=</span><span class="si">{</span><span class="n">q_r</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">half_w</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">fps_this</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FixedPointInfo</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">find_fixed_points</span><span class="p">:</span>
+            <span class="c1"># Build a minimal &quot;equilibrium-like&quot; proxy for find_all_cycles</span>
+            <span class="k">class</span><span class="w"> </span><span class="nc">_Proxy</span><span class="p">:</span>
+                <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">R0</span> <span class="o">=</span> <span class="n">R_axis</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">r0</span> <span class="o">=</span> <span class="n">R_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">R_axis</span>
+                <span class="k">def</span><span class="w"> </span><span class="nf">resonant_psi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_m</span><span class="p">,</span> <span class="n">_n</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="p">[</span><span class="n">S_r</span> <span class="o">**</span> <span class="mi">2</span><span class="p">]</span>  <span class="c1"># S² ≈ ψ_norm proxy</span>
+
+            <span class="n">proxy</span> <span class="o">=</span> <span class="n">_Proxy</span><span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.toroidal_cycle</span><span class="w"> </span><span class="kn">import</span> <span class="n">find_all_cycles_near_resonance</span>
+                <span class="n">orbits</span> <span class="o">=</span> <span class="n">find_all_cycles_near_resonance</span><span class="p">(</span>
+                    <span class="n">field_func</span><span class="p">,</span> <span class="n">proxy</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span>
+                    <span class="n">n_seeds</span><span class="o">=</span><span class="n">n_island_seeds</span><span class="p">,</span>
+                    <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span>
+                    <span class="n">RZlimit</span><span class="o">=</span><span class="n">RZlimit</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    → </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">orbits</span><span class="p">)</span><span class="si">}</span><span class="s2"> orbits found&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">orb</span> <span class="ow">in</span> <span class="n">orbits</span><span class="p">:</span>
+                    <span class="n">fp</span> <span class="o">=</span> <span class="n">_classify_and_collect_orbit</span><span class="p">(</span>
+                        <span class="n">orb</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">ff2d</span><span class="p">,</span> <span class="n">phi0</span><span class="o">=</span><span class="n">phi0</span><span class="p">,</span> <span class="n">fd_eps</span><span class="o">=</span><span class="n">fp_fd_eps</span>
+                    <span class="p">)</span>
+                    <span class="n">fps_this</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+                    <span class="n">all_fixed_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">warn_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fixed-point search failed for q=</span><span class="si">{</span><span class="n">m</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    → fixed-point search error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Rough half-width from S spacing (fallback)</span>
+        <span class="n">half_w</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">/</span> <span class="p">(</span><span class="n">island_m_max</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="k">if</span> <span class="n">half_w</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="n">half_w</span>
+
+        <span class="n">chain</span> <span class="o">=</span> <span class="n">IslandChain</span><span class="p">(</span>
+            <span class="n">m</span><span class="o">=</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span>
+            <span class="n">S_res</span><span class="o">=</span><span class="n">S_r</span><span class="p">,</span> <span class="n">q_res</span><span class="o">=</span><span class="n">q_r</span><span class="p">,</span>
+            <span class="n">half_width</span><span class="o">=</span><span class="n">half_w</span><span class="p">,</span>
+            <span class="n">fixed_points</span><span class="o">=</span><span class="n">fps_this</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">island_chains</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span>
+        <span class="n">main_zone</span><span class="o">.</span><span class="n">island_chains</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Step 5 – Chirikov overlap between adjacent chains</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">island_chains</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">S_res</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">island_chains</span><span class="p">])</span>
+        <span class="n">widths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">half_width</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">island_chains</span><span class="p">])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sigma_arr</span> <span class="o">=</span> <span class="n">chirikov_overlap</span><span class="p">(</span><span class="n">widths</span><span class="p">,</span> <span class="n">positions</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">chain</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">island_chains</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="n">chain</span><span class="o">.</span><span class="n">chirikov_sigma</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">sigma_arr</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">warn_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Chirikov overlap computation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Step 6 – Island-around-island recursion (depth &gt; 1)</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="k">if</span> <span class="n">island_depth</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">chain</span> <span class="ow">in</span> <span class="n">island_chains</span><span class="p">:</span>
+            <span class="n">_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Sub-island search inside q=</span><span class="si">{</span><span class="n">chain</span><span class="o">.</span><span class="n">m</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">chain</span><span class="o">.</span><span class="n">n</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+            <span class="c1"># Define a new q-profile inside the island</span>
+            <span class="n">r_island</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">S_res</span> <span class="o">*</span> <span class="p">(</span><span class="n">R_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">R_axis</span><span class="p">)</span>
+            <span class="n">R_sub_inner</span> <span class="o">=</span> <span class="n">R_axis</span> <span class="o">+</span> <span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">S_res</span> <span class="o">-</span> <span class="n">chain</span><span class="o">.</span><span class="n">half_width</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">R_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">R_axis</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.01</span>
+            <span class="n">R_sub_outer</span> <span class="o">=</span> <span class="n">R_axis</span> <span class="o">+</span> <span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">S_res</span> <span class="o">+</span> <span class="n">chain</span><span class="o">.</span><span class="n">half_width</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">R_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">R_axis</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.01</span>
+            <span class="k">if</span> <span class="n">R_sub_inner</span> <span class="o">&gt;=</span> <span class="n">R_sub_outer</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">S_sub</span><span class="p">,</span> <span class="n">q_sub</span> <span class="o">=</span> <span class="n">_q_profile_from_fieldlines</span><span class="p">(</span>
+                <span class="n">field_func</span><span class="p">,</span> <span class="n">R_axis</span><span class="p">,</span> <span class="n">Z_axis</span><span class="p">,</span>
+                <span class="n">R_range</span><span class="o">=</span><span class="p">(</span><span class="n">R_sub_inner</span><span class="p">,</span> <span class="n">R_sub_outer</span><span class="p">),</span>
+                <span class="n">phi0</span><span class="o">=</span><span class="n">phi0</span><span class="p">,</span>
+                <span class="n">n_radial</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="n">n_q_radial</span> <span class="o">//</span> <span class="mi">2</span><span class="p">),</span>
+                <span class="n">n_turns</span><span class="o">=</span><span class="n">n_q_turns</span><span class="p">,</span>
+                <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">valid_sub</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">q_sub</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">valid_sub</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">sub_rational</span> <span class="o">=</span> <span class="n">locate_all_rational_surfaces</span><span class="p">(</span>
+                <span class="n">S_sub</span><span class="p">[</span><span class="n">valid_sub</span><span class="p">],</span> <span class="n">q_sub</span><span class="p">[</span><span class="n">valid_sub</span><span class="p">],</span>
+                <span class="n">m_max</span><span class="o">=</span><span class="n">island_m_max</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="n">n_max</span><span class="o">=</span><span class="n">island_n_max</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">m2</span><span class="p">,</span> <span class="n">n2_dict</span> <span class="ow">in</span> <span class="n">sub_rational</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">m2</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">for</span> <span class="n">n2</span><span class="p">,</span> <span class="n">S2_list</span> <span class="ow">in</span> <span class="n">n2_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">for</span> <span class="n">S2</span> <span class="ow">in</span> <span class="n">S2_list</span><span class="p">:</span>
+                        <span class="n">child</span> <span class="o">=</span> <span class="n">IslandChain</span><span class="p">(</span>
+                            <span class="n">m</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">m2</span><span class="p">),</span> <span class="n">n</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">n2</span><span class="p">),</span>
+                            <span class="n">S_res</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">S2</span><span class="p">),</span> <span class="n">q_res</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">m2</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">n2</span><span class="p">),</span>
+                            <span class="n">half_width</span><span class="o">=</span><span class="n">chain</span><span class="o">.</span><span class="n">half_width</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">,</span>
+                        <span class="p">)</span>
+                        <span class="n">chain</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+            <span class="n">_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    → </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">children</span><span class="p">)</span><span class="si">}</span><span class="s2"> sub-islands found&quot;</span><span class="p">)</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Assemble and return</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="n">TopologyReport</span><span class="p">(</span>
+        <span class="n">field_func</span><span class="o">=</span><span class="n">field_func</span><span class="p">,</span>
+        <span class="n">phi_sections</span><span class="o">=</span><span class="n">phi_sections</span><span class="p">,</span>
+        <span class="n">ftle</span><span class="o">=</span><span class="n">ftle_arr</span><span class="p">,</span>
+        <span class="n">R_grid</span><span class="o">=</span><span class="n">R_grid</span><span class="p">,</span>
+        <span class="n">Z_grid</span><span class="o">=</span><span class="n">Z_grid</span><span class="p">,</span>
+        <span class="n">chaotic_boundary_R</span><span class="o">=</span><span class="n">chaos_R</span><span class="p">,</span>
+        <span class="n">chaotic_boundary_Z</span><span class="o">=</span><span class="n">chaos_Z</span><span class="p">,</span>
+        <span class="n">regular_zones</span><span class="o">=</span><span class="p">[</span><span class="n">main_zone</span><span class="p">],</span>
+        <span class="n">all_fixed_points</span><span class="o">=</span><span class="n">all_fixed_points</span><span class="p">,</span>
+        <span class="n">warnings</span><span class="o">=</span><span class="n">warn_list</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">_log</span><span class="p">(</span><span class="s2">&quot;Analysis complete.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">report</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

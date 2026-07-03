@@ -1,0 +1,1405 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.topo.dynamics &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/topo/dynamics';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../topo.html" class="nav-link">pyna.topo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.topo.dynamics</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.topo.dynamics</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;pyna.topo.dynamics -- Base classes for dynamical systems.</span>
+
+<span class="sd">This module defines the abstract foundations of the class hierarchy:</span>
+<span class="sd">  PhaseSpace, DynamicalSystem, ContinuousFlow, DiscreteMap, PoincareMap.</span>
+
+<span class="sd">These are intentionally abstract / thin — the mathematics says &quot;there exists</span>
+<span class="sd">a flow φ^t&quot;, not &quot;the flow is computed by this specific ODE solver&quot;.</span>
+<span class="sd">Concrete subclasses live in pyna.toroidal and other domain packages</span>
+<span class="sd">(magnetic field line systems, Hamiltonian flows, etc.),</span>
+<span class="sd">pyna.Hamiltonian, etc.</span>
+
+<span class="sd">Layer 0 in the pyna.topo architecture (see ARCHITECTURE.md).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna._cyna.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">prepare_field_cache</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.section</span><span class="w"> </span><span class="kn">import</span> <span class="n">Section</span>
+
+
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+<span class="c1"># Phase space</span>
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="viewcode-block" id="PhaseSpace">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PhaseSpace">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PhaseSpace</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The ambient space where the dynamics lives.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dim : int</span>
+<span class="sd">        Dimension of the phase space.</span>
+<span class="sd">    coordinate_names : tuple of str, optional</span>
+<span class="sd">        Names for coordinates (e.g. (&#39;R&#39;, &#39;Z&#39;) for MCF field lines).</span>
+<span class="sd">    symplectic : bool</span>
+<span class="sd">        True when the phase space carries a symplectic structure</span>
+<span class="sd">        (i.e. dim is even and the flow preserves a symplectic form).</span>
+<span class="sd">    label : str, optional</span>
+<span class="sd">        Human-readable label.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    MCF field-line phase space (2D, R and Z):</span>
+<span class="sd">        MCF2D = PhaseSpace(dim=2, coordinate_names=(&#39;R&#39;, &#39;Z&#39;), label=&#39;MCF poloidal&#39;)</span>
+
+<span class="sd">    Guiding-centre phase space (4D):</span>
+<span class="sd">        GC4D = PhaseSpace(dim=4, coordinate_names=(&#39;R&#39;, &#39;Z&#39;, &#39;pR&#39;, &#39;pZ&#39;),</span>
+<span class="sd">                          symplectic=True, label=&#39;Guiding centre&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="PhaseSpace.dim">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PhaseSpace.dim">[docs]</a>
+    <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="PhaseSpace.coordinate_names">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PhaseSpace.coordinate_names">[docs]</a>
+    <span class="n">coordinate_names</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="PhaseSpace.symplectic">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PhaseSpace.symplectic">[docs]</a>
+    <span class="n">symplectic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="PhaseSpace.label">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PhaseSpace.label">[docs]</a>
+    <span class="n">label</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinate_names</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinate_names</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;coordinate_names length </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinate_names</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;must equal dim=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="PhaseSpace.zero">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PhaseSpace.zero">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">zero</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the zero vector in this phase space.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">lbl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;dim=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;PhaseSpace(</span><span class="si">{</span><span class="n">lbl</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+
+
+
+<span class="c1"># Standard phase spaces</span>
+<div class="viewcode-block" id="MCF_2D">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/dynamics/index.html#pyna.topo.dynamics.MCF_2D">[docs]</a>
+<span class="n">MCF_2D</span> <span class="o">=</span> <span class="n">PhaseSpace</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">coordinate_names</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;MCF 2D (R,Z)&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GC_4D">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/dynamics/index.html#pyna.topo.dynamics.GC_4D">[docs]</a>
+<span class="n">GC_4D</span>  <span class="o">=</span> <span class="n">PhaseSpace</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">coordinate_names</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;pR&#39;</span><span class="p">,</span> <span class="s1">&#39;pZ&#39;</span><span class="p">),</span>
+                    <span class="n">symplectic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Guiding centre 4D&#39;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+<span class="c1"># Dynamical system (abstract base)</span>
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+
+<div class="viewcode-block" id="DynamicalSystem">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.DynamicalSystem">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DynamicalSystem</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract base for a dynamical system on a PhaseSpace.</span>
+
+<span class="sd">    A Dynamical system is the pair (PhaseSpace, evolution rule).</span>
+<span class="sd">    The evolution rule can be a continuous flow φ^t or a discrete map P.</span>
+
+<span class="sd">    Subclasses implement either:</span>
+<span class="sd">      flow(x, t)  → x&#39; = φ^t(x)      for ContinuousFlow</span>
+<span class="sd">      step(x)     → x&#39; = P(x)         for DiscreteMap</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="DynamicalSystem.phase_space">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.DynamicalSystem.phase_space">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhaseSpace</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The phase space this system lives in.&quot;&quot;&quot;</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="DynamicalSystem.dim">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.DynamicalSystem.dim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_space</span><span class="o">.</span><span class="n">dim</span></div>
+
+
+<div class="viewcode-block" id="DynamicalSystem.make_poincare_map">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.DynamicalSystem.make_poincare_map">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">make_poincare_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">:</span> <span class="s2">&quot;Section&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;PoincareMap&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct the Poincaré return map to a given Section.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        section : Section</span>
+<span class="sd">            The Poincaré section (codim-1 surface).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        PoincareMap</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.factories</span><span class="w"> </span><span class="kn">import</span> <span class="n">PoincareMapFactory</span>
+
+        <span class="k">return</span> <span class="n">PoincareMapFactory</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="o">=</span><span class="n">section</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(phase_space=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_space</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+
+
+
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+<span class="c1"># Continuous flow</span>
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+
+<div class="viewcode-block" id="ContinuousFlow">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.ContinuousFlow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ContinuousFlow</span><span class="p">(</span><span class="n">DynamicalSystem</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A dynamical system defined by a continuous-time flow φ^t.</span>
+
+<span class="sd">    The flow satisfies:</span>
+<span class="sd">        d/dt φ^t(x) = f(φ^t(x), t)</span>
+<span class="sd">    where f is the vector field.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="ContinuousFlow.vector_field">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.ContinuousFlow.vector_field">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">vector_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Vector field f(x, t) at phase-space point x and time t.</span>
+
+<span class="sd">        Returns an array of shape (dim,).</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="ContinuousFlow.flow">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.ContinuousFlow.flow">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">flow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Integrate the flow from x0 for time t.</span>
+
+<span class="sd">        Default: RK4 integration.  Override for faster / specialised solvers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo._rk4</span><span class="w"> </span><span class="kn">import</span> <span class="n">rk4_integrate</span>
+        <span class="c1"># rk4_integrate signature: f(t, x) → dx/dt, returns x(t)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">f</span><span class="p">(</span><span class="n">t_</span><span class="p">,</span> <span class="n">x_</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vector_field</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x_</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">t_</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">rk4_integrate</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">t_span</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">t</span><span class="p">),</span> <span class="n">y0</span><span class="o">=</span><span class="n">x0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ContinuousFlow.is_time_reversible">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.ContinuousFlow.is_time_reversible">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_time_reversible</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;True when the flow has a time-reversal symmetry.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="HamiltonianFlow">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.HamiltonianFlow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HamiltonianFlow</span><span class="p">(</span><span class="n">ContinuousFlow</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A symplectic (Hamiltonian) continuous flow.</span>
+
+<span class="sd">    H(q, p) generates the flow via Hamilton&#39;s equations:</span>
+<span class="sd">        dq/dt = ∂H/∂p,   dp/dt = -∂H/∂q</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="HamiltonianFlow.hamiltonian">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.HamiltonianFlow.hamiltonian">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">hamiltonian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The Hamiltonian H(q, p, t).&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="HamiltonianFlow.vector_field">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.HamiltonianFlow.vector_field">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">vector_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Hamilton&#39;s equations via finite-difference ∂H/∂x.&quot;&quot;&quot;</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="n">eps</span> <span class="o">=</span> <span class="mf">1e-5</span>
+        <span class="n">dH</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">):</span>
+            <span class="n">xp</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">();</span> <span class="n">xp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">eps</span>
+            <span class="n">xm</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">();</span> <span class="n">xm</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-=</span> <span class="n">eps</span>
+            <span class="n">dH</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hamiltonian</span><span class="p">(</span><span class="n">xp</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">hamiltonian</span><span class="p">(</span><span class="n">xm</span><span class="p">,</span> <span class="n">t</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">eps</span><span class="p">)</span>
+        <span class="c1"># q = x[:n], p = x[n:]</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span>
+        <span class="n">f</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span>  <span class="n">dH</span><span class="p">[</span><span class="n">n</span><span class="p">:]</span>   <span class="c1"># dq/dt = +∂H/∂p</span>
+        <span class="n">f</span><span class="p">[</span><span class="n">n</span><span class="p">:]</span> <span class="o">=</span> <span class="o">-</span><span class="n">dH</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span>   <span class="c1"># dp/dt = -∂H/∂q</span>
+        <span class="k">return</span> <span class="n">f</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="HamiltonianFlow.is_time_reversible">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.HamiltonianFlow.is_time_reversible">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_time_reversible</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MagneticFieldLine">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MagneticFieldLine">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MagneticFieldLine</span><span class="p">(</span><span class="n">ContinuousFlow</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Continuous flow along magnetic field lines.</span>
+
+<span class="sd">    The ODE is  dx/dφ = (R·B_pol) / B_φ  projected to the (R,Z) poloidal plane.</span>
+<span class="sd">    The &#39;time&#39; parameter is the toroidal angle φ.</span>
+
+<span class="sd">    This is the base for MCF field-line topology computations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="MagneticFieldLine.phase_space">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MagneticFieldLine.phase_space">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhaseSpace</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">MCF_2D</span></div>
+
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="MagneticFieldLine.field">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MagneticFieldLine.field">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return (B_R, B_Z, B_phi) at (R, Z, φ).&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="MagneticFieldLine.vector_field">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MagneticFieldLine.vector_field">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">vector_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;RHS of field-line ODE: dx/dφ = [R·B_R/B_φ, R·B_Z/B_φ].&quot;&quot;&quot;</span>
+        <span class="n">R</span><span class="p">,</span> <span class="n">Z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">BR</span><span class="p">,</span> <span class="n">BZ</span><span class="p">,</span> <span class="n">BPhi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">BPhi</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-30</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">R</span> <span class="o">*</span> <span class="n">BR</span> <span class="o">/</span> <span class="n">BPhi</span><span class="p">,</span> <span class="n">R</span> <span class="o">*</span> <span class="n">BZ</span> <span class="o">/</span> <span class="n">BPhi</span><span class="p">])</span></div>
+</div>
+
+
+
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+<span class="c1"># Discrete map</span>
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+
+<div class="viewcode-block" id="DiscreteMap">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.DiscreteMap">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DiscreteMap</span><span class="p">(</span><span class="n">DynamicalSystem</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A dynamical system defined by a discrete map P: x → P(x).</span>
+
+<span class="sd">    Examples: standard map, Hénon map, Poincaré return map.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="DiscreteMap.step">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.DiscreteMap.step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply the map once: x → P(x).&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="DiscreteMap.iterate">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.DiscreteMap.iterate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">iterate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return P^n(x0) (n applications of the map).&quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span></div>
+
+
+<div class="viewcode-block" id="DiscreteMap.orbit">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.DiscreteMap.orbit">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">orbit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the orbit [x0, P(x0), P²(x0), ..., P^n(x0)].</span>
+
+<span class="sd">        Returns array of shape (n_iter+1, dim).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()]</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_iter</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">pts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="StandardMap">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.StandardMap">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StandardMap</span><span class="p">(</span><span class="n">DiscreteMap</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The Chirikov standard map (twist map on the 2-torus).</span>
+
+<span class="sd">    P: (θ, I) → (θ + I + K·sin(θ)  mod 2π,  I + K·sin(θ))</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    K : float</span>
+<span class="sd">        Nonlinearity parameter (K=0: integrable; K≳1: stochastic).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">K</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<div class="viewcode-block" id="StandardMap.K">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/topo/dynamics/index.html#pyna.topo.dynamics.StandardMap.K">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">K</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">K</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="StandardMap.phase_space">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.StandardMap.phase_space">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhaseSpace</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">PhaseSpace</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">coordinate_names</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">),</span>
+                          <span class="n">symplectic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Standard map (K=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">K</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="StandardMap.step">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.StandardMap.step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">theta</span><span class="p">,</span> <span class="n">I</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">I_new</span> <span class="o">=</span> <span class="n">I</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">K</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+        <span class="n">theta_new</span> <span class="o">=</span> <span class="p">(</span><span class="n">theta</span> <span class="o">+</span> <span class="n">I_new</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">theta_new</span><span class="p">,</span> <span class="n">I_new</span><span class="p">])</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="PoincareMap">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PoincareMap">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PoincareMap</span><span class="p">(</span><span class="n">DiscreteMap</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The Poincaré return map of a ContinuousFlow to a Section.</span>
+
+<span class="sd">    P(x₀) = φ^{T(x₀)}(x₀)  where T(x₀) is the first return time.</span>
+
+<span class="sd">    This bridges the continuous and discrete layers: given a ContinuousFlow</span>
+<span class="sd">    and a Section, the PoincareMap is the canonical DiscreteMap.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    flow : ContinuousFlow</span>
+<span class="sd">        The underlying continuous-time system.</span>
+<span class="sd">    section : Section</span>
+<span class="sd">        The Poincaré section.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">:</span> <span class="n">ContinuousFlow</span><span class="p">,</span> <span class="n">section</span><span class="p">:</span> <span class="s2">&quot;Section&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_flow</span> <span class="o">=</span> <span class="n">flow</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_section</span> <span class="o">=</span> <span class="n">section</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="PoincareMap.flow">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PoincareMap.flow">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">flow</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ContinuousFlow</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flow</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="PoincareMap.section">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PoincareMap.section">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">section</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Section&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_section</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="PoincareMap.phase_space">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PoincareMap.phase_space">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhaseSpace</span><span class="p">:</span>
+        <span class="c1"># The map acts on the section (dim - 1)</span>
+        <span class="n">ps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flow</span><span class="o">.</span><span class="n">phase_space</span>
+        <span class="k">return</span> <span class="n">PhaseSpace</span><span class="p">(</span>
+            <span class="n">dim</span><span class="o">=</span><span class="n">ps</span><span class="o">.</span><span class="n">dim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">coordinate_names</span><span class="o">=</span><span class="n">ps</span><span class="o">.</span><span class="n">coordinate_names</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">ps</span><span class="o">.</span><span class="n">coordinate_names</span> <span class="k">else</span> <span class="p">(),</span>
+            <span class="n">symplectic</span><span class="o">=</span><span class="n">ps</span><span class="o">.</span><span class="n">symplectic</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Poincaré section of </span><span class="si">{</span><span class="n">ps</span><span class="o">.</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PoincareMap.step">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.PoincareMap.step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Not generically implemented — requires flow integration to section.</span>
+
+<span class="sd">        Concrete MCF implementations override this via cyna field-line tracing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;PoincareMap.step requires a concrete integration method. &quot;</span>
+            <span class="s2">&quot;Use a subclass (e.g. MCFPoincareMap) that implements &quot;</span>
+            <span class="s2">&quot;field-line tracing to the section.&quot;</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+<span class="c1"># MCF concrete Poincaré map  (cyna-accelerated)</span>
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+
+<div class="viewcode-block" id="MCFPoincareMap">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MCFPoincareMap">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MCFPoincareMap</span><span class="p">(</span><span class="n">DiscreteMap</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Poincaré return map for toroidal field-line tracing, backed by cyna C++.</span>
+
+<span class="sd">    This is the concrete toroidal implementation of :class:`PoincareMap`.</span>
+<span class="sd">    Instead of ODE integration via scipy.solve_ivp, it uses the cyna C++</span>
+<span class="sd">    extension (``pyna._cyna``) for fast parallel field-line tracing.</span>
+
+<span class="sd">    The map P: (R, Z) → (R&#39;, Z&#39;) traces a field line from section</span>
+<span class="sd">    ``phi_section`` for exactly ``n_turns`` toroidal turns and returns the</span>
+<span class="sd">    next intersection with the same section.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    field_cache : VectorFieldCylind-compatible object or dict</span>
+<span class="sd">        Prefer a cylindrical vector field. Legacy field-cache dicts use:</span>
+<span class="sd">        ``&#39;BR&#39;, &#39;BZ&#39;, &#39;BPhi&#39;``  — 3-D arrays (NR, NZ, NPhi)</span>
+<span class="sd">        ``&#39;R_grid&#39;, &#39;Z_grid&#39;, &#39;Phi_grid&#39;``  — 1-D coordinate arrays</span>
+<span class="sd">    Np : int</span>
+<span class="sd">        Field toroidal periodicity (stellarator period).</span>
+<span class="sd">    phi_section : float</span>
+<span class="sd">        Toroidal angle of the Poincaré section [rad].</span>
+<span class="sd">    n_turns : int</span>
+<span class="sd">        Number of toroidal turns per map application (default 1).</span>
+<span class="sd">    DPhi : float</span>
+<span class="sd">        cyna RK4 step size [rad] (default 0.05).</span>
+<span class="sd">    n_threads : int</span>
+<span class="sd">        Number of parallel cyna threads (0 = auto).</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; pm = MCFPoincareMap(field_cache, Np=2, phi_section=0.0)</span>
+<span class="sd">    &gt;&gt;&gt; R1, Z1 = pm.step(np.array([1.5, 0.0]))  # one-turn map</span>
+<span class="sd">    &gt;&gt;&gt; cloud = pm.poincare_trace(R_arr, Z_arr, n_turns=200)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">field_cache</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">Np</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">phi_section</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">n_turns</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">DPhi</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+        <span class="n">n_threads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fc</span> <span class="o">=</span> <span class="n">prepare_field_cache</span><span class="p">(</span><span class="n">field_cache</span><span class="p">,</span> <span class="n">extend_phi</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Np</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">Np</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phi_section</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">phi_section</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n_turns</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_turns</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_DPhi</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">DPhi</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n_threads</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_threads</span><span class="p">)</span>
+
+        <span class="c1"># Pre-process field arrays (extend phi periodicity)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_BR_c</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_BZ_c</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_BPhi_c</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Rg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Zg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Pg</span> <span class="o">=</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_arrays</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fc</span><span class="p">)</span>
+
+    <span class="c1"># ── Array preparation ─────────────────────────────────────────────────────</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_prepare_arrays</span><span class="p">(</span><span class="n">fc</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ensure cyna-ready arrays in canonical BR, BZ, BPhi order.&quot;&quot;&quot;</span>
+
+        <span class="n">fc</span> <span class="o">=</span> <span class="n">prepare_field_cache</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">extend_phi</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">BR_c</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">fc</span><span class="p">[</span><span class="s1">&#39;BR&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">BZ_c</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">fc</span><span class="p">[</span><span class="s1">&#39;BZ&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">BPhi_c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">fc</span><span class="p">[</span><span class="s1">&#39;BPhi&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">Rg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">fc</span><span class="p">[</span><span class="s1">&#39;R_grid&#39;</span><span class="p">],</span>  <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">Zg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">fc</span><span class="p">[</span><span class="s1">&#39;Z_grid&#39;</span><span class="p">],</span>  <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">Pg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">fc</span><span class="p">[</span><span class="s1">&#39;Phi_grid&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">BR_c</span><span class="p">,</span> <span class="n">BZ_c</span><span class="p">,</span> <span class="n">BPhi_c</span><span class="p">,</span> <span class="n">Rg</span><span class="p">,</span> <span class="n">Zg</span><span class="p">,</span> <span class="n">Pg</span>
+
+    <span class="c1"># ── Properties ────────────────────────────────────────────────────────────</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="MCFPoincareMap.field_cache">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.field_cache">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">field_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The prepared field cache dict (BR, BZ, BPhi, grids).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fc</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="MCFPoincareMap.Np">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.Np">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">Np</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Field toroidal periodicity.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Np</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="MCFPoincareMap.phi_section">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.phi_section">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phi_section</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Toroidal angle of the Poincaré section [rad].&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phi_section</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="MCFPoincareMap.n_turns">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.n_turns">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">n_turns</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Number of toroidal turns per map application.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_turns</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="MCFPoincareMap.phase_space">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.phase_space">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;PhaseSpace&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;MCF 2D phase space (R, Z).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">MCF_2D</span></div>
+
+
+    <span class="c1"># ── DiscreteMap interface ─────────────────────────────────────────────────</span>
+
+<div class="viewcode-block" id="MCFPoincareMap.step">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply the Poincaré map once: (R, Z) → P(R, Z).</span>
+
+<span class="sd">        Uses cyna ``trace_poincare_batch`` to trace one field-line turn</span>
+<span class="sd">        from ``phi_section`` and return the next crossing.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : ndarray of shape (2,)</span>
+<span class="sd">            Initial point (R, Z) on the section.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ndarray of shape (2,)</span>
+<span class="sd">            Next crossing (R&#39;, Z&#39;), or (nan, nan) if lost.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">R_out</span><span class="p">,</span> <span class="n">Z_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_step</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]]))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">R_out</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">Z_out</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span></div>
+
+
+<div class="viewcode-block" id="MCFPoincareMap.step_n">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.step_n">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step_n</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply the map n times: x → P^n(x).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : ndarray of shape (2,)</span>
+<span class="sd">        n : int</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ndarray of shape (2,)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">pt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">pt</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">pt</span><span class="p">)):</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">pt</span></div>
+
+
+<div class="viewcode-block" id="MCFPoincareMap.poincare_trace">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.MCFPoincareMap.poincare_trace">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">poincare_trace</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">R_arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">Z_arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">n_turns</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Batch Poincaré trace for multiple starting points.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        R_arr, Z_arr : ndarray of shape (N,)</span>
+<span class="sd">            Starting (R, Z) positions on the section.</span>
+<span class="sd">        n_turns : int</span>
+<span class="sd">            Number of Poincaré iterations to collect.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        (R_out, Z_out) : tuple of ndarray, each shape (N, n_turns)</span>
+<span class="sd">            Poincaré crossing arrays for each seed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">pyna._cyna</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_cyna</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">_cyna</span><span class="o">.</span><span class="n">trace_poincare_batch</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">R_arr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">Z_arr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+                <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_phi_section</span><span class="p">),</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">n_turns</span><span class="p">),</span>
+                <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_DPhi</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_BR_c</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_BZ_c</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_BPhi_c</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_Rg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Zg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Pg</span><span class="p">,</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+                <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_threads</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="n">n_seeds</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">R_arr</span><span class="p">)</span>
+            <span class="n">R_out</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_seeds</span><span class="p">,</span> <span class="n">n_turns</span><span class="p">)</span>
+            <span class="n">Z_out</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_seeds</span><span class="p">,</span> <span class="n">n_turns</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">R_out</span><span class="p">,</span> <span class="n">Z_out</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;MCFPoincareMap.poincare_trace: cyna trace failed: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_batch_step</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">R_arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">Z_arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Internal: one-turn batch step for N points.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">pyna._cyna</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_cyna</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">_cyna</span><span class="o">.</span><span class="n">trace_poincare_batch</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">R_arr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">Z_arr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+                <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_phi_section</span><span class="p">),</span>
+                <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_turns</span><span class="p">),</span>
+                <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_DPhi</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_BR_c</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_BZ_c</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_BPhi_c</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_Rg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Zg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Pg</span><span class="p">,</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+                <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_threads</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="n">n_seeds</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">R_arr</span><span class="p">)</span>
+            <span class="n">R_out_full</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_seeds</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_turns</span><span class="p">)</span>
+            <span class="n">Z_out_full</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_seeds</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_turns</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">R_out_full</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">R_out_full</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">Z_out_full</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">R_out_full</span><span class="p">,</span> <span class="n">Z_out_full</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;MCFPoincareMap.step: cyna trace failed: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MCFPoincareMap(Np=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_Np</span><span class="si">}</span><span class="s2">, phi_section=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_phi_section</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;n_turns=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_turns</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+<span class="c1"># GeneralPoincareMap  (arbitrary Section, trajectory-scanning)</span>
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+
+<div class="viewcode-block" id="GeneralPoincareMap">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.GeneralPoincareMap">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GeneralPoincareMap</span><span class="p">(</span><span class="n">DiscreteMap</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Poincaré return map for an arbitrary ContinuousFlow and Section.</span>
+
+<span class="sd">    This is the generic (dimension-independent) implementation of</span>
+<span class="sd">    :class:`PoincareMap`.  Unlike :class:`MCFPoincareMap` (which uses cyna</span>
+<span class="sd">    and is restricted to ToroidalSection), this class works with any</span>
+<span class="sd">    :class:`~pyna.topo.section.Section` (hyperplane, parametric, etc.) by</span>
+<span class="sd">    integrating the continuous flow and scanning for crossings via</span>
+<span class="sd">    :meth:`Section.detect_crossing`.</span>
+
+<span class="sd">    For MCF with ToroidalSection: prefer :class:`MCFPoincareMap` (much faster).</span>
+<span class="sd">    Use :class:`GeneralPoincareMap` when:</span>
+<span class="sd">    - The section is not a toroidal phi=const plane.</span>
+<span class="sd">    - The system is not MCF (double pendulum, guiding-centre, etc.).</span>
+<span class="sd">    - You need a portable, dependency-free Poincaré map.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    flow : ContinuousFlow</span>
+<span class="sd">        The underlying continuous-time system.  Must implement</span>
+<span class="sd">        :meth:`ContinuousFlow.vector_field`.</span>
+<span class="sd">    section : Section</span>
+<span class="sd">        The Poincaré section (arbitrary codim-1 surface).</span>
+<span class="sd">    dt : float</span>
+<span class="sd">        Maximum ODE integration step (arc-length or time parameter).</span>
+<span class="sd">    t_max : float</span>
+<span class="sd">        Maximum integration length per step (to prevent infinite loops).</span>
+<span class="sd">    direction : int or None</span>
+<span class="sd">        Crossing direction filter: +1 (positive normal), -1 (negative),</span>
+<span class="sd">        or None (both directions accepted).  Default None.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from pyna.topo.dynamics import StandardMap, GeneralPoincareMap</span>
+<span class="sd">    &gt;&gt;&gt; from pyna.topo.section import HyperplaneSection</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; # Poincaré map of a standard map on the theta=0 plane</span>
+<span class="sd">    &gt;&gt;&gt; sm = StandardMap(K=0.9)</span>
+<span class="sd">    &gt;&gt;&gt; sec = HyperplaneSection(np.array([1., 0.]), 0.0, phase_dim=2)</span>
+<span class="sd">    &gt;&gt;&gt; pm = GeneralPoincareMap(sm, sec)</span>
+<span class="sd">    &gt;&gt;&gt; x0 = np.array([0.1, 0.5])</span>
+<span class="sd">    &gt;&gt;&gt; x1 = pm.step(x0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">flow</span><span class="p">:</span> <span class="s2">&quot;ContinuousFlow&quot;</span><span class="p">,</span>
+        <span class="n">section</span><span class="p">:</span> <span class="s2">&quot;Section&quot;</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+        <span class="n">t_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">200.0</span><span class="p">,</span>
+        <span class="n">direction</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_flow</span> <span class="o">=</span> <span class="n">flow</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_section</span> <span class="o">=</span> <span class="n">section</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dt</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_t_max</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">t_max</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">=</span> <span class="n">direction</span>
+
+    <span class="c1"># ── Properties ────────────────────────────────────────────────────────────</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GeneralPoincareMap.flow">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.GeneralPoincareMap.flow">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">flow</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ContinuousFlow&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flow</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GeneralPoincareMap.section">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.GeneralPoincareMap.section">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">section</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Section&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_section</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GeneralPoincareMap.phase_space">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.GeneralPoincareMap.phase_space">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;PhaseSpace&quot;</span><span class="p">:</span>
+        <span class="n">ps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flow</span><span class="o">.</span><span class="n">phase_space</span>
+        <span class="k">return</span> <span class="n">PhaseSpace</span><span class="p">(</span>
+            <span class="n">dim</span><span class="o">=</span><span class="n">ps</span><span class="o">.</span><span class="n">dim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">coordinate_names</span><span class="o">=</span><span class="n">ps</span><span class="o">.</span><span class="n">coordinate_names</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">ps</span><span class="o">.</span><span class="n">coordinate_names</span> <span class="k">else</span> <span class="p">(),</span>
+            <span class="n">symplectic</span><span class="o">=</span><span class="n">ps</span><span class="o">.</span><span class="n">symplectic</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Section of </span><span class="si">{</span><span class="n">ps</span><span class="o">.</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+    <span class="c1"># ── Core step ─────────────────────────────────────────────────────────────</span>
+
+<div class="viewcode-block" id="GeneralPoincareMap.step">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.GeneralPoincareMap.step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Integrate the flow from x and return the next section crossing.</span>
+
+<span class="sd">        The flow is integrated in steps of ``dt`` up to ``t_max``.  At each</span>
+<span class="sd">        step, :meth:`Section.detect_crossing` is called on consecutive</span>
+<span class="sd">        trajectory points.  The first valid crossing (matching ``direction``</span>
+<span class="sd">        if set) is returned.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : ndarray of shape (dim_phase,)</span>
+<span class="sd">            Starting point on or near the section.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ndarray of shape (dim_phase,)</span>
+<span class="sd">            The crossing point (in phase-space coordinates), or ``x`` with</span>
+<span class="sd">            NaN values if no crossing was found within ``t_max``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo._rk4</span><span class="w"> </span><span class="kn">import</span> <span class="n">rk4_integrate</span>
+
+        <span class="n">dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flow</span><span class="o">.</span><span class="n">phase_space</span><span class="o">.</span><span class="n">dim</span>
+        <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="c1"># Use the flow&#39;s vector_field as ODE rhs</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">rhs</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flow</span><span class="o">.</span><span class="n">vector_field</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+
+        <span class="n">t</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">y_prev</span> <span class="o">=</span> <span class="n">x0</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">pt_prev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y_prev</span><span class="p">,</span> <span class="p">[</span><span class="n">t</span><span class="p">])</span>  <span class="c1"># extended with parameter t</span>
+
+        <span class="k">while</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t_max</span><span class="p">:</span>
+            <span class="n">t_next</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t_max</span><span class="p">)</span>
+            <span class="c1"># Single RK4 step</span>
+            <span class="n">sol</span> <span class="o">=</span> <span class="n">rk4_integrate</span><span class="p">(</span><span class="n">rhs</span><span class="p">,</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">t_next</span><span class="p">),</span> <span class="n">y_prev</span><span class="p">,</span> <span class="n">max_step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dt</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">sol</span><span class="o">.</span><span class="n">success</span> <span class="ow">or</span> <span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">y_curr</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="c1"># Build 3-component points for detect_crossing: (coord..., param)</span>
+            <span class="c1"># For 2D flows: (x0, x1, t)</span>
+            <span class="c1"># Section.detect_crossing expects (3,) for MCF or (dim+1,) in general</span>
+            <span class="c1"># We use the project() method to map to section coords</span>
+            <span class="n">pt_curr_full</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y_curr</span><span class="p">,</span> <span class="p">[</span><span class="n">t</span><span class="p">])</span>
+
+            <span class="c1"># detect_crossing for the section</span>
+            <span class="n">crossing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detect</span><span class="p">(</span><span class="n">y_prev</span><span class="p">,</span> <span class="n">y_curr</span><span class="p">,</span> <span class="n">t</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">crossing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">crossing</span>
+
+            <span class="n">y_prev</span> <span class="o">=</span> <span class="n">y_curr</span>
+
+        <span class="c1"># No crossing found within t_max</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_detect</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">y_prev</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">y_curr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">t_prev</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">t_curr</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Detect crossing between y_prev and y_curr; return crossing or None.</span>
+
+<span class="sd">        Handles:</span>
+<span class="sd">        1. Generic Section via Section.f(x) sign change.</span>
+<span class="sd">        2. ToroidalSection (legacy) via detect_crossing with (R, Z, phi) tuples.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.section</span><span class="w"> </span><span class="kn">import</span> <span class="n">Section</span> <span class="k">as</span> <span class="n">_Section</span>
+
+        <span class="n">sec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_section</span>
+
+        <span class="c1"># Path 1: Section with a defining function f(x)=0 (generic)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sec</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">f_prev</span> <span class="o">=</span> <span class="n">sec</span><span class="o">.</span><span class="n">f</span><span class="p">(</span><span class="n">y_prev</span><span class="p">)</span>
+                <span class="n">f_curr</span> <span class="o">=</span> <span class="n">sec</span><span class="o">.</span><span class="n">f</span><span class="p">(</span><span class="n">y_curr</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">f_prev</span> <span class="o">*</span> <span class="n">f_curr</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># no sign change</span>
+                <span class="c1"># Direction filter</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># Estimate normal direction at midpoint</span>
+                    <span class="n">mid</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">y_prev</span> <span class="o">+</span> <span class="n">y_curr</span><span class="p">)</span>
+                    <span class="n">n</span> <span class="o">=</span> <span class="n">sec</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">mid</span><span class="p">)</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="n">y_curr</span> <span class="o">-</span> <span class="n">y_prev</span>
+                    <span class="n">dot</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">dot</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="kc">None</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">dot</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="kc">None</span>
+                <span class="c1"># Linear interpolation to find crossing</span>
+                <span class="n">t_frac</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">f_prev</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">f_prev</span><span class="p">)</span> <span class="o">+</span> <span class="nb">abs</span><span class="p">(</span><span class="n">f_curr</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-30</span><span class="p">)</span>
+                <span class="n">crossing</span> <span class="o">=</span> <span class="n">y_prev</span> <span class="o">+</span> <span class="n">t_frac</span> <span class="o">*</span> <span class="p">(</span><span class="n">y_curr</span> <span class="o">-</span> <span class="n">y_prev</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">crossing</span>
+            <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
+                <span class="k">pass</span>  <span class="c1"># Section.f not implemented (e.g. ToroidalSection)</span>
+
+        <span class="c1"># Path 2: Sections with detect_crossing (3-component format for MCF)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sec</span><span class="p">,</span> <span class="s1">&#39;detect_crossing&#39;</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Reconstruct (R, Z, phi) tuples if dim=2 MCF flow</span>
+                <span class="c1"># Append a fake phi parameter estimated from t</span>
+                <span class="n">phi_prev</span> <span class="o">=</span> <span class="n">t_prev</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+                <span class="n">phi_curr</span> <span class="o">=</span> <span class="n">t_curr</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+                <span class="n">pt_prev_3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y_prev</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="n">phi_prev</span><span class="p">])</span>
+                <span class="n">pt_curr_3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y_curr</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="n">phi_curr</span><span class="p">])</span>
+                <span class="n">hit</span> <span class="o">=</span> <span class="n">sec</span><span class="o">.</span><span class="n">detect_crossing</span><span class="p">(</span><span class="n">pt_prev_3</span><span class="p">,</span> <span class="n">pt_curr_3</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">hit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">hit</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># return (R, Z) only</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+        <span class="k">return</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="GeneralPoincareMap.trajectory">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.dynamics.GeneralPoincareMap.trajectory">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trajectory</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">x0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">n_crossings</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Collect n_crossings successive Poincaré crossings starting from x0.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x0 : ndarray of shape (dim_phase,)</span>
+<span class="sd">            Starting point.</span>
+<span class="sd">        n_crossings : int</span>
+<span class="sd">            Number of crossings to collect.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ndarray of shape (n_crossings, dim_phase)</span>
+<span class="sd">            The Poincaré crossing points.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_crossings</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x</span><span class="p">)):</span>
+                <span class="k">break</span>
+            <span class="n">pts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pts</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flow</span><span class="o">.</span><span class="n">phase_space</span><span class="o">.</span><span class="n">dim</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GeneralPoincareMap(flow=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_flow</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;section=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_section</span><span class="si">!r}</span><span class="s2">, dt=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_dt</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

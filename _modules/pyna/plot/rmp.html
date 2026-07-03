@@ -1,0 +1,1259 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.plot.rmp &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/plot/rmp';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.plot.rmp</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.plot.rmp</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Plot helpers for analytic RMP resonance tutorials.</span>
+
+<span class="sd">The functions in this module consume plain arrays plus the lightweight</span>
+<span class="sd">``ResonantComponent`` protocol from :mod:`pyna.toroidal.visual.RMP_spectrum`.</span>
+<span class="sd">They are intentionally plotting-only: field-line tracing and Fourier analysis</span>
+<span class="sd">remain in the toroidal modules, while section layout and overlays live in</span>
+<span class="sd">``pyna.plot``.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.plot.section_geometry</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">create_section_grid</span><span class="p">,</span>
+    <span class="n">draw_poincare_points</span><span class="p">,</span>
+    <span class="n">format_section_axis</span><span class="p">,</span>
+    <span class="n">trim_compact_tick_labels</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.plot.xo_points</span><span class="w"> </span><span class="kn">import</span> <span class="n">draw_xo_points</span>
+
+
+<span class="n">DEFAULT_RMP_COLORS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;#2563eb&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;#dc2626&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;#16a34a&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;#9333ea&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;#ea580c&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;#0891b2&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<div class="viewcode-block" id="RMP_SECTION_OVERLAYS">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/plot/rmp/index.html#pyna.plot.rmp.RMP_SECTION_OVERLAYS">[docs]</a>
+<span class="n">RMP_SECTION_OVERLAYS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;pest_grid&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;poincare&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;resonant_surfaces&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;stable_branches&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;island_width_bars&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;xo&quot;</span><span class="p">,</span>
+<span class="p">)</span></div>
+
+
+<span class="n">_RMP_OVERLAY_ALIASES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;grid&quot;</span><span class="p">:</span> <span class="s2">&quot;pest_grid&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;pest&quot;</span><span class="p">:</span> <span class="s2">&quot;pest_grid&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;pest_grid&quot;</span><span class="p">:</span> <span class="s2">&quot;pest_grid&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;points&quot;</span><span class="p">:</span> <span class="s2">&quot;poincare&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;poincare&quot;</span><span class="p">:</span> <span class="s2">&quot;poincare&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;poincare_points&quot;</span><span class="p">:</span> <span class="s2">&quot;poincare&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;surface&quot;</span><span class="p">:</span> <span class="s2">&quot;resonant_surfaces&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;surfaces&quot;</span><span class="p">:</span> <span class="s2">&quot;resonant_surfaces&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;resonant_surface&quot;</span><span class="p">:</span> <span class="s2">&quot;resonant_surfaces&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;resonant_surfaces&quot;</span><span class="p">:</span> <span class="s2">&quot;resonant_surfaces&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;branches&quot;</span><span class="p">:</span> <span class="s2">&quot;stable_branches&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;manifolds&quot;</span><span class="p">:</span> <span class="s2">&quot;stable_branches&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;stable&quot;</span><span class="p">:</span> <span class="s2">&quot;stable_branches&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;stable_branches&quot;</span><span class="p">:</span> <span class="s2">&quot;stable_branches&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;bars&quot;</span><span class="p">:</span> <span class="s2">&quot;island_width_bars&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;island_bars&quot;</span><span class="p">:</span> <span class="s2">&quot;island_width_bars&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;island_width_bars&quot;</span><span class="p">:</span> <span class="s2">&quot;island_width_bars&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;width_bars&quot;</span><span class="p">:</span> <span class="s2">&quot;island_width_bars&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fixed_points&quot;</span><span class="p">:</span> <span class="s2">&quot;xo&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;markers&quot;</span><span class="p">:</span> <span class="s2">&quot;xo&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;x_o&quot;</span><span class="p">:</span> <span class="s2">&quot;xo&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;xo&quot;</span><span class="p">:</span> <span class="s2">&quot;xo&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_component_color</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">colors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">palette</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">colors</span> <span class="ow">or</span> <span class="n">DEFAULT_RMP_COLORS</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">palette</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;#2563eb&quot;</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="s2">&quot;harmonic_order&quot;</span><span class="p">,</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">palette</span><span class="p">[</span><span class="n">order</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">palette</span><span class="p">)])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_normalize_rmp_section_overlays</span><span class="p">(</span><span class="n">overlays</span><span class="p">,</span> <span class="o">**</span><span class="n">show_flags</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">overlays</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">RMP_SECTION_OVERLAYS</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">overlays</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">overlays</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+                <span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">RMP_SECTION_OVERLAYS</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="s2">&quot;off&quot;</span><span class="p">,</span> <span class="s2">&quot;false&quot;</span><span class="p">}:</span>
+                <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;topology&quot;</span><span class="p">:</span>
+                <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;resonant_surfaces&quot;</span><span class="p">,</span> <span class="s2">&quot;stable_branches&quot;</span><span class="p">,</span> <span class="s2">&quot;island_width_bars&quot;</span><span class="p">,</span> <span class="s2">&quot;xo&quot;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">overlays</span><span class="p">]</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+        <span class="n">canonical</span> <span class="o">=</span> <span class="n">_RMP_OVERLAY_ALIASES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">canonical</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unknown RMP section overlay </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">canonical</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">out</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">canonical</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">enabled</span> <span class="ow">in</span> <span class="n">show_flags</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">canonical</span> <span class="o">=</span> <span class="n">_RMP_OVERLAY_ALIASES</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">enabled</span> <span class="ow">and</span> <span class="n">canonical</span> <span class="ow">in</span> <span class="n">out</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">canonical</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">enabled</span> <span class="ow">and</span> <span class="n">overlays</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">canonical</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">out</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">canonical</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">RMP_SECTION_OVERLAYS</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">out</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_apply_line_halo</span><span class="p">(</span><span class="n">artist</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;white&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">4.6</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.84</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.patheffects</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pe</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover - path effects are normally available with matplotlib</span>
+        <span class="k">return</span> <span class="n">artist</span>
+    <span class="n">artist</span><span class="o">.</span><span class="n">set_path_effects</span><span class="p">([</span><span class="n">pe</span><span class="o">.</span><span class="n">Stroke</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">linewidth</span><span class="p">),</span> <span class="n">foreground</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">alpha</span><span class="p">)),</span> <span class="n">pe</span><span class="o">.</span><span class="n">Normal</span><span class="p">()])</span>
+    <span class="k">return</span> <span class="n">artist</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_fixed_point_angles</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="s2">&quot;fixed_points&quot;</span><span class="p">):</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">fixed_points</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">phi</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.toroidal.visual.RMP_spectrum</span><span class="w"> </span><span class="kn">import</span> <span class="n">island_fixed_points</span>
+
+        <span class="n">pts</span> <span class="o">=</span> <span class="n">island_fixed_points</span><span class="p">(</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">m</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">n</span><span class="p">),</span>
+            <span class="nb">complex</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">b_mn</span><span class="p">),</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">phi</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="s2">&quot;q_prime_sign&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="s2">&quot;theta_O&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="s2">&quot;theta_X&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_point</span><span class="p">(</span><span class="n">R0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">theta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">stable</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">tangent</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">radial</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">SimpleNamespace</span><span class="p">(</span>
+        <span class="n">R</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">R0</span> <span class="o">+</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)),</span>
+        <span class="n">Z</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)),</span>
+        <span class="n">stable_eigenvec</span><span class="o">=</span><span class="n">tangent</span> <span class="k">if</span> <span class="n">stable</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">unstable_eigenvec</span><span class="o">=</span><span class="n">radial</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="draw_pest_grid">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/plot/rmp/index.html#pyna.plot.rmp.draw_pest_grid">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_pest_grid</span><span class="p">(</span>
+    <span class="n">ax</span><span class="p">,</span>
+    <span class="n">eq</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">radial_values</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">theta_values</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;0.42&quot;</span><span class="p">,</span>
+    <span class="n">lw</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.55</span><span class="p">,</span>
+    <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.28</span><span class="p">,</span>
+    <span class="n">zorder</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Overlay a PEST-style ``(S, theta*)`` grid on a circular analytic section.</span>
+
+<span class="sd">    For the simple analytic stellarator used in the public RMP tutorial,</span>
+<span class="sd">    ``S = sqrt(psi)`` labels circular flux surfaces and the straight-field-line</span>
+<span class="sd">    poloidal angle is represented by the geometric angle on the section.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">R0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">R0</span><span class="p">)</span>
+    <span class="n">r0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">r0</span><span class="p">)</span>
+    <span class="n">radial</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+        <span class="n">radial_values</span> <span class="k">if</span> <span class="n">radial_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+        <span class="n">theta_values</span>
+        <span class="k">if</span> <span class="n">theta_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">loop</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">320</span><span class="p">)</span>
+    <span class="n">artists</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">S</span> <span class="ow">in</span> <span class="n">radial</span><span class="p">:</span>
+        <span class="n">radius</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">S</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">)</span> <span class="o">*</span> <span class="n">r0</span>
+        <span class="n">artists</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                <span class="n">R0</span> <span class="o">+</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">loop</span><span class="p">),</span>
+                <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">loop</span><span class="p">),</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">lw</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                <span class="n">zorder</span><span class="o">=</span><span class="n">zorder</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">th</span> <span class="ow">in</span> <span class="n">theta</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.98</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span>
+        <span class="n">artists</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                <span class="n">R0</span> <span class="o">+</span> <span class="n">r0</span> <span class="o">*</span> <span class="n">s</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">th</span><span class="p">)),</span>
+                <span class="n">r0</span> <span class="o">*</span> <span class="n">s</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">th</span><span class="p">)),</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">lw</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                <span class="n">zorder</span><span class="o">=</span><span class="n">zorder</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">artists</span></div>
+
+
+
+<div class="viewcode-block" id="draw_rmp_fixed_points">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/plot/rmp/index.html#pyna.plot.rmp.draw_rmp_fixed_points">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_rmp_fixed_points</span><span class="p">(</span>
+    <span class="n">ax</span><span class="p">,</span>
+    <span class="n">components</span><span class="p">,</span>
+    <span class="n">eq</span><span class="p">,</span>
+    <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">colors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">show_arrows</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Draw analytic RMP O-points, X-points and local eigendirections.&quot;&quot;&quot;</span>
+
+    <span class="n">R0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">R0</span><span class="p">)</span>
+    <span class="n">r0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">r0</span><span class="p">)</span>
+    <span class="n">all_x</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">all_o</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">component</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">components</span><span class="p">):</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">_component_color</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">colors</span><span class="p">)</span>
+        <span class="n">r_res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">psi_res</span><span class="p">))</span> <span class="o">*</span> <span class="n">r0</span>
+        <span class="n">theta_o</span><span class="p">,</span> <span class="n">theta_x</span> <span class="o">=</span> <span class="n">_fixed_point_angles</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span>
+        <span class="n">opts</span> <span class="o">=</span> <span class="p">[</span><span class="n">_point</span><span class="p">(</span><span class="n">R0</span><span class="p">,</span> <span class="n">r_res</span><span class="p">,</span> <span class="n">th</span><span class="p">,</span> <span class="n">stable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">th</span> <span class="ow">in</span> <span class="n">theta_o</span><span class="p">]</span>
+        <span class="n">xpts</span> <span class="o">=</span> <span class="p">[</span><span class="n">_point</span><span class="p">(</span><span class="n">R0</span><span class="p">,</span> <span class="n">r_res</span><span class="p">,</span> <span class="n">th</span><span class="p">,</span> <span class="n">stable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">th</span> <span class="ow">in</span> <span class="n">theta_x</span><span class="p">]</span>
+        <span class="n">all_o</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">opts</span><span class="p">)</span>
+        <span class="n">all_x</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">xpts</span><span class="p">)</span>
+        <span class="n">draw_xo_points</span><span class="p">(</span>
+            <span class="n">ax</span><span class="p">,</span>
+            <span class="n">xpts</span><span class="p">,</span>
+            <span class="n">opts</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;xpt_color&quot;</span><span class="p">:</span> <span class="n">color</span><span class="p">,</span>
+                <span class="s2">&quot;xpt_ms&quot;</span><span class="p">:</span> <span class="mf">6.6</span><span class="p">,</span>
+                <span class="s2">&quot;xpt_mew&quot;</span><span class="p">:</span> <span class="mf">1.7</span><span class="p">,</span>
+                <span class="s2">&quot;opt_color&quot;</span><span class="p">:</span> <span class="n">color</span><span class="p">,</span>
+                <span class="s2">&quot;opt_ms&quot;</span><span class="p">:</span> <span class="mf">5.2</span><span class="p">,</span>
+                <span class="s2">&quot;opt_mew&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+                <span class="s2">&quot;arrow_len&quot;</span><span class="p">:</span> <span class="mf">0.014</span><span class="p">,</span>
+                <span class="s2">&quot;arrow_lw&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+                <span class="s2">&quot;arrow_stable&quot;</span><span class="p">:</span> <span class="s2">&quot;#0f766e&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;arrow_unstable&quot;</span><span class="p">:</span> <span class="s2">&quot;#b45309&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="n">show_arrows</span><span class="o">=</span><span class="n">show_arrows</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;x_points&quot;</span><span class="p">:</span> <span class="n">all_x</span><span class="p">,</span> <span class="s2">&quot;o_points&quot;</span><span class="p">:</span> <span class="n">all_o</span><span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="draw_reduced_stable_manifolds">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/plot/rmp/index.html#pyna.plot.rmp.draw_reduced_stable_manifolds">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_reduced_stable_manifolds</span><span class="p">(</span>
+    <span class="n">ax</span><span class="p">,</span>
+    <span class="n">components</span><span class="p">,</span>
+    <span class="n">eq</span><span class="p">,</span>
+    <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">colors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">theta_samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">96</span><span class="p">,</span>
+    <span class="n">lw</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.15</span><span class="p">,</span>
+    <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.72</span><span class="p">,</span>
+    <span class="n">zorder</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Draw reduced-island separatrix branches through the analytic X-points.</span>
+
+<span class="sd">    The curves are the local island-Hamiltonian separatrix approximation.  They</span>
+<span class="sd">    start and end at neighbouring X-points and reach maximum radial excursion at</span>
+<span class="sd">    the O-point; for the tutorial this is the stable/unstable manifold skeleton</span>
+<span class="sd">    predicted by the resonant component.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">R0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">R0</span><span class="p">)</span>
+    <span class="n">r0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">r0</span><span class="p">)</span>
+    <span class="n">artists</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">component</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">components</span><span class="p">):</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">_component_color</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">colors</span><span class="p">)</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">m</span><span class="p">))</span>
+        <span class="n">r_res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">psi_res</span><span class="p">))</span> <span class="o">*</span> <span class="n">r0</span>
+        <span class="n">half_width</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="s2">&quot;half_width_r&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">half_width</span><span class="p">)</span> <span class="ow">or</span> <span class="n">half_width</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">theta_o</span><span class="p">,</span> <span class="n">_theta_x</span> <span class="o">=</span> <span class="n">_fixed_point_angles</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span>
+        <span class="n">local</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">m</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">m</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">theta_samples</span><span class="p">))</span>
+        <span class="n">envelope</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">m</span> <span class="o">*</span> <span class="n">local</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">center</span> <span class="ow">in</span> <span class="n">theta_o</span><span class="p">:</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">center</span><span class="p">)</span> <span class="o">+</span> <span class="n">local</span>
+            <span class="k">for</span> <span class="n">sign</span> <span class="ow">in</span> <span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">):</span>
+                <span class="n">radius</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">0.002</span> <span class="o">*</span> <span class="n">r0</span><span class="p">,</span> <span class="n">r_res</span> <span class="o">+</span> <span class="n">sign</span> <span class="o">*</span> <span class="n">half_width</span> <span class="o">*</span> <span class="n">envelope</span><span class="p">)</span>
+                <span class="n">artists</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                        <span class="n">R0</span> <span class="o">+</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span>
+                        <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span>
+                        <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                        <span class="n">lw</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span>
+                        <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                        <span class="n">zorder</span><span class="o">=</span><span class="n">zorder</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+    <span class="k">return</span> <span class="n">artists</span></div>
+
+
+
+<div class="viewcode-block" id="draw_rmp_island_width_bars">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/plot/rmp/index.html#pyna.plot.rmp.draw_rmp_island_width_bars">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_rmp_island_width_bars</span><span class="p">(</span>
+    <span class="n">ax</span><span class="p">,</span>
+    <span class="n">components</span><span class="p">,</span>
+    <span class="n">eq</span><span class="p">,</span>
+    <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">colors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">width_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">n_path</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">17</span><span class="p">,</span>
+    <span class="n">lw</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.8</span><span class="p">,</span>
+    <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.95</span><span class="p">,</span>
+    <span class="n">zorder</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">9</span><span class="p">,</span>
+    <span class="n">label_first</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">halo</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">halo_color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;white&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Draw theoretical island half-width bars centered at analytic O-points.</span>
+
+<span class="sd">    For the circular analytic stellarator used by the RMP tutorial, constant</span>
+<span class="sd">    ``theta`` radial curves are straight section rays.  The function mirrors the</span>
+<span class="sd">    arbitrary-surface curved-bar API in ``pyna.toroidal.visual`` while consuming</span>
+<span class="sd">    the lightweight ``ResonantComponent`` objects already used by this module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">R0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">R0</span><span class="p">)</span>
+    <span class="n">r0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">r0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_path</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;n_path must be at least 2&quot;</span><span class="p">)</span>
+    <span class="n">artists</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">labelled</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">component</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">components</span><span class="p">):</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">_component_color</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">colors</span><span class="p">)</span>
+        <span class="n">r_res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">psi_res</span><span class="p">))</span> <span class="o">*</span> <span class="n">r0</span>
+        <span class="n">half_width</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="s2">&quot;half_width_r&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">half_width</span><span class="p">)</span> <span class="ow">or</span> <span class="n">half_width</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">theta_o</span><span class="p">,</span> <span class="n">_theta_x</span> <span class="o">=</span> <span class="n">_fixed_point_angles</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span>
+        <span class="n">r_inner</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">r_res</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">width_scale</span><span class="p">)</span> <span class="o">*</span> <span class="n">half_width</span><span class="p">)</span>
+        <span class="n">r_outer</span> <span class="o">=</span> <span class="n">r_res</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">width_scale</span><span class="p">)</span> <span class="o">*</span> <span class="n">half_width</span>
+        <span class="n">radii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">r_inner</span><span class="p">,</span> <span class="n">r_outer</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_path</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">th</span> <span class="ow">in</span> <span class="n">theta_o</span><span class="p">:</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">th</span><span class="p">)</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">label_first</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">labelled</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;theory island half-width&quot;</span>
+                <span class="n">labelled</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="p">(</span><span class="n">line</span><span class="p">,)</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                <span class="n">R0</span> <span class="o">+</span> <span class="n">radii</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span>
+                <span class="n">radii</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">lw</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">lw</span><span class="p">),</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">alpha</span><span class="p">),</span>
+                <span class="n">solid_capstyle</span><span class="o">=</span><span class="s2">&quot;round&quot;</span><span class="p">,</span>
+                <span class="n">zorder</span><span class="o">=</span><span class="n">zorder</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">halo</span><span class="p">:</span>
+                <span class="n">_apply_line_halo</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">halo_color</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">lw</span><span class="p">)</span> <span class="o">+</span> <span class="mf">2.2</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.78</span><span class="p">)</span>
+            <span class="n">artists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">artists</span></div>
+
+
+
+<div class="viewcode-block" id="draw_resonant_surfaces">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/plot/rmp/index.html#pyna.plot.rmp.draw_resonant_surfaces">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_resonant_surfaces</span><span class="p">(</span>
+    <span class="n">ax</span><span class="p">,</span>
+    <span class="n">components</span><span class="p">,</span>
+    <span class="n">eq</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">colors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">lw</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.75</span><span class="p">,</span>
+    <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.45</span><span class="p">,</span>
+    <span class="n">zorder</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Draw resonant flux-surface guide curves for RMP components.&quot;&quot;&quot;</span>
+
+    <span class="n">R0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">R0</span><span class="p">)</span>
+    <span class="n">r0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">r0</span><span class="p">)</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">360</span><span class="p">)</span>
+    <span class="n">artists</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">component</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">components</span><span class="p">):</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">_component_color</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">colors</span><span class="p">)</span>
+        <span class="n">radius</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">psi_res</span><span class="p">))</span> <span class="o">*</span> <span class="n">r0</span>
+        <span class="n">artists</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                <span class="n">R0</span> <span class="o">+</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span>
+                <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">lw</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span>
+                <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                <span class="n">zorder</span><span class="o">=</span><span class="n">zorder</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">artists</span></div>
+
+
+
+<div class="viewcode-block" id="create_rmp_section_layout">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/plot/rmp/index.html#pyna.plot.rmp.create_rmp_section_layout">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_rmp_section_layout</span><span class="p">(</span>
+    <span class="n">phi_sections</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">eq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ncols</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="n">figsize</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">compact</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">panel_height</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.05</span><span class="p">,</span>
+    <span class="n">share_axes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a section-axis grid sized for circular analytic RMP plots.&quot;&quot;&quot;</span>
+
+    <span class="n">data_limits</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">eq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">lim</span> <span class="o">=</span> <span class="mf">1.15</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">r0</span><span class="p">)</span>
+        <span class="n">data_limits</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">R0</span><span class="p">)</span> <span class="o">-</span> <span class="n">lim</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">R0</span><span class="p">)</span> <span class="o">+</span> <span class="n">lim</span><span class="p">,</span> <span class="o">-</span><span class="n">lim</span><span class="p">,</span> <span class="n">lim</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">create_section_grid</span><span class="p">(</span>
+        <span class="n">phi_sections</span><span class="p">,</span>
+        <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+        <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span>
+        <span class="n">data_limits</span><span class="o">=</span><span class="n">data_limits</span><span class="p">,</span>
+        <span class="n">panel_height</span><span class="o">=</span><span class="n">panel_height</span><span class="p">,</span>
+        <span class="n">compact</span><span class="o">=</span><span class="n">compact</span><span class="p">,</span>
+        <span class="n">share_axes</span><span class="o">=</span><span class="n">share_axes</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="draw_rmp_poincare_points">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/plot/rmp/index.html#pyna.plot.rmp.draw_rmp_poincare_points">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_rmp_poincare_points</span><span class="p">(</span>
+    <span class="n">ax</span><span class="p">,</span>
+    <span class="n">R</span><span class="p">,</span>
+    <span class="n">Z</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">eq</span><span class="p">,</span>
+    <span class="n">point_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+    <span class="n">point_alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.45</span><span class="p">,</span>
+    <span class="n">cmap</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;viridis&quot;</span><span class="p">,</span>
+    <span class="n">zorder</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Draw RMP Poincare points colored by normalized circular flux label.&quot;&quot;&quot;</span>
+
+    <span class="n">R_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">Z_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">R_arr</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">Z_arr</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;artist&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;psi_values&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
+        <span class="p">((</span><span class="n">R_arr</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">R0</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">Z_arr</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">r0</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="mf">0.0</span><span class="p">,</span>
+        <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">artist</span> <span class="o">=</span> <span class="n">draw_poincare_points</span><span class="p">(</span>
+        <span class="n">ax</span><span class="p">,</span>
+        <span class="n">R_arr</span><span class="p">,</span>
+        <span class="n">Z_arr</span><span class="p">,</span>
+        <span class="n">values</span><span class="o">=</span><span class="n">values</span><span class="p">,</span>
+        <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+        <span class="n">point_size</span><span class="o">=</span><span class="n">point_size</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="n">point_alpha</span><span class="p">,</span>
+        <span class="n">rasterized</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">zorder</span><span class="o">=</span><span class="n">zorder</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;artist&quot;</span><span class="p">:</span> <span class="n">artist</span><span class="p">,</span> <span class="s2">&quot;psi_values&quot;</span><span class="p">:</span> <span class="n">values</span><span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="draw_rmp_section_overlays">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/plot/rmp/index.html#pyna.plot.rmp.draw_rmp_section_overlays">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_rmp_section_overlays</span><span class="p">(</span>
+    <span class="n">ax</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">eq</span><span class="p">,</span>
+    <span class="n">components</span><span class="p">,</span>
+    <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">R</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">Z</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">overlays</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">colors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">point_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+    <span class="n">point_alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.45</span><span class="p">,</span>
+    <span class="n">cmap</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;viridis&quot;</span><span class="p">,</span>
+    <span class="n">show_xo_arrows</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">pest_grid_kwargs</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">resonant_surface_kwargs</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">stable_branch_kwargs</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">island_bar_kwargs</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply named RMP section overlays and return the artists by layer.&quot;&quot;&quot;</span>
+
+    <span class="n">names</span> <span class="o">=</span> <span class="n">_normalize_rmp_section_overlays</span><span class="p">(</span><span class="n">overlays</span><span class="p">)</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;psi_values&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;pest_grid&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;poincare&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;resonant_surfaces&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;stable_branches&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;island_width_bars&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;x_points&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;o_points&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;pest_grid&quot;</span><span class="p">:</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">pest_grid_kwargs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">(</span><span class="n">pest_grid_kwargs</span><span class="p">)</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;pest_grid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">draw_pest_grid</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">eq</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;poincare&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">R</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">Z</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="n">draw_rmp_poincare_points</span><span class="p">(</span>
+                <span class="n">ax</span><span class="p">,</span>
+                <span class="n">R</span><span class="p">,</span>
+                <span class="n">Z</span><span class="p">,</span>
+                <span class="n">eq</span><span class="o">=</span><span class="n">eq</span><span class="p">,</span>
+                <span class="n">point_size</span><span class="o">=</span><span class="n">point_size</span><span class="p">,</span>
+                <span class="n">point_alpha</span><span class="o">=</span><span class="n">point_alpha</span><span class="p">,</span>
+                <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;poincare&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="s2">&quot;artist&quot;</span><span class="p">]</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;psi_values&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="s2">&quot;psi_values&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;resonant_surfaces&quot;</span><span class="p">:</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">resonant_surface_kwargs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">(</span><span class="n">resonant_surface_kwargs</span><span class="p">)</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;resonant_surfaces&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">draw_resonant_surfaces</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">eq</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;stable_branches&quot;</span><span class="p">:</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">stable_branch_kwargs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">(</span><span class="n">stable_branch_kwargs</span><span class="p">)</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;stable_branches&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">draw_reduced_stable_manifolds</span><span class="p">(</span>
+                <span class="n">ax</span><span class="p">,</span>
+                <span class="n">components</span><span class="p">,</span>
+                <span class="n">eq</span><span class="p">,</span>
+                <span class="n">phi</span><span class="p">,</span>
+                <span class="n">colors</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;island_width_bars&quot;</span><span class="p">:</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">island_bar_kwargs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">(</span><span class="n">island_bar_kwargs</span><span class="p">)</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;island_width_bars&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">draw_rmp_island_width_bars</span><span class="p">(</span>
+                <span class="n">ax</span><span class="p">,</span>
+                <span class="n">components</span><span class="p">,</span>
+                <span class="n">eq</span><span class="p">,</span>
+                <span class="n">phi</span><span class="p">,</span>
+                <span class="n">colors</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;xo&quot;</span><span class="p">:</span>
+            <span class="n">markers</span> <span class="o">=</span> <span class="n">draw_rmp_fixed_points</span><span class="p">(</span>
+                <span class="n">ax</span><span class="p">,</span>
+                <span class="n">components</span><span class="p">,</span>
+                <span class="n">eq</span><span class="p">,</span>
+                <span class="n">phi</span><span class="p">,</span>
+                <span class="n">colors</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span>
+                <span class="n">show_arrows</span><span class="o">=</span><span class="n">show_xo_arrows</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;x_points&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">markers</span><span class="p">[</span><span class="s2">&quot;x_points&quot;</span><span class="p">]</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;o_points&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">markers</span><span class="p">[</span><span class="s2">&quot;o_points&quot;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">payload</span></div>
+
+
+
+<div class="viewcode-block" id="draw_rmp_resonance_section">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/plot/rmp/index.html#pyna.plot.rmp.draw_rmp_resonance_section">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_rmp_resonance_section</span><span class="p">(</span>
+    <span class="n">ax</span><span class="p">,</span>
+    <span class="n">R</span><span class="p">,</span>
+    <span class="n">Z</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">eq</span><span class="p">,</span>
+    <span class="n">components</span><span class="p">,</span>
+    <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">colors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">overlays</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">show_poincare_points</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">show_pest_grid</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">show_resonant_surfaces</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">show_manifolds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">show_island_width_bars</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">show_xo</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">point_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+    <span class="n">point_alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.45</span><span class="p">,</span>
+    <span class="n">cmap</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;viridis&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Draw one modern RMP Poincare section with topology overlays.&quot;&quot;&quot;</span>
+
+    <span class="n">R_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">Z_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">selected</span> <span class="o">=</span> <span class="n">_normalize_rmp_section_overlays</span><span class="p">(</span>
+        <span class="n">overlays</span><span class="p">,</span>
+        <span class="n">pest_grid</span><span class="o">=</span><span class="n">show_pest_grid</span><span class="p">,</span>
+        <span class="n">poincare</span><span class="o">=</span><span class="n">show_poincare_points</span><span class="p">,</span>
+        <span class="n">resonant_surfaces</span><span class="o">=</span><span class="n">show_resonant_surfaces</span><span class="p">,</span>
+        <span class="n">stable_branches</span><span class="o">=</span><span class="n">show_manifolds</span><span class="p">,</span>
+        <span class="n">island_width_bars</span><span class="o">=</span><span class="n">show_island_width_bars</span><span class="p">,</span>
+        <span class="n">xo</span><span class="o">=</span><span class="n">show_xo</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="n">draw_rmp_section_overlays</span><span class="p">(</span>
+        <span class="n">ax</span><span class="p">,</span>
+        <span class="n">eq</span><span class="o">=</span><span class="n">eq</span><span class="p">,</span>
+        <span class="n">components</span><span class="o">=</span><span class="n">components</span><span class="p">,</span>
+        <span class="n">phi</span><span class="o">=</span><span class="n">phi</span><span class="p">,</span>
+        <span class="n">R</span><span class="o">=</span><span class="n">R_arr</span><span class="p">,</span>
+        <span class="n">Z</span><span class="o">=</span><span class="n">Z_arr</span><span class="p">,</span>
+        <span class="n">overlays</span><span class="o">=</span><span class="n">selected</span><span class="p">,</span>
+        <span class="n">colors</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span>
+        <span class="n">point_size</span><span class="o">=</span><span class="n">point_size</span><span class="p">,</span>
+        <span class="n">point_alpha</span><span class="o">=</span><span class="n">point_alpha</span><span class="p">,</span>
+        <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">lim</span> <span class="o">=</span> <span class="mf">1.15</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">r0</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">R0</span><span class="p">)</span> <span class="o">-</span> <span class="n">lim</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">R0</span><span class="p">)</span> <span class="o">+</span> <span class="n">lim</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="n">lim</span><span class="p">,</span> <span class="n">lim</span><span class="p">)</span>
+    <span class="n">format_section_axis</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">section_phi</span><span class="o">=</span><span class="n">phi</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;R [m]&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Z [m]&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">payload</span></div>
+
+
+
+<div class="viewcode-block" id="plot_rmp_resonance_sections">
+<a class="viewcode-back" href="../../../en/api/generated/pyna/plot/rmp/index.html#pyna.plot.rmp.plot_rmp_resonance_sections">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_rmp_resonance_sections</span><span class="p">(</span>
+    <span class="n">sections_data</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span>
+    <span class="n">phi_sections</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">eq</span><span class="p">,</span>
+    <span class="n">components</span><span class="p">,</span>
+    <span class="n">colors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">ncols</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="n">figsize</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">point_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.7</span><span class="p">,</span>
+    <span class="n">point_alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.42</span><span class="p">,</span>
+    <span class="n">cmap</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;viridis&quot;</span><span class="p">,</span>
+    <span class="n">overlays</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">compact</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">show_poincare_points</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">show_pest_grid</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">show_resonant_surfaces</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">show_manifolds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">show_island_width_bars</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">show_xo</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Draw a compact multi-section RMP resonance figure.&quot;&quot;&quot;</span>
+
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.lines</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line2D</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">Normalize</span>
+
+    <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">create_rmp_section_layout</span><span class="p">(</span>
+        <span class="n">phi_sections</span><span class="p">,</span>
+        <span class="n">eq</span><span class="o">=</span><span class="n">eq</span><span class="p">,</span>
+        <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+        <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span>
+        <span class="n">panel_height</span><span class="o">=</span><span class="mf">3.05</span><span class="p">,</span>
+        <span class="n">compact</span><span class="o">=</span><span class="n">compact</span><span class="p">,</span>
+        <span class="n">share_axes</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">axes_flat</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">phi</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">phi_sections</span><span class="p">):</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">axes_flat</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">section</span> <span class="o">=</span> <span class="n">sections_data</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">sections_data</span><span class="p">)</span> <span class="k">else</span> <span class="p">{}</span>
+        <span class="n">draw_rmp_resonance_section</span><span class="p">(</span>
+            <span class="n">ax</span><span class="p">,</span>
+            <span class="n">section</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="p">[]),</span>
+            <span class="n">section</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">,</span> <span class="p">[]),</span>
+            <span class="n">eq</span><span class="o">=</span><span class="n">eq</span><span class="p">,</span>
+            <span class="n">components</span><span class="o">=</span><span class="n">components</span><span class="p">,</span>
+            <span class="n">phi</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">phi</span><span class="p">),</span>
+            <span class="n">colors</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="sa">rf</span><span class="s2">&quot;$\phi=</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">phi</span><span class="p">))</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">^\circ$&quot;</span><span class="p">,</span>
+            <span class="n">point_size</span><span class="o">=</span><span class="n">point_size</span><span class="p">,</span>
+            <span class="n">point_alpha</span><span class="o">=</span><span class="n">point_alpha</span><span class="p">,</span>
+            <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+            <span class="n">overlays</span><span class="o">=</span><span class="n">overlays</span><span class="p">,</span>
+            <span class="n">show_poincare_points</span><span class="o">=</span><span class="n">show_poincare_points</span><span class="p">,</span>
+            <span class="n">show_pest_grid</span><span class="o">=</span><span class="n">show_pest_grid</span><span class="p">,</span>
+            <span class="n">show_resonant_surfaces</span><span class="o">=</span><span class="n">show_resonant_surfaces</span><span class="p">,</span>
+            <span class="n">show_manifolds</span><span class="o">=</span><span class="n">show_manifolds</span><span class="p">,</span>
+            <span class="n">show_island_width_bars</span><span class="o">=</span><span class="n">show_island_width_bars</span><span class="p">,</span>
+            <span class="n">show_xo</span><span class="o">=</span><span class="n">show_xo</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">ncols</span><span class="p">))</span>
+        <span class="n">nrows</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">row</span> <span class="o">&lt;</span> <span class="n">nrows</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">col</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">trim_compact_tick_labels</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">phi_sections</span><span class="p">),</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">)</span>
+
+    <span class="n">sm</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">ScalarMappable</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">Normalize</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+    <span class="n">sm</span><span class="o">.</span><span class="n">set_array</span><span class="p">([])</span>
+    <span class="n">wspace</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="k">if</span> <span class="n">compact</span> <span class="k">else</span> <span class="mf">0.08</span>
+    <span class="n">hspace</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="k">if</span> <span class="n">compact</span> <span class="k">else</span> <span class="mf">0.28</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">bottom</span><span class="o">=</span><span class="mf">0.16</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mf">0.88</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.88</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="n">wspace</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="n">hspace</span><span class="p">)</span>
+    <span class="n">cax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="mf">0.902</span><span class="p">,</span> <span class="mf">0.24</span><span class="p">,</span> <span class="mf">0.018</span><span class="p">,</span> <span class="mf">0.52</span><span class="p">])</span>
+    <span class="n">cbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">sm</span><span class="p">,</span> <span class="n">cax</span><span class="o">=</span><span class="n">cax</span><span class="p">)</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;normalized flux label&quot;</span><span class="p">)</span>
+
+    <span class="n">handles</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">component</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">components</span><span class="p">):</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">_component_color</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">colors</span><span class="p">)</span>
+        <span class="n">handles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">Line2D</span><span class="p">(</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">lw</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">m</span><span class="p">)</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s2">) q=</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">q_res</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="n">handles</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">Line2D</span><span class="p">(</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span>
+                <span class="n">markerfacecolor</span><span class="o">=</span><span class="s2">&quot;0.35&quot;</span><span class="p">,</span>
+                <span class="n">markeredgecolor</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span>
+                <span class="n">markersize</span><span class="o">=</span><span class="mf">5.5</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s2">&quot;O-point&quot;</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">Line2D</span><span class="p">(</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="s2">&quot;0.35&quot;</span><span class="p">,</span>
+                <span class="n">markersize</span><span class="o">=</span><span class="mf">6.5</span><span class="p">,</span>
+                <span class="n">markeredgewidth</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
+                <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;None&quot;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s2">&quot;X-point&quot;</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">Line2D</span><span class="p">(</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">color</span><span class="o">=</span><span class="s2">&quot;0.35&quot;</span><span class="p">,</span>
+                <span class="n">lw</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span>
+                <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s2">&quot;resonant surface&quot;</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">Line2D</span><span class="p">(</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">_component_color</span><span class="p">(</span><span class="n">components</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">colors</span><span class="p">)</span> <span class="k">if</span> <span class="n">components</span> <span class="k">else</span> <span class="s2">&quot;#2563eb&quot;</span><span class="p">,</span>
+                <span class="n">lw</span><span class="o">=</span><span class="mf">2.8</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s2">&quot;theory island half-width&quot;</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">Line2D</span><span class="p">(</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">_component_color</span><span class="p">(</span><span class="n">components</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">colors</span><span class="p">)</span> <span class="k">if</span> <span class="n">components</span> <span class="k">else</span> <span class="s2">&quot;#2563eb&quot;</span><span class="p">,</span>
+                <span class="n">lw</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s2">&quot;local stable branch&quot;</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span>
+        <span class="n">handles</span><span class="o">=</span><span class="n">handles</span><span class="p">,</span>
+        <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;lower center&quot;</span><span class="p">,</span>
+        <span class="n">ncol</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">handles</span><span class="p">),</span> <span class="mi">5</span><span class="p">),</span>
+        <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">title</span><span class="p">:</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.99</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span></div>
+
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;RMP_SECTION_OVERLAYS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;create_rmp_section_layout&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;draw_pest_grid&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;draw_rmp_poincare_points&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;draw_rmp_section_overlays&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;draw_reduced_stable_manifolds&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;draw_resonant_surfaces&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;draw_rmp_island_width_bars&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;draw_rmp_fixed_points&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;draw_rmp_resonance_section&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;plot_rmp_resonance_sections&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

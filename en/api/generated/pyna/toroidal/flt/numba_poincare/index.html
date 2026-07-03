@@ -1,0 +1,1104 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>pyna.toroidal.flt.numba_poincare &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../../../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../../../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../../../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'en/api/generated/pyna/toroidal/flt/numba_poincare/index';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../../../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../../search.html" />
+    <link rel="next" title="pyna.toroidal.flt.postcompute" href="../postcompute/index.html" />
+    <link rel="prev" title="pyna.toroidal.flt.island_chain" href="../island_chain/index.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../../../../../_static/searchtools.js"></script>
+    <script src="../../../../../../../_static/language_data.js"></script>
+    <script src="../../../../../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "en";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../../../index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../../../index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar"><svg class="pst-icon svg-inline--fa" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../mini-cases.html">Mini Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../tutorials/index.html">Tutorials and Examples</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../../../index.html">API Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../../../dynamics.html">General Dynamics (<code class="docutils literal notranslate"><span class="pre">pyna.dynamics</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../dynamics-patterns.html">Dynamics Workflows and Extension Helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../flt.html">Field-line Tracing (<code class="docutils literal notranslate"><span class="pre">pyna.flt</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../topo.html">Topology (<code class="docutils literal notranslate"><span class="pre">pyna.topo</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../toroidal.html">Toroidal Physics (<code class="docutils literal notranslate"><span class="pre">pyna.toroidal</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../control.html">FPT Topology Control (<code class="docutils literal notranslate"><span class="pre">pyna.control</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../cyna.html">cyna Acceleration Layer</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="../../../index.html">pyna</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../../../cache/index.html">pyna.cache</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../connection_length/index.html">pyna.connection_length</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../context/index.html">pyna.context</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../control/index.html">pyna.control</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../diff/index.html">pyna.diff</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../draw/index.html">pyna.draw</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../dynamics/index.html">pyna.dynamics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../field_data/index.html">pyna.field_data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../fields/index.html">pyna.fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../flow/index.html">pyna.flow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../flt/index.html">pyna.flt</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../flt_cuda/index.html">pyna.flt_cuda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../imas_compat/index.html">pyna.imas_compat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../io/index.html">pyna.io</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../mag/index.html">pyna.mag</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../map/index.html">pyna.map</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../plot/index.html">pyna.plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../polymap/index.html">pyna.polymap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../polynomial/index.html">pyna.polynomial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../progress/index.html">pyna.progress</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../system/index.html">pyna.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../sysutil/index.html">pyna.sysutil</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../topo/index.html">pyna.topo</a></li>
+<li class="toctree-l3 current active has-children"><a class="reference internal" href="../../index.html">pyna.toroidal</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../../boozer_coords/index.html">pyna.toroidal.boozer_coords</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../coils/index.html">pyna.toroidal.coils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../control/index.html">pyna.toroidal.control</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../coords/index.html">pyna.toroidal.coords</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../diagnostics/index.html">pyna.toroidal.diagnostics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../equilibrium/index.html">pyna.toroidal.equilibrium</a></li>
+<li class="toctree-l4 current active"><a class="reference internal" href="../index.html">pyna.toroidal.flt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../geometry/index.html">pyna.toroidal.geometry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../minor_radius/index.html">pyna.toroidal.minor_radius</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../optimize/index.html">pyna.toroidal.optimize</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../perturbation/index.html">pyna.toroidal.perturbation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../perturbation_spectrum/index.html">pyna.toroidal.perturbation_spectrum</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../pest_coords/index.html">pyna.toroidal.pest_coords</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../plasma_response/index.html">pyna.toroidal.plasma_response</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../surface_coordinates/index.html">pyna.toroidal.surface_coordinates</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../torus_deformation/index.html">pyna.toroidal.torus_deformation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../visual/index.html">pyna.toroidal.visual</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../utils/index.html">pyna.utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../vector_calc/index.html">pyna.vector_calc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../withparam/index.html">pyna.withparam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../workflow/index.html">pyna.workflow</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../theory/index.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../development/index.html">Development</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../../../../index.html" class="nav-link">pyna - Python DYNAmics</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../../../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">pyna</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">pyna.toroidal</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">pyna.toroidal.flt</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.toroidal.flt.numba_poincare</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-pyna.toroidal.flt.numba_poincare">
+<span id="pyna-toroidal-flt-numba-poincare"></span><h1>pyna.toroidal.flt.numba_poincare<a class="headerlink" href="#module-pyna.toroidal.flt.numba_poincare" title="Link to this heading">#</a></h1>
+<p>Toroidal Poincaré tracing helpers backed by the cyna C++ extension.</p>
+<p>Canonical toroidal ownership for the grid-backed batch tracing helpers.</p>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.field_arrays_from_interpolators" title="pyna.toroidal.flt.numba_poincare.field_arrays_from_interpolators"><code class="xref py py-obj docutils literal notranslate"><span class="pre">field_arrays_from_interpolators</span></code></a>(itp_BR, itp_BZ, itp_BPhi)</p></td>
+<td><p>Extract contiguous field arrays from <code class="docutils literal notranslate"><span class="pre">RegularGridInterpolator</span></code> objects.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.field_arrays_from_field" title="pyna.toroidal.flt.numba_poincare.field_arrays_from_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">field_arrays_from_field</span></code></a>(...)</p></td>
+<td><p>Return a named cyna-array view from a cylindrical vector field object.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.vector_field_cylind_from_field" title="pyna.toroidal.flt.numba_poincare.vector_field_cylind_from_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vector_field_cylind_from_field</span></code></a>(field, *[, extend_phi])</p></td>
+<td><p>Build a cyna <code class="docutils literal notranslate"><span class="pre">VectorFieldCylind</span></code> handle from a pyna VectorFieldCylind.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.precompile_tracer" title="pyna.toroidal.flt.numba_poincare.precompile_tracer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">precompile_tracer</span></code></a>(R_grid, Z_grid, Phi_grid, BR_flat, ...)</p></td>
+<td><p>Compatibility no-op retained for the historical numba-era API.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_batch" title="pyna.toroidal.flt.numba_poincare.trace_poincare_batch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_poincare_batch</span></code></a>(R_seeds, Z_seeds, phi_section, ...)</p></td>
+<td><p>Trace field lines and record a single Poincaré section in batch.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_batch_field" title="pyna.toroidal.flt.numba_poincare.trace_poincare_batch_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_poincare_batch_field</span></code></a>(field, R_seeds, Z_seeds, ...)</p></td>
+<td><p>Object-first Poincare tracing wrapper.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch" title="pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_poincare_bidirectional_batch</span></code></a>(R_seeds, Z_seeds, ...)</p></td>
+<td><p>Trace the same Poincaré section in both φ directions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch_field" title="pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_poincare_bidirectional_batch_field</span></code></a>(field, ...[, ...])</p></td>
+<td><p>Object-first bidirectional Poincaré tracing wrapper.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_multi_batch" title="pyna.toroidal.flt.numba_poincare.trace_poincare_multi_batch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_poincare_multi_batch</span></code></a>(R_seeds, Z_seeds, ...[, ...])</p></td>
+<td><p>Trace field lines and record multiple Poincaré sections in batch.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_multi_batch_field" title="pyna.toroidal.flt.numba_poincare.trace_poincare_multi_batch_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_poincare_multi_batch_field</span></code></a>(field, R_seeds, ...)</p></td>
+<td><p>Object-first multi-section Poincare tracing wrapper.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_multi_bidirectional_batch" title="pyna.toroidal.flt.numba_poincare.trace_poincare_multi_bidirectional_batch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_poincare_multi_bidirectional_batch</span></code></a>(R_seeds, ...)</p></td>
+<td><p>Trace multiple Poincaré sections in both φ directions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_multi_bidirectional_batch_field" title="pyna.toroidal.flt.numba_poincare.trace_poincare_multi_bidirectional_batch_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_poincare_multi_bidirectional_batch_field</span></code></a>(field, ...)</p></td>
+<td><p>Object-first bidirectional multi-section Poincaré wrapper.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_batch_twall" title="pyna.toroidal.flt.numba_poincare.trace_poincare_batch_twall"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_poincare_batch_twall</span></code></a>(R_seeds, Z_seeds, ...[, ...])</p></td>
+<td><p>Trace field lines against a toroidal 3-D wall and record a section.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_batch_twall_field" title="pyna.toroidal.flt.numba_poincare.trace_poincare_batch_twall_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_poincare_batch_twall_field</span></code></a>(field, R_seeds, ...)</p></td>
+<td><p>Object-first toroidal-wall Poincare tracing wrapper.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch_twall" title="pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch_twall"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_poincare_bidirectional_batch_twall</span></code></a>(R_seeds, ...)</p></td>
+<td><p>Trace one Poincaré section in both directions against a 3-D wall.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch_twall_field" title="pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch_twall_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_poincare_bidirectional_batch_twall_field</span></code></a>(field, ...)</p></td>
+<td><p>Object-first bidirectional toroidal-wall Poincaré wrapper.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_connection_length_twall" title="pyna.toroidal.flt.numba_poincare.trace_connection_length_twall"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_connection_length_twall</span></code></a>(R_seeds, Z_seeds, ...[, ...])</p></td>
+<td><p>Compute forward/backward connection lengths against a toroidal wall.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_connection_length_twall_field" title="pyna.toroidal.flt.numba_poincare.trace_connection_length_twall_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_connection_length_twall_field</span></code></a>(field, R_seeds, ...)</p></td>
+<td><p>Object-first wrapper for toroidal-wall connection lengths.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_wall_hits_twall" title="pyna.toroidal.flt.numba_poincare.trace_wall_hits_twall"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_wall_hits_twall</span></code></a>(R_seeds, Z_seeds, phi_start, ...)</p></td>
+<td><p>Trace seeds to a toroidal wall and return hit points for both directions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_wall_hits_twall_field" title="pyna.toroidal.flt.numba_poincare.trace_wall_hits_twall_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_wall_hits_twall_field</span></code></a>(field, R_seeds, Z_seeds, ...)</p></td>
+<td><p>Object-first wrapper for toroidal-wall hit tracing.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.strike_line_from_wall_hits" title="pyna.toroidal.flt.numba_poincare.strike_line_from_wall_hits"><code class="xref py py-obj docutils literal notranslate"><span class="pre">strike_line_from_wall_hits</span></code></a>(→ dict[str, numpy.ndarray])</p></td>
+<td><p>Extract strike points from a <code class="docutils literal notranslate"><span class="pre">trace_wall_hits_twall</span></code> result.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_strike_line_twall" title="pyna.toroidal.flt.numba_poincare.trace_strike_line_twall"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_strike_line_twall</span></code></a>(R_seeds, Z_seeds, phi_start, ...)</p></td>
+<td><p>Trace an ordered seed bundle and return its toroidal-wall strike line.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_strike_line_twall_field" title="pyna.toroidal.flt.numba_poincare.trace_strike_line_twall_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_strike_line_twall_field</span></code></a>(field, R_seeds, Z_seeds, ...)</p></td>
+<td><p>Object-first wrapper for strike-line tracing from an ordered seed bundle.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.find_fixed_points_batch" title="pyna.toroidal.flt.numba_poincare.find_fixed_points_batch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_fixed_points_batch</span></code></a>(R_seeds, Z_seeds, phi_start, ...)</p></td>
+<td><p>Batch search for Poincaré-map fixed points starting from seed points.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.find_fixed_points_batch_field" title="pyna.toroidal.flt.numba_poincare.find_fixed_points_batch_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_fixed_points_batch_field</span></code></a>(field, R_seeds, Z_seeds, ...)</p></td>
+<td><p>Object-first fixed-point search wrapper.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.find_fixed_points_batch_span" title="pyna.toroidal.flt.numba_poincare.find_fixed_points_batch_span"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_fixed_points_batch_span</span></code></a>(R_seeds, Z_seeds, ...)</p></td>
+<td><p>Batch search for fixed points of an arbitrary toroidal-span map.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.find_fixed_points_batch_span_field" title="pyna.toroidal.flt.numba_poincare.find_fixed_points_batch_span_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_fixed_points_batch_span_field</span></code></a>(field, R_seeds, ...)</p></td>
+<td><p>Object-first arbitrary-span fixed-point search wrapper.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_map_batch_span" title="pyna.toroidal.flt.numba_poincare.trace_map_batch_span"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_map_batch_span</span></code></a>(R_seeds, Z_seeds, phi_start, ...)</p></td>
+<td><p>Batch trace iterates of an arbitrary toroidal-span map.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_map_batch_span_field" title="pyna.toroidal.flt.numba_poincare.trace_map_batch_span_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_map_batch_span_field</span></code></a>(field, R_seeds, Z_seeds, ...)</p></td>
+<td><p>Object-first wrapper for arbitrary-span map iterates.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_orbit_along_phi" title="pyna.toroidal.flt.numba_poincare.trace_orbit_along_phi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_orbit_along_phi</span></code></a>(R0, Z0, phi_start, phi_end, ...)</p></td>
+<td><p>Trace a single orbit from <code class="docutils literal notranslate"><span class="pre">phi_start</span></code> to <code class="docutils literal notranslate"><span class="pre">phi_end</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_orbit_along_phi_field" title="pyna.toroidal.flt.numba_poincare.trace_orbit_along_phi_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_orbit_along_phi_field</span></code></a>(field, R0, Z0, phi_start, ...)</p></td>
+<td><p>Object-first single-orbit tracing wrapper.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_orbit_bidirectional_along_phi" title="pyna.toroidal.flt.numba_poincare.trace_orbit_bidirectional_along_phi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_orbit_bidirectional_along_phi</span></code></a>(R0, Z0, phi_start, ...)</p></td>
+<td><p>Trace one seed in both φ directions.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_orbit_bidirectional_along_phi_field" title="pyna.toroidal.flt.numba_poincare.trace_orbit_bidirectional_along_phi_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_orbit_bidirectional_along_phi_field</span></code></a>(field, R0, ...)</p></td>
+<td><p>Object-first bidirectional orbit tracing wrapper.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.progress_DX_pol_along_orbit" title="pyna.toroidal.flt.numba_poincare.progress_DX_pol_along_orbit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">progress_DX_pol_along_orbit</span></code></a>(R_traj, Z_traj, phi_traj, ...)</p></td>
+<td><p>Progress <code class="docutils literal notranslate"><span class="pre">DX_pol(phi_e,</span> <span class="pre">phi_s)</span></code> along an already sampled orbit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.progress_DX_pol_along_orbit_field" title="pyna.toroidal.flt.numba_poincare.progress_DX_pol_along_orbit_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">progress_DX_pol_along_orbit_field</span></code></a>(field, R_traj, ...)</p></td>
+<td><p>Object-first wrapper for <code class="docutils literal notranslate"><span class="pre">progress_DX_pol_along_orbit</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.progress_delta_X_along_orbit" title="pyna.toroidal.flt.numba_poincare.progress_delta_X_along_orbit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">progress_delta_X_along_orbit</span></code></a>(R_traj, Z_traj, phi_traj, ...)</p></td>
+<td><p>Progress first-order <code class="docutils literal notranslate"><span class="pre">delta_X(phi_s,</span> <span class="pre">phi_e)</span></code> along a sampled orbit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle" title="pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evolve_delta_X_cycle_along_cycle</span></code></a>(R_traj, Z_traj, ...)</p></td>
+<td><p>Evolve periodic-cycle displacement <code class="docutils literal notranslate"><span class="pre">delta_X_cyc(phi)</span></code> along a cycle.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_orbit" title="pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_orbit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evolve_delta_X_cycle_along_orbit</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Compatibility alias for <a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle" title="pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle"><code class="xref py py-func docutils literal notranslate"><span class="pre">evolve_delta_X_cycle_along_cycle()</span></code></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.progress_delta_X_along_orbit_field" title="pyna.toroidal.flt.numba_poincare.progress_delta_X_along_orbit_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">progress_delta_X_along_orbit_field</span></code></a>(field, delta_field, ...)</p></td>
+<td><p>Object-first wrapper for <code class="docutils literal notranslate"><span class="pre">progress_delta_X_along_orbit</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle_field" title="pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evolve_delta_X_cycle_along_cycle_field</span></code></a>(field, ...[, ...])</p></td>
+<td><p>Object-first wrapper for <code class="docutils literal notranslate"><span class="pre">evolve_delta_X_cycle_along_cycle</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_orbit_field" title="pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_orbit_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evolve_delta_X_cycle_along_orbit_field</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Compatibility alias for <a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle_field" title="pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle_field"><code class="xref py py-func docutils literal notranslate"><span class="pre">evolve_delta_X_cycle_along_cycle_field()</span></code></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth" title="pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_poincare_dpk_growth</span></code></a>(R0, Z0, phi_start, ...[, ...])</p></td>
+<td><p>Trace one seed and record cumulative <code class="docutils literal notranslate"><span class="pre">DP^k</span></code> at Poincare returns.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth_field" title="pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_poincare_dpk_growth_field</span></code></a>(field, R0, Z0, ...[, ...])</p></td>
+<td><p>Object-first wrapper for cumulative Poincare <code class="docutils literal notranslate"><span class="pre">DP^k</span></code> growth.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth_twall" title="pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth_twall"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_poincare_dpk_growth_twall</span></code></a>(R0, Z0, phi_start, ...)</p></td>
+<td><p>Wall-aware cumulative <code class="docutils literal notranslate"><span class="pre">DP^k</span></code> tracing.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth_twall_field" title="pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth_twall_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_poincare_dpk_growth_twall_field</span></code></a>(field, R0, Z0, ...)</p></td>
+<td><p>Object-first wrapper for wall-aware cumulative Poincare <code class="docutils literal notranslate"><span class="pre">DP^k</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.field_arrays_from_interpolators">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">field_arrays_from_interpolators</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">itp_BR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">itp_BZ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">itp_BPhi</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#field_arrays_from_interpolators"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.field_arrays_from_interpolators" title="Link to this definition">#</a></dt>
+<dd><p>Extract contiguous field arrays from <code class="docutils literal notranslate"><span class="pre">RegularGridInterpolator</span></code> objects.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.field_arrays_from_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">field_arrays_from_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../../fields/cylindrical/index.html#pyna.fields.cylindrical.CylindricalFieldArrays" title="pyna.fields.cylindrical.CylindricalFieldArrays"><span class="pre">pyna.fields.cylindrical.CylindricalFieldArrays</span></a></span></span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#field_arrays_from_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.field_arrays_from_field" title="Link to this definition">#</a></dt>
+<dd><p>Return a named cyna-array view from a cylindrical vector field object.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.vector_field_cylind_from_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">vector_field_cylind_from_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#vector_field_cylind_from_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.vector_field_cylind_from_field" title="Link to this definition">#</a></dt>
+<dd><p>Build a cyna <code class="docutils literal notranslate"><span class="pre">VectorFieldCylind</span></code> handle from a pyna VectorFieldCylind.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.precompile_tracer">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">precompile_tracer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#precompile_tracer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.precompile_tracer" title="Link to this definition">#</a></dt>
+<dd><p>Compatibility no-op retained for the historical numba-era API.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_poincare_batch">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_poincare_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_section</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_turns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'+'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_poincare_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_batch" title="Link to this definition">#</a></dt>
+<dd><p>Trace field lines and record a single Poincaré section in batch.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_poincare_batch_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_poincare_batch_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_section</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_turns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'+'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_poincare_batch_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_batch_field" title="Link to this definition">#</a></dt>
+<dd><p>Object-first Poincare tracing wrapper.</p>
+<p><code class="docutils literal notranslate"><span class="pre">field</span></code> is a cylindrical vector field object; only this bridge unpacks
+it into the cyna <code class="docutils literal notranslate"><span class="pre">BR,</span> <span class="pre">BZ,</span> <span class="pre">BPhi</span></code> ABI.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_poincare_bidirectional_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_section</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_turns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_poincare_bidirectional_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch" title="Link to this definition">#</a></dt>
+<dd><p>Trace the same Poincaré section in both φ directions.</p>
+<p>Returns <code class="docutils literal notranslate"><span class="pre">{&quot;forward&quot;:</span> <span class="pre">(...),</span> <span class="pre">&quot;backward&quot;:</span> <span class="pre">(...)}</span></code>, where each value has
+the same <code class="docutils literal notranslate"><span class="pre">(counts,</span> <span class="pre">R_flat,</span> <span class="pre">Z_flat)</span></code> layout as <a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_batch" title="pyna.toroidal.flt.numba_poincare.trace_poincare_batch"><code class="xref py py-func docutils literal notranslate"><span class="pre">trace_poincare_batch()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_poincare_bidirectional_batch_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_section</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_turns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_poincare_bidirectional_batch_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch_field" title="Link to this definition">#</a></dt>
+<dd><p>Object-first bidirectional Poincaré tracing wrapper.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_poincare_multi_batch">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_poincare_multi_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_sections_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_turns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'+'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_poincare_multi_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_multi_batch" title="Link to this definition">#</a></dt>
+<dd><p>Trace field lines and record multiple Poincaré sections in batch.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_poincare_multi_batch_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_poincare_multi_batch_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_sections_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_turns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'+'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_poincare_multi_batch_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_multi_batch_field" title="Link to this definition">#</a></dt>
+<dd><p>Object-first multi-section Poincare tracing wrapper.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_poincare_multi_bidirectional_batch">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_poincare_multi_bidirectional_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_sections_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_turns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_poincare_multi_bidirectional_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_multi_bidirectional_batch" title="Link to this definition">#</a></dt>
+<dd><p>Trace multiple Poincaré sections in both φ directions.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_poincare_multi_bidirectional_batch_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_poincare_multi_bidirectional_batch_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_sections_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_turns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_poincare_multi_bidirectional_batch_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_multi_bidirectional_batch_field" title="Link to this definition">#</a></dt>
+<dd><p>Object-first bidirectional multi-section Poincaré wrapper.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_poincare_batch_twall">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_poincare_batch_twall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_section</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_turns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R_all</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z_all</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'+'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_poincare_batch_twall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_batch_twall" title="Link to this definition">#</a></dt>
+<dd><p>Trace field lines against a toroidal 3-D wall and record a section.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_poincare_batch_twall_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_poincare_batch_twall_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_section</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_turns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'+'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_poincare_batch_twall_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_batch_twall_field" title="Link to this definition">#</a></dt>
+<dd><p>Object-first toroidal-wall Poincare tracing wrapper.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch_twall">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_poincare_bidirectional_batch_twall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_section</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_turns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R_all</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z_all</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_poincare_bidirectional_batch_twall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch_twall" title="Link to this definition">#</a></dt>
+<dd><p>Trace one Poincaré section in both directions against a 3-D wall.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch_twall_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_poincare_bidirectional_batch_twall_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_section</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_turns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_poincare_bidirectional_batch_twall_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch_twall_field" title="Link to this definition">#</a></dt>
+<dd><p>Object-first bidirectional toroidal-wall Poincaré wrapper.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_connection_length_twall">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_connection_length_twall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_turns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R_all</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z_all</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_connection_length_twall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_connection_length_twall" title="Link to this definition">#</a></dt>
+<dd><p>Compute forward/backward connection lengths against a toroidal wall.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_connection_length_twall_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_connection_length_twall_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_turns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_connection_length_twall_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_connection_length_twall_field" title="Link to this definition">#</a></dt>
+<dd><p>Object-first wrapper for toroidal-wall connection lengths.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_wall_hits_twall">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_wall_hits_twall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_turns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R_all</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z_all</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_wall_hits_twall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_wall_hits_twall" title="Link to this definition">#</a></dt>
+<dd><p>Trace seeds to a toroidal wall and return hit points for both directions.</p>
+<p><code class="docutils literal notranslate"><span class="pre">term_plus</span></code> / <code class="docutils literal notranslate"><span class="pre">term_minus</span></code> use cyna’s convention:
+<code class="docutils literal notranslate"><span class="pre">0</span></code> no termination, <code class="docutils literal notranslate"><span class="pre">1</span></code> wall polygon, <code class="docutils literal notranslate"><span class="pre">2</span></code> field-grid exit,
+<code class="docutils literal notranslate"><span class="pre">3</span></code> non-finite field.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_wall_hits_twall_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_wall_hits_twall_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_turns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_wall_hits_twall_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_wall_hits_twall_field" title="Link to this definition">#</a></dt>
+<dd><p>Object-first wrapper for toroidal-wall hit tracing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.strike_line_from_wall_hits">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">strike_line_from_wall_hits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wall_hits</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'+'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_term</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#strike_line_from_wall_hits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.strike_line_from_wall_hits" title="Link to this definition">#</a></dt>
+<dd><p>Extract strike points from a <code class="docutils literal notranslate"><span class="pre">trace_wall_hits_twall</span></code> result.</p>
+<p>The returned arrays preserve seed order, which is usually the right ordering
+for a bundle launched from an ordered curve.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_strike_line_twall">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_strike_line_twall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_turns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R_all</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z_all</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'+'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_strike_line_twall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_strike_line_twall" title="Link to this definition">#</a></dt>
+<dd><p>Trace an ordered seed bundle and return its toroidal-wall strike line.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_strike_line_twall_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_strike_line_twall_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_turns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'+'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_strike_line_twall_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_strike_line_twall_field" title="Link to this definition">#</a></dt>
+<dd><p>Object-first wrapper for strike-line tracing from an ordered seed bundle.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.find_fixed_points_batch">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">find_fixed_points_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_period_count</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#find_fixed_points_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.find_fixed_points_batch" title="Link to this definition">#</a></dt>
+<dd><p>Batch search for Poincaré-map fixed points starting from seed points.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.find_fixed_points_batch_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">find_fixed_points_batch_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_period_count</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#find_fixed_points_batch_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.find_fixed_points_batch_field" title="Link to this definition">#</a></dt>
+<dd><p>Object-first fixed-point search wrapper.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.find_fixed_points_batch_span">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">find_fixed_points_batch_span</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_span</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#find_fixed_points_batch_span"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.find_fixed_points_batch_span" title="Link to this definition">#</a></dt>
+<dd><p>Batch search for fixed points of an arbitrary toroidal-span map.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.find_fixed_points_batch_span_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">find_fixed_points_batch_span_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_span</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#find_fixed_points_batch_span_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.find_fixed_points_batch_span_field" title="Link to this definition">#</a></dt>
+<dd><p>Object-first arbitrary-span fixed-point search wrapper.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_map_batch_span">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_map_batch_span</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_span</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_threads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_map_batch_span"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_map_batch_span" title="Link to this definition">#</a></dt>
+<dd><p>Batch trace iterates of an arbitrary toroidal-span map.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_map_batch_span_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_map_batch_span_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_seeds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_span</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_threads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_map_batch_span_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_map_batch_span_field" title="Link to this definition">#</a></dt>
+<dd><p>Object-first wrapper for arbitrary-span map iterates.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_orbit_along_phi">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_orbit_along_phi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">dphi_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m_turns_DPm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fd_eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_orbit_along_phi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_orbit_along_phi" title="Link to this definition">#</a></dt>
+<dd><p>Trace a single orbit from <code class="docutils literal notranslate"><span class="pre">phi_start</span></code> to <code class="docutils literal notranslate"><span class="pre">phi_end</span></code>.</p>
+<p>The public wrapper keeps the historical <code class="docutils literal notranslate"><span class="pre">phi_start</span></code>/<code class="docutils literal notranslate"><span class="pre">phi_end</span></code> form.
+The cyna backend now accepts <code class="docutils literal notranslate"><span class="pre">phi_span</span></code> and can optionally compute
+<code class="docutils literal notranslate"><span class="pre">DPm(phi)</span></code> for an <code class="docutils literal notranslate"><span class="pre">m_turns_DPm</span></code>-turn map.  <code class="docutils literal notranslate"><span class="pre">m_turns_DPm=0</span></code> returns
+identity DPm blocks and is the compatibility default for plain tracing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_orbit_along_phi_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_orbit_along_phi_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dphi_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m_turns_DPm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fd_eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_orbit_along_phi_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_orbit_along_phi_field" title="Link to this definition">#</a></dt>
+<dd><p>Object-first single-orbit tracing wrapper.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_orbit_bidirectional_along_phi">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_orbit_bidirectional_along_phi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_span</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">dphi_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m_turns_DPm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fd_eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_orbit_bidirectional_along_phi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_orbit_bidirectional_along_phi" title="Link to this definition">#</a></dt>
+<dd><p>Trace one seed in both φ directions.</p>
+<p><code class="docutils literal notranslate"><span class="pre">phi_span</span></code> is treated as an absolute span; the returned dict has
+<code class="docutils literal notranslate"><span class="pre">&quot;forward&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;backward&quot;</span></code> entries, each matching
+<a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_orbit_along_phi" title="pyna.toroidal.flt.numba_poincare.trace_orbit_along_phi"><code class="xref py py-func docutils literal notranslate"><span class="pre">trace_orbit_along_phi()</span></code></a> output.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_orbit_bidirectional_along_phi_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_orbit_bidirectional_along_phi_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_span</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dphi_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m_turns_DPm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fd_eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_orbit_bidirectional_along_phi_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_orbit_bidirectional_along_phi_field" title="Link to this definition">#</a></dt>
+<dd><p>Object-first bidirectional orbit tracing wrapper.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.progress_DX_pol_along_orbit">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">progress_DX_pol_along_orbit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.005</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#progress_DX_pol_along_orbit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.progress_DX_pol_along_orbit" title="Link to this definition">#</a></dt>
+<dd><p>Progress <code class="docutils literal notranslate"><span class="pre">DX_pol(phi_e,</span> <span class="pre">phi_s)</span></code> along an already sampled orbit.</p>
+<p>The returned array has shape <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">2,</span> <span class="pre">2)</span></code> and starts from identity at
+index 0.  The cyna backend uses the supplied orbit samples as the path;
+it does not retrace the field line.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.progress_DX_pol_along_orbit_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">progress_DX_pol_along_orbit_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_traj</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.005</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#progress_DX_pol_along_orbit_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.progress_DX_pol_along_orbit_field" title="Link to this definition">#</a></dt>
+<dd><p>Object-first wrapper for <code class="docutils literal notranslate"><span class="pre">progress_DX_pol_along_orbit</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.progress_delta_X_along_orbit">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">progress_delta_X_along_orbit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_X0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dBR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dBZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dBPhi_flat</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.005</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#progress_delta_X_along_orbit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.progress_delta_X_along_orbit" title="Link to this definition">#</a></dt>
+<dd><p>Progress first-order <code class="docutils literal notranslate"><span class="pre">delta_X(phi_s,</span> <span class="pre">phi_e)</span></code> along a sampled orbit.</p>
+<p><code class="docutils literal notranslate"><span class="pre">progress</span></code> means the source point <code class="docutils literal notranslate"><span class="pre">phi_s</span></code> is fixed and only <code class="docutils literal notranslate"><span class="pre">phi_e</span></code>
+advances.  This is the correct verb for <code class="docutils literal notranslate"><span class="pre">delta_X_pol</span></code> and other open
+trajectory responses.  The returned array has shape <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">2)</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">evolve_delta_X_cycle_along_cycle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_X_cyc0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dBR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dBZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dBPhi_flat</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.005</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#evolve_delta_X_cycle_along_cycle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle" title="Link to this definition">#</a></dt>
+<dd><p>Evolve periodic-cycle displacement <code class="docutils literal notranslate"><span class="pre">delta_X_cyc(phi)</span></code> along a cycle.</p>
+<p><code class="docutils literal notranslate"><span class="pre">evolve</span></code> means <code class="docutils literal notranslate"><span class="pre">phi_s</span></code> and <code class="docutils literal notranslate"><span class="pre">phi_e</span> <span class="pre">=</span> <span class="pre">phi_s</span> <span class="pre">+</span> <span class="pre">2*pi*m</span></code> move together
+along a periodic cycle.  This intentionally uses the same inhomogeneous
+response equation as <a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.progress_delta_X_along_orbit" title="pyna.toroidal.flt.numba_poincare.progress_delta_X_along_orbit"><code class="xref py py-func docutils literal notranslate"><span class="pre">progress_delta_X_along_orbit()</span></code></a>; the difference is
+the interpretation and initial value.  <code class="docutils literal notranslate"><span class="pre">delta_X_cyc0</span></code> must already be the
+periodic initial displacement from the cycle closure solve, while
+<code class="docutils literal notranslate"><span class="pre">progress_delta_X_along_orbit</span></code> advances an open-trajectory response from a
+chosen source point.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_orbit">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">evolve_delta_X_cycle_along_orbit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#evolve_delta_X_cycle_along_orbit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_orbit" title="Link to this definition">#</a></dt>
+<dd><p>Compatibility alias for <a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle" title="pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle"><code class="xref py py-func docutils literal notranslate"><span class="pre">evolve_delta_X_cycle_along_cycle()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.progress_delta_X_along_orbit_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">progress_delta_X_along_orbit_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_X0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.005</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#progress_delta_X_along_orbit_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.progress_delta_X_along_orbit_field" title="Link to this definition">#</a></dt>
+<dd><p>Object-first wrapper for <code class="docutils literal notranslate"><span class="pre">progress_delta_X_along_orbit</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">evolve_delta_X_cycle_along_cycle_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_X_cyc0</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.005</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#evolve_delta_X_cycle_along_cycle_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle_field" title="Link to this definition">#</a></dt>
+<dd><p>Object-first wrapper for <code class="docutils literal notranslate"><span class="pre">evolve_delta_X_cycle_along_cycle</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_orbit_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">evolve_delta_X_cycle_along_orbit_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#evolve_delta_X_cycle_along_orbit_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_orbit_field" title="Link to this definition">#</a></dt>
+<dd><p>Compatibility alias for <a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle_field" title="pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle_field"><code class="xref py py-func docutils literal notranslate"><span class="pre">evolve_delta_X_cycle_along_cycle_field()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_poincare_dpk_growth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_returns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_period</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.0</span> <span class="pre">*</span> <span class="pre">np.pi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_stride</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_poincare_dpk_growth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth" title="Link to this definition">#</a></dt>
+<dd><p>Trace one seed and record cumulative <code class="docutils literal notranslate"><span class="pre">DP^k</span></code> at Poincare returns.</p>
+<p>This calls the cyna variational-equation path once and records
+<code class="docutils literal notranslate"><span class="pre">DX_pol(phi_start,</span> <span class="pre">phi_start</span> <span class="pre">+</span> <span class="pre">k</span> <span class="pre">*</span> <span class="pre">return_period)</span></code> at each requested
+return.  It is the hot-path API for chaos/LCFS screening with k up to
+hundreds of returns.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_poincare_dpk_growth_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_returns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_period</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.0</span> <span class="pre">*</span> <span class="pre">np.pi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_stride</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_poincare_dpk_growth_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth_field" title="Link to this definition">#</a></dt>
+<dd><p>Object-first wrapper for cumulative Poincare <code class="docutils literal notranslate"><span class="pre">DP^k</span></code> growth.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth_twall">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_poincare_dpk_growth_twall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_returns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phi_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BR_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BZ_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BPhi_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R_all</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z_all</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_period</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.0</span> <span class="pre">*</span> <span class="pre">np.pi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_stride</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_at_wall</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_poincare_dpk_growth_twall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth_twall" title="Link to this definition">#</a></dt>
+<dd><p>Wall-aware cumulative <code class="docutils literal notranslate"><span class="pre">DP^k</span></code> tracing.</p>
+<p>Returns the same trajectory data as <a class="reference internal" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth" title="pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth"><code class="xref py py-func docutils literal notranslate"><span class="pre">trace_poincare_dpk_growth()</span></code></a>,
+plus <code class="docutils literal notranslate"><span class="pre">hit=[R,</span> <span class="pre">Z,</span> <span class="pre">phi,</span> <span class="pre">k_float]</span></code> for the first wall crossing and
+<code class="docutils literal notranslate"><span class="pre">term</span></code> where 0 means no hit, 1 means wall hit, and 2 means grid/nonfinite
+termination.  If <code class="docutils literal notranslate"><span class="pre">stop_at_wall</span></code> is false, tracing continues after the
+first wall hit so topology can be inspected without wall truncation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth_twall_field">
+<span class="sig-prename descclassname"><span class="pre">pyna.toroidal.flt.numba_poincare.</span></span><span class="sig-name descname"><span class="pre">trace_poincare_dpk_growth_twall_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_returns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DPhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_R_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_Z_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_period</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.0</span> <span class="pre">*</span> <span class="pre">np.pi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_stride</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_at_wall</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../../_modules/pyna/toroidal/flt/numba_poincare.html#trace_poincare_dpk_growth_twall_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth_twall_field" title="Link to this definition">#</a></dt>
+<dd><p>Object-first wrapper for wall-aware cumulative Poincare <code class="docutils literal notranslate"><span class="pre">DP^k</span></code>.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../island_chain/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">pyna.toroidal.flt.island_chain</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../postcompute/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">pyna.toroidal.flt.postcompute</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.field_arrays_from_interpolators"><code class="docutils literal notranslate"><span class="pre">field_arrays_from_interpolators()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.field_arrays_from_field"><code class="docutils literal notranslate"><span class="pre">field_arrays_from_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.vector_field_cylind_from_field"><code class="docutils literal notranslate"><span class="pre">vector_field_cylind_from_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.precompile_tracer"><code class="docutils literal notranslate"><span class="pre">precompile_tracer()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_batch"><code class="docutils literal notranslate"><span class="pre">trace_poincare_batch()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_batch_field"><code class="docutils literal notranslate"><span class="pre">trace_poincare_batch_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch"><code class="docutils literal notranslate"><span class="pre">trace_poincare_bidirectional_batch()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch_field"><code class="docutils literal notranslate"><span class="pre">trace_poincare_bidirectional_batch_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_multi_batch"><code class="docutils literal notranslate"><span class="pre">trace_poincare_multi_batch()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_multi_batch_field"><code class="docutils literal notranslate"><span class="pre">trace_poincare_multi_batch_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_multi_bidirectional_batch"><code class="docutils literal notranslate"><span class="pre">trace_poincare_multi_bidirectional_batch()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_multi_bidirectional_batch_field"><code class="docutils literal notranslate"><span class="pre">trace_poincare_multi_bidirectional_batch_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_batch_twall"><code class="docutils literal notranslate"><span class="pre">trace_poincare_batch_twall()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_batch_twall_field"><code class="docutils literal notranslate"><span class="pre">trace_poincare_batch_twall_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch_twall"><code class="docutils literal notranslate"><span class="pre">trace_poincare_bidirectional_batch_twall()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_bidirectional_batch_twall_field"><code class="docutils literal notranslate"><span class="pre">trace_poincare_bidirectional_batch_twall_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_connection_length_twall"><code class="docutils literal notranslate"><span class="pre">trace_connection_length_twall()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_connection_length_twall_field"><code class="docutils literal notranslate"><span class="pre">trace_connection_length_twall_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_wall_hits_twall"><code class="docutils literal notranslate"><span class="pre">trace_wall_hits_twall()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_wall_hits_twall_field"><code class="docutils literal notranslate"><span class="pre">trace_wall_hits_twall_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.strike_line_from_wall_hits"><code class="docutils literal notranslate"><span class="pre">strike_line_from_wall_hits()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_strike_line_twall"><code class="docutils literal notranslate"><span class="pre">trace_strike_line_twall()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_strike_line_twall_field"><code class="docutils literal notranslate"><span class="pre">trace_strike_line_twall_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.find_fixed_points_batch"><code class="docutils literal notranslate"><span class="pre">find_fixed_points_batch()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.find_fixed_points_batch_field"><code class="docutils literal notranslate"><span class="pre">find_fixed_points_batch_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.find_fixed_points_batch_span"><code class="docutils literal notranslate"><span class="pre">find_fixed_points_batch_span()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.find_fixed_points_batch_span_field"><code class="docutils literal notranslate"><span class="pre">find_fixed_points_batch_span_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_map_batch_span"><code class="docutils literal notranslate"><span class="pre">trace_map_batch_span()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_map_batch_span_field"><code class="docutils literal notranslate"><span class="pre">trace_map_batch_span_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_orbit_along_phi"><code class="docutils literal notranslate"><span class="pre">trace_orbit_along_phi()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_orbit_along_phi_field"><code class="docutils literal notranslate"><span class="pre">trace_orbit_along_phi_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_orbit_bidirectional_along_phi"><code class="docutils literal notranslate"><span class="pre">trace_orbit_bidirectional_along_phi()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_orbit_bidirectional_along_phi_field"><code class="docutils literal notranslate"><span class="pre">trace_orbit_bidirectional_along_phi_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.progress_DX_pol_along_orbit"><code class="docutils literal notranslate"><span class="pre">progress_DX_pol_along_orbit()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.progress_DX_pol_along_orbit_field"><code class="docutils literal notranslate"><span class="pre">progress_DX_pol_along_orbit_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.progress_delta_X_along_orbit"><code class="docutils literal notranslate"><span class="pre">progress_delta_X_along_orbit()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle"><code class="docutils literal notranslate"><span class="pre">evolve_delta_X_cycle_along_cycle()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_orbit"><code class="docutils literal notranslate"><span class="pre">evolve_delta_X_cycle_along_orbit()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.progress_delta_X_along_orbit_field"><code class="docutils literal notranslate"><span class="pre">progress_delta_X_along_orbit_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_cycle_field"><code class="docutils literal notranslate"><span class="pre">evolve_delta_X_cycle_along_cycle_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.evolve_delta_X_cycle_along_orbit_field"><code class="docutils literal notranslate"><span class="pre">evolve_delta_X_cycle_along_orbit_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth"><code class="docutils literal notranslate"><span class="pre">trace_poincare_dpk_growth()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth_field"><code class="docutils literal notranslate"><span class="pre">trace_poincare_dpk_growth_field()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth_twall"><code class="docutils literal notranslate"><span class="pre">trace_poincare_dpk_growth_twall()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyna.toroidal.flt.numba_poincare.trace_poincare_dpk_growth_twall_field"><code class="docutils literal notranslate"><span class="pre">trace_poincare_dpk_growth_twall_field()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

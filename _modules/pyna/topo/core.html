@@ -1,0 +1,1575 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.topo.core &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/topo/core';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../topo.html" class="nav-link">pyna.topo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.topo.core</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.topo.core</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;pyna.topo.core — Generic finite-dimensional topology objects.</span>
+
+<span class="sd">This module is the canonical domain-agnostic core.  Nothing here assumes</span>
+<span class="sd">toroidal geometry or uses hard-coded coordinate names such as R/Z/phi.</span>
+
+<span class="sd">Class hierarchy</span>
+<span class="sd">---------------</span>
+<span class="sd">SectionPoint(InvariantManifold, intrinsic_dim=0)</span>
+<span class="sd">  → toroidal.FixedPoint</span>
+
+<span class="sd">PeriodicOrbit(InvariantManifold, intrinsic_dim=0)</span>
+<span class="sd">  → toroidal.PeriodicOrbit</span>
+
+<span class="sd">Cycle(InvariantManifold, intrinsic_dim=1)</span>
+<span class="sd">  → toroidal.Cycle</span>
+
+<span class="sd">Island(InvariantSet)</span>
+<span class="sd">  → toroidal.Island</span>
+
+<span class="sd">IslandChain(InvariantSet)</span>
+<span class="sd">  → toroidal.IslandChain</span>
+
+<span class="sd">Tube(InvariantSet)</span>
+<span class="sd">  → toroidal.Tube</span>
+
+<span class="sd">TubeChain(InvariantSet)</span>
+<span class="sd">  → toroidal.TubeChain</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">auto</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo._monodromy_classification</span><span class="w"> </span><span class="kn">import</span> <span class="n">classify_monodromy_2x2</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">GeometricObject</span><span class="p">,</span> <span class="n">InvariantManifold</span>
+
+
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+<span class="c1"># Stability</span>
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+
+<div class="viewcode-block" id="Stability">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Stability">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Stability</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<div class="viewcode-block" id="Stability.ELLIPTIC">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Stability.ELLIPTIC">[docs]</a>
+    <span class="n">ELLIPTIC</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Stability.HYPERBOLIC">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Stability.HYPERBOLIC">[docs]</a>
+    <span class="n">HYPERBOLIC</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Stability.PARABOLIC">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Stability.PARABOLIC">[docs]</a>
+    <span class="n">PARABOLIC</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Stability.UNKNOWN">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Stability.UNKNOWN">[docs]</a>
+    <span class="n">UNKNOWN</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span></div>
+</div>
+
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">eq</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="viewcode-block" id="LinearStabilityData">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.LinearStabilityData">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LinearStabilityData</span><span class="p">(</span><span class="n">GeometricObject</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Linearised stability payload for a periodic object or section point.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LinearStabilityData.jacobian">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.LinearStabilityData.jacobian">[docs]</a>
+    <span class="n">jacobian</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="LinearStabilityData.eigenvalues">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.LinearStabilityData.eigenvalues">[docs]</a>
+    <span class="n">eigenvalues</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="LinearStabilityData.metadata">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.LinearStabilityData.metadata">[docs]</a>
+    <span class="n">metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jacobian</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">jacobian</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigenvalues</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eigenvalues</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigvals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">jacobian</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eigenvalues</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eigenvalues</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LinearStabilityData.trace">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.LinearStabilityData.trace">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trace</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">jacobian</span><span class="p">))</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LinearStabilityData.stability_index">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.LinearStabilityData.stability_index">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">stability_index</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trace</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LinearStabilityData.classification">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.LinearStabilityData.classification">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">classification</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Stability</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">jacobian</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">kind</span> <span class="o">=</span> <span class="n">classify_monodromy_2x2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">jacobian</span><span class="p">)</span><span class="o">.</span><span class="n">kind</span>
+            <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">Stability</span><span class="o">.</span><span class="n">ELLIPTIC</span>
+            <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;X&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">Stability</span><span class="o">.</span><span class="n">HYPERBOLIC</span>
+            <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;P&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">Stability</span><span class="o">.</span><span class="n">PARABOLIC</span>
+            <span class="k">return</span> <span class="n">Stability</span><span class="o">.</span><span class="n">UNKNOWN</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigenvalues</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eigenvalues</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Stability</span><span class="o">.</span><span class="n">UNKNOWN</span>
+
+        <span class="n">mods</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eigenvalues</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">mods</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">Stability</span><span class="o">.</span><span class="n">ELLIPTIC</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mods</span> <span class="o">&gt;</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mods</span> <span class="o">&lt;</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="mf">1e-8</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">Stability</span><span class="o">.</span><span class="n">HYPERBOLIC</span>
+        <span class="k">return</span> <span class="n">Stability</span><span class="o">.</span><span class="n">UNKNOWN</span></div>
+
+
+<div class="viewcode-block" id="LinearStabilityData.diagnostics">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.LinearStabilityData.diagnostics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">diagnostics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;object_type&quot;</span><span class="p">:</span> <span class="s2">&quot;LinearStabilityData&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;trace&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">trace</span><span class="p">,</span>
+            <span class="s2">&quot;stability_index&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stability_index</span><span class="p">,</span>
+            <span class="s2">&quot;classification&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">classification</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="s2">&quot;eigenvalues&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">complex</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigenvalues</span><span class="p">],</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+<span class="c1"># SectionPoint  — a point on a Poincaré section</span>
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">eq</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="viewcode-block" id="SectionPoint">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.SectionPoint">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SectionPoint</span><span class="p">(</span><span class="n">InvariantManifold</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A point on a section of a finite-dimensional dynamical system.</span>
+
+<span class="sd">    This is the generic root for toroidal.FixedPoint.</span>
+<span class="sd">    The ``state`` field may be None when constructed by a subclass</span>
+<span class="sd">    that fills it in ``__post_init__`` (e.g. FixedPoint from R,Z).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SectionPoint.state">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.SectionPoint.state">[docs]</a>
+    <span class="n">state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="SectionPoint.section_value">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.SectionPoint.section_value">[docs]</a>
+    <span class="n">section_value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="SectionPoint.section_label">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.SectionPoint.section_label">[docs]</a>
+    <span class="n">section_label</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="SectionPoint.stability_data">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.SectionPoint.stability_data">[docs]</a>
+    <span class="n">stability_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">LinearStabilityData</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="SectionPoint.metadata">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.SectionPoint.metadata">[docs]</a>
+    <span class="n">metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;state&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SectionPoint.ambient_dim">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.SectionPoint.ambient_dim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambient_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SectionPoint.coordinate_names">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.SectionPoint.coordinate_names">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">coordinate_names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]:</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;coordinate_names&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="k">if</span> <span class="n">names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="SectionPoint.diagnostics">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.SectionPoint.diagnostics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">diagnostics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;object_type&quot;</span><span class="p">:</span> <span class="s2">&quot;SectionPoint&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;section_value&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">section_value</span><span class="p">,</span>
+            <span class="s2">&quot;section_label&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">section_label</span><span class="p">,</span>
+            <span class="s2">&quot;has_stability&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stability_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+<span class="c1"># Trajectory  — sampled continuous-time curve</span>
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">eq</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="viewcode-block" id="Trajectory">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Trajectory">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Trajectory</span><span class="p">(</span><span class="n">GeometricObject</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Finite sampled trajectory of a continuous-time system.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Trajectory.states">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Trajectory.states">[docs]</a>
+    <span class="n">states</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="Trajectory.times">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Trajectory.times">[docs]</a>
+    <span class="n">times</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="Trajectory.time_name">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Trajectory.time_name">[docs]</a>
+    <span class="n">time_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;t&quot;</span></div>
+
+<div class="viewcode-block" id="Trajectory.coordinate_names">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Trajectory.coordinate_names">[docs]</a>
+    <span class="n">coordinate_names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Trajectory.metadata">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Trajectory.metadata">[docs]</a>
+    <span class="n">metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Trajectory.states must have shape (N, d)&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Trajectory.times must have shape (N,)&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Trajectory.states and Trajectory.times length mismatch&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinate_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">coordinate_names</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinate_names</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinate_names</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;coordinate_names length must match state dimension&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Trajectory.ambient_dim">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Trajectory.ambient_dim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambient_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Trajectory.n_samples">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Trajectory.n_samples">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">n_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="Trajectory.interpolate_at">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Trajectory.interpolate_at">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">interpolate_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cannot interpolate an empty trajectory&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">-</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">t0</span><span class="p">,</span> <span class="n">t1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-30</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">w</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">w</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Trajectory.component">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Trajectory.component">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Trajectory.t">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Trajectory.t">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">t</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Alias for ``times`` used by ODE/SDE solution objects.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Trajectory.y">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Trajectory.y">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">y</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Alias for ``states`` with shape ``(n_samples, ambient_dim)``.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Trajectory.final">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Trajectory.final">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">final</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Final sampled state.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;empty trajectory has no final state&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Trajectory.section_cut">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Trajectory.section_cut">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">section_cut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">SectionPoint</span><span class="p">]:</span>
+        <span class="n">hits</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SectionPoint</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">x0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">x1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">x_hit</span> <span class="o">=</span> <span class="n">section</span><span class="o">.</span><span class="n">detect_crossing</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">x_hit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">hits</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span>
+                <span class="n">hits</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ambient_state&#39;</span><span class="p">),</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x_hit</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+                <span class="n">atol</span><span class="o">=</span><span class="n">tol</span><span class="p">,</span>
+                <span class="n">rtol</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+            <span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">t0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">t1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">f0</span> <span class="o">=</span> <span class="n">section</span><span class="o">.</span><span class="n">f</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span>
+            <span class="n">f1</span> <span class="o">=</span> <span class="n">section</span><span class="o">.</span><span class="n">f</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span>
+            <span class="n">denom</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">f0</span><span class="p">)</span> <span class="o">+</span> <span class="nb">abs</span><span class="p">(</span><span class="n">f1</span><span class="p">)</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="k">if</span> <span class="n">denom</span> <span class="o">&lt;</span> <span class="mf">1e-30</span> <span class="k">else</span> <span class="nb">abs</span><span class="p">(</span><span class="n">f0</span><span class="p">)</span> <span class="o">/</span> <span class="n">denom</span>
+            <span class="n">t_hit</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">w</span><span class="p">)</span> <span class="o">*</span> <span class="n">t0</span> <span class="o">+</span> <span class="n">w</span> <span class="o">*</span> <span class="n">t1</span>
+            <span class="n">hits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SectionPoint</span><span class="p">(</span>
+                <span class="n">state</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">section</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="n">x_hit</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+                <span class="n">section_value</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">t_hit</span><span class="p">),</span>
+                <span class="n">section_label</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="n">metadata</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s1">&#39;ambient_state&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x_hit</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+                    <span class="s1">&#39;time_name&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_name</span><span class="p">,</span>
+                    <span class="s1">&#39;coordinate_names&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinate_names</span><span class="p">,</span>
+                    <span class="s1">&#39;section_object&#39;</span><span class="p">:</span> <span class="n">section</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">))</span>
+        <span class="k">return</span> <span class="n">hits</span></div>
+
+
+<div class="viewcode-block" id="Trajectory.diagnostics">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Trajectory.diagnostics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">diagnostics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;object_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Trajectory&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ambient_dim&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ambient_dim</span><span class="p">,</span>
+            <span class="s2">&quot;n_samples&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">,</span>
+            <span class="s2">&quot;time_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_name</span><span class="p">,</span>
+            <span class="s2">&quot;coordinate_names&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinate_names</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinate_names</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+<span class="c1"># Orbit  — sampled discrete-map orbit</span>
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">eq</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="viewcode-block" id="Orbit">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Orbit">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Orbit</span><span class="p">(</span><span class="n">GeometricObject</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Finite sampled orbit of a discrete-time map.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Orbit.states">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Orbit.states">[docs]</a>
+    <span class="n">states</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="Orbit.steps">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Orbit.steps">[docs]</a>
+    <span class="n">steps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Orbit.coordinate_names">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Orbit.coordinate_names">[docs]</a>
+    <span class="n">coordinate_names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Orbit.metadata">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Orbit.metadata">[docs]</a>
+    <span class="n">metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Orbit.states must have shape (N, d)&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Orbit.steps must have shape (N,)&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinate_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">coordinate_names</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinate_names</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinate_names</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;coordinate_names length must match state dimension&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Orbit.ambient_dim">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Orbit.ambient_dim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambient_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Orbit.n_samples">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Orbit.n_samples">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">n_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Orbit.final">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Orbit.final">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">final</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Final sampled map state.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;empty orbit has no final state&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Orbit.period_guess">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Orbit.period_guess">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">period_guess</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the smallest sampled return to the initial state.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">k</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="Orbit.diagnostics">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Orbit.diagnostics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">diagnostics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;object_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Orbit&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ambient_dim&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ambient_dim</span><span class="p">,</span>
+            <span class="s2">&quot;n_samples&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">,</span>
+            <span class="s2">&quot;coordinate_names&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinate_names</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinate_names</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+<span class="c1"># PeriodicOrbit  — periodic orbit of a discrete map</span>
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">eq</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="viewcode-block" id="PeriodicOrbit">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.PeriodicOrbit">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PeriodicOrbit</span><span class="p">(</span><span class="n">InvariantManifold</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Periodic orbit of a discrete map in arbitrary finite dimension.</span>
+
+<span class="sd">    This is the generic root for toroidal.PeriodicOrbit.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PeriodicOrbit.points">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.PeriodicOrbit.points">[docs]</a>
+    <span class="n">points</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SectionPoint</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PeriodicOrbit.period">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.PeriodicOrbit.period">[docs]</a>
+    <span class="n">period</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="PeriodicOrbit.stability_data">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.PeriodicOrbit.stability_data">[docs]</a>
+    <span class="n">stability_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">LinearStabilityData</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="PeriodicOrbit.representative_state">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.PeriodicOrbit.representative_state">[docs]</a>
+    <span class="n">representative_state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="PeriodicOrbit.orbit_trace">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.PeriodicOrbit.orbit_trace">[docs]</a>
+    <span class="n">orbit_trace</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Orbit</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="PeriodicOrbit.metadata">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.PeriodicOrbit.metadata">[docs]</a>
+    <span class="n">metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">representative_state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">representative_state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">representative_state</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">period</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">period</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="PeriodicOrbit.intrinsic_dim">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.PeriodicOrbit.intrinsic_dim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">intrinsic_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="PeriodicOrbit.ambient_dim">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.PeriodicOrbit.ambient_dim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambient_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">representative_state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">representative_state</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ambient_dim</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orbit_trace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">orbit_trace</span><span class="o">.</span><span class="n">ambient_dim</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="PeriodicOrbit.section_value">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.PeriodicOrbit.section_value">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">section_value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">section_value</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="PeriodicOrbit.section_label">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.PeriodicOrbit.section_label">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">section_label</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">section_label</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="PeriodicOrbit.section_cut">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.PeriodicOrbit.section_cut">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">section_cut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;PeriodicOrbit&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">section</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;PeriodicOrbit is already a reduced discrete object; cut the parent &quot;</span>
+            <span class="s2">&quot;Cycle instead of selecting another section on the orbit.&quot;</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PeriodicOrbit.diagnostics">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.PeriodicOrbit.diagnostics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">diagnostics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;invariant_type&quot;</span><span class="p">:</span> <span class="s2">&quot;PeriodicOrbit&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;period&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">period</span><span class="p">,</span>
+            <span class="s2">&quot;ambient_dim&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ambient_dim</span><span class="p">,</span>
+            <span class="s2">&quot;n_points&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">),</span>
+            <span class="s2">&quot;has_orbit_trace&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">orbit_trace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;has_stability&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stability_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+<span class="c1"># Cycle  — periodic orbit of a continuous flow</span>
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">eq</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="viewcode-block" id="Cycle">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Cycle">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Cycle</span><span class="p">(</span><span class="n">InvariantManifold</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Periodic orbit of a continuous-time flow in arbitrary finite dimension.</span>
+
+<span class="sd">    This is the generic root for toroidal.Cycle.</span>
+<span class="sd">    The ``trajectory`` field is optional — toroidal subclasses may</span>
+<span class="sd">    represent the cycle via a ``sections`` dict instead.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Cycle.trajectory">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Cycle.trajectory">[docs]</a>
+    <span class="n">trajectory</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Trajectory</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Cycle.period_value">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Cycle.period_value">[docs]</a>
+    <span class="n">period_value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Cycle.return_map_orbit">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Cycle.return_map_orbit">[docs]</a>
+    <span class="n">return_map_orbit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PeriodicOrbit</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Cycle.metadata">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Cycle.metadata">[docs]</a>
+    <span class="n">metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Cycle.intrinsic_dim">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Cycle.intrinsic_dim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">intrinsic_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Cycle.ambient_dim">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Cycle.ambient_dim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambient_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">ambient_dim</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_map_orbit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_map_orbit</span><span class="o">.</span><span class="n">ambient_dim</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="Cycle.section_cut">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Cycle.section_cut">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">section_cut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PeriodicOrbit</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">section</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_map_orbit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_map_orbit</span>
+            <span class="k">return</span> <span class="n">PeriodicOrbit</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="p">[])</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s1">&#39;detect_crossing&#39;</span><span class="p">):</span>
+            <span class="n">pts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">section_cut</span><span class="p">(</span><span class="n">section</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">PeriodicOrbit</span><span class="p">(</span>
+                <span class="n">points</span><span class="o">=</span><span class="n">pts</span><span class="p">,</span>
+                <span class="n">period</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">),</span>
+                <span class="n">stability_data</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">return_map_orbit</span><span class="o">.</span><span class="n">stability_data</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_map_orbit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="n">representative_state</span><span class="o">=</span><span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="n">pts</span> <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="n">metadata</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">),</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_map_orbit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">section</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">section_value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">section</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">section</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">section_label</span> <span class="o">=</span> <span class="n">section</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">):</span>
+                <span class="n">section_value</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">section_label</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">section_value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">section</span><span class="p">)</span>
+                <span class="n">section_label</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">pts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">section_points</span><span class="p">(</span><span class="n">section_value</span><span class="o">=</span><span class="n">section_value</span><span class="p">,</span> <span class="n">section_label</span><span class="o">=</span><span class="n">section_label</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">PeriodicOrbit</span><span class="p">(</span>
+                <span class="n">points</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">pts</span><span class="p">),</span>
+                <span class="n">period</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">),</span>
+                <span class="n">stability_data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">return_map_orbit</span><span class="o">.</span><span class="n">stability_data</span><span class="p">,</span>
+                <span class="n">representative_state</span><span class="o">=</span><span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="n">pts</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_map_orbit</span><span class="o">.</span><span class="n">representative_state</span><span class="p">),</span>
+                <span class="n">orbit_trace</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="p">,</span>
+                <span class="n">metadata</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">PeriodicOrbit</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="p">[])</span></div>
+
+
+<div class="viewcode-block" id="Cycle.section_points">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Cycle.section_points">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">section_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section_value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">section_label</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">SectionPoint</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_map_orbit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">return_map_orbit</span><span class="o">.</span><span class="n">points</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">section_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pts</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">pts</span> <span class="k">if</span> <span class="n">pt</span><span class="o">.</span><span class="n">section_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">section_value</span> <span class="o">-</span> <span class="n">section_value</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">tol</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">section_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pts</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">pts</span> <span class="k">if</span> <span class="n">pt</span><span class="o">.</span><span class="n">section_label</span> <span class="o">==</span> <span class="n">section_label</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">pts</span></div>
+
+
+<div class="viewcode-block" id="Cycle.diagnostics">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Cycle.diagnostics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">diagnostics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;invariant_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Cycle&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ambient_dim&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ambient_dim</span><span class="p">,</span>
+            <span class="s2">&quot;period_value&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">period_value</span><span class="p">,</span>
+            <span class="s2">&quot;has_return_map_orbit&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_map_orbit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;trajectory_samples&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">n_samples</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+<span class="c1"># Island  — discrete-map resonance island</span>
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">eq</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="viewcode-block" id="Island">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Island">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Island</span><span class="p">(</span><span class="n">InvariantManifold</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;One island of a discrete Poincaré-map resonance structure.</span>
+
+<span class="sd">    This is the generic root for toroidal.Island.</span>
+
+<span class="sd">    Fields</span>
+<span class="sd">    ------</span>
+<span class="sd">    O_orbit : PeriodicOrbit</span>
+<span class="sd">        Elliptic periodic orbit at the island centre.</span>
+<span class="sd">    X_orbits : list of PeriodicOrbit</span>
+<span class="sd">        Hyperbolic periodic orbit(s) bounding the island (may be empty).</span>
+<span class="sd">    child_chains : list of IslandChain</span>
+<span class="sd">        Sub-chains nested inside this island.</span>
+<span class="sd">    parent_chain : IslandChain or None</span>
+<span class="sd">        The IslandChain that contains this island.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Island.O_orbit">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Island.O_orbit">[docs]</a>
+    <span class="n">O_orbit</span><span class="p">:</span> <span class="n">PeriodicOrbit</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">PeriodicOrbit</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Island.X_orbits">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Island.X_orbits">[docs]</a>
+    <span class="n">X_orbits</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PeriodicOrbit</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Island.child_chains">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Island.child_chains">[docs]</a>
+    <span class="n">child_chains</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;IslandChain&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Island.parent_chain">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Island.parent_chain">[docs]</a>
+    <span class="n">parent_chain</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;IslandChain&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Island.label">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Island.label">[docs]</a>
+    <span class="n">label</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Island.metadata">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Island.metadata">[docs]</a>
+    <span class="n">metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+    <span class="n">_next</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Island&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">_prev</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Island&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Island.intrinsic_dim">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Island.intrinsic_dim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">intrinsic_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Island.O_point">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Island.O_point">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">O_point</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">SectionPoint</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">O_orbit</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">O_orbit</span><span class="o">.</span><span class="n">points</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Island.X_points">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Island.X_points">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">X_points</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">SectionPoint</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">orb</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">orb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">X_orbits</span> <span class="k">if</span> <span class="n">orb</span><span class="o">.</span><span class="n">points</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Island.step">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Island.step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Island&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_next</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Island not linked inside an IslandChain&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_next</span></div>
+
+
+<div class="viewcode-block" id="Island.step_back">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Island.step_back">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step_back</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Island&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prev</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Island not linked inside an IslandChain&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prev</span></div>
+
+
+<div class="viewcode-block" id="Island.add_child_chain">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Island.add_child_chain">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_child_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">:</span> <span class="s2">&quot;IslandChain&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">chain</span><span class="o">.</span><span class="n">parent_island</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">child_chains</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Island.section_cut">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Island.section_cut">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">section_cut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">section</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Island is already a reduced discrete object; cut the parent &quot;</span>
+                <span class="s2">&quot;continuous geometry instead.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Island.diagnostics">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Island.diagnostics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">diagnostics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;invariant_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Island&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
+            <span class="s2">&quot;has_O_orbit&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">O_orbit</span><span class="o">.</span><span class="n">points</span><span class="p">),</span>
+            <span class="s2">&quot;n_X_orbits&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X_orbits</span><span class="p">),</span>
+            <span class="s2">&quot;n_child_chains&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">child_chains</span><span class="p">),</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+<span class="c1"># IslandChain  — chain of discrete-map islands</span>
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">eq</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="viewcode-block" id="IslandChain">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.IslandChain">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IslandChain</span><span class="p">(</span><span class="n">InvariantManifold</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Discrete island chain obtained on a section of a flow or map.</span>
+
+<span class="sd">    This is the generic root for toroidal.IslandChain.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="IslandChain.islands">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.IslandChain.islands">[docs]</a>
+    <span class="n">islands</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Island</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IslandChain.period">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.IslandChain.period">[docs]</a>
+    <span class="n">period</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="IslandChain.label">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.IslandChain.label">[docs]</a>
+    <span class="n">label</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="IslandChain.parent_island">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.IslandChain.parent_island">[docs]</a>
+    <span class="n">parent_island</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Island</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IslandChain.metadata">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.IslandChain.metadata">[docs]</a>
+    <span class="n">metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="IslandChain.intrinsic_dim">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.IslandChain.intrinsic_dim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">intrinsic_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">isl</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">):</span>
+            <span class="n">isl</span><span class="o">.</span><span class="n">parent_chain</span> <span class="o">=</span> <span class="bp">self</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">:</span>
+                <span class="n">isl</span><span class="o">.</span><span class="n">_next</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">[(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">)]</span>
+                <span class="n">isl</span><span class="o">.</span><span class="n">_prev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">[(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">period</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">period</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="IslandChain.n_islands">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.IslandChain.n_islands">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">n_islands</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="IslandChain.O_points">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.IslandChain.O_points">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">O_points</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">SectionPoint</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">isl</span><span class="o">.</span><span class="n">O_point</span> <span class="k">for</span> <span class="n">isl</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">islands</span> <span class="k">if</span> <span class="n">isl</span><span class="o">.</span><span class="n">O_point</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="IslandChain.X_points">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.IslandChain.X_points">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">X_points</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">SectionPoint</span><span class="p">]:</span>
+        <span class="n">pts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SectionPoint</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">isl</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">:</span>
+            <span class="n">pts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">isl</span><span class="o">.</span><span class="n">X_points</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pts</span></div>
+
+
+<div class="viewcode-block" id="IslandChain.add_island">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.IslandChain.add_island">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_island</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">island</span><span class="p">:</span> <span class="n">Island</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">previous_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">)</span>
+        <span class="n">island</span><span class="o">.</span><span class="n">parent_chain</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">:</span>
+            <span class="n">prev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">prev</span><span class="o">.</span><span class="n">_next</span> <span class="o">=</span> <span class="n">island</span>
+            <span class="n">island</span><span class="o">.</span><span class="n">_prev</span> <span class="o">=</span> <span class="n">prev</span>
+            <span class="n">island</span><span class="o">.</span><span class="n">_next</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_prev</span> <span class="o">=</span> <span class="n">island</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">island</span><span class="o">.</span><span class="n">_next</span> <span class="o">=</span> <span class="n">island</span>
+            <span class="n">island</span><span class="o">.</span><span class="n">_prev</span> <span class="o">=</span> <span class="n">island</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">island</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">period</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">period</span> <span class="o">==</span> <span class="n">previous_count</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">period</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="IslandChain.section_value">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.IslandChain.section_value">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">section_value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">O_point</span><span class="o">.</span><span class="n">section_value</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">islands</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">O_point</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="IslandChain.section_label">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.IslandChain.section_label">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">section_label</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">O_point</span><span class="o">.</span><span class="n">section_label</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">islands</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">O_point</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="IslandChain.section_cut">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.IslandChain.section_cut">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">section_cut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">section</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;IslandChain is already a reduced discrete object; cut the parent &quot;</span>
+                <span class="s2">&quot;continuous geometry instead.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">islands</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="IslandChain.diagnostics">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.IslandChain.diagnostics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">diagnostics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;invariant_type&quot;</span><span class="p">:</span> <span class="s2">&quot;IslandChain&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
+            <span class="s2">&quot;period&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">period</span><span class="p">,</span>
+            <span class="s2">&quot;n_islands&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_islands</span><span class="p">,</span>
+            <span class="s2">&quot;n_O_points&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">O_points</span><span class="p">),</span>
+            <span class="s2">&quot;n_X_points&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X_points</span><span class="p">),</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+<span class="c1"># Tube  — continuous-flow resonance zone</span>
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">eq</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="viewcode-block" id="Tube">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Tube">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Tube</span><span class="p">(</span><span class="n">InvariantManifold</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A resonance zone surrounding an elliptic periodic orbit of a continuous flow.</span>
+
+<span class="sd">    A Tube is the continuous-time analogue of an Island: it consists of</span>
+<span class="sd">    the nested family of invariant tori around an elliptic cycle (O_cycle),</span>
+<span class="sd">    bounded by hyperbolic cycles (X_cycles).</span>
+
+<span class="sd">    For MCF field lines, this is a magnetic island tube.  For Hamiltonian</span>
+<span class="sd">    flows, it is a resonance zone bounded by separatrices.</span>
+
+<span class="sd">    This is the generic root for toroidal.Tube.</span>
+
+<span class="sd">    Fields</span>
+<span class="sd">    ------</span>
+<span class="sd">    O_cycle : Cycle</span>
+<span class="sd">        The elliptic periodic orbit at the core.</span>
+<span class="sd">    X_cycles : list of Cycle</span>
+<span class="sd">        Hyperbolic periodic orbit(s) bounding the resonance zone.</span>
+<span class="sd">    label : str or None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Tube.O_cycle">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Tube.O_cycle">[docs]</a>
+    <span class="n">O_cycle</span><span class="p">:</span> <span class="n">Cycle</span></div>
+
+<div class="viewcode-block" id="Tube.X_cycles">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Tube.X_cycles">[docs]</a>
+    <span class="n">X_cycles</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Cycle</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Tube.label">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Tube.label">[docs]</a>
+    <span class="n">label</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Tube.debug_info">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Tube.debug_info">[docs]</a>
+    <span class="n">debug_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Tube.intrinsic_dim">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Tube.intrinsic_dim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">intrinsic_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Tube.is_skeleton_complete">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Tube.is_skeleton_complete">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_skeleton_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X_cycles</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="Tube.section_cut">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Tube.section_cut">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">section_cut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IslandChain</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Cut this Tube with a section → IslandChain.&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.bridges</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreSectionCutBridge</span>
+
+        <span class="k">return</span> <span class="n">CoreSectionCutBridge</span><span class="p">()</span><span class="o">.</span><span class="n">cut_tube</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Tube.diagnostics">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.Tube.diagnostics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">diagnostics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;invariant_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Tube&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
+            <span class="s2">&quot;n_X_cycles&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X_cycles</span><span class="p">),</span>
+            <span class="s2">&quot;has_o_cycle&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">O_cycle</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+<span class="c1"># TubeChain  — all Tubes of one resonance</span>
+<span class="c1"># ────────────────────────────────────────────────────────────────────────────</span>
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">eq</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="viewcode-block" id="TubeChain">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.TubeChain">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TubeChain</span><span class="p">(</span><span class="n">InvariantManifold</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;All Tubes sharing the same resonance in a continuous flow.</span>
+
+<span class="sd">    This is the generic root for toroidal.TubeChain.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TubeChain.tubes">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.TubeChain.tubes">[docs]</a>
+    <span class="n">tubes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tube</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TubeChain.label">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.TubeChain.label">[docs]</a>
+    <span class="n">label</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="TubeChain.debug_info">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.TubeChain.debug_info">[docs]</a>
+    <span class="n">debug_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TubeChain.intrinsic_dim">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.TubeChain.intrinsic_dim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">intrinsic_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TubeChain.n_tubes">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.TubeChain.n_tubes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">n_tubes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tubes</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TubeChain.section_cut">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.TubeChain.section_cut">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">section_cut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IslandChain</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Cut all Tubes with a section → merged IslandChain.&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pyna.topo.bridges</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreSectionCutBridge</span>
+
+        <span class="k">return</span> <span class="n">CoreSectionCutBridge</span><span class="p">()</span><span class="o">.</span><span class="n">cut_tube_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TubeChain.diagnostics">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.TubeChain.diagnostics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">diagnostics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;invariant_type&quot;</span><span class="p">:</span> <span class="s2">&quot;TubeChain&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
+            <span class="s2">&quot;n_tubes&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_tubes</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="TubeChain.summary">
+<a class="viewcode-back" href="../../../en/api/topo.html#pyna.topo.core.TubeChain.summary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;TubeChain(label=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="si">!r}</span><span class="s2">, n_tubes=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_tubes</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+</div>
+
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;Stability&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;LinearStabilityData&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SectionPoint&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Trajectory&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Orbit&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PeriodicOrbit&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Cycle&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Island&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;IslandChain&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Tube&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TubeChain&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

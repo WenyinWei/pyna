@@ -1,0 +1,933 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.toroidal.coils.cuda_kernels &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/toroidal/coils/cuda_kernels';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../../_static/searchtools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.toroidal.coils.cuda_kernels</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.toroidal.coils.cuda_kernels</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">pyna.toroidal.coils.cuda_kernels</span>
+<span class="sd">================================</span>
+<span class="sd">CuPy RawKernel implementations for magnetic field computation.</span>
+
+<span class="sd">Two kernels are provided, compiled at first use via NVRTC (no separate build</span>
+<span class="sd">step required):</span>
+
+<span class="sd">* ``circular_coil_field_gpu`` — analytic Biot-Savart for a circular (ring)</span>
+<span class="sd">  current loop, using the Smythe/Griffiths elliptic-integral formula.</span>
+<span class="sd">  Single-precision throughout; ~10 ms per coil at 10 M field points on an</span>
+<span class="sd">  RTX 3060.</span>
+
+<span class="sd">* ``biot_savart_field_gpu`` — numerical Biot-Savart for an arbitrary</span>
+<span class="sd">  filamentary coil given as N_seg line segments.  ~100 ms per TF coil</span>
+<span class="sd">  (~200-340 segments) at 10 M field points.</span>
+
+<span class="sd">Both kernels launch one CUDA thread per field point.  The field points are</span>
+<span class="sd">expected as a (N, 3) float32 C-contiguous CuPy array in Cartesian (x,y,z)</span>
+<span class="sd">coordinates.  Results are returned as three (N,) float32 CuPy arrays in</span>
+<span class="sd">    cylindrical (BR, BZ, BPhi).</span>
+
+<span class="sd">CPU fallbacks (OpenMP, if cyna is available, otherwise single-threaded NumPy)</span>
+<span class="sd">are provided for environments without a GPU.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+    <span class="n">_HAS_CUPY</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">cp</span> <span class="o">=</span> <span class="kc">None</span>          <span class="c1"># type: ignore[assignment]</span>
+    <span class="n">_HAS_CUPY</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="c1"># ── CUDA kernel source strings ────────────────────────────────────────────────</span>
+<span class="c1"># Written in plain CUDA C++ (no system headers) so NVRTC can compile them</span>
+<span class="c1"># without a full CUDA installation at runtime.</span>
+
+<span class="n">_CIRCULAR_COIL_KERNEL_SRC</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">// Analytic circular-coil field kernel.</span>
+<span class="s2">// One thread per field point.  Single precision throughout.</span>
+<span class="s2">//</span>
+<span class="s2">// Coil: center (cx,cy,cz), unit normal (nx,ny,nz), radius a, current I [A].</span>
+<span class="s2">// Field point: (xyz[3*i], xyz[3*i+1], xyz[3*i+2]) in Cartesian metres.</span>
+<span class="s2">// Output: (BR[i], BZ[i], BPhi[i]) in Tesla, cylindrical w.r.t. global z-axis.</span>
+
+<span class="s2">// AGM elliptic integral K(m), float32, 8 iterations (~7e-8 relative error)</span>
+<span class="s2">__device__ float _kf(float m) {</span>
+<span class="s2">    float a = 1.0f, b = sqrtf(fmaxf(1.0f - m, 0.0f));</span>
+<span class="s2">#pragma unroll</span>
+<span class="s2">    for (int i = 0; i &lt; 8; ++i) {</span>
+<span class="s2">        float an = 0.5f * (a + b);</span>
+<span class="s2">        b = sqrtf(a * b);</span>
+<span class="s2">        a = an;</span>
+<span class="s2">    }</span>
+<span class="s2">    return (1.5707963267948966f) / a;   // pi/2 / AGM</span>
+<span class="s2">}</span>
+
+<span class="s2">// AGM elliptic integral E(m), float32, 10 iterations</span>
+<span class="s2">__device__ float _ef(float m) {</span>
+<span class="s2">    float a = 1.0f, b = sqrtf(fmaxf(1.0f - m, 0.0f));</span>
+<span class="s2">    float S = 0.5f * m, power = 1.0f;</span>
+<span class="s2">#pragma unroll</span>
+<span class="s2">    for (int i = 0; i &lt; 10; ++i) {</span>
+<span class="s2">        float c  = 0.5f * (a - b);</span>
+<span class="s2">        float an = 0.5f * (a + b);</span>
+<span class="s2">        b = sqrtf(a * b);</span>
+<span class="s2">        a = an;</span>
+<span class="s2">        S += power * c * c;</span>
+<span class="s2">        power *= 2.0f;</span>
+<span class="s2">    }</span>
+<span class="s2">    return (1.5707963267948966f) / a * (1.0f - S);</span>
+<span class="s2">}</span>
+
+<span class="s2">// (Brho, Bz) of circular coil (radius a, current I) at local cylindrical (rho, z)</span>
+<span class="s2">__device__ void _coil_BrhoBz(float a, float rho, float z, float I,</span>
+<span class="s2">                               float &amp;Brho, float &amp;Bz_) {</span>
+<span class="s2">    const float MU0_2PI = 2.0e-7f;   // mu0/(2*pi)</span>
+<span class="s2">    if (rho &lt; 1e-9f) {               // on-axis</span>
+<span class="s2">        float r = sqrtf(a*a + z*z);</span>
+<span class="s2">        Brho = 0.0f;</span>
+<span class="s2">        Bz_  = MU0_2PI * I * a * a / (r * r * r);  // (mu0*I)/(2) * a^2/r^3</span>
+<span class="s2">        return;</span>
+<span class="s2">    }</span>
+<span class="s2">    float Q  = (a + rho) * (a + rho) + z * z;</span>
+<span class="s2">    float sQ = sqrtf(Q);</span>
+<span class="s2">    float k2 = 4.0f * a * rho / Q;</span>
+<span class="s2">    if (k2 &gt;= 1.0f) k2 = 1.0f - 1.2e-7f;</span>
+<span class="s2">    float K  = _kf(k2), E = _ef(k2);</span>
+<span class="s2">    float dE = (a - rho) * (a - rho) + z * z;</span>
+<span class="s2">    if (dE &lt; 1e-18f) dE = 1e-18f;</span>
+<span class="s2">    float c = MU0_2PI * I;</span>
+<span class="s2">    Brho = c * z / (rho * sQ) * (-K + E * (a*a + rho*rho + z*z) / dE);</span>
+<span class="s2">    Bz_  = c / sQ           * ( K + E * (a*a - rho*rho - z*z) / dE);</span>
+<span class="s2">}</span>
+
+<span class="s2">extern &quot;C&quot; __global__ void circular_coil_kernel(</span>
+<span class="s2">    float cx, float cy, float cz,</span>
+<span class="s2">    float nx, float ny, float nz,</span>
+<span class="s2">    float a,  float current,</span>
+<span class="s2">    const float* __restrict__ xyz,   // (N, 3)</span>
+<span class="s2">    int N,</span>
+<span class="s2">    float* __restrict__ BR,</span>
+<span class="s2">    float* __restrict__ BZ,</span>
+<span class="s2">    float* __restrict__ BPhi)</span>
+<span class="s2">{</span>
+<span class="s2">    int i = blockIdx.x * blockDim.x + threadIdx.x;</span>
+<span class="s2">    if (i &gt;= N) return;</span>
+
+<span class="s2">    float px = xyz[3*i], py = xyz[3*i+1], pz = xyz[3*i+2];</span>
+
+<span class="s2">    // Vector from coil centre to field point</span>
+<span class="s2">    float dx = px - cx, dy = py - cy, dz = pz - cz;</span>
+
+<span class="s2">    // Decompose: z_local = n·d,  rho_vec = d - z_local*n</span>
+<span class="s2">    float z_loc = nx*dx + ny*dy + nz*dz;</span>
+<span class="s2">    float rx = dx - z_loc*nx, ry = dy - z_loc*ny, rz = dz - z_loc*nz;</span>
+<span class="s2">    float rho = sqrtf(rx*rx + ry*ry + rz*rz);</span>
+
+<span class="s2">    float Brho_loc, Bz_loc;</span>
+<span class="s2">    _coil_BrhoBz(a, rho, z_loc, current, Brho_loc, Bz_loc);</span>
+
+<span class="s2">    // B in Cartesian lab frame:</span>
+<span class="s2">    //   Brho_loc * rho_hat  +  Bz_loc * n</span>
+<span class="s2">    float bx, by, bz_lab;</span>
+<span class="s2">    if (rho &gt; 1e-9f) {</span>
+<span class="s2">        float inv = 1.0f / rho;</span>
+<span class="s2">        bx    = Brho_loc * rx * inv + Bz_loc * nx;</span>
+<span class="s2">        by    = Brho_loc * ry * inv + Bz_loc * ny;</span>
+<span class="s2">        bz_lab= Brho_loc * rz * inv + Bz_loc * nz;</span>
+<span class="s2">    } else {</span>
+<span class="s2">        bx    = Bz_loc * nx;</span>
+<span class="s2">        by    = Bz_loc * ny;</span>
+<span class="s2">        bz_lab= Bz_loc * nz;</span>
+<span class="s2">    }</span>
+
+<span class="s2">    // Cylindrical at field point</span>
+<span class="s2">    float phi = atan2f(py, px);</span>
+<span class="s2">    float cp_ = cosf(phi), sp_ = sinf(phi);</span>
+<span class="s2">    BR[i]   = bx * cp_ + by * sp_;</span>
+<span class="s2">    BPhi[i] = -bx * sp_ + by * cp_;</span>
+<span class="s2">    BZ[i]   = bz_lab;</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">_BIOT_SAVART_KERNEL_SRC</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">// Biot-Savart kernel for arbitrary filamentary coil.</span>
+<span class="s2">// Coil given as N_seg line segments (start, end points).</span>
+<span class="s2">// One thread per field point; inner loop over segments.</span>
+<span class="s2">//</span>
+<span class="s2">// seg_starts, seg_ends: (N_seg, 3) float32 Cartesian metres</span>
+<span class="s2">// current: scalar Amperes</span>
+<span class="s2">// xyz: (N_pts, 3) float32 Cartesian metres</span>
+<span class="s2">// Output: (BR, BZ, BPhi) Tesla, cylindrical</span>
+
+<span class="s2">extern &quot;C&quot; __global__ void biot_savart_kernel(</span>
+<span class="s2">    const float* __restrict__ seg_starts,  // (N_seg, 3)</span>
+<span class="s2">    const float* __restrict__ seg_ends,    // (N_seg, 3)</span>
+<span class="s2">    int   N_seg,</span>
+<span class="s2">    float current,</span>
+<span class="s2">    const float* __restrict__ xyz,         // (N_pts, 3)</span>
+<span class="s2">    int   N_pts,</span>
+<span class="s2">    float* __restrict__ BR,</span>
+<span class="s2">    float* __restrict__ BZ,</span>
+<span class="s2">    float* __restrict__ BPhi)</span>
+<span class="s2">{</span>
+<span class="s2">    const float MU0_4PI = 1.0e-7f;</span>
+<span class="s2">    int i = blockIdx.x * blockDim.x + threadIdx.x;</span>
+<span class="s2">    if (i &gt;= N_pts) return;</span>
+
+<span class="s2">    float px = xyz[3*i], py = xyz[3*i+1], pz = xyz[3*i+2];</span>
+<span class="s2">    float bx = 0.0f, by = 0.0f, bz = 0.0f;</span>
+
+<span class="s2">    for (int s = 0; s &lt; N_seg; ++s) {</span>
+<span class="s2">        float x0 = seg_starts[3*s],   y0 = seg_starts[3*s+1], z0 = seg_starts[3*s+2];</span>
+<span class="s2">        float x1 = seg_ends[3*s],     y1 = seg_ends[3*s+1],   z1 = seg_ends[3*s+2];</span>
+
+<span class="s2">        float dlx = x1-x0, dly = y1-y0, dlz = z1-z0;</span>
+<span class="s2">        float r0x = px-x0, r0y = py-y0, r0z = pz-z0;</span>
+<span class="s2">        float r1x = px-x1, r1y = py-y1, r1z = pz-z1;</span>
+
+<span class="s2">        float R0 = sqrtf(r0x*r0x + r0y*r0y + r0z*r0z);</span>
+<span class="s2">        float R1 = sqrtf(r1x*r1x + r1y*r1y + r1z*r1z);</span>
+<span class="s2">        if (R0 &lt; 5.0e-4f || R1 &lt; 5.0e-4f) continue;  // skip near-wire</span>
+
+<span class="s2">        float dot  = r0x*r1x + r0y*r1y + r0z*r1z;</span>
+<span class="s2">        float dnom = R0 * R1 * (R0*R1 + dot);</span>
+<span class="s2">        if (fabsf(dnom) &lt; 1.0e-30f) continue;</span>
+
+<span class="s2">        float fac = MU0_4PI * current * (R0 + R1) / dnom;</span>
+<span class="s2">        bx += fac * (dly * r0z - dlz * r0y);</span>
+<span class="s2">        by += fac * (dlz * r0x - dlx * r0z);</span>
+<span class="s2">        bz += fac * (dlx * r0y - dly * r0x);</span>
+<span class="s2">    }</span>
+
+<span class="s2">    float phi = atan2f(py, px);</span>
+<span class="s2">    float cp_ = cosf(phi), sp_ = sinf(phi);</span>
+<span class="s2">    BR[i]   = bx * cp_ + by * sp_;</span>
+<span class="s2">    BPhi[i] = -bx * sp_ + by * cp_;</span>
+<span class="s2">    BZ[i]   = bz;</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="c1"># ── Compiled kernel singletons ────────────────────────────────────────────────</span>
+<span class="n">_k_circular</span><span class="p">:</span> <span class="s1">&#39;cp.RawKernel | None&#39;</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">_k_biot</span><span class="p">:</span>     <span class="s1">&#39;cp.RawKernel | None&#39;</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">_THREADS</span> <span class="o">=</span> <span class="mi">256</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_circular_kernel</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">_k_circular</span>
+    <span class="k">if</span> <span class="n">_k_circular</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_HAS_CUPY</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;CuPy not available; cannot use circular coil CUDA kernel&quot;</span><span class="p">)</span>
+        <span class="n">_k_circular</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">RawKernel</span><span class="p">(</span><span class="n">_CIRCULAR_COIL_KERNEL_SRC</span><span class="p">,</span> <span class="s1">&#39;circular_coil_kernel&#39;</span><span class="p">,</span>
+                                    <span class="n">options</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;--use_fast_math&#39;</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">_k_circular</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_biot_kernel</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">_k_biot</span>
+    <span class="k">if</span> <span class="n">_k_biot</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_HAS_CUPY</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;CuPy not available; cannot use Biot-Savart CUDA kernel&quot;</span><span class="p">)</span>
+        <span class="n">_k_biot</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">RawKernel</span><span class="p">(</span><span class="n">_BIOT_SAVART_KERNEL_SRC</span><span class="p">,</span> <span class="s1">&#39;biot_savart_kernel&#39;</span><span class="p">,</span>
+                                 <span class="n">options</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;--use_fast_math&#39;</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">_k_biot</span>
+
+
+<span class="c1"># ── Public GPU functions ──────────────────────────────────────────────────────</span>
+
+<div class="viewcode-block" id="circular_coil_field_gpu">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/cuda_kernels/index.html#pyna.toroidal.coils.cuda_kernels.circular_coil_field_gpu">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">circular_coil_field_gpu</span><span class="p">(</span>
+    <span class="n">cx</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">cy</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">cz</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">nx</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">ny</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">nz</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">current</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">xyz_gpu</span><span class="p">:</span> <span class="s1">&#39;cp.ndarray&#39;</span><span class="p">,</span>          <span class="c1"># (N, 3) float32, already on GPU</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="s1">&#39;cp.ndarray&#39;</span><span class="p">,</span> <span class="s1">&#39;cp.ndarray&#39;</span><span class="p">,</span> <span class="s1">&#39;cp.ndarray&#39;</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute circular-coil field at all points via CUDA kernel.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cx, cy, cz : coil centre (metres, Cartesian)</span>
+<span class="sd">    nx, ny, nz : coil normal (unit vector)</span>
+<span class="sd">    radius     : coil radius (metres)</span>
+<span class="sd">    current    : current (Amperes, signed)</span>
+<span class="sd">    xyz_gpu    : (N, 3) float32 CuPy array — Cartesian field points</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    BR, BZ, BPhi : (N,) float32 CuPy arrays — cylindrical B in Tesla</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="n">xyz_gpu</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">BR</span>   <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">BPhi</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">BZ</span>   <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">_get_circular_kernel</span><span class="p">()</span>
+    <span class="n">blocks</span> <span class="o">=</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="n">_THREADS</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">_THREADS</span>
+    <span class="n">kernel</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">blocks</span><span class="p">,),</span> <span class="p">(</span><span class="n">_THREADS</span><span class="p">,),</span>
+        <span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">cx</span><span class="p">),</span> <span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">cy</span><span class="p">),</span> <span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">cz</span><span class="p">),</span>
+         <span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">nx</span><span class="p">),</span> <span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">ny</span><span class="p">),</span> <span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">nz</span><span class="p">),</span>
+         <span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">radius</span><span class="p">),</span> <span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">current</span><span class="p">),</span>
+         <span class="n">xyz_gpu</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">int32</span><span class="p">(</span><span class="n">N</span><span class="p">),</span>
+         <span class="n">BR</span><span class="p">,</span> <span class="n">BZ</span><span class="p">,</span> <span class="n">BPhi</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">BR</span><span class="p">,</span> <span class="n">BZ</span><span class="p">,</span> <span class="n">BPhi</span></div>
+
+
+
+<div class="viewcode-block" id="biot_savart_field_gpu">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/cuda_kernels/index.html#pyna.toroidal.coils.cuda_kernels.biot_savart_field_gpu">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">biot_savart_field_gpu</span><span class="p">(</span>
+    <span class="n">seg_starts_gpu</span><span class="p">:</span> <span class="s1">&#39;cp.ndarray&#39;</span><span class="p">,</span>   <span class="c1"># (N_seg, 3) float32</span>
+    <span class="n">seg_ends_gpu</span><span class="p">:</span>   <span class="s1">&#39;cp.ndarray&#39;</span><span class="p">,</span>   <span class="c1"># (N_seg, 3) float32</span>
+    <span class="n">current</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">xyz_gpu</span><span class="p">:</span> <span class="s1">&#39;cp.ndarray&#39;</span><span class="p">,</span>          <span class="c1"># (N, 3) float32</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="s1">&#39;cp.ndarray&#39;</span><span class="p">,</span> <span class="s1">&#39;cp.ndarray&#39;</span><span class="p">,</span> <span class="s1">&#39;cp.ndarray&#39;</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Biot-Savart field for one arbitrary filamentary coil via CUDA kernel.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    seg_starts_gpu : (N_seg, 3) float32 CuPy — segment start points (metres)</span>
+<span class="sd">    seg_ends_gpu   : (N_seg, 3) float32 CuPy — segment end points (metres)</span>
+<span class="sd">    current        : current (Amperes, signed)</span>
+<span class="sd">    xyz_gpu        : (N, 3) float32 CuPy — Cartesian field points</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    BR, BZ, BPhi : (N,) float32 CuPy arrays — cylindrical B in Tesla</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">N_seg</span> <span class="o">=</span> <span class="n">seg_starts_gpu</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">N_pts</span> <span class="o">=</span> <span class="n">xyz_gpu</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">BR</span>   <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">N_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">BPhi</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">N_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">BZ</span>   <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">N_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">_get_biot_kernel</span><span class="p">()</span>
+    <span class="n">blocks</span> <span class="o">=</span> <span class="p">(</span><span class="n">N_pts</span> <span class="o">+</span> <span class="n">_THREADS</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">_THREADS</span>
+    <span class="n">kernel</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">blocks</span><span class="p">,),</span> <span class="p">(</span><span class="n">_THREADS</span><span class="p">,),</span>
+        <span class="p">(</span><span class="n">seg_starts_gpu</span><span class="p">,</span> <span class="n">seg_ends_gpu</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">int32</span><span class="p">(</span><span class="n">N_seg</span><span class="p">),</span>
+         <span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">current</span><span class="p">),</span>
+         <span class="n">xyz_gpu</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">int32</span><span class="p">(</span><span class="n">N_pts</span><span class="p">),</span>
+         <span class="n">BR</span><span class="p">,</span> <span class="n">BZ</span><span class="p">,</span> <span class="n">BPhi</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">BR</span><span class="p">,</span> <span class="n">BZ</span><span class="p">,</span> <span class="n">BPhi</span></div>
+
+
+
+<span class="c1"># ── CPU fallbacks (OpenMP via cyna, or pure NumPy) ───────────────────────────</span>
+
+<div class="viewcode-block" id="circular_coil_field_cpu">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/cuda_kernels/index.html#pyna.toroidal.coils.cuda_kernels.circular_coil_field_cpu">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">circular_coil_field_cpu</span><span class="p">(</span>
+    <span class="n">cx</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">cy</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">cz</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">nx</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">ny</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">nz</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">current</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">xyz</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>                <span class="c1"># (N, 3) float32 NumPy</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;CPU reference implementation of circular coil field.</span>
+
+<span class="sd">    Tries cyna C++ OpenMP first; falls back to NumPy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pyna._cyna</span><span class="w"> </span><span class="kn">import</span> <span class="n">coil_circular_field</span> <span class="k">as</span> <span class="n">_cf</span>
+        <span class="k">if</span> <span class="n">_cf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_cf</span><span class="p">(</span><span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">,</span> <span class="n">cz</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">radius</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">current</span><span class="p">),</span>
+                       <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">xyz</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="c1"># Pure NumPy fallback</span>
+    <span class="k">return</span> <span class="n">_circular_coil_numpy</span><span class="p">(</span><span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">,</span> <span class="n">cz</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span> <span class="n">xyz</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_circular_coil_numpy</span><span class="p">(</span><span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">,</span> <span class="n">cz</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">xyz</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;NumPy scalar loop fallback — correct but slow.&quot;&quot;&quot;</span>
+    <span class="n">MU0_2PI</span> <span class="o">=</span> <span class="mf">2e-7</span>
+    <span class="n">dx</span> <span class="o">=</span> <span class="n">xyz</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">cx</span><span class="p">;</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">xyz</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">cy</span><span class="p">;</span> <span class="n">dz</span> <span class="o">=</span> <span class="n">xyz</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">cz</span>
+    <span class="n">z_loc</span> <span class="o">=</span> <span class="n">nx</span><span class="o">*</span><span class="n">dx</span> <span class="o">+</span> <span class="n">ny</span><span class="o">*</span><span class="n">dy</span> <span class="o">+</span> <span class="n">nz</span><span class="o">*</span><span class="n">dz</span>
+    <span class="n">rx</span> <span class="o">=</span> <span class="n">dx</span> <span class="o">-</span> <span class="n">z_loc</span><span class="o">*</span><span class="n">nx</span><span class="p">;</span> <span class="n">ry</span> <span class="o">=</span> <span class="n">dy</span> <span class="o">-</span> <span class="n">z_loc</span><span class="o">*</span><span class="n">ny</span><span class="p">;</span> <span class="n">rz</span> <span class="o">=</span> <span class="n">dz</span> <span class="o">-</span> <span class="n">z_loc</span><span class="o">*</span><span class="n">nz</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">rx</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">ry</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">rz</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.special</span><span class="w"> </span><span class="kn">import</span> <span class="n">ellipk</span><span class="p">,</span> <span class="n">ellipe</span>
+    <span class="c1"># Vectorised over field points</span>
+    <span class="n">Q</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">rho</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">z_loc</span><span class="o">**</span><span class="mi">2</span>
+    <span class="n">k2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">4</span><span class="o">*</span><span class="n">a</span><span class="o">*</span><span class="n">rho</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Q</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="mf">1e-30</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="mf">1e-7</span><span class="p">)</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">ellipk</span><span class="p">(</span><span class="n">k2</span><span class="p">);</span> <span class="n">E</span> <span class="o">=</span> <span class="n">ellipe</span><span class="p">(</span><span class="n">k2</span><span class="p">)</span>
+    <span class="n">dE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">rho</span> <span class="o">&gt;</span> <span class="mf">1e-9</span><span class="p">,</span> <span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="n">rho</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">z_loc</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="mf">1e-20</span><span class="p">)</span>
+    <span class="n">sQ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Q</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="mf">1e-30</span><span class="p">))</span>
+
+    <span class="n">Brho</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">rho</span> <span class="o">&gt;</span> <span class="mf">1e-9</span><span class="p">,</span>
+                    <span class="n">MU0_2PI</span><span class="o">*</span><span class="n">I</span> <span class="o">*</span> <span class="n">z_loc</span><span class="o">/</span><span class="p">(</span><span class="n">rho</span><span class="o">*</span><span class="n">sQ</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="n">K</span> <span class="o">+</span> <span class="n">E</span><span class="o">*</span><span class="p">(</span><span class="n">a</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="n">rho</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="n">z_loc</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="n">dE</span><span class="p">),</span>
+                    <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">Bz_l</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">rho</span> <span class="o">&gt;</span> <span class="mf">1e-9</span><span class="p">,</span>
+                    <span class="n">MU0_2PI</span><span class="o">*</span><span class="n">I</span> <span class="o">/</span> <span class="n">sQ</span> <span class="o">*</span> <span class="p">(</span><span class="n">K</span> <span class="o">+</span> <span class="n">E</span><span class="o">*</span><span class="p">(</span><span class="n">a</span><span class="o">**</span><span class="mi">2</span><span class="o">-</span><span class="n">rho</span><span class="o">**</span><span class="mi">2</span><span class="o">-</span><span class="n">z_loc</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="n">dE</span><span class="p">),</span>
+                    <span class="n">MU0_2PI</span><span class="o">*</span><span class="n">I</span> <span class="o">*</span> <span class="n">a</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sQ</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sQ</span><span class="o">**</span><span class="mi">3</span><span class="p">,</span> <span class="mf">1e-30</span><span class="p">))</span>
+
+    <span class="c1"># Cartesian lab field</span>
+    <span class="n">inv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">rho</span> <span class="o">&gt;</span> <span class="mf">1e-9</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="n">rho</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">bx</span> <span class="o">=</span> <span class="n">Brho</span><span class="o">*</span><span class="n">rx</span><span class="o">*</span><span class="n">inv</span> <span class="o">+</span> <span class="n">Bz_l</span><span class="o">*</span><span class="n">nx</span>
+    <span class="n">by</span> <span class="o">=</span> <span class="n">Brho</span><span class="o">*</span><span class="n">ry</span><span class="o">*</span><span class="n">inv</span> <span class="o">+</span> <span class="n">Bz_l</span><span class="o">*</span><span class="n">ny</span>
+    <span class="n">bz</span> <span class="o">=</span> <span class="n">Brho</span><span class="o">*</span><span class="n">rz</span><span class="o">*</span><span class="n">inv</span> <span class="o">+</span> <span class="n">Bz_l</span><span class="o">*</span><span class="n">nz</span>
+
+    <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">xyz</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">xyz</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+    <span class="n">cp_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">);</span> <span class="n">sp_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+    <span class="n">BR</span>   <span class="o">=</span> <span class="p">(</span><span class="n">bx</span><span class="o">*</span><span class="n">cp_</span> <span class="o">+</span> <span class="n">by</span><span class="o">*</span><span class="n">sp_</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">BPhi</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">bx</span><span class="o">*</span><span class="n">sp_</span> <span class="o">+</span> <span class="n">by</span><span class="o">*</span><span class="n">cp_</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">BZ</span>   <span class="o">=</span> <span class="n">bz</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">BR</span><span class="p">,</span> <span class="n">BZ</span><span class="p">,</span> <span class="n">BPhi</span>
+
+
+<div class="viewcode-block" id="biot_savart_field_cpu">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/cuda_kernels/index.html#pyna.toroidal.coils.cuda_kernels.biot_savart_field_cpu">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">biot_savart_field_cpu</span><span class="p">(</span>
+    <span class="n">seg_starts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>   <span class="c1"># (N_seg, 3) float32</span>
+    <span class="n">seg_ends</span><span class="p">:</span>   <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>   <span class="c1"># (N_seg, 3) float32</span>
+    <span class="n">current</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">xyz</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>          <span class="c1"># (N, 3) float32</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;CPU Biot-Savart (tries cyna, falls back to NumPy loop).&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pyna._cyna</span><span class="w"> </span><span class="kn">import</span> <span class="n">coil_biot_savart</span> <span class="k">as</span> <span class="n">_bs</span>
+        <span class="k">if</span> <span class="n">_bs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_bs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">seg_starts</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+                       <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">seg_ends</span><span class="p">,</span>   <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+                       <span class="nb">float</span><span class="p">(</span><span class="n">current</span><span class="p">),</span>
+                       <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">xyz</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">_biot_savart_numpy</span><span class="p">(</span><span class="n">seg_starts</span><span class="p">,</span> <span class="n">seg_ends</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span> <span class="n">xyz</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_biot_savart_numpy</span><span class="p">(</span><span class="n">seg_starts</span><span class="p">,</span> <span class="n">seg_ends</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span> <span class="n">xyz</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;NumPy Biot-Savart — chunked over segments to limit RAM.&quot;&quot;&quot;</span>
+    <span class="n">MU0_4PI</span> <span class="o">=</span> <span class="mf">1e-7</span>
+    <span class="n">bx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xyz</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">by</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">bx</span><span class="p">)</span>
+    <span class="n">bz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">bx</span><span class="p">)</span>
+    <span class="n">P</span> <span class="o">=</span> <span class="n">xyz</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">seg_starts</span><span class="p">)):</span>
+        <span class="n">p0</span> <span class="o">=</span> <span class="n">seg_starts</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">p1</span> <span class="o">=</span> <span class="n">seg_ends</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">dl</span> <span class="o">=</span> <span class="n">p1</span> <span class="o">-</span> <span class="n">p0</span>
+        <span class="n">r0</span> <span class="o">=</span> <span class="n">P</span> <span class="o">-</span> <span class="n">p0</span><span class="p">;</span> <span class="n">r1</span> <span class="o">=</span> <span class="n">P</span> <span class="o">-</span> <span class="n">p1</span>
+        <span class="n">R0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">r0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mf">5e-4</span><span class="p">)</span>
+        <span class="n">R1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mf">5e-4</span><span class="p">)</span>
+        <span class="n">dot</span> <span class="o">=</span> <span class="p">(</span><span class="n">r0</span><span class="o">*</span><span class="n">r1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">denom</span> <span class="o">=</span> <span class="p">(</span><span class="n">R0</span><span class="o">*</span><span class="n">R1</span><span class="o">*</span><span class="p">(</span><span class="n">R0</span><span class="o">*</span><span class="n">R1</span> <span class="o">+</span> <span class="n">dot</span><span class="p">))</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mf">1e-30</span><span class="p">)</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="p">(</span><span class="n">MU0_4PI</span> <span class="o">*</span> <span class="n">current</span> <span class="o">*</span> <span class="p">(</span><span class="n">R0</span> <span class="o">+</span> <span class="n">R1</span><span class="p">)</span> <span class="o">/</span> <span class="n">denom</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">cross</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">dl</span><span class="p">,</span> <span class="n">r0</span><span class="p">)</span>
+        <span class="n">bx</span> <span class="o">+=</span> <span class="p">(</span><span class="n">fac</span> <span class="o">*</span> <span class="n">cross</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">by</span> <span class="o">+=</span> <span class="p">(</span><span class="n">fac</span> <span class="o">*</span> <span class="n">cross</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">bz</span> <span class="o">+=</span> <span class="p">(</span><span class="n">fac</span> <span class="o">*</span> <span class="n">cross</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">P</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">P</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+    <span class="n">cp_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">);</span> <span class="n">sp_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">bx</span><span class="o">*</span><span class="n">cp_</span> <span class="o">+</span> <span class="n">by</span><span class="o">*</span><span class="n">sp_</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+        <span class="n">bz</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+        <span class="p">(</span><span class="o">-</span><span class="n">bx</span><span class="o">*</span><span class="n">sp_</span> <span class="o">+</span> <span class="n">by</span><span class="o">*</span><span class="n">cp_</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+    <span class="p">)</span>
+
+
+<span class="c1"># ── Convenience: auto-dispatch GPU or CPU ────────────────────────────────────</span>
+
+<div class="viewcode-block" id="circular_coil_field">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/cuda_kernels/index.html#pyna.toroidal.coils.cuda_kernels.circular_coil_field">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">circular_coil_field</span><span class="p">(</span>
+    <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">,</span> <span class="n">cz</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span>
+    <span class="n">xyz</span><span class="p">,</span>              <span class="c1"># NumPy (N,3) float32 on CPU  OR  CuPy on GPU</span>
+    <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Dispatch to GPU or CPU implementation; always returns NumPy arrays.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">use_gpu</span> <span class="ow">and</span> <span class="n">_HAS_CUPY</span><span class="p">:</span>
+        <span class="n">xyz_g</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">xyz</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">BR_g</span><span class="p">,</span> <span class="n">BZ_g</span><span class="p">,</span> <span class="n">BPhi_g</span> <span class="o">=</span> <span class="n">circular_coil_field_gpu</span><span class="p">(</span>
+            <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">,</span> <span class="n">cz</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span> <span class="n">xyz_g</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cp</span><span class="o">.</span><span class="n">asnumpy</span><span class="p">(</span><span class="n">BR_g</span><span class="p">),</span> <span class="n">cp</span><span class="o">.</span><span class="n">asnumpy</span><span class="p">(</span><span class="n">BZ_g</span><span class="p">),</span> <span class="n">cp</span><span class="o">.</span><span class="n">asnumpy</span><span class="p">(</span><span class="n">BPhi_g</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">circular_coil_field_cpu</span><span class="p">(</span>
+            <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">,</span> <span class="n">cz</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">xyz</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="biot_savart_field">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/coils/cuda_kernels/index.html#pyna.toroidal.coils.cuda_kernels.biot_savart_field">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">biot_savart_field</span><span class="p">(</span>
+    <span class="n">seg_starts</span><span class="p">,</span> <span class="n">seg_ends</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span> <span class="n">xyz</span><span class="p">,</span>
+    <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Dispatch Biot-Savart to GPU or CPU; always returns NumPy arrays.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">use_gpu</span> <span class="ow">and</span> <span class="n">_HAS_CUPY</span><span class="p">:</span>
+        <span class="n">ss_g</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">seg_starts</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+        <span class="n">se_g</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">seg_ends</span><span class="p">,</span>   <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+        <span class="n">xyz_g</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">xyz</span><span class="p">,</span>       <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+        <span class="n">BR_g</span><span class="p">,</span> <span class="n">BZ_g</span><span class="p">,</span> <span class="n">BPhi_g</span> <span class="o">=</span> <span class="n">biot_savart_field_gpu</span><span class="p">(</span><span class="n">ss_g</span><span class="p">,</span> <span class="n">se_g</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span> <span class="n">xyz_g</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cp</span><span class="o">.</span><span class="n">asnumpy</span><span class="p">(</span><span class="n">BR_g</span><span class="p">),</span> <span class="n">cp</span><span class="o">.</span><span class="n">asnumpy</span><span class="p">(</span><span class="n">BZ_g</span><span class="p">),</span> <span class="n">cp</span><span class="o">.</span><span class="n">asnumpy</span><span class="p">(</span><span class="n">BPhi_g</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">biot_savart_field_cpu</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">seg_starts</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">seg_ends</span><span class="p">,</span>   <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+            <span class="n">current</span><span class="p">,</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">xyz</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

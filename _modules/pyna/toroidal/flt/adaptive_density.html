@@ -1,0 +1,1234 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyna.toroidal.flt.adaptive_density &#8212; pyna dynamics toolkit</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=a0d39112" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../../_static/documentation_options.js?v=3aa1d05b"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyna/toroidal/flt/adaptive_density';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../../_static/language-switcher.js?v=8b136864"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8" />
+  
+    
+    <script src="../../../../_static/searchtools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../searchindex.js"></script>
+  
+<script>
+  document.documentElement.dataset.pynaLang = "root";
+</script>
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pyna</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../en/index.html">
+    pyna - Python DYNAmics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../zh/index.html">
+    pyna 中文文档
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><div class="pyna-language-switcher" data-pyna-language-switcher>
+  <span class="pyna-language-switcher__label">Language</span>
+  <select class="pyna-language-select" aria-label="Documentation language">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語 -> English</option>
+    <option value="de">Deutsch -> English</option>
+    <option value="ko">한국어 -> English</option>
+    <option value="ru">Русский -> English</option>
+  </select>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WenyinWei/pyna" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">pyna.toroidal.flt.adaptive_density</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyna.toroidal.flt.adaptive_density</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Adaptive Poincare seed densification utilities.&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyna.toroidal.flt.island_chain</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">PoincareSectionTraces</span><span class="p">,</span>
+    <span class="n">_ray_polygon_radius</span><span class="p">,</span>
+    <span class="n">boundary_wall_fractions</span><span class="p">,</span>
+    <span class="n">trace_poincare_sections_from_same_orbits_field</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="viewcode-block" id="BoundarySeedDensificationResult">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.BoundarySeedDensificationResult">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">BoundarySeedDensificationResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Seed update proposed from a Poincare point-density diagnostic.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BoundarySeedDensificationResult.seed_R">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.BoundarySeedDensificationResult.seed_R">[docs]</a>
+    <span class="n">seed_R</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="BoundarySeedDensificationResult.seed_Z">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.BoundarySeedDensificationResult.seed_Z">[docs]</a>
+    <span class="n">seed_Z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="BoundarySeedDensificationResult.added_R">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.BoundarySeedDensificationResult.added_R">[docs]</a>
+    <span class="n">added_R</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="BoundarySeedDensificationResult.added_Z">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.BoundarySeedDensificationResult.added_Z">[docs]</a>
+    <span class="n">added_Z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="BoundarySeedDensificationResult.diagnostics">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.BoundarySeedDensificationResult.diagnostics">[docs]</a>
+    <span class="n">diagnostics</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span> <span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">seed_R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed_R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">seed_Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed_Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">added_R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">added_R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">added_Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">added_Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">seed_R</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">seed_Z</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;seed_R and seed_Z must have the same length&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">added_R</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">added_Z</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;added_R and added_Z must have the same length&quot;</span><span class="p">)</span>
+        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;seed_R&quot;</span><span class="p">,</span> <span class="n">seed_R</span><span class="p">)</span>
+        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;seed_Z&quot;</span><span class="p">,</span> <span class="n">seed_Z</span><span class="p">)</span>
+        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;added_R&quot;</span><span class="p">,</span> <span class="n">added_R</span><span class="p">)</span>
+        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;added_Z&quot;</span><span class="p">,</span> <span class="n">added_Z</span><span class="p">)</span></div>
+
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="viewcode-block" id="AdaptivePoincareSectionTraces">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AdaptivePoincareSectionTraces</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Aggregate Poincare traces from adaptive seed-refinement rounds.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AdaptivePoincareSectionTraces.traces">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.traces">[docs]</a>
+    <span class="n">traces</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">PoincareSectionTraces</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="AdaptivePoincareSectionTraces.metadata">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.metadata">[docs]</a>
+    <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span> <span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">traces</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">traces</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;traces must not be empty&quot;</span><span class="p">)</span>
+        <span class="n">phi0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">traces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">phi_sections</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="n">traces</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="k">if</span> <span class="n">trace</span><span class="o">.</span><span class="n">n_section</span> <span class="o">!=</span> <span class="n">traces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">n_section</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;all traces must use the same section count&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">phi_sections</span><span class="p">,</span> <span class="n">phi0</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;all traces must use the same section phis&quot;</span><span class="p">)</span>
+        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;traces&quot;</span><span class="p">,</span> <span class="n">traces</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="AdaptivePoincareSectionTraces.phi_sections">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.phi_sections">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phi_sections</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">phi_sections</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="AdaptivePoincareSectionTraces.seed_R">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.seed_R">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">seed_R</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">trace</span><span class="o">.</span><span class="n">seed_R</span> <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="p">])</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="AdaptivePoincareSectionTraces.seed_Z">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.seed_Z">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">seed_Z</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">trace</span><span class="o">.</span><span class="n">seed_Z</span> <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="p">])</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="AdaptivePoincareSectionTraces.n_seed">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.n_seed">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">n_seed</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">n_seed</span> <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="p">))</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="AdaptivePoincareSectionTraces.n_section">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.n_section">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">n_section</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">n_section</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="AdaptivePoincareSectionTraces.N_turns">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.N_turns">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">N_turns</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">N_turns</span> <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="p">))</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="AdaptivePoincareSectionTraces.direction">
+<a class="viewcode-back" href="../../../../en/api/generated/pyna/toroidal/flt/adaptive_density/index.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.direction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">direction</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">direction</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AdaptivePoincareSectionTraces.section_points">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.AdaptivePoincareSectionTraces.section_points">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">section_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="n">R_parts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">Z_parts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">seed_parts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">seed_offset</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="p">:</span>
+            <span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="n">trace</span><span class="o">.</span><span class="n">section_points</span><span class="p">(</span><span class="n">section</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">R</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+                <span class="n">R_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">R</span><span class="p">)</span>
+                <span class="n">Z_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+                <span class="n">seed_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">seed</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">seed_offset</span><span class="p">))</span>
+            <span class="n">seed_offset</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">n_seed</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">R_parts</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">R_parts</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">Z_parts</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">seed_parts</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_seed_counts_for_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">:</span> <span class="n">PoincareSectionTraces</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">counts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="poincare_seed_hit_counts">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.poincare_seed_hit_counts">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">poincare_seed_hit_counts</span><span class="p">(</span><span class="n">traces</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return total recorded Poincare hits for every seed orbit.&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">AdaptivePoincareSectionTraces</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">traces</span><span class="o">.</span><span class="n">traces</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">_seed_counts_for_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="n">traces</span><span class="o">.</span><span class="n">traces</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">_seed_counts_for_trace</span><span class="p">(</span><span class="n">traces</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_filter_single_trace_by_mask</span><span class="p">(</span><span class="n">trace</span><span class="p">:</span> <span class="n">PoincareSectionTraces</span><span class="p">,</span> <span class="n">mask</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PoincareSectionTraces</span><span class="p">:</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">mask</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">trace</span><span class="o">.</span><span class="n">n_seed</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;seed mask length must match trace.n_seed&quot;</span><span class="p">)</span>
+    <span class="n">R_cube</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">R_flat</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">n_seed</span><span class="p">,</span> <span class="n">trace</span><span class="o">.</span><span class="n">n_section</span><span class="p">,</span> <span class="n">trace</span><span class="o">.</span><span class="n">N_turns</span><span class="p">)</span>
+    <span class="n">Z_cube</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">Z_flat</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">n_seed</span><span class="p">,</span> <span class="n">trace</span><span class="o">.</span><span class="n">n_section</span><span class="p">,</span> <span class="n">trace</span><span class="o">.</span><span class="n">N_turns</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">PoincareSectionTraces</span><span class="p">(</span>
+        <span class="n">phi_sections</span><span class="o">=</span><span class="n">trace</span><span class="o">.</span><span class="n">phi_sections</span><span class="p">,</span>
+        <span class="n">seed_R</span><span class="o">=</span><span class="n">trace</span><span class="o">.</span><span class="n">seed_R</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span>
+        <span class="n">seed_Z</span><span class="o">=</span><span class="n">trace</span><span class="o">.</span><span class="n">seed_Z</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span>
+        <span class="n">counts</span><span class="o">=</span><span class="n">trace</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span>
+        <span class="n">R_flat</span><span class="o">=</span><span class="n">R_cube</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span>
+        <span class="n">Z_flat</span><span class="o">=</span><span class="n">Z_cube</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span>
+        <span class="n">N_turns</span><span class="o">=</span><span class="n">trace</span><span class="o">.</span><span class="n">N_turns</span><span class="p">,</span>
+        <span class="n">direction</span><span class="o">=</span><span class="n">trace</span><span class="o">.</span><span class="n">direction</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">metadata</span><span class="p">),</span> <span class="s2">&quot;seed_filter_kept_count&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">mask</span><span class="p">))},</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_seed_filter_mask</span><span class="p">(</span>
+    <span class="n">trace</span><span class="p">:</span> <span class="n">PoincareSectionTraces</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">min_total_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_count_per_section</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">counts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">n_seed</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">min_total_count</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">&amp;=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_total_count</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">min_count_per_section</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">&amp;=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_count_per_section</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mask</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_survival_filter_metadata</span><span class="p">(</span><span class="n">original_counts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">kept_counts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_stats</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">finite</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">arr</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">finite</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;p90&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">finite</span><span class="o">.</span><span class="n">size</span><span class="p">),</span>
+            <span class="s2">&quot;min&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">finite</span><span class="p">)),</span>
+            <span class="s2">&quot;median&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">finite</span><span class="p">)),</span>
+            <span class="s2">&quot;p90&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">finite</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">)),</span>
+            <span class="s2">&quot;max&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">finite</span><span class="p">)),</span>
+        <span class="p">}</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;filter&quot;</span><span class="p">:</span> <span class="s2">&quot;seed_hit_count&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="n">params</span><span class="p">,</span>
+        <span class="s2">&quot;original_seed_count&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">original_counts</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">),</span>
+        <span class="s2">&quot;kept_seed_count&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">kept_counts</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">),</span>
+        <span class="s2">&quot;dropped_seed_count&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">original_counts</span><span class="p">)</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">kept_counts</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">),</span>
+        <span class="s2">&quot;original_total_hit_stats&quot;</span><span class="p">:</span> <span class="n">_stats</span><span class="p">(</span><span class="n">original_counts</span><span class="p">),</span>
+        <span class="s2">&quot;kept_total_hit_stats&quot;</span><span class="p">:</span> <span class="n">_stats</span><span class="p">(</span><span class="n">kept_counts</span><span class="p">),</span>
+    <span class="p">}</span>
+
+
+<div class="viewcode-block" id="filter_poincare_traces_by_seed_count">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.filter_poincare_traces_by_seed_count">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">filter_poincare_traces_by_seed_count</span><span class="p">(</span>
+    <span class="n">traces</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">min_total_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_count_per_section</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Drop seed orbits that leave too few Poincare hits for clear plotting.&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">min_total_count</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">min_count_per_section</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">traces</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;min_total_count&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">min_total_count</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_total_count</span><span class="p">),</span>
+        <span class="s2">&quot;min_count_per_section&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">min_count_per_section</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_count_per_section</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">AdaptivePoincareSectionTraces</span><span class="p">):</span>
+        <span class="n">filtered</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">PoincareSectionTraces</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">original_counts_parts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">kept_counts_parts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="n">traces</span><span class="o">.</span><span class="n">traces</span><span class="p">:</span>
+            <span class="n">counts</span> <span class="o">=</span> <span class="n">_seed_counts_for_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">_seed_filter_mask</span><span class="p">(</span>
+                <span class="n">trace</span><span class="p">,</span>
+                <span class="n">min_total_count</span><span class="o">=</span><span class="n">min_total_count</span><span class="p">,</span>
+                <span class="n">min_count_per_section</span><span class="o">=</span><span class="n">min_count_per_section</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">filtered</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_filter_single_trace_by_mask</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">mask</span><span class="p">))</span>
+            <span class="n">original_counts_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
+            <span class="n">kept_counts_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">counts</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
+        <span class="n">original_counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">original_counts_parts</span><span class="p">)</span> <span class="k">if</span> <span class="n">original_counts_parts</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">kept_counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">kept_counts_parts</span><span class="p">)</span> <span class="k">if</span> <span class="n">kept_counts_parts</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">traces</span><span class="o">.</span><span class="n">metadata</span><span class="p">),</span>
+            <span class="s2">&quot;survival_filter&quot;</span><span class="p">:</span> <span class="n">_survival_filter_metadata</span><span class="p">(</span><span class="n">original_counts</span><span class="p">,</span> <span class="n">kept_counts</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">AdaptivePoincareSectionTraces</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">filtered</span><span class="p">),</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
+
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">_seed_counts_for_trace</span><span class="p">(</span><span class="n">traces</span><span class="p">)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">_seed_filter_mask</span><span class="p">(</span>
+        <span class="n">traces</span><span class="p">,</span>
+        <span class="n">min_total_count</span><span class="o">=</span><span class="n">min_total_count</span><span class="p">,</span>
+        <span class="n">min_count_per_section</span><span class="o">=</span><span class="n">min_count_per_section</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">filtered</span> <span class="o">=</span> <span class="n">_filter_single_trace_by_mask</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+    <span class="n">filtered</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+        <span class="s2">&quot;survival_filter&quot;</span><span class="p">:</span> <span class="n">_survival_filter_metadata</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">counts</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">),</span>
+    <span class="p">})</span>
+    <span class="k">return</span> <span class="n">filtered</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_as_axis_by_section</span><span class="p">(</span><span class="n">axis_by_section</span><span class="p">,</span> <span class="n">n_section</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">axis_by_section</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_section</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;axis_by_section must have one (R, Z) pair per section&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="nb">float</span><span class="p">(</span><span class="n">axis</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">axis</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">axis_by_section</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_as_wall_by_section</span><span class="p">(</span><span class="n">wall_by_section</span><span class="p">,</span> <span class="n">n_section</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">wall_by_section</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_section</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;wall_by_section must have one (R, Z) pair per section&quot;</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">wall_R</span><span class="p">,</span> <span class="n">wall_Z</span> <span class="ow">in</span> <span class="n">wall_by_section</span><span class="p">:</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">wall_R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">wall_Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">R</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">Z</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">R</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;each wall section must be a polygon with matching R/Z arrays&quot;</span><span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<div class="viewcode-block" id="wall_fraction_theta">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.wall_fraction_theta">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">wall_fraction_theta</span><span class="p">(</span>
+    <span class="n">axis_R</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">axis_Z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">R</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">Z</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">wall_R</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">wall_Z</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return wall fraction and poloidal angle for section points.&quot;&quot;&quot;</span>
+
+    <span class="n">R_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">Z_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">R_arr</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">Z_arr</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;R and Z must have the same length&quot;</span><span class="p">)</span>
+    <span class="n">wf</span> <span class="o">=</span> <span class="n">boundary_wall_fractions</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">axis_R</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">axis_Z</span><span class="p">),</span> <span class="n">R_arr</span><span class="p">,</span> <span class="n">Z_arr</span><span class="p">,</span> <span class="n">wall_R</span><span class="p">,</span> <span class="n">wall_Z</span><span class="p">)</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">Z_arr</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">axis_Z</span><span class="p">),</span> <span class="n">R_arr</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">axis_R</span><span class="p">)),</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+    <span class="n">theta</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">wf</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="k">return</span> <span class="n">wf</span><span class="p">,</span> <span class="n">theta</span></div>
+
+
+
+<div class="viewcode-block" id="poincare_wall_fraction_density">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.poincare_wall_fraction_density">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">poincare_wall_fraction_density</span><span class="p">(</span>
+    <span class="n">traces</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">axis_by_section</span><span class="p">,</span>
+    <span class="n">wall_by_section</span><span class="p">,</span>
+    <span class="n">wall_fraction_edges</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">theta_edges</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Histogram Poincare point density in wall-fraction and angle bins.&quot;&quot;&quot;</span>
+
+    <span class="n">n_section</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">traces</span><span class="o">.</span><span class="n">n_section</span><span class="p">)</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="n">_as_axis_by_section</span><span class="p">(</span><span class="n">axis_by_section</span><span class="p">,</span> <span class="n">n_section</span><span class="p">)</span>
+    <span class="n">walls</span> <span class="o">=</span> <span class="n">_as_wall_by_section</span><span class="p">(</span><span class="n">wall_by_section</span><span class="p">,</span> <span class="n">n_section</span><span class="p">)</span>
+    <span class="n">wf_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">wall_fraction_edges</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">wf_edges</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">wf_edges</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;wall_fraction_edges must be strictly increasing&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">theta_edges</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">th_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">33</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">th_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">theta_edges</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">th_edges</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">th_edges</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;theta_edges must be strictly increasing&quot;</span><span class="p">)</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_section</span><span class="p">,</span> <span class="n">wf_edges</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">th_edges</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">point_count_by_section</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">section_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_section</span><span class="p">):</span>
+        <span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">_seed</span> <span class="o">=</span> <span class="n">traces</span><span class="o">.</span><span class="n">section_points</span><span class="p">(</span><span class="n">section_index</span><span class="p">)</span>
+        <span class="n">point_count_by_section</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">R</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">R</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">wf</span><span class="p">,</span> <span class="n">theta</span> <span class="o">=</span> <span class="n">wall_fraction_theta</span><span class="p">(</span>
+            <span class="n">axis</span><span class="p">[</span><span class="n">section_index</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">axis</span><span class="p">[</span><span class="n">section_index</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">R</span><span class="p">,</span>
+            <span class="n">Z</span><span class="p">,</span>
+            <span class="n">walls</span><span class="p">[</span><span class="n">section_index</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">walls</span><span class="p">[</span><span class="n">section_index</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">finite</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">wf</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">finite</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">hist</span><span class="p">,</span> <span class="n">_wf_edges</span><span class="p">,</span> <span class="n">_th_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram2d</span><span class="p">(</span><span class="n">wf</span><span class="p">[</span><span class="n">finite</span><span class="p">],</span> <span class="n">theta</span><span class="p">[</span><span class="n">finite</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="p">(</span><span class="n">wf_edges</span><span class="p">,</span> <span class="n">th_edges</span><span class="p">))</span>
+        <span class="n">counts</span><span class="p">[</span><span class="n">section_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">hist</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;counts&quot;</span><span class="p">:</span> <span class="n">counts</span><span class="p">,</span>
+        <span class="s2">&quot;wall_fraction_edges&quot;</span><span class="p">:</span> <span class="n">wf_edges</span><span class="p">,</span>
+        <span class="s2">&quot;theta_edges&quot;</span><span class="p">:</span> <span class="n">th_edges</span><span class="p">,</span>
+        <span class="s2">&quot;point_count_by_section&quot;</span><span class="p">:</span> <span class="n">point_count_by_section</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_deduplicate_seed_points</span><span class="p">(</span><span class="n">seed_R</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">seed_Z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+    <span class="n">finite</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">seed_R</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">seed_Z</span><span class="p">)</span>
+    <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">seed_R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[</span><span class="n">finite</span><span class="p">]</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">seed_Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[</span><span class="n">finite</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">R</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">float</span><span class="p">(</span><span class="n">tol</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">R</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">Z</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">inv</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">tol</span><span class="p">)</span>
+    <span class="n">seen</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">keep_R</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">keep_Z</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">z</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">Z</span><span class="p">):</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">*</span> <span class="n">inv</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">*</span> <span class="n">inv</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">keep_R</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
+        <span class="n">keep_Z</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">z</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">keep_R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">keep_Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_seed_point_from_fraction_angle</span><span class="p">(</span>
+    <span class="n">axis_R</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">axis_Z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">wall_R</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">wall_Z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">wall_fraction</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">theta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="n">_ray_polygon_radius</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">axis_R</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">axis_Z</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="n">wall_R</span><span class="p">,</span> <span class="n">wall_Z</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span> <span class="ow">or</span> <span class="n">rho</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">axis_R</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">wall_fraction</span><span class="p">)</span> <span class="o">*</span> <span class="n">rho</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)),</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">axis_Z</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">wall_fraction</span><span class="p">)</span> <span class="o">*</span> <span class="n">rho</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)),</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="adaptive_wall_fraction_seed_points">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.adaptive_wall_fraction_seed_points">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">adaptive_wall_fraction_seed_points</span><span class="p">(</span>
+    <span class="n">density</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">seed_axis</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">seed_wall</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
+    <span class="n">target_points_per_bin</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">reducer</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span>
+    <span class="n">seeds_per_deficit_bin</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">max_new_seeds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">seed_dedup_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0e-8</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate new seed points for under-populated density bins.&quot;&quot;&quot;</span>
+
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">density</span><span class="p">[</span><span class="s2">&quot;counts&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">counts</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;density counts must have shape (section, wall_fraction_bin, theta_bin)&quot;</span><span class="p">)</span>
+    <span class="n">wf_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">density</span><span class="p">[</span><span class="s2">&quot;wall_fraction_edges&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">theta_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">density</span><span class="p">[</span><span class="s2">&quot;theta_edges&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">target_points_per_bin</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">target</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;target_points_per_bin must be positive&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">seeds_per_deficit_bin</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;seeds_per_deficit_bin must be positive&quot;</span><span class="p">)</span>
+    <span class="n">reducer_key</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">reducer</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">reducer_key</span> <span class="o">==</span> <span class="s2">&quot;min&quot;</span><span class="p">:</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">reducer_key</span> <span class="o">==</span> <span class="s2">&quot;median&quot;</span><span class="p">:</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;reducer must be &#39;min&#39; or &#39;median&#39;&quot;</span><span class="p">)</span>
+    <span class="n">deficit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">target</span> <span class="o">-</span> <span class="n">score</span><span class="p">)</span>
+    <span class="n">deficient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">deficit</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">deficient</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="p">{</span>
+            <span class="s2">&quot;target_points_per_bin&quot;</span><span class="p">:</span> <span class="n">target</span><span class="p">,</span>
+            <span class="s2">&quot;deficient_bin_count&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;new_seed_count&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="n">wall_R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">seed_wall</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">wall_Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">seed_wall</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">R_new</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">Z_new</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">wf_bin</span><span class="p">,</span> <span class="n">theta_bin</span> <span class="ow">in</span> <span class="n">deficient</span><span class="p">:</span>
+        <span class="n">n_seed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">seeds_per_deficit_bin</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_seed</span><span class="p">):</span>
+            <span class="n">u</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">n_seed</span><span class="p">)</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">((</span><span class="nb">float</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.6180339887498949</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="n">frac</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">wf_edges</span><span class="p">[</span><span class="n">wf_bin</span><span class="p">]</span> <span class="o">+</span> <span class="n">u</span> <span class="o">*</span> <span class="p">(</span><span class="n">wf_edges</span><span class="p">[</span><span class="n">wf_bin</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">wf_edges</span><span class="p">[</span><span class="n">wf_bin</span><span class="p">]))</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">theta_edges</span><span class="p">[</span><span class="n">theta_bin</span><span class="p">]</span> <span class="o">+</span> <span class="n">v</span> <span class="o">*</span> <span class="p">(</span><span class="n">theta_edges</span><span class="p">[</span><span class="n">theta_bin</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">theta_edges</span><span class="p">[</span><span class="n">theta_bin</span><span class="p">]))</span>
+            <span class="n">point</span> <span class="o">=</span> <span class="n">_seed_point_from_fraction_angle</span><span class="p">(</span>
+                <span class="nb">float</span><span class="p">(</span><span class="n">seed_axis</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="nb">float</span><span class="p">(</span><span class="n">seed_axis</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                <span class="n">wall_R</span><span class="p">,</span>
+                <span class="n">wall_Z</span><span class="p">,</span>
+                <span class="n">frac</span><span class="p">,</span>
+                <span class="n">theta</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">point</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">R_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">Z_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">max_new_seeds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">R_new</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_new_seeds</span><span class="p">):</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="n">max_new_seeds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">R_new</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_new_seeds</span><span class="p">):</span>
+            <span class="k">break</span>
+
+    <span class="n">R_arr</span><span class="p">,</span> <span class="n">Z_arr</span> <span class="o">=</span> <span class="n">_deduplicate_seed_points</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">R_new</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Z_new</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+        <span class="n">tol</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">seed_dedup_tol</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">R_arr</span><span class="p">,</span> <span class="n">Z_arr</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s2">&quot;target_points_per_bin&quot;</span><span class="p">:</span> <span class="n">target</span><span class="p">,</span>
+        <span class="s2">&quot;reducer&quot;</span><span class="p">:</span> <span class="n">reducer_key</span><span class="p">,</span>
+        <span class="s2">&quot;deficient_bin_count&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">deficient</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="s2">&quot;new_seed_count&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">R_arr</span><span class="o">.</span><span class="n">size</span><span class="p">),</span>
+        <span class="s2">&quot;score_min&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">score</span><span class="p">))</span> <span class="k">if</span> <span class="n">score</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;score_median&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">score</span><span class="p">))</span> <span class="k">if</span> <span class="n">score</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;score_max&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">score</span><span class="p">))</span> <span class="k">if</span> <span class="n">score</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="densify_boundary_poincare_seeds">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.densify_boundary_poincare_seeds">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">densify_boundary_poincare_seeds</span><span class="p">(</span>
+    <span class="n">traces</span><span class="p">,</span>
+    <span class="n">axis_R</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">axis_Z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">wall_R</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">wall_Z</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">wall_fraction_bins</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="n">theta_bins</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mi">96</span><span class="p">,</span>
+    <span class="n">min_points_per_bin</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">max_new_seeds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">seeds_per_deficit_bin</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">reducer</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span>
+    <span class="n">dedup_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0e-6</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BoundarySeedDensificationResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Propose new seed points for sparse Poincare wall-fraction bins.</span>
+
+<span class="sd">    This is the low-level post-compute primitive.  It does not retrace field</span>
+<span class="sd">    lines; callers can cache the returned seed update and decide when to launch</span>
+<span class="sd">    the next trace batch.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wall_fraction_bins</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)):</span>
+        <span class="n">wf_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">wall_fraction_bins</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">wf_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">wall_fraction_bins</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">theta_bins</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)):</span>
+        <span class="n">theta_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">theta_bins</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">theta_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">theta_bins</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">density</span> <span class="o">=</span> <span class="n">poincare_wall_fraction_density</span><span class="p">(</span>
+        <span class="n">traces</span><span class="p">,</span>
+        <span class="n">axis_by_section</span><span class="o">=</span><span class="p">[(</span><span class="nb">float</span><span class="p">(</span><span class="n">axis_R</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">axis_Z</span><span class="p">))]</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">traces</span><span class="o">.</span><span class="n">n_section</span><span class="p">),</span>
+        <span class="n">wall_by_section</span><span class="o">=</span><span class="p">[(</span><span class="n">wall_R</span><span class="p">,</span> <span class="n">wall_Z</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">traces</span><span class="o">.</span><span class="n">n_section</span><span class="p">),</span>
+        <span class="n">wall_fraction_edges</span><span class="o">=</span><span class="n">wf_edges</span><span class="p">,</span>
+        <span class="n">theta_edges</span><span class="o">=</span><span class="n">theta_edges</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">added_R</span><span class="p">,</span> <span class="n">added_Z</span><span class="p">,</span> <span class="n">seed_diag</span> <span class="o">=</span> <span class="n">adaptive_wall_fraction_seed_points</span><span class="p">(</span>
+        <span class="n">density</span><span class="p">,</span>
+        <span class="n">seed_axis</span><span class="o">=</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">axis_R</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">axis_Z</span><span class="p">)),</span>
+        <span class="n">seed_wall</span><span class="o">=</span><span class="p">(</span><span class="n">wall_R</span><span class="p">,</span> <span class="n">wall_Z</span><span class="p">),</span>
+        <span class="n">target_points_per_bin</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">min_points_per_bin</span><span class="p">),</span>
+        <span class="n">reducer</span><span class="o">=</span><span class="n">reducer</span><span class="p">,</span>
+        <span class="n">seeds_per_deficit_bin</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">seeds_per_deficit_bin</span><span class="p">),</span>
+        <span class="n">max_new_seeds</span><span class="o">=</span><span class="n">max_new_seeds</span><span class="p">,</span>
+        <span class="n">seed_dedup_tol</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">dedup_tol</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">seed_R</span><span class="p">,</span> <span class="n">seed_Z</span> <span class="o">=</span> <span class="n">_deduplicate_seed_points</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">traces</span><span class="o">.</span><span class="n">seed_R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">added_R</span><span class="p">]),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">traces</span><span class="o">.</span><span class="n">seed_Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">added_Z</span><span class="p">]),</span>
+        <span class="n">tol</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">dedup_tol</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">diagnostics</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;density&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;counts&quot;</span><span class="p">:</span> <span class="n">density</span><span class="p">[</span><span class="s2">&quot;counts&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;wall_fraction_edges&quot;</span><span class="p">:</span> <span class="n">density</span><span class="p">[</span><span class="s2">&quot;wall_fraction_edges&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;theta_edges&quot;</span><span class="p">:</span> <span class="n">density</span><span class="p">[</span><span class="s2">&quot;theta_edges&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;point_count_by_section&quot;</span><span class="p">:</span> <span class="n">density</span><span class="p">[</span><span class="s2">&quot;point_count_by_section&quot;</span><span class="p">],</span>
+        <span class="p">},</span>
+        <span class="o">**</span><span class="n">seed_diag</span><span class="p">,</span>
+        <span class="s2">&quot;original_seed_count&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">traces</span><span class="o">.</span><span class="n">n_seed</span><span class="p">),</span>
+        <span class="s2">&quot;total_seed_count&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">seed_R</span><span class="o">.</span><span class="n">size</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">BoundarySeedDensificationResult</span><span class="p">(</span>
+        <span class="n">seed_R</span><span class="o">=</span><span class="n">seed_R</span><span class="p">,</span>
+        <span class="n">seed_Z</span><span class="o">=</span><span class="n">seed_Z</span><span class="p">,</span>
+        <span class="n">added_R</span><span class="o">=</span><span class="n">added_R</span><span class="p">,</span>
+        <span class="n">added_Z</span><span class="o">=</span><span class="n">added_Z</span><span class="p">,</span>
+        <span class="n">diagnostics</span><span class="o">=</span><span class="n">diagnostics</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_derive_target_points_per_bin</span><span class="p">(</span>
+    <span class="n">traces</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">axis_by_section</span><span class="p">,</span>
+    <span class="n">wall_by_section</span><span class="p">,</span>
+    <span class="n">reference_wall_fraction_range</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">n_wall_fraction_bins</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">n_theta_bins</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">target_quantile</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">target_scale</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">min_target_points_per_bin</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">reference_wall_fraction_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_target_points_per_bin</span><span class="p">)</span>
+    <span class="n">ref_min</span><span class="p">,</span> <span class="n">ref_max</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">reference_wall_fraction_range</span><span class="p">)</span>
+    <span class="n">ref_density</span> <span class="o">=</span> <span class="n">poincare_wall_fraction_density</span><span class="p">(</span>
+        <span class="n">traces</span><span class="p">,</span>
+        <span class="n">axis_by_section</span><span class="o">=</span><span class="n">axis_by_section</span><span class="p">,</span>
+        <span class="n">wall_by_section</span><span class="o">=</span><span class="n">wall_by_section</span><span class="p">,</span>
+        <span class="n">wall_fraction_edges</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">ref_min</span><span class="p">,</span> <span class="n">ref_max</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_wall_fraction_bins</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="n">theta_edges</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_theta_bins</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">ref_density</span><span class="p">[</span><span class="s2">&quot;counts&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">positive</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">counts</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">positive</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_target_points_per_bin</span><span class="p">)</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">target_scale</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">positive</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">target_quantile</span><span class="p">)))))</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">min_target_points_per_bin</span><span class="p">),</span> <span class="n">target</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="trace_adaptive_poincare_sections_from_same_orbits_field">
+<a class="viewcode-back" href="../../../../en/api/toroidal.html#pyna.toroidal.flt.adaptive_density.trace_adaptive_poincare_sections_from_same_orbits_field">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">trace_adaptive_poincare_sections_from_same_orbits_field</span><span class="p">(</span>
+    <span class="n">field</span><span class="p">,</span>
+    <span class="n">seed_R</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">seed_Z</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">phi_sections</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">axis_by_section</span><span class="p">,</span>
+    <span class="n">wall_by_section</span><span class="p">,</span>
+    <span class="n">N_turns</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">DPhi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">density_wall_fraction_range</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.72</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+    <span class="n">reference_wall_fraction_range</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">n_wall_fraction_bins</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="n">n_theta_bins</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">48</span><span class="p">,</span>
+    <span class="n">target_points_per_bin</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">target_quantile</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.50</span><span class="p">,</span>
+    <span class="n">target_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.75</span><span class="p">,</span>
+    <span class="n">min_target_points_per_bin</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="n">max_rounds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="n">seeds_per_deficit_bin</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">max_new_seeds_per_round</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span>
+    <span class="n">reducer</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span>
+    <span class="n">seed_axis</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">seed_wall</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">trace_wall_R</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">trace_wall_Z</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">seed_dedup_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0e-8</span><span class="p">,</span>
+    <span class="n">extend_phi</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span>
+    <span class="n">diagnostic_schema</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AdaptivePoincareSectionTraces</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Trace Poincare sections and adaptively add seeds in sparse wall bins.&quot;&quot;&quot;</span>
+
+    <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">phi_sections</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">phi</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;phi_sections must not be empty&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_rounds</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;max_rounds must be non-negative&quot;</span><span class="p">)</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="n">_as_axis_by_section</span><span class="p">(</span><span class="n">axis_by_section</span><span class="p">,</span> <span class="n">phi</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">walls</span> <span class="o">=</span> <span class="n">_as_wall_by_section</span><span class="p">(</span><span class="n">wall_by_section</span><span class="p">,</span> <span class="n">phi</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">seed_axis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">seed_axis</span> <span class="o">=</span> <span class="n">axis</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">seed_wall</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">seed_wall</span> <span class="o">=</span> <span class="n">walls</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">wf_min</span><span class="p">,</span> <span class="n">wf_max</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">density_wall_fraction_range</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">wf_min</span> <span class="o">&lt;</span> <span class="n">wf_max</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;density_wall_fraction_range must be increasing&quot;</span><span class="p">)</span>
+
+    <span class="n">traces</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">PoincareSectionTraces</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">rounds</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">current_R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">seed_R</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">current_Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">seed_Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">current_R</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">current_Z</span><span class="o">.</span><span class="n">size</span> <span class="ow">or</span> <span class="n">current_R</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;seed_R and seed_Z must be non-empty arrays with the same length&quot;</span><span class="p">)</span>
+    <span class="n">last_target</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">target_points_per_bin</span><span class="p">)</span> <span class="k">if</span> <span class="n">target_points_per_bin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_target_points_per_bin</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">round_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">max_rounds</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">trace</span> <span class="o">=</span> <span class="n">trace_poincare_sections_from_same_orbits_field</span><span class="p">(</span>
+            <span class="n">field</span><span class="p">,</span>
+            <span class="n">current_R</span><span class="p">,</span>
+            <span class="n">current_Z</span><span class="p">,</span>
+            <span class="n">phi</span><span class="p">,</span>
+            <span class="n">N_turns</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">N_turns</span><span class="p">),</span>
+            <span class="n">DPhi</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">DPhi</span><span class="p">),</span>
+            <span class="n">wall_R</span><span class="o">=</span><span class="n">trace_wall_R</span><span class="p">,</span>
+            <span class="n">wall_Z</span><span class="o">=</span><span class="n">trace_wall_Z</span><span class="p">,</span>
+            <span class="n">extend_phi</span><span class="o">=</span><span class="n">extend_phi</span><span class="p">,</span>
+            <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">traces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+        <span class="n">aggregate</span> <span class="o">=</span> <span class="n">AdaptivePoincareSectionTraces</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">traces</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">round_index</span> <span class="o">&gt;=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_rounds</span><span class="p">):</span>
+            <span class="k">break</span>
+        <span class="k">if</span> <span class="n">target_points_per_bin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">_derive_target_points_per_bin</span><span class="p">(</span>
+                <span class="n">aggregate</span><span class="p">,</span>
+                <span class="n">axis_by_section</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span>
+                <span class="n">wall_by_section</span><span class="o">=</span><span class="n">walls</span><span class="p">,</span>
+                <span class="n">reference_wall_fraction_range</span><span class="o">=</span><span class="n">reference_wall_fraction_range</span><span class="p">,</span>
+                <span class="n">n_wall_fraction_bins</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">n_wall_fraction_bins</span><span class="p">),</span>
+                <span class="n">n_theta_bins</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">n_theta_bins</span><span class="p">),</span>
+                <span class="n">target_quantile</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">target_quantile</span><span class="p">),</span>
+                <span class="n">target_scale</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">target_scale</span><span class="p">),</span>
+                <span class="n">min_target_points_per_bin</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">min_target_points_per_bin</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">target_points_per_bin</span><span class="p">)</span>
+        <span class="n">last_target</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="n">density</span> <span class="o">=</span> <span class="n">poincare_wall_fraction_density</span><span class="p">(</span>
+            <span class="n">aggregate</span><span class="p">,</span>
+            <span class="n">axis_by_section</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span>
+            <span class="n">wall_by_section</span><span class="o">=</span><span class="n">walls</span><span class="p">,</span>
+            <span class="n">wall_fraction_edges</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">wf_min</span><span class="p">,</span> <span class="n">wf_max</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_wall_fraction_bins</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">theta_edges</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_theta_bins</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">next_R</span><span class="p">,</span> <span class="n">next_Z</span><span class="p">,</span> <span class="n">seed_diag</span> <span class="o">=</span> <span class="n">adaptive_wall_fraction_seed_points</span><span class="p">(</span>
+            <span class="n">density</span><span class="p">,</span>
+            <span class="n">seed_axis</span><span class="o">=</span><span class="n">seed_axis</span><span class="p">,</span>
+            <span class="n">seed_wall</span><span class="o">=</span><span class="n">seed_wall</span><span class="p">,</span>
+            <span class="n">target_points_per_bin</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
+            <span class="n">reducer</span><span class="o">=</span><span class="n">reducer</span><span class="p">,</span>
+            <span class="n">seeds_per_deficit_bin</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">seeds_per_deficit_bin</span><span class="p">),</span>
+            <span class="n">max_new_seeds</span><span class="o">=</span><span class="n">max_new_seeds_per_round</span><span class="p">,</span>
+            <span class="n">seed_dedup_tol</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">seed_dedup_tol</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">rounds</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s2">&quot;round_index&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">round_index</span><span class="p">),</span>
+            <span class="s2">&quot;input_seed_count&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">current_R</span><span class="o">.</span><span class="n">size</span><span class="p">),</span>
+            <span class="s2">&quot;target_points_per_bin&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">target</span><span class="p">),</span>
+            <span class="s2">&quot;density_point_count_by_section&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">density</span><span class="p">[</span><span class="s2">&quot;point_count_by_section&quot;</span><span class="p">]),</span>
+            <span class="o">**</span><span class="n">seed_diag</span><span class="p">,</span>
+        <span class="p">})</span>
+        <span class="k">if</span> <span class="n">next_R</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">current_R</span> <span class="o">=</span> <span class="n">next_R</span>
+        <span class="n">current_Z</span> <span class="o">=</span> <span class="n">next_Z</span>
+
+    <span class="n">final_aggregate</span> <span class="o">=</span> <span class="n">AdaptivePoincareSectionTraces</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">traces</span><span class="p">))</span>
+    <span class="n">final_density</span> <span class="o">=</span> <span class="n">poincare_wall_fraction_density</span><span class="p">(</span>
+        <span class="n">final_aggregate</span><span class="p">,</span>
+        <span class="n">axis_by_section</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span>
+        <span class="n">wall_by_section</span><span class="o">=</span><span class="n">walls</span><span class="p">,</span>
+        <span class="n">wall_fraction_edges</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">wf_min</span><span class="p">,</span> <span class="n">wf_max</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_wall_fraction_bins</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="n">theta_edges</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_theta_bins</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">final_score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">final_density</span><span class="p">[</span><span class="s2">&quot;counts&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;trace_source&quot;</span><span class="p">:</span> <span class="s2">&quot;adaptive_same_orbit_multi_section&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;diagnostic_schema&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">diagnostic_schema</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">diagnostic_schema</span><span class="p">),</span>
+        <span class="s2">&quot;base_seed_count&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">seed_R</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">),</span>
+        <span class="s2">&quot;total_seed_count&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">n_seed</span> <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="n">traces</span><span class="p">)),</span>
+        <span class="s2">&quot;trace_layer_count&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">traces</span><span class="p">)),</span>
+        <span class="s2">&quot;N_turns&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">N_turns</span><span class="p">),</span>
+        <span class="s2">&quot;DPhi&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">DPhi</span><span class="p">),</span>
+        <span class="s2">&quot;density_wall_fraction_range&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">wf_min</span><span class="p">,</span> <span class="n">wf_max</span><span class="p">],</span>
+        <span class="s2">&quot;reference_wall_fraction_range&quot;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="kc">None</span> <span class="k">if</span> <span class="n">reference_wall_fraction_range</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">reference_wall_fraction_range</span><span class="p">))</span>
+        <span class="p">),</span>
+        <span class="s2">&quot;n_wall_fraction_bins&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_wall_fraction_bins</span><span class="p">),</span>
+        <span class="s2">&quot;n_theta_bins&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_theta_bins</span><span class="p">),</span>
+        <span class="s2">&quot;adaptive_rounds&quot;</span><span class="p">:</span> <span class="n">rounds</span><span class="p">,</span>
+        <span class="s2">&quot;final_density&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;point_count_by_section&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">final_density</span><span class="p">[</span><span class="s2">&quot;point_count_by_section&quot;</span><span class="p">]),</span>
+            <span class="s2">&quot;target_points_per_bin&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">last_target</span><span class="p">),</span>
+            <span class="s2">&quot;score_min&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">final_score</span><span class="p">))</span> <span class="k">if</span> <span class="n">final_score</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;score_median&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">final_score</span><span class="p">))</span> <span class="k">if</span> <span class="n">final_score</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;score_max&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">final_score</span><span class="p">))</span> <span class="k">if</span> <span class="n">final_score</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;below_target_bin_count&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">final_score</span> <span class="o">&lt;</span> <span class="nb">int</span><span class="p">(</span><span class="n">last_target</span><span class="p">))),</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">AdaptivePoincareSectionTraces</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">traces</span><span class="p">),</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span></div>
+
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;AdaptivePoincareSectionTraces&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;BoundarySeedDensificationResult&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;adaptive_wall_fraction_seed_points&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;densify_boundary_poincare_seeds&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;filter_poincare_traces_by_seed_count&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;poincare_wall_fraction_density&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;poincare_seed_hit_counts&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;trace_adaptive_poincare_sections_from_same_orbits_field&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;wall_fraction_theta&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024-2026, Wenyin Wei.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
