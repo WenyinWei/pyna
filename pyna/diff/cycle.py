@@ -3,7 +3,13 @@ from pyna.fields.cylindrical import VectorFieldCylind
 from pyna.topo._rk4 import rk4_integrate as solve_ivp  # replaced scipy for performance
 import numpy as np
 
-from deprecated import deprecated
+try:
+    from deprecated import deprecated
+except ImportError:  # pragma: no cover - exercised only when optional package is absent
+    def deprecated(*_args, **_kwargs):
+        def decorator(func):
+            return func
+        return decorator
 
 def Jac_evolution_along_cycle(afield:VectorFieldCylind, Xcycle_RZdiff, Phi_span):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi

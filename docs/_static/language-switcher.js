@@ -11,6 +11,7 @@
   ];
 
   const availableCodes = new Set(languages.filter((item) => item.available).map((item) => item.code));
+  const languageLabels = new Map(languages.map((item) => [item.code, item.label]));
 
   function pathParts() {
     return window.location.pathname.split("/").filter(Boolean);
@@ -72,6 +73,12 @@
     return "/" + root.concat(["en", "index.html"]).join("/");
   }
 
+  function withFallbackNotice(path, requestedCode) {
+    const url = new URL(path, window.location.origin);
+    url.searchParams.set("pyna_fallback", requestedCode);
+    return url.pathname + url.search + url.hash;
+  }
+
   async function navigateWithFallback(requestedCode) {
     const requestedTarget = targetPath(requestedCode);
     const fallbackTarget = englishFallbackPath();
@@ -81,11 +88,16 @@
       return;
     }
 
+    if (!availableCodes.has(requestedCode)) {
+      window.location.assign(withFallbackNotice(fallbackTarget, requestedCode));
+      return;
+    }
+
     try {
       const response = await fetch(requestedTarget, { method: "HEAD", cache: "no-store" });
-      window.location.assign(response.ok ? requestedTarget : fallbackTarget);
+      window.location.assign(response.ok ? requestedTarget : withFallbackNotice(fallbackTarget, requestedCode));
     } catch (_error) {
-      window.location.assign(fallbackTarget);
+      window.location.assign(withFallbackNotice(fallbackTarget, requestedCode));
     }
   }
 
@@ -175,8 +187,50 @@
       });
   }
 
+  function buildFallbackBadge() {
+    const params = new URLSearchParams(window.location.search);
+    const fallbackCode = params.get("pyna_fallback");
+    if (!fallbackCode || currentLanguage() !== "en" || document.querySelector(".pyna-translation-badge")) {
+      return;
+    }
+
+    const article = document.querySelector(".bd-article, main.bd-content, main");
+    if (!article) {
+      return;
+    }
+
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete("pyna_fallback");
+    const label = languageLabels.get(fallbackCode) || fallbackCode;
+
+    const badge = document.createElement("div");
+    badge.className = "pyna-translation-badge pyna-translation-badge--missing";
+    badge.setAttribute("role", "note");
+
+    const copy = document.createElement("div");
+    copy.className = "pyna-translation-badge__copy";
+
+    const title = document.createElement("span");
+    title.className = "pyna-translation-badge__title";
+    title.textContent = "Translation unavailable";
+
+    const message = document.createElement("span");
+    message.className = "pyna-translation-badge__message";
+    message.textContent = `${label} is not available for this page yet; showing the English source.`;
+
+    const link = document.createElement("a");
+    link.className = "pyna-translation-badge__link";
+    link.href = cleanUrl.pathname + cleanUrl.search + cleanUrl.hash;
+    link.textContent = "English source";
+
+    copy.append(title, message);
+    badge.append(copy, link);
+    article.prepend(badge);
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     buildSwitchers();
     hideOtherLanguageBranches();
+    buildFallbackBadge();
   });
 })();

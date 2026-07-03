@@ -146,7 +146,13 @@ def _central_finite_difference_first_derivative(arr:np.ndarray, dPhi:float, accu
             + (np.roll(arr, 3) - np.roll(arr, -3) )  * ( 4 / 105 ) \
             + (np.roll(arr, 4) - np.roll(arr, -4) )  * ( -1 / 280 )  ) / dPhi
 
-from deprecated import deprecated
+try:
+    from deprecated import deprecated
+except ImportError:  # pragma: no cover - exercised only when optional package is absent
+    def deprecated(*_args, **_kwargs):
+        def decorator(func):
+            return func
+        return decorator
 
 def grow_manifold_from_Xcycle_eig_interp(afield:VectorFieldCylind, Xcycle_RZdiff, Jac_evosol_along_Xcycle, eigind, S_span, S_num:int, Phi_span, Phi_num:int, rev_eigvec=False, first_step=5e-5, max_step=1e-4):
     R, Z, Phi, BR, BZ, BPhi = afield.R, afield.Z, afield.Phi, afield.BR, afield.BZ, afield.BPhi

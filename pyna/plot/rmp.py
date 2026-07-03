@@ -31,6 +31,40 @@ DEFAULT_RMP_COLORS = (
     "#0891b2",
 )
 
+RMP_SECTION_OVERLAYS = (
+    "pest_grid",
+    "poincare",
+    "resonant_surfaces",
+    "stable_branches",
+    "island_width_bars",
+    "xo",
+)
+
+_RMP_OVERLAY_ALIASES = {
+    "grid": "pest_grid",
+    "pest": "pest_grid",
+    "pest_grid": "pest_grid",
+    "points": "poincare",
+    "poincare": "poincare",
+    "poincare_points": "poincare",
+    "surface": "resonant_surfaces",
+    "surfaces": "resonant_surfaces",
+    "resonant_surface": "resonant_surfaces",
+    "resonant_surfaces": "resonant_surfaces",
+    "branches": "stable_branches",
+    "manifolds": "stable_branches",
+    "stable": "stable_branches",
+    "stable_branches": "stable_branches",
+    "bars": "island_width_bars",
+    "island_bars": "island_width_bars",
+    "island_width_bars": "island_width_bars",
+    "width_bars": "island_width_bars",
+    "fixed_points": "xo",
+    "markers": "xo",
+    "x_o": "xo",
+    "xo": "xo",
+}
+
 
 def _component_color(component, index: int, colors: Sequence[str] | None = None) -> str:
     palette = tuple(colors or DEFAULT_RMP_COLORS)
@@ -38,6 +72,38 @@ def _component_color(component, index: int, colors: Sequence[str] | None = None)
         return "#2563eb"
     order = int(getattr(component, "harmonic_order", index + 1)) - 1
     return str(palette[order % len(palette)])
+
+
+def _normalize_rmp_section_overlays(overlays, **show_flags) -> tuple[str, ...]:
+    if overlays is None:
+        names = list(RMP_SECTION_OVERLAYS)
+    else:
+        if isinstance(overlays, str):
+            key = overlays.lower().replace("-", "_")
+            if key == "all":
+                names = list(RMP_SECTION_OVERLAYS)
+            elif key in {"none", "off", "false"}:
+                names = []
+            elif key == "topology":
+                names = ["resonant_surfaces", "stable_branches", "island_width_bars", "xo"]
+            else:
+                names = [key]
+        else:
+            names = [str(name).lower().replace("-", "_") for name in overlays]
+    out = []
+    for name in names:
+        canonical = _RMP_OVERLAY_ALIASES.get(name)
+        if canonical is None:
+            raise ValueError(f"unknown RMP section overlay {name!r}")
+        if canonical not in out:
+            out.append(canonical)
+    for name, enabled in show_flags.items():
+        canonical = _RMP_OVERLAY_ALIASES[name]
+        if not enabled and canonical in out:
+            out.remove(canonical)
+        elif enabled and overlays is None and canonical not in out:
+            out.append(canonical)
+    return tuple(name for name in RMP_SECTION_OVERLAYS if name in out)
 
 
 def _apply_line_halo(artist, *, color: str = "white", linewidth: float = 4.6, alpha: float = 0.84):
@@ -330,6 +396,156 @@ def draw_resonant_surfaces(
     return artists
 
 
+def create_rmp_section_layout(
+    phi_sections: Sequence[float],
+    *,
+    eq=None,
+    ncols: int = 3,
+    figsize: tuple[float, float] | None = None,
+    compact: bool = True,
+    panel_height: float = 3.05,
+    share_axes: bool = True,
+):
+    """Create a section-axis grid sized for circular analytic RMP plots."""
+
+    data_limits = None
+    if eq is not None:
+        lim = 1.15 * float(eq.r0)
+        data_limits = (float(eq.R0) - lim, float(eq.R0) + lim, -lim, lim)
+    return create_section_grid(
+        phi_sections,
+        ncols=ncols,
+        figsize=figsize,
+        data_limits=data_limits,
+        panel_height=panel_height,
+        compact=compact,
+        share_axes=share_axes,
+    )
+
+
+def draw_rmp_poincare_points(
+    ax,
+    R,
+    Z,
+    *,
+    eq,
+    point_size: float = 2.0,
+    point_alpha: float = 0.45,
+    cmap: str = "viridis",
+    zorder: int = 3,
+):
+    """Draw RMP Poincare points colored by normalized circular flux label."""
+
+    R_arr = np.asarray(R, dtype=float).ravel()
+    Z_arr = np.asarray(Z, dtype=float).ravel()
+    if R_arr.size == 0 or Z_arr.size == 0:
+        return {"artist": None, "psi_values": None}
+    values = np.clip(
+        ((R_arr - float(eq.R0)) ** 2 + Z_arr**2) / float(eq.r0) ** 2,
+        0.0,
+        1.0,
+    )
+    artist = draw_poincare_points(
+        ax,
+        R_arr,
+        Z_arr,
+        values=values,
+        cmap=cmap,
+        point_size=point_size,
+        alpha=point_alpha,
+        rasterized=False,
+        zorder=zorder,
+    )
+    return {"artist": artist, "psi_values": values}
+
+
+def draw_rmp_section_overlays(
+    ax,
+    *,
+    eq,
+    components,
+    phi: float = 0.0,
+    R=None,
+    Z=None,
+    overlays: Sequence[str] | str | None = None,
+    colors: Sequence[str] | None = None,
+    point_size: float = 2.0,
+    point_alpha: float = 0.45,
+    cmap: str = "viridis",
+    show_xo_arrows: bool = True,
+    pest_grid_kwargs: dict | None = None,
+    resonant_surface_kwargs: dict | None = None,
+    stable_branch_kwargs: dict | None = None,
+    island_bar_kwargs: dict | None = None,
+):
+    """Apply named RMP section overlays and return the artists by layer."""
+
+    names = _normalize_rmp_section_overlays(overlays)
+    payload = {
+        "psi_values": None,
+        "pest_grid": [],
+        "poincare": None,
+        "resonant_surfaces": [],
+        "stable_branches": [],
+        "island_width_bars": [],
+        "x_points": [],
+        "o_points": [],
+    }
+    for name in names:
+        if name == "pest_grid":
+            kwargs = {} if pest_grid_kwargs is None else dict(pest_grid_kwargs)
+            payload["pest_grid"] = draw_pest_grid(ax, eq, **kwargs)
+        elif name == "poincare":
+            if R is None or Z is None:
+                continue
+            points = draw_rmp_poincare_points(
+                ax,
+                R,
+                Z,
+                eq=eq,
+                point_size=point_size,
+                point_alpha=point_alpha,
+                cmap=cmap,
+            )
+            payload["poincare"] = points["artist"]
+            payload["psi_values"] = points["psi_values"]
+        elif name == "resonant_surfaces":
+            kwargs = {} if resonant_surface_kwargs is None else dict(resonant_surface_kwargs)
+            payload["resonant_surfaces"] = draw_resonant_surfaces(ax, components, eq, colors=colors, **kwargs)
+        elif name == "stable_branches":
+            kwargs = {} if stable_branch_kwargs is None else dict(stable_branch_kwargs)
+            payload["stable_branches"] = draw_reduced_stable_manifolds(
+                ax,
+                components,
+                eq,
+                phi,
+                colors=colors,
+                **kwargs,
+            )
+        elif name == "island_width_bars":
+            kwargs = {} if island_bar_kwargs is None else dict(island_bar_kwargs)
+            payload["island_width_bars"] = draw_rmp_island_width_bars(
+                ax,
+                components,
+                eq,
+                phi,
+                colors=colors,
+                **kwargs,
+            )
+        elif name == "xo":
+            markers = draw_rmp_fixed_points(
+                ax,
+                components,
+                eq,
+                phi,
+                colors=colors,
+                show_arrows=show_xo_arrows,
+            )
+            payload["x_points"] = markers["x_points"]
+            payload["o_points"] = markers["o_points"]
+    return payload
+
+
 def draw_rmp_resonance_section(
     ax,
     R,
@@ -340,6 +556,8 @@ def draw_rmp_resonance_section(
     phi: float = 0.0,
     colors: Sequence[str] | None = None,
     title: str | None = None,
+    overlays: Sequence[str] | str | None = None,
+    show_poincare_points: bool = True,
     show_pest_grid: bool = True,
     show_resonant_surfaces: bool = True,
     show_manifolds: bool = True,
@@ -353,36 +571,28 @@ def draw_rmp_resonance_section(
 
     R_arr = np.asarray(R, dtype=float).ravel()
     Z_arr = np.asarray(Z, dtype=float).ravel()
-    if show_pest_grid:
-        draw_pest_grid(ax, eq)
-    values = None
-    if R_arr.size and Z_arr.size:
-        values = np.clip(
-            ((R_arr - float(eq.R0)) ** 2 + Z_arr**2) / float(eq.r0) ** 2,
-            0.0,
-            1.0,
-        )
-        draw_poincare_points(
-            ax,
-            R_arr,
-            Z_arr,
-            values=values,
-            cmap=cmap,
-            point_size=point_size,
-            alpha=point_alpha,
-            rasterized=False,
-            zorder=3,
-        )
-    if show_resonant_surfaces:
-        draw_resonant_surfaces(ax, components, eq, colors=colors)
-    if show_manifolds:
-        draw_reduced_stable_manifolds(ax, components, eq, phi, colors=colors)
-    bar_artists = []
-    if show_island_width_bars:
-        bar_artists = draw_rmp_island_width_bars(ax, components, eq, phi, colors=colors)
-    markers = {"x_points": [], "o_points": []}
-    if show_xo:
-        markers = draw_rmp_fixed_points(ax, components, eq, phi, colors=colors)
+    selected = _normalize_rmp_section_overlays(
+        overlays,
+        pest_grid=show_pest_grid,
+        poincare=show_poincare_points,
+        resonant_surfaces=show_resonant_surfaces,
+        stable_branches=show_manifolds,
+        island_width_bars=show_island_width_bars,
+        xo=show_xo,
+    )
+    payload = draw_rmp_section_overlays(
+        ax,
+        eq=eq,
+        components=components,
+        phi=phi,
+        R=R_arr,
+        Z=Z_arr,
+        overlays=selected,
+        colors=colors,
+        point_size=point_size,
+        point_alpha=point_alpha,
+        cmap=cmap,
+    )
 
     lim = 1.15 * float(eq.r0)
     ax.set_xlim(float(eq.R0) - lim, float(eq.R0) + lim)
@@ -390,7 +600,7 @@ def draw_rmp_resonance_section(
     format_section_axis(ax, section_phi=phi, title=title, grid=False)
     ax.set_xlabel("R [m]")
     ax.set_ylabel("Z [m]")
-    return {"psi_values": values, "island_width_bars": bar_artists, **markers}
+    return payload
 
 
 def plot_rmp_resonance_sections(
@@ -406,7 +616,14 @@ def plot_rmp_resonance_sections(
     point_size: float = 1.7,
     point_alpha: float = 0.42,
     cmap: str = "viridis",
+    overlays: Sequence[str] | str | None = None,
+    compact: bool = False,
+    show_poincare_points: bool = True,
+    show_pest_grid: bool = True,
+    show_resonant_surfaces: bool = True,
+    show_manifolds: bool = True,
     show_island_width_bars: bool = True,
+    show_xo: bool = True,
 ):
     """Draw a compact multi-section RMP resonance figure."""
 
@@ -414,15 +631,13 @@ def plot_rmp_resonance_sections(
     from matplotlib.lines import Line2D
     from matplotlib.colors import Normalize
 
-    lim = 1.15 * float(eq.r0)
-    data_limits = (float(eq.R0) - lim, float(eq.R0) + lim, -lim, lim)
-    fig, axes = create_section_grid(
+    fig, axes = create_rmp_section_layout(
         phi_sections,
+        eq=eq,
         ncols=ncols,
         figsize=figsize,
-        data_limits=data_limits,
         panel_height=3.05,
-        compact=False,
+        compact=compact,
         share_axes=True,
     )
     axes_flat = axes.ravel()
@@ -441,7 +656,13 @@ def plot_rmp_resonance_sections(
             point_size=point_size,
             point_alpha=point_alpha,
             cmap=cmap,
+            overlays=overlays,
+            show_poincare_points=show_poincare_points,
+            show_pest_grid=show_pest_grid,
+            show_resonant_surfaces=show_resonant_surfaces,
+            show_manifolds=show_manifolds,
             show_island_width_bars=show_island_width_bars,
+            show_xo=show_xo,
         )
         row, col = divmod(idx, int(ncols))
         nrows = axes.shape[0]
@@ -453,7 +674,9 @@ def plot_rmp_resonance_sections(
 
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=Normalize(0.0, 1.0))
     sm.set_array([])
-    fig.subplots_adjust(bottom=0.16, top=0.88, right=0.88, wspace=0.08, hspace=0.28)
+    wspace = 0.0 if compact else 0.08
+    hspace = 0.0 if compact else 0.28
+    fig.subplots_adjust(bottom=0.16, top=0.88, right=0.88, wspace=wspace, hspace=hspace)
     cax = fig.add_axes([0.902, 0.24, 0.018, 0.52])
     cbar = fig.colorbar(sm, cax=cax)
     cbar.set_label("normalized flux label")
@@ -529,9 +752,14 @@ def plot_rmp_resonance_sections(
 
 
 __all__ = [
+    "RMP_SECTION_OVERLAYS",
+    "create_rmp_section_layout",
     "draw_pest_grid",
+    "draw_rmp_poincare_points",
+    "draw_rmp_section_overlays",
     "draw_reduced_stable_manifolds",
     "draw_resonant_surfaces",
+    "draw_rmp_island_width_bars",
     "draw_rmp_fixed_points",
     "draw_rmp_resonance_section",
     "plot_rmp_resonance_sections",

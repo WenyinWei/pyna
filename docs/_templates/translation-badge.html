@@ -1,0 +1,11 @@
+{% if pyna_translation_badge %}
+<div class="pyna-translation-badge pyna-translation-badge--{{ pyna_translation_badge.status }}" role="note">
+  <div class="pyna-translation-badge__copy">
+    <span class="pyna-translation-badge__title">{{ pyna_translation_badge.title }}</span>
+    <span class="pyna-translation-badge__message">{{ pyna_translation_badge.message }}</span>
+  </div>
+  <a class="pyna-translation-badge__link" href="{{ pathto(pyna_translation_badge.english_page) }}">
+    {{ pyna_translation_badge.link_label }}
+  </a>
+</div>
+{% endif %}

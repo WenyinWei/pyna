@@ -13,3 +13,8 @@
   document.documentElement.dataset.pynaLang = "{{ pyna_lang }}";
 </script>
 {% endblock %}
+
+{% block docs_body %}
+{% include "translation-badge.html" %}
+{{ super() }}
+{% endblock %}

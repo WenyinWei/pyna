@@ -1,7 +1,10 @@
 # Configuration file for the Sphinx documentation builder.
 import os
 import sys
+import subprocess
 from importlib import metadata
+from functools import lru_cache
+from pathlib import Path
 sys.path.insert(0, os.path.abspath('..'))
 
 project = 'pyna'
@@ -10,7 +13,7 @@ author = 'Wenyin Wei'
 try:
     release = metadata.version('pyna-chaos')
 except metadata.PackageNotFoundError:
-    release = '0.8.26'
+    release = '0.8.27'
 version = '.'.join(release.split('.')[:2])
 
 extensions = [
@@ -158,6 +161,111 @@ suppress_warnings = [
 nitpicky = False
 
 
+translation_languages = {
+    'en': 'English',
+    'zh': '中文',
+}
+
+translation_badge_text = {
+    'zh': {
+        'outdated_title': '翻译可能落后',
+        'outdated_message': '英文源页更新较新；本页中文内容可能还未完全同步。',
+        'missing_title': '中文翻译缺失',
+        'missing_message': '该页面还没有中文版本，当前显示英文源页。',
+        'link_label': '查看英文版',
+    },
+    'default': {
+        'outdated_title': 'Translation may be outdated',
+        'outdated_message': 'The English source page is newer than this translation.',
+        'missing_title': 'Translation unavailable',
+        'missing_message': 'This page is currently falling back to the English source.',
+        'link_label': 'View English source',
+    },
+}
+
+
+def _page_language(pagename):
+    parts = pagename.split('/')
+    if parts and parts[0] in translation_languages:
+        return parts[0]
+    if parts and parts[0] == 'notebooks':
+        return 'en'
+    return None
+
+
+def _english_counterpart(pagename, lang):
+    parts = pagename.split('/')
+    if not parts:
+        return 'en/index'
+    if lang == 'en':
+        return pagename
+    return '/'.join(['en'] + parts[1:])
+
+
+def _rst_source_path(srcdir, pagename):
+    return Path(srcdir).joinpath(*pagename.split('/')).with_suffix('.rst')
+
+
+@lru_cache(maxsize=None)
+def _git_timestamp(srcdir, source_path):
+    srcdir_path = Path(srcdir)
+    path = Path(source_path)
+    try:
+        relpath = path.relative_to(srcdir_path)
+    except ValueError:
+        relpath = path
+
+    dirty = subprocess.run(
+        ['git', '-C', str(srcdir_path), 'status', '--porcelain', '--', str(relpath)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if dirty.stdout.strip():
+        return path.stat().st_mtime
+
+    result = subprocess.run(
+        ['git', '-C', str(srcdir_path), 'log', '-1', '--format=%ct', '--', str(relpath)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode == 0 and result.stdout.strip():
+        return float(result.stdout.strip().splitlines()[0])
+    return path.stat().st_mtime if path.exists() else None
+
+
+def _translation_badge_for_page(app, pagename):
+    lang = _page_language(pagename)
+    if not lang or lang == 'en':
+        return None
+
+    source = _rst_source_path(app.srcdir, pagename)
+    english_page = _english_counterpart(pagename, lang)
+    english_source = _rst_source_path(app.srcdir, english_page)
+    if not english_source.exists():
+        return None
+
+    source_time = _git_timestamp(app.srcdir, str(source)) if source.exists() else None
+    english_time = _git_timestamp(app.srcdir, str(english_source))
+    if source_time is None or english_time is None or english_time <= source_time:
+        return None
+
+    text = translation_badge_text.get(lang, translation_badge_text['default'])
+    return {
+        'status': 'outdated',
+        'title': text['outdated_title'],
+        'message': text['outdated_message'],
+        'link_label': text['link_label'],
+        'english_page': english_page,
+    }
+
+
+def _add_translation_badge_context(app, pagename, templatename, context, doctree):
+    context['pyna_translation_languages'] = translation_languages
+    context['pyna_translation_badge'] = _translation_badge_for_page(app, pagename)
+
+
 def _disable_nbsphinx_notebook_copy(app):
     """Render notebooks as HTML without publishing raw .ipynb sources."""
     if app.builder.format == 'html' and hasattr(app.env, 'nbsphinx_notebooks'):
@@ -190,5 +298,6 @@ def setup(app):
     # nbsphinx copies executed notebooks during html-collect-pages.  The pages
     # already contain rendered outputs, and publishing raw JSON can expose large
     # base64 payloads, so keep GitHub Pages to HTML/assets only.
+    app.connect('html-page-context', _add_translation_badge_context)
     app.connect('html-collect-pages', _disable_nbsphinx_notebook_copy, priority=400)
     app.connect('build-finished', _remove_html_source_maps)

@@ -10,8 +10,11 @@ from pyna.toroidal.perturbation_spectrum import (
     analyze_resonant_island_chains_multi_n,
 )
 from pyna.toroidal.visual.magnetic_spectrum import (
+    apply_radial_mode_overlays,
+    apply_rational_surface_overlays,
     PoincareRationalTrace,
     island_bars_on_section,
+    overlay_q_profile,
     overlay_island_bars_on_section,
     plot_island_chains_on_section,
     plot_radial_mode_heatmap,
@@ -139,8 +142,12 @@ def test_visual_plots_run_headless():
     fig2, ax2 = plot_resonant_radial_profiles(spectrum, [chain])
     fig3, ax3, bars = plot_island_chains_on_section(R, Z, phi, theta, radial, [chain], phi_section=0.0)
     fig4, ax4 = plot_spectrum_heatmap(spectrum, radial_index=1, m_max=5, n_max=2, renderer="pcolormesh")
-    fig5 = plot_spectrum_bar3d(spectrum, radial_index=1, m_max=5, n_max=2)
-    fig5b = plot_spectrum_bar3d(spectrum, radial_index=1, m_max=5, n_max=2, range_mode="nonzero")
+    try:
+        fig5 = plot_spectrum_bar3d(spectrum, radial_index=1, m_max=5, n_max=2)
+        fig5b = plot_spectrum_bar3d(spectrum, radial_index=1, m_max=5, n_max=2, range_mode="nonzero")
+    except ImportError:
+        fig5 = None
+        fig5b = None
     fig6, ax6, radial_map = plot_radial_mode_heatmap(
         spectrum,
         fixed_n=1,
@@ -200,13 +207,13 @@ def test_visual_plots_run_headless():
     assert fig2 is not None and ax2 is not None
     assert fig3 is not None and ax3 is not None
     assert fig4 is not None and ax4 is not None
-    assert fig5 is not None
-    assert len(fig5.data) == 2
-    assert fig5.data[1].type == "scatter3d"
-    assert fig5.layout.scene.aspectmode == "manual"
-    assert fig5.layout.scene.camera.projection.type == "orthographic"
-    assert fig5b.layout.scene.xaxis.range[0] <= -2.0
-    assert fig5b.layout.scene.xaxis.range[1] >= -1.0
+    if fig5 is not None:
+        assert len(fig5.data) == 2
+        assert fig5.data[1].type == "scatter3d"
+        assert fig5.layout.scene.aspectmode == "manual"
+        assert fig5.layout.scene.camera.projection.type == "orthographic"
+        assert fig5b.layout.scene.xaxis.range[0] <= -2.0
+        assert fig5b.layout.scene.xaxis.range[1] >= -1.0
     assert fig6 is not None and ax6 is not None
     assert fig7 is not None and ax7 is not None
     assert not [line for line in ax7.lines if "q(s)" in line.get_label()]
@@ -225,6 +232,66 @@ def test_visual_plots_run_headless():
     assert len(bars) == chain.m
     assert radial_map.fixed_axis == "n"
     assert radial_map.mode_axis == "m"
+
+
+def test_modular_rational_and_radial_overlays():
+    import matplotlib.pyplot as plt
+
+    spectrum = _stack_spectrum()
+    chain = _chain()
+    radial = np.array([0.2, 0.3, 0.4])
+    q_profile = np.array([2.0, 3.0, 4.0])
+    trace = PoincareRationalTrace(
+        ratio=np.array([2.8, 3.0, 3.2]),
+        radial_label=np.array([0.28, 0.3, 0.32]),
+    )
+
+    fig, ax = plt.subplots()
+    q_line = overlay_q_profile(ax, radial, q_profile)
+    payload = apply_rational_surface_overlays(
+        ax,
+        radial,
+        q_profile,
+        n_values=[1],
+        m_values=[3],
+        chains=[chain],
+        poincare=trace,
+        overlays=("rationals", "points", "bars"),
+    )
+
+    assert q_line.get_label() == "q-profile"
+    assert [(marker.m, marker.n) for marker in payload["markers"]] == [(3, 1)]
+    assert len(payload["rational_surfaces"]) > 0
+    assert len(payload["poincare"]) == 1
+    assert len(payload["island_bars"]) > 0
+    plt.close(fig)
+
+    fig2, ax2, radial_map = plot_radial_mode_heatmap(
+        spectrum,
+        fixed_n=1,
+        q_profile=q_profile,
+        chains=[chain],
+        poincare=trace,
+        overlays=("q", "bars", "points"),
+    )
+    assert any("q(s)" in line.get_label() for line in ax2.lines)
+    assert len(ax2.collections) >= 2  # heatmap plus Poincare scatter
+    plt.close(fig2)
+
+    fig3, ax3 = plt.subplots()
+    overlay_payload = apply_radial_mode_overlays(
+        ax3,
+        radial_map,
+        q_profile=q_profile,
+        chains=[chain],
+        poincare_ratio=trace.ratio,
+        poincare_radial=trace.radial_label,
+        overlays="all",
+    )
+    assert overlay_payload["q_profile"] is not None
+    assert len(overlay_payload["island_bars"]) > 0
+    assert len(overlay_payload["poincare"]) == 1
+    plt.close(fig3)
 
 
 def test_spectrum_matrix_and_radial_mode_extractors():

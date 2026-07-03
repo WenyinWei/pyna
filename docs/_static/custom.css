@@ -211,6 +211,45 @@ code.literal {
     outline-offset: 2px;
 }
 
+.pyna-translation-badge {
+    align-items: center;
+    background: color-mix(in srgb, var(--pst-color-primary) 8%, var(--pst-color-background));
+    border: 1px solid color-mix(in srgb, var(--pst-color-primary) 26%, var(--pst-color-border));
+    border-left: 4px solid var(--pst-color-secondary);
+    border-radius: 8px;
+    display: flex;
+    gap: 0.9rem;
+    justify-content: space-between;
+    margin: 0 0 1.25rem;
+    padding: 0.72rem 0.85rem;
+}
+
+.pyna-translation-badge__copy {
+    align-items: baseline;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.55rem;
+    min-width: 0;
+}
+
+.pyna-translation-badge__title {
+    color: var(--pst-color-on-surface);
+    font-size: 0.88rem;
+    font-weight: 720;
+}
+
+.pyna-translation-badge__message {
+    color: var(--pst-color-text-muted);
+    font-size: 0.84rem;
+}
+
+.pyna-translation-badge__link {
+    flex: 0 0 auto;
+    font-size: 0.84rem;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
 html[data-pyna-lang="en"] .bd-sidebar-primary li:has(a[href*="/zh/"]),
 html[data-pyna-lang="en"] .bd-sidebar-primary li:has(a[href^="zh/"]),
 html[data-pyna-lang="zh"] .bd-sidebar-primary li:has(a[href*="/en/"]),
@@ -240,5 +279,11 @@ html[data-pyna-lang="root"] .bd-main .bd-content .bd-article-container {
 
     .pyna-language-select {
         max-width: 9.6rem;
+    }
+
+    .pyna-translation-badge {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.35rem;
     }
 }

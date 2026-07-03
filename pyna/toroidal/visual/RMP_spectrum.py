@@ -1729,6 +1729,43 @@ def plot_island_width_bars(
             )
 
 
+def rmp_section_layout(*args, **kwargs):
+    """Create a compact analytic RMP section layout via :mod:`pyna.plot.rmp`."""
+
+    from pyna.plot.rmp import create_rmp_section_layout
+
+    return create_rmp_section_layout(*args, **kwargs)
+
+
+def draw_rmp_overlays(*args, **kwargs):
+    """Apply named analytic RMP section overlays via :mod:`pyna.plot.rmp`."""
+
+    from pyna.plot.rmp import draw_rmp_section_overlays
+
+    return draw_rmp_section_overlays(*args, **kwargs)
+
+
+def plot_rmp_section(ax, R=None, Z=None, **kwargs):
+    """Draw one analytic RMP section with optional modular overlays."""
+
+    from pyna.plot.rmp import draw_rmp_resonance_section
+
+    return draw_rmp_resonance_section(
+        ax,
+        [] if R is None else R,
+        [] if Z is None else Z,
+        **kwargs,
+    )
+
+
+def plot_rmp_sections(*args, **kwargs):
+    """Draw a compact multi-section analytic RMP figure via :mod:`pyna.plot.rmp`."""
+
+    from pyna.plot.rmp import plot_rmp_resonance_sections
+
+    return plot_rmp_resonance_sections(*args, **kwargs)
+
+
 # ---------------------------------------------------------------------------
 # 2-D (m, n) Fourier spectrum heatmap utilities
 # ---------------------------------------------------------------------------

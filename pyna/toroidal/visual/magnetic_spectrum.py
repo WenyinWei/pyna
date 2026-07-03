@@ -109,6 +109,74 @@ class PoincareRationalTrace:
     label: str = "Poincare trace"
 
 
+RATIONAL_SURFACE_OVERLAYS = (
+    "q_profile",
+    "rational_surfaces",
+    "poincare",
+    "island_bars",
+)
+
+RADIAL_MODE_OVERLAYS = (
+    "q_profile",
+    "island_bars",
+    "poincare",
+)
+
+_RATIONAL_OVERLAY_ALIASES = {
+    "q": "q_profile",
+    "q_profile": "q_profile",
+    "profile": "q_profile",
+    "rationals": "rational_surfaces",
+    "rational": "rational_surfaces",
+    "rational_surfaces": "rational_surfaces",
+    "markers": "rational_surfaces",
+    "poincare": "poincare",
+    "points": "poincare",
+    "poincare_points": "poincare",
+    "bars": "island_bars",
+    "island_bars": "island_bars",
+    "island_width_bars": "island_bars",
+}
+
+_RADIAL_MODE_OVERLAY_ALIASES = {
+    "q": "q_profile",
+    "q_profile": "q_profile",
+    "profile": "q_profile",
+    "resonance": "q_profile",
+    "resonance_curve": "q_profile",
+    "bars": "island_bars",
+    "island_bars": "island_bars",
+    "island_width_bars": "island_bars",
+    "poincare": "poincare",
+    "points": "poincare",
+    "poincare_points": "poincare",
+}
+
+
+def _normalize_overlay_names(overlays, aliases: dict[str, str], default: Sequence[str]) -> tuple[str, ...]:
+    if overlays is None:
+        names = list(default)
+    else:
+        if isinstance(overlays, str):
+            key = overlays.lower().replace("-", "_")
+            if key == "all":
+                names = list(default)
+            elif key in {"none", "off", "false"}:
+                names = []
+            else:
+                names = [key]
+        else:
+            names = [str(name).lower().replace("-", "_") for name in overlays]
+    out = []
+    for name in names:
+        canonical = aliases.get(name)
+        if canonical is None:
+            raise ValueError(f"unknown overlay {name!r}")
+        if canonical not in out:
+            out.append(canonical)
+    return tuple(name for name in default if name in out)
+
+
 def _surface_radial_index(
     spectrum: RadialPerturbationFourierSpectrum,
     radial_index: int | None,
@@ -1136,6 +1204,119 @@ def overlay_radial_mode_island_bars(
     return artists
 
 
+def _radial_poincare_x(
+    radial_map: RadialModeSpectrum,
+    trace: PoincareRationalTrace,
+    *,
+    axis_convention: str,
+) -> np.ndarray:
+    ratio = np.asarray(trace.ratio, dtype=float)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        if radial_map.fixed_axis == "n":
+            return float(radial_map.fixed_value) * ratio
+        values = float(radial_map.fixed_value) / ratio
+    if _radial_axis_convention(axis_convention) == "fourier":
+        return -values
+    return values
+
+
+def overlay_radial_mode_poincare(
+    ax,
+    radial_map: RadialModeSpectrum,
+    trace: PoincareRationalTrace,
+    *,
+    axis_convention: str = "physical",
+    color: str = "#7c3aed",
+    cmap: str = "viridis",
+    size: float = 10.0,
+    alpha: float = 0.48,
+    zorder: float = 5.6,
+):
+    """Overlay Poincare rational trace points projected to a radial mode map."""
+
+    radial = np.asarray(trace.radial_label, dtype=float)
+    x = _radial_poincare_x(radial_map, trace, axis_convention=axis_convention)
+    if x.shape != radial.shape:
+        raise ValueError("trace.ratio and trace.radial_label must have the same shape")
+    if trace.value is None:
+        return ax.scatter(
+            x,
+            radial,
+            s=float(size),
+            c=color,
+            alpha=float(alpha),
+            edgecolors="white",
+            linewidths=0.2,
+            label=trace.label,
+            zorder=zorder,
+        )
+    value = np.asarray(trace.value, dtype=float)
+    if value.shape != x.shape:
+        raise ValueError("trace.value must have the same shape as trace.ratio")
+    return ax.scatter(
+        x,
+        radial,
+        s=float(size),
+        c=value,
+        cmap=cmap,
+        alpha=float(alpha),
+        edgecolors="white",
+        linewidths=0.2,
+        label=trace.label,
+        zorder=zorder,
+    )
+
+
+def apply_radial_mode_overlays(
+    ax,
+    radial_map: RadialModeSpectrum,
+    *,
+    overlays: Sequence[str] | str | None = None,
+    axis_convention: str = "physical",
+    q_profile: Sequence[float] | None = None,
+    chains: Iterable[ResonantIslandChain] = (),
+    poincare: PoincareRationalTrace | Sequence[PoincareRationalTrace] | None = None,
+    poincare_ratio: Sequence[float] | None = None,
+    poincare_radial: Sequence[float] | None = None,
+    resonance_curve_kwargs: dict | None = None,
+    island_bar_kwargs: dict | None = None,
+    poincare_kwargs: dict | None = None,
+    annotate_islands: bool = True,
+    max_island_bars: int | None = None,
+):
+    """Apply named overlays to a fixed-mode radial spectrum heatmap."""
+
+    axis_key = _radial_axis_convention(axis_convention)
+    names = _normalize_overlay_names(overlays, _RADIAL_MODE_OVERLAY_ALIASES, RADIAL_MODE_OVERLAYS)
+    traces = _coerce_poincare_traces(poincare, poincare_ratio, poincare_radial)
+    payload = {"q_profile": None, "island_bars": [], "poincare": [], "traces": traces}
+    for name in names:
+        if name == "q_profile":
+            if q_profile is None:
+                continue
+            kwargs = {} if resonance_curve_kwargs is None else dict(resonance_curve_kwargs)
+            kwargs.setdefault("axis_convention", axis_key)
+            payload["q_profile"] = overlay_radial_resonance_curve(ax, radial_map, q_profile, **kwargs)
+        elif name == "island_bars":
+            kwargs = {} if island_bar_kwargs is None else dict(island_bar_kwargs)
+            kwargs.setdefault("axis_convention", axis_key)
+            payload["island_bars"] = overlay_radial_mode_island_bars(
+                ax,
+                chains,
+                radial_map,
+                max_island_bars=max_island_bars,
+                annotate=annotate_islands,
+                **kwargs,
+            )
+        elif name == "poincare":
+            kwargs = {} if poincare_kwargs is None else dict(poincare_kwargs)
+            payload["poincare"] = [
+                overlay_radial_mode_poincare(ax, radial_map, trace, axis_convention=axis_key, **kwargs)
+                for trace in traces
+            ]
+    return payload
+
+
 def overlay_rational_surface_markers(
     ax,
     markers: Sequence[RationalSurfaceMarker],
@@ -1308,6 +1489,86 @@ def _coerce_poincare_traces(
     return traces
 
 
+def overlay_q_profile(
+    ax,
+    radial_labels: Sequence[float],
+    q_profile: Sequence[float],
+    *,
+    color: str = "#111827",
+    linewidth: float = 1.85,
+    label: str = "q-profile",
+    halo: bool = True,
+    zorder: float = 5.0,
+):
+    """Overlay a q-profile in the ``q`` versus radial-label plane."""
+
+    radial, q_arr = _validated_profile(radial_labels, q_profile)
+    (line,) = ax.plot(q_arr, radial, color=color, lw=float(linewidth), label=label, zorder=zorder)
+    if halo:
+        _apply_line_halo(line, linewidth=float(linewidth) + 2.15, alpha=0.88)
+    return line
+
+
+def apply_rational_surface_overlays(
+    ax,
+    radial_labels: Sequence[float],
+    q_profile: Sequence[float],
+    *,
+    overlays: Sequence[str] | str | None = None,
+    n_values: Sequence[int] = (1, 2, 3),
+    m_values: Sequence[int] | dict[int, Sequence[int]] | None = None,
+    markers: Sequence[RationalSurfaceMarker] | None = None,
+    chains: Iterable[ResonantIslandChain] = (),
+    poincare: PoincareRationalTrace | Sequence[PoincareRationalTrace] | None = None,
+    poincare_ratio: Sequence[float] | None = None,
+    poincare_radial: Sequence[float] | None = None,
+    q_profile_kwargs: dict | None = None,
+    rational_marker_kwargs: dict | None = None,
+    poincare_kwargs: dict | None = None,
+    island_bar_kwargs: dict | None = None,
+    annotate_rationals: bool = True,
+    annotate_islands: bool = True,
+    max_island_bars: int | None = None,
+):
+    """Apply named overlays to a q/rational-surface radial atlas."""
+
+    radial, q_arr = _validated_profile(radial_labels, q_profile)
+    names = _normalize_overlay_names(overlays, _RATIONAL_OVERLAY_ALIASES, RATIONAL_SURFACE_OVERLAYS)
+    marker_list = list(markers) if markers is not None else rational_surface_markers(
+        radial,
+        q_arr,
+        n_values=n_values,
+        m_values=m_values,
+    )
+    traces = _coerce_poincare_traces(poincare, poincare_ratio, poincare_radial)
+    chain_list = list(chains)
+    payload = {
+        "q_profile": None,
+        "rational_surfaces": [],
+        "poincare": [],
+        "island_bars": [],
+        "markers": marker_list,
+        "traces": traces,
+    }
+    for name in names:
+        if name == "q_profile":
+            kwargs = {} if q_profile_kwargs is None else dict(q_profile_kwargs)
+            payload["q_profile"] = overlay_q_profile(ax, radial, q_arr, **kwargs)
+        elif name == "rational_surfaces":
+            kwargs = {} if rational_marker_kwargs is None else dict(rational_marker_kwargs)
+            kwargs.setdefault("annotate", annotate_rationals)
+            payload["rational_surfaces"] = overlay_rational_surface_markers(ax, marker_list, **kwargs)
+        elif name == "poincare":
+            kwargs = {} if poincare_kwargs is None else dict(poincare_kwargs)
+            payload["poincare"] = [overlay_poincare_rational_trace(ax, trace, **kwargs) for trace in traces]
+        elif name == "island_bars":
+            kwargs = {} if island_bar_kwargs is None else dict(island_bar_kwargs)
+            kwargs.setdefault("max_island_bars", max_island_bars)
+            kwargs.setdefault("annotate", annotate_islands)
+            payload["island_bars"] = overlay_rational_island_bars(ax, chain_list, **kwargs)
+    return payload
+
+
 def plot_rational_surface_map(
     radial_labels: Sequence[float],
     q_profile: Sequence[float],
@@ -1326,6 +1587,11 @@ def plot_rational_surface_map(
     annotate_rationals: bool = True,
     annotate_islands: bool = True,
     max_island_bars: int | None = None,
+    overlays: Sequence[str] | str | None = None,
+    q_profile_kwargs: dict | None = None,
+    rational_marker_kwargs: dict | None = None,
+    poincare_kwargs: dict | None = None,
+    island_bar_kwargs: dict | None = None,
     ax=None,
     title: str | None = None,
 ):
@@ -1344,32 +1610,39 @@ def plot_rational_surface_map(
     else:
         fig = ax.figure
 
-    if show_q_profile:
-        (line,) = ax.plot(q_arr, radial, color="#111827", lw=1.85, label="q-profile", zorder=5)
-        _apply_line_halo(line, linewidth=4.0, alpha=0.88)
-
-    marker_list = list(markers) if markers is not None else rational_surface_markers(
+    selected = _normalize_overlay_names(overlays, _RATIONAL_OVERLAY_ALIASES, RATIONAL_SURFACE_OVERLAYS)
+    if overlays is None:
+        selected = tuple(
+            name
+            for name in selected
+            if (
+                (name != "q_profile" or show_q_profile)
+                and (name != "rational_surfaces" or show_rational_surfaces)
+                and (name != "poincare" or show_poincare)
+                and (name != "island_bars" or show_island_bars)
+            )
+        )
+    overlay_payload = apply_rational_surface_overlays(
+        ax,
         radial,
         q_arr,
+        overlays=selected,
         n_values=n_values,
         m_values=m_values,
+        markers=markers,
+        chains=chains,
+        poincare=poincare,
+        poincare_ratio=poincare_ratio,
+        poincare_radial=poincare_radial,
+        q_profile_kwargs=q_profile_kwargs,
+        rational_marker_kwargs=rational_marker_kwargs,
+        poincare_kwargs=poincare_kwargs,
+        island_bar_kwargs=island_bar_kwargs,
+        annotate_rationals=annotate_rationals,
+        annotate_islands=annotate_islands,
+        max_island_bars=max_island_bars,
     )
-    if show_rational_surfaces:
-        overlay_rational_surface_markers(ax, marker_list, annotate=annotate_rationals)
-
-    traces = _coerce_poincare_traces(poincare, poincare_ratio, poincare_radial)
-    if show_poincare:
-        for trace in traces:
-            overlay_poincare_rational_trace(ax, trace)
-
-    chain_list = list(chains)
-    if show_island_bars:
-        overlay_rational_island_bars(
-            ax,
-            chain_list,
-            max_island_bars=max_island_bars,
-            annotate=annotate_islands,
-        )
+    marker_list = overlay_payload["markers"]
 
     ax.set_xlabel(r"$q$ or $m/n$")
     ax.set_ylabel("radial label")
@@ -1394,6 +1667,9 @@ def plot_radial_mode_heatmap(
     axis_convention: str = "physical",
     q_profile: np.ndarray | None = None,
     chains: Iterable[ResonantIslandChain] = (),
+    poincare: PoincareRationalTrace | Sequence[PoincareRationalTrace] | None = None,
+    poincare_ratio: Sequence[float] | None = None,
+    poincare_radial: Sequence[float] | None = None,
     resonant_sign: int = -1,
     log_scale: bool = True,
     amplitude_scale: str | None = None,
@@ -1407,8 +1683,11 @@ def plot_radial_mode_heatmap(
     resonance_curve_kwargs: dict | None = None,
     show_island_bars: bool = True,
     island_bar_kwargs: dict | None = None,
+    show_poincare: bool = True,
+    poincare_kwargs: dict | None = None,
     annotate_islands: bool = True,
     max_island_bars: int | None = None,
+    overlays: Sequence[str] | str | None = None,
 ):
     """Plot fixed-``n`` or fixed-``m`` radial magnetic-spectrum maps.
 
@@ -1482,23 +1761,34 @@ def plot_radial_mode_heatmap(
         raise ValueError("renderer must be 'imshow' or 'pcolormesh'")
     fig.colorbar(im, ax=ax, pad=0.02, label=label)
 
-    curve = None
-    if q_profile is not None and show_resonance_curve:
-        kwargs = {} if resonance_curve_kwargs is None else dict(resonance_curve_kwargs)
-        kwargs.setdefault("axis_convention", axis_key)
-        curve = overlay_radial_resonance_curve(ax, radial_map, q_profile, **kwargs)
-
-    if show_island_bars:
-        kwargs = {} if island_bar_kwargs is None else dict(island_bar_kwargs)
-        kwargs.setdefault("axis_convention", axis_key)
-        overlay_radial_mode_island_bars(
-            ax,
-            chains,
-            radial_map,
-            max_island_bars=max_island_bars,
-            annotate=annotate_islands,
-            **kwargs,
+    selected = _normalize_overlay_names(overlays, _RADIAL_MODE_OVERLAY_ALIASES, RADIAL_MODE_OVERLAYS)
+    if overlays is None:
+        selected = tuple(
+            name
+            for name in selected
+            if (
+                (name != "q_profile" or show_resonance_curve)
+                and (name != "island_bars" or show_island_bars)
+                and (name != "poincare" or show_poincare)
+            )
         )
+    overlay_payload = apply_radial_mode_overlays(
+        ax,
+        radial_map,
+        overlays=selected,
+        axis_convention=axis_key,
+        q_profile=q_profile,
+        chains=chains,
+        poincare=poincare,
+        poincare_ratio=poincare_ratio,
+        poincare_radial=poincare_radial,
+        resonance_curve_kwargs=resonance_curve_kwargs,
+        island_bar_kwargs=island_bar_kwargs,
+        poincare_kwargs=poincare_kwargs,
+        annotate_islands=annotate_islands,
+        max_island_bars=max_island_bars,
+    )
+    curve = overlay_payload["q_profile"]
 
     ax.set_xlabel(_radial_axis_label(radial_map, axis_key))
     ax.set_ylabel("radial label")
@@ -1911,13 +2201,19 @@ def plot_chirikov_overlaps(
 
 __all__ = [
     "PoincareRationalTrace",
+    "RADIAL_MODE_OVERLAYS",
+    "RATIONAL_SURFACE_OVERLAYS",
     "RadialModeSpectrum",
     "RationalSurfaceMarker",
     "SectionIslandBar",
     "SpectrumSurfaceMatrix",
+    "apply_radial_mode_overlays",
+    "apply_rational_surface_overlays",
     "island_bars_on_section",
     "overlay_island_bars_on_section",
     "overlay_poincare_rational_trace",
+    "overlay_q_profile",
+    "overlay_radial_mode_poincare",
     "overlay_radial_mode_island_bars",
     "overlay_radial_resonance_curve",
     "overlay_rational_island_bars",

@@ -75,3 +75,64 @@ def test_plot_rmp_resonance_sections_smoke():
     assert axes.shape == (1, 2)
     assert len(fig.axes) >= 3  # two panels plus colorbar
     plt.close(fig)
+
+
+def test_rmp_section_overlay_helpers_are_composable():
+    import matplotlib.pyplot as plt
+
+    from pyna.plot.rmp import (
+        create_rmp_section_layout,
+        draw_rmp_poincare_points,
+        draw_rmp_section_overlays,
+    )
+
+    R, Z = _trace()
+    fig, ax = plt.subplots()
+    points = draw_rmp_poincare_points(ax, R, Z, eq=_eq())
+    payload = draw_rmp_section_overlays(
+        ax,
+        eq=_eq(),
+        components=[_component()],
+        R=R,
+        Z=Z,
+        overlays=("pest", "surfaces", "bars", "xo"),
+    )
+
+    assert points["psi_values"].shape == R.shape
+    assert payload["poincare"] is None
+    assert len(payload["pest_grid"]) > 0
+    assert len(payload["resonant_surfaces"]) == 1
+    assert len(payload["island_width_bars"]) == 2
+    assert len(payload["x_points"]) == 2
+    plt.close(fig)
+
+    fig2, axes = create_rmp_section_layout([0.0, np.pi / 2.0], eq=_eq(), ncols=2, compact=True)
+    assert axes.shape == (1, 2)
+    assert fig2.subplotpars.wspace == 0.0
+    assert fig2.subplotpars.hspace == 0.0
+    plt.close(fig2)
+
+
+def test_rmp_visual_short_wrappers_delegate_to_plot_module():
+    import matplotlib.pyplot as plt
+
+    from pyna.toroidal.visual.RMP_spectrum import plot_rmp_section, rmp_section_layout
+
+    R, Z = _trace()
+    fig, ax = plt.subplots()
+    payload = plot_rmp_section(
+        ax,
+        R,
+        Z,
+        eq=_eq(),
+        components=[_component()],
+        overlays=("points", "xo"),
+    )
+
+    assert payload["psi_values"].shape == R.shape
+    assert len(payload["x_points"]) == 2
+    plt.close(fig)
+
+    fig2, axes = rmp_section_layout([0.0], eq=_eq(), ncols=1)
+    assert axes.shape == (1, 1)
+    plt.close(fig2)
