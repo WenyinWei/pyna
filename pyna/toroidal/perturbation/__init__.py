@@ -34,13 +34,16 @@ _SUBMODULES = {
 
 _SYMBOL_MODULES = {
     "BetaRampRadialModeReport": "pyna.toroidal.perturbation.beta_ramp",
+    "BetaRampScanDiagnostics": "pyna.toroidal.perturbation.beta_ramp",
     "BetaRampSpectrumDiagnostics": "pyna.toroidal.perturbation.beta_ramp",
     "BetaRampState": "pyna.toroidal.perturbation.beta_ramp",
     "BetaRampSurfaceFieldSamples": "pyna.toroidal.perturbation.beta_ramp",
     "BetaRampTrustReport": "pyna.toroidal.perturbation.beta_ramp",
     "beta_scan_summary_rows": "pyna.toroidal.perturbation.beta_ramp",
+    "beta_ramp_states_from_fields": "pyna.toroidal.perturbation.beta_ramp",
     "classify_beta_ramp_trust": "pyna.toroidal.perturbation.beta_ramp",
     "delta_beta_ramp_state": "pyna.toroidal.perturbation.beta_ramp",
+    "diagnose_beta_ramp_scan": "pyna.toroidal.perturbation.beta_ramp",
     "diagnose_beta_ramp_state": "pyna.toroidal.perturbation.beta_ramp",
     "radial_small_divisor_reports": "pyna.toroidal.perturbation.beta_ramp",
     "sample_beta_ramp_delta_on_surfaces": "pyna.toroidal.perturbation.beta_ramp",

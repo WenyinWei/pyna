@@ -94,6 +94,7 @@ Then diagnose one beta point against a reference:
 from pyna.toroidal.perturbation.beta_ramp import (
     BetaRampState,
     beta_scan_summary_rows,
+    diagnose_beta_ramp_scan,
     diagnose_beta_ramp_state,
 )
 
@@ -110,6 +111,21 @@ diag = diagnose_beta_ramp_state(
     small_divisor_tol=3.0e-2,
 )
 rows = beta_scan_summary_rows([diag])
+```
+
+For a continuation branch, keep field loading and equilibrium solving outside
+pyna, adapt each accepted state to `BetaRampState`, and diagnose the branch in
+one call:
+
+```python
+scan = diagnose_beta_ramp_scan(
+    [base, beta_01, beta_02, beta_03],
+    reference="first",      # or "previous" for adjacent-step deltas
+    n_values=[1, 2, 3],
+    m_max=24,
+    n_max=12,
+)
+rows = scan.summary_rows()
 ```
 
 The diagnostic result carries the Nardon `tilde_b^1` spectrum, resonant island

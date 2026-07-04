@@ -460,6 +460,48 @@ class BetaRampSpectrumDiagnostics:
         return _summary_row(self)
 
 
+@dataclass(frozen=True)
+class BetaRampScanDiagnostics:
+    """Spectrum diagnostics for a sequence of beta-ramp states."""
+
+    results: tuple[BetaRampSpectrumDiagnostics, ...]
+    states: tuple[BetaRampState, ...]
+    reference_mode: str
+    result_indices: tuple[int, ...]
+    reference_indices: tuple[int | None, ...]
+
+    def summary_rows(self) -> list[dict[str, Any]]:
+        """Return scan rows with state/reference indices and beta increments."""
+
+        rows = beta_scan_summary_rows(self.results)
+        for row, state_idx, ref_idx, result in zip(rows, self.result_indices, self.reference_indices, self.results):
+            row["scan_index"] = int(state_idx)
+            row["reference_index"] = None if ref_idx is None else int(ref_idx)
+            if result.reference is None or result.state.beta is None or result.reference.beta is None:
+                row["beta_delta"] = None
+            else:
+                row["beta_delta"] = float(result.state.beta) - float(result.reference.beta)
+        return rows
+
+    @property
+    def status_counts(self) -> dict[str, int]:
+        """Return counts of ``ok``/``watch``/``low-confidence`` rows."""
+
+        counts = {"ok": 0, "watch": 0, "low-confidence": 0}
+        for result in self.results:
+            counts[result.trust.status] = counts.get(result.trust.status, 0) + 1
+        return counts
+
+    @property
+    def first_low_confidence(self) -> BetaRampSpectrumDiagnostics | None:
+        """Return the first low-confidence diagnostic, if any."""
+
+        for result in self.results:
+            if result.trust.status == "low-confidence":
+                return result
+        return None
+
+
 def delta_beta_ramp_state(
     state: BetaRampState,
     reference: BetaRampState,
@@ -865,6 +907,159 @@ def diagnose_beta_ramp_state(
     )
 
 
+def _sequence_value(values: Sequence[Any] | np.ndarray | None, index: int, n_items: int, name: str) -> Any:
+    if values is None:
+        return None
+    if isinstance(values, np.ndarray):
+        arr = np.asarray(values)
+        if arr.ndim <= 1:
+            return arr
+        if arr.shape[0] != n_items:
+            raise ValueError(f"{name} first dimension must match number of fields")
+        return arr[index]
+    seq = list(values)
+    if len(seq) != n_items:
+        raise ValueError(f"{name} length must match number of fields")
+    return seq[index]
+
+
+def _metadata_value(
+    metadata: Mapping[str, Any] | Sequence[Mapping[str, Any] | None] | None,
+    index: int,
+    n_items: int,
+) -> Mapping[str, Any]:
+    if metadata is None:
+        return {}
+    if isinstance(metadata, Mapping):
+        return dict(metadata)
+    seq = list(metadata)
+    if len(seq) != n_items:
+        raise ValueError("metadata length must match number of fields")
+    return {} if seq[index] is None else dict(seq[index] or {})
+
+
+def beta_ramp_states_from_fields(
+    fields: Sequence[VectorFieldCylind],
+    *,
+    betas: Sequence[float | None] | np.ndarray | None = None,
+    labels: Sequence[str] | None = None,
+    R_surf: np.ndarray | None = None,
+    Z_surf: np.ndarray | None = None,
+    phi_vals: np.ndarray | None = None,
+    theta_vals: np.ndarray | None = None,
+    radial_labels: np.ndarray | None = None,
+    q_profiles: Sequence[np.ndarray] | np.ndarray | None = None,
+    iota_profiles: Sequence[np.ndarray] | np.ndarray | None = None,
+    metadata: Mapping[str, Any] | Sequence[Mapping[str, Any] | None] | None = None,
+) -> tuple[BetaRampState, ...]:
+    """Build beta-ramp states from pyna cylindrical vector fields.
+
+    Surface coordinates are shared across all states.  Profiles may be either a
+    single 1-D array shared by the scan or a sequence/2-D array with one profile
+    per field.
+    """
+
+    field_list = tuple(fields)
+    if not field_list:
+        raise ValueError("fields must contain at least one VectorFieldCylind")
+    n_items = len(field_list)
+    beta_values = None if betas is None else list(betas)
+    if beta_values is not None and len(beta_values) != n_items:
+        raise ValueError("betas length must match number of fields")
+    label_values = None if labels is None else list(labels)
+    if label_values is not None and len(label_values) != n_items:
+        raise ValueError("labels length must match number of fields")
+
+    states: list[BetaRampState] = []
+    for idx, field in enumerate(field_list):
+        states.append(
+            BetaRampState.from_field(
+                field,
+                beta=None if beta_values is None else beta_values[idx],
+                label="" if label_values is None else str(label_values[idx]),
+                R_surf=R_surf,
+                Z_surf=Z_surf,
+                phi_vals=phi_vals,
+                theta_vals=theta_vals,
+                radial_labels=radial_labels,
+                q_profile=_sequence_value(q_profiles, idx, n_items, "q_profiles"),
+                iota_profile=_sequence_value(iota_profiles, idx, n_items, "iota_profiles"),
+                metadata=_metadata_value(metadata, idx, n_items),
+            )
+        )
+    return tuple(states)
+
+
+def diagnose_beta_ramp_scan(
+    states: Sequence[BetaRampState],
+    *,
+    reference: str | int | BetaRampState | None = "first",
+    skip_reference_state: bool = True,
+    **diagnose_kwargs: Any,
+) -> BetaRampScanDiagnostics:
+    """Diagnose a sequence of beta-ramp states.
+
+    ``reference="first"`` compares every later state with ``states[0]``.
+    ``reference="previous"`` compares each state with the immediately preceding
+    state.  Passing an integer uses that scan index as the shared reference, a
+    :class:`BetaRampState` uses an external shared reference, and ``None``
+    treats every state as a precomputed perturbation.
+    """
+
+    state_list = tuple(states)
+    if not state_list:
+        raise ValueError("states must contain at least one BetaRampState")
+
+    results: list[BetaRampSpectrumDiagnostics] = []
+    result_indices: list[int] = []
+    reference_indices: list[int | None] = []
+
+    for idx, state in enumerate(state_list):
+        ref_state: BetaRampState | None
+        ref_idx: int | None
+        mode: str
+        if reference == "first":
+            mode = "first"
+            ref_idx = 0
+            ref_state = state_list[0]
+        elif reference == "previous":
+            mode = "previous"
+            ref_idx = idx - 1 if idx > 0 else None
+            ref_state = state_list[idx - 1] if idx > 0 else None
+        elif isinstance(reference, int):
+            mode = f"index:{int(reference)}"
+            ref_idx = int(reference)
+            if ref_idx < 0 or ref_idx >= len(state_list):
+                raise IndexError("reference index is outside the state list")
+            ref_state = state_list[ref_idx]
+        elif isinstance(reference, BetaRampState):
+            mode = "external"
+            ref_idx = None
+            ref_state = reference
+        elif reference is None:
+            mode = "none"
+            ref_idx = None
+            ref_state = None
+        else:
+            raise ValueError("reference must be 'first', 'previous', an index, a BetaRampState, or None")
+
+        if skip_reference_state and ref_idx == idx:
+            continue
+        if skip_reference_state and reference == "previous" and idx == 0:
+            continue
+        results.append(diagnose_beta_ramp_state(state, reference=ref_state, **diagnose_kwargs))
+        result_indices.append(idx)
+        reference_indices.append(ref_idx)
+
+    return BetaRampScanDiagnostics(
+        results=tuple(results),
+        states=state_list,
+        reference_mode=mode,
+        result_indices=tuple(result_indices),
+        reference_indices=tuple(reference_indices),
+    )
+
+
 def _summary_row(result: BetaRampSpectrumDiagnostics) -> dict[str, Any]:
     metrics = dict(result.trust.metrics)
     row = {
@@ -890,13 +1085,16 @@ def beta_scan_summary_rows(results: Sequence[BetaRampSpectrumDiagnostics]) -> li
 
 __all__ = [
     "BetaRampRadialModeReport",
+    "BetaRampScanDiagnostics",
     "BetaRampSpectrumDiagnostics",
     "BetaRampState",
     "BetaRampSurfaceFieldSamples",
     "BetaRampTrustReport",
     "beta_scan_summary_rows",
+    "beta_ramp_states_from_fields",
     "classify_beta_ramp_trust",
     "delta_beta_ramp_state",
+    "diagnose_beta_ramp_scan",
     "diagnose_beta_ramp_state",
     "radial_small_divisor_reports",
     "sample_beta_ramp_delta_on_surfaces",

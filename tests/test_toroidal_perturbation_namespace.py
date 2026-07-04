@@ -7,6 +7,8 @@ def test_toroidal_perturbation_namespace_is_available():
     assert hasattr(perturbation, "equilibrium")
     assert hasattr(perturbation, "response")
     assert hasattr(perturbation, "BetaRampState")
+    assert hasattr(perturbation, "BetaRampScanDiagnostics")
+    assert hasattr(perturbation, "diagnose_beta_ramp_scan")
 
 
 def test_toroidal_perturbation_equilibrium_namespace_declares_bucket_exports():
@@ -22,3 +24,5 @@ def test_toroidal_beta_ramp_symbols_are_lazy_exported():
 
     assert hasattr(toroidal, "BetaRampState")
     assert hasattr(toroidal, "diagnose_beta_ramp_state")
+    assert hasattr(toroidal, "diagnose_beta_ramp_scan")
+    assert hasattr(toroidal, "beta_ramp_states_from_fields")

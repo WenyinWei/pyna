@@ -4,8 +4,10 @@ import pytest
 from pyna.fields import VectorFieldCylind
 from pyna.toroidal.perturbation.beta_ramp import (
     BetaRampState,
+    beta_ramp_states_from_fields,
     beta_scan_summary_rows,
     delta_beta_ramp_state,
+    diagnose_beta_ramp_scan,
     diagnose_beta_ramp_state,
     radial_small_divisor_reports,
     sample_beta_ramp_delta_on_surfaces,
@@ -189,6 +191,102 @@ def test_diagnose_beta_ramp_state_detects_rmp_nrmp_and_trust_report():
     assert rows[0]["beta"] == pytest.approx(0.02)
     assert rows[0]["n_chains"] >= 1
     assert rows[0]["dominant_modes"]
+
+
+def test_beta_ramp_scan_diagnoses_first_reference_and_summary_indices():
+    base = _toy_field_state(beta=0.0, label="toy base")
+    state1 = _toy_field_state(beta=0.01, label="toy beta 1", perturbation_scale=0.5)
+    state2 = _toy_field_state(beta=0.02, label="toy beta 2", perturbation_scale=1.0)
+
+    scan = diagnose_beta_ramp_scan(
+        [base, state1, state2],
+        reference="first",
+        n_values=[1, 2],
+        m_values={1: [4], 2: [5]},
+        m_max=6,
+        n_max=3,
+        min_amplitude=1.0e-12,
+        min_b_res=1.0e-8,
+        small_divisor_tol=5.0e-2,
+        min_mode_amplitude=1.0e-12,
+    )
+
+    assert scan.reference_mode == "first"
+    assert scan.result_indices == (1, 2)
+    assert scan.reference_indices == (0, 0)
+    assert len(scan.results) == 2
+    assert scan.results[0].reference is base
+    assert scan.status_counts["watch"] >= 1
+    assert scan.first_low_confidence is None
+
+    rows = scan.summary_rows()
+    assert rows[0]["scan_index"] == 1
+    assert rows[0]["reference_index"] == 0
+    assert rows[0]["beta_delta"] == pytest.approx(0.01)
+    assert rows[1]["beta_delta"] == pytest.approx(0.02)
+
+
+def test_beta_ramp_scan_can_use_previous_step_reference():
+    base = _toy_field_state(beta=0.0, label="toy base")
+    state1 = _toy_field_state(beta=0.01, label="toy beta 1", perturbation_scale=0.5)
+    state2 = _toy_field_state(beta=0.02, label="toy beta 2", perturbation_scale=1.0)
+
+    scan = diagnose_beta_ramp_scan(
+        [base, state1, state2],
+        reference="previous",
+        n_values=[2],
+        m_values={2: [5]},
+        m_max=6,
+        n_max=3,
+        min_amplitude=1.0e-12,
+        min_b_res=1.0e-8,
+        small_divisor_tol=5.0e-2,
+    )
+
+    assert scan.result_indices == (1, 2)
+    assert scan.reference_indices == (0, 1)
+    assert scan.results[1].reference is state1
+    rows = scan.summary_rows()
+    assert rows[1]["reference_label"] == "toy beta 1"
+    assert rows[1]["beta_delta"] == pytest.approx(0.01)
+
+
+def test_beta_ramp_states_from_vector_fields_share_surface_payload():
+    base = _toy_field_state(beta=0.0, label="toy base")
+    state = _toy_field_state(beta=0.02, label="toy beta", perturbation_scale=1.0)
+
+    built = beta_ramp_states_from_fields(
+        [base.as_vector_field(), state.as_vector_field()],
+        betas=[0.0, 0.02],
+        labels=["built base", "built beta"],
+        R_surf=base.R_surf,
+        Z_surf=base.Z_surf,
+        phi_vals=base.phi_vals,
+        theta_vals=base.theta_vals,
+        radial_labels=base.radial_labels,
+        q_profiles=np.stack([base.q_profile, state.q_profile]),
+        metadata=[{"case": "synthetic", "source_path": "/private/base"}, {"case": "synthetic"}],
+    )
+
+    assert len(built) == 2
+    assert built[0].label == "built base"
+    assert built[1].beta == pytest.approx(0.02)
+    np.testing.assert_allclose(built[1].BR, state.BR)
+    np.testing.assert_allclose(built[1].q_profile, state.q_profile)
+    assert built[0].public_metadata()["source_path"] == "<redacted>"
+
+    scan = diagnose_beta_ramp_scan(
+        built,
+        reference="first",
+        n_values=[2],
+        m_values={2: [5]},
+        m_max=6,
+        n_max=3,
+        min_amplitude=1.0e-12,
+        min_b_res=1.0e-8,
+    )
+    assert len(scan.results) == 1
+    assert scan.summary_rows()[0]["scan_index"] == 1
 
 
 def test_beta_ramp_small_divisor_near_resonance_and_metadata_gates():
