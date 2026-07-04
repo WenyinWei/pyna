@@ -87,3 +87,17 @@ def test_plot_beta_ramp_scan_summary_smoke(tmp_path):
 def test_plot_beta_ramp_scan_summary_requires_rows():
     with pytest.raises(ValueError, match="at least one row"):
         plot_beta_ramp_scan_summary([])
+
+
+def test_plot_beta_ramp_scan_summary_keeps_full_xlim_for_sparse_metrics():
+    rows = _rows()
+    rows[0]["min_abs_miota_plus_n"] = 0.0
+    rows[1]["min_abs_miota_plus_n"] = float("nan")
+
+    fig = plot_beta_ramp_scan_summary(rows)
+    try:
+        xmin, xmax = fig.axes[3].get_xlim()
+        assert xmin < 0.01
+        assert xmax > 0.03
+    finally:
+        plt.close(fig)

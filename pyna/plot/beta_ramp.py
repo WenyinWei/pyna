@@ -100,6 +100,20 @@ def _positive_for_log(values: np.ndarray) -> np.ndarray:
     return arr
 
 
+def _padded_xlim(x: np.ndarray) -> tuple[float, float] | None:
+    finite = np.asarray(x, dtype=float)
+    finite = finite[np.isfinite(finite)]
+    if finite.size == 0:
+        return None
+    xmin = float(np.min(finite))
+    xmax = float(np.max(finite))
+    if xmin == xmax:
+        pad = max(abs(xmin), 1.0) * 0.05
+    else:
+        pad = 0.05 * (xmax - xmin)
+    return xmin - pad, xmax + pad
+
+
 def _set_empty_axis(ax, message: str) -> None:
     ax.text(0.5, 0.5, message, ha="center", va="center", transform=ax.transAxes, color="0.35")
     ax.set_axis_off()
@@ -146,6 +160,7 @@ def plot_beta_ramp_scan_summary(
     import matplotlib.pyplot as plt
 
     x, x_label = _x_axis(rows)
+    xlim = _padded_xlim(x)
     fig, axes = plt.subplots(2, 2, figsize=figsize, constrained_layout=True)
     ax_status, ax_chirikov, ax_island, ax_small = axes.ravel()
 
@@ -158,6 +173,8 @@ def plot_beta_ramp_scan_summary(
     ax_status.set_ylabel("trust")
     ax_status.grid(True, axis="x", lw=0.3, color="0.85")
     ax_status.set_title("confidence gates")
+    if xlim is not None:
+        ax_status.set_xlim(*xlim)
     if annotate_modes and len(rows) <= 12:
         for xi, yi, row in zip(x, status_y, rows):
             label = _format_dominant_mode_label(row)
@@ -174,6 +191,8 @@ def plot_beta_ramp_scan_summary(
         ax_chirikov.set_ylabel("max Chirikov")
         ax_chirikov.set_title("island overlap")
         ax_chirikov.grid(True, lw=0.3, color="0.85")
+        if xlim is not None:
+            ax_chirikov.set_xlim(*xlim)
     else:
         _set_empty_axis(ax_chirikov, "no Chirikov metric")
 
@@ -189,6 +208,8 @@ def plot_beta_ramp_scan_summary(
         ax_island.set_title("RMP amplitude and width")
         ax_island.grid(True, which="both", lw=0.3, color="0.85")
         ax_island.legend(loc="best", fontsize=8, frameon=False)
+        if xlim is not None:
+            ax_island.set_xlim(*xlim)
     else:
         _set_empty_axis(ax_island, "no island metric")
 
@@ -201,6 +222,8 @@ def plot_beta_ramp_scan_summary(
         ax_small.set_title("small divisor distance")
         ax_small.grid(True, which="both", lw=0.3, color="0.85")
         ax_small.legend(loc="best", fontsize=8, frameon=False)
+        if xlim is not None:
+            ax_small.set_xlim(*xlim)
     else:
         _set_empty_axis(ax_small, "no small-divisor metric")
 
