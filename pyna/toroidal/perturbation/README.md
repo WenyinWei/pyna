@@ -70,6 +70,47 @@ chains = toroidal.analyze_resonant_island_chains(spec, q_profile, n=2)
 theta_O = chains[0].with_phase_shift(phase_shift).fixed_points(phi=0.0)["theta_O"]
 ```
 
+## Beta-ramp workflow layer
+
+Use `pyna.toroidal.perturbation.beta_ramp` for public, reusable beta-ramp scan
+plumbing.  The module does not call private continuation solvers and does not
+assume a particular stellarator data layout.  Private projects should adapt
+their outputs into a `BetaRampState` containing:
+
+- a cylindrical field grid: `R_grid, Z_grid, Phi_grid, BR, BZ, BPhi`
+- magnetic-coordinate surfaces: `R_surf, Z_surf, phi_vals, theta_vals`
+- radial labels and either `q_profile` or `iota_profile`
+- numeric metadata for solver/tracing health, not paths or internal names
+
+Then diagnose one beta point against a reference:
+
+```python
+from pyna.toroidal.perturbation.beta_ramp import (
+    BetaRampState,
+    beta_scan_summary_rows,
+    diagnose_beta_ramp_state,
+)
+
+# Project-local adapter code should populate BetaRampState array fields.
+base = build_state_from_payload("baseline")
+state = build_state_from_payload("beta step")
+
+diag = diagnose_beta_ramp_state(
+    state,
+    reference=base,
+    n_values=[1, 2, 3],
+    m_max=24,
+    n_max=12,
+    small_divisor_tol=3.0e-2,
+)
+rows = beta_scan_summary_rows([diag])
+```
+
+The diagnostic result carries the Nardon `tilde_b^1` spectrum, resonant island
+chains, Chirikov overlaps, per-surface `abs(m*iota+n)` reports, nRMP/RMP mode
+norms, and a trust label (`ok`, `watch`, or `low-confidence`).  Use the trust
+label as a numerical-health gate before interpreting near-limit figures.
+
 For an NCSX beta-ramp artifact layout, point `PYNA_NCSX_ROOT` at the data
 directory and run:
 
