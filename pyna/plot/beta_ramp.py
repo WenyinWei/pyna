@@ -8,6 +8,7 @@ stellarator adapters and public examples on the same plotting path.
 
 from __future__ import annotations
 
+import csv
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -28,6 +29,15 @@ STATUS_LEVELS = {
     "low-confidence": 2,
     "unknown": -1,
 }
+
+_PHYSICS_COLORS = (
+    "#376795",
+    "#b43a48",
+    "#28784a",
+    "#8c5fbf",
+    "#c98200",
+    "#3b7a78",
+)
 
 
 def beta_ramp_scan_rows(scan_or_rows: Any) -> list[dict[str, Any]]:
@@ -55,6 +65,21 @@ def beta_ramp_scan_rows(scan_or_rows: Any) -> list[dict[str, Any]]:
     return rows
 
 
+def read_beta_physics_csv(path: str | Path) -> list[dict[str, Any]]:
+    """Read a W7-X/NCSX style ``*_beta_physics_steps.csv`` file."""
+
+    with Path(path).expanduser().open("r", newline="", encoding="utf-8") as fh:
+        return [dict(row) for row in csv.DictReader(fh)]
+
+
+def beta_physics_rows(rows_or_csv: Any) -> list[dict[str, Any]]:
+    """Normalize old beta-physics workflow rows for dashboard plotting."""
+
+    if isinstance(rows_or_csv, (str, Path)):
+        return read_beta_physics_csv(rows_or_csv)
+    return beta_ramp_scan_rows(rows_or_csv)
+
+
 def _float_or_nan(value: Any) -> float:
     if value is None:
         return float("nan")
@@ -66,6 +91,14 @@ def _float_or_nan(value: Any) -> float:
 
 def _metric(rows: Sequence[Mapping[str, Any]], key: str) -> np.ndarray:
     return np.asarray([_float_or_nan(row.get(key)) for row in rows], dtype=float)
+
+
+def _first_metric(rows: Sequence[Mapping[str, Any]], keys: Sequence[str]) -> tuple[np.ndarray, str] | None:
+    for key in keys:
+        values = _metric(rows, key)
+        if np.any(np.isfinite(values)):
+            return values, key
+    return None
 
 
 def _x_axis(rows: Sequence[Mapping[str, Any]]) -> tuple[np.ndarray, str]:
@@ -108,7 +141,7 @@ def _padded_xlim(x: np.ndarray) -> tuple[float, float] | None:
     xmin = float(np.min(finite))
     xmax = float(np.max(finite))
     if xmin == xmax:
-        pad = max(abs(xmin), 1.0) * 0.05
+        pad = max(abs(xmin) * 0.05, 1.0e-12)
     else:
         pad = 0.05 * (xmax - xmin)
     return xmin - pad, xmax + pad
@@ -129,6 +162,69 @@ def _format_dominant_mode_label(row: Mapping[str, Any], max_modes: int = 3) -> s
             continue
         formatted.append(f"({int(m)},{int(n)})")
     return " ".join(formatted)
+
+
+def _has_gate_reason(row: Mapping[str, Any]) -> bool:
+    for key in ("amplitude_gate_reasons", "topology_gate_reasons", "angular_artifact_gate_reasons"):
+        value = str(row.get(key, "") or "").strip()
+        if value and value.lower() not in {"nan", "none"}:
+            return True
+    return False
+
+
+def _physics_gate_color(row: Mapping[str, Any], accepted: float) -> str:
+    if np.isfinite(accepted) and accepted <= 0.0:
+        return STATUS_COLORS["low-confidence"]
+    residuals = [
+        _float_or_nan(row.get("protected_fRMS")),
+        _float_or_nan(row.get("raw_fRMS")),
+        _float_or_nan(row.get("jfree_force_matrix_fRMS")),
+        _float_or_nan(row.get("drive_normalized_fRMS")),
+    ]
+    max_residual = max((value for value in residuals if np.isfinite(value)), default=float("nan"))
+    if np.isfinite(max_residual) and max_residual >= 50.0:
+        return STATUS_COLORS["low-confidence"]
+    if _has_gate_reason(row) or (np.isfinite(max_residual) and max_residual >= 10.0):
+        return STATUS_COLORS["watch"]
+    return STATUS_COLORS["ok"]
+
+
+def _plot_metric_group(
+    ax,
+    rows: Sequence[Mapping[str, Any]],
+    x: np.ndarray,
+    specs: Sequence[tuple[Sequence[str], str]],
+    *,
+    title: str,
+    ylabel: str,
+    yscale: str = "linear",
+    xlim: tuple[float, float] | None = None,
+) -> None:
+    plotted = 0
+    for idx, (keys, label) in enumerate(specs):
+        found = _first_metric(rows, keys)
+        if found is None:
+            continue
+        values, _key = found
+        if yscale == "log":
+            values = _positive_for_log(values)
+        if not np.any(np.isfinite(values)):
+            continue
+        color = _PHYSICS_COLORS[idx % len(_PHYSICS_COLORS)]
+        ax.plot(x, values, marker="o", ms=3.6, lw=1.15, color=color, label=label)
+        plotted += 1
+    if plotted == 0:
+        _set_empty_axis(ax, f"no {title} metrics")
+        return
+    ax.set_title(title)
+    ax.set_xlabel("beta")
+    ax.set_ylabel(ylabel)
+    if yscale == "log":
+        ax.set_yscale("log")
+    ax.grid(True, which="both", lw=0.3, color="0.86")
+    ax.legend(loc="best", fontsize=7.5, frameon=False)
+    if xlim is not None:
+        ax.set_xlim(*xlim)
 
 
 def plot_beta_ramp_scan_summary(
@@ -236,9 +332,187 @@ def plot_beta_ramp_scan_summary(
     return fig
 
 
+def plot_beta_physics_dashboard(
+    rows_or_csv: Any,
+    *,
+    out_path: str | Path | None = None,
+    title: str = "beta-ramp FPT/PDE physics dashboard",
+    figsize: tuple[float, float] = (14.0, 10.2),
+    dpi: int = 170,
+):
+    """Plot the richer W7-X/NCSX beta-physics workflow diagnostics.
+
+    This dashboard is for rows written by the older topoquest beta workflows
+    such as ``w7x_beta_physics_steps.csv`` and ``ncsx_beta_physics_steps.csv``.
+    It deliberately plots the PDE/FPT health metrics that decide whether a
+    beta step is interpretable before downstream Poincare or spectrum figures
+    are trusted.
+    """
+
+    rows = beta_physics_rows(rows_or_csv)
+    if not rows:
+        raise ValueError("rows_or_csv must contain at least one row")
+
+    import matplotlib
+
+    matplotlib.use("Agg", force=True)
+    import matplotlib.pyplot as plt
+
+    x, _x_label = _x_axis(rows)
+    xlim = _padded_xlim(x)
+    fig, axes = plt.subplots(3, 3, figsize=figsize, constrained_layout=True)
+    axs = axes.ravel()
+
+    accepted = _metric(rows, "accepted")
+    if np.any(np.isfinite(accepted)):
+        y = np.where(accepted > 0.0, 1.0, 0.0)
+    else:
+        y = np.ones(len(rows), dtype=float)
+    colors = [_physics_gate_color(row, yi) for row, yi in zip(rows, y)]
+    axs[0].scatter(x, y, c=colors, s=52, edgecolors="black", linewidths=0.45, zorder=3)
+    axs[0].plot(x, y, color="0.72", lw=0.8, zorder=1)
+    axs[0].set_yticks([0, 1], ["rejected", "accepted"])
+    axs[0].set_ylim(-0.35, 1.35)
+    axs[0].set_title("step acceptance")
+    axs[0].set_xlabel("beta")
+    axs[0].set_ylabel("gate")
+    axs[0].grid(True, axis="x", lw=0.3, color="0.86")
+    if xlim is not None:
+        axs[0].set_xlim(*xlim)
+
+    _plot_metric_group(
+        axs[1],
+        rows,
+        x,
+        (
+            (("protected_fRMS",), "protected fRMS"),
+            (("raw_fRMS",), "raw fRMS"),
+            (("jfree_force_matrix_fRMS", "drive_normalized_fRMS"), "force fRMS"),
+        ),
+        title="PDE force residual",
+        ylabel="percent",
+        xlim=xlim,
+    )
+    _plot_metric_group(
+        axs[2],
+        rows,
+        x,
+        (
+            (("plasma_volume_beta_after",), "plasma beta"),
+            (("actual_beta_step",), "actual step"),
+            (("beta_tracking_ratio",), "tracking ratio"),
+        ),
+        title="beta tracking",
+        ylabel="value",
+        xlim=xlim,
+    )
+    _plot_metric_group(
+        axs[3],
+        rows,
+        x,
+        (
+            (("jfree_matrix_relres",), "J-free relres"),
+            (("cupy_lsqr_relres",), "CuPy LSQR relres"),
+            (("cupy_lsmr_relres",), "CuPy LSMR relres"),
+            (("residual_norm",), "linear residual"),
+        ),
+        title="linear solve residual",
+        ylabel="relative residual",
+        yscale="log",
+        xlim=xlim,
+    )
+    _plot_metric_group(
+        axs[4],
+        rows,
+        x,
+        (
+            (("delta_B_over_B0_max",), "max dB/B0"),
+            (("delta_B_over_B0_rms",), "rms dB/B0"),
+            (("support_delta_B_over_B0_max",), "support max dB/B0"),
+        ),
+        title="amplitude gate",
+        ylabel="fraction",
+        yscale="log",
+        xlim=xlim,
+    )
+    _plot_metric_group(
+        axs[5],
+        rows,
+        x,
+        (
+            (("delta_J_A_per_m2_rms",), "delta J rms"),
+            (("support_delta_J_A_per_m2_max",), "support delta J max"),
+            (("bootstrap_J_parallel_rms",), "bootstrap J parallel"),
+            (("diamagnetic_J_rms",), "diamagnetic J"),
+            (("pfirsch_schluter_J_parallel_rms",), "PS J parallel"),
+        ),
+        title="current response",
+        ylabel="A/m^2",
+        yscale="log",
+        xlim=xlim,
+    )
+    _plot_metric_group(
+        axs[6],
+        rows,
+        x,
+        (
+            (("current_curl_residual_over_reference",), "curl total"),
+            (("current_curl_plasma_residual_over_reference",), "curl plasma"),
+            (("current_curl_plasma_interior_residual_over_reference",), "curl interior"),
+            (("total_divB_plasma_rms_over_B_per_grid_length",), "divB plasma"),
+            (("total_divB_interior_rms_over_B_per_grid_length",), "divB interior"),
+        ),
+        title="curl and divB audit",
+        ylabel="normalized residual",
+        yscale="log",
+        xlim=xlim,
+    )
+    _plot_metric_group(
+        axs[7],
+        rows,
+        x,
+        (
+            (("pressure_target_rel_l2",), "pressure target L2"),
+            (("pressure_support_outside_abs_fraction",), "outside pressure"),
+            (("pressure_support_negative_abs_fraction",), "negative pressure"),
+            (("pressure_centroid_axis_displacement_m",), "centroid-axis m"),
+        ),
+        title="pressure support",
+        ylabel="value",
+        yscale="log",
+        xlim=xlim,
+    )
+    _plot_metric_group(
+        axs[8],
+        rows,
+        x,
+        (
+            (("topology_fitted_fraction",), "fitted fraction"),
+            (("topology_fitted_fraction_min_section",), "min section fit"),
+            (("topology_mean_self_intersections",), "self intersections"),
+            (("topology_mean_raw_distance_over_a_eff",), "raw dist/a_eff"),
+            (("topology_live_trace_fraction",), "live trace fraction"),
+        ),
+        title="topology retrace",
+        ylabel="value",
+        xlim=xlim,
+    )
+
+    if title:
+        fig.suptitle(title, fontsize=13, fontweight="bold")
+    if out_path is not None:
+        out = Path(out_path).expanduser()
+        out.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(out, dpi=int(dpi), bbox_inches="tight")
+    return fig
+
+
 __all__ = [
     "STATUS_COLORS",
     "STATUS_LEVELS",
+    "beta_physics_rows",
     "beta_ramp_scan_rows",
+    "plot_beta_physics_dashboard",
     "plot_beta_ramp_scan_summary",
+    "read_beta_physics_csv",
 ]

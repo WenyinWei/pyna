@@ -4,7 +4,13 @@ from pyna.plot.island import plot_island, island_section_points
 from pyna.plot.island_chain import plot_island_chain, island_chain_section_points
 from pyna.plot.xo_points import draw_xo_points, XO_STYLE
 from pyna.plot.poincare_beta import plot_poincare_beta_grid
-from pyna.plot.beta_ramp import beta_ramp_scan_rows, plot_beta_ramp_scan_summary
+from pyna.plot.beta_ramp import (
+    beta_physics_rows,
+    beta_ramp_scan_rows,
+    plot_beta_physics_dashboard,
+    plot_beta_ramp_scan_summary,
+    read_beta_physics_csv,
+)
 from pyna.plot.boundary_island import plot_boundary_island_sections
 from pyna.plot.rmp import (
     draw_pest_grid,
@@ -72,8 +78,11 @@ __all__ = [
     "draw_xo_points",
     "XO_STYLE",
     "plot_poincare_beta_grid",
+    "beta_physics_rows",
     "beta_ramp_scan_rows",
+    "plot_beta_physics_dashboard",
     "plot_beta_ramp_scan_summary",
+    "read_beta_physics_csv",
     "plot_boundary_island_sections",
     "draw_pest_grid",
     "draw_rmp_island_width_bars",

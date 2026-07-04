@@ -220,6 +220,20 @@ plot_beta_ramp_scan_summary(
 )
 ```
 
+For the richer W7-X/NCSX FPT/PDE beta workflows, plot the physics-step CSV
+directly.  This keeps topoquest responsible for the continuation/PDE solve and
+pyna responsible for reusable figure generation:
+
+```python
+from pyna.plot import plot_beta_physics_dashboard
+
+plot_beta_physics_dashboard(
+    "ncsx_beta_physics_steps.csv",
+    out_path="ncsx_beta_physics_dashboard.png",
+    title="NCSX beta-ramp FPT/PDE dashboard",
+)
+```
+
 ---
 
 ## 📂 Module Overview
