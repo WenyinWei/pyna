@@ -201,6 +201,25 @@ mean_dr = mean_radial_displacement(delta_iota=1e-4, iota_prime=-0.1)
 print(f"Mean radial displacement: {mean_dr:.4f} m")
 ```
 
+### Beta-ramp scan summary plot
+
+`pyna.toroidal.perturbation.beta_ramp` keeps continuation diagnostics separate
+from plotting.  A scan can be converted to public rows and rendered as a compact
+quality-control dashboard before detailed Poincare or fixed-point figures are
+interpreted:
+
+```python
+from pyna.plot import plot_beta_ramp_scan_summary
+from pyna.toroidal.perturbation.beta_ramp import diagnose_beta_ramp_scan
+
+scan = diagnose_beta_ramp_scan(states, reference="first", n_values=[1, 2, 3])
+plot_beta_ramp_scan_summary(
+    scan,
+    out_path="beta_ramp_scan_summary.png",
+    title="synthetic beta-ramp scan",
+)
+```
+
 ---
 
 ## 📂 Module Overview
