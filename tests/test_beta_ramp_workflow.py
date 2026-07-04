@@ -7,8 +7,11 @@ from pyna.toroidal.perturbation.beta_ramp import (
     beta_scan_summary_rows,
     delta_beta_ramp_state,
     diagnose_beta_ramp_state,
+    radial_small_divisor_reports,
+    sample_beta_ramp_delta_on_surfaces,
     scrub_beta_metadata,
 )
+from pyna.toroidal.perturbation_spectrum import RadialPerturbationFourierSpectrum
 
 
 def _toy_surfaces():
@@ -87,6 +90,70 @@ def test_beta_ramp_state_delta_and_vector_field_adapter():
     assert field.BR.shape == state.BR.shape
 
 
+def test_beta_ramp_state_from_field_mapping_and_native_field_period_sampling():
+    nfp = 2
+    field_period = 2.0 * np.pi / nfp
+    R_grid = np.linspace(0.8, 1.2, 5)
+    Z_grid = np.linspace(-0.2, 0.2, 5)
+    Phi_grid = np.linspace(0.0, field_period, 32, endpoint=False)
+    RR, ZZ, PP = np.meshgrid(R_grid, Z_grid, Phi_grid, indexing="ij")
+    base_payload = {
+        "R": R_grid,
+        "Z": Z_grid,
+        "Phi": Phi_grid,
+        "B0_R": np.zeros_like(RR),
+        "B0_Z": np.zeros_like(RR),
+        "B0_Phi": np.ones_like(RR),
+        "label": "topoquest-style base",
+    }
+    state_payload = {
+        **base_payload,
+        "B0_R": np.cos(2.0 * PP),
+        "B0_Z": np.sin(2.0 * PP),
+        "label": "topoquest-style state",
+    }
+
+    phi = np.linspace(0.0, 2.0 * np.pi, 64, endpoint=False)
+    theta = np.linspace(0.0, 2.0 * np.pi, 16, endpoint=False)
+    radial = np.array([0.05])
+    R_surf = 1.0 + radial[None, :, None] * np.cos(theta)[None, None, :]
+    Z_surf = radial[None, :, None] * np.sin(theta)[None, None, :]
+    R_surf = np.repeat(R_surf, phi.size, axis=0)
+    Z_surf = np.repeat(Z_surf, phi.size, axis=0)
+
+    base = BetaRampState.from_field_mapping(
+        base_payload,
+        field_periods=nfp,
+        R_surf=R_surf,
+        Z_surf=Z_surf,
+        phi_vals=phi,
+        theta_vals=theta,
+        radial_labels=radial,
+        iota_profile=np.array([0.4]),
+        metadata={"source_path": "/private/local/base"},
+    )
+    state = BetaRampState.from_field_mapping(
+        state_payload,
+        field_periods=nfp,
+        R_surf=R_surf,
+        Z_surf=Z_surf,
+        phi_vals=phi,
+        theta_vals=theta,
+        radial_labels=radial,
+        iota_profile=np.array([0.4]),
+        metadata={"source_path": "/private/local/state"},
+    )
+
+    samples = sample_beta_ramp_delta_on_surfaces(state, reference=base)
+
+    expected_phi = np.broadcast_to(phi[:, None, None], R_surf.shape)
+    np.testing.assert_allclose(samples.delta_BR, np.cos(2.0 * expected_phi), atol=1.0e-2)
+    np.testing.assert_allclose(samples.delta_BZ, np.sin(2.0 * expected_phi), atol=1.0e-2)
+    np.testing.assert_allclose(samples.denominator_BPhi, 1.0, atol=1.0e-12)
+    assert state.field_periods == nfp
+    assert state.public_metadata()["source_path"] == "<redacted>"
+
+
 def test_diagnose_beta_ramp_state_detects_rmp_nrmp_and_trust_report():
     base = _toy_field_state(beta=0.0, label="toy base")
     state = _toy_field_state(beta=0.02, label="toy beta", perturbation_scale=1.0)
@@ -150,6 +217,28 @@ def test_beta_ramp_small_divisor_near_resonance_and_metadata_gates():
     assert "equilibrium_residual_above_threshold" in diag.trust.reasons
     assert "field_line_trace_exits_present" in diag.trust.reasons
     assert any(report.near_resonant_mode_count > 0 for report in diag.small_divisors)
+
+
+def test_radial_small_divisor_reports_ignore_dc_mode():
+    spectrum = RadialPerturbationFourierSpectrum(
+        m=np.array([0, 1, 2]),
+        n=np.array([0, -1, 1]),
+        dBr=np.array([[10.0 + 0.0j, 1.0e-3 + 0.0j, 2.0e-3 + 0.0j]]),
+        dBr_grid=np.ones((1, 4, 4), dtype=complex),
+        theta=np.linspace(0.0, 2.0 * np.pi, 4, endpoint=False),
+        phi=np.linspace(0.0, 2.0 * np.pi, 4, endpoint=False),
+        radial_labels=np.array([0.5]),
+    )
+
+    report = radial_small_divisor_reports(
+        spectrum,
+        iota_profile=[1.0],
+        small_divisor_tol=1.0e-3,
+        min_mode_amplitude=0.0,
+    )[0]
+
+    assert (report.mode_m, report.mode_n) == (1, -1)
+    assert report.resonant_mode_count == 1
 
 
 def test_scrub_beta_metadata_redacts_path_like_keys():

@@ -262,6 +262,7 @@ def test_nardon_radial_spectrum_island_phase_and_width():
     assert chain.radial_label == pytest.approx(0.25)
     assert chain.q == pytest.approx(2.5)
     assert chain.q_prime == pytest.approx(2.0)
+    assert chain.coefficient_n == -n_val
     assert chain.b_res == pytest.approx(1.0e-3 * 1.25)
     expected_width = np.sqrt(4.0 * chain.q**2 * chain.b_res / (chain.q_prime * chain.m))
     assert chain.half_width == pytest.approx(expected_width)
@@ -309,11 +310,62 @@ def test_resonant_chain_uses_forward_helicity_not_opposite_branch():
     assert len(chains) == 1
     chain = chains[0]
     assert chain.q == pytest.approx(float(m_val) / float(n_val))
+    assert chain.coefficient_n == -n_val
     np.testing.assert_allclose(chain.coefficient, 0.5e-3 * np.exp(1j * phase_forward), atol=2.0e-12)
     assert chain.b_res == pytest.approx(1.0e-3)
     opposite_idx = spec.mode_index(m_val, n_val)
     assert opposite_idx is not None
     np.testing.assert_allclose(spec.dBr[:, opposite_idx], 4.0e-3 * np.exp(1j * phase_opposite), atol=2.0e-12)
+
+
+def test_resonant_chain_uses_signed_branch_for_negative_q_profile():
+    radial = np.linspace(0.2, 0.5, 5)
+    theta = np.linspace(0.0, 2.0 * np.pi, 96, endpoint=False)
+    phi = np.linspace(0.0, 2.0 * np.pi, 64, endpoint=False)
+    theta_grid = theta[None, None, :]
+    phi_grid = phi[:, None, None]
+
+    m_val = 5
+    n_val = 2
+    phase_negative_q = 0.41
+    phase_opposite = -0.9
+    selected = 1.0e-3 * np.cos(m_val * theta_grid + n_val * phi_grid + phase_negative_q)
+    opposite = 8.0e-3 * np.cos(m_val * theta_grid - n_val * phi_grid + phase_opposite)
+    tilde = selected + opposite
+    tilde = tilde * np.ones((phi.size, radial.size, theta.size), dtype=float)
+
+    spec = radial_perturbation_Fourier_spectrum(
+        tilde,
+        theta,
+        phi,
+        radial_labels=radial,
+        m_max=6,
+        n_max=3,
+        min_amplitude=1.0e-12,
+    )
+    q_profile = -(2.0 + 2.0 * radial)
+    chains = analyze_resonant_island_chains(
+        spec,
+        q_profile,
+        n=n_val,
+        m_values=[m_val],
+    )
+
+    assert len(chains) == 1
+    chain = chains[0]
+    assert chain.q == pytest.approx(-float(m_val) / float(n_val))
+    assert chain.coefficient_n == n_val
+    np.testing.assert_allclose(chain.coefficient, 0.5e-3 * np.exp(1j * phase_negative_q), atol=2.0e-12)
+    assert chain.b_res == pytest.approx(1.0e-3)
+    opposite_idx = spec.mode_index(m_val, -n_val)
+    assert opposite_idx is not None
+    np.testing.assert_allclose(spec.dBr[:, opposite_idx], 4.0e-3 * np.exp(1j * phase_opposite), atol=2.0e-12)
+
+    phase_shift = 0.5
+    theta_before = chain.fixed_points(0.0)["theta_O"][0, 0]
+    theta_after = chain.with_phase_shift(phase_shift).fixed_points(0.0)["theta_O"][0, 0]
+    wrapped_delta = np.angle(np.exp(1j * (theta_after - theta_before)))
+    assert wrapped_delta == pytest.approx(-phase_shift / m_val)
 
 
 def test_chirikov_overlap_between_adjacent_chains():
@@ -379,3 +431,42 @@ def test_sample_cylindrical_vector_grid_on_surfaces():
     np.testing.assert_allclose(out_R, R + 2.0 * Z + np.cos(expected_phi), atol=1.0e-12)
     np.testing.assert_allclose(out_phi, 2.0 * R - Z + np.sin(expected_phi), atol=1.0e-12)
     np.testing.assert_allclose(out_Z, -R + 0.5 * Z + np.cos(expected_phi), atol=1.0e-12)
+
+
+def test_sample_cylindrical_vector_grid_on_surfaces_respects_field_periods():
+    nfp = 2
+    field_period = 2.0 * np.pi / nfp
+    grid_R = np.linspace(0.8, 1.2, 5)
+    grid_Z = np.linspace(-0.2, 0.2, 5)
+    grid_phi = np.linspace(0.0, field_period, 32, endpoint=False)
+    phi = np.linspace(0.0, 2.0 * np.pi, 64, endpoint=False)
+    theta = np.linspace(0.0, 2.0 * np.pi, 16, endpoint=False)
+    radial = np.array([0.05])
+    R = 1.0 + radial[None, :, None] * np.cos(theta)[None, None, :]
+    Z = radial[None, :, None] * np.sin(theta)[None, None, :]
+    R = np.repeat(R, phi.size, axis=0)
+    Z = np.repeat(Z, phi.size, axis=0)
+
+    RR, ZZ, PP = np.meshgrid(grid_R, grid_Z, grid_phi, indexing="ij")
+    field_R = RR + ZZ + np.cos(2.0 * PP)
+    field_phi = 2.0 + np.sin(2.0 * PP)
+    field_Z = RR - ZZ + 0.25 * np.cos(4.0 * PP)
+
+    out_R, out_phi, out_Z = sample_cylindrical_vector_grid_on_surfaces(
+        grid_R,
+        grid_Z,
+        grid_phi,
+        field_R,
+        field_phi,
+        field_Z,
+        R,
+        Z,
+        phi,
+        theta,
+        field_periods=nfp,
+    )
+
+    expected_phi = np.broadcast_to(phi[:, None, None], R.shape)
+    np.testing.assert_allclose(out_R, R + Z + np.cos(2.0 * expected_phi), atol=1.0e-2)
+    np.testing.assert_allclose(out_phi, 2.0 + np.sin(2.0 * expected_phi), atol=1.0e-2)
+    np.testing.assert_allclose(out_Z, R - Z + 0.25 * np.cos(4.0 * expected_phi), atol=1.0e-2)

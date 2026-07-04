@@ -77,6 +77,35 @@ def _metadata_float(metadata: Mapping[str, Any], keys: Sequence[str]) -> float |
     return None
 
 
+def _mapping_value(
+    payload: Mapping[str, Any],
+    explicit_key: str | None,
+    fallback_keys: Sequence[str],
+    name: str,
+) -> Any:
+    if explicit_key is not None:
+        if explicit_key not in payload:
+            raise KeyError(f"{name} key {explicit_key!r} is not present")
+        return payload[explicit_key]
+    for key in fallback_keys:
+        if key in payload:
+            return payload[key]
+    raise KeyError(f"{name} is required; tried {', '.join(repr(key) for key in fallback_keys)}")
+
+
+def _mapping_optional(
+    payload: Mapping[str, Any],
+    provided: Any,
+    fallback_keys: Sequence[str],
+) -> Any:
+    if provided is not None:
+        return provided
+    for key in fallback_keys:
+        if key in payload:
+            return payload[key]
+    return None
+
+
 def scrub_beta_metadata(
     metadata: Mapping[str, Any] | None,
     *,
@@ -231,6 +260,65 @@ class BetaRampState:
             radial_labels=radial_labels,
             q_profile=q_profile,
             iota_profile=iota_profile,
+            metadata={} if metadata is None else metadata,
+        )
+
+    @classmethod
+    def from_field_mapping(
+        cls,
+        payload: Mapping[str, Any],
+        *,
+        beta: float | None = None,
+        label: str = "",
+        field_periods: int | None = None,
+        R_key: str | None = None,
+        Z_key: str | None = None,
+        Phi_key: str | None = None,
+        BR_key: str | None = None,
+        BZ_key: str | None = None,
+        BPhi_key: str | None = None,
+        R_surf: np.ndarray | None = None,
+        Z_surf: np.ndarray | None = None,
+        phi_vals: np.ndarray | None = None,
+        theta_vals: np.ndarray | None = None,
+        radial_labels: np.ndarray | None = None,
+        q_profile: np.ndarray | None = None,
+        iota_profile: np.ndarray | None = None,
+        metadata: Mapping[str, Any] | None = None,
+    ) -> "BetaRampState":
+        """Build a state from a cylindrical field mapping.
+
+        The accepted keys cover both pyna field caches
+        (``R_grid/Z_grid/Phi_grid`` and ``BR/BZ/BPhi``) and topoquest-style
+        vacuum-field payloads (``R/Z/Phi`` and ``B0_R/B0_Z/B0_Phi``).
+        """
+
+        R = _mapping_value(payload, R_key, ("R_grid", "R"), "R grid")
+        Z = _mapping_value(payload, Z_key, ("Z_grid", "Z"), "Z grid")
+        Phi = _mapping_value(payload, Phi_key, ("Phi_grid", "Phi", "phi"), "Phi grid")
+        BR = _mapping_value(payload, BR_key, ("BR", "B0_R"), "BR")
+        BZ = _mapping_value(payload, BZ_key, ("BZ", "B0_Z"), "BZ")
+        BPhi = _mapping_value(payload, BPhi_key, ("BPhi", "B_phi", "B0_Phi"), "BPhi")
+        periods = field_periods
+        if periods is None:
+            periods = int(payload.get("field_periods", payload.get("nfp", 1)))
+        return cls(
+            beta=beta,
+            label=label or str(payload.get("label", "")),
+            R_grid=R,
+            Z_grid=Z,
+            Phi_grid=Phi,
+            BR=BR,
+            BZ=BZ,
+            BPhi=BPhi,
+            field_periods=int(periods),
+            R_surf=_mapping_optional(payload, R_surf, ("R_surf",)),
+            Z_surf=_mapping_optional(payload, Z_surf, ("Z_surf",)),
+            phi_vals=_mapping_optional(payload, phi_vals, ("phi_vals", "section_phi")),
+            theta_vals=_mapping_optional(payload, theta_vals, ("theta_vals",)),
+            radial_labels=_mapping_optional(payload, radial_labels, ("radial_labels", "rho_vals", "s_vals")),
+            q_profile=_mapping_optional(payload, q_profile, ("q_profile", "q")),
+            iota_profile=_mapping_optional(payload, iota_profile, ("iota_profile", "iota", "iota_vals")),
             metadata={} if metadata is None else metadata,
         )
 
@@ -389,6 +477,8 @@ def delta_beta_ramp_state(
 
     if not state.has_field_grid or not reference.has_field_grid:
         raise ValueError("state and reference must both contain field grids")
+    if state.field_periods != reference.field_periods:
+        raise ValueError("field_periods differs between state and reference")
     for name in ("R_grid", "Z_grid", "Phi_grid"):
         if not _same_1d_grid(getattr(state, name), getattr(reference, name), name):
             raise ValueError(f"{name} differs between state and reference")
@@ -462,6 +552,7 @@ def sample_beta_ramp_delta_on_surfaces(
         Z_surf,
         phi_vals,
         theta_vals,
+        field_periods=perturbation.field_periods,
     )
     _denom_BR, denom_BPhi, _denom_BZ = sample_cylindrical_vector_grid_on_surfaces(
         _require_array(denom_source.R_grid, "denominator.R_grid"),
@@ -474,6 +565,7 @@ def sample_beta_ramp_delta_on_surfaces(
         Z_surf,
         phi_vals,
         theta_vals,
+        field_periods=denom_source.field_periods,
     )
     return BetaRampSurfaceFieldSamples(
         delta_BR=delta_BR,
@@ -524,6 +616,7 @@ def radial_small_divisor_reports(
         coeff = dbr[ir]
         amp = np.abs(coeff)
         active = np.isfinite(amp) & (amp > float(min_mode_amplitude))
+        active &= ~((m == 0) & (n == 0))
         if not np.any(active):
             reports.append(
                 BetaRampRadialModeReport(

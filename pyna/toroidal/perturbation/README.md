@@ -82,6 +82,12 @@ their outputs into a `BetaRampState` containing:
 - radial labels and either `q_profile` or `iota_profile`
 - numeric metadata for solver/tracing health, not paths or internal names
 
+`BetaRampState.from_field_mapping(...)` accepts both pyna field-cache keys
+(`R_grid/Z_grid/Phi_grid`, `BR/BZ/BPhi`) and topoquest-style cylindrical payload
+keys (`R/Z/Phi`, `B0_R/B0_Z/B0_Phi`).  Set `field_periods=Nfp` when the field
+grid stores one native field period; surface coordinates may still span the full
+torus and the sampler folds queries modulo `2*pi/Nfp`.
+
 Then diagnose one beta point against a reference:
 
 ```python
@@ -109,7 +115,10 @@ rows = beta_scan_summary_rows([diag])
 The diagnostic result carries the Nardon `tilde_b^1` spectrum, resonant island
 chains, Chirikov overlaps, per-surface `abs(m*iota+n)` reports, nRMP/RMP mode
 norms, and a trust label (`ok`, `watch`, or `low-confidence`).  Use the trust
-label as a numerical-health gate before interpreting near-limit figures.
+label as a numerical-health gate before interpreting near-limit figures.  The
+island-chain finder chooses the resonant Fourier branch from the sign of the
+provided q-profile: positive q uses `tilde_b^1_{m,-n}`, while negative q uses
+`tilde_b^1_{m,+n}` and records that branch as `chain.coefficient_n`.
 
 For an NCSX beta-ramp artifact layout, point `PYNA_NCSX_ROOT` at the data
 directory and run:

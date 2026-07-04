@@ -81,7 +81,7 @@ class RadialPerturbationFourierSpectrum:
 
 @dataclass(frozen=True)
 class ResonantIslandChain:
-    """Nardon-style resonant island-chain estimate from ``tilde_b^1_{m,-n}``."""
+    """Nardon-style resonant island-chain estimate from a helical Fourier branch."""
 
     m: int
     n: int
@@ -91,10 +91,11 @@ class ResonantIslandChain:
     coefficient: complex
     b_res: float
     half_width: float
+    coefficient_n: int | None = None
 
     @property
     def phase(self) -> float:
-        """Phase ``arg(tilde_b^1_{m,-n})`` in radians."""
+        """Phase of the selected resonant Fourier coefficient in radians."""
 
         return float(np.angle(self.coefficient))
 
@@ -102,15 +103,22 @@ class ResonantIslandChain:
         """Return O/X poloidal angles for one or more toroidal sections.
 
         The convention is the Nardon expansion
-        ``tilde_b^1 = sum b_mn exp(i(m theta* + n phi))``.  For the resonant
-        coefficient ``b_{m,-n}``, fixed points satisfy
-        ``m theta* - n phi + arg(b_{m,-n}) = +/- pi/2``.
+        ``tilde_b^1 = sum b_mn exp(i(m theta* + n phi))``.  The selected
+        resonant branch satisfies
+        ``m theta* + coefficient_n phi + arg(b) = +/- pi/2``.
         """
 
         sign = int(np.sign(self.q_prime)) if q_prime_sign is None else int(np.sign(q_prime_sign))
         if sign == 0:
             sign = 1
-        return island_chain_fixed_points(self.m, self.n, self.coefficient, phi, q_prime_sign=sign)
+        return island_chain_fixed_points(
+            self.m,
+            self.n,
+            self.coefficient,
+            phi,
+            q_prime_sign=sign,
+            coefficient_n=self.coefficient_n,
+        )
 
     def with_phase_shift(self, phase_shift: float) -> "ResonantIslandChain":
         """Return a copy with ``arg(coefficient)`` advanced by ``phase_shift``."""
@@ -124,6 +132,7 @@ class ResonantIslandChain:
             coefficient=self.coefficient * np.exp(1j * float(phase_shift)),
             b_res=self.b_res,
             half_width=self.half_width,
+            coefficient_n=self.coefficient_n,
         )
 
 
@@ -417,8 +426,9 @@ def island_chain_fixed_points(
     phi: float | np.ndarray,
     *,
     q_prime_sign: int = 1,
+    coefficient_n: int | None = None,
 ) -> dict[str, np.ndarray]:
-    """Return O/X poloidal angles implied by ``tilde_b^1_{m,-n}``.
+    """Return O/X poloidal angles implied by a resonant Fourier coefficient.
 
     The returned ``theta_O`` and ``theta_X`` arrays have shape ``(n_phi, m)``.
     A phase change ``coefficient *= exp(1j * alpha)`` rotates every branch by
@@ -429,15 +439,18 @@ def island_chain_fixed_points(
     n_int = int(n)
     if m_int <= 0 or n_int <= 0:
         raise ValueError("m and n must be positive resonant mode numbers")
+    coefficient_n_int = -n_int if coefficient_n is None else int(coefficient_n)
+    if abs(coefficient_n_int) != n_int:
+        raise ValueError("coefficient_n must have magnitude n")
     sign = 1 if int(np.sign(q_prime_sign)) >= 0 else -1
     phi_arr = np.atleast_1d(np.asarray(phi, dtype=np.float64))
     phase = float(np.angle(coefficient))
     if sign >= 0:
-        base_O = n_int * phi_arr - 0.5 * np.pi - phase
-        base_X = n_int * phi_arr + 0.5 * np.pi - phase
+        base_O = -coefficient_n_int * phi_arr - 0.5 * np.pi - phase
+        base_X = -coefficient_n_int * phi_arr + 0.5 * np.pi - phase
     else:
-        base_O = n_int * phi_arr + 0.5 * np.pi - phase
-        base_X = n_int * phi_arr - 0.5 * np.pi - phase
+        base_O = -coefficient_n_int * phi_arr + 0.5 * np.pi - phase
+        base_X = -coefficient_n_int * phi_arr - 0.5 * np.pi - phase
     branches = np.arange(m_int, dtype=np.float64)
     theta_O = (base_O[:, None] + TWOPI * branches[None, :]) / float(m_int)
     theta_X = (base_X[:, None] + TWOPI * branches[None, :]) / float(m_int)
@@ -476,11 +489,22 @@ def _as_mode_values(m_values: Iterable[int] | None, q_profile: np.ndarray, n: in
     if m_values is not None:
         out = sorted({int(m) for m in m_values if int(m) > 0})
         return out
-    q_min = float(np.nanmin(q_profile))
-    q_max = float(np.nanmax(q_profile))
+    q_abs = np.abs(np.asarray(q_profile, dtype=np.float64))
+    q_min = float(np.nanmin(q_abs))
+    q_max = float(np.nanmax(q_abs))
     lo = int(np.floor(min(q_min, q_max) * int(n))) - 1
     hi = int(np.ceil(max(q_min, q_max) * int(n))) + 1
     return [m for m in range(max(1, lo), max(1, hi) + 1)]
+
+
+def _q_helicity_sign(q_profile: np.ndarray) -> int:
+    q_arr = np.asarray(q_profile, dtype=np.float64)
+    finite = q_arr[np.isfinite(q_arr) & (np.abs(q_arr) > 0.0)]
+    if finite.size == 0:
+        return 1
+    if np.all(finite < 0.0):
+        return -1
+    return 1
 
 
 def _find_crossings(radial: np.ndarray, values: np.ndarray, target: float) -> list[float]:
@@ -537,13 +561,15 @@ def analyze_resonant_island_chains(
     if q_arr.shape != radial.shape:
         raise ValueError("q_profile must have the same shape as radial_labels")
     q_prime_profile = np.gradient(q_arr, radial, edge_order=2 if radial.size >= 3 else 1)
+    q_sign = _q_helicity_sign(q_arr)
+    coefficient_n = -q_sign * n_int
 
     chains: list[ResonantIslandChain] = []
     for m_int in _as_mode_values(m_values, q_arr, n_int):
-        idx = spectrum.mode_index(m_int, -n_int)
+        idx = spectrum.mode_index(m_int, coefficient_n)
         if idx is None:
             continue
-        roots = _find_crossings(radial, q_arr, float(m_int) / float(n_int))
+        roots = _find_crossings(radial, q_arr, q_sign * float(m_int) / float(n_int))
         coeff_profile = spectrum.dBr[:, idx]
         for s_res in roots:
             q_res = float(np.interp(s_res, radial, q_arr))
@@ -562,6 +588,7 @@ def analyze_resonant_island_chains(
                     coefficient=coeff,
                     b_res=b_res,
                     half_width=nardon_island_half_width(q_res, q_prime, m_int, b_res),
+                    coefficient_n=coefficient_n,
                 )
             )
     chains.sort(key=lambda chain: (chain.radial_label, chain.m, chain.n))
@@ -660,8 +687,13 @@ def sample_cylindrical_vector_grid_on_surfaces(
     *,
     bounds_error: bool = False,
     fill_value: float | None = np.nan,
+    field_periods: int = 1,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Sample a rectilinear cylindrical vector grid on ``(phi, radial, theta)`` surfaces."""
+    """Sample a rectilinear cylindrical vector grid on ``(phi, radial, theta)`` surfaces.
+
+    ``field_periods`` lets the field grid describe one native field period while
+    the surface coordinates span the full torus.
+    """
 
     from scipy.interpolate import RegularGridInterpolator
 
@@ -671,8 +703,16 @@ def sample_cylindrical_vector_grid_on_surfaces(
     axis_phi = np.asarray(grid_phi, dtype=np.float64)
     if axis_phi.ndim != 1 or axis_phi.size < 2:
         raise ValueError("grid_phi must be one-dimensional with at least two points")
+    field_periods_i = int(field_periods)
+    if field_periods_i < 1:
+        raise ValueError("field_periods must be positive")
+    field_period = TWOPI / float(field_periods_i)
     phi0 = float(axis_phi[0])
-    phi_stripped, phi_has_endpoint = strip_periodic_endpoint(axis_phi, TWOPI, "grid_phi")
+    phi_stripped, phi_has_endpoint = strip_periodic_endpoint(axis_phi, field_period, "grid_phi")
+    phi_span = float(phi_stripped[-1] - phi_stripped[0])
+    tol = max(1.0e-10, 1.0e-10 * abs(field_period))
+    if phi_span > field_period + tol:
+        raise ValueError("grid_phi span exceeds one field period for field_periods")
 
     def extend(values: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         vals = np.asarray(values)
@@ -680,7 +720,7 @@ def sample_cylindrical_vector_grid_on_surfaces(
         if vals.shape != (axis_R.size, axis_Z.size, phi_stripped.size):
             raise ValueError("field arrays must have shape (n_R, n_Z, n_phi)")
         vals_ext = np.concatenate([vals, vals[:, :, :1]], axis=2)
-        phi_ext = np.concatenate([phi_stripped, [phi0 + TWOPI]])
+        phi_ext = np.concatenate([phi_stripped, [phi0 + field_period]])
         return phi_ext, vals_ext
 
     phi_ext, vals_R = extend(field_R)
@@ -690,7 +730,13 @@ def sample_cylindrical_vector_grid_on_surfaces(
         [
             R.ravel(),
             Z.ravel(),
-            (np.mod(np.repeat(phi[:, None], R.shape[1] * R.shape[2], axis=1).ravel() - phi0, TWOPI) + phi0),
+            (
+                np.mod(
+                    np.repeat(phi[:, None], R.shape[1] * R.shape[2], axis=1).ravel() - phi0,
+                    field_period,
+                )
+                + phi0
+            ),
         ]
     )
     kwargs = {"bounds_error": bounds_error, "fill_value": fill_value}
