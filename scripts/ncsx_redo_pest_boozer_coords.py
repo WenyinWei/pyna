@@ -412,10 +412,10 @@ def main() -> None:
     )
 
     periodic, pest, boozer_mod = load_local_coordinate_modules(args.pyna_root)
-    eqd, meta = load_vmec_mgrid_vacuum(str(args.mgrid), wout_path=str(args.wout))
-    interp_BR = periodic_rgi(eqd["R"], eqd["Z"], eqd["Phi"], eqd["B0_R"])
-    interp_BZ = periodic_rgi(eqd["R"], eqd["Z"], eqd["Phi"], eqd["B0_Z"])
-    interp_Bphi = periodic_rgi(eqd["R"], eqd["Z"], eqd["Phi"], eqd["B0_Phi"])
+    field, meta = load_vmec_mgrid_vacuum(str(args.mgrid), wout_path=str(args.wout))
+    interp_BR = periodic_rgi(field.R_arr, field.Z_arr, field.Phi, field.BR)
+    interp_BZ = periodic_rgi(field.R_arr, field.Z_arr, field.Phi, field.BZ)
+    interp_Bphi = periodic_rgi(field.R_arr, field.Z_arr, field.Phi, field.BPhi)
 
     phi_vals = np.linspace(0.0, TWOPI, args.n_phi, endpoint=False, dtype=np.float64)
     theta_vals = np.linspace(0.0, TWOPI, args.n_theta, endpoint=False, dtype=np.float64)
