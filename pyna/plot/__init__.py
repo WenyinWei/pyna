@@ -3,6 +3,7 @@
 from pyna.plot.island import plot_island, island_section_points
 from pyna.plot.island_chain import plot_island_chain, island_chain_section_points
 from pyna.plot.xo_points import draw_xo_points, XO_STYLE
+from pyna.plot.poincare import plot_poincare, plot_poincare_data
 from pyna.plot.poincare_beta import plot_poincare_beta_grid
 from pyna.plot.boundary_island import plot_boundary_island_sections
 from pyna.plot.rmp import (
@@ -64,6 +65,8 @@ __all__ = [
     "island_chain_section_points",
     "draw_xo_points",
     "XO_STYLE",
+    "plot_poincare",
+    "plot_poincare_data",
     "plot_poincare_beta_grid",
     "plot_boundary_island_sections",
     "draw_pest_grid",
