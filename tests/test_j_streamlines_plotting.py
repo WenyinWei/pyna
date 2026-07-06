@@ -151,6 +151,35 @@ def test_trace_j_streamlines_accepts_gridded_pest_vector_field():
     np.testing.assert_allclose(lines.Z, np.repeat(lines.seed_Z[:, None], lines.n_points, axis=1), atol=2.0e-4)
 
 
+def test_trace_gridded_pest_field_keeps_pure_poloidal_current_on_seed_section():
+    pest = _toy_pest(n_phi=10, n_rho=3, n_theta=32)
+    shape = pest.R_surf.shape
+    field = GriddedPestVectorField.from_pest_coordinates(
+        pest,
+        JR=np.zeros(shape),
+        JZ=np.zeros(shape),
+        JPhi=np.zeros(shape),
+        Jtheta=np.ones(shape),
+        Jphi=np.zeros(shape),
+        nfp=5,
+        source="toy pure poloidal finite-beta J",
+    )
+
+    lines = trace_j_streamlines_on_pest(
+        field,
+        pest,
+        surface_index=-1,
+        phi_indices=[0],
+        seed_count=2,
+        n_turns=0.12,
+        steps_per_turn=80,
+    )
+
+    phi_span = np.nanmax(np.unwrap(lines.phi, axis=1), axis=1) - np.nanmin(np.unwrap(lines.phi, axis=1), axis=1)
+    assert np.nanmax(phi_span) < 1.0e-10
+    assert np.nanmax(np.abs(lines.theta - lines.seed_theta[:, None])) > 1.0e-3
+
+
 def test_surface_constrained_j_streamlines_report_normal_leakage_without_leaving_surface():
     pest = _toy_pest()
     field = _normal_plus_toroidal_current_field()

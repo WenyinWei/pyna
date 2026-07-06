@@ -55,6 +55,36 @@ def _wout_metadata(path: Path) -> dict[str, object]:
     return out
 
 
+def _load_vmec_current_profiles(path: Path, rho_vals: np.ndarray) -> tuple[np.ndarray, np.ndarray, dict[str, object]]:
+    from netCDF4 import Dataset
+
+    with Dataset(str(path), "r") as ds:
+        if "jcuru" not in ds.variables or "jcurv" not in ds.variables:
+            raise KeyError("wout file must provide jcuru and jcurv for VMEC profile current tracing")
+        jcuru = np.asarray(ds.variables["jcuru"][...], dtype=np.float64)
+        jcurv = np.asarray(ds.variables["jcurv"][...], dtype=np.float64)
+        ns = int(np.asarray(ds.variables["ns"][...]).item()) if "ns" in ds.variables else int(jcuru.size)
+    s_grid = np.linspace(0.0, 1.0, int(ns), dtype=np.float64)
+    if jcuru.size != s_grid.size or jcurv.size != s_grid.size:
+        s_grid = np.linspace(0.0, 1.0, int(jcuru.size), dtype=np.float64)
+    s_eval = np.asarray(rho_vals, dtype=np.float64) ** 2
+    ju = np.interp(s_eval, s_grid, jcuru)
+    jv = np.interp(s_eval, s_grid, jcurv)
+    ratio = np.abs(jv) / np.maximum(np.abs(ju), 1.0e-300)
+    diagnostics = {
+        "vmec_jcuru_min": float(np.nanmin(jcuru)),
+        "vmec_jcuru_median": float(np.nanmedian(jcuru)),
+        "vmec_jcuru_max": float(np.nanmax(jcuru)),
+        "vmec_jcurv_min": float(np.nanmin(jcurv)),
+        "vmec_jcurv_median": float(np.nanmedian(jcurv)),
+        "vmec_jcurv_max": float(np.nanmax(jcurv)),
+        "vmec_abs_jcurv_over_jcuru_median": float(np.nanmedian(np.abs(jcurv) / np.maximum(np.abs(jcuru), 1.0e-300))),
+        "sample_abs_jcurv_over_jcuru_median": float(np.nanmedian(ratio)),
+        "sample_abs_jcurv_over_jcuru_p95": float(np.nanpercentile(ratio, 95.0)),
+    }
+    return ju, jv, diagnostics
+
+
 def _load_desc_equilibrium(path: Path, *, device: str):
     import desc
     from desc.vmec import VMECIO
@@ -81,68 +111,33 @@ def _map_pest_nodes(eq, nodes: np.ndarray, *, tol: float, maxiter: int) -> np.nd
     )
 
 
-def _pest_tangent_coefficients(
+def _pest_components_to_rpz_vector(
     pest: SmoothPestCoordinates,
     *,
-    JR: np.ndarray,
-    JPhi: np.ndarray,
-    JZ: np.ndarray,
-) -> tuple[np.ndarray, np.ndarray]:
+    Jtheta: np.ndarray,
+    Jphi: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     deriv = smooth_pest_derivatives(pest)
     R = np.asarray(pest.R_surf, dtype=np.float64)
-    phi = np.asarray(pest.phi_vals, dtype=np.float64)[:, None, None]
-    cp = np.cos(phi)
-    sp = np.sin(phi)
     dR_dtheta = np.asarray(deriv[2], dtype=np.float64)
     dZ_dtheta = np.asarray(deriv[3], dtype=np.float64)
     dR_dphi = np.asarray(deriv[4], dtype=np.float64)
     dZ_dphi = np.asarray(deriv[5], dtype=np.float64)
-    e_theta = np.stack([dR_dtheta * cp, dR_dtheta * sp, dZ_dtheta], axis=-1)
-    e_phi = np.stack([dR_dphi * cp - R * sp, dR_dphi * sp + R * cp, dZ_dphi], axis=-1)
-    j_cart = np.stack(
-        [
-            np.asarray(JR, dtype=np.float64) * cp - np.asarray(JPhi, dtype=np.float64) * sp,
-            np.asarray(JR, dtype=np.float64) * sp + np.asarray(JPhi, dtype=np.float64) * cp,
-            np.asarray(JZ, dtype=np.float64),
-        ],
-        axis=-1,
-    )
-    gtt = np.sum(e_theta * e_theta, axis=-1)
-    gtp = np.sum(e_theta * e_phi, axis=-1)
-    gpp = np.sum(e_phi * e_phi, axis=-1)
-    rhs_t = np.sum(j_cart * e_theta, axis=-1)
-    rhs_p = np.sum(j_cart * e_phi, axis=-1)
-    det = gtt * gpp - gtp * gtp
-    Jtheta = np.full(R.shape, np.nan, dtype=np.float64)
-    Jphi = np.full(R.shape, np.nan, dtype=np.float64)
-    valid = np.isfinite(det) & (np.abs(det) > 1.0e-28)
-    Jtheta[valid] = (rhs_t[valid] * gpp[valid] - rhs_p[valid] * gtp[valid]) / det[valid]
-    Jphi[valid] = (gtt[valid] * rhs_p[valid] - gtp[valid] * rhs_t[valid]) / det[valid]
-    return Jtheta, Jphi
+    jt = np.asarray(Jtheta, dtype=np.float64)
+    jp = np.asarray(Jphi, dtype=np.float64)
+    JR = jt * dR_dtheta + jp * dR_dphi
+    JPhi = jp * R
+    JZ = jt * dZ_dtheta + jp * dZ_dphi
+    return JR, JPhi, JZ
 
 
-def _cartesian_vector_to_cylindrical_components(values: np.ndarray, phi: np.ndarray) -> np.ndarray:
+def _desc_rpz_vector_to_cartesian_components(values: np.ndarray, phi: np.ndarray) -> np.ndarray:
+    """Convert DESC default vector components from ``(Rhat, phihat, Zhat)`` to XYZ."""
+
     vec = np.asarray(values, dtype=np.float64)
     phi_arr = np.asarray(phi, dtype=np.float64).reshape(-1)
     if vec.shape != (phi_arr.size, 3):
-        raise ValueError("Cartesian vector values must have shape (len(phi), 3)")
-    cp = np.cos(phi_arr)
-    sp = np.sin(phi_arr)
-    return np.stack(
-        [
-            vec[:, 0] * cp + vec[:, 1] * sp,
-            -vec[:, 0] * sp + vec[:, 1] * cp,
-            vec[:, 2],
-        ],
-        axis=1,
-    )
-
-
-def _cylindrical_vector_to_cartesian_components(values: np.ndarray, phi: np.ndarray) -> np.ndarray:
-    vec = np.asarray(values, dtype=np.float64)
-    phi_arr = np.asarray(phi, dtype=np.float64).reshape(-1)
-    if vec.shape != (phi_arr.size, 3):
-        raise ValueError("Cylindrical vector values must have shape (len(phi), 3)")
+        raise ValueError("DESC rpz vector values must have shape (len(phi), 3)")
     cp = np.cos(phi_arr)
     sp = np.sin(phi_arr)
     return np.stack(
@@ -161,7 +156,10 @@ def build_desc_pest_j_payload(
     rho_vals: np.ndarray,
     n_phi: int,
     n_theta: int,
+    current_source: str,
     current_mode: str,
+    vmec_jcuru: np.ndarray | None = None,
+    vmec_jcurv: np.ndarray | None = None,
     tol: float,
     maxiter: int,
 ) -> tuple[SmoothPestCoordinates, GriddedPestVectorField, dict[str, object]]:
@@ -191,6 +189,7 @@ def build_desc_pest_j_payload(
             "J_Z",
             "J^rho",
             "J^theta",
+            "J^theta_PEST",
             "J^zeta",
             "e_rho",
             "e_theta",
@@ -206,25 +205,6 @@ def build_desc_pest_j_payload(
     raw_JPhi = np.asarray(data["J_phi"], dtype=np.float64)
     raw_JZ = np.asarray(data["J_Z"], dtype=np.float64)
     raw_J = np.stack([raw_JR, raw_JPhi, raw_JZ], axis=1)
-    tangent_J_cartesian = (
-        np.asarray(data["J^theta"], dtype=np.float64)[:, None] * np.asarray(data["e_theta"], dtype=np.float64)
-        + np.asarray(data["J^zeta"], dtype=np.float64)[:, None] * np.asarray(data["e_zeta"], dtype=np.float64)
-    )
-    tangent_J = _cartesian_vector_to_cylindrical_components(tangent_J_cartesian, phi_grid.ravel())
-    if current_mode == "full":
-        sampled_J = raw_J
-        sampled_J_cartesian = _cylindrical_vector_to_cartesian_components(raw_J, phi_grid.ravel())
-    elif current_mode == "tangent":
-        sampled_J = tangent_J
-        sampled_J_cartesian = tangent_J_cartesian
-    else:
-        raise ValueError("current_mode must be 'tangent' or 'full'")
-    JR = sampled_J[:, 0].reshape(shape)
-    JPhi = sampled_J[:, 1].reshape(shape)
-    JZ = sampled_J[:, 2].reshape(shape)
-    Jx = sampled_J_cartesian[:, 0].reshape(shape)
-    Jy = sampled_J_cartesian[:, 1].reshape(shape)
-    Jz_cart = sampled_J_cartesian[:, 2].reshape(shape)
     pressure = np.asarray(data["p"], dtype=np.float64).reshape(shape)
 
     axis_nodes = np.column_stack(
@@ -247,10 +227,37 @@ def build_desc_pest_j_payload(
         axis_Z=np.ascontiguousarray(axis["Z"], dtype=np.float64),
         source="DESC VMECIO finite-beta theta_PEST mesh",
     )
-    Jtheta = None
-    Jphi = None
-    if current_mode == "tangent":
-        Jtheta, Jphi = _pest_tangent_coefficients(pest, JR=JR, JPhi=JPhi, JZ=JZ)
+    desc_Jtheta_pest = np.asarray(data["J^theta_PEST"], dtype=np.float64).reshape(shape)
+    desc_Jzeta = np.asarray(data["J^zeta"], dtype=np.float64).reshape(shape)
+    if current_source == "vmec-profile":
+        if vmec_jcuru is None or vmec_jcurv is None:
+            raise ValueError("vmec-profile current source requires vmec_jcuru and vmec_jcurv")
+        Jtheta = np.broadcast_to(np.asarray(vmec_jcuru, dtype=np.float64)[None, :, None], shape).copy()
+        Jphi = np.broadcast_to(np.asarray(vmec_jcurv, dtype=np.float64)[None, :, None], shape).copy()
+        JR, JPhi, JZ = _pest_components_to_rpz_vector(pest, Jtheta=Jtheta, Jphi=Jphi)
+        sampled_J = np.stack([JR.ravel(), JPhi.ravel(), JZ.ravel()], axis=1)
+    elif current_source == "desc-local":
+        if current_mode == "full":
+            sampled_J = raw_J
+            Jtheta = None
+            Jphi = None
+        elif current_mode == "tangent":
+            Jtheta = desc_Jtheta_pest
+            Jphi = desc_Jzeta
+            JR, JPhi, JZ = _pest_components_to_rpz_vector(pest, Jtheta=Jtheta, Jphi=Jphi)
+            sampled_J = np.stack([JR.ravel(), JPhi.ravel(), JZ.ravel()], axis=1)
+        else:
+            raise ValueError("current_mode must be 'tangent' or 'full'")
+    else:
+        raise ValueError("current_source must be 'vmec-profile' or 'desc-local'")
+    if Jtheta is None:
+        JR = sampled_J[:, 0].reshape(shape)
+        JPhi = sampled_J[:, 1].reshape(shape)
+        JZ = sampled_J[:, 2].reshape(shape)
+    sampled_J_cartesian = _desc_rpz_vector_to_cartesian_components(sampled_J, phi_grid.ravel())
+    Jx = sampled_J_cartesian[:, 0].reshape(shape)
+    Jy = sampled_J_cartesian[:, 1].reshape(shape)
+    Jz_cart = sampled_J_cartesian[:, 2].reshape(shape)
     field = GriddedPestVectorField.from_pest_coordinates(
         pest,
         JR=np.ascontiguousarray(JR),
@@ -262,17 +269,18 @@ def build_desc_pest_j_payload(
         Jtheta=None if Jtheta is None else np.ascontiguousarray(Jtheta),
         Jphi=None if Jphi is None else np.ascontiguousarray(Jphi),
         nfp=nfp,
-        source=f"DESC finite-beta VMEC {current_mode} J_R/J_phi/J_Z",
+        source=f"W7-X public finite-beta {current_source} {current_mode} current",
     )
     j_abs = np.sqrt(JR * JR + JZ * JZ + JPhi * JPhi)
     raw_j_abs = np.linalg.norm(raw_J, axis=1)
-    tangent_j_abs = np.linalg.norm(tangent_J, axis=1)
+    tangent_j_abs = np.linalg.norm(sampled_J, axis=1)
     radial_j_abs = np.abs(np.asarray(data["J^rho"], dtype=np.float64)) * np.linalg.norm(
         np.asarray(data["e_rho"], dtype=np.float64),
         axis=1,
     )
     diagnostics = {
         "current_mode": current_mode,
+        "current_source": current_source,
         "nfp": nfp,
         "field_period_rad": field_period,
         "rho_values": [float(x) for x in rho_vals],
@@ -290,6 +298,8 @@ def build_desc_pest_j_payload(
         "raw_radial_J_abs_p95": float(np.nanpercentile(radial_j_abs, 95.0)),
         "raw_radial_over_raw_J_median": float(np.nanmedian(radial_j_abs / np.maximum(raw_j_abs, 1.0e-30))),
         "raw_radial_over_raw_J_p95": float(np.nanpercentile(radial_j_abs / np.maximum(raw_j_abs, 1.0e-30), 95.0)),
+        "desc_local_abs_Jzeta_over_Jtheta_PEST_median": float(np.nanmedian(np.abs(desc_Jzeta) / np.maximum(np.abs(desc_Jtheta_pest), 1.0e-300))),
+        "desc_local_abs_Jzeta_over_Jtheta_PEST_p95": float(np.nanpercentile(np.abs(desc_Jzeta) / np.maximum(np.abs(desc_Jtheta_pest), 1.0e-300), 95.0)),
         "pressure_min": float(np.nanmin(pressure)),
         "pressure_max": float(np.nanmax(pressure)),
     }
@@ -408,7 +418,6 @@ def _compute_desc_current_on_nodes(
     eq,
     nodes_desc: np.ndarray,
     *,
-    phi_nodes: np.ndarray | None = None,
     current_mode: str,
     batch_size: int,
 ) -> tuple[np.ndarray, dict[str, object]]:
@@ -419,9 +428,6 @@ def _compute_desc_current_on_nodes(
         raise ValueError("current_mode must be 'tangent' or 'full'")
 
     nodes = np.asarray(nodes_desc, dtype=np.float64)
-    phi_arr = None if phi_nodes is None else np.asarray(phi_nodes, dtype=np.float64).reshape(-1)
-    if current_mode == "tangent" and (phi_arr is None or phi_arr.size != nodes.shape[0]):
-        raise ValueError("phi_nodes with one entry per DESC node is required for tangent Cartesian-to-cylindrical conversion")
     out = np.full((nodes.shape[0], 3), np.nan, dtype=np.float64)
     raw_abs_parts: list[np.ndarray] = []
     sample_abs_parts: list[np.ndarray] = []
@@ -440,14 +446,9 @@ def _compute_desc_current_on_nodes(
         if current_mode == "full":
             sampled_J = raw_J
         else:
-            tangent_J_cartesian = (
+            sampled_J = (
                 np.asarray(data["J^theta"], dtype=np.float64)[:, None] * np.asarray(data["e_theta"], dtype=np.float64)
                 + np.asarray(data["J^zeta"], dtype=np.float64)[:, None] * np.asarray(data["e_zeta"], dtype=np.float64)
-            )
-            assert phi_arr is not None
-            sampled_J = _cartesian_vector_to_cylindrical_components(
-                tangent_J_cartesian,
-                phi_arr[lo : lo + chunk.shape[0]],
             )
         out[lo : lo + chunk.shape[0]] = sampled_J
         raw_abs_parts.append(np.linalg.norm(raw_J, axis=1))
@@ -519,7 +520,6 @@ def build_desc_cartesian_j_field(
         sampled_J, current_diag = _compute_desc_current_on_nodes(
             eq,
             desc_nodes[valid],
-            phi_nodes=real_nodes[valid, 1],
             current_mode=current_mode,
             batch_size=batch_size,
         )
@@ -621,6 +621,31 @@ def write_streamlines_npz(path: Path, streamlines) -> None:
     )
 
 
+def _phi_span_diagnostics(streamlines, *, limit_turns: float) -> dict[str, object]:
+    spans = []
+    for line_idx in range(streamlines.n_lines):
+        keep = (
+            np.isfinite(streamlines.phi[line_idx])
+            & np.isfinite(streamlines.x[line_idx])
+            & np.isfinite(streamlines.y[line_idx])
+            & np.isfinite(streamlines.z[line_idx])
+        )
+        if np.count_nonzero(keep) < 2:
+            spans.append(float("nan"))
+            continue
+        phi = np.unwrap(streamlines.phi[line_idx, keep])
+        spans.append(float((np.nanmax(phi) - np.nanmin(phi)) / (2.0 * np.pi)))
+    finite = np.asarray([x for x in spans if np.isfinite(x)], dtype=np.float64)
+    limit = float(limit_turns)
+    return {
+        "phi_span_turns": spans,
+        "phi_span_limit_turns": limit,
+        "phi_span_max_turns": float(np.nanmax(finite)) if finite.size else float("nan"),
+        "phi_span_p95_turns": float(np.nanpercentile(finite, 95.0)) if finite.size else float("nan"),
+        "phi_span_all_ok": bool(finite.size > 0 and np.all(finite <= limit * (1.0 + 1.0e-12))),
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--wout", type=Path, default=DEFAULT_WOUT, help="Public finite-beta VMEC wout file.")
@@ -630,9 +655,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--stream-rho", type=float, default=0.75)
     parser.add_argument("--n-phi", type=int, default=80)
     parser.add_argument("--n-theta", type=int, default=160)
-    parser.add_argument("--current-mode", choices=("tangent", "full"), default="tangent", help="Use the DESC finite-beta surface-tangent current by default; 'full' keeps DESC raw J.")
-    parser.add_argument("--trace-space", choices=("cartesian", "pest"), default="cartesian", help="Trace in physical Cartesian space by default; 'pest' keeps the surface-constrained PEST diagnostic.")
-    parser.add_argument("--cartesian-field-source", choices=("pest-surface", "desc-grid"), default="pest-surface", help="For Cartesian tracing, use PEST-surface projected J by default; 'desc-grid' builds a regular VectorFieldCylind body grid through DESC inverse mapping.")
+    parser.add_argument("--current-source", choices=("vmec-profile", "desc-local"), default="vmec-profile", help="Use VMEC jcuru/jcurv profile current by default; desc-local uses DESC local curl(B)-derived current diagnostics.")
+    parser.add_argument("--current-mode", choices=("tangent", "full"), default="tangent", help="For desc-local, use surface-tangent current by default; 'full' keeps DESC raw J. Ignored by vmec-profile.")
+    parser.add_argument("--trace-space", choices=("pest", "cartesian"), default="pest", help="Trace on the PEST surface by default. Use 'cartesian' only for Cartesian field diagnostic tracing.")
+    parser.add_argument("--cartesian-field-source", choices=("pest-surface", "desc-grid"), default="pest-surface", help="For Cartesian diagnostic tracing, use PEST-surface projected J by default; 'desc-grid' builds a regular VectorFieldCylind body grid through DESC inverse mapping.")
     parser.add_argument("--phi-indices", type=parse_ints, default=None, help="Seed section indices, comma-separated.")
     parser.add_argument("--seed-count", type=int, default=3, help="Seeds per selected toroidal section.")
     parser.add_argument("--n-turns", type=float, default=1.35, help="Trace half-length in seed-surface perimeter units used by pyna.plot.")
@@ -648,6 +674,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--projection-distance", type=float, default=None, help="Maximum R/Z distance from the seed PEST surface when projecting Cartesian lines back to seed sections.")
     parser.add_argument("--max-projection-step", type=float, default=None, help="Break projected 2-D lines when adjacent projected points jump farther than this distance.")
     parser.add_argument("--max-3d-segment-angle", type=float, default=45.0, help="Break Plotly 3-D line traces when adjacent segment directions turn more than this angle in degrees.")
+    parser.add_argument("--phi-span-limit-turns", type=float, default=1.0 / 15.0, help="Maximum allowed azimuthal span in toroidal turns for trusted W7-X J-line plots.")
+    parser.add_argument("--allow-phi-span-fail", action="store_true", help="Write outputs even if the J-line phi-span gate fails.")
     parser.add_argument("--min-current-fraction", type=float, default=1.0e-3, help="Stop streamlines where |J| falls below this fraction of the sampled median |J|.")
     parser.add_argument("--min-current-abs", type=float, default=None, help="Absolute |J| floor for tracing; overrides --min-current-fraction when set.")
     parser.add_argument("--no-cartesian-surface-snap", action="store_true", help="Disable per-step projection of Cartesian surface-projected traces back to the seed PEST surface.")
@@ -665,21 +693,31 @@ def main(argv: list[str] | None = None) -> int:
     if np.any(rho_vals <= 0.0) or np.any(rho_vals >= 1.0):
         raise ValueError("--rho-values must lie strictly inside (0, 1)")
 
+    vmec_jcuru = None
+    vmec_jcurv = None
+    vmec_current_diag: dict[str, object] = {}
+    if args.current_source == "vmec-profile":
+        vmec_jcuru, vmec_jcurv, vmec_current_diag = _load_vmec_current_profiles(wout, rho_vals)
+
     pest, pest_field, diagnostics = build_desc_pest_j_payload(
         eq,
         rho_vals=rho_vals,
         n_phi=args.n_phi,
         n_theta=args.n_theta,
+        current_source=args.current_source,
         current_mode=args.current_mode,
+        vmec_jcuru=vmec_jcuru,
+        vmec_jcurv=vmec_jcurv,
         tol=args.tol,
         maxiter=args.maxiter,
     )
+    diagnostics.update(vmec_current_diag)
     stream_surface = int(np.argmin(np.abs(pest.rho_vals - float(args.stream_rho))))
     cartesian_field = None
     cartesian_diagnostics: dict[str, object] | None = {
         "trace_field_source": "pest_surface_projected",
         "trace_space": "cartesian",
-        "note": "Cartesian RK4 uses PEST projection only to evaluate J on the seed surface; it does not step in PEST coordinates.",
+        "note": "Cartesian RK4 uses nearest-surface projection to evaluate and snap J on the seed surface. Prefer --trace-space pest for trusted PEST-surface current-line plots.",
     } if args.trace_space == "cartesian" else None
     if args.trace_space == "cartesian" and args.cartesian_field_source == "desc-grid":
         cartesian_field, cartesian_diagnostics = build_desc_cartesian_j_field(
@@ -715,6 +753,7 @@ def main(argv: list[str] | None = None) -> int:
         max_surface_distance=args.projection_distance,
         snap_cartesian_to_surface=not bool(args.no_cartesian_surface_snap),
     )
+    phi_span_diag = _phi_span_diagnostics(streamlines, limit_turns=float(args.phi_span_limit_turns))
 
     coords_path = out / "w7x_public_finite_beta_pest_j_payload.npz"
     cartesian_field_path = out / "w7x_public_finite_beta_cartesian_j_field.npz"
@@ -729,10 +768,12 @@ def main(argv: list[str] | None = None) -> int:
     matplotlib.use("Agg", force=True)
     import matplotlib.pyplot as plt
 
+    source_label = "VMEC profile current" if args.current_source == "vmec-profile" else "DESC local-current diagnostic"
+    gate_label = "phi-span gate OK" if bool(phi_span_diag["phi_span_all_ok"]) else "phi-span gate FAILED"
     fig, _axes = plot_j_streamline_seed_sections(
         streamlines,
         pest,
-        title="W7-X public finite-beta VMEC J streamlines on PEST sections",
+        title=f"W7-X public finite-beta {source_label} streamlines on PEST sections ({gate_label})",
         line_width=1.0,
         alpha=0.88,
         max_projection_step=args.max_projection_step,
@@ -752,7 +793,7 @@ def main(argv: list[str] | None = None) -> int:
         surface_opacity=0.26,
         line_width=4.2,
         max_segment_angle_deg=args.max_3d_segment_angle,
-        title="W7-X public finite-beta VMEC J streamlines",
+        title=f"W7-X public finite-beta {source_label} streamlines ({gate_label})",
     )
 
     summary = {
@@ -767,6 +808,7 @@ def main(argv: list[str] | None = None) -> int:
         "stream_surface_index": stream_surface,
         "stream_surface_rho": float(pest.rho_vals[stream_surface]),
         "streamlines": streamlines.metadata,
+        "phi_span_gate": phi_span_diag,
         "trace_controls": {
             "min_current_norm": float(min_current_norm),
             "min_current_fraction": float(args.min_current_fraction),
@@ -792,6 +834,12 @@ def main(argv: list[str] | None = None) -> int:
     print(f"n_seed_lines: {streamlines.n_lines}")
     print(f"n_points: {streamlines.n_points}")
     print(f"normal_leakage_p95: {streamlines.metadata.get('normal_leakage_abs_over_norm_p95')}")
+    print(f"phi_span_max_turns: {phi_span_diag.get('phi_span_max_turns')}")
+    print(f"phi_span_all_ok: {phi_span_diag.get('phi_span_all_ok')}")
+    if not bool(phi_span_diag["phi_span_all_ok"]) and not bool(args.allow_phi_span_fail):
+        raise SystemExit(
+            "J-line phi-span gate failed; use --allow-phi-span-fail only for explicit diagnostics."
+        )
     return 0
 
 
