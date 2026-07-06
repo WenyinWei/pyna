@@ -11,7 +11,7 @@ toroidal  : Toroidal geometry and field-line utilities
     ``pyna.coord`` has been removed. ``pyna.mag`` remains as a
     compatibility facade; prefer ``pyna.toroidal.control`` in new code.
 """
-__version__ = "0.8.41"
+__version__ = "0.8.42"
 
 from importlib import import_module
 
@@ -21,10 +21,12 @@ from pyna.fields import (
     CylindricalFieldArrays,
     ScalarFieldCylind,
     ScalarFieldCylindAxisym,
+    VectorFieldCartesian,
     VectorFieldCylind,
     VectorFieldCylindAxisym,
     as_scalar_field_cylindrical,
     as_scalar_field_cylind,
+    as_vector_field_cartesian,
     as_vector_field_cylindrical,
     as_vector_field_cylind,
     validate_phi_grid,
@@ -61,12 +63,14 @@ __all__ = [
     "dynamics",
     "trace_dataset",
     "CylindricalFieldArrays",
+    "VectorFieldCartesian",
     "VectorFieldCylind",
     "VectorFieldCylindAxisym",
     "ScalarFieldCylind",
     "ScalarFieldCylindAxisym",
     "as_scalar_field_cylindrical",
     "as_scalar_field_cylind",
+    "as_vector_field_cartesian",
     "as_vector_field_cylindrical",
     "as_vector_field_cylind",
     "validate_phi_grid",

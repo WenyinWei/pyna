@@ -20,6 +20,10 @@ from pyna.fields.cylindrical import (
     as_vector_field_cylind,
     validate_phi_grid,
 )
+from pyna.fields.cartesian import (
+    VectorFieldCartesian,
+    as_vector_field_cartesian,
+)
 from pyna.fields.diff_ops import (
     gradient,
     divergence,
@@ -65,6 +69,7 @@ __all__ = [
     "Tensor2FieldCylind", "Tensor2FieldCylindAxisym",
     "TensorField4DRank2",
     "FieldProperty",
+    "VectorFieldCartesian", "as_vector_field_cartesian",
     "CylindricalFieldArrays",
     "ScalarFieldCylind", "ScalarFieldCylindAxisym",
     "VectorFieldCylind", "VectorFieldCylindAxisym",

@@ -8,7 +8,7 @@ from typing import Callable, Mapping, Protocol, Sequence
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 
-from pyna.fields import VectorFieldCylind
+from pyna.fields import VectorFieldCartesian, VectorFieldCylind
 from pyna.toroidal.diagnostics.mgrid import SmoothPestCoordinates, smooth_pest_derivatives
 
 
@@ -66,6 +66,9 @@ class GriddedPestVectorField:
     JPhi: np.ndarray
     phi_vals: np.ndarray
     theta_vals: np.ndarray
+    Jx: np.ndarray | None = None
+    Jy: np.ndarray | None = None
+    Jz: np.ndarray | None = None
     Jtheta: np.ndarray | None = None
     Jphi: np.ndarray | None = None
     nfp: int = 1
@@ -84,6 +87,9 @@ class GriddedPestVectorField:
         JR: np.ndarray,
         JZ: np.ndarray,
         JPhi: np.ndarray,
+        Jx: np.ndarray | None = None,
+        Jy: np.ndarray | None = None,
+        Jz: np.ndarray | None = None,
         Jtheta: np.ndarray | None = None,
         Jphi: np.ndarray | None = None,
         nfp: int = 1,
@@ -94,6 +100,9 @@ class GriddedPestVectorField:
             JR=np.asarray(JR, dtype=np.float64),
             JZ=np.asarray(JZ, dtype=np.float64),
             JPhi=np.asarray(JPhi, dtype=np.float64),
+            Jx=None if Jx is None else np.asarray(Jx, dtype=np.float64),
+            Jy=None if Jy is None else np.asarray(Jy, dtype=np.float64),
+            Jz=None if Jz is None else np.asarray(Jz, dtype=np.float64),
             Jtheta=None if Jtheta is None else np.asarray(Jtheta, dtype=np.float64),
             Jphi=None if Jphi is None else np.asarray(Jphi, dtype=np.float64),
             phi_vals=np.asarray(coords.phi_vals, dtype=np.float64),
@@ -135,6 +144,36 @@ class GriddedPestVectorField:
                 self._surface_component(self.JR, surface_index, theta, phi),
                 self._surface_component(self.JZ, surface_index, theta, phi),
                 self._surface_component(self.JPhi, surface_index, theta, phi),
+            ],
+            axis=-1,
+        )
+
+    def evaluate_pest_surface_cartesian(
+        self,
+        surface_index: int,
+        theta: np.ndarray,
+        phi: np.ndarray,
+        *,
+        R: np.ndarray | None = None,
+        Z: np.ndarray | None = None,
+    ) -> np.ndarray:
+        if self.Jx is not None and self.Jy is not None and self.Jz is not None:
+            return np.stack(
+                [
+                    self._surface_component(self.Jx, surface_index, theta, phi),
+                    self._surface_component(self.Jy, surface_index, theta, phi),
+                    self._surface_component(self.Jz, surface_index, theta, phi),
+                ],
+                axis=-1,
+            )
+        cyl = self.evaluate_pest_surface(surface_index, theta, phi, R=R, Z=Z)
+        cp = np.cos(phi)
+        sp = np.sin(phi)
+        return np.stack(
+            [
+                cyl[..., 0] * cp - cyl[..., 2] * sp,
+                cyl[..., 0] * sp + cyl[..., 2] * cp,
+                cyl[..., 1],
             ],
             axis=-1,
         )
@@ -197,6 +236,26 @@ class _PeriodicVectorFieldEvaluator:
             ],
             axis=-1,
         )
+
+
+@dataclass(frozen=True)
+class _CartesianVectorFieldEvaluator:
+    field: VectorFieldCartesian
+    nfp: int = 1
+    field_period_rad: float = TWOPI
+
+    def evaluate_cartesian(self, x: np.ndarray, y: np.ndarray, z: np.ndarray) -> np.ndarray:
+        pts = np.stack([x, y, z], axis=-1)
+        return np.asarray(self.field(pts), dtype=np.float64)
+
+    def __call__(self, R: np.ndarray, Z: np.ndarray, phi: np.ndarray) -> np.ndarray:
+        cp = np.cos(phi)
+        sp = np.sin(phi)
+        values = self.evaluate_cartesian(R * cp, R * sp, Z)
+        vx = values[..., 0]
+        vy = values[..., 1]
+        vz = values[..., 2]
+        return np.stack([vx * cp + vy * sp, vz, -vx * sp + vy * cp], axis=-1)
 
 
 class _PestSurfaceFieldProtocol(Protocol):
@@ -268,6 +327,36 @@ class _PestSurfaceFieldAdapter:
             raise ValueError("evaluate_pest_surface must return an array with final dimension 3")
         return values
 
+    def evaluate_pest_surface_cartesian(
+        self,
+        surface_index: int,
+        theta: np.ndarray,
+        phi: np.ndarray,
+        *,
+        R: np.ndarray | None = None,
+        Z: np.ndarray | None = None,
+    ) -> np.ndarray:
+        if hasattr(self.field, "evaluate_pest_surface_cartesian"):
+            values = np.asarray(
+                self.field.evaluate_pest_surface_cartesian(int(surface_index), theta, phi, R=R, Z=Z),
+                dtype=np.float64,
+            )
+        else:
+            cyl = self.evaluate_pest_surface(int(surface_index), theta, phi, R=R, Z=Z)
+            cp = np.cos(phi)
+            sp = np.sin(phi)
+            values = np.stack(
+                [
+                    cyl[..., 0] * cp - cyl[..., 2] * sp,
+                    cyl[..., 0] * sp + cyl[..., 2] * cp,
+                    cyl[..., 1],
+                ],
+                axis=-1,
+            )
+        if values.shape[-1:] != (3,):
+            raise ValueError("evaluate_pest_surface_cartesian must return an array with final dimension 3")
+        return values
+
     def evaluate_pest_surface_tangent_components(
         self,
         surface_index: int,
@@ -282,6 +371,8 @@ class _PestSurfaceFieldAdapter:
 def _as_vector_field_evaluator(field: object):
     if isinstance(field, VectorFieldCylind):
         return _PeriodicVectorFieldEvaluator.from_field(field)
+    if isinstance(field, VectorFieldCartesian):
+        return _CartesianVectorFieldEvaluator(field)
     if hasattr(field, "evaluate_pest_surface"):
         return _PestSurfaceFieldAdapter.from_field(field)  # type: ignore[arg-type]
     if callable(field):
@@ -506,6 +597,90 @@ def _cartesian_line_theta_on_seed_surface(
     return theta_out, dist_out
 
 
+def _surface_points_at_theta_phi(
+    coords: SmoothPestCoordinates,
+    *,
+    surface_index: int,
+    theta: np.ndarray,
+    phi: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    ir = int(surface_index) % coords.R_surf.shape[1]
+    phi0 = float(coords.phi_vals[0]) if np.asarray(coords.phi_vals).size else 0.0
+    theta0 = float(coords.theta_vals[0]) if np.asarray(coords.theta_vals).size else 0.0
+    phi_period = float(getattr(coords, "period", TWOPI) or TWOPI)
+    R = _periodic_surface_bilinear(
+        coords.R_surf[:, ir, :],
+        phi,
+        theta,
+        phi0=phi0,
+        theta0=theta0,
+        phi_period=phi_period,
+    )
+    Z = _periodic_surface_bilinear(
+        coords.Z_surf[:, ir, :],
+        phi,
+        theta,
+        phi0=phi0,
+        theta0=theta0,
+        phi_period=phi_period,
+    )
+    return R, Z
+
+
+def _project_cartesian_points_to_seed_surface(
+    coords: SmoothPestCoordinates,
+    surface_indices: np.ndarray,
+    x: np.ndarray,
+    y: np.ndarray,
+    z: np.ndarray,
+    *,
+    max_surface_distance: float | None,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    R = np.sqrt(x * x + y * y)
+    phi = np.arctan2(y, x)
+    out_x = np.full_like(x, np.nan, dtype=np.float64)
+    out_y = np.full_like(y, np.nan, dtype=np.float64)
+    out_z = np.full_like(z, np.nan, dtype=np.float64)
+    out_phi = np.full_like(phi, np.nan, dtype=np.float64)
+    for ir in np.unique(surface_indices):
+        selected = surface_indices == int(ir)
+        if not np.any(selected):
+            continue
+        theta, distance = _cartesian_line_theta_on_seed_surface(
+            coords,
+            surface_index=int(ir),
+            R_line=R[selected],
+            Z_line=z[selected],
+            phi_line=phi[selected],
+        )
+        distance_limit = (
+            _default_surface_projection_distance(coords, int(ir))
+            if max_surface_distance is None
+            else float(max_surface_distance)
+        )
+        good = np.isfinite(theta) & np.isfinite(distance) & (distance <= distance_limit)
+        if not np.any(good):
+            continue
+        idx = np.flatnonzero(selected)[good]
+        phi_good = phi[selected][good]
+        R_proj, Z_proj = _surface_points_at_theta_phi(
+            coords,
+            surface_index=int(ir),
+            theta=theta[good],
+            phi=phi_good,
+        )
+        good2 = np.isfinite(R_proj) & np.isfinite(Z_proj)
+        if not np.any(good2):
+            continue
+        idx2 = idx[good2]
+        phi2 = phi_good[good2]
+        out_x[idx2] = R_proj[good2] * np.cos(phi2)
+        out_y[idx2] = R_proj[good2] * np.sin(phi2)
+        out_z[idx2] = Z_proj[good2]
+        out_phi[idx2] = phi2
+    return out_x, out_y, out_z, out_phi
+
+
 @dataclass(frozen=True)
 class _PestSurfaceEvaluator:
     R: np.ndarray
@@ -673,29 +848,48 @@ def _cartesian_surface_projected_rhs(
         if not np.any(local_good):
             continue
         global_idx = np.flatnonzero(selected)[local_good]
-        values = np.asarray(
-            field_eval.evaluate_pest_surface(
-                int(ir),
-                theta[local_good],
-                phi[selected][local_good],
-                R=R[selected][local_good],
-                Z=z[selected][local_good],
-            ),
-            dtype=np.float64,
-        )
-        vR = values[..., 0]
-        vZ = values[..., 1]
-        vPhi = values[..., 2]
-        norm = np.sqrt(vR * vR + vZ * vZ + vPhi * vPhi)
-        good = np.isfinite(vR) & np.isfinite(vZ) & np.isfinite(vPhi) & (norm > float(min_field_norm))
+        phi_good = phi[selected][local_good]
+        if hasattr(field_eval, "evaluate_pest_surface_cartesian"):
+            values = np.asarray(
+                field_eval.evaluate_pest_surface_cartesian(
+                    int(ir),
+                    theta[local_good],
+                    phi_good,
+                    R=R[selected][local_good],
+                    Z=z[selected][local_good],
+                ),
+                dtype=np.float64,
+            )
+            vx = values[..., 0]
+            vy = values[..., 1]
+            vz = values[..., 2]
+        else:
+            values = np.asarray(
+                field_eval.evaluate_pest_surface(
+                    int(ir),
+                    theta[local_good],
+                    phi_good,
+                    R=R[selected][local_good],
+                    Z=z[selected][local_good],
+                ),
+                dtype=np.float64,
+            )
+            vR = values[..., 0]
+            vZ = values[..., 1]
+            vPhi = values[..., 2]
+            cp_local = np.cos(phi_good)
+            sp_local = np.sin(phi_good)
+            vx = vR * cp_local - vPhi * sp_local
+            vy = vR * sp_local + vPhi * cp_local
+            vz = vZ
+        norm = np.sqrt(vx * vx + vy * vy + vz * vz)
+        good = np.isfinite(vx) & np.isfinite(vy) & np.isfinite(vz) & (norm > float(min_field_norm))
         if not np.any(good):
             continue
         idx = global_idx[good]
-        cp = np.cos(phi[idx])
-        sp = np.sin(phi[idx])
-        dx[idx] = (vR[good] * cp - vPhi[good] * sp) / norm[good]
-        dy[idx] = (vR[good] * sp + vPhi[good] * cp) / norm[good]
-        dz[idx] = vZ[good] / norm[good]
+        dx[idx] = vx[good] / norm[good]
+        dy[idx] = vy[good] / norm[good]
+        dz[idx] = vz[good] / norm[good]
     return dx, dy, dz
 
 
@@ -711,6 +905,7 @@ def _rk4_step_cartesian_surface_projected(
     h: float,
     min_field_norm: float,
     max_surface_distance: float | None,
+    snap_to_surface: bool,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     kw = dict(
         coords=coords,
@@ -742,6 +937,16 @@ def _rk4_step_cartesian_surface_projected(
     out_y = y + h * (k1y + 2.0 * k2y + 2.0 * k3y + k4y) / 6.0
     out_z = z + h * (k1z + 2.0 * k2z + 2.0 * k3z + k4z) / 6.0
     out_phi = _wrap_angle_near_reference(np.arctan2(out_y, out_x), phi_ref)
+    if bool(snap_to_surface):
+        out_x, out_y, out_z, snapped_phi = _project_cartesian_points_to_seed_surface(
+            coords,
+            surface_indices,
+            out_x,
+            out_y,
+            out_z,
+            max_surface_distance=max_surface_distance,
+        )
+        out_phi = _wrap_angle_near_reference(snapped_phi, phi_ref)
     return out_x, out_y, out_z, out_phi
 
 
@@ -1003,6 +1208,7 @@ def trace_j_streamlines_on_pest(
     min_tangent_norm: float | None = None,
     constrain_to_surface: bool = True,
     max_surface_distance: float | None = None,
+    snap_cartesian_to_surface: bool = True,
 ) -> PestSeededStreamlines:
     """Trace current streamlines from PEST-surface seeds.
 
@@ -1146,6 +1352,7 @@ def trace_j_streamlines_on_pest(
                         h=float(direction) * h_base,
                         min_field_norm=float(min_field_norm),
                         max_surface_distance=max_surface_distance,
+                        snap_to_surface=bool(snap_cartesian_to_surface),
                     )
                 else:
                     x_curr, y_curr, z_curr, phi_curr = _rk4_step_cartesian(
@@ -1199,6 +1406,7 @@ def trace_j_streamlines_on_pest(
         "surface_arclength_per_turn": float(surface_arclength_per_turn),
         "integration_step_arclength": float(abs(h_base)),
         "max_surface_distance": None if max_surface_distance is None else float(max_surface_distance),
+        "snap_cartesian_to_surface": bool(snap_cartesian_to_surface) if not constrain_to_surface else False,
         "bidirectional": bool(bidirectional),
         "surface_indices": [int(i) for i in surf_idx],
         "phi_indices": [int(i) for i in phi_idx],
@@ -1279,12 +1487,40 @@ def _plot_segmented_section_line(
             ax.plot(R[start:end], Z[start:end], color=color, lw=lw, alpha=alpha)
 
 
-def _finite_segment_slices(mask: np.ndarray) -> list[slice]:
+def _finite_segment_slices(
+    mask: np.ndarray,
+    xyz: np.ndarray | None = None,
+    *,
+    max_step: float | None = None,
+    max_angle_deg: float | None = None,
+) -> list[slice]:
     finite = np.asarray(mask, dtype=bool)
+    split = np.ones(finite.size, dtype=bool)
+    split[1:] = ~finite[1:] | ~finite[:-1]
+    if xyz is not None:
+        pts = np.asarray(xyz, dtype=np.float64)
+        if pts.shape == (finite.size, 3):
+            seg = np.diff(pts, axis=0)
+            seg_len = np.sqrt(np.sum(seg * seg, axis=1))
+            if max_step is not None and np.isfinite(float(max_step)) and float(max_step) > 0.0:
+                split[1:] |= seg_len > float(max_step)
+            if max_angle_deg is not None and np.isfinite(float(max_angle_deg)) and 0.0 < float(max_angle_deg) < 180.0:
+                good_seg = np.isfinite(seg).all(axis=1) & (seg_len > 0.0)
+                unit = np.full_like(seg, np.nan, dtype=np.float64)
+                unit[good_seg] = seg[good_seg] / seg_len[good_seg, None]
+                if unit.shape[0] >= 2:
+                    dots = np.sum(unit[:-1] * unit[1:], axis=1)
+                    angles = np.degrees(np.arccos(np.clip(dots, -1.0, 1.0)))
+                    sharp = np.isfinite(angles) & (angles > float(max_angle_deg))
+                    split[1:-1] |= sharp
     segments: list[slice] = []
     start: int | None = None
     for idx, value in enumerate(finite):
-        if value and start is None:
+        if value and start is not None and split[idx]:
+            if idx - start >= 2:
+                segments.append(slice(start, idx))
+            start = idx
+        elif value and start is None:
             start = int(idx)
         elif not value and start is not None:
             if idx - start >= 2:
@@ -1306,6 +1542,8 @@ def plot_j_streamlines_on_pest_surface_plotly(
     surface_downsample: int = 1,
     surface_opacity: float = 0.24,
     line_width: float = 4.0,
+    max_segment_step: float | None = None,
+    max_segment_angle_deg: float | None = 45.0,
     title: str | None = None,
     width: int = 1100,
     height: int = 850,
@@ -1356,7 +1594,15 @@ def plot_j_streamlines_on_pest_surface_plotly(
             continue
         color_value = (float(streamlines.seed_rho[line_idx]) - rho_min) / (rho_max - rho_min)
         color = sample_colorscale("Viridis", color_value)[0]
-        for segment_idx, segment in enumerate(_finite_segment_slices(keep)):
+        xyz_line = streamlines.xyz[line_idx]
+        for segment_idx, segment in enumerate(
+            _finite_segment_slices(
+                keep,
+                xyz_line,
+                max_step=max_segment_step,
+                max_angle_deg=max_segment_angle_deg,
+            )
+        ):
             point_count = int(segment.stop - segment.start)
             fig.add_trace(
                 go.Scatter3d(

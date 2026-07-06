@@ -7,7 +7,7 @@ finite-dimensional maps, and Ito SDEs.
 """
 from __future__ import annotations
 
-from typing import Callable, Optional, Sequence, Tuple
+from typing import Any, Callable, Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -69,6 +69,374 @@ def _as_state(x: Sequence[float], dim: Optional[int] = None, name: str = "state"
 
 def _coordinate_names(prefix: str, dim: int) -> Tuple[str, ...]:
     return tuple(f"{prefix}{i}" for i in range(dim))
+
+
+def cartesian_points_to_cylindrical_coords(points: Sequence[Sequence[float]] | np.ndarray) -> np.ndarray:
+    """Convert Cartesian ``(x, y, z)`` points to ``VectorFieldCylind`` coordinates.
+
+    The returned final dimension is ``(R, Z, phi)`` because that is the
+    coordinate order used by :class:`pyna.fields.VectorFieldCylind`.
+    """
+
+    pts = np.asarray(points, dtype=float)
+    if pts.shape[-1:] != (3,):
+        raise ValueError("Cartesian points must have final dimension 3.")
+    x = pts[..., 0]
+    y = pts[..., 1]
+    z = pts[..., 2]
+    return np.stack([np.sqrt(x * x + y * y), z, np.arctan2(y, x)], axis=-1)
+
+
+def cylindrical_vectors_to_cartesian(
+    values: Sequence[Sequence[float]] | np.ndarray,
+    phi: Sequence[float] | np.ndarray,
+) -> np.ndarray:
+    """Convert cylindrical vector components ``(V_R, V_Z, V_phi)`` to Cartesian.
+
+    ``VectorFieldCylind`` stores physical components in ``(R, Z, phi)`` order,
+    so the second component is copied to Cartesian ``z``.
+    """
+
+    vec = np.asarray(values, dtype=float)
+    if vec.shape[-1:] != (3,):
+        raise ValueError("Cylindrical vectors must have final dimension 3.")
+    phi_arr = np.asarray(phi, dtype=float)
+    vR = vec[..., 0]
+    vZ = vec[..., 1]
+    vPhi = vec[..., 2]
+    cp = np.cos(phi_arr)
+    sp = np.sin(phi_arr)
+    return np.stack([vR * cp - vPhi * sp, vR * sp + vPhi * cp, vZ], axis=-1)
+
+
+def vector_field_cylind_cartesian_rhs(
+    field: Any,
+    *,
+    normalize: bool = False,
+    min_speed: float = 0.0,
+    min_radius: float = 1.0e-12,
+) -> ArrayFunc:
+    """Return a Cartesian RHS wrapper for a :class:`VectorFieldCylind`.
+
+    The returned callable has the pyna convention ``rhs(x, t)``.  It accepts
+    either a single Cartesian state ``(3,)`` or a batched array ``(..., 3)`` and
+    returns Cartesian velocity components with the same leading shape.
+    """
+
+    from pyna.fields import VectorFieldCylind
+
+    if not isinstance(field, VectorFieldCylind):
+        raise TypeError("field must be a VectorFieldCylind.")
+    speed_floor = float(min_speed)
+    radius_floor = float(min_radius)
+
+    def rhs(x: np.ndarray, t: float = 0.0) -> np.ndarray:
+        del t
+        pts = np.asarray(x, dtype=float)
+        if pts.shape[-1:] != (3,):
+            raise ValueError("VectorFieldCylind Cartesian RHS requires states with final dimension 3.")
+        cyl = cartesian_points_to_cylindrical_coords(pts)
+        values = np.asarray(field(cyl), dtype=float)
+        if values.shape != pts.shape:
+            raise ValueError(f"field returned shape {values.shape}; expected {pts.shape}.")
+        vel = cylindrical_vectors_to_cartesian(values, cyl[..., 2])
+        speed = np.linalg.norm(vel, axis=-1)
+        safe = (
+            np.isfinite(pts).all(axis=-1)
+            & np.isfinite(vel).all(axis=-1)
+            & np.isfinite(speed)
+            & (speed > speed_floor)
+            & (cyl[..., 0] > radius_floor)
+        )
+        out = np.full_like(vel, np.nan, dtype=float)
+        if normalize:
+            out[safe] = vel[safe] / speed[safe][..., None]
+        else:
+            out[safe] = vel[safe]
+        return out
+
+    return rhs
+
+
+def vector_field_cartesian_rhs(
+    field: Any,
+    *,
+    normalize: bool = False,
+    min_speed: float = 0.0,
+) -> ArrayFunc:
+    """Return a checked Cartesian RHS wrapper for ``VectorFieldCartesian``."""
+
+    from pyna.fields import VectorFieldCartesian
+
+    if not isinstance(field, VectorFieldCartesian):
+        raise TypeError("field must be a VectorFieldCartesian.")
+    speed_floor = float(min_speed)
+
+    def rhs(x: np.ndarray, t: float = 0.0) -> np.ndarray:
+        del t
+        pts = np.asarray(x, dtype=float)
+        if pts.shape[-1:] != (3,):
+            raise ValueError("VectorFieldCartesian RHS requires states with final dimension 3.")
+        vel = np.asarray(field(pts), dtype=float)
+        if vel.shape != pts.shape:
+            raise ValueError(f"field returned shape {vel.shape}; expected {pts.shape}.")
+        speed = np.linalg.norm(vel, axis=-1)
+        safe = (
+            np.isfinite(pts).all(axis=-1)
+            & np.isfinite(vel).all(axis=-1)
+            & np.isfinite(speed)
+            & (speed > speed_floor)
+        )
+        out = np.full_like(vel, np.nan, dtype=float)
+        if normalize:
+            out[safe] = vel[safe] / speed[safe][..., None]
+        else:
+            out[safe] = vel[safe]
+        return out
+
+    return rhs
+
+
+def _call_rhs(system: Any, x: np.ndarray, t: float) -> np.ndarray:
+    if hasattr(system, "vector_field"):
+        return np.asarray(system.vector_field(x, float(t)), dtype=float)
+    try:
+        return np.asarray(system(x, float(t)), dtype=float)
+    except TypeError:
+        return np.asarray(system(x), dtype=float)
+
+
+def _rhs_for_cartesian_trace(
+    system: Any,
+    *,
+    dim: int,
+    normalize: bool,
+    min_speed: float,
+) -> ArrayFunc:
+    from pyna.fields import VectorFieldCartesian, VectorFieldCylind
+
+    if isinstance(system, VectorFieldCylind):
+        if dim != 3:
+            raise ValueError("VectorFieldCylind Cartesian tracing requires a 3-D Cartesian state.")
+        return vector_field_cylind_cartesian_rhs(system, normalize=normalize, min_speed=min_speed)
+    if isinstance(system, VectorFieldCartesian):
+        if dim != 3:
+            raise ValueError("VectorFieldCartesian tracing requires a 3-D Cartesian state.")
+        return vector_field_cartesian_rhs(system, normalize=normalize, min_speed=min_speed)
+
+    speed_floor = float(min_speed)
+
+    def rhs(x: np.ndarray, t: float = 0.0) -> np.ndarray:
+        x_arr = _as_state(x, dim, name="x")
+        raw = np.asarray(_call_rhs(system, x_arr, float(t)), dtype=float).reshape(-1)
+        if raw.size != dim:
+            raise ValueError(f"RHS returned length {raw.size}; expected {dim}.")
+        speed = float(np.linalg.norm(raw))
+        if not (np.all(np.isfinite(raw)) and np.isfinite(speed) and speed > speed_floor):
+            return np.full(dim, np.nan, dtype=float)
+        if normalize:
+            return raw / speed
+        return raw
+
+    return rhs
+
+
+def _rk4_step_checked(rhs: ArrayFunc, x: np.ndarray, t: float, h: float) -> tuple[np.ndarray, bool]:
+    k1 = np.asarray(rhs(x, t), dtype=float).reshape(-1)
+    k2 = np.asarray(rhs(x + 0.5 * h * k1, t + 0.5 * h), dtype=float).reshape(-1)
+    k3 = np.asarray(rhs(x + 0.5 * h * k2, t + 0.5 * h), dtype=float).reshape(-1)
+    k4 = np.asarray(rhs(x + h * k3, t + h), dtype=float).reshape(-1)
+    if not (
+        k1.size == x.size
+        and k2.size == x.size
+        and k3.size == x.size
+        and k4.size == x.size
+        and np.all(np.isfinite(k1))
+        and np.all(np.isfinite(k2))
+        and np.all(np.isfinite(k3))
+        and np.all(np.isfinite(k4))
+    ):
+        return np.full_like(x, np.nan, dtype=float), False
+    next_x = x + (h / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
+    return next_x, bool(np.all(np.isfinite(next_x)))
+
+
+def trace_cartesian_trajectory(
+    system: Any,
+    x0: Sequence[float],
+    *,
+    s_span: Tuple[float, float] = (0.0, 1.0),
+    step_size: Optional[float] = None,
+    n_steps: Optional[int] = None,
+    normalize: bool = False,
+    min_speed: float = 0.0,
+    stop_on_invalid: bool = True,
+    coordinate_names: Optional[Sequence[str]] = None,
+    parameter_name: str = "s",
+    metadata: Optional[dict] = None,
+) -> TimeSeriesSolution:
+    """Trace a finite-dimensional Cartesian trajectory with fixed-step RK4.
+
+    ``system`` may be a pyna continuous-flow object, a callable using either
+    ``rhs(x, s)`` or ``rhs(x)``, or a :class:`pyna.fields.VectorFieldCylind`.
+    For ``VectorFieldCylind`` inputs the state is Cartesian ``(x, y, z)`` and
+    the cylindrical vector components are converted internally.  With
+    ``normalize=True`` the independent variable is physical arclength along the
+    vector field, which is the usual choice for streamline geometry.
+    """
+
+    x = _as_state(x0, name="x0").copy()
+    dim = int(x.size)
+    t0 = float(s_span[0])
+    tf = float(s_span[1])
+    span = abs(tf - t0)
+    if n_steps is not None:
+        steps = max(int(n_steps), 1)
+    elif step_size is not None and float(step_size) > 0.0 and np.isfinite(float(step_size)):
+        steps = max(int(np.ceil(span / float(step_size))), 1)
+    else:
+        steps = 200
+    direction = 1.0 if tf >= t0 else -1.0
+    h = direction * span / float(steps) if steps else 0.0
+    rhs = _rhs_for_cartesian_trace(system, dim=dim, normalize=bool(normalize), min_speed=float(min_speed))
+
+    times = [t0]
+    states = [x.copy()]
+    terminated_reason = "completed"
+    t = t0
+    for _ in range(steps):
+        next_x, ok = _rk4_step_checked(rhs, x, t, h)
+        next_t = t + h
+        if not ok:
+            terminated_reason = "invalid_rhs_or_state"
+            if not stop_on_invalid:
+                times.append(next_t)
+                states.append(next_x)
+            break
+        times.append(next_t)
+        states.append(next_x.copy())
+        x = next_x
+        t = next_t
+
+    state_arr = np.asarray(states, dtype=float)
+    finite_fraction = float(np.count_nonzero(np.isfinite(state_arr)) / max(state_arr.size, 1))
+    names = tuple(coordinate_names or (("x", "y", "z") if dim == 3 else _coordinate_names("x", dim)))
+    meta = {
+        "trace_backend": "pyna.dynamics.fixed_step_rk4_cartesian",
+        "system_type": type(system).__name__,
+        "dimension": dim,
+        "normalize": bool(normalize),
+        "min_speed": float(min_speed),
+        "requested_n_steps": int(steps),
+        "completed_n_steps": max(len(times) - 1, 0),
+        "step_size": float(abs(h)),
+        "terminated_reason": terminated_reason,
+        "finite_fraction": finite_fraction,
+        **dict(metadata or {}),
+    }
+    return TimeSeriesSolution(
+        t=np.asarray(times, dtype=float),
+        y=state_arr,
+        time_name=str(parameter_name),
+        coordinate_names=names,
+        metadata=meta,
+    )
+
+
+def trace_cartesian_streamlines(
+    system: Any,
+    seeds: Sequence[Sequence[float]] | np.ndarray,
+    *,
+    length: float,
+    step_size: Optional[float] = None,
+    n_steps: Optional[int] = None,
+    bidirectional: bool = True,
+    normalize: bool = True,
+    min_speed: float = 0.0,
+    stop_on_invalid: bool = True,
+    coordinate_names: Optional[Sequence[str]] = None,
+    metadata: Optional[dict] = None,
+) -> list[TimeSeriesSolution]:
+    """Trace multiple Cartesian streamlines from seed points.
+
+    Returns one :class:`TimeSeriesSolution` per seed.  When ``bidirectional`` is
+    true, each solution is ordered from negative to positive arclength with the
+    seed at ``s=0``.
+    """
+
+    seed_arr = np.asarray(seeds, dtype=float)
+    if seed_arr.ndim != 2:
+        raise ValueError("seeds must have shape (n_seed, dim).")
+    half_length = abs(float(length))
+    curves: list[TimeSeriesSolution] = []
+    for seed_index, seed in enumerate(seed_arr):
+        per_seed_metadata = {"seed_index": int(seed_index), **dict(metadata or {})}
+        if not bidirectional:
+            curves.append(
+                trace_cartesian_trajectory(
+                    system,
+                    seed,
+                    s_span=(0.0, half_length),
+                    step_size=step_size,
+                    n_steps=n_steps,
+                    normalize=normalize,
+                    min_speed=min_speed,
+                    stop_on_invalid=stop_on_invalid,
+                    coordinate_names=coordinate_names,
+                    parameter_name="s",
+                    metadata=per_seed_metadata,
+                )
+            )
+            continue
+        backward = trace_cartesian_trajectory(
+            system,
+            seed,
+            s_span=(0.0, -half_length),
+            step_size=step_size,
+            n_steps=n_steps,
+            normalize=normalize,
+            min_speed=min_speed,
+            stop_on_invalid=stop_on_invalid,
+            coordinate_names=coordinate_names,
+            parameter_name="s",
+            metadata=per_seed_metadata,
+        )
+        forward = trace_cartesian_trajectory(
+            system,
+            seed,
+            s_span=(0.0, half_length),
+            step_size=step_size,
+            n_steps=n_steps,
+            normalize=normalize,
+            min_speed=min_speed,
+            stop_on_invalid=stop_on_invalid,
+            coordinate_names=coordinate_names,
+            parameter_name="s",
+            metadata=per_seed_metadata,
+        )
+        times = np.concatenate([backward.t[:0:-1], forward.t])
+        states = np.concatenate([backward.y[:0:-1], forward.y], axis=0)
+        curves.append(
+            TimeSeriesSolution(
+                t=times,
+                y=states,
+                time_name="s",
+                coordinate_names=forward.coordinate_names,
+                metadata={
+                    **per_seed_metadata,
+                    "trace_backend": "pyna.dynamics.fixed_step_rk4_cartesian",
+                    "system_type": type(system).__name__,
+                    "dimension": int(seed_arr.shape[1]),
+                    "normalize": bool(normalize),
+                    "min_speed": float(min_speed),
+                    "bidirectional": True,
+                    "backward_terminated_reason": backward.metadata.get("terminated_reason"),
+                    "forward_terminated_reason": forward.metadata.get("terminated_reason"),
+                    "finite_fraction": float(np.count_nonzero(np.isfinite(states)) / max(states.size, 1)),
+                },
+            )
+        )
+    return curves
 
 
 def _central_gradient(func: ScalarFunc, x: np.ndarray, t: float, eps: float) -> np.ndarray:
@@ -811,6 +1179,12 @@ class GeometricBrownianMotion(ItoSDE):
 
 __all__ = [
     "TimeSeriesSolution",
+    "cartesian_points_to_cylindrical_coords",
+    "cylindrical_vectors_to_cartesian",
+    "vector_field_cartesian_rhs",
+    "vector_field_cylind_cartesian_rhs",
+    "trace_cartesian_trajectory",
+    "trace_cartesian_streamlines",
     "CallableFlow",
     "HamiltonianSystem",
     "SeparableHamiltonianSystem",

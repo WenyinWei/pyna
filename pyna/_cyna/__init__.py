@@ -91,6 +91,22 @@ trace_surface_metrics_batch_twall = getattr(_cyna_ext, "trace_surface_metrics_ba
 summarize_profile_objectives  = getattr(_cyna_ext, "summarize_profile_objectives",  None)
 trace_poincare_beta_sweep     = getattr(_cyna_ext, "trace_poincare_beta_sweep",     None)
 
+
+def trace_cartesian_trajectory(*args, **kwargs):
+    """Pure-Python fallback for Cartesian finite-dimensional RK4 tracing."""
+
+    from pyna.dynamics import trace_cartesian_trajectory as _trace_cartesian_trajectory
+
+    return _trace_cartesian_trajectory(*args, **kwargs)
+
+
+def trace_cartesian_streamlines(*args, **kwargs):
+    """Pure-Python fallback for Cartesian streamline tracing."""
+
+    from pyna.dynamics import trace_cartesian_streamlines as _trace_cartesian_streamlines
+
+    return _trace_cartesian_streamlines(*args, **kwargs)
+
 __all__ = [
     "is_available",
     "get_version",
@@ -119,6 +135,8 @@ __all__ = [
     "trace_surface_metrics_batch_twall",
     "summarize_profile_objectives",
     "trace_poincare_beta_sweep",
+    "trace_cartesian_trajectory",
+    "trace_cartesian_streamlines",
     # Utility helpers (pure Python, always available)
     "ensure_c_double",
     "prepare_field_cache",

@@ -121,6 +121,40 @@ def _pest_tangent_coefficients(
     return Jtheta, Jphi
 
 
+def _cartesian_vector_to_cylindrical_components(values: np.ndarray, phi: np.ndarray) -> np.ndarray:
+    vec = np.asarray(values, dtype=np.float64)
+    phi_arr = np.asarray(phi, dtype=np.float64).reshape(-1)
+    if vec.shape != (phi_arr.size, 3):
+        raise ValueError("Cartesian vector values must have shape (len(phi), 3)")
+    cp = np.cos(phi_arr)
+    sp = np.sin(phi_arr)
+    return np.stack(
+        [
+            vec[:, 0] * cp + vec[:, 1] * sp,
+            -vec[:, 0] * sp + vec[:, 1] * cp,
+            vec[:, 2],
+        ],
+        axis=1,
+    )
+
+
+def _cylindrical_vector_to_cartesian_components(values: np.ndarray, phi: np.ndarray) -> np.ndarray:
+    vec = np.asarray(values, dtype=np.float64)
+    phi_arr = np.asarray(phi, dtype=np.float64).reshape(-1)
+    if vec.shape != (phi_arr.size, 3):
+        raise ValueError("Cylindrical vector values must have shape (len(phi), 3)")
+    cp = np.cos(phi_arr)
+    sp = np.sin(phi_arr)
+    return np.stack(
+        [
+            vec[:, 0] * cp - vec[:, 1] * sp,
+            vec[:, 0] * sp + vec[:, 1] * cp,
+            vec[:, 2],
+        ],
+        axis=1,
+    )
+
+
 def build_desc_pest_j_payload(
     eq,
     *,
@@ -172,19 +206,25 @@ def build_desc_pest_j_payload(
     raw_JPhi = np.asarray(data["J_phi"], dtype=np.float64)
     raw_JZ = np.asarray(data["J_Z"], dtype=np.float64)
     raw_J = np.stack([raw_JR, raw_JPhi, raw_JZ], axis=1)
-    tangent_J = (
+    tangent_J_cartesian = (
         np.asarray(data["J^theta"], dtype=np.float64)[:, None] * np.asarray(data["e_theta"], dtype=np.float64)
         + np.asarray(data["J^zeta"], dtype=np.float64)[:, None] * np.asarray(data["e_zeta"], dtype=np.float64)
     )
+    tangent_J = _cartesian_vector_to_cylindrical_components(tangent_J_cartesian, phi_grid.ravel())
     if current_mode == "full":
         sampled_J = raw_J
+        sampled_J_cartesian = _cylindrical_vector_to_cartesian_components(raw_J, phi_grid.ravel())
     elif current_mode == "tangent":
         sampled_J = tangent_J
+        sampled_J_cartesian = tangent_J_cartesian
     else:
         raise ValueError("current_mode must be 'tangent' or 'full'")
     JR = sampled_J[:, 0].reshape(shape)
     JPhi = sampled_J[:, 1].reshape(shape)
     JZ = sampled_J[:, 2].reshape(shape)
+    Jx = sampled_J_cartesian[:, 0].reshape(shape)
+    Jy = sampled_J_cartesian[:, 1].reshape(shape)
+    Jz_cart = sampled_J_cartesian[:, 2].reshape(shape)
     pressure = np.asarray(data["p"], dtype=np.float64).reshape(shape)
 
     axis_nodes = np.column_stack(
@@ -216,6 +256,9 @@ def build_desc_pest_j_payload(
         JR=np.ascontiguousarray(JR),
         JZ=np.ascontiguousarray(JZ),
         JPhi=np.ascontiguousarray(JPhi),
+        Jx=np.ascontiguousarray(Jx),
+        Jy=np.ascontiguousarray(Jy),
+        Jz=np.ascontiguousarray(Jz_cart),
         Jtheta=None if Jtheta is None else np.ascontiguousarray(Jtheta),
         Jphi=None if Jphi is None else np.ascontiguousarray(Jphi),
         nfp=nfp,
@@ -223,6 +266,7 @@ def build_desc_pest_j_payload(
     )
     j_abs = np.sqrt(JR * JR + JZ * JZ + JPhi * JPhi)
     raw_j_abs = np.linalg.norm(raw_J, axis=1)
+    tangent_j_abs = np.linalg.norm(tangent_J, axis=1)
     radial_j_abs = np.abs(np.asarray(data["J^rho"], dtype=np.float64)) * np.linalg.norm(
         np.asarray(data["e_rho"], dtype=np.float64),
         axis=1,
@@ -240,6 +284,8 @@ def build_desc_pest_j_payload(
         "J_abs_max": float(np.nanmax(j_abs)),
         "raw_J_abs_median": float(np.nanmedian(raw_j_abs)),
         "raw_J_abs_p95": float(np.nanpercentile(raw_j_abs, 95.0)),
+        "tangent_J_abs_median": float(np.nanmedian(tangent_j_abs)),
+        "tangent_J_abs_p95": float(np.nanpercentile(tangent_j_abs, 95.0)),
         "raw_radial_J_abs_median": float(np.nanmedian(radial_j_abs)),
         "raw_radial_J_abs_p95": float(np.nanpercentile(radial_j_abs, 95.0)),
         "raw_radial_over_raw_J_median": float(np.nanmedian(radial_j_abs / np.maximum(raw_j_abs, 1.0e-30))),
@@ -362,6 +408,7 @@ def _compute_desc_current_on_nodes(
     eq,
     nodes_desc: np.ndarray,
     *,
+    phi_nodes: np.ndarray | None = None,
     current_mode: str,
     batch_size: int,
 ) -> tuple[np.ndarray, dict[str, object]]:
@@ -372,6 +419,9 @@ def _compute_desc_current_on_nodes(
         raise ValueError("current_mode must be 'tangent' or 'full'")
 
     nodes = np.asarray(nodes_desc, dtype=np.float64)
+    phi_arr = None if phi_nodes is None else np.asarray(phi_nodes, dtype=np.float64).reshape(-1)
+    if current_mode == "tangent" and (phi_arr is None or phi_arr.size != nodes.shape[0]):
+        raise ValueError("phi_nodes with one entry per DESC node is required for tangent Cartesian-to-cylindrical conversion")
     out = np.full((nodes.shape[0], 3), np.nan, dtype=np.float64)
     raw_abs_parts: list[np.ndarray] = []
     sample_abs_parts: list[np.ndarray] = []
@@ -390,9 +440,14 @@ def _compute_desc_current_on_nodes(
         if current_mode == "full":
             sampled_J = raw_J
         else:
-            sampled_J = (
+            tangent_J_cartesian = (
                 np.asarray(data["J^theta"], dtype=np.float64)[:, None] * np.asarray(data["e_theta"], dtype=np.float64)
                 + np.asarray(data["J^zeta"], dtype=np.float64)[:, None] * np.asarray(data["e_zeta"], dtype=np.float64)
+            )
+            assert phi_arr is not None
+            sampled_J = _cartesian_vector_to_cylindrical_components(
+                tangent_J_cartesian,
+                phi_arr[lo : lo + chunk.shape[0]],
             )
         out[lo : lo + chunk.shape[0]] = sampled_J
         raw_abs_parts.append(np.linalg.norm(raw_J, axis=1))
@@ -464,6 +519,7 @@ def build_desc_cartesian_j_field(
         sampled_J, current_diag = _compute_desc_current_on_nodes(
             eq,
             desc_nodes[valid],
+            phi_nodes=real_nodes[valid, 1],
             current_mode=current_mode,
             batch_size=batch_size,
         )
@@ -530,6 +586,9 @@ def write_npz_payload(path: Path, pest: SmoothPestCoordinates, field: GriddedPes
         JR=field.JR,
         JZ=field.JZ,
         JPhi=field.JPhi,
+        Jx=field.Jx if field.Jx is not None else np.empty(0, dtype=np.float64),
+        Jy=field.Jy if field.Jy is not None else np.empty(0, dtype=np.float64),
+        Jz=field.Jz if field.Jz is not None else np.empty(0, dtype=np.float64),
         Jtheta=field.Jtheta if field.Jtheta is not None else np.empty(0, dtype=np.float64),
         Jphi=field.Jphi if field.Jphi is not None else np.empty(0, dtype=np.float64),
         nfp=np.asarray(field.nfp, dtype=np.int64),
@@ -571,7 +630,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--stream-rho", type=float, default=0.75)
     parser.add_argument("--n-phi", type=int, default=80)
     parser.add_argument("--n-theta", type=int, default=160)
-    parser.add_argument("--current-mode", choices=("tangent", "full"), default="tangent", help="Use the local surface-tangent finite-beta current by default; 'full' keeps DESC raw J.")
+    parser.add_argument("--current-mode", choices=("tangent", "full"), default="tangent", help="Use the DESC finite-beta surface-tangent current by default; 'full' keeps DESC raw J.")
     parser.add_argument("--trace-space", choices=("cartesian", "pest"), default="cartesian", help="Trace in physical Cartesian space by default; 'pest' keeps the surface-constrained PEST diagnostic.")
     parser.add_argument("--cartesian-field-source", choices=("pest-surface", "desc-grid"), default="pest-surface", help="For Cartesian tracing, use PEST-surface projected J by default; 'desc-grid' builds a regular VectorFieldCylind body grid through DESC inverse mapping.")
     parser.add_argument("--phi-indices", type=parse_ints, default=None, help="Seed section indices, comma-separated.")
@@ -588,6 +647,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--cartesian-batch-size", type=int, default=4096)
     parser.add_argument("--projection-distance", type=float, default=None, help="Maximum R/Z distance from the seed PEST surface when projecting Cartesian lines back to seed sections.")
     parser.add_argument("--max-projection-step", type=float, default=None, help="Break projected 2-D lines when adjacent projected points jump farther than this distance.")
+    parser.add_argument("--max-3d-segment-angle", type=float, default=45.0, help="Break Plotly 3-D line traces when adjacent segment directions turn more than this angle in degrees.")
+    parser.add_argument("--min-current-fraction", type=float, default=1.0e-3, help="Stop streamlines where |J| falls below this fraction of the sampled median |J|.")
+    parser.add_argument("--min-current-abs", type=float, default=None, help="Absolute |J| floor for tracing; overrides --min-current-fraction when set.")
+    parser.add_argument("--no-cartesian-surface-snap", action="store_true", help="Disable per-step projection of Cartesian surface-projected traces back to the seed PEST surface.")
     parser.add_argument("--tol", type=float, default=1.0e-9, help="DESC theta_PEST coordinate-map tolerance.")
     parser.add_argument("--maxiter", type=int, default=40, help="DESC theta_PEST coordinate-map Newton iterations.")
     args = parser.parse_args(argv)
@@ -634,6 +697,11 @@ def main(argv: list[str] | None = None) -> int:
             batch_size=args.cartesian_batch_size,
         )
     trace_field = cartesian_field if cartesian_field is not None else pest_field
+    if args.min_current_abs is not None:
+        min_current_norm = float(args.min_current_abs)
+    else:
+        median_current = float(diagnostics.get("J_abs_median", 0.0))
+        min_current_norm = max(float(args.min_current_fraction), 0.0) * median_current
     streamlines = trace_j_streamlines_on_pest(
         trace_field,
         pest,
@@ -642,8 +710,10 @@ def main(argv: list[str] | None = None) -> int:
         seed_count=args.seed_count,
         n_turns=args.n_turns,
         steps_per_turn=args.steps_per_turn,
+        min_field_norm=min_current_norm,
         constrain_to_surface=args.trace_space == "pest",
         max_surface_distance=args.projection_distance,
+        snap_cartesian_to_surface=not bool(args.no_cartesian_surface_snap),
     )
 
     coords_path = out / "w7x_public_finite_beta_pest_j_payload.npz"
@@ -681,6 +751,7 @@ def main(argv: list[str] | None = None) -> int:
         surface_downsample=args.surface_downsample,
         surface_opacity=0.26,
         line_width=4.2,
+        max_segment_angle_deg=args.max_3d_segment_angle,
         title="W7-X public finite-beta VMEC J streamlines",
     )
 
@@ -696,6 +767,12 @@ def main(argv: list[str] | None = None) -> int:
         "stream_surface_index": stream_surface,
         "stream_surface_rho": float(pest.rho_vals[stream_surface]),
         "streamlines": streamlines.metadata,
+        "trace_controls": {
+            "min_current_norm": float(min_current_norm),
+            "min_current_fraction": float(args.min_current_fraction),
+            "min_current_abs": None if args.min_current_abs is None else float(args.min_current_abs),
+            "snap_cartesian_to_surface": not bool(args.no_cartesian_surface_snap),
+        },
         "outputs": {
             "coords_npz": str(coords_path),
             "cartesian_field_npz": str(cartesian_field_path) if cartesian_field is not None else "",
