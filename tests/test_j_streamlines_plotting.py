@@ -7,6 +7,7 @@ import pytest
 
 from pyna.fields import VectorFieldCylind
 from pyna.plot.j_streamlines import (
+    GriddedPestVectorField,
     plot_j_streamline_seed_sections,
     plot_j_streamlines_on_pest_surface_plotly,
     trace_j_streamlines_on_pest,
@@ -56,6 +57,22 @@ def _normal_plus_toroidal_current_field():
     return VectorFieldCylind(R=R, Z=Z, Phi=Phi, BR=BR, BZ=BZ, BPhi=BPhi, name="J_total")
 
 
+class _SurfaceNativeToroidalCurrent:
+    nfp = 1
+    field_period_rad = 2.0 * np.pi
+
+    def evaluate_pest_surface(self, surface_index, theta, phi, *, R=None, Z=None):
+        theta = np.asarray(theta, dtype=np.float64)
+        return np.stack(
+            [
+                np.zeros_like(theta),
+                np.zeros_like(theta),
+                np.ones_like(theta),
+            ],
+            axis=-1,
+        )
+
+
 def test_trace_j_streamlines_on_pest_uses_vector_field_and_seed_controls():
     pest = _toy_pest()
     field = _toroidal_current_field()
@@ -82,6 +99,56 @@ def test_trace_j_streamlines_on_pest_uses_vector_field_and_seed_controls():
     np.testing.assert_allclose(lines.R, np.repeat(lines.seed_R[:, None], lines.n_points, axis=1), atol=2.0e-4)
     np.testing.assert_allclose(lines.Z, np.repeat(lines.seed_Z[:, None], lines.n_points, axis=1), atol=2.0e-4)
     np.testing.assert_allclose(lines.theta, np.repeat(lines.seed_theta[:, None], lines.n_points, axis=1), atol=2.0e-4)
+
+
+def test_trace_j_streamlines_accepts_surface_native_evaluator():
+    pest = _toy_pest()
+
+    lines = trace_j_streamlines_on_pest(
+        _SurfaceNativeToroidalCurrent(),
+        pest,
+        surface_index=-1,
+        phi_indices=[0],
+        seed_count=3,
+        n_turns=0.04,
+        steps_per_turn=40,
+    )
+
+    assert lines.n_lines == 3
+    assert lines.metadata["trace_mode"] == "pest_surface_constrained"
+    assert lines.metadata["nfp"] == 1
+    assert lines.metadata["finite_fraction"] == pytest.approx(1.0)
+    np.testing.assert_allclose(lines.R, np.repeat(lines.seed_R[:, None], lines.n_points, axis=1), atol=2.0e-4)
+    np.testing.assert_allclose(lines.Z, np.repeat(lines.seed_Z[:, None], lines.n_points, axis=1), atol=2.0e-4)
+
+
+def test_trace_j_streamlines_accepts_gridded_pest_vector_field():
+    pest = _toy_pest()
+    shape = pest.R_surf.shape
+    field = GriddedPestVectorField.from_pest_coordinates(
+        pest,
+        JR=np.zeros(shape),
+        JZ=np.zeros(shape),
+        JPhi=np.ones(shape),
+        nfp=1,
+        source="toy finite-beta J",
+    )
+
+    lines = trace_j_streamlines_on_pest(
+        field,
+        pest,
+        surface_index=-1,
+        phi_indices=[0],
+        seed_count=3,
+        n_turns=0.04,
+        steps_per_turn=40,
+    )
+
+    assert lines.n_lines == 3
+    assert lines.metadata["trace_mode"] == "pest_surface_constrained"
+    assert lines.metadata["nfp"] == 1
+    np.testing.assert_allclose(lines.R, np.repeat(lines.seed_R[:, None], lines.n_points, axis=1), atol=2.0e-4)
+    np.testing.assert_allclose(lines.Z, np.repeat(lines.seed_Z[:, None], lines.n_points, axis=1), atol=2.0e-4)
 
 
 def test_surface_constrained_j_streamlines_report_normal_leakage_without_leaving_surface():

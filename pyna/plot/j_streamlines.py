@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping, Sequence
+from typing import Callable, Mapping, Protocol, Sequence
 
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
@@ -58,6 +58,102 @@ class PestSeededStreamlines:
 
 
 @dataclass(frozen=True)
+class GriddedPestVectorField:
+    """Vector field sampled on the same ``(phi, rho, theta)`` mesh as PEST coords."""
+
+    JR: np.ndarray
+    JZ: np.ndarray
+    JPhi: np.ndarray
+    phi_vals: np.ndarray
+    theta_vals: np.ndarray
+    Jtheta: np.ndarray | None = None
+    Jphi: np.ndarray | None = None
+    nfp: int = 1
+    phi_period: float = TWOPI
+    source: str | None = None
+
+    @property
+    def field_period_rad(self) -> float:
+        return TWOPI / max(int(self.nfp), 1)
+
+    @classmethod
+    def from_pest_coordinates(
+        cls,
+        pest: SmoothPestCoordinates | Mapping[str, object] | str | Path,
+        *,
+        JR: np.ndarray,
+        JZ: np.ndarray,
+        JPhi: np.ndarray,
+        Jtheta: np.ndarray | None = None,
+        Jphi: np.ndarray | None = None,
+        nfp: int = 1,
+        source: str | None = None,
+    ) -> "GriddedPestVectorField":
+        coords = _as_pest_coordinates(pest)
+        return cls(
+            JR=np.asarray(JR, dtype=np.float64),
+            JZ=np.asarray(JZ, dtype=np.float64),
+            JPhi=np.asarray(JPhi, dtype=np.float64),
+            Jtheta=None if Jtheta is None else np.asarray(Jtheta, dtype=np.float64),
+            Jphi=None if Jphi is None else np.asarray(Jphi, dtype=np.float64),
+            phi_vals=np.asarray(coords.phi_vals, dtype=np.float64),
+            theta_vals=np.asarray(coords.theta_vals, dtype=np.float64),
+            nfp=int(nfp),
+            phi_period=float(getattr(coords, "period", TWOPI) or TWOPI),
+            source=source,
+        )
+
+    def _surface_component(self, values: np.ndarray, surface_index: int, theta: np.ndarray, phi: np.ndarray) -> np.ndarray:
+        arr = np.asarray(values, dtype=np.float64)
+        if arr.ndim != 3:
+            raise ValueError("gridded PEST vector components must have shape (n_phi, n_rho, n_theta)")
+        if arr.shape[0] != self.phi_vals.size or arr.shape[2] != self.theta_vals.size:
+            raise ValueError("gridded PEST vector component shapes do not match phi/theta grids")
+        ir = int(surface_index) % arr.shape[1]
+        phi0 = float(self.phi_vals[0]) if self.phi_vals.size else 0.0
+        theta0 = float(self.theta_vals[0]) if self.theta_vals.size else 0.0
+        return _periodic_surface_bilinear(
+            arr[:, ir, :],
+            phi,
+            theta,
+            phi0=phi0,
+            theta0=theta0,
+            phi_period=float(self.phi_period),
+        )
+
+    def evaluate_pest_surface(
+        self,
+        surface_index: int,
+        theta: np.ndarray,
+        phi: np.ndarray,
+        *,
+        R: np.ndarray | None = None,
+        Z: np.ndarray | None = None,
+    ) -> np.ndarray:
+        return np.stack(
+            [
+                self._surface_component(self.JR, surface_index, theta, phi),
+                self._surface_component(self.JZ, surface_index, theta, phi),
+                self._surface_component(self.JPhi, surface_index, theta, phi),
+            ],
+            axis=-1,
+        )
+
+    def evaluate_pest_surface_tangent_components(
+        self,
+        surface_index: int,
+        theta: np.ndarray,
+        phi: np.ndarray,
+    ) -> tuple[np.ndarray, np.ndarray] | None:
+        if self.Jtheta is None or self.Jphi is None:
+            return None
+        return (
+            self._surface_component(self.Jtheta, surface_index, theta, phi),
+            self._surface_component(self.Jphi, surface_index, theta, phi),
+        )
+
+
+@dataclass(frozen=True)
 class _PeriodicVectorFieldEvaluator:
     R: np.ndarray
     Z: np.ndarray
@@ -101,6 +197,101 @@ class _PeriodicVectorFieldEvaluator:
             ],
             axis=-1,
         )
+
+
+class _PestSurfaceFieldProtocol(Protocol):
+    nfp: int
+    field_period_rad: float
+
+    def evaluate_pest_surface(
+        self,
+        surface_index: int,
+        theta: np.ndarray,
+        phi: np.ndarray,
+        *,
+        R: np.ndarray | None = None,
+        Z: np.ndarray | None = None,
+    ) -> np.ndarray:
+        ...
+
+
+@dataclass(frozen=True)
+class _CallableVectorFieldEvaluator:
+    fn: Callable[[np.ndarray, np.ndarray, np.ndarray], np.ndarray]
+    nfp: int = 1
+    field_period_rad: float = TWOPI
+
+    def __call__(self, R: np.ndarray, Z: np.ndarray, phi: np.ndarray) -> np.ndarray:
+        values = np.asarray(self.fn(R, Z, phi), dtype=np.float64)
+        if values.shape[-1:] != (3,):
+            raise ValueError("callable vector-field evaluator must return an array with final dimension 3")
+        return values
+
+
+@dataclass(frozen=True)
+class _PestSurfaceFieldAdapter:
+    field: _PestSurfaceFieldProtocol
+    nfp: int
+    field_period_rad: float
+
+    @classmethod
+    def from_field(cls, field: _PestSurfaceFieldProtocol) -> "_PestSurfaceFieldAdapter":
+        nfp = max(int(getattr(field, "nfp", 1)), 1)
+        return cls(
+            field=field,
+            nfp=nfp,
+            field_period_rad=float(getattr(field, "field_period_rad", TWOPI / nfp)),
+        )
+
+    def __call__(self, R: np.ndarray, Z: np.ndarray, phi: np.ndarray) -> np.ndarray:
+        if not callable(self.field):
+            raise TypeError("surface-native field evaluator cannot be sampled away from a PEST surface")
+        values = np.asarray(self.field(R, Z, phi), dtype=np.float64)
+        if values.shape[-1:] != (3,):
+            raise ValueError("surface-native callable fallback must return an array with final dimension 3")
+        return values
+
+    def evaluate_pest_surface(
+        self,
+        surface_index: int,
+        theta: np.ndarray,
+        phi: np.ndarray,
+        *,
+        R: np.ndarray | None = None,
+        Z: np.ndarray | None = None,
+    ) -> np.ndarray:
+        values = np.asarray(
+            self.field.evaluate_pest_surface(int(surface_index), theta, phi, R=R, Z=Z),
+            dtype=np.float64,
+        )
+        if values.shape[-1:] != (3,):
+            raise ValueError("evaluate_pest_surface must return an array with final dimension 3")
+        return values
+
+    def evaluate_pest_surface_tangent_components(
+        self,
+        surface_index: int,
+        theta: np.ndarray,
+        phi: np.ndarray,
+    ) -> tuple[np.ndarray, np.ndarray] | None:
+        if not hasattr(self.field, "evaluate_pest_surface_tangent_components"):
+            return None
+        return self.field.evaluate_pest_surface_tangent_components(int(surface_index), theta, phi)
+
+
+def _as_vector_field_evaluator(field: object):
+    if isinstance(field, VectorFieldCylind):
+        return _PeriodicVectorFieldEvaluator.from_field(field)
+    if hasattr(field, "evaluate_pest_surface"):
+        return _PestSurfaceFieldAdapter.from_field(field)  # type: ignore[arg-type]
+    if callable(field):
+        nfp = max(int(getattr(field, "nfp", 1)), 1)
+        return _CallableVectorFieldEvaluator(
+            field,  # type: ignore[arg-type]
+            nfp=nfp,
+            field_period_rad=float(getattr(field, "field_period_rad", TWOPI / nfp)),
+        )
+    raise TypeError("field must be a VectorFieldCylind or a compatible vector-field evaluator")
 
 
 def _pest_from_mapping(pest: Mapping[str, object], *, source: str | None = None) -> SmoothPestCoordinates:
@@ -336,28 +527,41 @@ def _rk4_step_cartesian(
 
 def _pest_surface_rhs_single(
     surface_eval: _PestSurfaceEvaluator,
-    field_eval: _PeriodicVectorFieldEvaluator,
+    field_eval,
     theta: np.ndarray,
     phi: np.ndarray,
     *,
+    surface_index: int | None = None,
     min_field_norm: float,
     min_tangent_norm: float,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     R, Z, dR_dtheta, dZ_dtheta, dR_dphi, dZ_dphi = surface_eval.evaluate(phi, theta)
-    values = np.asarray(field_eval(R, Z, phi), dtype=np.float64)
-    jR = values[..., 0]
-    jZ = values[..., 1]
-    jPhi = values[..., 2]
-
     cp = np.cos(phi)
     sp = np.sin(phi)
-    jx = jR * cp - jPhi * sp
-    jy = jR * sp + jPhi * cp
-    jz = jZ
 
     e_theta = np.stack([dR_dtheta * cp, dR_dtheta * sp, dZ_dtheta], axis=-1)
     e_phi = np.stack([dR_dphi * cp - R * sp, dR_dphi * sp + R * cp, dZ_dphi], axis=-1)
-    j_cart = np.stack([jx, jy, jz], axis=-1)
+    tangent_components = None
+    if hasattr(field_eval, "evaluate_pest_surface_tangent_components") and surface_index is not None:
+        tangent_components = field_eval.evaluate_pest_surface_tangent_components(int(surface_index), theta, phi)
+    if tangent_components is not None:
+        a0, b0 = tangent_components
+        j_cart = a0[..., None] * e_theta + b0[..., None] * e_phi
+    else:
+        if hasattr(field_eval, "evaluate_pest_surface") and surface_index is not None:
+            values = np.asarray(
+                field_eval.evaluate_pest_surface(int(surface_index), theta, phi, R=R, Z=Z),
+                dtype=np.float64,
+            )
+        else:
+            values = np.asarray(field_eval(R, Z, phi), dtype=np.float64)
+        jR = values[..., 0]
+        jZ = values[..., 1]
+        jPhi = values[..., 2]
+        jx = jR * cp - jPhi * sp
+        jy = jR * sp + jPhi * cp
+        jz = jZ
+        j_cart = np.stack([jx, jy, jz], axis=-1)
 
     gtt = np.sum(e_theta * e_theta, axis=-1)
     gtp = np.sum(e_theta * e_phi, axis=-1)
@@ -401,7 +605,7 @@ def _pest_surface_rhs_single(
 def _pest_surface_rhs(
     surface_evals: Mapping[int, _PestSurfaceEvaluator],
     surface_indices: np.ndarray,
-    field_eval: _PeriodicVectorFieldEvaluator,
+    field_eval,
     theta: np.ndarray,
     phi: np.ndarray,
     *,
@@ -421,6 +625,7 @@ def _pest_surface_rhs(
             field_eval,
             theta[selected],
             phi[selected],
+            surface_index=int(ir),
             min_field_norm=min_field_norm,
             min_tangent_norm=min_tangent_norm,
         )
@@ -434,7 +639,7 @@ def _pest_surface_rhs(
 def _rk4_step_pest_surface(
     surface_evals: Mapping[int, _PestSurfaceEvaluator],
     surface_indices: np.ndarray,
-    field_eval: _PeriodicVectorFieldEvaluator,
+    field_eval,
     theta: np.ndarray,
     phi: np.ndarray,
     *,
@@ -545,7 +750,7 @@ def _seed_points(
 
 
 def trace_j_streamlines_on_pest(
-    field: VectorFieldCylind,
+    field: VectorFieldCylind | object,
     pest: SmoothPestCoordinates | Mapping[str, object] | str | Path,
     *,
     surface_index: int | Sequence[int] | None = -1,
@@ -561,16 +766,17 @@ def trace_j_streamlines_on_pest(
 ) -> PestSeededStreamlines:
     """Trace current streamlines from PEST-surface seeds.
 
-    ``field`` is a :class:`pyna.fields.VectorFieldCylind`; it is treated as the
-    full current-density vector in physical cylindrical components
-    ``(J_R, J_Z, J_phi)``.  By default, streamlines are constrained to the
-    selected PEST surfaces by projecting ``J`` onto the surface tangent plane
-    before stepping in ``(theta, phi)``.  Set ``constrain_to_surface=False`` only
-    for raw interpolation diagnostics.
+    ``field`` is usually a :class:`pyna.fields.VectorFieldCylind`; it is treated
+    as the full current-density vector in physical cylindrical components
+    ``(J_R, J_Z, J_phi)``.  For finite-beta equilibrium backends that can
+    evaluate directly on a PEST surface, ``field`` may instead expose
+    ``evaluate_pest_surface(surface_index, theta, phi, R=None, Z=None)`` and
+    ``nfp`` attributes.  By default, streamlines are constrained to the selected
+    PEST surfaces by projecting ``J`` onto the surface tangent plane before
+    stepping in ``(theta, phi)``.  Set ``constrain_to_surface=False`` only for raw
+    interpolation diagnostics.
     """
 
-    if not isinstance(field, VectorFieldCylind):
-        raise TypeError("field must be a VectorFieldCylind")
     coords = _as_pest_coordinates(pest)
     _validate_pest(coords)
     n_phi, n_rho, _n_theta = coords.R_surf.shape
@@ -589,7 +795,7 @@ def trace_j_streamlines_on_pest(
     seed_Z = seeds["Z"]
     seed_phi = seeds["phi"]
     n_seed = seed_R.size
-    field_eval = _PeriodicVectorFieldEvaluator.from_field(field)
+    field_eval = _as_vector_field_evaluator(field)
     n_steps = max(int(round(float(n_turns) * max(int(steps_per_turn), 1))), 1)
     n_points = 2 * n_steps + 1 if bidirectional else n_steps + 1
     h_base = TWOPI * max(float(np.nanmedian(seed_R)), 1.0e-12) / max(int(steps_per_turn), 1)
@@ -621,6 +827,7 @@ def trace_j_streamlines_on_pest(
                 field_eval,
                 theta_grid,
                 phi_grid,
+                surface_index=int(ir),
                 min_field_norm=float(min_field_norm),
                 min_tangent_norm=tangent_floor,
             )
@@ -965,6 +1172,7 @@ def plot_j_streamline_seed_sections(
 
 
 __all__ = [
+    "GriddedPestVectorField",
     "PestSeededStreamlines",
     "plot_j_streamline_seed_sections",
     "plot_j_streamlines_on_pest_surface_plotly",
