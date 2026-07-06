@@ -68,6 +68,12 @@ from pyna.plot.tube import (
     TUBE_MARKERS_O,
     TUBE_MARKERS_X,
 )
+from pyna.plot.j_streamlines import (
+    PestSeededStreamlines,
+    plot_j_streamline_seed_sections,
+    plot_j_streamlines_on_pest_surface_plotly,
+    trace_j_streamlines_on_pest,
+)
 
 __all__ = [
     # Island / IslandChain
@@ -133,4 +139,8 @@ __all__ = [
     "TUBE_COLORS",
     "TUBE_MARKERS_O",
     "TUBE_MARKERS_X",
+    "PestSeededStreamlines",
+    "plot_j_streamline_seed_sections",
+    "plot_j_streamlines_on_pest_surface_plotly",
+    "trace_j_streamlines_on_pest",
 ]
