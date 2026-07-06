@@ -189,6 +189,35 @@ def test_trace_j_streamlines_can_run_raw_cartesian_diagnostic_mode():
     assert np.isnan(lines.theta).all()
 
 
+def test_trace_gridded_pest_field_can_run_cartesian_surface_projected_mode():
+    pest = _toy_pest()
+    shape = pest.R_surf.shape
+    field = GriddedPestVectorField.from_pest_coordinates(
+        pest,
+        JR=np.zeros(shape),
+        JZ=np.zeros(shape),
+        JPhi=np.ones(shape),
+        nfp=1,
+        source="toy finite-beta J",
+    )
+
+    lines = trace_j_streamlines_on_pest(
+        field,
+        pest,
+        phi_indices=[0],
+        seed_count=2,
+        n_turns=0.03,
+        steps_per_turn=32,
+        constrain_to_surface=False,
+    )
+
+    assert lines.metadata["trace_backend"] == "pyna.plot.j_streamlines.python_rk4_cartesian_surface_projected_arclength"
+    assert lines.metadata["trace_mode"] == "cartesian_surface_projected"
+    assert lines.metadata["surface_constraint"] is False
+    assert np.isfinite(lines.R).all()
+    assert np.isnan(lines.theta).all()
+
+
 def test_j_streamline_helpers_are_exported_from_pyna_plot():
     import pyna.plot as pplot
 
@@ -237,6 +266,30 @@ def test_plot_j_streamline_seed_sections_returns_matplotlib_axes():
     fig, axes = plot_j_streamline_seed_sections(lines, pest, title="synthetic J streamlines")
 
     assert axes.shape == (1, 2)
+    assert len(axes.ravel()[0].lines) > 0
+    fig.canvas.draw()
+
+
+def test_plot_raw_cartesian_streamlines_projects_to_seed_pest_section():
+    pest = _toy_pest()
+    lines = trace_j_streamlines_on_pest(
+        _toroidal_current_field(),
+        pest,
+        phi_indices=[0],
+        seed_count=3,
+        n_turns=0.04,
+        steps_per_turn=32,
+        constrain_to_surface=False,
+    )
+
+    fig, axes = plot_j_streamline_seed_sections(
+        lines,
+        pest,
+        title="raw Cartesian J streamlines",
+        project_cartesian_to_pest=True,
+    )
+
+    assert axes.shape == (1, 1)
     assert len(axes.ravel()[0].lines) > 0
     fig.canvas.draw()
 

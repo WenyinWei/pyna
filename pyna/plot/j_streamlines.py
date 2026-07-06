@@ -401,6 +401,111 @@ def _periodic_surface_bilinear(
     )
 
 
+def _surface_ring_at_phi(
+    values: np.ndarray,
+    phi: float,
+    *,
+    phi0: float,
+    phi_period: float,
+) -> np.ndarray:
+    vals = np.asarray(values, dtype=np.float64)
+    if vals.ndim != 2:
+        raise ValueError("surface ring values must have shape (n_phi, n_theta)")
+    n_phi = vals.shape[0]
+    if n_phi < 2:
+        return vals[0].copy()
+    u_phi = np.mod(float(phi) - float(phi0), float(phi_period)) * (float(n_phi) / float(phi_period))
+    f_phi = np.floor(u_phi)
+    i0 = int(f_phi) % n_phi
+    i1 = (i0 + 1) % n_phi
+    a = float(u_phi - f_phi)
+    return (1.0 - a) * vals[i0] + a * vals[i1]
+
+
+def _nearest_periodic_ring_theta(
+    R_ring: np.ndarray,
+    Z_ring: np.ndarray,
+    theta_vals: np.ndarray,
+    R_point: float,
+    Z_point: float,
+) -> tuple[float, float]:
+    R = np.asarray(R_ring, dtype=np.float64)
+    Z = np.asarray(Z_ring, dtype=np.float64)
+    theta = np.asarray(theta_vals, dtype=np.float64)
+    if R.ndim != 1 or Z.ndim != 1 or theta.ndim != 1 or R.size != Z.size or R.size != theta.size:
+        raise ValueError("ring arrays must be one-dimensional with matching lengths")
+    if R.size < 3 or not (np.isfinite(R_point) and np.isfinite(Z_point)):
+        return float("nan"), float("nan")
+    R1 = np.roll(R, -1)
+    Z1 = np.roll(Z, -1)
+    dR = R1 - R
+    dZ = Z1 - Z
+    seg2 = dR * dR + dZ * dZ
+    valid = np.isfinite(R) & np.isfinite(Z) & np.isfinite(R1) & np.isfinite(Z1) & (seg2 > 0.0)
+    if not np.any(valid):
+        return float("nan"), float("nan")
+    t = np.zeros_like(R, dtype=np.float64)
+    t[valid] = np.clip(((float(R_point) - R[valid]) * dR[valid] + (float(Z_point) - Z[valid]) * dZ[valid]) / seg2[valid], 0.0, 1.0)
+    closest_R = R + t * dR
+    closest_Z = Z + t * dZ
+    dist2 = (closest_R - float(R_point)) ** 2 + (closest_Z - float(Z_point)) ** 2
+    dist2[~valid] = np.inf
+    idx = int(np.nanargmin(dist2))
+    if not np.isfinite(dist2[idx]):
+        return float("nan"), float("nan")
+    n_theta = theta.size
+    j1 = (idx + 1) % n_theta
+    dtheta = float(np.mod(theta[j1] - theta[idx], TWOPI))
+    if dtheta <= 0.0:
+        dtheta = TWOPI / float(n_theta)
+    theta_point = float(theta[idx] + t[idx] * dtheta)
+    return theta_point, float(np.sqrt(dist2[idx]))
+
+
+def _default_surface_projection_distance(coords: SmoothPestCoordinates, surface_index: int) -> float:
+    ir = int(surface_index) % coords.R_surf.shape[1]
+    R = np.asarray(coords.R_surf[:, ir, :], dtype=np.float64)
+    Z = np.asarray(coords.Z_surf[:, ir, :], dtype=np.float64)
+    dR = np.diff(np.concatenate([R, R[:, :1]], axis=1), axis=1)
+    dZ = np.diff(np.concatenate([Z, Z[:, :1]], axis=1), axis=1)
+    step = np.sqrt(dR * dR + dZ * dZ)
+    finite = step[np.isfinite(step) & (step > 0.0)]
+    if finite.size:
+        return float(max(2.5 * np.nanmedian(finite), 1.0e-9))
+    span = max(float(np.nanmax(R) - np.nanmin(R)), float(np.nanmax(Z) - np.nanmin(Z)), 1.0e-12)
+    return float(0.03 * span)
+
+
+def _cartesian_line_theta_on_seed_surface(
+    coords: SmoothPestCoordinates,
+    *,
+    surface_index: int,
+    R_line: np.ndarray,
+    Z_line: np.ndarray,
+    phi_line: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    ir = int(surface_index) % coords.R_surf.shape[1]
+    R_arr = np.asarray(R_line, dtype=np.float64)
+    Z_arr = np.asarray(Z_line, dtype=np.float64)
+    phi_arr = np.asarray(phi_line, dtype=np.float64)
+    theta_out = np.full(R_arr.shape, np.nan, dtype=np.float64)
+    dist_out = np.full(R_arr.shape, np.nan, dtype=np.float64)
+    phi0 = float(coords.phi_vals[0]) if np.asarray(coords.phi_vals).size else 0.0
+    phi_period = float(getattr(coords, "period", TWOPI) or TWOPI)
+    theta_vals = np.asarray(coords.theta_vals, dtype=np.float64)
+    R_surface = np.asarray(coords.R_surf[:, ir, :], dtype=np.float64)
+    Z_surface = np.asarray(coords.Z_surf[:, ir, :], dtype=np.float64)
+    for idx in range(R_arr.size):
+        if not (np.isfinite(R_arr[idx]) and np.isfinite(Z_arr[idx]) and np.isfinite(phi_arr[idx])):
+            continue
+        R_ring = _surface_ring_at_phi(R_surface, float(phi_arr[idx]), phi0=phi0, phi_period=phi_period)
+        Z_ring = _surface_ring_at_phi(Z_surface, float(phi_arr[idx]), phi0=phi0, phi_period=phi_period)
+        theta, distance = _nearest_periodic_ring_theta(R_ring, Z_ring, theta_vals, float(R_arr[idx]), float(Z_arr[idx]))
+        theta_out[idx] = theta
+        dist_out[idx] = distance
+    return theta_out, dist_out
+
+
 @dataclass(frozen=True)
 class _PestSurfaceEvaluator:
     R: np.ndarray
@@ -517,6 +622,121 @@ def _rk4_step_cartesian(
         y + h * k3y,
         z + h * k3z,
         min_field_norm=min_field_norm,
+    )
+    out_x = x + h * (k1x + 2.0 * k2x + 2.0 * k3x + k4x) / 6.0
+    out_y = y + h * (k1y + 2.0 * k2y + 2.0 * k3y + k4y) / 6.0
+    out_z = z + h * (k1z + 2.0 * k2z + 2.0 * k3z + k4z) / 6.0
+    out_phi = _wrap_angle_near_reference(np.arctan2(out_y, out_x), phi_ref)
+    return out_x, out_y, out_z, out_phi
+
+
+def _cartesian_surface_projected_rhs(
+    coords: SmoothPestCoordinates,
+    surface_indices: np.ndarray,
+    field_eval,
+    x: np.ndarray,
+    y: np.ndarray,
+    z: np.ndarray,
+    *,
+    min_field_norm: float,
+    max_surface_distance: float | None,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    R = np.sqrt(x * x + y * y)
+    phi = np.arctan2(y, x)
+    dx = np.full_like(x, np.nan, dtype=np.float64)
+    dy = np.full_like(y, np.nan, dtype=np.float64)
+    dz = np.full_like(z, np.nan, dtype=np.float64)
+    for ir in np.unique(surface_indices):
+        selected = surface_indices == int(ir)
+        if not np.any(selected):
+            continue
+        theta, distance = _cartesian_line_theta_on_seed_surface(
+            coords,
+            surface_index=int(ir),
+            R_line=R[selected],
+            Z_line=z[selected],
+            phi_line=phi[selected],
+        )
+        distance_limit = (
+            _default_surface_projection_distance(coords, int(ir))
+            if max_surface_distance is None
+            else float(max_surface_distance)
+        )
+        local_good = (
+            np.isfinite(theta)
+            & np.isfinite(distance)
+            & (distance <= distance_limit)
+            & np.isfinite(R[selected])
+            & np.isfinite(z[selected])
+            & np.isfinite(phi[selected])
+        )
+        if not np.any(local_good):
+            continue
+        global_idx = np.flatnonzero(selected)[local_good]
+        values = np.asarray(
+            field_eval.evaluate_pest_surface(
+                int(ir),
+                theta[local_good],
+                phi[selected][local_good],
+                R=R[selected][local_good],
+                Z=z[selected][local_good],
+            ),
+            dtype=np.float64,
+        )
+        vR = values[..., 0]
+        vZ = values[..., 1]
+        vPhi = values[..., 2]
+        norm = np.sqrt(vR * vR + vZ * vZ + vPhi * vPhi)
+        good = np.isfinite(vR) & np.isfinite(vZ) & np.isfinite(vPhi) & (norm > float(min_field_norm))
+        if not np.any(good):
+            continue
+        idx = global_idx[good]
+        cp = np.cos(phi[idx])
+        sp = np.sin(phi[idx])
+        dx[idx] = (vR[good] * cp - vPhi[good] * sp) / norm[good]
+        dy[idx] = (vR[good] * sp + vPhi[good] * cp) / norm[good]
+        dz[idx] = vZ[good] / norm[good]
+    return dx, dy, dz
+
+
+def _rk4_step_cartesian_surface_projected(
+    coords: SmoothPestCoordinates,
+    surface_indices: np.ndarray,
+    field_eval,
+    x: np.ndarray,
+    y: np.ndarray,
+    z: np.ndarray,
+    phi_ref: np.ndarray,
+    *,
+    h: float,
+    min_field_norm: float,
+    max_surface_distance: float | None,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    kw = dict(
+        coords=coords,
+        surface_indices=surface_indices,
+        field_eval=field_eval,
+        min_field_norm=min_field_norm,
+        max_surface_distance=max_surface_distance,
+    )
+    k1x, k1y, k1z = _cartesian_surface_projected_rhs(x=x, y=y, z=z, **kw)
+    k2x, k2y, k2z = _cartesian_surface_projected_rhs(
+        x=x + 0.5 * h * k1x,
+        y=y + 0.5 * h * k1y,
+        z=z + 0.5 * h * k1z,
+        **kw,
+    )
+    k3x, k3y, k3z = _cartesian_surface_projected_rhs(
+        x=x + 0.5 * h * k2x,
+        y=y + 0.5 * h * k2y,
+        z=z + 0.5 * h * k2z,
+        **kw,
+    )
+    k4x, k4y, k4z = _cartesian_surface_projected_rhs(
+        x=x + h * k3x,
+        y=y + h * k3y,
+        z=z + h * k3z,
+        **kw,
     )
     out_x = x + h * (k1x + 2.0 * k2x + 2.0 * k3x + k4x) / 6.0
     out_y = y + h * (k1y + 2.0 * k2y + 2.0 * k3y + k4y) / 6.0
@@ -749,6 +969,25 @@ def _seed_points(
     }
 
 
+def _median_seed_surface_perimeter(coords: SmoothPestCoordinates, seeds: Mapping[str, np.ndarray]) -> float:
+    values: list[float] = []
+    for iphi, irho in sorted({(int(ip), int(ir)) for ip, ir in zip(seeds["phi_index"], seeds["surface_index"])}):
+        R = np.asarray(coords.R_surf[iphi % coords.R_surf.shape[0], irho % coords.R_surf.shape[1]], dtype=np.float64)
+        Z = np.asarray(coords.Z_surf[iphi % coords.Z_surf.shape[0], irho % coords.Z_surf.shape[1]], dtype=np.float64)
+        finite = np.isfinite(R) & np.isfinite(Z)
+        if np.count_nonzero(finite) < 4:
+            continue
+        Rf = R[finite]
+        Zf = Z[finite]
+        step = np.sqrt(np.diff(np.r_[Rf, Rf[0]]) ** 2 + np.diff(np.r_[Zf, Zf[0]]) ** 2)
+        perimeter = float(np.nansum(step))
+        if np.isfinite(perimeter) and perimeter > 0.0:
+            values.append(perimeter)
+    if values:
+        return float(np.nanmedian(values))
+    return float(TWOPI * max(np.nanmedian(seeds["R"]), 1.0e-12))
+
+
 def trace_j_streamlines_on_pest(
     field: VectorFieldCylind | object,
     pest: SmoothPestCoordinates | Mapping[str, object] | str | Path,
@@ -763,6 +1002,7 @@ def trace_j_streamlines_on_pest(
     min_field_norm: float = 1.0e-14,
     min_tangent_norm: float | None = None,
     constrain_to_surface: bool = True,
+    max_surface_distance: float | None = None,
 ) -> PestSeededStreamlines:
     """Trace current streamlines from PEST-surface seeds.
 
@@ -773,8 +1013,9 @@ def trace_j_streamlines_on_pest(
     ``evaluate_pest_surface(surface_index, theta, phi, R=None, Z=None)`` and
     ``nfp`` attributes.  By default, streamlines are constrained to the selected
     PEST surfaces by projecting ``J`` onto the surface tangent plane before
-    stepping in ``(theta, phi)``.  Set ``constrain_to_surface=False`` only for raw
-    interpolation diagnostics.
+    stepping in ``(theta, phi)``.  Set ``constrain_to_surface=False`` to integrate
+    in physical Cartesian space; the PEST mesh is then used only for seeding and
+    section projection.
     """
 
     coords = _as_pest_coordinates(pest)
@@ -798,7 +1039,8 @@ def trace_j_streamlines_on_pest(
     field_eval = _as_vector_field_evaluator(field)
     n_steps = max(int(round(float(n_turns) * max(int(steps_per_turn), 1))), 1)
     n_points = 2 * n_steps + 1 if bidirectional else n_steps + 1
-    h_base = TWOPI * max(float(np.nanmedian(seed_R)), 1.0e-12) / max(int(steps_per_turn), 1)
+    surface_arclength_per_turn = _median_seed_surface_perimeter(coords, seeds)
+    h_base = float(surface_arclength_per_turn) / max(int(steps_per_turn), 1)
     tangent_floor = float(min_field_norm if min_tangent_norm is None else min_tangent_norm)
     trajectory_leakage_samples: list[np.ndarray] = []
     trajectory_tangent_fraction_samples: list[np.ndarray] = []
@@ -879,6 +1121,8 @@ def trace_j_streamlines_on_pest(
     else:
         theta = np.full((n_seed, n_points), np.nan, dtype=np.float64)
 
+        use_surface_projected_cartesian = hasattr(field_eval, "evaluate_pest_surface")
+
         def integrate_cartesian(direction: float, count: int) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
             x0 = seed_R * np.cos(seed_phi)
             y0 = seed_R * np.sin(seed_phi)
@@ -890,15 +1134,29 @@ def trace_j_streamlines_on_pest(
             phis = [phi0.copy()]
             x_curr, y_curr, z_curr, phi_curr = x0, y0, z0, phi0
             for _ in range(count):
-                x_curr, y_curr, z_curr, phi_curr = _rk4_step_cartesian(
-                    field_eval,
-                    x_curr,
-                    y_curr,
-                    z_curr,
-                    phi_curr,
-                    h=float(direction) * h_base,
-                    min_field_norm=float(min_field_norm),
-                )
+                if use_surface_projected_cartesian:
+                    x_curr, y_curr, z_curr, phi_curr = _rk4_step_cartesian_surface_projected(
+                        coords,
+                        seeds["surface_index"],
+                        field_eval,
+                        x_curr,
+                        y_curr,
+                        z_curr,
+                        phi_curr,
+                        h=float(direction) * h_base,
+                        min_field_norm=float(min_field_norm),
+                        max_surface_distance=max_surface_distance,
+                    )
+                else:
+                    x_curr, y_curr, z_curr, phi_curr = _rk4_step_cartesian(
+                        field_eval,
+                        x_curr,
+                        y_curr,
+                        z_curr,
+                        phi_curr,
+                        h=float(direction) * h_base,
+                        min_field_norm=float(min_field_norm),
+                    )
                 xs.append(x_curr.copy())
                 ys.append(y_curr.copy())
                 zs.append(z_curr.copy())
@@ -915,9 +1173,13 @@ def trace_j_streamlines_on_pest(
         else:
             x, y, z, phi = integrate_cartesian(1.0, n_steps)
         R = np.sqrt(x * x + y * y)
-        trace_backend = "pyna.plot.j_streamlines.python_rk4_cartesian_arclength"
+        trace_backend = (
+            "pyna.plot.j_streamlines.python_rk4_cartesian_surface_projected_arclength"
+            if use_surface_projected_cartesian
+            else "pyna.plot.j_streamlines.python_rk4_cartesian_arclength"
+        )
         trace_parameter = "normalized_cartesian_arclength"
-        trace_mode = "raw_cartesian_unconstrained"
+        trace_mode = "cartesian_surface_projected" if use_surface_projected_cartesian else "raw_cartesian_unconstrained"
 
     metadata: dict[str, object] = {
         "schema": "pyna_pest_seeded_j_streamlines_v1",
@@ -934,6 +1196,9 @@ def trace_j_streamlines_on_pest(
         "seed_count": int(seed_count),
         "n_seed_lines": int(n_seed),
         "n_points": int(n_points),
+        "surface_arclength_per_turn": float(surface_arclength_per_turn),
+        "integration_step_arclength": float(abs(h_base)),
+        "max_surface_distance": None if max_surface_distance is None else float(max_surface_distance),
         "bidirectional": bool(bidirectional),
         "surface_indices": [int(i) for i in surf_idx],
         "phi_indices": [int(i) for i in phi_idx],
@@ -982,6 +1247,52 @@ def _surface_xyz(
     Z = np.asarray(pest.Z_surf[:, ir, :], dtype=np.float64)[::step, ::step]
     phi = np.asarray(pest.phi_vals, dtype=np.float64)[::step, np.newaxis]
     return _cylindrical_to_cartesian(R, Z, phi)
+
+
+def _plot_segmented_section_line(
+    ax,
+    R_line: np.ndarray,
+    Z_line: np.ndarray,
+    *,
+    max_step: float,
+    color,
+    lw: float,
+    alpha: float,
+) -> None:
+    R = np.asarray(R_line, dtype=np.float64)
+    Z = np.asarray(Z_line, dtype=np.float64)
+    finite = np.isfinite(R) & np.isfinite(Z)
+    if np.count_nonzero(finite) < 2:
+        return
+    split = np.ones(R.size, dtype=bool)
+    split[1:] = (
+        ~finite[1:]
+        | ~finite[:-1]
+        | (np.sqrt(np.diff(R) ** 2 + np.diff(Z) ** 2) > float(max_step))
+    )
+    starts = np.flatnonzero(finite & split)
+    for start in starts:
+        end = start + 1
+        while end < R.size and finite[end] and not split[end]:
+            end += 1
+        if end - start >= 2:
+            ax.plot(R[start:end], Z[start:end], color=color, lw=lw, alpha=alpha)
+
+
+def _finite_segment_slices(mask: np.ndarray) -> list[slice]:
+    finite = np.asarray(mask, dtype=bool)
+    segments: list[slice] = []
+    start: int | None = None
+    for idx, value in enumerate(finite):
+        if value and start is None:
+            start = int(idx)
+        elif not value and start is not None:
+            if idx - start >= 2:
+                segments.append(slice(start, idx))
+            start = None
+    if start is not None and finite.size - start >= 2:
+        segments.append(slice(start, finite.size))
+    return segments
 
 
 def plot_j_streamlines_on_pest_surface_plotly(
@@ -1045,28 +1356,30 @@ def plot_j_streamlines_on_pest_surface_plotly(
             continue
         color_value = (float(streamlines.seed_rho[line_idx]) - rho_min) / (rho_max - rho_min)
         color = sample_colorscale("Viridis", color_value)[0]
-        fig.add_trace(
-            go.Scatter3d(
-                x=streamlines.x[line_idx, keep],
-                y=streamlines.y[line_idx, keep],
-                z=streamlines.z[line_idx, keep],
-                mode="lines",
-                line=dict(color=color, width=float(line_width)),
-                name=f"J line {line_idx}",
-                hovertemplate=(
-                    "seed rho=%{customdata[0]:.3f}<br>"
-                    "seed theta=%{customdata[1]:.3f}<br>"
-                    "X=%{x:.3f}<br>Y=%{y:.3f}<br>Z=%{z:.3f}<extra></extra>"
-                ),
-                customdata=np.column_stack(
-                    [
-                        np.full(np.count_nonzero(keep), streamlines.seed_rho[line_idx]),
-                        np.full(np.count_nonzero(keep), streamlines.seed_theta[line_idx]),
-                    ]
-                ),
-                showlegend=False,
+        for segment_idx, segment in enumerate(_finite_segment_slices(keep)):
+            point_count = int(segment.stop - segment.start)
+            fig.add_trace(
+                go.Scatter3d(
+                    x=streamlines.x[line_idx, segment],
+                    y=streamlines.y[line_idx, segment],
+                    z=streamlines.z[line_idx, segment],
+                    mode="lines",
+                    line=dict(color=color, width=float(line_width)),
+                    name=f"J line {line_idx}" if segment_idx == 0 else f"J line {line_idx} segment {segment_idx}",
+                    hovertemplate=(
+                        "seed rho=%{customdata[0]:.3f}<br>"
+                        "seed theta=%{customdata[1]:.3f}<br>"
+                        "X=%{x:.3f}<br>Y=%{y:.3f}<br>Z=%{z:.3f}<extra></extra>"
+                    ),
+                    customdata=np.column_stack(
+                        [
+                            np.full(point_count, streamlines.seed_rho[line_idx]),
+                            np.full(point_count, streamlines.seed_theta[line_idx]),
+                        ]
+                    ),
+                    showlegend=False,
+                )
             )
-        )
     fig.update_layout(
         title=title,
         scene=dict(
@@ -1093,8 +1406,11 @@ def plot_j_streamline_seed_sections(
     title: str | None = None,
     line_width: float = 1.1,
     alpha: float = 0.86,
+    max_projection_step: float | None = None,
+    project_cartesian_to_pest: bool = True,
+    max_surface_distance: float | None = None,
 ):
-    """Plot R/Z projections of PEST-seeded J streamlines on seed sections."""
+    """Plot PEST-seeded J streamlines projected back to their seed sections."""
 
     import matplotlib
 
@@ -1122,6 +1438,7 @@ def plot_j_streamline_seed_sections(
         streamlines.metadata.get("trace_mode") == "pest_surface_constrained"
         and np.shape(streamlines.theta) == np.shape(streamlines.R)
     )
+    use_cartesian_projection = bool(project_cartesian_to_pest) and not use_pest_projection
     phi0 = float(coords.phi_vals[0]) if np.asarray(coords.phi_vals).size else 0.0
     theta0 = float(coords.theta_vals[0]) if np.asarray(coords.theta_vals).size else 0.0
     phi_period = float(getattr(coords, "period", TWOPI) or TWOPI)
@@ -1131,11 +1448,20 @@ def plot_j_streamline_seed_sections(
         ax = axes.ravel()[out_idx]
         ip = int(iphi) % coords.R_surf.shape[0]
         draw_smooth_pest_grid(ax, coords.R_surf[ip], coords.Z_surf[ip])
+        sec_R = np.asarray(coords.R_surf[ip], dtype=np.float64)
+        sec_Z = np.asarray(coords.Z_surf[ip], dtype=np.float64)
+        if max_projection_step is None:
+            span = max(float(np.nanmax(sec_R) - np.nanmin(sec_R)), float(np.nanmax(sec_Z) - np.nanmin(sec_Z)), 1.0e-12)
+            step_limit = 0.08 * span
+        else:
+            step_limit = float(max_projection_step)
         selected = np.flatnonzero(streamlines.seed_phi_index == ip)
         for line_idx in selected:
             keep = np.isfinite(streamlines.R[line_idx]) & np.isfinite(streamlines.Z[line_idx])
             if use_pest_projection:
                 keep &= np.isfinite(streamlines.theta[line_idx])
+            if use_cartesian_projection:
+                keep &= np.isfinite(streamlines.phi[line_idx])
             if np.count_nonzero(keep) < 2:
                 continue
             if use_pest_projection:
@@ -1158,11 +1484,59 @@ def plot_j_streamline_seed_sections(
                     theta0=theta0,
                     phi_period=phi_period,
                 )
+            elif use_cartesian_projection:
+                ir = int(streamlines.seed_surface_index[line_idx]) % coords.R_surf.shape[1]
+                theta_line_all, distance_all = _cartesian_line_theta_on_seed_surface(
+                    coords,
+                    surface_index=ir,
+                    R_line=streamlines.R[line_idx],
+                    Z_line=streamlines.Z[line_idx],
+                    phi_line=streamlines.phi[line_idx],
+                )
+                distance_limit = (
+                    _default_surface_projection_distance(coords, ir)
+                    if max_surface_distance is None
+                    else float(max_surface_distance)
+                )
+                keep = (
+                    keep
+                    & np.isfinite(theta_line_all)
+                    & np.isfinite(distance_all)
+                    & (distance_all <= distance_limit)
+                )
+                if np.count_nonzero(keep) < 2:
+                    continue
+                theta_line = theta_line_all[keep]
+                phi_line = np.full_like(theta_line, float(coords.phi_vals[ip]), dtype=np.float64)
+                R_line = _periodic_surface_bilinear(
+                    coords.R_surf[:, ir, :],
+                    phi_line,
+                    theta_line,
+                    phi0=phi0,
+                    theta0=theta0,
+                    phi_period=phi_period,
+                )
+                Z_line = _periodic_surface_bilinear(
+                    coords.Z_surf[:, ir, :],
+                    phi_line,
+                    theta_line,
+                    phi0=phi0,
+                    theta0=theta0,
+                    phi_period=phi_period,
+                )
             else:
                 R_line = streamlines.R[line_idx, keep]
                 Z_line = streamlines.Z[line_idx, keep]
             cval = (float(streamlines.seed_rho[line_idx]) - rho_min) / (rho_max - rho_min)
-            ax.plot(R_line, Z_line, color=cmap(cval), lw=line_width, alpha=alpha)
+            _plot_segmented_section_line(
+                ax,
+                R_line,
+                Z_line,
+                max_step=step_limit,
+                color=cmap(cval),
+                lw=line_width,
+                alpha=alpha,
+            )
         ax.set_title(f"phi={float(coords.phi_vals[ip]):.3f}")
         ax.set_xlabel("R [m]")
         ax.set_ylabel("Z [m]")
