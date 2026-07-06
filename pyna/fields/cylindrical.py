@@ -186,10 +186,10 @@ def close_periodic_field_cache_phi(field_cache: Mapping[str, Any]) -> dict[str, 
 
     out = dict(field_cache)
     phi_raw = np.asarray(field_cache["Phi_grid"], dtype=np.float64)
-    field_periods = int(field_cache.get("field_periods", 1))
+    nfp = int(field_cache.get("nfp", field_cache.get("field_periods", 1)))
     period = (
-        2.0 * np.pi / max(field_periods, 1)
-        if "field_periods" in field_cache or phi_raw.size <= 1
+        2.0 * np.pi / max(nfp, 1)
+        if "nfp" in field_cache or "field_periods" in field_cache or phi_raw.size <= 1
         else None
     )
     Phi, BR, BZ, BPhi = close_periodic_phi_grid(
@@ -223,7 +223,21 @@ class CylindricalFieldArrays:
     BR: np.ndarray
     BZ: np.ndarray
     BPhi: np.ndarray
-    field_periods: int = 1
+    nfp: int = 1
+
+    @property
+    def field_periods(self) -> int:
+        """Legacy alias for ``nfp``."""
+
+        return int(self.nfp)
+
+    @property
+    def field_period_rad(self) -> float:
+        return 2.0 * np.pi / max(int(self.nfp), 1)
+
+    @property
+    def field_period(self) -> float:
+        return self.field_period_rad
 
     @property
     def BR_flat(self) -> np.ndarray:
@@ -249,7 +263,9 @@ class CylindricalFieldArrays:
             "R_grid": self.R_grid,
             "Z_grid": self.Z_grid,
             "Phi_grid": self.Phi_grid,
-            "field_periods": int(self.field_periods),
+            "nfp": int(self.nfp),
+            "field_period_rad": float(self.field_period_rad),
+            "field_periods": int(self.nfp),
         }
 
     def cyna_component_args(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -272,8 +288,11 @@ class ScalarFieldCylind(ScalarField3D):
         Grid axes.
     value : ndarray, shape (nR, nZ, nPhi)
         Field values.
+    nfp : int
+        Number of toroidal field periods. If greater than one, ``Phi`` covers
+        one angular field period, ``2*pi/nfp``.
     field_periods : int
-        Toroidal field periods. If > 1, Phi covers [0, 2π/N_fp].
+        Legacy alias for ``nfp``.
     name, units : str
     properties : FieldProperty
     """
@@ -290,7 +309,7 @@ class ScalarFieldCylind(ScalarField3D):
         "_nPhi",
         "_axisymmetric",
         "_interp",
-        "field_periods",
+        "_nfp",
     )
 
     def __init__(
@@ -322,7 +341,7 @@ class ScalarFieldCylind(ScalarField3D):
         self._Z = Z_arr
         self._Phi = Phi_arr
         self._value = value_arr
-        self.field_periods = int(field_periods)
+        self._nfp = int(field_periods)
         self._shape = shape
         self._nR = int(shape[0])
         self._nZ = int(shape[1])
@@ -345,16 +364,20 @@ class ScalarFieldCylind(ScalarField3D):
     @property
     def B(self) -> np.ndarray: return self._value
     @property
-    def nfp(self) -> int: return int(self.field_periods)
+    def nfp(self) -> int: return int(self._nfp)
     @property
-    def field_period(self) -> float: return 2.0 * np.pi / max(int(self.field_periods), 1)
+    def field_period_rad(self) -> float: return 2.0 * np.pi / max(int(self.nfp), 1)
+    @property
+    def field_period(self) -> float: return self.field_period_rad
+    @property
+    def field_periods(self) -> int: return int(self.nfp)
 
     def _build_interp(self):
         if self._interp is None:
             phi = self._Phi
             value = self._value
-            if self.field_periods > 1:
-                period = 2.0 * np.pi / max(int(self.field_periods), 1)
+            if self.nfp > 1:
+                period = 2.0 * np.pi / max(int(self.nfp), 1)
                 phi, value = _extend_endpoint_false_periodic_phi(phi, value, period)
             self._interp = RegularGridInterpolator(
                 (self._R, self._Z, phi), value,
@@ -364,9 +387,9 @@ class ScalarFieldCylind(ScalarField3D):
         """Evaluate at coords, shape (..., 3) = (R, Z, phi)."""
         self._build_interp()
         coords = np.asarray(coords, dtype=float)
-        if self.field_periods > 1:
+        if self.nfp > 1:
             coords = coords.copy()
-            coords[..., 2] = coords[..., 2] % (2 * np.pi / self.field_periods)
+            coords[..., 2] = coords[..., 2] % self.field_period_rad
         shape = coords.shape[:-1]
         pts = coords.reshape(-1, 3)
         return self._interp(pts).reshape(shape)
@@ -382,15 +405,24 @@ class ScalarFieldCylind(ScalarField3D):
         return self(coords).reshape(R.shape)
 
     def to_npz(self, path: str) -> None:
-        np.savez_compressed(path, R=self._R, Z=self._Z, Phi=self._Phi,
-                            value=self._value, field_periods=self.field_periods,
-                            name=self.name, units=self.units)
+        np.savez_compressed(
+            path,
+            R=self._R,
+            Z=self._Z,
+            Phi=self._Phi,
+            value=self._value,
+            nfp=self.nfp,
+            field_period_rad=self.field_period_rad,
+            field_periods=self.nfp,
+            name=self.name,
+            units=self.units,
+        )
 
     @classmethod
     def from_npz(cls, path: str) -> "ScalarFieldCylind":
         d = np.load(path, allow_pickle=True)
         return cls(R=d['R'], Z=d['Z'], Phi=d['Phi'], value=d['value'],
-                   field_periods=int(d.get('field_periods', d.get('nfp', 1))),
+                   nfp=int(d.get('nfp', d.get('field_periods', 1))),
                    name=str(d.get('name', '')), units=str(d.get('units', '')))
 
     @property
@@ -484,10 +516,11 @@ class VectorFieldCylind(VectorField3D):
         Grid axes.  ``Phi`` may be omitted for a fixed-section 2-D field.
     VR, VZ, VPhi or BR, BZ, BPhi : ndarray
         Vector components in canonical ``R, Z, Phi`` order.
-    field_periods : int
     nfp : int, optional
-        Alias for ``field_periods``.  If ``nfp > 1``, ``Phi`` must cover one
-        field period, not a full torus.
+        Number of toroidal field periods.  If ``nfp > 1``, ``Phi`` must cover
+        one angular field period, ``2*pi/nfp``, not a full torus.
+    field_periods : int
+        Legacy alias for ``nfp``.
     name, units : str
     properties : FieldProperty
     """
@@ -510,7 +543,7 @@ class VectorFieldCylind(VectorField3D):
         "_interp_VPhi",
         "phi",
         "label",
-        "field_periods",
+        "_nfp",
     )
 
     component_order = ("R", "Z", "Phi")
@@ -602,7 +635,7 @@ class VectorFieldCylind(VectorField3D):
         self.phi = float(phi)
         self.label = label
         self._section_mode = section
-        self.field_periods = int(field_periods)
+        self._nfp = int(field_periods)
         self._axisymmetric = bool(axisymmetric)
         shape = (len(self._R), len(self._Z), len(self._Phi))
         for arr, nm in [(self._VR, 'VR'), (self._VZ, 'VZ'), (self._VPhi, 'VPhi')]:
@@ -611,7 +644,7 @@ class VectorFieldCylind(VectorField3D):
         _validate_closed_periodic_endpoint(
             self._Phi,
             (self._VR, self._VZ, self._VPhi),
-            nfp=self.field_periods,
+            nfp=self.nfp,
             name="VectorFieldCylind",
         )
         self._shape = shape[:2] if section else shape
@@ -640,9 +673,13 @@ class VectorFieldCylind(VectorField3D):
     @property
     def nPhi(self) -> int: return self._nPhi
     @property
-    def nfp(self) -> int: return int(self.field_periods)
+    def nfp(self) -> int: return int(self._nfp)
     @property
-    def field_period(self) -> float: return 2.0 * np.pi / max(int(self.field_periods), 1)
+    def field_period_rad(self) -> float: return 2.0 * np.pi / max(int(self.nfp), 1)
+    @property
+    def field_period(self) -> float: return self.field_period_rad
+    @property
+    def field_periods(self) -> int: return int(self.nfp)
 
     # Both naming conventions
     @property
@@ -712,8 +749,8 @@ class VectorFieldCylind(VectorField3D):
             vr = self._VR
             vz = self._VZ
             vphi = self._VPhi
-            if self.field_periods > 1:
-                period = 2.0 * np.pi / max(int(self.field_periods), 1)
+            if self.nfp > 1:
+                period = 2.0 * np.pi / max(int(self.nfp), 1)
                 phi, vr = _extend_endpoint_false_periodic_phi(phi, vr, period)
                 _, vz = _extend_endpoint_false_periodic_phi(self._Phi, vz, period)
                 _, vphi = _extend_endpoint_false_periodic_phi(self._Phi, vphi, period)
@@ -735,9 +772,9 @@ class VectorFieldCylind(VectorField3D):
         # New-style single-coords call
         self._build_interps()
         coords = np.asarray(coords_or_R, dtype=float)
-        if self.field_periods > 1:
+        if self.nfp > 1:
             coords = coords.copy()
-            coords[..., 2] = coords[..., 2] % (2 * np.pi / self.field_periods)
+            coords[..., 2] = coords[..., 2] % self.field_period_rad
         shape = coords.shape[:-1]
         pts = coords.reshape(-1, 3)
         VR   = self._interp_VR(pts).reshape(shape)
@@ -802,7 +839,7 @@ class VectorFieldCylind(VectorField3D):
         Phi = cache.get("Phi_grid", cache.get("Phi"))
         if R is None or Z is None or Phi is None:
             raise KeyError("field cache must provide R_grid/Z_grid/Phi_grid or R/Z/Phi")
-        field_periods = int(cache.get("field_periods", cache.get("nfp", 1)))
+        nfp = int(cache.get("nfp", cache.get("field_periods", 1)))
         if phi_idx is None:
             return cls(
                 R=R,
@@ -811,7 +848,7 @@ class VectorFieldCylind(VectorField3D):
                 BR=cache["BR"],
                 BZ=cache["BZ"],
                 BPhi=cache["BPhi"],
-                field_periods=field_periods,
+                nfp=nfp,
                 label=label or str(cache.get("label", "")),
             )
         phi_idx_i = int(phi_idx)
@@ -822,7 +859,7 @@ class VectorFieldCylind(VectorField3D):
             BZ=np.asarray(cache["BZ"])[:, :, phi_idx_i],
             BPhi=np.asarray(cache["BPhi"])[:, :, phi_idx_i],
             phi=float(np.asarray(Phi)[phi_idx_i]),
-            field_periods=field_periods,
+            nfp=nfp,
             label=label or f"cache_phi{phi_idx_i}",
             section_mode=True,
         )
@@ -934,7 +971,7 @@ class VectorFieldCylind(VectorField3D):
         BP3 = np.asarray(BPhi, dtype=np.float64)
 
         if extend_phi and Pg.size > 0:
-            period = 2.0 * np.pi / max(int(self.field_periods), 1)
+            period = 2.0 * np.pi / max(int(self.nfp), 1)
             Pg, BR3, BZ3, BP3 = close_periodic_phi_grid(
                 Pg, BR3, BZ3, BP3, period=period
             )
@@ -946,7 +983,7 @@ class VectorFieldCylind(VectorField3D):
             BR=np.ascontiguousarray(BR3, dtype=np.float64),
             BZ=np.ascontiguousarray(BZ3, dtype=np.float64),
             BPhi=np.ascontiguousarray(BP3, dtype=np.float64),
-            field_periods=int(self.field_periods),
+            nfp=int(self.nfp),
         )
 
     def to_field_cache(self, *, extend_phi: bool = False) -> dict[str, np.ndarray]:
@@ -993,10 +1030,20 @@ class VectorFieldCylind(VectorField3D):
                    name=name, units=units, **kwargs)
 
     def to_npz(self, path: str) -> None:
-        np.savez_compressed(path, R=self._R, Z=self._Z, Phi=self._Phi,
-                            VR=self._VR, VZ=self._VZ, VPhi=self._VPhi,
-                            field_periods=self.field_periods,
-                            name=self.name, units=self.units)
+        np.savez_compressed(
+            path,
+            R=self._R,
+            Z=self._Z,
+            Phi=self._Phi,
+            VR=self._VR,
+            VZ=self._VZ,
+            VPhi=self._VPhi,
+            nfp=self.nfp,
+            field_period_rad=self.field_period_rad,
+            field_periods=self.nfp,
+            name=self.name,
+            units=self.units,
+        )
 
     @classmethod
     def from_npz(cls, path: str) -> "VectorFieldCylind":
@@ -1006,7 +1053,7 @@ class VectorFieldCylind(VectorField3D):
         VZ = d.get('VZ', d.get('BZ'))
         VP = d.get('VPhi', d.get('BPhi'))
         return cls(R=d['R'], Z=d['Z'], Phi=d['Phi'], VR=VR, VZ=VZ, VPhi=VP,
-                   field_periods=int(d.get('field_periods', d.get('nfp', 1))),
+                   nfp=int(d.get('nfp', d.get('field_periods', 1))),
                    name=str(d.get('name', '')), units=str(d.get('units', '')))
 
     def __repr__(self) -> str:

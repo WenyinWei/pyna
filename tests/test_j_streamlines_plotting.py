@@ -41,6 +41,21 @@ def _toroidal_current_field():
     )
 
 
+def _normal_plus_toroidal_current_field():
+    R = np.linspace(0.65, 1.35, 33)
+    Z = np.linspace(-0.35, 0.35, 35)
+    Phi = np.linspace(0.0, 2.0 * np.pi, 16, endpoint=False)
+    RR, ZZ, _PP = np.meshgrid(R, Z, Phi, indexing="ij")
+    rho = np.sqrt((RR - 1.0) ** 2 + ZZ**2)
+    BR = np.zeros_like(rho)
+    BZ = np.zeros_like(rho)
+    valid = rho > 1.0e-12
+    BR[valid] = (RR[valid] - 1.0) / rho[valid]
+    BZ[valid] = ZZ[valid] / rho[valid]
+    BPhi = np.full_like(BR, 0.1)
+    return VectorFieldCylind(R=R, Z=Z, Phi=Phi, BR=BR, BZ=BZ, BPhi=BPhi, name="J_total")
+
+
 def test_trace_j_streamlines_on_pest_uses_vector_field_and_seed_controls():
     pest = _toy_pest()
     field = _toroidal_current_field()
@@ -57,13 +72,54 @@ def test_trace_j_streamlines_on_pest_uses_vector_field_and_seed_controls():
 
     assert lines.n_lines == 5
     assert lines.n_points == 7
-    assert lines.metadata["trace_backend"] == "pyna.plot.j_streamlines.python_rk4_cartesian_arclength"
+    assert lines.metadata["trace_backend"] == "pyna.plot.j_streamlines.python_rk4_pest_surface_arclength"
+    assert lines.metadata["trace_mode"] == "pest_surface_constrained"
+    assert lines.metadata["surface_constraint"] is True
     assert lines.metadata["seed_count"] == 5
     assert lines.metadata["nfp"] == 1
     assert lines.metadata["field_period_rad"] == pytest.approx(2.0 * np.pi)
     assert lines.metadata["finite_fraction"] == pytest.approx(1.0)
     np.testing.assert_allclose(lines.R, np.repeat(lines.seed_R[:, None], lines.n_points, axis=1), atol=2.0e-4)
     np.testing.assert_allclose(lines.Z, np.repeat(lines.seed_Z[:, None], lines.n_points, axis=1), atol=2.0e-4)
+    np.testing.assert_allclose(lines.theta, np.repeat(lines.seed_theta[:, None], lines.n_points, axis=1), atol=2.0e-4)
+
+
+def test_surface_constrained_j_streamlines_report_normal_leakage_without_leaving_surface():
+    pest = _toy_pest()
+    field = _normal_plus_toroidal_current_field()
+
+    lines = trace_j_streamlines_on_pest(
+        field,
+        pest,
+        surface_index=-1,
+        phi_indices=[0],
+        seed_count=6,
+        n_turns=0.04,
+        steps_per_turn=40,
+    )
+
+    assert lines.metadata["trace_mode"] == "pest_surface_constrained"
+    assert lines.metadata["normal_leakage_abs_over_norm_p95"] > 0.5
+    assert lines.metadata["surface_tangent_fraction_median"] < 0.5
+    radius = np.sqrt((lines.R - 1.0) ** 2 + lines.Z**2)
+    np.testing.assert_allclose(radius, pest.rho_vals[-1], atol=2.0e-3)
+
+
+def test_trace_j_streamlines_can_run_raw_cartesian_diagnostic_mode():
+    lines = trace_j_streamlines_on_pest(
+        _toroidal_current_field(),
+        _toy_pest(),
+        phi_indices=[0],
+        seed_count=2,
+        n_turns=0.02,
+        steps_per_turn=24,
+        constrain_to_surface=False,
+    )
+
+    assert lines.metadata["trace_backend"] == "pyna.plot.j_streamlines.python_rk4_cartesian_arclength"
+    assert lines.metadata["trace_mode"] == "raw_cartesian_unconstrained"
+    assert lines.metadata["surface_constraint"] is False
+    assert np.isnan(lines.theta).all()
 
 
 def test_j_streamline_helpers_are_exported_from_pyna_plot():

@@ -9,7 +9,7 @@ import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 
 from pyna.fields import VectorFieldCylind
-from pyna.toroidal.diagnostics.mgrid import SmoothPestCoordinates
+from pyna.toroidal.diagnostics.mgrid import SmoothPestCoordinates, smooth_pest_derivatives
 
 
 TWOPI = 2.0 * np.pi
@@ -31,6 +31,7 @@ class PestSeededStreamlines:
     R: np.ndarray
     Z: np.ndarray
     phi: np.ndarray
+    theta: np.ndarray
     x: np.ndarray
     y: np.ndarray
     z: np.ndarray
@@ -73,7 +74,7 @@ class _PeriodicVectorFieldEvaluator:
         R = np.asarray(arrays.R_grid, dtype=np.float64)
         Z = np.asarray(arrays.Z_grid, dtype=np.float64)
         Phi = np.asarray(arrays.Phi_grid, dtype=np.float64)
-        nfp = max(int(getattr(field, "nfp", arrays.field_periods)), 1)
+        nfp = max(int(getattr(field, "nfp", arrays.nfp)), 1)
         field_period_rad = float(TWOPI / nfp)
         kw = dict(method="linear", bounds_error=False, fill_value=np.nan)
         axes = (R, Z, Phi)
@@ -158,6 +159,103 @@ def _wrap_angle_near_reference(angle: np.ndarray, reference: np.ndarray) -> np.n
     return reference + np.mod(angle - reference + np.pi, TWOPI) - np.pi
 
 
+def _nan_stat(values: list[np.ndarray], *, percentile: float | None = None) -> float:
+    if not values:
+        return float("nan")
+    arr = np.concatenate([np.ravel(np.asarray(v, dtype=np.float64)) for v in values])
+    finite = arr[np.isfinite(arr)]
+    if finite.size == 0:
+        return float("nan")
+    if percentile is None:
+        return float(np.nanmedian(finite))
+    return float(np.nanpercentile(finite, float(percentile)))
+
+
+def _periodic_surface_bilinear(
+    values: np.ndarray,
+    phi: np.ndarray,
+    theta: np.ndarray,
+    *,
+    phi0: float,
+    theta0: float,
+    phi_period: float,
+) -> np.ndarray:
+    vals = np.asarray(values, dtype=np.float64)
+    if vals.ndim != 2:
+        raise ValueError("surface values must have shape (n_phi, n_theta)")
+    n_phi, n_theta = vals.shape
+    if n_phi < 2 or n_theta < 2:
+        raise ValueError("surface interpolation requires at least two phi and theta points")
+    phi_arr, theta_arr = np.broadcast_arrays(
+        np.asarray(phi, dtype=np.float64),
+        np.asarray(theta, dtype=np.float64),
+    )
+    u_phi = np.mod(phi_arr - float(phi0), float(phi_period)) * (float(n_phi) / float(phi_period))
+    f_phi = np.floor(u_phi)
+    i0 = np.asarray(f_phi, dtype=np.int64) % n_phi
+    i1 = (i0 + 1) % n_phi
+    a = u_phi - f_phi
+
+    u_theta = np.mod(theta_arr - float(theta0), TWOPI) * (float(n_theta) / TWOPI)
+    f_theta = np.floor(u_theta)
+    j0 = np.asarray(f_theta, dtype=np.int64) % n_theta
+    j1 = (j0 + 1) % n_theta
+    b = u_theta - f_theta
+
+    return (
+        (1.0 - a) * (1.0 - b) * vals[i0, j0]
+        + a * (1.0 - b) * vals[i1, j0]
+        + (1.0 - a) * b * vals[i0, j1]
+        + a * b * vals[i1, j1]
+    )
+
+
+@dataclass(frozen=True)
+class _PestSurfaceEvaluator:
+    R: np.ndarray
+    Z: np.ndarray
+    dR_dtheta: np.ndarray
+    dZ_dtheta: np.ndarray
+    dR_dphi: np.ndarray
+    dZ_dphi: np.ndarray
+    phi0: float
+    theta0: float
+    phi_period: float
+
+    @classmethod
+    def from_pest(cls, pest: SmoothPestCoordinates, surface_index: int) -> "_PestSurfaceEvaluator":
+        deriv = smooth_pest_derivatives(pest)
+        ir = int(surface_index) % pest.R_surf.shape[1]
+        phi_vals = np.asarray(pest.phi_vals, dtype=np.float64)
+        theta_vals = np.asarray(pest.theta_vals, dtype=np.float64)
+        return cls(
+            R=np.asarray(pest.R_surf[:, ir, :], dtype=np.float64),
+            Z=np.asarray(pest.Z_surf[:, ir, :], dtype=np.float64),
+            dR_dtheta=np.asarray(deriv[2][:, ir, :], dtype=np.float64),
+            dZ_dtheta=np.asarray(deriv[3][:, ir, :], dtype=np.float64),
+            dR_dphi=np.asarray(deriv[4][:, ir, :], dtype=np.float64),
+            dZ_dphi=np.asarray(deriv[5][:, ir, :], dtype=np.float64),
+            phi0=float(phi_vals[0]) if phi_vals.size else 0.0,
+            theta0=float(theta_vals[0]) if theta_vals.size else 0.0,
+            phi_period=float(getattr(pest, "period", TWOPI) or TWOPI),
+        )
+
+    def evaluate(self, phi: np.ndarray, theta: np.ndarray) -> tuple[np.ndarray, ...]:
+        kwargs = dict(
+            phi0=self.phi0,
+            theta0=self.theta0,
+            phi_period=self.phi_period,
+        )
+        return (
+            _periodic_surface_bilinear(self.R, phi, theta, **kwargs),
+            _periodic_surface_bilinear(self.Z, phi, theta, **kwargs),
+            _periodic_surface_bilinear(self.dR_dtheta, phi, theta, **kwargs),
+            _periodic_surface_bilinear(self.dZ_dtheta, phi, theta, **kwargs),
+            _periodic_surface_bilinear(self.dR_dphi, phi, theta, **kwargs),
+            _periodic_surface_bilinear(self.dZ_dphi, phi, theta, **kwargs),
+        )
+
+
 def _cartesian_rhs(
     field_eval: _PeriodicVectorFieldEvaluator,
     x: np.ndarray,
@@ -236,6 +334,171 @@ def _rk4_step_cartesian(
     return out_x, out_y, out_z, out_phi
 
 
+def _pest_surface_rhs_single(
+    surface_eval: _PestSurfaceEvaluator,
+    field_eval: _PeriodicVectorFieldEvaluator,
+    theta: np.ndarray,
+    phi: np.ndarray,
+    *,
+    min_field_norm: float,
+    min_tangent_norm: float,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    R, Z, dR_dtheta, dZ_dtheta, dR_dphi, dZ_dphi = surface_eval.evaluate(phi, theta)
+    values = np.asarray(field_eval(R, Z, phi), dtype=np.float64)
+    jR = values[..., 0]
+    jZ = values[..., 1]
+    jPhi = values[..., 2]
+
+    cp = np.cos(phi)
+    sp = np.sin(phi)
+    jx = jR * cp - jPhi * sp
+    jy = jR * sp + jPhi * cp
+    jz = jZ
+
+    e_theta = np.stack([dR_dtheta * cp, dR_dtheta * sp, dZ_dtheta], axis=-1)
+    e_phi = np.stack([dR_dphi * cp - R * sp, dR_dphi * sp + R * cp, dZ_dphi], axis=-1)
+    j_cart = np.stack([jx, jy, jz], axis=-1)
+
+    gtt = np.sum(e_theta * e_theta, axis=-1)
+    gtp = np.sum(e_theta * e_phi, axis=-1)
+    gpp = np.sum(e_phi * e_phi, axis=-1)
+    rhs_t = np.sum(j_cart * e_theta, axis=-1)
+    rhs_p = np.sum(j_cart * e_phi, axis=-1)
+    det = gtt * gpp - gtp * gtp
+
+    j_norm = np.sqrt(np.sum(j_cart * j_cart, axis=-1))
+    normal = np.cross(e_theta, e_phi)
+    normal_norm = np.sqrt(np.sum(normal * normal, axis=-1))
+    normal_unit = normal / np.where(normal_norm > 0.0, normal_norm, np.nan)[..., None]
+    normal_leakage = np.abs(np.sum(j_cart * normal_unit, axis=-1)) / j_norm
+
+    dtheta = np.full_like(theta, np.nan, dtype=np.float64)
+    dphi = np.full_like(phi, np.nan, dtype=np.float64)
+    tangent_fraction = np.full_like(theta, np.nan, dtype=np.float64)
+    safe = (
+        np.isfinite(theta)
+        & np.isfinite(phi)
+        & np.isfinite(j_norm)
+        & np.isfinite(det)
+        & (j_norm > float(min_field_norm))
+        & (np.abs(det) > 1.0e-28)
+    )
+    if np.any(safe):
+        a = np.full_like(theta, np.nan, dtype=np.float64)
+        b = np.full_like(phi, np.nan, dtype=np.float64)
+        a[safe] = (rhs_t[safe] * gpp[safe] - rhs_p[safe] * gtp[safe]) / det[safe]
+        b[safe] = (gtt[safe] * rhs_p[safe] - gtp[safe] * rhs_t[safe]) / det[safe]
+        tangent = a[..., None] * e_theta + b[..., None] * e_phi
+        tangent_norm = np.sqrt(np.sum(tangent * tangent, axis=-1))
+        good = safe & np.isfinite(tangent_norm) & (tangent_norm > float(min_tangent_norm))
+        dtheta[good] = a[good] / tangent_norm[good]
+        dphi[good] = b[good] / tangent_norm[good]
+        tangent_fraction[good] = tangent_norm[good] / j_norm[good]
+    normal_leakage[~np.isfinite(normal_leakage)] = np.nan
+    return dtheta, dphi, normal_leakage, tangent_fraction
+
+
+def _pest_surface_rhs(
+    surface_evals: Mapping[int, _PestSurfaceEvaluator],
+    surface_indices: np.ndarray,
+    field_eval: _PeriodicVectorFieldEvaluator,
+    theta: np.ndarray,
+    phi: np.ndarray,
+    *,
+    min_field_norm: float,
+    min_tangent_norm: float,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    dtheta = np.full_like(theta, np.nan, dtype=np.float64)
+    dphi = np.full_like(phi, np.nan, dtype=np.float64)
+    leakage = np.full_like(theta, np.nan, dtype=np.float64)
+    tangent_fraction = np.full_like(theta, np.nan, dtype=np.float64)
+    for ir, surface_eval in surface_evals.items():
+        selected = surface_indices == int(ir)
+        if not np.any(selected):
+            continue
+        dth, dph, leak, tfrac = _pest_surface_rhs_single(
+            surface_eval,
+            field_eval,
+            theta[selected],
+            phi[selected],
+            min_field_norm=min_field_norm,
+            min_tangent_norm=min_tangent_norm,
+        )
+        dtheta[selected] = dth
+        dphi[selected] = dph
+        leakage[selected] = leak
+        tangent_fraction[selected] = tfrac
+    return dtheta, dphi, leakage, tangent_fraction
+
+
+def _rk4_step_pest_surface(
+    surface_evals: Mapping[int, _PestSurfaceEvaluator],
+    surface_indices: np.ndarray,
+    field_eval: _PeriodicVectorFieldEvaluator,
+    theta: np.ndarray,
+    phi: np.ndarray,
+    *,
+    h: float,
+    min_field_norm: float,
+    min_tangent_norm: float,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    k1t, k1p, leakage, tangent_fraction = _pest_surface_rhs(
+        surface_evals,
+        surface_indices,
+        field_eval,
+        theta,
+        phi,
+        min_field_norm=min_field_norm,
+        min_tangent_norm=min_tangent_norm,
+    )
+    k2t, k2p, _, _ = _pest_surface_rhs(
+        surface_evals,
+        surface_indices,
+        field_eval,
+        theta + 0.5 * h * k1t,
+        phi + 0.5 * h * k1p,
+        min_field_norm=min_field_norm,
+        min_tangent_norm=min_tangent_norm,
+    )
+    k3t, k3p, _, _ = _pest_surface_rhs(
+        surface_evals,
+        surface_indices,
+        field_eval,
+        theta + 0.5 * h * k2t,
+        phi + 0.5 * h * k2p,
+        min_field_norm=min_field_norm,
+        min_tangent_norm=min_tangent_norm,
+    )
+    k4t, k4p, _, _ = _pest_surface_rhs(
+        surface_evals,
+        surface_indices,
+        field_eval,
+        theta + h * k3t,
+        phi + h * k3p,
+        min_field_norm=min_field_norm,
+        min_tangent_norm=min_tangent_norm,
+    )
+    out_theta = theta + h * (k1t + 2.0 * k2t + 2.0 * k3t + k4t) / 6.0
+    out_phi = phi + h * (k1p + 2.0 * k2p + 2.0 * k3p + k4p) / 6.0
+    return out_theta, out_phi, leakage, tangent_fraction
+
+
+def _surface_points_from_theta_phi(
+    surface_evals: Mapping[int, _PestSurfaceEvaluator],
+    surface_indices: np.ndarray,
+    theta: np.ndarray,
+    phi: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    R = np.full_like(theta, np.nan, dtype=np.float64)
+    Z = np.full_like(theta, np.nan, dtype=np.float64)
+    for ir, surface_eval in surface_evals.items():
+        selected = surface_indices == int(ir)
+        if not np.any(selected):
+            continue
+        R[selected], Z[selected], *_ = surface_eval.evaluate(phi[selected], theta[selected])
+    return R, Z
+
+
 def _seed_points(
     pest: SmoothPestCoordinates,
     *,
@@ -293,14 +556,17 @@ def trace_j_streamlines_on_pest(
     bidirectional: bool = True,
     theta_offset: float = 0.0,
     min_field_norm: float = 1.0e-14,
+    min_tangent_norm: float | None = None,
+    constrain_to_surface: bool = True,
 ) -> PestSeededStreamlines:
-    """Trace normalized Cartesian current streamlines from PEST-surface seeds.
+    """Trace current streamlines from PEST-surface seeds.
 
     ``field`` is a :class:`pyna.fields.VectorFieldCylind`; it is treated as the
     full current-density vector in physical cylindrical components
-    ``(J_R, J_Z, J_phi)``.  The PEST mesh is used only for seed placement and
-    plotting context, so callers keep control over how the trusted PEST
-    coordinates are constructed.
+    ``(J_R, J_Z, J_phi)``.  By default, streamlines are constrained to the
+    selected PEST surfaces by projecting ``J`` onto the surface tangent plane
+    before stepping in ``(theta, phi)``.  Set ``constrain_to_surface=False`` only
+    for raw interpolation diagnostics.
     """
 
     if not isinstance(field, VectorFieldCylind):
@@ -327,47 +593,131 @@ def trace_j_streamlines_on_pest(
     n_steps = max(int(round(float(n_turns) * max(int(steps_per_turn), 1))), 1)
     n_points = 2 * n_steps + 1 if bidirectional else n_steps + 1
     h_base = TWOPI * max(float(np.nanmedian(seed_R)), 1.0e-12) / max(int(steps_per_turn), 1)
-
-    def integrate(direction: float, count: int) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-        x = seed_R * np.cos(seed_phi)
-        y = seed_R * np.sin(seed_phi)
-        z = seed_Z.copy()
-        phi = seed_phi.copy()
-        xs = [x.copy()]
-        ys = [y.copy()]
-        zs = [z.copy()]
-        phis = [phi.copy()]
-        for _ in range(count):
-            x, y, z, phi = _rk4_step_cartesian(
+    tangent_floor = float(min_field_norm if min_tangent_norm is None else min_tangent_norm)
+    trajectory_leakage_samples: list[np.ndarray] = []
+    trajectory_tangent_fraction_samples: list[np.ndarray] = []
+    surface_evals = {
+        int(ir): _PestSurfaceEvaluator.from_pest(coords, int(ir))
+        for ir in np.unique(seeds["surface_index"])
+    }
+    _, _, seed_leakage, seed_tangent_fraction = _pest_surface_rhs(
+        surface_evals,
+        seeds["surface_index"],
+        field_eval,
+        np.asarray(seeds["theta"], dtype=np.float64),
+        seed_phi,
+        min_field_norm=float(min_field_norm),
+        min_tangent_norm=tangent_floor,
+    )
+    section_leakage_samples: list[np.ndarray] = []
+    section_tangent_fraction_samples: list[np.ndarray] = []
+    theta_grid = np.asarray(coords.theta_vals, dtype=np.float64)
+    for ir in surf_idx:
+        surface_eval = surface_evals[int(ir)]
+        for ip in phi_idx:
+            phi_grid = np.full_like(theta_grid, float(coords.phi_vals[int(ip)]), dtype=np.float64)
+            _, _, leakage, tangent_fraction = _pest_surface_rhs_single(
+                surface_eval,
                 field_eval,
-                x,
-                y,
-                z,
-                phi,
-                h=float(direction) * h_base,
+                theta_grid,
+                phi_grid,
                 min_field_norm=float(min_field_norm),
+                min_tangent_norm=tangent_floor,
             )
-            xs.append(x.copy())
-            ys.append(y.copy())
-            zs.append(z.copy())
-            phis.append(phi.copy())
-        return np.stack(xs, axis=1), np.stack(ys, axis=1), np.stack(zs, axis=1), np.stack(phis, axis=1)
+            section_leakage_samples.append(leakage)
+            section_tangent_fraction_samples.append(tangent_fraction)
 
-    if bidirectional:
-        bx, by, bz, bphi = integrate(-1.0, n_steps)
-        fx, fy, fz, fphi = integrate(1.0, n_steps)
-        x = np.concatenate([bx[:, :0:-1], fx], axis=1)
-        y = np.concatenate([by[:, :0:-1], fy], axis=1)
-        z = np.concatenate([bz[:, :0:-1], fz], axis=1)
-        phi = np.concatenate([bphi[:, :0:-1], fphi], axis=1)
+    if constrain_to_surface:
+        def integrate_surface(direction: float, count: int) -> tuple[np.ndarray, np.ndarray]:
+            theta = np.asarray(seeds["theta"], dtype=np.float64).copy()
+            phi = seed_phi.copy()
+            thetas = [theta.copy()]
+            phis = [phi.copy()]
+            for _ in range(count):
+                theta, phi, leakage, tangent_fraction = _rk4_step_pest_surface(
+                    surface_evals,
+                    seeds["surface_index"],
+                    field_eval,
+                    theta,
+                    phi,
+                    h=float(direction) * h_base,
+                    min_field_norm=float(min_field_norm),
+                    min_tangent_norm=tangent_floor,
+                )
+                trajectory_leakage_samples.append(leakage)
+                trajectory_tangent_fraction_samples.append(tangent_fraction)
+                thetas.append(theta.copy())
+                phis.append(phi.copy())
+            return np.stack(thetas, axis=1), np.stack(phis, axis=1)
+
+        if bidirectional:
+            btheta, bphi = integrate_surface(-1.0, n_steps)
+            ftheta, fphi = integrate_surface(1.0, n_steps)
+            theta = np.concatenate([btheta[:, :0:-1], ftheta], axis=1)
+            phi = np.concatenate([bphi[:, :0:-1], fphi], axis=1)
+        else:
+            theta, phi = integrate_surface(1.0, n_steps)
+        R, z = _surface_points_from_theta_phi(
+            surface_evals,
+            seeds["surface_index"],
+            theta,
+            phi,
+        )
+        xyz = _cylindrical_to_cartesian(R, z, phi)
+        x = xyz[..., 0]
+        y = xyz[..., 1]
+        trace_backend = "pyna.plot.j_streamlines.python_rk4_pest_surface_arclength"
+        trace_parameter = "normalized_pest_surface_arclength"
+        trace_mode = "pest_surface_constrained"
     else:
-        x, y, z, phi = integrate(1.0, n_steps)
-    R = np.sqrt(x * x + y * y)
+        theta = np.full((n_seed, n_points), np.nan, dtype=np.float64)
+
+        def integrate_cartesian(direction: float, count: int) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+            x0 = seed_R * np.cos(seed_phi)
+            y0 = seed_R * np.sin(seed_phi)
+            z0 = seed_Z.copy()
+            phi0 = seed_phi.copy()
+            xs = [x0.copy()]
+            ys = [y0.copy()]
+            zs = [z0.copy()]
+            phis = [phi0.copy()]
+            x_curr, y_curr, z_curr, phi_curr = x0, y0, z0, phi0
+            for _ in range(count):
+                x_curr, y_curr, z_curr, phi_curr = _rk4_step_cartesian(
+                    field_eval,
+                    x_curr,
+                    y_curr,
+                    z_curr,
+                    phi_curr,
+                    h=float(direction) * h_base,
+                    min_field_norm=float(min_field_norm),
+                )
+                xs.append(x_curr.copy())
+                ys.append(y_curr.copy())
+                zs.append(z_curr.copy())
+                phis.append(phi_curr.copy())
+            return np.stack(xs, axis=1), np.stack(ys, axis=1), np.stack(zs, axis=1), np.stack(phis, axis=1)
+
+        if bidirectional:
+            bx, by, bz, bphi = integrate_cartesian(-1.0, n_steps)
+            fx, fy, fz, fphi = integrate_cartesian(1.0, n_steps)
+            x = np.concatenate([bx[:, :0:-1], fx], axis=1)
+            y = np.concatenate([by[:, :0:-1], fy], axis=1)
+            z = np.concatenate([bz[:, :0:-1], fz], axis=1)
+            phi = np.concatenate([bphi[:, :0:-1], fphi], axis=1)
+        else:
+            x, y, z, phi = integrate_cartesian(1.0, n_steps)
+        R = np.sqrt(x * x + y * y)
+        trace_backend = "pyna.plot.j_streamlines.python_rk4_cartesian_arclength"
+        trace_parameter = "normalized_cartesian_arclength"
+        trace_mode = "raw_cartesian_unconstrained"
 
     metadata: dict[str, object] = {
         "schema": "pyna_pest_seeded_j_streamlines_v1",
-        "trace_backend": "pyna.plot.j_streamlines.python_rk4_cartesian_arclength",
-        "trace_parameter": "normalized_cartesian_arclength",
+        "trace_backend": trace_backend,
+        "trace_mode": trace_mode,
+        "trace_parameter": trace_parameter,
+        "surface_constraint": bool(constrain_to_surface),
         "field_type": type(field).__name__,
         "nfp": int(field_eval.nfp),
         "field_period_rad": float(field_eval.field_period_rad),
@@ -381,11 +731,24 @@ def trace_j_streamlines_on_pest(
         "surface_indices": [int(i) for i in surf_idx],
         "phi_indices": [int(i) for i in phi_idx],
         "finite_fraction": float(np.count_nonzero(np.isfinite(R) & np.isfinite(z)) / max(R.size, 1)),
+        "normal_leakage_abs_over_norm_median": _nan_stat(section_leakage_samples),
+        "normal_leakage_abs_over_norm_p95": _nan_stat(section_leakage_samples, percentile=95.0),
+        "surface_tangent_fraction_median": _nan_stat(section_tangent_fraction_samples),
+        "surface_tangent_fraction_p05": _nan_stat(section_tangent_fraction_samples, percentile=5.0),
+        "seed_normal_leakage_abs_over_norm_median": _nan_stat([seed_leakage]),
+        "seed_normal_leakage_abs_over_norm_p95": _nan_stat([seed_leakage], percentile=95.0),
+        "seed_surface_tangent_fraction_median": _nan_stat([seed_tangent_fraction]),
+        "seed_surface_tangent_fraction_p05": _nan_stat([seed_tangent_fraction], percentile=5.0),
+        "trajectory_normal_leakage_abs_over_norm_median": _nan_stat(trajectory_leakage_samples),
+        "trajectory_normal_leakage_abs_over_norm_p95": _nan_stat(trajectory_leakage_samples, percentile=95.0),
+        "trajectory_surface_tangent_fraction_median": _nan_stat(trajectory_tangent_fraction_samples),
+        "trajectory_surface_tangent_fraction_p05": _nan_stat(trajectory_tangent_fraction_samples, percentile=5.0),
     }
     return PestSeededStreamlines(
         R=R,
         Z=z,
         phi=phi,
+        theta=theta,
         x=x,
         y=y,
         z=z,
@@ -548,6 +911,13 @@ def plot_j_streamline_seed_sections(
     rho_max = float(np.nanmax(streamlines.seed_rho))
     if rho_max <= rho_min:
         rho_max = rho_min + 1.0
+    use_pest_projection = (
+        streamlines.metadata.get("trace_mode") == "pest_surface_constrained"
+        and np.shape(streamlines.theta) == np.shape(streamlines.R)
+    )
+    phi0 = float(coords.phi_vals[0]) if np.asarray(coords.phi_vals).size else 0.0
+    theta0 = float(coords.theta_vals[0]) if np.asarray(coords.theta_vals).size else 0.0
+    phi_period = float(getattr(coords, "period", TWOPI) or TWOPI)
     for ax in axes.ravel()[sec.size:]:
         ax.set_visible(False)
     for out_idx, iphi in enumerate(sec):
@@ -557,10 +927,35 @@ def plot_j_streamline_seed_sections(
         selected = np.flatnonzero(streamlines.seed_phi_index == ip)
         for line_idx in selected:
             keep = np.isfinite(streamlines.R[line_idx]) & np.isfinite(streamlines.Z[line_idx])
+            if use_pest_projection:
+                keep &= np.isfinite(streamlines.theta[line_idx])
             if np.count_nonzero(keep) < 2:
                 continue
+            if use_pest_projection:
+                ir = int(streamlines.seed_surface_index[line_idx]) % coords.R_surf.shape[1]
+                theta_line = streamlines.theta[line_idx, keep]
+                phi_line = np.full_like(theta_line, float(coords.phi_vals[ip]), dtype=np.float64)
+                R_line = _periodic_surface_bilinear(
+                    coords.R_surf[:, ir, :],
+                    phi_line,
+                    theta_line,
+                    phi0=phi0,
+                    theta0=theta0,
+                    phi_period=phi_period,
+                )
+                Z_line = _periodic_surface_bilinear(
+                    coords.Z_surf[:, ir, :],
+                    phi_line,
+                    theta_line,
+                    phi0=phi0,
+                    theta0=theta0,
+                    phi_period=phi_period,
+                )
+            else:
+                R_line = streamlines.R[line_idx, keep]
+                Z_line = streamlines.Z[line_idx, keep]
             cval = (float(streamlines.seed_rho[line_idx]) - rho_min) / (rho_max - rho_min)
-            ax.plot(streamlines.R[line_idx, keep], streamlines.Z[line_idx, keep], color=cmap(cval), lw=line_width, alpha=alpha)
+            ax.plot(R_line, Z_line, color=cmap(cval), lw=line_width, alpha=alpha)
         ax.set_title(f"phi={float(coords.phi_vals[ip]):.3f}")
         ax.set_xlabel("R [m]")
         ax.set_ylabel("Z [m]")

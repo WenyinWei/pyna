@@ -202,8 +202,12 @@ def test_vector_field_nfp_alias_and_phi_grid_validation():
 
     assert field.nfp == nfp
     assert field.field_periods == nfp
+    assert field.field_period_rad == pytest.approx(period)
     assert field.field_period == pytest.approx(period)
-    assert field.cyna_arrays().as_field_cache()["field_periods"] == nfp
+    cache = field.cyna_arrays().as_field_cache()
+    assert cache["nfp"] == nfp
+    assert cache["field_period_rad"] == pytest.approx(period)
+    assert cache["field_periods"] == nfp
     np.testing.assert_allclose(validate_phi_grid(Phi, nfp=nfp), Phi)
 
     with pytest.raises(ValueError, match="strictly increasing"):
