@@ -15,6 +15,7 @@ import json
 import math
 import os
 from pathlib import Path
+import sys
 import time
 from typing import Any, Callable, Mapping, Sequence
 
@@ -42,6 +43,9 @@ SCALAR_KEYS = (
 
 PROFILE_KEYS = ("iotaf", "iotas", "presf", "pres", "phi")
 MODE_KEYS = ("rmnc", "zmns", "bmnc")
+AXIS_KEYS = ("raxis_cc", "zaxis_cs")
+VMEC_ARRAY_KEYS = PROFILE_KEYS + MODE_KEYS + AXIS_KEYS + ("xm", "xn", "xm_nyq", "xn_nyq")
+GEOMETRY_KEYS = ("axis_R_phi", "axis_Z_phi", "lcfs_R_sections", "lcfs_Z_sections")
 
 
 @dataclass
@@ -109,6 +113,9 @@ def run_vmec_counterpart_benchmark(
     desc_use_gpu: bool = False,
     include_local_path: bool = False,
     desc_booz_path: str | Path | None = None,
+    geometry_phi: Sequence[float] | None = None,
+    geometry_theta_count: int = 256,
+    topoquest_root: str | Path | None = None,
 ) -> VmecBenchmarkReport:
     """Run a VMEC ``wout`` benchmark across installed counterpart packages."""
 
@@ -116,11 +123,25 @@ def run_vmec_counterpart_benchmark(
         os.environ.setdefault("JAX_PLATFORMS", "cpu")
     path = Path(wout).expanduser()
     source = public_wout_source(path, include_local_path=include_local_path)
+    phi_values = _geometry_phi_values(path, geometry_phi)
+    theta_count = int(geometry_theta_count)
+    source["geometry_phi_rad"] = [float(x) for x in phi_values]
+    source["geometry_theta_count"] = theta_count
     readers: dict[str, CounterpartResult] = {
-        "netcdf": _safe_reader("netcdf", lambda: _read_netcdf_wout(path)),
-        "simsopt": _safe_reader("simsopt", lambda: _read_simsopt_wout(path)),
-        "vmecpp": _safe_reader("vmecpp", lambda: _read_vmecpp_wout(path)),
-        "desc": _safe_reader("desc", lambda: _read_desc_wout(path, use_gpu=desc_use_gpu)),
+        "netcdf": _safe_reader("netcdf", lambda: _read_netcdf_wout(path, geometry_phi=phi_values, geometry_theta_count=theta_count)),
+        "pyna_native": _safe_reader("pyna_native", lambda: _read_pyna_native_wout(path, geometry_phi=phi_values, geometry_theta_count=theta_count)),
+        "topoquest": _safe_reader(
+            "topoquest",
+            lambda: _read_topoquest_vmec_geometry(
+                path,
+                geometry_phi=phi_values,
+                geometry_theta_count=theta_count,
+                topoquest_root=topoquest_root,
+            ),
+        ),
+        "simsopt": _safe_reader("simsopt", lambda: _read_simsopt_wout(path, geometry_phi=phi_values, geometry_theta_count=theta_count)),
+        "vmecpp": _safe_reader("vmecpp", lambda: _read_vmecpp_wout(path, geometry_phi=phi_values, geometry_theta_count=theta_count)),
+        "desc": _safe_reader("desc", lambda: _read_desc_wout(path, use_gpu=desc_use_gpu, geometry_phi=phi_values, geometry_theta_count=theta_count)),
     }
     comparisons = compare_counterpart_results(readers)
 
@@ -173,6 +194,9 @@ def write_vmec_benchmark_outputs(
         profile_path = out / f"{prefix}_profiles.png"
         plot_profile_summary(report, profile_path)
         paths["profile_png"] = str(profile_path)
+        geometry_path = out / f"{prefix}_geometry_sections.png"
+        plot_vmec_geometry_summary(report, geometry_path)
+        paths["geometry_png"] = str(geometry_path)
         if report.booz_xform is not None and report.booz_xform.ok:
             booz_path = out / f"{prefix}_booz_xform_modes.png"
             plot_boozer_mode_summary(report.booz_xform, booz_path)
@@ -216,6 +240,7 @@ def compare_counterpart_results(readers: Mapping[str, CounterpartResult]) -> dic
             "scalars": _compare_scalar_summaries(ref.summary.get("scalars", {}), result.summary.get("scalars", {})),
             "profiles": _compare_profiles(ref.arrays, result.arrays),
             "modes": _compare_modes(ref.arrays, result.arrays, ref.summary),
+            "geometry": _compare_geometry(ref.arrays, result.arrays),
         }
     return out
 
@@ -228,6 +253,8 @@ def plot_profile_summary(report: VmecBenchmarkReport, out_path: str | Path):
     fig, axes = plt.subplots(1, 2, figsize=(10, 4), constrained_layout=True)
     colors = {
         "netcdf": "black",
+        "pyna_native": "tab:orange",
+        "topoquest": "tab:purple",
         "simsopt": "tab:blue",
         "vmecpp": "tab:green",
         "desc": "tab:red",
@@ -255,6 +282,84 @@ def plot_profile_summary(report: VmecBenchmarkReport, out_path: str | Path):
     for ax in axes:
         ax.grid(True, alpha=0.25)
         ax.legend(loc="best", fontsize=8)
+    out = Path(out_path).expanduser()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out, dpi=180)
+    plt.close(fig)
+    return fig
+
+
+def plot_vmec_geometry_summary(report: VmecBenchmarkReport, out_path: str | Path):
+    """Plot VMEC axis and LCFS sections from pyna/topoquest/counterparts."""
+
+    import matplotlib.pyplot as plt
+
+    ok = [
+        (name, result)
+        for name, result in report.readers.items()
+        if result.ok and "lcfs_R_sections" in result.arrays and "lcfs_Z_sections" in result.arrays
+    ]
+    if not ok:
+        raise ValueError("no successful reader contains LCFS geometry arrays")
+
+    ref_arrays = report.readers.get("netcdf").arrays if report.readers.get("netcdf") is not None else ok[0][1].arrays
+    phi = np.asarray(ref_arrays.get("geometry_phi", np.arange(ok[0][1].arrays["lcfs_R_sections"].shape[0])), dtype=float)
+    n_panels = min(4, int(ok[0][1].arrays["lcfs_R_sections"].shape[0]))
+    ncols = 2 if n_panels > 1 else 1
+    nrows = int(math.ceil(n_panels / ncols))
+    fig, axes = plt.subplots(nrows, ncols, figsize=(5.3 * ncols, 5.0 * nrows), squeeze=False, constrained_layout=True)
+    colors = {
+        "netcdf": "black",
+        "pyna_native": "tab:orange",
+        "topoquest": "tab:purple",
+        "simsopt": "tab:blue",
+        "vmecpp": "tab:green",
+        "desc": "tab:red",
+    }
+    linestyles = {
+        "netcdf": "-",
+        "pyna_native": "--",
+        "topoquest": ":",
+        "simsopt": "-.",
+        "vmecpp": (0, (3, 1, 1, 1)),
+        "desc": (0, (1, 1)),
+    }
+    for ax in axes.ravel()[n_panels:]:
+        ax.axis("off")
+    for i_sec, ax in enumerate(axes.ravel()[:n_panels]):
+        for name, result in ok:
+            R = np.asarray(result.arrays["lcfs_R_sections"], dtype=float)
+            Z = np.asarray(result.arrays["lcfs_Z_sections"], dtype=float)
+            if i_sec >= R.shape[0] or i_sec >= Z.shape[0]:
+                continue
+            ax.plot(
+                R[i_sec],
+                Z[i_sec],
+                lw=1.35 if name in {"netcdf", "pyna_native", "topoquest"} else 1.0,
+                alpha=0.9,
+                color=colors.get(name),
+                linestyle=linestyles.get(name, "-"),
+                label=name,
+            )
+            axis_R = result.arrays.get("axis_R_phi")
+            axis_Z = result.arrays.get("axis_Z_phi")
+            if axis_R is not None and axis_Z is not None and i_sec < np.asarray(axis_R).size:
+                ax.scatter(
+                    [float(np.asarray(axis_R)[i_sec])],
+                    [float(np.asarray(axis_Z)[i_sec])],
+                    s=18,
+                    color=colors.get(name),
+                    marker="x",
+                    linewidths=0.8,
+                )
+        title_phi = phi[i_sec] if i_sec < phi.size else float(i_sec)
+        ax.set_title(f"LCFS section phi={title_phi:.4f} rad")
+        ax.set_xlabel("R [m]")
+        ax.set_ylabel("Z [m]")
+        ax.set_aspect("equal", adjustable="box")
+        ax.grid(True, alpha=0.25)
+    axes.ravel()[0].legend(loc="best", fontsize=8)
+    fig.suptitle("W7-X public VMEC geometry: pyna/topoquest/counterparts", fontsize=12)
     out = Path(out_path).expanduser()
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=180)
@@ -332,7 +437,12 @@ class _silence_native_output:
         return False
 
 
-def _read_netcdf_wout(path: Path) -> tuple[dict[str, Any], dict[str, NDArray[np.float64]]]:
+def _read_netcdf_wout(
+    path: Path,
+    *,
+    geometry_phi: NDArray[np.float64] | None = None,
+    geometry_theta_count: int = 256,
+) -> tuple[dict[str, Any], dict[str, NDArray[np.float64]]]:
     from netCDF4 import Dataset
 
     arrays: dict[str, NDArray[np.float64]] = {}
@@ -341,38 +451,100 @@ def _read_netcdf_wout(path: Path) -> tuple[dict[str, Any], dict[str, NDArray[np.
         for key in SCALAR_KEYS:
             if key in ds.variables:
                 scalars[key] = _json_scalar(ds.variables[key][...])
-        for key in PROFILE_KEYS + MODE_KEYS + ("xm", "xn", "xm_nyq", "xn_nyq"):
+        for key in VMEC_ARRAY_KEYS:
             if key in ds.variables:
                 arrays[key] = _as_float_array(ds.variables[key][...])
+    _add_vmec_geometry_arrays(arrays, scalars, geometry_phi=geometry_phi, geometry_theta_count=geometry_theta_count)
     summary = _summary_from_scalars_arrays(scalars, arrays)
-    summary["backend"] = "netCDF4"
+    summary["backend"] = "netCDF4 + pyna VMEC Fourier geometry reference"
     return summary, arrays
 
 
-def _read_simsopt_wout(path: Path) -> tuple[dict[str, Any], dict[str, NDArray[np.float64]]]:
+def _read_pyna_native_wout(
+    path: Path,
+    *,
+    geometry_phi: NDArray[np.float64] | None,
+    geometry_theta_count: int,
+) -> tuple[dict[str, Any], dict[str, NDArray[np.float64]]]:
+    summary, arrays = _read_netcdf_wout(path, geometry_phi=geometry_phi, geometry_theta_count=geometry_theta_count)
+    summary["backend"] = "pyna.benchmark native VMEC Fourier evaluator"
+    summary["note"] = "Direct VMEC wout read plus pyna-native axis/LCFS Fourier evaluation; included to compare our convention against topoquest and external packages."
+    return summary, arrays
+
+
+def _read_topoquest_vmec_geometry(
+    path: Path,
+    *,
+    geometry_phi: NDArray[np.float64] | None,
+    geometry_theta_count: int,
+    topoquest_root: str | Path | None = None,
+) -> tuple[dict[str, Any], dict[str, NDArray[np.float64]]]:
+    _ensure_topoquest_import_path(topoquest_root)
+    from topoquest.analysis.stellarator_mgrid import vmec_axis_from_wout, vmec_lcfs_from_wout
+
+    phi_values = np.asarray(geometry_phi, dtype=np.float64)
+    axis_R, axis_Z, nfp = vmec_axis_from_wout(path, phi_values)
+    lcfs_R: list[NDArray[np.float64]] = []
+    lcfs_Z: list[NDArray[np.float64]] = []
+    for phi in phi_values:
+        R, Z = vmec_lcfs_from_wout(path, float(phi), ntheta=int(geometry_theta_count))
+        lcfs_R.append(np.asarray(R, dtype=np.float64))
+        lcfs_Z.append(np.asarray(Z, dtype=np.float64))
+    arrays = {
+        "geometry_phi": np.ascontiguousarray(phi_values, dtype=np.float64),
+        "geometry_theta": np.linspace(0.0, 2.0 * np.pi, int(geometry_theta_count), endpoint=True, dtype=np.float64),
+        "axis_R_phi": np.ascontiguousarray(axis_R, dtype=np.float64),
+        "axis_Z_phi": np.ascontiguousarray(axis_Z, dtype=np.float64),
+        "lcfs_R_sections": np.ascontiguousarray(np.stack(lcfs_R), dtype=np.float64),
+        "lcfs_Z_sections": np.ascontiguousarray(np.stack(lcfs_Z), dtype=np.float64),
+    }
+    summary = _summary_from_scalars_arrays({"nfp": int(nfp)}, arrays)
+    summary["backend"] = "topoquest.analysis.stellarator_mgrid VMEC geometry helpers"
+    return summary, arrays
+
+
+def _read_simsopt_wout(
+    path: Path,
+    *,
+    geometry_phi: NDArray[np.float64] | None = None,
+    geometry_theta_count: int = 256,
+) -> tuple[dict[str, Any], dict[str, NDArray[np.float64]]]:
     from simsopt.mhd import Vmec
 
     vmec = Vmec(str(path))
     wout = vmec.wout
     scalars = {key: _json_scalar(getattr(wout, key)) for key in SCALAR_KEYS if hasattr(wout, key)}
-    arrays = {key: _as_float_array(getattr(wout, key)) for key in PROFILE_KEYS + MODE_KEYS + ("xm", "xn", "xm_nyq", "xn_nyq") if hasattr(wout, key)}
+    arrays = {key: _as_float_array(getattr(wout, key)) for key in VMEC_ARRAY_KEYS if hasattr(wout, key)}
+    _add_vmec_geometry_arrays(arrays, scalars, geometry_phi=geometry_phi, geometry_theta_count=geometry_theta_count)
     summary = _summary_from_scalars_arrays(scalars, arrays)
     summary["backend"] = "simsopt.mhd.Vmec"
     return summary, arrays
 
 
-def _read_vmecpp_wout(path: Path) -> tuple[dict[str, Any], dict[str, NDArray[np.float64]]]:
+def _read_vmecpp_wout(
+    path: Path,
+    *,
+    geometry_phi: NDArray[np.float64] | None = None,
+    geometry_theta_count: int = 256,
+) -> tuple[dict[str, Any], dict[str, NDArray[np.float64]]]:
     import vmecpp
 
     wout = vmecpp.VmecWOut.from_wout_file(path)
     scalars = {key: _json_scalar(getattr(wout, key)) for key in SCALAR_KEYS if hasattr(wout, key)}
-    arrays = {key: _as_float_array(getattr(wout, key)) for key in PROFILE_KEYS + MODE_KEYS + ("xm", "xn", "xm_nyq", "xn_nyq") if hasattr(wout, key)}
+    arrays = {key: _as_float_array(getattr(wout, key)) for key in VMEC_ARRAY_KEYS if hasattr(wout, key)}
+    _add_vmec_geometry_arrays(arrays, scalars, geometry_phi=geometry_phi, geometry_theta_count=geometry_theta_count)
     summary = _summary_from_scalars_arrays(scalars, arrays)
     summary["backend"] = "vmecpp.VmecWOut"
     return summary, arrays
 
 
-def _read_desc_wout(path: Path, *, use_gpu: bool = False) -> tuple[dict[str, Any], dict[str, NDArray[np.float64]]]:
+def _read_desc_wout(
+    path: Path,
+    *,
+    use_gpu: bool = False,
+    geometry_phi: NDArray[np.float64] | None = None,
+    geometry_theta_count: int = 256,
+) -> tuple[dict[str, Any], dict[str, NDArray[np.float64]]]:
     import desc
 
     if use_gpu:
@@ -384,12 +556,13 @@ def _read_desc_wout(path: Path, *, use_gpu: bool = False) -> tuple[dict[str, Any
     payload = VMECIO.read_vmec_output(str(path))
     arrays = {
         key: _as_float_array(payload[key])
-        for key in ("rmnc", "zmns", "lmns", "xm", "xn")
+        for key in ("rmnc", "zmns", "lmns", "xm", "xn", "raxis_cc", "zaxis_cs")
         if key in payload
     }
     scalars = {}
     if "NFP" in payload:
         scalars["nfp"] = _json_scalar(payload["NFP"])
+    _add_vmec_geometry_arrays(arrays, scalars, geometry_phi=geometry_phi, geometry_theta_count=geometry_theta_count)
     summary = _summary_from_scalars_arrays(scalars, arrays)
     summary["backend"] = "desc.vmec.VMECIO.read_vmec_output"
     summary["note"] = "DESC VMECIO.read_vmec_output exposes geometry-focused payloads, not full VMEC scalar/profile output."
@@ -477,7 +650,7 @@ def _run_desc_booz(
 
 
 def _summary_from_scalars_arrays(scalars: Mapping[str, Any], arrays: Mapping[str, NDArray[np.float64]]) -> dict[str, Any]:
-    summary: dict[str, Any] = {"scalars": dict(scalars), "profiles": {}, "modes": {}}
+    summary: dict[str, Any] = {"scalars": dict(scalars), "profiles": {}, "modes": {}, "geometry": {}}
     for key in PROFILE_KEYS:
         if key in arrays:
             summary["profiles"][key] = _stats(arrays[key])
@@ -491,6 +664,9 @@ def _summary_from_scalars_arrays(scalars: Mapping[str, Any], arrays: Mapping[str
                 "min": float(np.nanmin(arrays[key])) if arrays[key].size else None,
                 "max": float(np.nanmax(arrays[key])) if arrays[key].size else None,
             }
+    for key in AXIS_KEYS + GEOMETRY_KEYS:
+        if key in arrays:
+            summary["geometry"][key] = _stats(arrays[key])
     return summary
 
 
@@ -544,6 +720,18 @@ def _compare_modes(
     return out
 
 
+def _compare_geometry(reference: Mapping[str, NDArray[np.float64]], other: Mapping[str, NDArray[np.float64]]) -> dict[str, Any]:
+    out: dict[str, Any] = {}
+    for key in GEOMETRY_KEYS:
+        if key not in reference:
+            continue
+        if key not in other:
+            out[key] = {"status": "missing"}
+            continue
+        out[key] = _array_error(reference[key], other[key])
+    return out
+
+
 def _normalise_vmec_mode_array(values: NDArray[np.float64], *, ns: int | None, mode_count: int | None) -> NDArray[np.float64]:
     arr = np.asarray(values, dtype=float)
     if arr.ndim != 2:
@@ -557,6 +745,137 @@ def _normalise_vmec_mode_array(values: NDArray[np.float64], *, ns: int | None, m
     if mode_count is not None and arr.shape[0] == mode_count:
         return arr.T
     return arr
+
+
+def _normalise_surface_mode_array(values: NDArray[np.float64], *, mode_count: int | None) -> NDArray[np.float64]:
+    arr = np.asarray(values, dtype=float)
+    if arr.ndim == 1:
+        return arr[None, :]
+    if arr.ndim != 2:
+        raise ValueError(f"VMEC surface coefficient array must be 1-D or 2-D, got {arr.shape}")
+    if mode_count is not None:
+        if arr.shape[1] == mode_count:
+            return arr
+        if arr.shape[0] == mode_count:
+            return arr.T
+    return arr
+
+
+def evaluate_vmec_axis_fourier(
+    phi: Sequence[float] | NDArray[np.float64],
+    raxis_cc: Sequence[float] | NDArray[np.float64],
+    zaxis_cs: Sequence[float] | NDArray[np.float64],
+    *,
+    nfp: int,
+) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    """Evaluate VMEC magnetic-axis Fourier coefficients using pyna convention."""
+
+    phi_arr = np.asarray(phi, dtype=np.float64)
+    rcc = np.asarray(raxis_cc, dtype=np.float64).ravel()
+    zcs = np.asarray(zaxis_cs, dtype=np.float64).ravel()
+    if rcc.shape != zcs.shape:
+        raise ValueError(f"raxis_cc shape {rcc.shape} != zaxis_cs shape {zcs.shape}")
+    modes = np.arange(rcc.size, dtype=np.float64)
+    angles = modes[None, :] * int(nfp) * phi_arr.reshape(-1, 1)
+    axis_R = np.sum(rcc[None, :] * np.cos(angles), axis=1)
+    axis_Z = -np.sum(zcs[None, :] * np.sin(angles), axis=1)
+    return np.ascontiguousarray(axis_R, dtype=np.float64), np.ascontiguousarray(axis_Z, dtype=np.float64)
+
+
+def evaluate_vmec_surface_fourier(
+    theta: Sequence[float] | NDArray[np.float64],
+    phi: Sequence[float] | NDArray[np.float64],
+    rmnc: Sequence[float] | NDArray[np.float64],
+    zmns: Sequence[float] | NDArray[np.float64],
+    xm: Sequence[float] | NDArray[np.float64],
+    xn: Sequence[float] | NDArray[np.float64],
+) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    """Evaluate a single VMEC ``rmnc/zmns`` surface on ``(phi, theta)`` sections."""
+
+    theta_arr = np.asarray(theta, dtype=np.float64).reshape(-1)
+    phi_arr = np.asarray(phi, dtype=np.float64).reshape(-1)
+    rm = np.asarray(rmnc, dtype=np.float64).reshape(-1)
+    zm = np.asarray(zmns, dtype=np.float64).reshape(-1)
+    m = np.asarray(xm, dtype=np.float64).reshape(-1)
+    n = np.asarray(xn, dtype=np.float64).reshape(-1)
+    if not (rm.shape == zm.shape == m.shape == n.shape):
+        raise ValueError("rmnc, zmns, xm, and xn must have the same flattened shape")
+    phase = theta_arr[None, :, None] * m[None, None, :] - phi_arr[:, None, None] * n[None, None, :]
+    R = np.sum(rm[None, None, :] * np.cos(phase), axis=2)
+    Z = np.sum(zm[None, None, :] * np.sin(phase), axis=2)
+    return np.ascontiguousarray(R, dtype=np.float64), np.ascontiguousarray(Z, dtype=np.float64)
+
+
+def _add_vmec_geometry_arrays(
+    arrays: dict[str, NDArray[np.float64]],
+    scalars: Mapping[str, Any],
+    *,
+    geometry_phi: NDArray[np.float64] | None,
+    geometry_theta_count: int,
+) -> None:
+    if geometry_phi is None:
+        return
+    phi_values = np.asarray(geometry_phi, dtype=np.float64).reshape(-1)
+    arrays["geometry_phi"] = np.ascontiguousarray(phi_values, dtype=np.float64)
+    arrays["geometry_theta"] = np.linspace(0.0, 2.0 * np.pi, int(geometry_theta_count), endpoint=True, dtype=np.float64)
+
+    nfp = _int_from_scalars(scalars, "nfp")
+    if nfp is not None and all(key in arrays for key in AXIS_KEYS):
+        arrays["axis_R_phi"], arrays["axis_Z_phi"] = evaluate_vmec_axis_fourier(
+            phi_values,
+            arrays["raxis_cc"],
+            arrays["zaxis_cs"],
+            nfp=nfp,
+        )
+
+    if not all(key in arrays for key in ("rmnc", "zmns", "xm", "xn")):
+        return
+    mode_count = int(np.asarray(arrays["xm"]).size)
+    rm = _normalise_surface_mode_array(arrays["rmnc"], mode_count=mode_count)
+    zm = _normalise_surface_mode_array(arrays["zmns"], mode_count=mode_count)
+    if rm.shape != zm.shape:
+        return
+    surface_index = rm.shape[0] - 1
+    arrays["lcfs_R_sections"], arrays["lcfs_Z_sections"] = evaluate_vmec_surface_fourier(
+        arrays["geometry_theta"],
+        phi_values,
+        rm[surface_index],
+        zm[surface_index],
+        arrays["xm"],
+        arrays["xn"],
+    )
+
+
+def _geometry_phi_values(path: Path, values: Sequence[float] | None) -> NDArray[np.float64]:
+    if values is not None:
+        arr = np.asarray(list(values), dtype=np.float64)
+        if arr.ndim != 1 or arr.size == 0:
+            raise ValueError("geometry_phi must contain at least one toroidal angle")
+        return np.ascontiguousarray(arr, dtype=np.float64)
+    nfp = _read_wout_nfp(path)
+    period = 2.0 * np.pi / max(int(nfp), 1)
+    return np.ascontiguousarray(np.linspace(0.0, period, 5, endpoint=True, dtype=np.float64)[:-1])
+
+
+def _read_wout_nfp(path: Path) -> int:
+    from netCDF4 import Dataset
+
+    with Dataset(str(path), "r") as ds:
+        return int(ds.variables["nfp"][()])
+
+
+def _ensure_topoquest_import_path(topoquest_root: str | Path | None = None) -> None:
+    candidates: list[Path] = []
+    if topoquest_root is not None:
+        candidates.append(Path(topoquest_root).expanduser())
+    env = os.environ.get("TOPOQUEST_ROOT")
+    if env:
+        candidates.append(Path(env).expanduser())
+    candidates.append(Path(__file__).resolve().parents[3] / "topoquest")
+    for root in candidates:
+        if root.exists() and str(root) not in sys.path:
+            sys.path.insert(0, str(root))
+            return
 
 
 def _array_error(reference: NDArray[np.float64], other: NDArray[np.float64]) -> dict[str, Any]:
@@ -631,6 +950,16 @@ def _int_from_summary(summary: Mapping[str, Any], key: str) -> int | None:
         return None
 
 
+def _int_from_scalars(scalars: Mapping[str, Any], key: str) -> int | None:
+    try:
+        value = scalars.get(key)
+        if value is None:
+            return None
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _json_scalar(value: Any) -> Any:
     arr = np.asarray(value)
     if arr.shape == ():
@@ -687,8 +1016,11 @@ __all__ = [
     "CounterpartResult",
     "VmecBenchmarkReport",
     "compare_counterpart_results",
+    "evaluate_vmec_axis_fourier",
+    "evaluate_vmec_surface_fourier",
     "plot_boozer_mode_summary",
     "plot_profile_summary",
+    "plot_vmec_geometry_summary",
     "public_wout_source",
     "run_vmec_counterpart_benchmark",
     "write_vmec_benchmark_outputs",

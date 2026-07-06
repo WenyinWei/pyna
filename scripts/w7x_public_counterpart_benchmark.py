@@ -25,6 +25,13 @@ def parse_surfaces(text: str) -> tuple[int, ...]:
     return values
 
 
+def parse_floats(text: str) -> tuple[float, ...]:
+    values = tuple(float(part) for part in text.split(",") if part.strip())
+    if not values:
+        raise argparse.ArgumentTypeError("at least one float is required")
+    return values
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--wout", type=Path, default=DEFAULT_WOUT, help="Public VMEC wout file.")
@@ -36,6 +43,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--run-desc-booz", action="store_true", help="Also run DESC's make_boozmn_output path.")
     parser.add_argument("--desc-gpu", action="store_true", help="Call desc.set_device('gpu') before DESC operations.")
     parser.add_argument("--include-local-path", action="store_true", help="Include local wout path in JSON. Do not use for private cases.")
+    parser.add_argument("--geometry-phi", type=parse_floats, default=None, help="Toroidal sections for geometry comparison, radians, comma-separated.")
+    parser.add_argument("--geometry-theta-count", type=int, default=256, help="Poloidal samples per LCFS section for geometry comparison.")
+    parser.add_argument("--topoquest-root", type=Path, default=None, help="Optional topoquest checkout root. Defaults to TOPOQUEST_ROOT or ../topoquest.")
     parser.add_argument("--no-plots", action="store_true")
     args = parser.parse_args(argv)
 
@@ -51,6 +61,9 @@ def main(argv: list[str] | None = None) -> int:
         desc_use_gpu=args.desc_gpu,
         include_local_path=args.include_local_path,
         desc_booz_path=desc_booz_path,
+        geometry_phi=args.geometry_phi,
+        geometry_theta_count=args.geometry_theta_count,
+        topoquest_root=args.topoquest_root,
     )
     paths = write_vmec_benchmark_outputs(
         report,
