@@ -45,6 +45,13 @@ def parse_ints(text: str) -> tuple[int, ...]:
     return values
 
 
+def parse_pair(text: str) -> tuple[float, float]:
+    values = parse_floats(text)
+    if len(values) != 2:
+        raise argparse.ArgumentTypeError("expected exactly two comma-separated floats")
+    return float(values[0]), float(values[1])
+
+
 def _wout_metadata(path: Path) -> dict[str, object]:
     from netCDF4 import Dataset
 
@@ -663,6 +670,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--desc-device", choices=("cpu", "gpu"), default="cpu")
     parser.add_argument("--rho-values", type=parse_floats, default=(0.35, 0.55, 0.75, 0.9))
     parser.add_argument("--stream-rho", type=float, default=0.75)
+    parser.add_argument("--stream-rho-values", type=parse_floats, default=None, help="One or more rho values for J-line magnetic surfaces. Overrides --stream-rho.")
     parser.add_argument("--n-phi", type=int, default=80)
     parser.add_argument("--n-theta", type=int, default=160)
     parser.add_argument("--current-source", choices=("vmec-profile", "vmec-fourier", "desc-local"), default="vmec-profile", help="Use VMEC jcuru/jcurv profile current by default; vmec-fourier uses wout currumn/currvmn harmonics; desc-local uses DESC local curl(B)-derived current diagnostics.")
@@ -670,7 +678,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--trace-space", choices=("pest", "cartesian"), default="pest", help="Trace on the PEST surface by default. Use 'cartesian' only for Cartesian field diagnostic tracing.")
     parser.add_argument("--cartesian-field-source", choices=("pest-surface", "desc-grid"), default="pest-surface", help="For Cartesian diagnostic tracing, use PEST-surface projected J by default; 'desc-grid' builds a regular VectorFieldCylind body grid through DESC inverse mapping.")
     parser.add_argument("--phi-indices", type=parse_ints, default=None, help="Seed section indices, comma-separated.")
-    parser.add_argument("--seed-count", type=int, default=3, help="Seeds per selected toroidal section.")
+    parser.add_argument("--phi-range", type=parse_pair, default=None, help="Optional toroidal plotting/tracing sector as start,end radians.")
+    parser.add_argument("--phi-seed-count", type=int, default=None, help="Number of toroidal seed sections inside --phi-range when --phi-indices is omitted.")
+    parser.add_argument("--no-clip-phi-range", action="store_true", help="Use --phi-range only for seed selection/Plotly masking, not as a tracing stop condition.")
+    parser.add_argument("--seed-count", type=int, default=3, help="Seeds per selected toroidal seed value and magnetic surface.")
+    parser.add_argument("--seed-spacing", choices=("arclength", "theta"), default="arclength", help="Distribute seeds uniformly in cross-section arclength by default.")
     parser.add_argument("--n-turns", type=float, default=1.35, help="Trace half-length in seed-surface perimeter units used by pyna.plot.")
     parser.add_argument("--steps-per-turn", type=int, default=1200)
     parser.add_argument("--surface-downsample", type=int, default=2)
@@ -730,7 +742,15 @@ def main(argv: list[str] | None = None) -> int:
         maxiter=args.maxiter,
     )
     diagnostics.update(vmec_current_diag)
-    stream_surface = int(np.argmin(np.abs(pest.rho_vals - float(args.stream_rho))))
+    stream_rhos = np.asarray(args.stream_rho_values if args.stream_rho_values is not None else (args.stream_rho,), dtype=np.float64)
+    if np.any(stream_rhos <= 0.0) or np.any(stream_rhos >= 1.0):
+        raise ValueError("stream rho values must lie strictly inside (0, 1)")
+    stream_surfaces = np.asarray(
+        [int(np.argmin(np.abs(pest.rho_vals - float(rho)))) for rho in stream_rhos],
+        dtype=np.int64,
+    )
+    stream_surfaces = np.unique(stream_surfaces)
+    stream_surface_arg = int(stream_surfaces[0]) if stream_surfaces.size == 1 else [int(i) for i in stream_surfaces]
     cartesian_field = None
     cartesian_diagnostics: dict[str, object] | None = {
         "trace_field_source": "pest_surface_projected",
@@ -761,9 +781,13 @@ def main(argv: list[str] | None = None) -> int:
     streamlines = trace_j_streamlines_on_pest(
         trace_field,
         pest,
-        surface_index=stream_surface,
+        surface_index=stream_surface_arg,
         phi_indices=args.phi_indices,
+        phi_range=args.phi_range,
+        phi_seed_count=args.phi_seed_count,
+        clip_phi_range=not bool(args.no_clip_phi_range),
         seed_count=args.seed_count,
+        seed_spacing=args.seed_spacing,
         n_turns=args.n_turns,
         steps_per_turn=args.steps_per_turn,
         min_field_norm=min_current_norm,
@@ -809,7 +833,8 @@ def main(argv: list[str] | None = None) -> int:
     plot_j_streamlines_on_pest_surface_plotly(
         streamlines,
         pest,
-        surface_index=stream_surface,
+        surface_index=stream_surface_arg,
+        phi_range=args.phi_range,
         html_path=html_path,
         surface_downsample=args.surface_downsample,
         surface_opacity=0.26,
@@ -827,8 +852,8 @@ def main(argv: list[str] | None = None) -> int:
         },
         "pest_j_payload": diagnostics,
         "cartesian_j_field": cartesian_diagnostics,
-        "stream_surface_index": stream_surface,
-        "stream_surface_rho": float(pest.rho_vals[stream_surface]),
+        "stream_surface_indices": [int(i) for i in stream_surfaces],
+        "stream_surface_rho": [float(pest.rho_vals[int(i)]) for i in stream_surfaces],
         "streamlines": streamlines.metadata,
         "phi_span_gate": phi_span_diag,
         "trace_controls": {
@@ -836,6 +861,9 @@ def main(argv: list[str] | None = None) -> int:
             "min_current_fraction": float(args.min_current_fraction),
             "min_current_abs": None if args.min_current_abs is None else float(args.min_current_abs),
             "snap_cartesian_to_surface": not bool(args.no_cartesian_surface_snap),
+            "seed_spacing": str(args.seed_spacing),
+            "phi_range": None if args.phi_range is None else [float(args.phi_range[0]), float(args.phi_range[1])],
+            "clip_phi_range": not bool(args.no_clip_phi_range),
         },
         "outputs": {
             "coords_npz": str(coords_path),
@@ -852,7 +880,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{key}: {value}")
     print(f"summary_json: {summary_path}")
     print(f"betatotal: {meta.get('betatotal')}")
-    print(f"stream_surface_rho: {float(pest.rho_vals[stream_surface]):.6f}")
+    print(f"stream_surface_rho: {', '.join(f'{float(pest.rho_vals[int(i)]):.6f}' for i in stream_surfaces)}")
     print(f"n_seed_lines: {streamlines.n_lines}")
     print(f"n_points: {streamlines.n_points}")
     print(f"normal_leakage_p95: {streamlines.metadata.get('normal_leakage_abs_over_norm_p95')}")

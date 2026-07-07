@@ -153,6 +153,30 @@ def test_trace_j_streamlines_accepts_gridded_pest_vector_field():
     np.testing.assert_allclose(lines.Z, np.repeat(lines.seed_Z[:, None], lines.n_points, axis=1), atol=2.0e-4)
 
 
+def test_trace_j_streamlines_supports_multiple_surfaces_and_phi_sector():
+    pest = _toy_pest(n_phi=12, n_rho=4, n_theta=32)
+    lines = trace_j_streamlines_on_pest(
+        _toroidal_current_field(),
+        pest,
+        surface_index=[1, 3],
+        phi_range=(0.0, np.pi / 2.0),
+        phi_seed_count=2,
+        seed_count=3,
+        seed_spacing="arclength",
+        n_turns=0.16,
+        steps_per_turn=40,
+    )
+
+    assert lines.n_lines == 2 * 2 * 3
+    assert set(lines.seed_surface_index.tolist()) == {1, 3}
+    assert lines.metadata["seed_spacing"] == "arclength"
+    assert lines.metadata["phi_seed_count"] == 2
+    assert lines.metadata["phi_range"] == pytest.approx([0.0, np.pi / 2.0])
+    finite_phi = lines.phi[np.isfinite(lines.phi)]
+    assert finite_phi.size > 0
+    assert np.all(np.mod(finite_phi, 2.0 * np.pi) <= np.pi / 2.0 + 1.0e-12)
+
+
 def test_trace_gridded_pest_field_keeps_pure_poloidal_current_on_seed_section():
     pest = _toy_pest(n_phi=10, n_rho=3, n_theta=32)
     shape = pest.R_surf.shape
@@ -253,6 +277,7 @@ def test_surface_constrained_j_streamlines_report_normal_leakage_without_leaving
         surface_index=-1,
         phi_indices=[0],
         seed_count=6,
+        seed_spacing="theta",
         n_turns=0.04,
         steps_per_turn=40,
     )
@@ -415,3 +440,49 @@ def test_plot_j_streamlines_on_pest_surface_plotly_writes_html(tmp_path):
     assert len(fig.data) == 1 + lines.n_lines
     assert fig.data[0].type == "surface"
     assert fig.data[1].type == "scatter3d"
+
+
+def test_plot_j_streamlines_plotly_supports_multiple_surfaces_and_companion(tmp_path):
+    pytest.importorskip("plotly")
+    pest = _toy_pest(n_phi=10, n_rho=4, n_theta=24)
+    j_lines = trace_j_streamlines_on_pest(
+        _toroidal_current_field(),
+        pest,
+        surface_index=[1, 3],
+        phi_range=(0.0, np.pi),
+        phi_seed_count=2,
+        seed_count=2,
+        n_turns=0.04,
+        steps_per_turn=32,
+    )
+    b_lines = trace_j_streamlines_on_pest(
+        _toroidal_current_field(),
+        pest,
+        surface_index=[1, 3],
+        phi_range=(0.0, np.pi),
+        phi_seed_count=1,
+        seed_count=1,
+        theta_offset=0.2,
+        n_turns=0.04,
+        steps_per_turn=32,
+    )
+    out = tmp_path / "j_b_streamlines.html"
+
+    fig = plot_j_streamlines_on_pest_surface_plotly(
+        j_lines,
+        pest,
+        surface_index=[1, 3],
+        phi_range=(0.0, np.pi),
+        companion_streamlines=b_lines,
+        companion_name="B",
+        html_path=out,
+        include_plotlyjs=False,
+        show_surface=True,
+        line_width=3.0,
+    )
+
+    assert out.exists()
+    assert sum(trace.type == "surface" for trace in fig.data) == 2
+    assert sum(trace.type == "scatter3d" for trace in fig.data) >= j_lines.n_lines + b_lines.n_lines
+    assert any(trace.name == "J streamlines" for trace in fig.data)
+    assert any(trace.name == "B streamlines" for trace in fig.data)

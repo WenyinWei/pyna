@@ -645,6 +645,50 @@ def _normalize_indices(index: int | Sequence[int] | None, size: int, *, default:
     return np.asarray([int(i) % int(size) for i in raw], dtype=np.int64)
 
 
+def _normalize_phi_range(phi_range: Sequence[float] | None, *, period: float) -> tuple[float, float, float] | None:
+    if phi_range is None:
+        return None
+    values = tuple(float(x) for x in phi_range)
+    if len(values) != 2:
+        raise ValueError("phi_range must contain exactly two angles")
+    start, end = values
+    if not (np.isfinite(start) and np.isfinite(end)):
+        raise ValueError("phi_range angles must be finite")
+    phi_period = float(period)
+    if not np.isfinite(phi_period) or phi_period <= 0.0:
+        phi_period = TWOPI
+    raw_span = end - start
+    span = float(np.mod(raw_span, phi_period))
+    if span <= 1.0e-14 and abs(raw_span) > 1.0e-14:
+        span = phi_period
+    if span <= 1.0e-14:
+        raise ValueError("phi_range must have positive angular span")
+    return start, start + span, span
+
+
+def _phi_in_range(phi: np.ndarray, normalized_phi_range: tuple[float, float, float] | None, *, period: float) -> np.ndarray:
+    phi_arr = np.asarray(phi, dtype=np.float64)
+    if normalized_phi_range is None:
+        return np.ones(phi_arr.shape, dtype=bool)
+    start, _end, span = normalized_phi_range
+    phi_period = float(period)
+    relative = np.mod(phi_arr - float(start), phi_period)
+    return np.isfinite(phi_arr) & (relative <= float(span) + 1.0e-12)
+
+
+def _nearest_phi_indices(phi_vals: np.ndarray, phi_values: np.ndarray, *, period: float) -> np.ndarray:
+    grid = np.asarray(phi_vals, dtype=np.float64)
+    values = np.asarray(phi_values, dtype=np.float64)
+    if grid.ndim != 1 or grid.size == 0:
+        return np.full(values.shape, -1, dtype=np.int64)
+    phi_period = float(period)
+    diff = np.abs(
+        np.mod(grid[None, :] - values[:, None] + 0.5 * phi_period, phi_period)
+        - 0.5 * phi_period
+    )
+    return np.asarray(np.nanargmin(diff, axis=1), dtype=np.int64)
+
+
 def _wrap_angle_near_reference(angle: np.ndarray, reference: np.ndarray) -> np.ndarray:
     return reference + np.mod(angle - reference + np.pi, TWOPI) - np.pi
 
@@ -1337,33 +1381,137 @@ def _surface_points_from_theta_phi(
     return R, Z
 
 
+def _seed_theta_values(
+    pest: SmoothPestCoordinates,
+    *,
+    surface_index: int,
+    phi_value: float,
+    seed_count: int,
+    theta_offset: float,
+    seed_spacing: str,
+) -> np.ndarray:
+    n_theta = pest.R_surf.shape[2]
+    theta_vals = np.asarray(pest.theta_vals, dtype=np.float64)
+    if int(seed_count) <= 0:
+        raise ValueError("seed_count must be positive")
+    spacing = str(seed_spacing).lower()
+    if spacing in {"theta", "index", "grid"}:
+        theta_base = np.linspace(0, n_theta, int(seed_count), endpoint=False, dtype=np.float64)
+        theta_indices = np.mod(
+            np.rint(theta_base + float(theta_offset) * n_theta / TWOPI).astype(np.int64),
+            n_theta,
+        )
+        return theta_vals[theta_indices]
+    if spacing not in {"arclength", "arc", "perimeter"}:
+        raise ValueError("seed_spacing must be 'arclength' or 'theta'")
+
+    ir = int(surface_index) % pest.R_surf.shape[1]
+    phi0 = float(pest.phi_vals[0]) if np.asarray(pest.phi_vals).size else 0.0
+    phi_period = float(getattr(pest, "period", TWOPI) or TWOPI)
+    R_ring = _surface_ring_at_phi(
+        np.asarray(pest.R_surf[:, ir, :], dtype=np.float64),
+        float(phi_value),
+        phi0=phi0,
+        phi_period=phi_period,
+    )
+    Z_ring = _surface_ring_at_phi(
+        np.asarray(pest.Z_surf[:, ir, :], dtype=np.float64),
+        float(phi_value),
+        phi0=phi0,
+        phi_period=phi_period,
+    )
+    finite = np.isfinite(R_ring) & np.isfinite(Z_ring) & np.isfinite(theta_vals)
+    if np.count_nonzero(finite) < 4:
+        return _seed_theta_values(
+            pest,
+            surface_index=surface_index,
+            phi_value=phi_value,
+            seed_count=seed_count,
+            theta_offset=theta_offset,
+            seed_spacing="theta",
+        )
+    if not np.all(finite):
+        return _seed_theta_values(
+            pest,
+            surface_index=surface_index,
+            phi_value=phi_value,
+            seed_count=seed_count,
+            theta_offset=theta_offset,
+            seed_spacing="theta",
+        )
+    theta_ext = np.concatenate([theta_vals, [theta_vals[0] + TWOPI]])
+    R_ext = np.concatenate([R_ring, [R_ring[0]]])
+    Z_ext = np.concatenate([Z_ring, [Z_ring[0]]])
+    step = np.sqrt(np.diff(R_ext) ** 2 + np.diff(Z_ext) ** 2)
+    if not np.all(np.isfinite(step)):
+        return _seed_theta_values(
+            pest,
+            surface_index=surface_index,
+            phi_value=phi_value,
+            seed_count=seed_count,
+            theta_offset=theta_offset,
+            seed_spacing="theta",
+        )
+    perimeter = float(np.nansum(step))
+    if not np.isfinite(perimeter) or perimeter <= 0.0:
+        return _seed_theta_values(
+            pest,
+            surface_index=surface_index,
+            phi_value=phi_value,
+            seed_count=seed_count,
+            theta_offset=theta_offset,
+            seed_spacing="theta",
+        )
+    cumulative = np.concatenate([[0.0], np.cumsum(step)])
+    phase = float(np.mod(float(theta_offset), TWOPI) / TWOPI)
+    targets = np.mod((np.arange(int(seed_count), dtype=np.float64) / float(seed_count)) + phase, 1.0) * perimeter
+    targets.sort()
+    return np.interp(targets, cumulative, theta_ext)
+
+
 def _seed_points(
     pest: SmoothPestCoordinates,
     *,
     surface_indices: np.ndarray,
     phi_indices: np.ndarray,
+    phi_values: np.ndarray,
     seed_count: int,
     theta_offset: float,
+    seed_spacing: str,
 ) -> dict[str, np.ndarray]:
-    n_theta = pest.R_surf.shape[2]
     if int(seed_count) <= 0:
         raise ValueError("seed_count must be positive")
-    theta_base = np.linspace(0, n_theta, int(seed_count), endpoint=False, dtype=np.float64)
-    theta_indices = np.mod(np.rint(theta_base + float(theta_offset) * n_theta / TWOPI).astype(np.int64), n_theta)
+    if np.asarray(phi_indices).size != np.asarray(phi_values).size:
+        raise ValueError("phi_indices and phi_values must have the same size")
     rows = []
-    for iphi in phi_indices:
+    for iphi, phi_value in zip(phi_indices, phi_values):
         for irho in surface_indices:
-            for itheta in theta_indices:
-                R0 = float(pest.R_surf[int(iphi), int(irho), int(itheta)])
-                Z0 = float(pest.Z_surf[int(iphi), int(irho), int(itheta)])
+            theta_values = _seed_theta_values(
+                pest,
+                surface_index=int(irho),
+                phi_value=float(phi_value),
+                seed_count=int(seed_count),
+                theta_offset=float(theta_offset),
+                seed_spacing=seed_spacing,
+            )
+            phi_arr = np.full(theta_values.shape, float(phi_value), dtype=np.float64)
+            R_seed, Z_seed = _surface_points_at_theta_phi(
+                pest,
+                surface_index=int(irho),
+                theta=theta_values,
+                phi=phi_arr,
+            )
+            for R0, Z0, theta0 in zip(R_seed, Z_seed, theta_values):
+                R0 = float(R0)
+                Z0 = float(Z0)
                 if np.isfinite(R0) and np.isfinite(Z0):
                     rows.append(
                         (
                             R0,
                             Z0,
-                            float(pest.phi_vals[int(iphi)]),
+                            float(phi_value),
                             float(pest.rho_vals[int(irho)]),
-                            float(pest.theta_vals[int(itheta)]),
+                            float(theta0),
                             int(irho),
                             int(iphi),
                         )
@@ -1407,7 +1555,12 @@ def trace_j_streamlines_on_pest(
     *,
     surface_index: int | Sequence[int] | None = -1,
     phi_indices: Sequence[int] | None = None,
+    phi_values: Sequence[float] | None = None,
+    phi_range: Sequence[float] | None = None,
+    phi_seed_count: int | None = None,
+    clip_phi_range: bool = True,
     seed_count: int = 12,
+    seed_spacing: str = "arclength",
     n_turns: float = 0.2,
     steps_per_turn: int = 512,
     bidirectional: bool = True,
@@ -1430,20 +1583,61 @@ def trace_j_streamlines_on_pest(
     stepping in ``(theta, phi)``.  Set ``constrain_to_surface=False`` to integrate
     in physical Cartesian space; the PEST mesh is then used only for seeding and
     section projection.
+
+    ``surface_index`` may select one or more magnetic surfaces.  ``seed_count``
+    is the number of poloidal seeds per selected surface and toroidal seed
+    value.  With the default ``seed_spacing="arclength"``, those poloidal seeds
+    are distributed by cross-section arclength instead of raw theta index.
+    ``phi_range`` limits the toroidal sector used for automatically generated
+    seed values and, by default, stops each line once it leaves that sector.
+    ``n_turns`` keeps the historical pyna.plot meaning: it is a multiplier of
+    ``steps_per_turn`` in normalized seed-surface arclength, not a literal
+    toroidal turn count.
     """
 
     coords = _as_pest_coordinates(pest)
     _validate_pest(coords)
     n_phi, n_rho, _n_theta = coords.R_surf.shape
+    phi_period = float(getattr(coords, "period", TWOPI) or TWOPI)
+    phi_range_norm = _normalize_phi_range(phi_range, period=phi_period)
     default_phi = [0] if n_phi < 4 else [0, n_phi // 4, n_phi // 2, (3 * n_phi) // 4]
-    phi_idx = _normalize_indices(phi_indices, n_phi, default=default_phi)
+    if phi_indices is not None and phi_values is not None:
+        raise ValueError("provide either phi_indices or phi_values, not both")
+    if phi_values is not None:
+        seed_phi_values = np.asarray(list(phi_values), dtype=np.float64)
+        if seed_phi_values.size == 0:
+            raise ValueError("phi_values must not be empty")
+        if not np.all(np.isfinite(seed_phi_values)):
+            raise ValueError("phi_values must be finite")
+        if phi_range_norm is not None and bool(clip_phi_range):
+            keep = _phi_in_range(seed_phi_values, phi_range_norm, period=phi_period)
+            seed_phi_values = seed_phi_values[keep]
+            if seed_phi_values.size == 0:
+                raise ValueError("no phi_values lie inside phi_range")
+        phi_idx = _nearest_phi_indices(np.asarray(coords.phi_vals, dtype=np.float64), seed_phi_values, period=phi_period)
+    elif phi_range_norm is not None and phi_indices is None:
+        n_phi_seed = max(int(phi_seed_count) if phi_seed_count is not None else min(4, n_phi), 1)
+        start, _end, span = phi_range_norm
+        seed_phi_values = float(start) + (np.arange(n_phi_seed, dtype=np.float64) + 0.5) * float(span) / float(n_phi_seed)
+        phi_idx = _nearest_phi_indices(np.asarray(coords.phi_vals, dtype=np.float64), seed_phi_values, period=phi_period)
+    else:
+        phi_idx = _normalize_indices(phi_indices, n_phi, default=default_phi)
+        seed_phi_values = np.asarray(coords.phi_vals, dtype=np.float64)[phi_idx]
+        if phi_range_norm is not None and bool(clip_phi_range):
+            keep = _phi_in_range(seed_phi_values, phi_range_norm, period=phi_period)
+            phi_idx = phi_idx[keep]
+            seed_phi_values = seed_phi_values[keep]
+            if seed_phi_values.size == 0:
+                raise ValueError("no selected phi_indices lie inside phi_range")
     surf_idx = _normalize_indices(surface_index, n_rho, default=[n_rho - 1])
     seeds = _seed_points(
         coords,
         surface_indices=surf_idx,
         phi_indices=phi_idx,
+        phi_values=seed_phi_values,
         seed_count=int(seed_count),
         theta_offset=float(theta_offset),
+        seed_spacing=str(seed_spacing),
     )
 
     seed_R = seeds["R"]
@@ -1476,8 +1670,8 @@ def trace_j_streamlines_on_pest(
     theta_grid = np.asarray(coords.theta_vals, dtype=np.float64)
     for ir in surf_idx:
         surface_eval = surface_evals[int(ir)]
-        for ip in phi_idx:
-            phi_grid = np.full_like(theta_grid, float(coords.phi_vals[int(ip)]), dtype=np.float64)
+        for phi_value in seed_phi_values:
+            phi_grid = np.full_like(theta_grid, float(phi_value), dtype=np.float64)
             _, _, leakage, tangent_fraction = _pest_surface_rhs_single(
                 surface_eval,
                 field_eval,
@@ -1507,6 +1701,10 @@ def trace_j_streamlines_on_pest(
                     min_field_norm=float(min_field_norm),
                     min_tangent_norm=tangent_floor,
                 )
+                if phi_range_norm is not None and bool(clip_phi_range):
+                    inside = _phi_in_range(phi, phi_range_norm, period=phi_period)
+                    theta = np.where(inside, theta, np.nan)
+                    phi = np.where(inside, phi, np.nan)
                 trajectory_leakage_samples.append(leakage)
                 trajectory_tangent_fraction_samples.append(tangent_fraction)
                 thetas.append(theta.copy())
@@ -1572,6 +1770,12 @@ def trace_j_streamlines_on_pest(
                         h=float(direction) * h_base,
                         min_field_norm=float(min_field_norm),
                     )
+                if phi_range_norm is not None and bool(clip_phi_range):
+                    inside = _phi_in_range(phi_curr, phi_range_norm, period=phi_period)
+                    x_curr = np.where(inside, x_curr, np.nan)
+                    y_curr = np.where(inside, y_curr, np.nan)
+                    z_curr = np.where(inside, z_curr, np.nan)
+                    phi_curr = np.where(inside, phi_curr, np.nan)
                 xs.append(x_curr.copy())
                 ys.append(y_curr.copy())
                 zs.append(z_curr.copy())
@@ -1609,6 +1813,11 @@ def trace_j_streamlines_on_pest(
         "n_turns": float(n_turns),
         "steps_per_turn": int(steps_per_turn),
         "seed_count": int(seed_count),
+        "seed_spacing": str(seed_spacing),
+        "phi_seed_count": int(seed_phi_values.size),
+        "phi_values": [float(x) for x in seed_phi_values],
+        "phi_range": None if phi_range_norm is None else [float(phi_range_norm[0]), float(phi_range_norm[1])],
+        "clip_phi_range": bool(clip_phi_range),
         "n_seed_lines": int(n_seed),
         "n_points": int(n_points),
         "surface_arclength_per_turn": float(surface_arclength_per_turn),
@@ -1656,12 +1865,32 @@ def _surface_xyz(
     surface_index: int,
     *,
     downsample: int = 1,
+    phi_range: Sequence[float] | None = None,
 ) -> np.ndarray:
     step = max(1, int(downsample))
     ir = int(surface_index) % pest.R_surf.shape[1]
-    R = np.asarray(pest.R_surf[:, ir, :], dtype=np.float64)[::step, ::step]
-    Z = np.asarray(pest.Z_surf[:, ir, :], dtype=np.float64)[::step, ::step]
-    phi = np.asarray(pest.phi_vals, dtype=np.float64)[::step, np.newaxis]
+    phi_vals = np.asarray(pest.phi_vals, dtype=np.float64)
+    phi_period = float(getattr(pest, "period", TWOPI) or TWOPI)
+    normalized = _normalize_phi_range(phi_range, period=phi_period)
+    if normalized is None:
+        phi_select = np.arange(phi_vals.size, dtype=np.int64)[::step]
+    else:
+        start, _end, _span = normalized
+        mask = _phi_in_range(phi_vals, normalized, period=phi_period)
+        phi_select = np.flatnonzero(mask)
+        if phi_select.size < 2:
+            nearest = _nearest_phi_indices(phi_vals, np.asarray([start, start + normalized[2]], dtype=np.float64), period=phi_period)
+            phi_select = np.unique(nearest)
+            if phi_select.size < 2 and phi_vals.size >= 2:
+                first = int(phi_select[0]) if phi_select.size else 0
+                phi_select = np.unique(np.asarray([first, (first + 1) % phi_vals.size], dtype=np.int64))
+        order = np.argsort(np.mod(phi_vals[phi_select] - float(start), phi_period))
+        phi_select = phi_select[order][::step]
+    if phi_select.size == 0:
+        phi_select = np.arange(phi_vals.size, dtype=np.int64)[::step]
+    R = np.asarray(pest.R_surf[:, ir, :], dtype=np.float64)[phi_select, ::step]
+    Z = np.asarray(pest.Z_surf[:, ir, :], dtype=np.float64)[phi_select, ::step]
+    phi = phi_vals[phi_select, np.newaxis]
     return _cylindrical_to_cartesian(R, Z, phi)
 
 
@@ -1743,20 +1972,31 @@ def plot_j_streamlines_on_pest_surface_plotly(
     streamlines: PestSeededStreamlines,
     pest: SmoothPestCoordinates | Mapping[str, object] | str | Path | None = None,
     *,
-    surface_index: int | None = None,
+    surface_index: int | Sequence[int] | None = None,
+    phi_range: Sequence[float] | None = None,
+    companion_streamlines: PestSeededStreamlines | Sequence[PestSeededStreamlines] | None = None,
+    companion_name: str = "B",
     html_path: str | Path | None = None,
     include_plotlyjs: str | bool = "cdn",
     show_surface: bool = True,
     surface_downsample: int = 1,
     surface_opacity: float = 0.24,
     line_width: float = 4.0,
+    companion_line_width: float = 2.4,
+    j_colorscale: str = "Turbo",
+    companion_color: str = "rgba(37, 99, 235, 0.72)",
     max_segment_step: float | None = None,
     max_segment_angle_deg: float | None = 45.0,
     title: str | None = None,
     width: int = 1100,
     height: int = 850,
 ):
-    """Return a Plotly 3-D view of J streamlines seeded on a PEST surface."""
+    """Return a Plotly 3-D view of PEST-seeded J streamlines.
+
+    The plot can show several selected PEST surfaces, clip both surfaces and
+    lines to a toroidal ``phi_range``, and overlay a companion set of
+    streamlines, for example magnetic-field lines drawn with a thinner style.
+    """
 
     try:
         import plotly.graph_objects as go
@@ -1766,86 +2006,149 @@ def plot_j_streamlines_on_pest_surface_plotly(
         raise ImportError("plotly is required for plot_j_streamlines_on_pest_surface_plotly") from exc
 
     coords = _as_pest_coordinates(pest) if pest is not None else None
+    phi_period = float(getattr(coords, "period", TWOPI) or TWOPI) if coords is not None else TWOPI
+    normalized_phi_range = _normalize_phi_range(phi_range, period=phi_period)
     fig = go.Figure()
-    if show_surface and coords is not None:
-        ir = (
-            int(surface_index) % coords.R_surf.shape[1]
-            if surface_index is not None
-            else int(streamlines.seed_surface_index[0]) % coords.R_surf.shape[1]
-        )
-        xyz = _surface_xyz(coords, ir, downsample=surface_downsample)
-        fig.add_trace(
-            go.Surface(
-                x=xyz[:, :, 0],
-                y=xyz[:, :, 1],
-                z=xyz[:, :, 2],
-                showscale=False,
-                opacity=float(surface_opacity),
-                colorscale=[[0.0, "rgb(185,190,198)"], [1.0, "rgb(185,190,198)"]],
-                hoverinfo="skip",
-                name="PEST surface",
-            )
-        )
+    companion_list: list[PestSeededStreamlines]
+    if companion_streamlines is None:
+        companion_list = []
+    elif isinstance(companion_streamlines, PestSeededStreamlines):
+        companion_list = [companion_streamlines]
+    else:
+        companion_list = list(companion_streamlines)
 
-    finite_rho = streamlines.seed_rho[np.isfinite(streamlines.seed_rho)]
-    rho_min = float(np.nanmin(finite_rho)) if finite_rho.size else 0.0
-    rho_max = float(np.nanmax(finite_rho)) if finite_rho.size else 1.0
-    if rho_max <= rho_min:
-        rho_max = rho_min + 1.0
-    for line_idx in range(streamlines.n_lines):
-        keep = (
-            np.isfinite(streamlines.x[line_idx])
-            & np.isfinite(streamlines.y[line_idx])
-            & np.isfinite(streamlines.z[line_idx])
-        )
-        if np.count_nonzero(keep) < 2:
-            continue
-        color_value = (float(streamlines.seed_rho[line_idx]) - rho_min) / (rho_max - rho_min)
-        color = sample_colorscale("Viridis", color_value)[0]
-        xyz_line = streamlines.xyz[line_idx]
-        for segment_idx, segment in enumerate(
-            _finite_segment_slices(
+    default_surfaces = sorted({int(i) for i in streamlines.seed_surface_index if np.isfinite(i)})
+    for companion in companion_list:
+        default_surfaces.extend(int(i) for i in companion.seed_surface_index if np.isfinite(i))
+    default_surfaces = sorted(set(default_surfaces)) or [0]
+    allowed_surface_set: set[int] | None = None
+    if show_surface and coords is not None:
+        surface_indices = _normalize_indices(surface_index, coords.R_surf.shape[1], default=default_surfaces)
+        allowed_surface_set = {int(i) for i in surface_indices}
+        for surface_pos, ir in enumerate(surface_indices):
+            xyz = _surface_xyz(coords, int(ir), downsample=surface_downsample, phi_range=phi_range)
+            rho_label = (
+                f"rho={float(coords.rho_vals[int(ir) % coords.R_surf.shape[1]]):.3f}"
+                if np.asarray(coords.rho_vals).size
+                else f"surface {int(ir)}"
+            )
+            fig.add_trace(
+                go.Surface(
+                    x=xyz[:, :, 0],
+                    y=xyz[:, :, 1],
+                    z=xyz[:, :, 2],
+                    showscale=False,
+                    opacity=float(surface_opacity),
+                    colorscale=[[0.0, "rgb(184,190,199)"], [1.0, "rgb(184,190,199)"]],
+                    lighting=dict(ambient=0.64, diffuse=0.72, specular=0.12, roughness=0.8),
+                    lightposition=dict(x=2.0, y=2.0, z=1.0),
+                    hoverinfo="skip",
+                    name=f"PEST surface {rho_label}",
+                    showlegend=surface_pos == 0,
+                    legendgroup="PEST surface",
+                )
+            )
+
+    if allowed_surface_set is None and surface_index is not None and coords is not None:
+        allowed_surface_set = {
+            int(i) for i in _normalize_indices(surface_index, coords.R_surf.shape[1], default=default_surfaces)
+        }
+
+    def add_streamline_traces(
+        lines: PestSeededStreamlines,
+        *,
+        label: str,
+        width_value: float,
+        colorscale: str | None,
+        fixed_color: str | None,
+    ) -> None:
+        finite_rho = lines.seed_rho[np.isfinite(lines.seed_rho)]
+        rho_min = float(np.nanmin(finite_rho)) if finite_rho.size else 0.0
+        rho_max = float(np.nanmax(finite_rho)) if finite_rho.size else 1.0
+        if rho_max <= rho_min:
+            rho_max = rho_min + 1.0
+        legend_added = False
+        for line_idx in range(lines.n_lines):
+            if allowed_surface_set is not None and int(lines.seed_surface_index[line_idx]) not in allowed_surface_set:
+                continue
+            keep = (
+                np.isfinite(lines.x[line_idx])
+                & np.isfinite(lines.y[line_idx])
+                & np.isfinite(lines.z[line_idx])
+            )
+            if normalized_phi_range is not None:
+                keep &= _phi_in_range(lines.phi[line_idx], normalized_phi_range, period=phi_period)
+            if np.count_nonzero(keep) < 2:
+                continue
+            if fixed_color is None:
+                color_value = (float(lines.seed_rho[line_idx]) - rho_min) / (rho_max - rho_min)
+                color = sample_colorscale(colorscale or "Turbo", color_value)[0]
+            else:
+                color = fixed_color
+            xyz_line = lines.xyz[line_idx]
+            for segment in _finite_segment_slices(
                 keep,
                 xyz_line,
                 max_step=max_segment_step,
                 max_angle_deg=max_segment_angle_deg,
-            )
-        ):
-            point_count = int(segment.stop - segment.start)
-            fig.add_trace(
-                go.Scatter3d(
-                    x=streamlines.x[line_idx, segment],
-                    y=streamlines.y[line_idx, segment],
-                    z=streamlines.z[line_idx, segment],
-                    mode="lines",
-                    line=dict(color=color, width=float(line_width)),
-                    name=f"J line {line_idx}" if segment_idx == 0 else f"J line {line_idx} segment {segment_idx}",
-                    hovertemplate=(
-                        "seed rho=%{customdata[0]:.3f}<br>"
-                        "seed theta=%{customdata[1]:.3f}<br>"
-                        "X=%{x:.3f}<br>Y=%{y:.3f}<br>Z=%{z:.3f}<extra></extra>"
-                    ),
-                    customdata=np.column_stack(
-                        [
-                            np.full(point_count, streamlines.seed_rho[line_idx]),
-                            np.full(point_count, streamlines.seed_theta[line_idx]),
-                        ]
-                    ),
-                    showlegend=False,
+            ):
+                point_count = int(segment.stop - segment.start)
+                fig.add_trace(
+                    go.Scatter3d(
+                        x=lines.x[line_idx, segment],
+                        y=lines.y[line_idx, segment],
+                        z=lines.z[line_idx, segment],
+                        mode="lines",
+                        line=dict(color=color, width=float(width_value)),
+                        name=label,
+                        legendgroup=label,
+                        hovertemplate=(
+                            f"{label}<br>"
+                            "seed rho=%{customdata[0]:.3f}<br>"
+                            "seed theta=%{customdata[1]:.3f}<br>"
+                            "X=%{x:.3f}<br>Y=%{y:.3f}<br>Z=%{z:.3f}<extra></extra>"
+                        ),
+                        customdata=np.column_stack(
+                            [
+                                np.full(point_count, lines.seed_rho[line_idx]),
+                                np.full(point_count, lines.seed_theta[line_idx]),
+                            ]
+                        ),
+                        showlegend=not legend_added,
+                    )
                 )
-            )
+                legend_added = True
+
+    add_streamline_traces(
+        streamlines,
+        label="J streamlines",
+        width_value=float(line_width),
+        colorscale=j_colorscale,
+        fixed_color=None,
+    )
+    for companion in companion_list:
+        add_streamline_traces(
+            companion,
+            label=f"{companion_name} streamlines",
+            width_value=float(companion_line_width),
+            colorscale=None,
+            fixed_color=companion_color,
+        )
     fig.update_layout(
         title=title,
+        paper_bgcolor="white",
+        plot_bgcolor="white",
         scene=dict(
             xaxis_title="X [m]",
             yaxis_title="Y [m]",
             zaxis_title="Z [m]",
             aspectmode="data",
-            camera=dict(eye=dict(x=1.8, y=-1.4, z=0.9), up=dict(x=0.0, y=0.0, z=1.0)),
+            camera=dict(eye=dict(x=1.8, y=-1.2, z=0.85), center=dict(x=0.0, y=0.0, z=0.0), up=dict(x=0.0, y=0.0, z=1.0)),
         ),
         width=int(width),
         height=int(height),
-        margin=dict(l=0, r=0, b=0, t=55),
+        margin=dict(l=0, r=20, b=0, t=60),
+        legend=dict(x=0.02, y=0.98, bgcolor="rgba(255,255,255,0.72)"),
     )
     if html_path is not None:
         pio.write_html(fig, str(Path(html_path)), include_plotlyjs=include_plotlyjs, auto_open=False)
