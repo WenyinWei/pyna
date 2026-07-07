@@ -153,7 +153,7 @@ def build_desc_pest_j_payload(
     vmec_current: VmecCurrentFourier | None = None,
     tol: float,
     maxiter: int,
-) -> tuple[SmoothPestCoordinates, GriddedPestVectorField, dict[str, object]]:
+) -> tuple[SmoothPestCoordinates, GriddedPestVectorField, GriddedPestVectorField, dict[str, object]]:
     """Sample finite-beta DESC/VMEC geometry and current on a full-torus PEST mesh."""
 
     nfp = int(eq.NFP)
@@ -182,6 +182,9 @@ def build_desc_pest_j_payload(
             "J^theta",
             "J^theta_PEST",
             "J^zeta",
+            "B_R",
+            "B_phi",
+            "B_Z",
             "e_rho",
             "e_theta",
             "e_zeta",
@@ -198,6 +201,10 @@ def build_desc_pest_j_payload(
     raw_JPhi = np.asarray(data["J_phi"], dtype=np.float64)
     raw_JZ = np.asarray(data["J_Z"], dtype=np.float64)
     raw_J = np.stack([raw_JR, raw_JPhi, raw_JZ], axis=1)
+    raw_BR = np.asarray(data["B_R"], dtype=np.float64)
+    raw_BPhi = np.asarray(data["B_phi"], dtype=np.float64)
+    raw_BZ = np.asarray(data["B_Z"], dtype=np.float64)
+    raw_B = np.stack([raw_BR, raw_BPhi, raw_BZ], axis=1)
     pressure = np.asarray(data["p"], dtype=np.float64).reshape(shape)
 
     axis_nodes = np.column_stack(
@@ -286,7 +293,23 @@ def build_desc_pest_j_payload(
         nfp=nfp,
         source=f"W7-X public finite-beta {current_source} {current_mode} current",
     )
+    sampled_B_cartesian = _desc_rpz_vector_to_cartesian_components(raw_B, phi_grid.ravel())
+    BR = raw_BR.reshape(shape)
+    BZ = raw_BZ.reshape(shape)
+    BPhi = raw_BPhi.reshape(shape)
+    b_field = GriddedPestVectorField.from_pest_coordinates(
+        pest,
+        JR=np.ascontiguousarray(BR),
+        JZ=np.ascontiguousarray(BZ),
+        JPhi=np.ascontiguousarray(BPhi),
+        Jx=np.ascontiguousarray(sampled_B_cartesian[:, 0].reshape(shape)),
+        Jy=np.ascontiguousarray(sampled_B_cartesian[:, 1].reshape(shape)),
+        Jz=np.ascontiguousarray(sampled_B_cartesian[:, 2].reshape(shape)),
+        nfp=nfp,
+        source="W7-X public finite-beta DESC magnetic field",
+    )
     j_abs = np.sqrt(JR * JR + JZ * JZ + JPhi * JPhi)
+    b_abs = np.sqrt(BR * BR + BZ * BZ + BPhi * BPhi)
     raw_j_abs = np.linalg.norm(raw_J, axis=1)
     tangent_j_abs = np.linalg.norm(sampled_J, axis=1)
     radial_j_abs = np.abs(np.asarray(data["J^rho"], dtype=np.float64)) * np.linalg.norm(
@@ -305,6 +328,10 @@ def build_desc_pest_j_payload(
         "J_abs_median": float(np.nanmedian(j_abs)),
         "J_abs_p95": float(np.nanpercentile(j_abs, 95.0)),
         "J_abs_max": float(np.nanmax(j_abs)),
+        "B_abs_min": float(np.nanmin(b_abs)),
+        "B_abs_median": float(np.nanmedian(b_abs)),
+        "B_abs_p95": float(np.nanpercentile(b_abs, 95.0)),
+        "B_abs_max": float(np.nanmax(b_abs)),
         "raw_J_abs_median": float(np.nanmedian(raw_j_abs)),
         "raw_J_abs_p95": float(np.nanpercentile(raw_j_abs, 95.0)),
         "tangent_J_abs_median": float(np.nanmedian(tangent_j_abs)),
@@ -320,7 +347,7 @@ def build_desc_pest_j_payload(
         "pressure_min": float(np.nanmin(pressure)),
         "pressure_max": float(np.nanmax(pressure)),
     }
-    return pest, field, diagnostics
+    return pest, field, b_field, diagnostics
 
 
 def _map_real_space_nodes(
@@ -683,9 +710,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--no-clip-phi-range", action="store_true", help="Use --phi-range only for seed selection/Plotly masking, not as a tracing stop condition.")
     parser.add_argument("--seed-count", type=int, default=3, help="Seeds per selected toroidal seed value and magnetic surface.")
     parser.add_argument("--seed-spacing", choices=("arclength", "theta"), default="arclength", help="Distribute seeds uniformly in cross-section arclength by default.")
+    parser.add_argument("--no-b-streamlines", action="store_true", help="Do not draw magnetic-field companion streamlines in the Plotly view.")
+    parser.add_argument("--b-seed-count", type=int, default=None, help="Seeds per toroidal seed value and surface for B companion lines. Defaults to --seed-count.")
+    parser.add_argument("--b-n-turns", type=float, default=None, help="Trace half-length for B companion lines. Defaults to --n-turns.")
+    parser.add_argument("--b-line-width", type=float, default=2.2, help="Plotly line width for B companion streamlines.")
     parser.add_argument("--n-turns", type=float, default=1.35, help="Trace half-length in seed-surface perimeter units used by pyna.plot.")
     parser.add_argument("--steps-per-turn", type=int, default=1200)
     parser.add_argument("--surface-downsample", type=int, default=2)
+    parser.add_argument("--surface-phi-samples", type=int, default=None, help="Optional Plotly surface phi samples, useful for narrow --phi-range sectors.")
     parser.add_argument("--cartesian-n-r", dest="cartesian_n_r", type=int, default=64, help="R grid points for Cartesian-space J tracing.")
     parser.add_argument("--cartesian-n-z", dest="cartesian_n_z", type=int, default=64, help="Z grid points for Cartesian-space J tracing.")
     parser.add_argument("--cartesian-n-phi", type=int, default=40, help="Toroidal grid points over one field period for Cartesian-space J tracing.")
@@ -728,7 +760,7 @@ def main(argv: list[str] | None = None) -> int:
             "vmec_current_harmonics_modes": int(vmec_current.xm.size),
         }
 
-    pest, pest_field, diagnostics = build_desc_pest_j_payload(
+    pest, pest_field, b_field, diagnostics = build_desc_pest_j_payload(
         eq,
         rho_vals=rho_vals,
         n_phi=args.n_phi,
@@ -795,15 +827,39 @@ def main(argv: list[str] | None = None) -> int:
         max_surface_distance=args.projection_distance,
         snap_cartesian_to_surface=not bool(args.no_cartesian_surface_snap),
     )
+    b_streamlines = None
+    if not bool(args.no_b_streamlines):
+        median_b = float(diagnostics.get("B_abs_median", 0.0))
+        min_b_norm = max(float(args.min_current_fraction), 0.0) * median_b
+        b_streamlines = trace_j_streamlines_on_pest(
+            b_field,
+            pest,
+            surface_index=stream_surface_arg,
+            phi_indices=args.phi_indices,
+            phi_range=args.phi_range,
+            phi_seed_count=args.phi_seed_count,
+            clip_phi_range=not bool(args.no_clip_phi_range),
+            seed_count=int(args.b_seed_count) if args.b_seed_count is not None else int(args.seed_count),
+            seed_spacing=args.seed_spacing,
+            n_turns=float(args.b_n_turns) if args.b_n_turns is not None else float(args.n_turns),
+            steps_per_turn=args.steps_per_turn,
+            min_field_norm=min_b_norm,
+            constrain_to_surface=args.trace_space == "pest",
+            max_surface_distance=args.projection_distance,
+            snap_cartesian_to_surface=not bool(args.no_cartesian_surface_snap),
+        )
     phi_span_diag = _phi_span_diagnostics(streamlines, limit_turns=float(args.phi_span_limit_turns))
 
     coords_path = out / "w7x_public_finite_beta_pest_j_payload.npz"
     cartesian_field_path = out / "w7x_public_finite_beta_cartesian_j_field.npz"
     lines_path = out / "w7x_public_finite_beta_j_streamlines.npz"
+    b_lines_path = out / "w7x_public_finite_beta_b_streamlines.npz"
     write_npz_payload(coords_path, pest, pest_field)
     if cartesian_field is not None:
         write_vector_field_npz(cartesian_field_path, cartesian_field)
     write_streamlines_npz(lines_path, streamlines)
+    if b_streamlines is not None:
+        write_streamlines_npz(b_lines_path, b_streamlines)
 
     import matplotlib
 
@@ -829,18 +885,26 @@ def main(argv: list[str] | None = None) -> int:
     fig.savefig(png_path, dpi=210, bbox_inches="tight")
     plt.close(fig)
 
-    html_path = out / "w7x_public_finite_beta_j_streamlines_3d.html"
+    html_path = out / (
+        "w7x_public_finite_beta_j_b_streamlines_3d.html"
+        if b_streamlines is not None
+        else "w7x_public_finite_beta_j_streamlines_3d.html"
+    )
     plot_j_streamlines_on_pest_surface_plotly(
         streamlines,
         pest,
         surface_index=stream_surface_arg,
         phi_range=args.phi_range,
+        companion_streamlines=b_streamlines,
+        companion_name="B",
         html_path=html_path,
         surface_downsample=args.surface_downsample,
+        surface_phi_samples=args.surface_phi_samples,
         surface_opacity=0.26,
         line_width=4.2,
+        companion_line_width=args.b_line_width,
         max_segment_angle_deg=args.max_3d_segment_angle,
-        title=f"W7-X public finite-beta {source_label} streamlines ({gate_label})",
+        title=f"W7-X public finite-beta {source_label} J/B streamlines ({gate_label})",
     )
 
     summary = {
@@ -855,6 +919,7 @@ def main(argv: list[str] | None = None) -> int:
         "stream_surface_indices": [int(i) for i in stream_surfaces],
         "stream_surface_rho": [float(pest.rho_vals[int(i)]) for i in stream_surfaces],
         "streamlines": streamlines.metadata,
+        "b_streamlines": None if b_streamlines is None else b_streamlines.metadata,
         "phi_span_gate": phi_span_diag,
         "trace_controls": {
             "min_current_norm": float(min_current_norm),
@@ -864,11 +929,16 @@ def main(argv: list[str] | None = None) -> int:
             "seed_spacing": str(args.seed_spacing),
             "phi_range": None if args.phi_range is None else [float(args.phi_range[0]), float(args.phi_range[1])],
             "clip_phi_range": not bool(args.no_clip_phi_range),
+            "b_streamlines": b_streamlines is not None,
+            "b_seed_count": None if args.b_seed_count is None else int(args.b_seed_count),
+            "b_n_turns": None if args.b_n_turns is None else float(args.b_n_turns),
+            "surface_phi_samples": None if args.surface_phi_samples is None else int(args.surface_phi_samples),
         },
         "outputs": {
             "coords_npz": str(coords_path),
             "cartesian_field_npz": str(cartesian_field_path) if cartesian_field is not None else "",
             "streamlines_npz": str(lines_path),
+            "b_streamlines_npz": str(b_lines_path) if b_streamlines is not None else "",
             "sections_png": str(png_path),
             "plotly_html": str(html_path),
         },
@@ -884,6 +954,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"n_seed_lines: {streamlines.n_lines}")
     print(f"n_points: {streamlines.n_points}")
     print(f"normal_leakage_p95: {streamlines.metadata.get('normal_leakage_abs_over_norm_p95')}")
+    if b_streamlines is not None:
+        print(f"b_n_seed_lines: {b_streamlines.n_lines}")
+        print(f"b_normal_leakage_p95: {b_streamlines.metadata.get('normal_leakage_abs_over_norm_p95')}")
     print(f"phi_span_max_turns: {phi_span_diag.get('phi_span_max_turns')}")
     print(f"phi_span_all_ok: {phi_span_diag.get('phi_span_all_ok')}")
     if not bool(phi_span_diag["phi_span_all_ok"]) and not bool(args.allow_phi_span_fail):

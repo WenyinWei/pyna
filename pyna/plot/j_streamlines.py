@@ -1866,32 +1866,39 @@ def _surface_xyz(
     *,
     downsample: int = 1,
     phi_range: Sequence[float] | None = None,
+    phi_samples: int | None = None,
 ) -> np.ndarray:
     step = max(1, int(downsample))
     ir = int(surface_index) % pest.R_surf.shape[1]
     phi_vals = np.asarray(pest.phi_vals, dtype=np.float64)
+    theta_vals = np.asarray(pest.theta_vals, dtype=np.float64)
     phi_period = float(getattr(pest, "period", TWOPI) or TWOPI)
     normalized = _normalize_phi_range(phi_range, period=phi_period)
     if normalized is None:
-        phi_select = np.arange(phi_vals.size, dtype=np.int64)[::step]
+        phi_plot = phi_vals[::step]
+        if phi_plot.size and abs((phi_plot[-1] - phi_plot[0]) - phi_period) > 1.0e-12:
+            phi_plot = np.concatenate([phi_plot, [phi_plot[0] + phi_period]])
     else:
-        start, _end, _span = normalized
-        mask = _phi_in_range(phi_vals, normalized, period=phi_period)
-        phi_select = np.flatnonzero(mask)
-        if phi_select.size < 2:
-            nearest = _nearest_phi_indices(phi_vals, np.asarray([start, start + normalized[2]], dtype=np.float64), period=phi_period)
-            phi_select = np.unique(nearest)
-            if phi_select.size < 2 and phi_vals.size >= 2:
-                first = int(phi_select[0]) if phi_select.size else 0
-                phi_select = np.unique(np.asarray([first, (first + 1) % phi_vals.size], dtype=np.int64))
-        order = np.argsort(np.mod(phi_vals[phi_select] - float(start), phi_period))
-        phi_select = phi_select[order][::step]
-    if phi_select.size == 0:
-        phi_select = np.arange(phi_vals.size, dtype=np.int64)[::step]
-    R = np.asarray(pest.R_surf[:, ir, :], dtype=np.float64)[phi_select, ::step]
-    Z = np.asarray(pest.Z_surf[:, ir, :], dtype=np.float64)[phi_select, ::step]
-    phi = phi_vals[phi_select, np.newaxis]
-    return _cylindrical_to_cartesian(R, Z, phi)
+        start, _end, span = normalized
+        if phi_samples is None:
+            grid_equiv = int(np.ceil(max(phi_vals.size, 2) * float(span) / phi_period / step)) + 1
+            n_phi_plot = max(12, grid_equiv)
+        else:
+            n_phi_plot = max(int(phi_samples), 2)
+        phi_plot = float(start) + np.linspace(0.0, float(span), n_phi_plot, dtype=np.float64)
+    if phi_plot.size == 0:
+        phi_plot = phi_vals[::step]
+    theta_plot = theta_vals[::step]
+    if theta_plot.size and abs((theta_plot[-1] - theta_plot[0]) - TWOPI) > 1.0e-12:
+        theta_plot = np.concatenate([theta_plot, [theta_plot[0] + TWOPI]])
+    phi_grid, theta_grid = np.meshgrid(phi_plot, theta_plot, indexing="ij")
+    R, Z = _surface_points_at_theta_phi(
+        pest,
+        surface_index=ir,
+        theta=theta_grid,
+        phi=phi_grid,
+    )
+    return _cylindrical_to_cartesian(R, Z, phi_grid)
 
 
 def _plot_segmented_section_line(
@@ -1980,6 +1987,7 @@ def plot_j_streamlines_on_pest_surface_plotly(
     include_plotlyjs: str | bool = "cdn",
     show_surface: bool = True,
     surface_downsample: int = 1,
+    surface_phi_samples: int | None = None,
     surface_opacity: float = 0.24,
     line_width: float = 4.0,
     companion_line_width: float = 2.4,
@@ -2026,7 +2034,13 @@ def plot_j_streamlines_on_pest_surface_plotly(
         surface_indices = _normalize_indices(surface_index, coords.R_surf.shape[1], default=default_surfaces)
         allowed_surface_set = {int(i) for i in surface_indices}
         for surface_pos, ir in enumerate(surface_indices):
-            xyz = _surface_xyz(coords, int(ir), downsample=surface_downsample, phi_range=phi_range)
+            xyz = _surface_xyz(
+                coords,
+                int(ir),
+                downsample=surface_downsample,
+                phi_range=phi_range,
+                phi_samples=surface_phi_samples,
+            )
             rho_label = (
                 f"rho={float(coords.rho_vals[int(ir) % coords.R_surf.shape[1]]):.3f}"
                 if np.asarray(coords.rho_vals).size
