@@ -479,6 +479,9 @@ def test_plot_j_streamlines_plotly_supports_multiple_surfaces_and_companion(tmp_
         include_plotlyjs=False,
         show_surface=True,
         surface_phi_samples=14,
+        show_arrows=True,
+        arrow_line_stride=1,
+        companion_arrow_line_stride=1,
         line_width=3.0,
     )
 
@@ -486,5 +489,6 @@ def test_plot_j_streamlines_plotly_supports_multiple_surfaces_and_companion(tmp_
     assert sum(trace.type == "surface" for trace in fig.data) == 2
     assert np.asarray(fig.data[0].x).shape[0] == 14
     assert sum(trace.type == "scatter3d" for trace in fig.data) >= j_lines.n_lines + b_lines.n_lines
+    assert sum(trace.type == "cone" for trace in fig.data) == 2
     assert any(trace.name == "J streamlines" for trace in fig.data)
     assert any(trace.name == "B streamlines" for trace in fig.data)

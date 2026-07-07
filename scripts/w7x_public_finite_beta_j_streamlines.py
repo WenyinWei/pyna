@@ -713,11 +713,26 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--no-b-streamlines", action="store_true", help="Do not draw magnetic-field companion streamlines in the Plotly view.")
     parser.add_argument("--b-seed-count", type=int, default=None, help="Seeds per toroidal seed value and surface for B companion lines. Defaults to --seed-count.")
     parser.add_argument("--b-n-turns", type=float, default=None, help="Trace half-length for B companion lines. Defaults to --n-turns.")
-    parser.add_argument("--b-line-width", type=float, default=2.2, help="Plotly line width for B companion streamlines.")
+    parser.add_argument("--j-line-width", type=float, default=3.4, help="Plotly line width for J streamlines.")
+    parser.add_argument("--b-line-width", type=float, default=1.7, help="Plotly line width for B companion streamlines.")
+    parser.add_argument("--j-line-opacity", type=float, default=0.94, help="Plotly opacity for J streamlines.")
+    parser.add_argument("--b-line-opacity", type=float, default=0.54, help="Plotly opacity for B companion streamlines.")
+    parser.add_argument("--j-color", default="rgba(136, 28, 25, 0.92)", help="Plotly color for J streamlines.")
+    parser.add_argument("--b-color", default="rgba(14, 116, 235, 0.50)", help="Plotly color for B companion streamlines.")
+    parser.add_argument("--j-arrow-color", default="#f97316", help="Plotly cone color for J direction arrows.")
+    parser.add_argument("--b-arrow-color", default="#0284c7", help="Plotly cone color for B direction arrows.")
+    parser.add_argument("--no-direction-arrows", action="store_true", help="Disable 3-D direction arrows in the Plotly view.")
+    parser.add_argument("--arrow-count-per-line", type=int, default=1, help="Direction arrows per sampled J line.")
+    parser.add_argument("--b-arrow-count-per-line", type=int, default=1, help="Direction arrows per sampled B line.")
+    parser.add_argument("--arrow-line-stride", type=int, default=1, help="Draw J direction arrows on every Nth visible J line.")
+    parser.add_argument("--b-arrow-line-stride", type=int, default=1, help="Draw B direction arrows on every Nth visible B line.")
+    parser.add_argument("--arrow-size", type=float, default=0.16, help="Absolute Plotly cone size for J direction arrows.")
+    parser.add_argument("--b-arrow-size", type=float, default=0.18, help="Absolute Plotly cone size for B direction arrows.")
     parser.add_argument("--n-turns", type=float, default=1.35, help="Trace half-length in seed-surface perimeter units used by pyna.plot.")
     parser.add_argument("--steps-per-turn", type=int, default=1200)
     parser.add_argument("--surface-downsample", type=int, default=2)
     parser.add_argument("--surface-phi-samples", type=int, default=None, help="Optional Plotly surface phi samples, useful for narrow --phi-range sectors.")
+    parser.add_argument("--surface-opacity", type=float, default=0.22, help="Plotly opacity for PEST magnetic surfaces.")
     parser.add_argument("--cartesian-n-r", dest="cartesian_n_r", type=int, default=64, help="R grid points for Cartesian-space J tracing.")
     parser.add_argument("--cartesian-n-z", dest="cartesian_n_z", type=int, default=64, help="Z grid points for Cartesian-space J tracing.")
     parser.add_argument("--cartesian-n-phi", type=int, default=40, help="Toroidal grid points over one field period for Cartesian-space J tracing.")
@@ -900,9 +915,22 @@ def main(argv: list[str] | None = None) -> int:
         html_path=html_path,
         surface_downsample=args.surface_downsample,
         surface_phi_samples=args.surface_phi_samples,
-        surface_opacity=0.26,
-        line_width=4.2,
+        surface_opacity=args.surface_opacity,
+        line_width=args.j_line_width,
         companion_line_width=args.b_line_width,
+        j_color=args.j_color,
+        companion_color=args.b_color,
+        line_opacity=args.j_line_opacity,
+        companion_line_opacity=args.b_line_opacity,
+        show_arrows=not bool(args.no_direction_arrows),
+        arrow_count_per_line=args.arrow_count_per_line,
+        companion_arrow_count_per_line=args.b_arrow_count_per_line,
+        arrow_line_stride=args.arrow_line_stride,
+        companion_arrow_line_stride=args.b_arrow_line_stride,
+        arrow_size=args.arrow_size,
+        companion_arrow_size=args.b_arrow_size,
+        j_arrow_color=args.j_arrow_color,
+        companion_arrow_color=args.b_arrow_color,
         max_segment_angle_deg=args.max_3d_segment_angle,
         title=f"W7-X public finite-beta {source_label} J/B streamlines ({gate_label})",
     )
@@ -933,6 +961,20 @@ def main(argv: list[str] | None = None) -> int:
             "b_seed_count": None if args.b_seed_count is None else int(args.b_seed_count),
             "b_n_turns": None if args.b_n_turns is None else float(args.b_n_turns),
             "surface_phi_samples": None if args.surface_phi_samples is None else int(args.surface_phi_samples),
+            "direction_arrows": not bool(args.no_direction_arrows),
+            "j_color": str(args.j_color),
+            "b_color": str(args.b_color),
+            "j_line_width": float(args.j_line_width),
+            "b_line_width": float(args.b_line_width),
+            "j_line_opacity": float(args.j_line_opacity),
+            "b_line_opacity": float(args.b_line_opacity),
+            "arrow_count_per_line": int(args.arrow_count_per_line),
+            "b_arrow_count_per_line": int(args.b_arrow_count_per_line),
+            "arrow_line_stride": int(args.arrow_line_stride),
+            "b_arrow_line_stride": int(args.b_arrow_line_stride),
+            "arrow_size": float(args.arrow_size),
+            "b_arrow_size": float(args.b_arrow_size),
+            "surface_opacity": float(args.surface_opacity),
         },
         "outputs": {
             "coords_npz": str(coords_path),

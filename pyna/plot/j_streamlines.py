@@ -1975,6 +1975,67 @@ def _finite_segment_slices(
     return segments
 
 
+def _streamline_arrow_samples(
+    xyz: np.ndarray,
+    keep: np.ndarray,
+    *,
+    arrow_count: int,
+    max_step: float | None = None,
+    max_angle_deg: float | None = None,
+) -> tuple[np.ndarray, np.ndarray]:
+    if int(arrow_count) <= 0:
+        return np.empty((0, 3), dtype=np.float64), np.empty((0, 3), dtype=np.float64)
+    points = np.asarray(xyz, dtype=np.float64)
+    segments = _finite_segment_slices(
+        keep,
+        points,
+        max_step=max_step,
+        max_angle_deg=max_angle_deg,
+    )
+    segment_data: list[tuple[np.ndarray, np.ndarray, np.ndarray, float]] = []
+    total_length = 0.0
+    for segment in segments:
+        pts = points[segment]
+        if pts.shape[0] < 2:
+            continue
+        delta = np.diff(pts, axis=0)
+        seg_len = np.sqrt(np.sum(delta * delta, axis=1))
+        good = np.isfinite(seg_len) & (seg_len > 0.0) & np.isfinite(delta).all(axis=1)
+        if not np.any(good):
+            continue
+        cumulative = np.concatenate([[0.0], np.cumsum(seg_len)])
+        length = float(cumulative[-1])
+        if not np.isfinite(length) or length <= 0.0:
+            continue
+        segment_data.append((pts, delta, cumulative, length))
+        total_length += length
+    if not segment_data or total_length <= 0.0:
+        return np.empty((0, 3), dtype=np.float64), np.empty((0, 3), dtype=np.float64)
+
+    positions: list[np.ndarray] = []
+    directions: list[np.ndarray] = []
+    targets = (np.arange(int(arrow_count), dtype=np.float64) + 0.5) * total_length / float(arrow_count)
+    for target in targets:
+        cursor = float(target)
+        for pts, delta, cumulative, length in segment_data:
+            if cursor > length:
+                cursor -= length
+                continue
+            idx = int(np.searchsorted(cumulative, cursor, side="right") - 1)
+            idx = max(0, min(idx, delta.shape[0] - 1))
+            step_length = float(cumulative[idx + 1] - cumulative[idx])
+            if step_length <= 0.0:
+                break
+            frac = float((cursor - cumulative[idx]) / step_length)
+            direction = delta[idx] / step_length
+            positions.append(pts[idx] + frac * delta[idx])
+            directions.append(direction)
+            break
+    if not positions:
+        return np.empty((0, 3), dtype=np.float64), np.empty((0, 3), dtype=np.float64)
+    return np.asarray(positions, dtype=np.float64), np.asarray(directions, dtype=np.float64)
+
+
 def plot_j_streamlines_on_pest_surface_plotly(
     streamlines: PestSeededStreamlines,
     pest: SmoothPestCoordinates | Mapping[str, object] | str | Path | None = None,
@@ -1991,8 +2052,20 @@ def plot_j_streamlines_on_pest_surface_plotly(
     surface_opacity: float = 0.24,
     line_width: float = 4.0,
     companion_line_width: float = 2.4,
+    j_color: str | None = None,
     j_colorscale: str = "Turbo",
     companion_color: str = "rgba(37, 99, 235, 0.72)",
+    line_opacity: float = 0.96,
+    companion_line_opacity: float = 0.72,
+    show_arrows: bool = False,
+    arrow_count_per_line: int = 1,
+    companion_arrow_count_per_line: int = 1,
+    arrow_line_stride: int = 1,
+    companion_arrow_line_stride: int = 2,
+    arrow_size: float = 0.055,
+    companion_arrow_size: float | None = None,
+    j_arrow_color: str = "#b91c1c",
+    companion_arrow_color: str = "#2563eb",
     max_segment_step: float | None = None,
     max_segment_angle_deg: float | None = 45.0,
     title: str | None = None,
@@ -2004,6 +2077,8 @@ def plot_j_streamlines_on_pest_surface_plotly(
     The plot can show several selected PEST surfaces, clip both surfaces and
     lines to a toroidal ``phi_range``, and overlay a companion set of
     streamlines, for example magnetic-field lines drawn with a thinner style.
+    Direction arrows are optional Plotly cone traces sampled along the visible
+    streamline segments.
     """
 
     try:
@@ -2075,6 +2150,11 @@ def plot_j_streamlines_on_pest_surface_plotly(
         width_value: float,
         colorscale: str | None,
         fixed_color: str | None,
+        opacity: float,
+        arrow_color: str,
+        arrow_trace_size: float,
+        arrows_per_line: int,
+        arrow_stride: int,
     ) -> None:
         finite_rho = lines.seed_rho[np.isfinite(lines.seed_rho)]
         rho_min = float(np.nanmin(finite_rho)) if finite_rho.size else 0.0
@@ -2082,6 +2162,9 @@ def plot_j_streamlines_on_pest_surface_plotly(
         if rho_max <= rho_min:
             rho_max = rho_min + 1.0
         legend_added = False
+        arrow_positions: list[np.ndarray] = []
+        arrow_directions: list[np.ndarray] = []
+        visible_line_count = 0
         for line_idx in range(lines.n_lines):
             if allowed_surface_set is not None and int(lines.seed_surface_index[line_idx]) not in allowed_surface_set:
                 continue
@@ -2094,6 +2177,13 @@ def plot_j_streamlines_on_pest_surface_plotly(
                 keep &= _phi_in_range(lines.phi[line_idx], normalized_phi_range, period=phi_period)
             if np.count_nonzero(keep) < 2:
                 continue
+            use_for_arrows = (
+                bool(show_arrows)
+                and int(arrows_per_line) > 0
+                and int(arrow_stride) > 0
+                and visible_line_count % int(arrow_stride) == 0
+            )
+            visible_line_count += 1
             if fixed_color is None:
                 color_value = (float(lines.seed_rho[line_idx]) - rho_min) / (rho_max - rho_min)
                 color = sample_colorscale(colorscale or "Turbo", color_value)[0]
@@ -2114,6 +2204,7 @@ def plot_j_streamlines_on_pest_surface_plotly(
                         z=lines.z[line_idx, segment],
                         mode="lines",
                         line=dict(color=color, width=float(width_value)),
+                        opacity=float(opacity),
                         name=label,
                         legendgroup=label,
                         hovertemplate=(
@@ -2132,13 +2223,52 @@ def plot_j_streamlines_on_pest_surface_plotly(
                     )
                 )
                 legend_added = True
+            if use_for_arrows:
+                pos, direction = _streamline_arrow_samples(
+                    xyz_line,
+                    keep,
+                    arrow_count=int(arrows_per_line),
+                    max_step=max_segment_step,
+                    max_angle_deg=max_segment_angle_deg,
+                )
+                if pos.size:
+                    arrow_positions.append(pos)
+                    arrow_directions.append(direction)
+        if bool(show_arrows) and arrow_positions:
+            pos_arr = np.concatenate(arrow_positions, axis=0)
+            dir_arr = np.concatenate(arrow_directions, axis=0)
+            fig.add_trace(
+                go.Cone(
+                    x=pos_arr[:, 0],
+                    y=pos_arr[:, 1],
+                    z=pos_arr[:, 2],
+                    u=dir_arr[:, 0],
+                    v=dir_arr[:, 1],
+                    w=dir_arr[:, 2],
+                    sizemode="absolute",
+                    sizeref=float(arrow_trace_size),
+                    anchor="tail",
+                    colorscale=[[0.0, arrow_color], [1.0, arrow_color]],
+                    showscale=False,
+                    opacity=min(max(float(opacity), 0.0), 1.0),
+                    name=f"{label} direction",
+                    legendgroup=label,
+                    showlegend=False,
+                    hoverinfo="skip",
+                )
+            )
 
     add_streamline_traces(
         streamlines,
         label="J streamlines",
         width_value=float(line_width),
         colorscale=j_colorscale,
-        fixed_color=None,
+        fixed_color=j_color,
+        opacity=float(line_opacity),
+        arrow_color=j_arrow_color,
+        arrow_trace_size=float(arrow_size),
+        arrows_per_line=int(arrow_count_per_line),
+        arrow_stride=int(arrow_line_stride),
     )
     for companion in companion_list:
         add_streamline_traces(
@@ -2147,6 +2277,11 @@ def plot_j_streamlines_on_pest_surface_plotly(
             width_value=float(companion_line_width),
             colorscale=None,
             fixed_color=companion_color,
+            opacity=float(companion_line_opacity),
+            arrow_color=companion_arrow_color,
+            arrow_trace_size=float(companion_arrow_size if companion_arrow_size is not None else 0.8 * float(arrow_size)),
+            arrows_per_line=int(companion_arrow_count_per_line),
+            arrow_stride=int(companion_arrow_line_stride),
         )
     fig.update_layout(
         title=title,
