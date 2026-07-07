@@ -70,9 +70,12 @@ from pyna.plot.tube import (
 )
 from pyna.plot.j_streamlines import (
     PestSeededStreamlines,
+    VmecCurrentFourier,
+    pest_tangent_components_to_cylindrical,
     plot_j_streamline_seed_sections,
     plot_j_streamlines_on_pest_surface_plotly,
     trace_j_streamlines_on_pest,
+    vmec_current_fourier_to_pest_field,
 )
 
 __all__ = [
@@ -140,7 +143,10 @@ __all__ = [
     "TUBE_MARKERS_O",
     "TUBE_MARKERS_X",
     "PestSeededStreamlines",
+    "VmecCurrentFourier",
+    "pest_tangent_components_to_cylindrical",
     "plot_j_streamline_seed_sections",
     "plot_j_streamlines_on_pest_surface_plotly",
     "trace_j_streamlines_on_pest",
+    "vmec_current_fourier_to_pest_field",
 ]

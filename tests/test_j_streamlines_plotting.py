@@ -8,9 +8,11 @@ import pytest
 from pyna.fields import VectorFieldCylind
 from pyna.plot.j_streamlines import (
     GriddedPestVectorField,
+    VmecCurrentFourier,
     plot_j_streamline_seed_sections,
     plot_j_streamlines_on_pest_surface_plotly,
     trace_j_streamlines_on_pest,
+    vmec_current_fourier_to_pest_field,
 )
 from pyna.toroidal.diagnostics.mgrid import SmoothPestCoordinates
 
@@ -180,6 +182,67 @@ def test_trace_gridded_pest_field_keeps_pure_poloidal_current_on_seed_section():
     assert np.nanmax(np.abs(lines.theta - lines.seed_theta[:, None])) > 1.0e-3
 
 
+def test_vmec_current_fourier_evaluates_radially_interpolated_modes():
+    current = VmecCurrentFourier(
+        s=np.array([0.0, 1.0]),
+        xm=np.array([0.0, 1.0]),
+        xn=np.array([0.0, 0.0]),
+        sqrtgJ_u_cos=np.array([[2.0, 1.0], [4.0, 3.0]]),
+        sqrtgJ_v_cos=np.array([[0.5, 0.0], [1.5, 0.0]]),
+        sqrtgJ_u_sin=np.array([[0.0, 5.0], [0.0, 7.0]]),
+        sqrtgJ_v_sin=np.zeros((2, 2)),
+        nfp=5,
+        source="synthetic",
+    )
+
+    rho = np.array([0.5])
+    theta = np.array([np.pi / 2.0])
+    zeta = np.array([0.0])
+    ju, jv = current.evaluate(rho, theta, zeta)
+
+    assert ju[0] == pytest.approx(2.5 + 0.0 + 5.5)
+    assert jv[0] == pytest.approx(0.75)
+
+
+def test_vmec_current_fourier_to_pest_field_keeps_poloidal_vmec_current_closed():
+    pest = _toy_pest(n_phi=10, n_rho=3, n_theta=32)
+    shape = pest.R_surf.shape
+    current = VmecCurrentFourier(
+        s=np.array([0.0, 1.0]),
+        xm=np.array([0.0]),
+        xn=np.array([0.0]),
+        sqrtgJ_u_cos=np.ones((2, 1)),
+        sqrtgJ_v_cos=np.zeros((2, 1)),
+        nfp=5,
+        source="synthetic",
+    )
+    theta_vmec = np.broadcast_to((-pest.theta_vals)[None, None, :], shape)
+    zeta = np.broadcast_to(pest.phi_vals[:, None, None], shape)
+    field = vmec_current_fourier_to_pest_field(
+        pest,
+        current,
+        theta_vmec=theta_vmec,
+        zeta=zeta,
+        theta_pest_t=np.ones(shape),
+        theta_pest_z=np.zeros(shape),
+        vmec_to_desc_theta_sign=-1.0,
+    )
+
+    lines = trace_j_streamlines_on_pest(
+        field,
+        pest,
+        surface_index=-1,
+        phi_indices=[0],
+        seed_count=2,
+        n_turns=0.12,
+        steps_per_turn=80,
+    )
+
+    phi_span = np.nanmax(np.unwrap(lines.phi, axis=1), axis=1) - np.nanmin(np.unwrap(lines.phi, axis=1), axis=1)
+    assert np.nanmax(phi_span) < 1.0e-10
+    assert np.nanmax(np.abs(lines.theta - lines.seed_theta[:, None])) > 1.0e-3
+
+
 def test_surface_constrained_j_streamlines_report_normal_leakage_without_leaving_surface():
     pest = _toy_pest()
     field = _normal_plus_toroidal_current_field()
@@ -250,8 +313,10 @@ def test_trace_gridded_pest_field_can_run_cartesian_surface_projected_mode():
 def test_j_streamline_helpers_are_exported_from_pyna_plot():
     import pyna.plot as pplot
 
+    assert pplot.VmecCurrentFourier is VmecCurrentFourier
     assert pplot.trace_j_streamlines_on_pest is trace_j_streamlines_on_pest
     assert pplot.plot_j_streamlines_on_pest_surface_plotly is plot_j_streamlines_on_pest_surface_plotly
+    assert pplot.vmec_current_fourier_to_pest_field is vmec_current_fourier_to_pest_field
 
 
 def test_trace_j_streamlines_accepts_npz_with_r_vals(tmp_path):

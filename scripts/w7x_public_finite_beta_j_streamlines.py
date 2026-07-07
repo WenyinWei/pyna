@@ -17,11 +17,14 @@ if str(REPO_ROOT) not in sys.path:
 from pyna.fields import VectorFieldCylind
 from pyna.plot.j_streamlines import (
     GriddedPestVectorField,
+    VmecCurrentFourier,
+    pest_tangent_components_to_cylindrical,
     plot_j_streamline_seed_sections,
     plot_j_streamlines_on_pest_surface_plotly,
     trace_j_streamlines_on_pest,
+    vmec_current_fourier_to_pest_field,
 )
-from pyna.toroidal.diagnostics.mgrid import SmoothPestCoordinates, smooth_pest_derivatives
+from pyna.toroidal.diagnostics.mgrid import SmoothPestCoordinates
 
 
 DEFAULT_WOUT = Path("~/MCFdata/W7X_public/stagextender_beta1/wout_std_scp00_beta1.nc")
@@ -111,26 +114,6 @@ def _map_pest_nodes(eq, nodes: np.ndarray, *, tol: float, maxiter: int) -> np.nd
     )
 
 
-def _pest_components_to_rpz_vector(
-    pest: SmoothPestCoordinates,
-    *,
-    Jtheta: np.ndarray,
-    Jphi: np.ndarray,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    deriv = smooth_pest_derivatives(pest)
-    R = np.asarray(pest.R_surf, dtype=np.float64)
-    dR_dtheta = np.asarray(deriv[2], dtype=np.float64)
-    dZ_dtheta = np.asarray(deriv[3], dtype=np.float64)
-    dR_dphi = np.asarray(deriv[4], dtype=np.float64)
-    dZ_dphi = np.asarray(deriv[5], dtype=np.float64)
-    jt = np.asarray(Jtheta, dtype=np.float64)
-    jp = np.asarray(Jphi, dtype=np.float64)
-    JR = jt * dR_dtheta + jp * dR_dphi
-    JPhi = jp * R
-    JZ = jt * dZ_dtheta + jp * dZ_dphi
-    return JR, JPhi, JZ
-
-
 def _desc_rpz_vector_to_cartesian_components(values: np.ndarray, phi: np.ndarray) -> np.ndarray:
     """Convert DESC default vector components from ``(Rhat, phihat, Zhat)`` to XYZ."""
 
@@ -160,6 +143,7 @@ def build_desc_pest_j_payload(
     current_mode: str,
     vmec_jcuru: np.ndarray | None = None,
     vmec_jcurv: np.ndarray | None = None,
+    vmec_current: VmecCurrentFourier | None = None,
     tol: float,
     maxiter: int,
 ) -> tuple[SmoothPestCoordinates, GriddedPestVectorField, dict[str, object]]:
@@ -194,6 +178,8 @@ def build_desc_pest_j_payload(
             "e_rho",
             "e_theta",
             "e_zeta",
+            "theta_PEST_t",
+            "theta_PEST_z",
             "p",
         ],
         grid=_desc_grid(nodes_desc),
@@ -234,7 +220,29 @@ def build_desc_pest_j_payload(
             raise ValueError("vmec-profile current source requires vmec_jcuru and vmec_jcurv")
         Jtheta = np.broadcast_to(np.asarray(vmec_jcuru, dtype=np.float64)[None, :, None], shape).copy()
         Jphi = np.broadcast_to(np.asarray(vmec_jcurv, dtype=np.float64)[None, :, None], shape).copy()
-        JR, JPhi, JZ = _pest_components_to_rpz_vector(pest, Jtheta=Jtheta, Jphi=Jphi)
+        JR, JPhi, JZ = pest_tangent_components_to_cylindrical(pest, Jtheta=Jtheta, Jphi=Jphi)
+        sampled_J = np.stack([JR.ravel(), JPhi.ravel(), JZ.ravel()], axis=1)
+    elif current_source == "vmec-fourier":
+        if vmec_current is None:
+            raise ValueError("vmec-fourier current source requires vmec_current")
+        theta_desc = np.asarray(nodes_desc[:, 1], dtype=np.float64).reshape(shape)
+        zeta_desc = np.asarray(nodes_desc[:, 2], dtype=np.float64).reshape(shape)
+        fourier_field = vmec_current_fourier_to_pest_field(
+            pest,
+            vmec_current,
+            theta_vmec=np.mod(-theta_desc, 2.0 * np.pi),
+            zeta=zeta_desc,
+            theta_pest_t=np.asarray(data["theta_PEST_t"], dtype=np.float64).reshape(shape),
+            theta_pest_z=np.asarray(data["theta_PEST_z"], dtype=np.float64).reshape(shape),
+            vmec_to_desc_theta_sign=-1.0,
+            source="W7-X public finite-beta VMEC current harmonics",
+        )
+        JR = np.asarray(fourier_field.JR, dtype=np.float64)
+        JZ = np.asarray(fourier_field.JZ, dtype=np.float64)
+        JPhi = np.asarray(fourier_field.JPhi, dtype=np.float64)
+        assert fourier_field.Jtheta is not None and fourier_field.Jphi is not None
+        Jtheta = np.asarray(fourier_field.Jtheta, dtype=np.float64)
+        Jphi = np.asarray(fourier_field.Jphi, dtype=np.float64)
         sampled_J = np.stack([JR.ravel(), JPhi.ravel(), JZ.ravel()], axis=1)
     elif current_source == "desc-local":
         if current_mode == "full":
@@ -244,12 +252,12 @@ def build_desc_pest_j_payload(
         elif current_mode == "tangent":
             Jtheta = desc_Jtheta_pest
             Jphi = desc_Jzeta
-            JR, JPhi, JZ = _pest_components_to_rpz_vector(pest, Jtheta=Jtheta, Jphi=Jphi)
+            JR, JPhi, JZ = pest_tangent_components_to_cylindrical(pest, Jtheta=Jtheta, Jphi=Jphi)
             sampled_J = np.stack([JR.ravel(), JPhi.ravel(), JZ.ravel()], axis=1)
         else:
             raise ValueError("current_mode must be 'tangent' or 'full'")
     else:
-        raise ValueError("current_source must be 'vmec-profile' or 'desc-local'")
+        raise ValueError("current_source must be 'vmec-profile', 'vmec-fourier', or 'desc-local'")
     if Jtheta is None:
         JR = sampled_J[:, 0].reshape(shape)
         JPhi = sampled_J[:, 1].reshape(shape)
@@ -300,6 +308,8 @@ def build_desc_pest_j_payload(
         "raw_radial_over_raw_J_p95": float(np.nanpercentile(radial_j_abs / np.maximum(raw_j_abs, 1.0e-30), 95.0)),
         "desc_local_abs_Jzeta_over_Jtheta_PEST_median": float(np.nanmedian(np.abs(desc_Jzeta) / np.maximum(np.abs(desc_Jtheta_pest), 1.0e-300))),
         "desc_local_abs_Jzeta_over_Jtheta_PEST_p95": float(np.nanpercentile(np.abs(desc_Jzeta) / np.maximum(np.abs(desc_Jtheta_pest), 1.0e-300), 95.0)),
+        "sample_abs_Jphi_over_Jtheta_median": float(np.nanmedian(np.abs(Jphi) / np.maximum(np.abs(Jtheta), 1.0e-300))) if Jtheta is not None and Jphi is not None else float("nan"),
+        "sample_abs_Jphi_over_Jtheta_p95": float(np.nanpercentile(np.abs(Jphi) / np.maximum(np.abs(Jtheta), 1.0e-300), 95.0)) if Jtheta is not None and Jphi is not None else float("nan"),
         "pressure_min": float(np.nanmin(pressure)),
         "pressure_max": float(np.nanmax(pressure)),
     }
@@ -655,7 +665,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--stream-rho", type=float, default=0.75)
     parser.add_argument("--n-phi", type=int, default=80)
     parser.add_argument("--n-theta", type=int, default=160)
-    parser.add_argument("--current-source", choices=("vmec-profile", "desc-local"), default="vmec-profile", help="Use VMEC jcuru/jcurv profile current by default; desc-local uses DESC local curl(B)-derived current diagnostics.")
+    parser.add_argument("--current-source", choices=("vmec-profile", "vmec-fourier", "desc-local"), default="vmec-profile", help="Use VMEC jcuru/jcurv profile current by default; vmec-fourier uses wout currumn/currvmn harmonics; desc-local uses DESC local curl(B)-derived current diagnostics.")
     parser.add_argument("--current-mode", choices=("tangent", "full"), default="tangent", help="For desc-local, use surface-tangent current by default; 'full' keeps DESC raw J. Ignored by vmec-profile.")
     parser.add_argument("--trace-space", choices=("pest", "cartesian"), default="pest", help="Trace on the PEST surface by default. Use 'cartesian' only for Cartesian field diagnostic tracing.")
     parser.add_argument("--cartesian-field-source", choices=("pest-surface", "desc-grid"), default="pest-surface", help="For Cartesian diagnostic tracing, use PEST-surface projected J by default; 'desc-grid' builds a regular VectorFieldCylind body grid through DESC inverse mapping.")
@@ -695,9 +705,16 @@ def main(argv: list[str] | None = None) -> int:
 
     vmec_jcuru = None
     vmec_jcurv = None
+    vmec_current = None
     vmec_current_diag: dict[str, object] = {}
     if args.current_source == "vmec-profile":
         vmec_jcuru, vmec_jcurv, vmec_current_diag = _load_vmec_current_profiles(wout, rho_vals)
+    elif args.current_source == "vmec-fourier":
+        vmec_current = VmecCurrentFourier.from_wout(wout)
+        vmec_current_diag = {
+            "vmec_current_harmonics_source": str(wout),
+            "vmec_current_harmonics_modes": int(vmec_current.xm.size),
+        }
 
     pest, pest_field, diagnostics = build_desc_pest_j_payload(
         eq,
@@ -708,6 +725,7 @@ def main(argv: list[str] | None = None) -> int:
         current_mode=args.current_mode,
         vmec_jcuru=vmec_jcuru,
         vmec_jcurv=vmec_jcurv,
+        vmec_current=vmec_current,
         tol=args.tol,
         maxiter=args.maxiter,
     )
@@ -768,7 +786,11 @@ def main(argv: list[str] | None = None) -> int:
     matplotlib.use("Agg", force=True)
     import matplotlib.pyplot as plt
 
-    source_label = "VMEC profile current" if args.current_source == "vmec-profile" else "DESC local-current diagnostic"
+    source_label = {
+        "vmec-profile": "VMEC profile current",
+        "vmec-fourier": "VMEC current-harmonic",
+        "desc-local": "DESC local-current diagnostic",
+    }[args.current_source]
     gate_label = "phi-span gate OK" if bool(phi_span_diag["phi_span_all_ok"]) else "phi-span gate FAILED"
     fig, _axes = plot_j_streamline_seed_sections(
         streamlines,

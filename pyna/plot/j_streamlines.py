@@ -193,6 +193,214 @@ class GriddedPestVectorField:
 
 
 @dataclass(frozen=True)
+class VmecCurrentFourier:
+    """VMEC full-mesh current harmonics for streamline diagnostics.
+
+    VMEC stores ``currumnc/currvmnc`` on the full radial mesh. In VMEC and
+    VMEC++ workflows these arrays are used as the Jacobian-weighted
+    contravariant current components in VMEC ``(u, v)`` angles; the common
+    Jacobian factor does not affect streamline direction.
+    """
+
+    s: np.ndarray
+    xm: np.ndarray
+    xn: np.ndarray
+    sqrtgJ_u_cos: np.ndarray
+    sqrtgJ_v_cos: np.ndarray
+    sqrtgJ_u_sin: np.ndarray | None = None
+    sqrtgJ_v_sin: np.ndarray | None = None
+    nfp: int = 1
+    source: str | None = None
+
+    @classmethod
+    def from_wout(cls, path: str | Path) -> "VmecCurrentFourier":
+        """Load VMEC ``currumn*``/``currvmn*`` current harmonics from a wout."""
+
+        from netCDF4 import Dataset
+
+        wout = Path(path).expanduser()
+        with Dataset(str(wout), "r") as ds:
+            variables = ds.variables
+            missing = [name for name in ("currumnc", "currvmnc") if name not in variables]
+            if missing:
+                raise KeyError(f"VMEC wout lacks current harmonics: {', '.join(missing)}")
+            ns = int(np.asarray(variables["ns"][...]).item()) if "ns" in variables else int(variables["currumnc"].shape[0])
+            nfp = int(np.asarray(variables["nfp"][...]).item()) if "nfp" in variables else 1
+            xm_key = "xm_nyq" if "xm_nyq" in variables else "xm"
+            xn_key = "xn_nyq" if "xn_nyq" in variables else "xn"
+            xm = _netcdf_array(variables[xm_key])
+            xn = _netcdf_array(variables[xn_key])
+            s = np.linspace(0.0, 1.0, ns, dtype=np.float64)
+            cos_u = _vmec_mode_array(_netcdf_array(variables["currumnc"]), s_size=s.size, mode_size=xm.size)
+            cos_v = _vmec_mode_array(_netcdf_array(variables["currvmnc"]), s_size=s.size, mode_size=xm.size)
+            sin_u = (
+                _vmec_mode_array(_netcdf_array(variables["currumns"]), s_size=s.size, mode_size=xm.size)
+                if "currumns" in variables
+                else None
+            )
+            sin_v = (
+                _vmec_mode_array(_netcdf_array(variables["currvmns"]), s_size=s.size, mode_size=xm.size)
+                if "currvmns" in variables
+                else None
+            )
+        return cls(
+            s=s,
+            xm=xm,
+            xn=xn,
+            sqrtgJ_u_cos=cos_u,
+            sqrtgJ_v_cos=cos_v,
+            sqrtgJ_u_sin=sin_u,
+            sqrtgJ_v_sin=sin_v,
+            nfp=nfp,
+            source=str(wout),
+        )
+
+    def evaluate(self, rho: np.ndarray, theta_vmec: np.ndarray, zeta: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        """Evaluate VMEC current harmonics at ``(rho, theta_vmec, zeta)``."""
+
+        rho_arr, theta_arr, zeta_arr = np.broadcast_arrays(
+            np.asarray(rho, dtype=np.float64),
+            np.asarray(theta_vmec, dtype=np.float64),
+            np.asarray(zeta, dtype=np.float64),
+        )
+        shape = rho_arr.shape
+        s_eval = np.clip(np.ravel(rho_arr) ** 2, float(self.s[0]), float(self.s[-1]))
+        theta_flat = np.ravel(theta_arr)
+        zeta_flat = np.ravel(zeta_arr)
+        ju = _evaluate_vmec_current_modes(
+            self.s,
+            self.xm,
+            self.xn,
+            self.sqrtgJ_u_cos,
+            self.sqrtgJ_u_sin,
+            s_eval,
+            theta_flat,
+            zeta_flat,
+        )
+        jv = _evaluate_vmec_current_modes(
+            self.s,
+            self.xm,
+            self.xn,
+            self.sqrtgJ_v_cos,
+            self.sqrtgJ_v_sin,
+            s_eval,
+            theta_flat,
+            zeta_flat,
+        )
+        return ju.reshape(shape), jv.reshape(shape)
+
+
+def pest_tangent_components_to_cylindrical(
+    pest: SmoothPestCoordinates | Mapping[str, object] | str | Path,
+    *,
+    Jtheta: np.ndarray,
+    Jphi: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Convert PEST-surface tangent components to physical cylindrical components."""
+
+    coords = _as_pest_coordinates(pest)
+    deriv = smooth_pest_derivatives(coords)
+    R = np.asarray(coords.R_surf, dtype=np.float64)
+    dR_dtheta = np.asarray(deriv[2], dtype=np.float64)
+    dZ_dtheta = np.asarray(deriv[3], dtype=np.float64)
+    dR_dphi = np.asarray(deriv[4], dtype=np.float64)
+    dZ_dphi = np.asarray(deriv[5], dtype=np.float64)
+    jt = np.asarray(Jtheta, dtype=np.float64)
+    jp = np.asarray(Jphi, dtype=np.float64)
+    JR = jt * dR_dtheta + jp * dR_dphi
+    JPhi = jp * R
+    JZ = jt * dZ_dtheta + jp * dZ_dphi
+    return JR, JPhi, JZ
+
+
+def vmec_current_fourier_to_pest_field(
+    pest: SmoothPestCoordinates | Mapping[str, object] | str | Path,
+    current: VmecCurrentFourier,
+    *,
+    theta_vmec: np.ndarray,
+    zeta: np.ndarray,
+    theta_pest_t: np.ndarray | None = None,
+    theta_pest_z: np.ndarray | None = None,
+    vmec_to_desc_theta_sign: float = 1.0,
+    source: str | None = None,
+) -> GriddedPestVectorField:
+    """Sample VMEC current harmonics as a :class:`GriddedPestVectorField`.
+
+    ``theta_pest_t`` and ``theta_pest_z`` are derivatives of PEST theta with
+    respect to the coordinate used by the PEST geometry backend. For DESC
+    ``VMECIO.load`` geometry, pass ``vmec_to_desc_theta_sign=-1`` because DESC
+    flips the VMEC poloidal angle orientation.
+    """
+
+    coords = _as_pest_coordinates(pest)
+    shape = np.asarray(coords.R_surf).shape
+    rho = np.broadcast_to(np.asarray(coords.rho_vals, dtype=np.float64)[None, :, None], shape)
+    theta_arr = np.asarray(theta_vmec, dtype=np.float64)
+    zeta_arr = np.asarray(zeta, dtype=np.float64)
+    if theta_arr.shape != shape or zeta_arr.shape != shape:
+        raise ValueError("theta_vmec and zeta must match the PEST surface shape")
+    ju_vmec, jv = current.evaluate(rho, theta_arr, zeta_arr)
+    theta_t = np.ones(shape, dtype=np.float64) if theta_pest_t is None else np.asarray(theta_pest_t, dtype=np.float64)
+    theta_z = np.zeros(shape, dtype=np.float64) if theta_pest_z is None else np.asarray(theta_pest_z, dtype=np.float64)
+    if theta_t.shape != shape or theta_z.shape != shape:
+        raise ValueError("theta_pest_t and theta_pest_z must match the PEST surface shape")
+    ju_backend = float(vmec_to_desc_theta_sign) * ju_vmec
+    Jtheta = theta_t * ju_backend + theta_z * jv
+    Jphi = jv
+    JR, JPhi, JZ = pest_tangent_components_to_cylindrical(coords, Jtheta=Jtheta, Jphi=Jphi)
+    phi = np.asarray(coords.phi_vals, dtype=np.float64)[:, None, None]
+    cp = np.cos(phi)
+    sp = np.sin(phi)
+    Jx = JR * cp - JPhi * sp
+    Jy = JR * sp + JPhi * cp
+    return GriddedPestVectorField.from_pest_coordinates(
+        coords,
+        JR=np.ascontiguousarray(JR),
+        JZ=np.ascontiguousarray(JZ),
+        JPhi=np.ascontiguousarray(JPhi),
+        Jx=np.ascontiguousarray(Jx),
+        Jy=np.ascontiguousarray(Jy),
+        Jz=np.ascontiguousarray(JZ),
+        Jtheta=np.ascontiguousarray(Jtheta),
+        Jphi=np.ascontiguousarray(Jphi),
+        nfp=current.nfp,
+        source=source or f"VMEC current harmonics from {current.source or 'wout'}",
+    )
+
+
+def _netcdf_array(var) -> np.ndarray:
+    return np.asarray(np.ma.filled(var[...], 0.0), dtype=np.float64)
+
+
+def _vmec_mode_array(values: np.ndarray, *, s_size: int, mode_size: int) -> np.ndarray:
+    arr = np.asarray(values, dtype=np.float64)
+    if arr.shape == (s_size, mode_size):
+        return np.ascontiguousarray(arr)
+    if arr.shape == (mode_size, s_size):
+        return np.ascontiguousarray(arr.T)
+    raise ValueError(f"VMEC mode array shape {arr.shape} is not compatible with {(s_size, mode_size)}")
+
+
+def _evaluate_vmec_current_modes(
+    s_grid: np.ndarray,
+    xm: np.ndarray,
+    xn: np.ndarray,
+    cos_coeffs: np.ndarray,
+    sin_coeffs: np.ndarray | None,
+    s_eval: np.ndarray,
+    theta: np.ndarray,
+    zeta: np.ndarray,
+) -> np.ndarray:
+    out = np.zeros_like(s_eval, dtype=np.float64)
+    for mode_idx, (m, n) in enumerate(zip(np.asarray(xm, dtype=np.float64), np.asarray(xn, dtype=np.float64))):
+        angle = float(m) * theta - float(n) * zeta
+        out += np.interp(s_eval, s_grid, cos_coeffs[:, mode_idx]) * np.cos(angle)
+        if sin_coeffs is not None:
+            out += np.interp(s_eval, s_grid, sin_coeffs[:, mode_idx]) * np.sin(angle)
+    return out
+
+
+@dataclass(frozen=True)
 class _PeriodicVectorFieldEvaluator:
     R: np.ndarray
     Z: np.ndarray
@@ -1794,7 +2002,10 @@ def plot_j_streamline_seed_sections(
 __all__ = [
     "GriddedPestVectorField",
     "PestSeededStreamlines",
+    "VmecCurrentFourier",
+    "pest_tangent_components_to_cylindrical",
     "plot_j_streamline_seed_sections",
     "plot_j_streamlines_on_pest_surface_plotly",
     "trace_j_streamlines_on_pest",
+    "vmec_current_fourier_to_pest_field",
 ]
