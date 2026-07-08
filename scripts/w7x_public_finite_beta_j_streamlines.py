@@ -18,9 +18,11 @@ from pyna.fields import VectorFieldCylind
 from pyna.plot.j_streamlines import (
     GriddedPestVectorField,
     VmecCurrentFourier,
+    field_period_phi_range,
     pest_tangent_components_to_cylindrical,
     plot_j_streamline_seed_sections,
     plot_j_streamlines_on_pest_surface_plotly,
+    plotly_streamline_style,
     trace_j_streamlines_on_pest,
     vmec_current_fourier_to_pest_field,
 )
@@ -50,6 +52,80 @@ def parse_pair(text: str) -> tuple[float, float]:
     if len(values) != 2:
         raise argparse.ArgumentTypeError("expected exactly two comma-separated floats")
     return float(values[0]), float(values[1])
+
+
+def _option_supplied(argv: list[str], *names: str) -> bool:
+    for token in argv:
+        for name in names:
+            if token == name or token.startswith(f"{name}="):
+                return True
+    return False
+
+
+def _set_default_unless_supplied(args, argv: list[str], attr: str, value, *options: str) -> None:
+    if not _option_supplied(argv, *options):
+        setattr(args, attr, value)
+
+
+def _apply_plot_preset(args, argv: list[str], *, nfp: int) -> None:
+    key = str(args.plot_preset).strip().lower().replace("_", "-")
+    if key == "manual":
+        return
+    if key not in {"stellarator-j-b", "one-period-dense"}:
+        raise ValueError("--plot-preset must be 'manual', 'stellarator-j-b', or 'one-period-dense'")
+
+    style = plotly_streamline_style("one-period-dense" if key == "one-period-dense" else "stellarator-j-b")
+    style_kwargs = style.to_plotly_kwargs()
+    option_map = {
+        "surface_opacity": ("--surface-opacity",),
+        "line_width": ("--j-line-width",),
+        "companion_line_width": ("--b-line-width",),
+        "j_color": ("--j-color",),
+        "companion_color": ("--b-color",),
+        "line_opacity": ("--j-line-opacity",),
+        "companion_line_opacity": ("--b-line-opacity",),
+        "arrow_count_per_line": ("--arrow-count-per-line",),
+        "companion_arrow_count_per_line": ("--b-arrow-count-per-line",),
+        "arrow_line_stride": ("--arrow-line-stride",),
+        "companion_arrow_line_stride": ("--b-arrow-line-stride",),
+        "arrow_size": ("--arrow-size",),
+        "companion_arrow_size": ("--b-arrow-size",),
+        "j_arrow_color": ("--j-arrow-color",),
+        "companion_arrow_color": ("--b-arrow-color",),
+    }
+    attr_map = {
+        "line_width": "j_line_width",
+        "companion_line_width": "b_line_width",
+        "line_opacity": "j_line_opacity",
+        "companion_line_opacity": "b_line_opacity",
+        "companion_color": "b_color",
+        "companion_arrow_count_per_line": "b_arrow_count_per_line",
+        "companion_arrow_line_stride": "b_arrow_line_stride",
+        "companion_arrow_size": "b_arrow_size",
+        "companion_arrow_color": "b_arrow_color",
+    }
+    for key_name, options in option_map.items():
+        attr = attr_map.get(key_name, key_name)
+        _set_default_unless_supplied(args, argv, attr, style_kwargs[key_name], *options)
+
+    if key == "one-period-dense":
+        dense_rho = (0.42, 0.52, 0.62, 0.72, 0.82)
+        _set_default_unless_supplied(args, argv, "rho_values", dense_rho, "--rho-values")
+        _set_default_unless_supplied(args, argv, "stream_rho_values", dense_rho, "--stream-rho-values")
+        _set_default_unless_supplied(
+            args,
+            argv,
+            "phi_range",
+            field_period_phi_range(int(nfp), period_index=int(args.field_period_index)),
+            "--phi-range",
+        )
+        _set_default_unless_supplied(args, argv, "phi_seed_count", 11, "--phi-seed-count")
+        _set_default_unless_supplied(args, argv, "seed_count", 2, "--seed-count")
+        _set_default_unless_supplied(args, argv, "b_seed_count", 1, "--b-seed-count")
+        _set_default_unless_supplied(args, argv, "n_turns", 1.6, "--n-turns")
+        _set_default_unless_supplied(args, argv, "b_n_turns", 0.9, "--b-n-turns")
+        _set_default_unless_supplied(args, argv, "steps_per_turn", 1500, "--steps-per-turn")
+        _set_default_unless_supplied(args, argv, "surface_phi_samples", 72, "--surface-phi-samples")
 
 
 def _wout_metadata(path: Path) -> dict[str, object]:
@@ -691,9 +767,12 @@ def _phi_span_diagnostics(streamlines, *, limit_turns: float) -> dict[str, objec
 
 
 def main(argv: list[str] | None = None) -> int:
+    raw_argv = list(sys.argv[1:] if argv is None else argv)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--wout", type=Path, default=DEFAULT_WOUT, help="Public finite-beta VMEC wout file.")
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT, help="Output directory outside the repo.")
+    parser.add_argument("--plot-preset", choices=("manual", "stellarator-j-b", "one-period-dense"), default="manual", help="Optional plotting/tracing preset. 'one-period-dense' uses one full field period and dense J-line seeding.")
+    parser.add_argument("--field-period-index", type=int, default=0, help="Field-period index used by --plot-preset one-period-dense when --phi-range is omitted.")
     parser.add_argument("--desc-device", choices=("cpu", "gpu"), default="cpu")
     parser.add_argument("--rho-values", type=parse_floats, default=(0.35, 0.55, 0.75, 0.9))
     parser.add_argument("--stream-rho", type=float, default=0.75)
@@ -758,6 +837,7 @@ def main(argv: list[str] | None = None) -> int:
 
     meta = _wout_metadata(wout)
     eq = _load_desc_equilibrium(wout, device=args.desc_device)
+    _apply_plot_preset(args, raw_argv, nfp=int(eq.NFP))
     rho_vals = np.asarray(args.rho_values, dtype=np.float64)
     if np.any(rho_vals <= 0.0) or np.any(rho_vals >= 1.0):
         raise ValueError("--rho-values must lie strictly inside (0, 1)")
@@ -950,6 +1030,8 @@ def main(argv: list[str] | None = None) -> int:
         "b_streamlines": None if b_streamlines is None else b_streamlines.metadata,
         "phi_span_gate": phi_span_diag,
         "trace_controls": {
+            "plot_preset": str(args.plot_preset),
+            "field_period_index": int(args.field_period_index),
             "min_current_norm": float(min_current_norm),
             "min_current_fraction": float(args.min_current_fraction),
             "min_current_abs": None if args.min_current_abs is None else float(args.min_current_abs),

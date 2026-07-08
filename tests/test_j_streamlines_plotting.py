@@ -8,9 +8,12 @@ import pytest
 from pyna.fields import VectorFieldCylind
 from pyna.plot.j_streamlines import (
     GriddedPestVectorField,
+    PlotlyStreamlineStyle,
     VmecCurrentFourier,
+    field_period_phi_range,
     plot_j_streamline_seed_sections,
     plot_j_streamlines_on_pest_surface_plotly,
+    plotly_streamline_style,
     trace_j_streamlines_on_pest,
     vmec_current_fourier_to_pest_field,
 )
@@ -151,6 +154,20 @@ def test_trace_j_streamlines_accepts_gridded_pest_vector_field():
     assert lines.metadata["nfp"] == 1
     np.testing.assert_allclose(lines.R, np.repeat(lines.seed_R[:, None], lines.n_points, axis=1), atol=2.0e-4)
     np.testing.assert_allclose(lines.Z, np.repeat(lines.seed_Z[:, None], lines.n_points, axis=1), atol=2.0e-4)
+
+
+def test_field_period_phi_range_and_plotly_style_presets():
+    start, end = field_period_phi_range(5, period_index=1)
+
+    assert start == pytest.approx(2.0 * np.pi / 5.0)
+    assert end == pytest.approx(4.0 * np.pi / 5.0)
+
+    style = plotly_streamline_style("one-period-dense")
+    assert isinstance(style, PlotlyStreamlineStyle)
+    kwargs = style.to_plotly_kwargs()
+    assert kwargs["show_arrows"] is True
+    assert kwargs["companion_line_width"] == pytest.approx(1.35)
+    assert kwargs["companion_arrow_line_stride"] == 3
 
 
 def test_trace_j_streamlines_supports_multiple_surfaces_and_phi_sector():
@@ -475,14 +492,13 @@ def test_plot_j_streamlines_plotly_supports_multiple_surfaces_and_companion(tmp_
         phi_range=(0.0, np.pi),
         companion_streamlines=b_lines,
         companion_name="B",
+        style="one-period-dense",
         html_path=out,
         include_plotlyjs=False,
         show_surface=True,
         surface_phi_samples=14,
-        show_arrows=True,
         arrow_line_stride=1,
         companion_arrow_line_stride=1,
-        line_width=3.0,
     )
 
     assert out.exists()

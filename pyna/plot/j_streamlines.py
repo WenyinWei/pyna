@@ -58,6 +58,77 @@ class PestSeededStreamlines:
 
 
 @dataclass(frozen=True)
+class PlotlyStreamlineStyle:
+    """Visual controls for 3-D Plotly J/B streamline overlays."""
+
+    surface_opacity: float = 0.22
+    line_width: float = 3.4
+    companion_line_width: float = 1.7
+    j_color: str | None = "rgba(136, 28, 25, 0.92)"
+    companion_color: str = "rgba(14, 116, 235, 0.50)"
+    line_opacity: float = 0.94
+    companion_line_opacity: float = 0.54
+    show_arrows: bool = True
+    arrow_count_per_line: int = 1
+    companion_arrow_count_per_line: int = 1
+    arrow_line_stride: int = 1
+    companion_arrow_line_stride: int = 1
+    arrow_size: float = 0.16
+    companion_arrow_size: float | None = 0.18
+    j_arrow_color: str = "#f97316"
+    companion_arrow_color: str = "#0284c7"
+
+    def to_plotly_kwargs(self) -> dict[str, object]:
+        """Return keyword arguments accepted by ``plot_j_streamlines_on_pest_surface_plotly``."""
+
+        return {
+            "surface_opacity": float(self.surface_opacity),
+            "line_width": float(self.line_width),
+            "companion_line_width": float(self.companion_line_width),
+            "j_color": self.j_color,
+            "companion_color": self.companion_color,
+            "line_opacity": float(self.line_opacity),
+            "companion_line_opacity": float(self.companion_line_opacity),
+            "show_arrows": bool(self.show_arrows),
+            "arrow_count_per_line": int(self.arrow_count_per_line),
+            "companion_arrow_count_per_line": int(self.companion_arrow_count_per_line),
+            "arrow_line_stride": int(self.arrow_line_stride),
+            "companion_arrow_line_stride": int(self.companion_arrow_line_stride),
+            "arrow_size": float(self.arrow_size),
+            "companion_arrow_size": (
+                None if self.companion_arrow_size is None else float(self.companion_arrow_size)
+            ),
+            "j_arrow_color": self.j_arrow_color,
+            "companion_arrow_color": self.companion_arrow_color,
+        }
+
+
+def plotly_streamline_style(name: str = "stellarator_j_b") -> PlotlyStreamlineStyle:
+    """Return a named visual preset for J/B streamline Plotly figures."""
+
+    key = str(name).strip().lower().replace("_", "-")
+    if key in {"stellarator-j-b", "stellarator-j-b-balanced", "balanced"}:
+        return PlotlyStreamlineStyle()
+    if key in {"stellarator-j-b-dense", "one-period-dense", "dense"}:
+        return PlotlyStreamlineStyle(
+            companion_line_width=1.35,
+            companion_line_opacity=0.38,
+            companion_arrow_line_stride=3,
+            companion_arrow_size=0.14,
+        )
+    raise ValueError("unknown streamline Plotly style preset")
+
+
+def field_period_phi_range(nfp: int, *, period_index: int = 0, start: float = 0.0) -> tuple[float, float]:
+    """Return the toroidal angle range for one field period."""
+
+    nfp_int = max(int(nfp), 1)
+    width = TWOPI / float(nfp_int)
+    phi0 = float(start) + int(period_index) * width
+    return float(phi0), float(phi0 + width)
+
+
+@dataclass(frozen=True)
 class GriddedPestVectorField:
     """Vector field sampled on the same ``(phi, rho, theta)`` mesh as PEST coords."""
 
@@ -2044,6 +2115,7 @@ def plot_j_streamlines_on_pest_surface_plotly(
     phi_range: Sequence[float] | None = None,
     companion_streamlines: PestSeededStreamlines | Sequence[PestSeededStreamlines] | None = None,
     companion_name: str = "B",
+    style: str | PlotlyStreamlineStyle | Mapping[str, object] | None = None,
     html_path: str | Path | None = None,
     include_plotlyjs: str | bool = "cdn",
     show_surface: bool = True,
@@ -2078,7 +2150,8 @@ def plot_j_streamlines_on_pest_surface_plotly(
     lines to a toroidal ``phi_range``, and overlay a companion set of
     streamlines, for example magnetic-field lines drawn with a thinner style.
     Direction arrows are optional Plotly cone traces sampled along the visible
-    streamline segments.
+    streamline segments.  ``style`` may be a named preset, a
+    :class:`PlotlyStreamlineStyle`, or a mapping of Plotly keyword overrides.
     """
 
     try:
@@ -2091,6 +2164,36 @@ def plot_j_streamlines_on_pest_surface_plotly(
     coords = _as_pest_coordinates(pest) if pest is not None else None
     phi_period = float(getattr(coords, "period", TWOPI) or TWOPI) if coords is not None else TWOPI
     normalized_phi_range = _normalize_phi_range(phi_range, period=phi_period)
+    if style is not None:
+        if isinstance(style, str):
+            style_kwargs = plotly_streamline_style(style).to_plotly_kwargs()
+        elif isinstance(style, PlotlyStreamlineStyle):
+            style_kwargs = style.to_plotly_kwargs()
+        elif isinstance(style, Mapping):
+            style_kwargs = dict(style)
+        else:
+            raise TypeError("style must be a preset name, PlotlyStreamlineStyle, mapping, or None")
+        surface_opacity = float(style_kwargs.get("surface_opacity", surface_opacity))
+        line_width = float(style_kwargs.get("line_width", line_width))
+        companion_line_width = float(style_kwargs.get("companion_line_width", companion_line_width))
+        j_color = style_kwargs.get("j_color", j_color)  # type: ignore[assignment]
+        j_colorscale = str(style_kwargs.get("j_colorscale", j_colorscale))
+        companion_color = str(style_kwargs.get("companion_color", companion_color))
+        line_opacity = float(style_kwargs.get("line_opacity", line_opacity))
+        companion_line_opacity = float(style_kwargs.get("companion_line_opacity", companion_line_opacity))
+        show_arrows = bool(style_kwargs.get("show_arrows", show_arrows))
+        arrow_count_per_line = int(style_kwargs.get("arrow_count_per_line", arrow_count_per_line))
+        companion_arrow_count_per_line = int(
+            style_kwargs.get("companion_arrow_count_per_line", companion_arrow_count_per_line)
+        )
+        arrow_line_stride = int(style_kwargs.get("arrow_line_stride", arrow_line_stride))
+        companion_arrow_line_stride = int(
+            style_kwargs.get("companion_arrow_line_stride", companion_arrow_line_stride)
+        )
+        arrow_size = float(style_kwargs.get("arrow_size", arrow_size))
+        companion_arrow_size = style_kwargs.get("companion_arrow_size", companion_arrow_size)  # type: ignore[assignment]
+        j_arrow_color = str(style_kwargs.get("j_arrow_color", j_arrow_color))
+        companion_arrow_color = str(style_kwargs.get("companion_arrow_color", companion_arrow_color))
     fig = go.Figure()
     companion_list: list[PestSeededStreamlines]
     if companion_streamlines is None:
@@ -2454,8 +2557,11 @@ def plot_j_streamline_seed_sections(
 __all__ = [
     "GriddedPestVectorField",
     "PestSeededStreamlines",
+    "PlotlyStreamlineStyle",
     "VmecCurrentFourier",
+    "field_period_phi_range",
     "pest_tangent_components_to_cylindrical",
+    "plotly_streamline_style",
     "plot_j_streamline_seed_sections",
     "plot_j_streamlines_on_pest_surface_plotly",
     "trace_j_streamlines_on_pest",
