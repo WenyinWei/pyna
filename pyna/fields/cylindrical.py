@@ -25,16 +25,6 @@ def _extend_endpoint_false_periodic_phi(
     return phi_ext, value_ext
 
 
-def _span_is_twopi_fraction(span: float) -> bool:
-    if not np.isfinite(span) or span <= 0.0:
-        return False
-    nfp = (2.0 * np.pi) / span
-    nfp_round = round(nfp)
-    if nfp_round < 1:
-        return False
-    return abs(nfp - nfp_round) <= max(1.0e-8, 1.0e-8 * abs(nfp_round))
-
-
 def _periodic_endpoint_values_match(values: tuple[np.ndarray, ...]) -> bool:
     if not values:
         return False
@@ -128,9 +118,11 @@ def close_periodic_phi_grid(
 ) -> tuple[np.ndarray, ...]:
     """Return a phi grid closed by a duplicate first slice.
 
-    If *period* is not supplied, the period is inferred as ``phi[-1] + dphi`` for
-    endpoint=False grids.  A grid that already spans ``2*pi/Nfp`` and whose
-    endpoint values match the first slice is treated as already closed.
+    ``period`` is explicit; when omitted it means a full-torus period of
+    ``2*pi`` for legacy callers.  A native stellarator field-period grid must
+    therefore pass ``period=2*pi/nfp`` (normally via
+    :meth:`VectorFieldCylind.cyna_arrays`).  The period is never inferred from
+    the grid span.
     """
 
     phi_arr = np.asarray(phi, dtype=np.float64)
@@ -139,11 +131,15 @@ def close_periodic_phi_grid(
         raise ValueError("phi grid must be one-dimensional")
     if phi_arr.size == 0:
         return (np.ascontiguousarray(phi_arr, dtype=np.float64), *value_arrs)
+    if period is None:
+        period = 2.0 * np.pi
+    period = float(period)
+    if not np.isfinite(period) or period <= 0.0:
+        raise ValueError("period must be finite and positive")
+
     if phi_arr.size == 1:
-        if period is None or not np.isfinite(period) or period <= 0.0:
-            return (np.ascontiguousarray(phi_arr, dtype=np.float64), *value_arrs)
         phi_ext = np.ascontiguousarray(
-            [float(phi_arr[0]), float(phi_arr[0]) + float(period)],
+            [float(phi_arr[0]), float(phi_arr[0]) + period],
             dtype=np.float64,
         )
         extended = [phi_ext]
@@ -155,22 +151,26 @@ def close_periodic_phi_grid(
 
     dphi = float(phi_arr[1] - phi_arr[0])
     if not np.isfinite(dphi) or dphi <= 0.0:
-        return (np.ascontiguousarray(phi_arr, dtype=np.float64), *value_arrs)
+        raise ValueError("phi grid must be finite and strictly increasing")
+    dphis = np.diff(phi_arr)
+    tol = max(1.0e-10, 1.0e-10 * abs(period))
+    if not np.allclose(dphis, dphi, rtol=1.0e-10, atol=tol):
+        raise ValueError("phi grid must be uniformly spaced for periodic closure")
 
-    if period is not None and np.isfinite(period) and period > 0.0:
-        endpoint = float(phi_arr[0]) + float(period)
-        tol = max(1.0e-10, 1.0e-10 * abs(float(period)))
-        already_closed = abs(float(phi_arr[-1]) - endpoint) <= tol
-    else:
-        span = float(phi_arr[-1] - phi_arr[0])
-        already_closed = (
-            _span_is_twopi_fraction(span)
-            and _periodic_endpoint_values_match(value_arrs)
-        )
-        endpoint = float(phi_arr[-1]) + dphi
+    endpoint = float(phi_arr[0]) + period
+    already_closed = abs(float(phi_arr[-1]) - endpoint) <= tol
 
     if already_closed:
+        if value_arrs and not _periodic_endpoint_values_match(value_arrs):
+            raise ValueError("closed periodic field endpoint must duplicate the first phi slice")
         return (np.ascontiguousarray(phi_arr, dtype=np.float64), *value_arrs)
+
+    implied_endpoint = float(phi_arr[-1]) + dphi
+    if abs(implied_endpoint - endpoint) > tol:
+        raise ValueError(
+            "endpoint=False phi grid does not cover the explicit period; "
+            "pass period=2*pi/nfp from VectorFieldCylind.nfp"
+        )
 
     phi_ext = np.ascontiguousarray(np.append(phi_arr, endpoint), dtype=np.float64)
     extended = [phi_ext]
@@ -187,11 +187,9 @@ def close_periodic_field_cache_phi(field_cache: Mapping[str, Any]) -> dict[str, 
     out = dict(field_cache)
     phi_raw = np.asarray(field_cache["Phi_grid"], dtype=np.float64)
     nfp = int(field_cache.get("nfp", field_cache.get("field_periods", 1)))
-    period = (
-        2.0 * np.pi / max(nfp, 1)
-        if "nfp" in field_cache or "field_periods" in field_cache or phi_raw.size <= 1
-        else None
-    )
+    if nfp < 1:
+        raise ValueError("nfp must be a positive integer")
+    period = 2.0 * np.pi / nfp
     Phi, BR, BZ, BPhi = close_periodic_phi_grid(
         phi_raw,
         field_cache["BR"],
@@ -205,6 +203,8 @@ def close_periodic_field_cache_phi(field_cache: Mapping[str, Any]) -> dict[str, 
     out["BPhi"] = np.ascontiguousarray(BPhi, dtype=np.float64)
     out["R_grid"] = np.ascontiguousarray(field_cache["R_grid"], dtype=np.float64)
     out["Z_grid"] = np.ascontiguousarray(field_cache["Z_grid"], dtype=np.float64)
+    out["nfp"] = nfp
+    out["field_periods"] = nfp
     return out
 
 
@@ -497,6 +497,7 @@ class ScalarFieldCylind(ScalarField3D):
             name=f"-({self.name})" if self.name else "",
             units=self.units,
             properties=self.properties,
+            field_periods=self.field_periods,
         )
 
 
@@ -923,6 +924,7 @@ class VectorFieldCylind(VectorField3D):
             section=self.is_section,
             name=f"|{self.name}|" if self.name else "",
             units=self.units,
+            field_periods=self.field_periods,
         )
 
     norm = magnitude
@@ -948,6 +950,7 @@ class VectorFieldCylind(VectorField3D):
             name=f"-({self.name})" if self.name else "",
             units=self.units,
             properties=self.properties,
+            field_periods=self.field_periods,
         )
 
     def __mul__(self, other: Any) -> "VectorFieldCylind":
@@ -1169,6 +1172,20 @@ def _binary_grid(a: Any, b: Any) -> tuple[np.ndarray, np.ndarray, np.ndarray, bo
     return a.R, a.Z, a_phi, False, section
 
 
+def _binary_field_periods(a: Any, b: Any, *, axisym: bool = False) -> int:
+    if axisym:
+        return 1
+    a_periods = int(getattr(a, "field_periods", getattr(a, "nfp", 1)))
+    b_periods = int(getattr(b, "field_periods", getattr(b, "nfp", 1)))
+    if _field_is_axisym(a):
+        return b_periods
+    if _field_is_axisym(b):
+        return a_periods
+    if a_periods != b_periods:
+        raise ValueError("field_periods differ")
+    return a_periods
+
+
 def _broadcast_scalar_values(field: ScalarFieldCylind, Phi: np.ndarray) -> np.ndarray:
     values = np.asarray(field.value, dtype=float)
     if _field_is_axisym(field) and len(Phi) > 1:
@@ -1202,13 +1219,14 @@ def _make_scalar_result(
     name: str = "",
     units: str = "",
     properties: FieldProperty = FieldProperty.NONE,
+    field_periods: int = 1,
 ) -> ScalarFieldCylind:
     value = np.asarray(value, dtype=float)
     if axisym:
         return ScalarFieldCylindAxisym(R, Z, value[:, :, 0], name=name, units=units,
                                       properties=properties)
     return ScalarFieldCylind(R, Z, Phi, value, name=name, units=units,
-                             properties=properties)
+                             properties=properties, field_periods=field_periods)
 
 
 def _make_vector_result(
@@ -1224,6 +1242,7 @@ def _make_vector_result(
     name: str = "",
     units: str = "",
     properties: FieldProperty = FieldProperty.NONE,
+    field_periods: int = 1,
 ) -> VectorFieldCylind:
     BR = np.asarray(BR, dtype=float)
     BZ = np.asarray(BZ, dtype=float)
@@ -1236,9 +1255,10 @@ def _make_vector_result(
         return VectorFieldCylind(R, Z, BR=BR[:, :, 0], BZ=BZ[:, :, 0],
                                  BPhi=BPhi[:, :, 0], phi=float(Phi[0]),
                                  section_mode=True, name=name, units=units,
-                                 properties=properties)
+                                 properties=properties, field_periods=field_periods)
     return VectorFieldCylind(R=R, Z=Z, Phi=Phi, BR=BR, BZ=BZ, BPhi=BPhi,
-                             name=name, units=units, properties=properties)
+                             name=name, units=units, properties=properties,
+                             field_periods=field_periods)
 
 
 def as_scalar_field_cylindrical(field_like: Any) -> ScalarFieldCylind:
@@ -1266,19 +1286,22 @@ def _scalar_binary_op(self: ScalarFieldCylind, other: Any, op, opname: str, *, r
             name=f"({self.name}{opname}{other})" if self.name else "",
             units=self.units,
             properties=self.properties,
+            field_periods=self.field_periods,
         )
     other = as_scalar_field_cylindrical(other)
     R, Z, Phi, axisym, section = _binary_grid(self, other)
+    field_periods = _binary_field_periods(self, other, axisym=axisym)
     a = _broadcast_scalar_values(self, Phi)
     b = _broadcast_scalar_values(other, Phi)
     value = op(b, a) if reverse else op(a, b)
     return _make_scalar_result(R, Z, Phi, value, axisym=axisym, section=section,
-                               units=self.units)
+                               units=self.units, field_periods=field_periods)
 
 
 def _vector_binary_op(self: VectorFieldCylind, other: Any, op, opname: str, *, reverse: bool = False) -> VectorFieldCylind:
     other = as_vector_field_cylindrical(other)
     R, Z, Phi, axisym, section = _binary_grid(self, other)
+    field_periods = _binary_field_periods(self, other, axisym=axisym)
     aR, aZ, aP = _broadcast_vector_components(self, Phi)
     bR, bZ, bP = _broadcast_vector_components(other, Phi)
     if reverse:
@@ -1286,7 +1309,8 @@ def _vector_binary_op(self: VectorFieldCylind, other: Any, op, opname: str, *, r
     else:
         BR, BZ, BPhi = op(aR, bR), op(aZ, bZ), op(aP, bP)
     return _make_vector_result(R, Z, Phi, BR, BZ, BPhi, axisym=axisym,
-                               section=section, units=self.units)
+                               section=section, units=self.units,
+                               field_periods=field_periods)
 
 
 def _vector_scalar_binary_op(self: VectorFieldCylind, other: Any, op, opname: str) -> VectorFieldCylind:
@@ -1299,37 +1323,42 @@ def _vector_scalar_binary_op(self: VectorFieldCylind, other: Any, op, opname: st
             section=self.is_section,
             units=self.units,
             properties=self.properties,
+            field_periods=self.field_periods,
         )
     scalar = as_scalar_field_cylindrical(other)
     R, Z, Phi, axisym, section = _binary_grid(self, scalar)
+    field_periods = _binary_field_periods(self, scalar, axisym=axisym)
     vR, vZ, vP = _broadcast_vector_components(self, Phi)
     s = _broadcast_scalar_values(scalar, Phi)
     return _make_vector_result(R, Z, Phi, op(vR, s), op(vZ, s), op(vP, s),
                                axisym=axisym, section=section, units=self.units,
-                               properties=self.properties)
+                               properties=self.properties, field_periods=field_periods)
 
 
 def _vector_dot(self: VectorFieldCylind, other: Any) -> ScalarFieldCylind:
     other = as_vector_field_cylindrical(other)
     R, Z, Phi, axisym, section = _binary_grid(self, other)
+    field_periods = _binary_field_periods(self, other, axisym=axisym)
     aR, aZ, aP = _broadcast_vector_components(self, Phi)
     bR, bZ, bP = _broadcast_vector_components(other, Phi)
     value = aR * bR + aZ * bZ + aP * bP
     return _make_scalar_result(R, Z, Phi, value, axisym=axisym, section=section,
                                name=f"{self.name}·{other.name}" if self.name or other.name else "",
-                               units="")
+                               units="", field_periods=field_periods)
 
 
 def _vector_cross(self: VectorFieldCylind, other: Any) -> VectorFieldCylind:
     other = as_vector_field_cylindrical(other)
     R, Z, Phi, axisym, section = _binary_grid(self, other)
+    field_periods = _binary_field_periods(self, other, axisym=axisym)
     aR, aZ, aP = _broadcast_vector_components(self, Phi)
     bR, bZ, bP = _broadcast_vector_components(other, Phi)
     BR = aP * bZ - aZ * bP
     BZ = aR * bP - aP * bR
     BPhi = aZ * bR - aR * bZ
     return _make_vector_result(R, Z, Phi, BR, BZ, BPhi, axisym=axisym,
-                               section=section, units=self.units)
+                               section=section, units=self.units,
+                               field_periods=field_periods)
 
 
 def as_vector_field_cylindrical(field_like: Any, *, label: str = "") -> VectorFieldCylind:

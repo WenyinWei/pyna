@@ -502,17 +502,17 @@ def test_cyna_interpolation_wraps_at_field_period_seam():
 
     for values in (arrays.BR, arrays.BZ, arrays.BPhi):
         for R0, Z0 in sample_rz:
-            args = (arrays.R_grid, arrays.Z_grid, arrays.Phi_grid, values)
+            args = (values, arrays.R_grid, arrays.Z_grid, arrays.Phi_grid)
             for eps in eps_values:
                 np.testing.assert_allclose(
-                    interp(R0, Z0, period + eps, *args),
-                    interp(R0, Z0, eps, *args),
+                    interp(R0, Z0, period + eps, *args, field.nfp),
+                    interp(R0, Z0, eps, *args, field.nfp),
                     rtol=0.0,
                     atol=5.0e-14,
                 )
                 np.testing.assert_allclose(
-                    interp(R0, Z0, -eps, *args),
-                    interp(R0, Z0, period - eps, *args),
+                    interp(R0, Z0, -eps, *args, field.nfp),
+                    interp(R0, Z0, period - eps, *args, field.nfp),
                     rtol=0.0,
                     atol=5.0e-14,
                 )

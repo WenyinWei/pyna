@@ -370,14 +370,18 @@ class MCFPoincareMap(DiscreteMap):
         self,
         field_cache: Any,
         *,
-        Np: int = 1,
+        Np: int | None = None,
         phi_section: float = 0.0,
         n_turns: int = 1,
         DPhi: float = 0.05,
         n_threads: int = 0,
     ):
         self._fc = prepare_field_cache(field_cache, extend_phi=True)
-        self._Np = int(Np)
+        cache_nfp = int(self._fc["nfp"])
+        # ``Np`` is retained as legacy map/device metadata.  Magnetic-field
+        # interpolation is driven only by the prepared field's explicit nfp.
+        self._Np = cache_nfp if Np is None else int(Np)
+        self._field_nfp = cache_nfp
         self._phi_section = float(phi_section)
         self._n_turns = int(n_turns)
         self._DPhi = float(DPhi)
@@ -503,6 +507,8 @@ class MCFPoincareMap(DiscreteMap):
                 np.array([], dtype=np.float64),
                 np.array([], dtype=np.float64),
                 int(self._n_threads),
+                +1,
+                int(self._field_nfp),
             )
             n_seeds = len(R_arr)
             R_out = result[1].reshape(n_seeds, n_turns)
@@ -532,6 +538,8 @@ class MCFPoincareMap(DiscreteMap):
                 np.array([], dtype=np.float64),
                 np.array([], dtype=np.float64),
                 int(self._n_threads),
+                +1,
+                int(self._field_nfp),
             )
             n_seeds = len(R_arr)
             R_out_full = result[1].reshape(n_seeds, self._n_turns)

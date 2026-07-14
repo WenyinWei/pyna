@@ -9,10 +9,6 @@ from typing import Any, Dict, List, Mapping, Optional, Tuple
 
 import numpy as np
 
-# Tolerance for checking whether Phi_grid already reaches 2π
-_PHI_WRAP_TOL = 1e-6
-
-
 # ---------------------------------------------------------------------------
 # Zero-copy buffer preparation
 # ---------------------------------------------------------------------------
@@ -38,7 +34,7 @@ def prepare_field_cache(
     Returns a new dict with all arrays guaranteed C-contiguous float64.
     If *extend_phi* is True (default), the toroidal grid and field arrays
     are extended by one period copy so cyna's trilinear interpolation
-    handles the 2π seam correctly.
+    handles the explicit ``2*pi/nfp`` seam correctly.
 
     The input may be a :class:`pyna.fields.VectorFieldCylind`, a compatible
     cylindrical field object, or a legacy field-cache dict.  The returned dict
@@ -55,8 +51,8 @@ def prepare_field_cache(
 
     Returns
     -------
-    dict with keys 'BR', 'BZ', 'BPhi', 'R_grid', 'Z_grid', 'Phi_grid',
-    all C-contiguous float64.
+    dict with keys 'BR', 'BZ', 'BPhi', 'R_grid', 'Z_grid', 'Phi_grid', and
+    explicit integer 'nfp' metadata.  Arrays are C-contiguous float64.
     """
     from pyna.fields.cylindrical import (
         as_vector_field_cylindrical,
@@ -66,6 +62,9 @@ def prepare_field_cache(
     if isinstance(field_cache, Mapping):
         if extend_phi:
             return close_periodic_field_cache_phi(field_cache)
+        nfp = int(field_cache.get("nfp", field_cache.get("field_periods", 1)))
+        if nfp < 1:
+            raise ValueError("nfp must be a positive integer")
         return {
             "BR": ensure_c_double(np.asarray(field_cache["BR"], dtype=np.float64)),
             "BZ": ensure_c_double(np.asarray(field_cache["BZ"], dtype=np.float64)),
@@ -73,6 +72,8 @@ def prepare_field_cache(
             "R_grid": ensure_c_double(np.asarray(field_cache["R_grid"], dtype=np.float64)),
             "Z_grid": ensure_c_double(np.asarray(field_cache["Z_grid"], dtype=np.float64)),
             "Phi_grid": ensure_c_double(np.asarray(field_cache["Phi_grid"], dtype=np.float64)),
+            "nfp": nfp,
+            "field_periods": nfp,
         }
 
     field = as_vector_field_cylindrical(field_cache)

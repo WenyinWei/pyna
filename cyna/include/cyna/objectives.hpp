@@ -27,14 +27,14 @@ inline bool eval_field_jxb(
     double fd_eps_phi,
     double& Bmag,
     double& B2,
-    double& JxB_mag)
+    double& JxB_mag,
+    double field_period = 2.0 * M_PI)
 {
     constexpr double mu0 = 4.0e-7 * M_PI;
-    phi = mod2pi(phi);
 
-    double br = interp3d(BR, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R, Z, phi);
-    double bp = interp3d(BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R, Z, phi);
-    double bz = interp3d(BZ, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R, Z, phi);
+    double br = interp3d(BR, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R, Z, phi, field_period);
+    double bp = interp3d(BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R, Z, phi, field_period);
+    double bz = interp3d(BZ, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R, Z, phi, field_period);
     if (!std::isfinite(br) || !std::isfinite(bp) || !std::isfinite(bz) || R <= 1e-12) {
         Bmag = std::numeric_limits<double>::quiet_NaN();
         B2 = std::numeric_limits<double>::quiet_NaN();
@@ -47,12 +47,12 @@ inline bool eval_field_jxb(
 
     auto deriv = [&](const double* data, double Rp, double Rm, double Zp, double Zm, double phip, double phim,
                      double& dR, double& dZ, double& dPhi) {
-        double fpR = interp3d(data, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, Rp, Z,  phi);
-        double fmR = interp3d(data, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, Rm, Z,  phi);
-        double fpZ = interp3d(data, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R,  Zp, phi);
-        double fmZ = interp3d(data, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R,  Zm, phi);
-        double fpP = interp3d(data, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R,  Z,  phip);
-        double fmP = interp3d(data, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R,  Z,  phim);
+        double fpR = interp3d(data, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, Rp, Z,  phi, field_period);
+        double fmR = interp3d(data, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, Rm, Z,  phi, field_period);
+        double fpZ = interp3d(data, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R,  Zp, phi, field_period);
+        double fmZ = interp3d(data, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R,  Zm, phi, field_period);
+        double fpP = interp3d(data, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R,  Z,  phip, field_period);
+        double fmP = interp3d(data, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R,  Z,  phim, field_period);
         if (!std::isfinite(fpR) || !std::isfinite(fmR) ||
             !std::isfinite(fpZ) || !std::isfinite(fmZ) ||
             !std::isfinite(fpP) || !std::isfinite(fmP)) {
@@ -137,7 +137,8 @@ inline void trace_surface_metrics_batch_twall(
     double* Bmax_out,
     double* JxBmean_out,
     double* turns_out,
-    int* alive_out)
+    int* alive_out,
+    double field_period = 2.0 * M_PI)
 {
     if (n_threads <= 0)
         n_threads = (int)std::thread::hardware_concurrency();
@@ -166,7 +167,7 @@ inline void trace_surface_metrics_batch_twall(
                     BR, BZ, BPhi,
                     R_grid, nR, Z_grid, nZ, Phi_grid, nPhi,
                     fd_eps_R, fd_eps_Z, fd_eps_phi,
-                    Bmag, B2, JxB_mag);
+                    Bmag, B2, JxB_mag, field_period);
                 if (!ok) {
                     alive = false;
                     break;
@@ -184,7 +185,7 @@ inline void trace_surface_metrics_batch_twall(
                 double Z_next = Z;
                 rk4_step(R_next, Z_next, phi, step,
                          BR, BZ, BPhi,
-                         R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+                         R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, field_period);
                 double phi_next = phi + step;
                 if (!std::isfinite(R_next) || !std::isfinite(Z_next) ||
                     R_next < R_grid[0] || R_next > R_grid[nR - 1] ||

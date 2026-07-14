@@ -19,10 +19,11 @@ def _nfp2_cache():
         "BR": BR,
         "BZ": BZ,
         "BPhi": BPhi,
+        "nfp": nfp,
     }
 
 
-def test_prepare_field_cache_dict_closes_inferred_field_period():
+def test_prepare_field_cache_dict_closes_explicit_field_period():
     from pyna._cyna.utils import prepare_field_cache
 
     fc = _nfp2_cache()
@@ -31,6 +32,16 @@ def test_prepare_field_cache_dict_closes_inferred_field_period():
     assert prepared["Phi_grid"][-1] == pytest.approx(np.pi)
     assert prepared["BR"].shape[2] == fc["BR"].shape[2] + 1
     np.testing.assert_allclose(prepared["BR"][:, :, -1], prepared["BR"][:, :, 0])
+    assert prepared["nfp"] == 2
+
+
+def test_prepare_native_field_period_cache_without_nfp_fails_closed():
+    from pyna._cyna.utils import prepare_field_cache
+
+    fc = _nfp2_cache()
+    fc.pop("nfp")
+    with pytest.raises(ValueError, match="explicit period"):
+        prepare_field_cache(fc, extend_phi=True)
 
 
 def test_close_periodic_phi_grid_does_not_double_extend_closed_field_period():
@@ -43,7 +54,7 @@ def test_close_periodic_phi_grid_does_not_double_extend_closed_field_period():
     _, _, PP = np.meshgrid(R, Z, Phi, indexing="ij")
     BR = np.cos(2.0 * PP)
 
-    Phi_ext, BR_ext = close_periodic_phi_grid(Phi, BR)
+    Phi_ext, BR_ext = close_periodic_phi_grid(Phi, BR, period=period)
 
     assert Phi_ext.shape == Phi.shape
     assert BR_ext.shape == BR.shape
@@ -108,6 +119,7 @@ def test_monodromy_matrix_uses_current_wrapper_abi_with_field_period_cache():
         "BR": -omega * (ZZ - Z0) / RR,
         "BZ": omega * (RR - R0) / RR,
         "BPhi": np.ones_like(RR),
+        "nfp": nfp,
     }
 
     class BoxWall:

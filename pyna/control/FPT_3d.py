@@ -99,7 +99,10 @@ def compute_A_matrix_batch_from_cache(
     R_grid  = np.ascontiguousarray(fc['R_grid'],  dtype=np.float64)
     Z_grid  = np.ascontiguousarray(fc['Z_grid'],  dtype=np.float64)
     Phi_grid = np.ascontiguousarray(fc['Phi_grid'], dtype=np.float64)
-    return _cyna_A_batch(R_arr, Z_arr, phi_arr, BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, eps)
+    return _cyna_A_batch(
+        R_arr, Z_arr, phi_arr, BR, BZ, BPhi,
+        R_grid, Z_grid, Phi_grid, eps, int(fc['nfp'])
+    )
 
 
 # ============================================================================

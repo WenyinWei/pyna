@@ -1358,12 +1358,16 @@ def monodromy_matrix(
 
     R_grid, Z_grid, Phi_grid = cache['R_grid'], cache['Z_grid'], cache['Phi_grid']
 
+    nfp = int(cache.get('nfp', cache.get('field_periods', 1)))
+    if nfp < 1:
+        raise ValueError("field-cache nfp must be a positive integer")
+
 
 
     # Close Phi_grid by the actual cache period, which may be one field period.
 
     Phi_ext, BR_ext, BZ_ext, BPhi_ext = close_periodic_phi_grid(
-        Phi_grid, BR, BZ, BPhi
+        Phi_grid, BR, BZ, BPhi, period=2.0 * np.pi / nfp
     )
 
     # Flatten to 1-D (required by cyna C++ API)
@@ -1412,6 +1416,8 @@ def monodromy_matrix(
 
             np.ascontiguousarray(wall._Z,           dtype=np.float64),
 
+            nfp=nfp,
+
         )
 
     elif _has_batch:
@@ -1427,6 +1433,8 @@ def monodromy_matrix(
             np.ascontiguousarray(wR, dtype=np.float64),
 
             np.ascontiguousarray(wZ, dtype=np.float64),
+
+            nfp=nfp,
 
         )
 

@@ -198,7 +198,7 @@ def _compute_DPm_via_cyna(
         float(R0), float(Z0), float(phi_start),
         float(phi_span), float(dphi_out),
         int(island_period), float(DPhi), float(fd_eps),
-        BR, BZ, BPhi, Rg, Zg, Phig,
+        BR, BZ, BPhi, Rg, Zg, Phig, int(fc['nfp']),
     )
     R_arr   = np.asarray(R_arr)
     Z_arr   = np.asarray(Z_arr)
@@ -598,6 +598,7 @@ def DPm_shift_under_field_perturbation(
             _c(base_fc['Z_grid']),
             _c(base_fc['Phi_grid']),
             fd_eps_cyna,
+            int(base_fc['nfp']),
         )
 
     delta_X_cyc = _compute_delta_X_cyc(

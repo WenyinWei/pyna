@@ -165,12 +165,16 @@ class _FC:
     def __init__(self, fc: dict):
         self.Rg  = np.ascontiguousarray(fc["R_grid"], dtype=np.float64)
         self.Zg  = np.ascontiguousarray(fc["Z_grid"], dtype=np.float64)
+        self.nfp = int(fc.get("nfp", fc.get("field_periods", 1)))
+        if self.nfp < 1:
+            raise ValueError("field-cache nfp must be a positive integer")
+        self.phi_period = 2.0 * np.pi / self.nfp
         Pg, BR, BZ, BPhi = close_periodic_phi_grid(
-            fc["Phi_grid"], fc["BR"], fc["BZ"], fc["BPhi"]
+            fc["Phi_grid"], fc["BR"], fc["BZ"], fc["BPhi"],
+            period=self.phi_period,
         )
         self.dphi = float(Pg[1] - Pg[0]) if len(Pg) > 1 else 0.0
         self.Pg_ext = np.ascontiguousarray(Pg, dtype=np.float64)
-        self.phi_period = float(self.Pg_ext[-1] - self.Pg_ext[0]) if len(self.Pg_ext) > 1 else 2.0 * np.pi
         self._BR_3d   = np.ascontiguousarray(BR, dtype=np.float64)
         self._BPhi_3d = np.ascontiguousarray(BPhi, dtype=np.float64)
         self._BZ_3d   = np.ascontiguousarray(BZ, dtype=np.float64)
@@ -315,6 +319,7 @@ def _poincare_single_section(
         fc.BR, fc.BZ, fc.BPhi,
         fc.Rg, fc.Zg, fc.Pg_ext,
         phi_c, wall_R, wall_Z,
+        -1, +1, fc.nfp,
     )
     result = []
     for i, cnt in enumerate(counts):
@@ -343,7 +348,7 @@ def _poincare_multi_section(
         fc.BR, fc.BZ, fc.BPhi,
         fc.Rg, fc.Zg, fc.Pg_ext,
         box_R, box_Z,
-        -1,   # n_threads
+        -1, +1, fc.nfp,
     )
     counts = np.asarray(counts_arr)   # (n_seeds, n_sec)
     R_f    = np.asarray(R_flat)
@@ -374,6 +379,7 @@ def _is_confined_cyna(R, Z, phi_start, max_turns, fc: _FC,
         fc.BR, fc.BZ, fc.BPhi,
         fc.Rg, fc.Zg, fc.Pg_ext,
         phi_c, wall_R, wall_Z,
+        -1, fc.nfp,
     )
     return bool(L_fwd[0] >= 1e29)
 
@@ -459,6 +465,7 @@ def _DPm_from_orbit(R_t, Z_t, phi_t, fc: _FC) -> np.ndarray:
         fc.BR, fc.BZ, fc.BPhi,
         fc.Rg, fc.Zg, fc.Pg_ext,
         1e-4,
+        fc.nfp,
     )   # shape (N, 2, 2)
 
     DX = np.eye(2)
@@ -482,6 +489,7 @@ def _compute_DPm_cyna(R_xpt, Z_xpt, fc: _FC,
         DPhi, 1e-4,
         fc.BR, fc.BZ, fc.BPhi,
         fc.Rg, fc.Zg, fc.Pg_ext,
+        fc.nfp,
     )
     alive = np.asarray(alive_t, dtype=bool)
     R_t   = np.asarray(R_t)[alive]

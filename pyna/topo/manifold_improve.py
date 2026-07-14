@@ -347,8 +347,12 @@ class _AcceleratedManifoldBase(_ManifoldBase):
 
         BR, BZ_arr, BPhi_arr = cache['BR'], cache['BZ'], cache['BPhi']
         R_grid, Z_grid, Phi_grid = cache['R_grid'], cache['Z_grid'], cache['Phi_grid']
+        self._nfp = int(cache.get('nfp', cache.get('field_periods', 1)))
+        if self._nfp < 1:
+            raise ValueError("field-cache nfp must be a positive integer")
         Phi_ext, BR_ext, BZ_ext, BPhi_ext = close_periodic_phi_grid(
-            Phi_grid, BR, BZ_arr, BPhi_arr
+            Phi_grid, BR, BZ_arr, BPhi_arr,
+            period=2.0 * np.pi / self._nfp,
         )
         phi0 = float(Phi_ext[0])
         phi_period = float(Phi_ext[-1] - Phi_ext[0])
@@ -421,6 +425,7 @@ class _AcceleratedManifoldBase(_ManifoldBase):
                 self._R_grid, self._Z_grid, self._Phi_ext,
                 self._BR_flat, self._BZ_flat, self._BPhi_flat,
                 self._wall_phi, self._wall_R_all, self._wall_Z_all,
+                nfp=self._nfp,
             )
         else:
             counts, R_flat, Z_flat = self._cyna_batch(
@@ -429,6 +434,7 @@ class _AcceleratedManifoldBase(_ManifoldBase):
                 self._R_grid, self._Z_grid, self._Phi_ext,
                 self._BR_flat, self._BZ_flat, self._BPhi_flat,
                 self._wall_R, self._wall_Z,
+                nfp=self._nfp,
             )
         # Fixed-stride output: seed 0 occupies slot 0 (1 turn requested)
         if int(counts[0]) < 1:

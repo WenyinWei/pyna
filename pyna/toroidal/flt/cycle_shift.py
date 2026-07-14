@@ -41,7 +41,7 @@ def field_period_cache_from_components(
     BPhi: NDArray[np.float64],
     n_fp: int,
 ) -> dict[str, NDArray[np.float64]]:
-    """Build a full-torus cyna field cache from one field-period component arrays."""
+    """Build a native one-field-period cyna cache with explicit ``nfp``."""
 
     phi = np.asarray(Phi, dtype=np.float64)
     n_periods = int(n_fp)
@@ -50,24 +50,22 @@ def field_period_cache_from_components(
     if phi.ndim != 1 or phi.size == 0:
         raise ValueError("Phi must be a non-empty 1-D grid")
     period = 2.0 * np.pi / float(n_periods)
-    dphi = period / float(phi.size)
-    phi_full = np.arange(phi.size * n_periods, dtype=np.float64) * dphi
-
-    def _tile(name: str, values: NDArray[np.float64]) -> NDArray[np.float64]:
+    def _component(name: str, values: NDArray[np.float64]) -> NDArray[np.float64]:
         arr = np.asarray(values, dtype=np.float64)
         expected = (np.asarray(R).size, np.asarray(Z).size, phi.size)
         if arr.shape != expected:
             raise ValueError(f"{name} shape {arr.shape} does not match grid shape {expected}")
-        return np.concatenate([arr] * n_periods, axis=2)
+        return arr
 
     return prepare_field_cache(
         {
             "R_grid": np.asarray(R, dtype=np.float64),
             "Z_grid": np.asarray(Z, dtype=np.float64),
-            "Phi_grid": phi_full,
-            "BR": _tile("BR", BR),
-            "BZ": _tile("BZ", BZ),
-            "BPhi": _tile("BPhi", BPhi),
+            "Phi_grid": phi,
+            "BR": _component("BR", BR),
+            "BZ": _component("BZ", BZ),
+            "BPhi": _component("BPhi", BPhi),
+            "nfp": n_periods,
         },
         extend_phi=True,
     )

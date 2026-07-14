@@ -116,6 +116,7 @@ def compute_profile_objectives_fast(
         np.ascontiguousarray(wall_R, dtype=np.float64),
         np.ascontiguousarray(wall_Z, dtype=np.float64),
         float(fd_eps_R), float(fd_eps_Z), float(fd_eps_phi),
+        nfp=int(fc.nfp),
     )
     result.update({
         "iota": np.asarray(iota, dtype=np.float64),

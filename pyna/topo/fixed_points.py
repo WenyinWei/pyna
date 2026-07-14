@@ -158,6 +158,9 @@ def _extract_field_cache(tracer) -> Optional[dict]:
         R_grid   = np.ascontiguousarray(tracer.R_grid,   dtype=np.float64)
         Z_grid   = np.ascontiguousarray(tracer.Z_grid,   dtype=np.float64)
         Phi_grid = np.ascontiguousarray(tracer.Phi_grid, dtype=np.float64)
+        nfp = int(getattr(tracer, "nfp", getattr(tracer, "field_periods", 1)))
+        if nfp < 1:
+            raise ValueError("tracer nfp must be a positive integer")
         # Reshape flat arrays to (nPhi, nR, nZ) matching cyna convention
         # RegularGridInterpolator values shape: (len(R_grid), len(Z_grid), len(Phi_grid)) or similar
         # cyna expects BR[nPhi, nR, nZ] 鈥?check actual shape
@@ -166,7 +169,7 @@ def _extract_field_cache(tracer) -> Optional[dict]:
         BPhi = BPhi.reshape(nR, nZ, nPhi)
         BZ   = BZ.reshape(nR, nZ, nPhi)
         return dict(BR=BR, BZ=BZ, BPhi=BPhi,
-                    R_grid=R_grid, Z_grid=Z_grid, Phi_grid=Phi_grid)
+                    R_grid=R_grid, Z_grid=Z_grid, Phi_grid=Phi_grid, nfp=nfp)
     except Exception as exc:
         warnings.warn(f"_extract_field_cache failed: {exc}")
         return None
@@ -343,6 +346,7 @@ def find_magnetic_axis(
                 max_iter=max_iter, tol=tol,
                 BR=fc['BR'], BZ=fc['BZ'], BPhi=fc['BPhi'],
                 R_grid=fc['R_grid'], Z_grid=fc['Z_grid'], Phi_grid=fc['Phi_grid'],
+                nfp=fc['nfp'],
             )
             R, Z, DPm, kind = _cyna_result_to_fp(R_out, Z_out, res, conv, DPm_flat, eig_r, eig_i, ptype, 0)
             if R is not None:
@@ -431,6 +435,7 @@ def find_fixed_point_newton(
                 max_iter=max_iter, tol=tol,
                 BR=fc['BR'], BZ=fc['BZ'], BPhi=fc['BPhi'],
                 R_grid=fc['R_grid'], Z_grid=fc['Z_grid'], Phi_grid=fc['Phi_grid'],
+                nfp=fc['nfp'],
             )
             R, Z, DPm, kind = _cyna_result_to_fp(R_out, Z_out, res, conv, DPm_flat, eig_r, eig_i, ptype, 0)
             if R is not None:
@@ -941,6 +946,7 @@ def find_island_chain_fixed_points(
             max_iter=8, tol=coarse_tol * 0.1,
             BR=fc['BR'], BZ=fc['BZ'], BPhi=fc['BPhi'],
             R_grid=fc['R_grid'], Z_grid=fc['Z_grid'], Phi_grid=fc['Phi_grid'],
+            nfp=fc['nfp'],
         )
         # period-1 exclusion via cyna (single turn)
         R_1c, Z_1c, res_1c, _, _, _, _, _ = _cyna_find_fixed_points_batch(
@@ -949,6 +955,7 @@ def find_island_chain_fixed_points(
             max_iter=8, tol=period1_tol * 0.1,
             BR=fc['BR'], BZ=fc['BZ'], BPhi=fc['BPhi'],
             R_grid=fc['R_grid'], Z_grid=fc['Z_grid'], Phi_grid=fc['Phi_grid'],
+            nfp=fc['nfp'],
         )
         for i in range(len(R_seeds_all)):
             if res_c[i] >= coarse_tol:
@@ -1006,6 +1013,7 @@ def find_island_chain_fixed_points(
             max_iter=max_iter, tol=tol,
             BR=fc['BR'], BZ=fc['BZ'], BPhi=fc['BPhi'],
             R_grid=fc['R_grid'], Z_grid=fc['Z_grid'], Phi_grid=fc['Phi_grid'],
+            nfp=fc['nfp'],
         )
         for idx in range(len(R_seeds)):
             R_fp, Z_fp, DPm, kind = _cyna_result_to_fp(

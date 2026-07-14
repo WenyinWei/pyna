@@ -508,7 +508,7 @@ class XPointOrbit:
             phi_span, dphi_out, 0,
             dphi_out, 1e-4,
             fc.BR, fc.BZ, fc.BPhi,
-            fc.Rg, fc.Zg, fc.Pg_ext,
+            fc.Rg, fc.Zg, fc.Pg_ext, fc.nfp,
         )
         alive = np.asarray(alive_t, dtype=bool)
         R_t = np.asarray(R_t)[alive]

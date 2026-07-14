@@ -481,6 +481,7 @@ def trace_fieldline_trajectory(
             arrays.BZ_flat,
             arrays.BPhi_flat,
             dphi_out=abs(dphi_out),
+            nfp=arrays.nfp,
         )
 
         valid = np.asarray(alive_t, dtype=bool) & np.isfinite(R_t) & np.isfinite(Z_t) & np.isfinite(phi_t)

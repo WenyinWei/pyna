@@ -33,6 +33,7 @@ static inline double mod_period(double x, double period) {
 
 static inline bool locate_phi_cell(
     const double* Phi_grid, int nPhi,
+    double field_period,
     double& Phi,
     int& iPhi, int& iPhi1,
     double& tP)
@@ -49,15 +50,16 @@ static inline bool locate_phi_cell(
 
     const double phi0 = Phi_grid[0];
     const double phi1 = Phi_grid[nPhi - 1];
-    const double period = phi1 - phi0;
-    if (!std::isfinite(period) || period <= 0.0)
+    if (!std::isfinite(field_period) || field_period <= 0.0)
+        return false;
+    const double tol = 1e-12 * std::max(1.0, std::abs(field_period));
+    if (std::abs((phi1 - phi0) - field_period) > tol)
         return false;
 
     // Phi_grid is expected to be a closed periodic grid:
-    // [phi0, ..., phi0 + period], where the last data plane is a copy of
-    // the first.  The period may be either 2*pi or one stellarator field
-    // period, e.g. 2*pi/Nfp.
-    Phi = phi0 + mod_period(Phi - phi0, period);
+    // [phi0, ..., phi0 + field_period], where the last data plane is a copy
+    // of the first.  field_period is explicit (2*pi/nfp), never inferred.
+    Phi = phi0 + mod_period(Phi - phi0, field_period);
     if (Phi >= phi1)
         Phi = phi0;
 
@@ -139,9 +141,8 @@ static inline bool point_in_toroidal_wall(double R, double Z, double phi,
 //               phi0 + period)
 //   and data[:, :, N] is a copy of data[:, :, 0].
 //
-// The period is inferred from Phi_grid[-1] - Phi_grid[0].  This supports
-// full-torus grids and one-field-period stellarator grids without requiring
-// Nfp in the C++ ABI.
+// The interpolation period is explicit.  Raw legacy callers default to 2*pi;
+// object-first callers pass 2*pi/nfp from VectorFieldCylind.nfp.
 //
 // Out-of-bounds R or Z → NaN  (matches scipy fill_value=np.nan)
 // ---------------------------------------------------------------------------
@@ -150,7 +151,8 @@ inline double interp3d(
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi,   // nPhi = N_phi_original + 1  (extended)
-    double R, double Z, double Phi)
+    double R, double Z, double Phi,
+    double field_period = 2.0 * M_PI)
 {
     if (!std::isfinite(R) || !std::isfinite(Z) || !std::isfinite(Phi))
         return std::numeric_limits<double>::quiet_NaN();
@@ -174,7 +176,7 @@ inline double interp3d(
 
     int iPhi = 0, iPhi1 = 0;
     double tP = 0.0;
-    if (!locate_phi_cell(Phi_grid, nPhi, Phi, iPhi, iPhi1, tP))
+    if (!locate_phi_cell(Phi_grid, nPhi, field_period, Phi, iPhi, iPhi1, tP))
         return std::numeric_limits<double>::quiet_NaN();
 
     // ── trilinear interpolation ─────────────────────────────────────────
@@ -216,7 +218,8 @@ static inline bool interp3d_grad(
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi,
-    double R, double Z, double Phi)
+    double R, double Z, double Phi,
+    double field_period = 2.0 * M_PI)
 {
     if (!std::isfinite(R) || !std::isfinite(Z) || !std::isfinite(Phi))
         return false;
@@ -237,7 +240,7 @@ static inline bool interp3d_grad(
 
     int iPhi = 0, iPhi1 = 0;
     double tP = 0.0;
-    if (!locate_phi_cell(Phi_grid, nPhi, Phi, iPhi, iPhi1, tP))
+    if (!locate_phi_cell(Phi_grid, nPhi, field_period, Phi, iPhi, iPhi1, tP))
         return false;
 
     auto v = [&](int r,int z,int p){return data[r*nZ*nPhi+z*nPhi+p];};
@@ -269,19 +272,20 @@ static inline void rk4_step(
     const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
-    const double* Phi_grid, int nPhi)
+    const double* Phi_grid, int nPhi,
+    double field_period = 2.0 * M_PI)
 {
     auto dRdphi = [&](double r, double z, double p) {
-        double bp = interp3d(BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, r, z, p);
+        double bp = interp3d(BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, r, z, p, field_period);
         if (!std::isfinite(bp) || std::abs(bp) <= 1e-12) return 0.0;
-        double br = interp3d(BR, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, r, z, p);
+        double br = interp3d(BR, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, r, z, p, field_period);
         if (!std::isfinite(br)) return 0.0;
         return r * br / bp;
     };
     auto dZdphi = [&](double r, double z, double p) {
-        double bp = interp3d(BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, r, z, p);
+        double bp = interp3d(BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, r, z, p, field_period);
         if (!std::isfinite(bp) || std::abs(bp) <= 1e-12) return 0.0;
-        double bz = interp3d(BZ, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, r, z, p);
+        double bz = interp3d(BZ, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, r, z, p, field_period);
         if (!std::isfinite(bz)) return 0.0;
         return r * bz / bp;
     };
@@ -321,7 +325,8 @@ static inline bool rk4_step_DX_pol(
     const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
-    const double* Phi_grid, int nPhi)
+    const double* Phi_grid, int nPhi,
+    double field_period = 2.0 * M_PI)
 {
     // Analytic local gradient of the field-line ODE: A = ∂f/∂(R,Z)
     // where f(R,Z) = [R*B_R/B_phi, R*B_Z/B_phi]
@@ -333,9 +338,9 @@ static inline bool rk4_step_DX_pol(
         double BRv, dBR_dR, dBR_dZ;
         double BPhiv, dBPhi_dR, dBPhi_dZ;
         double BZv, dBZ_dR, dBZ_dZ;
-        if (!interp3d_grad(BRv, dBR_dR, dBR_dZ, BR, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, r,z,p)) return false;
-        if (!interp3d_grad(BPhiv, dBPhi_dR, dBPhi_dZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, r,z,p)) return false;
-        if (!interp3d_grad(BZv, dBZ_dR, dBZ_dZ, BZ, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, r,z,p)) return false;
+        if (!interp3d_grad(BRv, dBR_dR, dBR_dZ, BR, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, r,z,p,field_period)) return false;
+        if (!interp3d_grad(BPhiv, dBPhi_dR, dBPhi_dZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, r,z,p,field_period)) return false;
+        if (!interp3d_grad(BZv, dBZ_dR, dBZ_dZ, BZ, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, r,z,p,field_period)) return false;
         if (std::abs(BPhiv) <= 1e-12) { fR = fZ = 0.0; A00=A01=A10=A11=0.0; return true; }
         double invBp = 1.0 / BPhiv, invBp2 = invBp / BPhiv;
         fR = r * BRv * invBp;
@@ -397,7 +402,8 @@ void trace_one_seed(
     int* poi_counts,
     double* poi_R_flat,
     double* poi_Z_flat,
-    int direction = +1)
+    int direction = +1,
+    double field_period = 2.0 * M_PI)
 {
     double R = R0, Z = Z0;
     double phi = phi_start;         // unwrapped
@@ -416,7 +422,7 @@ void trace_one_seed(
         // RK4 advance
         rk4_step(R, Z, phi, step,
                  BR, BZ, BPhi,
-                 R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+                 R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, field_period);
         phi += step;
 
         // Wall check after step
@@ -476,7 +482,8 @@ void trace_poincare_batch(
     int* poi_counts,
     double* poi_R_flat,
     double* poi_Z_flat,
-    int direction = +1)
+    int direction = +1,
+    double field_period = 2.0 * M_PI)
 {
     if (n_threads <= 0)
         n_threads = (int)std::thread::hardware_concurrency();
@@ -495,7 +502,7 @@ void trace_poincare_batch(
                 R_grid, nR, Z_grid, nZ, Phi_grid, nPhi,
                 wall_R, wall_Z, n_wall,
                 poi_counts, poi_R_flat, poi_Z_flat,
-                direction);
+                direction, field_period);
         }
     }).wait();
 }
@@ -520,7 +527,8 @@ void trace_map_batch_span(
     int n_threads,
     int* map_counts,
     double* map_R_flat,
-    double* map_Z_flat)
+    double* map_Z_flat,
+    double field_period = 2.0 * M_PI)
 {
     if (n_threads <= 0)
         n_threads = (int)std::thread::hardware_concurrency();
@@ -554,7 +562,7 @@ void trace_map_batch_span(
                     const double h = dir * std::min(step_abs, std::abs(target - phi));
                     rk4_step(R, Z, phi, h,
                              BR, BZ, BPhi,
-                             R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+                             R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, field_period);
                     phi += h;
 
                     if (!std::isfinite(R) || !std::isfinite(Z) ||
@@ -597,7 +605,8 @@ void trace_poincare_batch_twall(
     int* poi_counts,
     double* poi_R_flat,
     double* poi_Z_flat,
-    int direction = +1)
+    int direction = +1,
+    double field_period = 2.0 * M_PI)
 {
     if (n_threads <= 0)
         n_threads = (int)std::thread::hardware_concurrency();
@@ -622,7 +631,7 @@ void trace_poincare_batch_twall(
 
                     rk4_step(R, Z, phi, step,
                              BR, BZ, BPhi,
-                             R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+                             R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, field_period);
                     phi += step;
 
                     if (!std::isfinite(R) || !std::isfinite(Z) ||
@@ -674,7 +683,8 @@ void trace_connection_length_twall(
     const double* wall_R, const double* wall_Z, int n_theta_wall,
     int n_threads,
     double* L_fwd,
-    double* L_bwd)
+    double* L_bwd,
+    double field_period = 2.0 * M_PI)
 {
     if (n_threads <= 0)
         n_threads = (int)std::thread::hardware_concurrency();
@@ -700,10 +710,10 @@ void trace_connection_length_twall(
 
                     // Arc-length contribution before step (mid-point approximation)
                     double bp_here = interp3d(BPhi, R_grid, nR, Z_grid, nZ,
-                                              Phi_grid, nPhi, R, Z, phi);
+                                              Phi_grid, nPhi, R, Z, phi, field_period);
                     if (std::isfinite(bp_here) && std::abs(bp_here) > 1e-12) {
-                        double br_here = interp3d(BR,  R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R, Z, phi);
-                        double bz_here = interp3d(BZ,  R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R, Z, phi);
+                        double br_here = interp3d(BR,  R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R, Z, phi, field_period);
+                        double bz_here = interp3d(BZ,  R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R, Z, phi, field_period);
                         double Bmag = std::sqrt(br_here*br_here + bp_here*bp_here + bz_here*bz_here);
                         if (std::isfinite(Bmag))
                             arc += R * Bmag / std::abs(bp_here) * step;
@@ -712,7 +722,7 @@ void trace_connection_length_twall(
                     double phi_step_dir = dir * step;
                     rk4_step(R, Z, phi, phi_step_dir,
                              BR, BZ, BPhi,
-                             R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+                             R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, field_period);
                     phi = mod2pi(phi + phi_step_dir);
                     phi_total += step;
 
@@ -769,7 +779,8 @@ void trace_wall_hits_twall(
     double* L_fwd,     double* L_bwd,
     double* R_hit_fwd, double* Z_hit_fwd, double* phi_hit_fwd,
     double* R_hit_bwd, double* Z_hit_bwd, double* phi_hit_bwd,
-    int*    term_type_fwd, int* term_type_bwd)
+    int*    term_type_fwd, int* term_type_bwd,
+    double field_period = 2.0 * M_PI)
 {
     if (n_threads <= 0)
         n_threads = (int)std::thread::hardware_concurrency();
@@ -807,10 +818,10 @@ void trace_wall_hits_twall(
 
                     // Arc-length contribution (mid-point)
                     double bp_here = interp3d(BPhi, R_grid, nR, Z_grid, nZ,
-                                              Phi_grid, nPhi, R, Z, phi);
+                                              Phi_grid, nPhi, R, Z, phi, field_period);
                     if (std::isfinite(bp_here) && std::abs(bp_here) > 1e-12) {
-                        double br_here = interp3d(BR,  R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R, Z, phi);
-                        double bz_here = interp3d(BZ,  R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R, Z, phi);
+                        double br_here = interp3d(BR,  R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R, Z, phi, field_period);
+                        double bz_here = interp3d(BZ,  R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, R, Z, phi, field_period);
                         double Bmag = std::sqrt(br_here*br_here + bp_here*bp_here + bz_here*bz_here);
                         if (std::isfinite(Bmag))
                             arc += R * Bmag / std::abs(bp_here) * step;
@@ -819,7 +830,7 @@ void trace_wall_hits_twall(
                     double phi_step_dir = dir * step;
                     rk4_step(R, Z, phi, phi_step_dir,
                              BR, BZ, BPhi,
-                             R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+                             R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, field_period);
                     phi = mod2pi(phi + phi_step_dir);
                     phi_total += step;
 
@@ -945,13 +956,14 @@ static inline bool pmap_m(
     const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
-    const double* Phi_grid, int nPhi)
+    const double* Phi_grid, int nPhi,
+    double field_period = 2.0 * M_PI)
 {
     double phi = phi_start;
     double phi_end = phi_start + m_turns * 2.0 * M_PI;
     while (phi < phi_end - 1e-12) {
         double step = std::min(DPhi, phi_end - phi);
-        rk4_step(R, Z, phi, step, BR, BZ, BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+        rk4_step(R, Z, phi, step, BR, BZ, BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, field_period);
         phi += step;
         if (!std::isfinite(R) || !std::isfinite(Z) ||
             R < R_grid[0] || R > R_grid[nR-1] ||
@@ -985,7 +997,8 @@ static inline bool DX_pol_m_turns(
     const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
-    const double* Phi_grid, int nPhi)
+    const double* Phi_grid, int nPhi,
+    double field_period = 2.0 * M_PI)
 {
     double D00=1.0,D01=0.0,D10=0.0,D11=1.0;  // DX_pol(φ_s, φ_s) = I
     double phi = phi_start;
@@ -993,7 +1006,7 @@ static inline bool DX_pol_m_turns(
     while (phi < phi_end - 1e-12) {
         double step = std::min(DPhi, phi_end - phi);
         if (!rk4_step_DX_pol(R, Z, D00,D01,D10,D11, phi, step,
-                             BR, BZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi))
+                             BR, BZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi,field_period))
             return false;
         phi += step;
         if (!std::isfinite(R) || !std::isfinite(Z) ||
@@ -1015,7 +1028,8 @@ static inline bool DX_pol_span(
     const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
-    const double* Phi_grid, int nPhi)
+    const double* Phi_grid, int nPhi,
+    double field_period = 2.0 * M_PI)
 {
     if (!std::isfinite(phi_span) || std::abs(phi_span) <= 1e-14 ||
         !std::isfinite(DPhi) || std::abs(DPhi) <= 1e-14) {
@@ -1029,7 +1043,7 @@ static inline bool DX_pol_span(
     while (dir > 0.0 ? phi < phi_end - 1e-12 : phi > phi_end + 1e-12) {
         const double step = dir * std::min(step_abs, std::abs(phi_end - phi));
         if (!rk4_step_DX_pol(R, Z, D00,D01,D10,D11, phi, step,
-                             BR, BZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi))
+                             BR, BZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi,field_period))
             return false;
         phi += step;
         if (!std::isfinite(R) || !std::isfinite(Z) ||
@@ -1081,7 +1095,8 @@ void trace_poincare_dpk_growth(
     double* R_out, double* Z_out, double* phi_out,
     double* DPk_out,
     double* eig_abs_out,
-    int* alive_out)
+    int* alive_out,
+    double field_period = 2.0 * M_PI)
 {
     constexpr double NAN_V = std::numeric_limits<double>::quiet_NaN();
     for (int i = 0; i < n_out; ++i) {
@@ -1108,7 +1123,7 @@ void trace_poincare_dpk_growth(
             const double step_abs = std::min(std::abs(DPhi), std::abs(target - phi));
             const double step = dir * step_abs;
             if (!rk4_step_DX_pol(R, Z, D00,D01,D10,D11, phi, step,
-                                 BR, BZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi))
+                                 BR, BZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi,field_period))
                 return;
             phi += step;
             if (!std::isfinite(R) || !std::isfinite(Z) ||
@@ -1159,7 +1174,8 @@ void trace_poincare_dpk_growth_twall(
     double* eig_abs_out,
     int* alive_out,
     double* hit_out,
-    int* term_type_out)
+    int* term_type_out,
+    double field_period = 2.0 * M_PI)
 {
     constexpr double NAN_V = std::numeric_limits<double>::quiet_NaN();
     for (int i = 0; i < n_out; ++i) {
@@ -1198,7 +1214,7 @@ void trace_poincare_dpk_growth_twall(
             const double step_abs = std::min(std::abs(DPhi), std::abs(target - phi));
             const double step = dir * step_abs;
             if (!rk4_step_DX_pol(R, Z, D00,D01,D10,D11, phi, step,
-                                 BR, BZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi)) {
+                                 BR, BZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi,field_period)) {
                 *term_type_out = 2;
                 return;
             }
@@ -1284,7 +1300,8 @@ static inline void evolve_DPm_along_cycle(
     const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
-    const double* Phi_grid, int nPhi)
+    const double* Phi_grid, int nPhi,
+    double field_period = 2.0 * M_PI)
 {
     if (n_pts < 1) return;
     DPm_out[0]=DPm_init[0];DPm_out[1]=DPm_init[1];
@@ -1295,9 +1312,9 @@ static inline void evolve_DPm_along_cycle(
                       double& A,double& B,double& C,double& Dm){
         double fR,fZ,A00,A01,A10,A11;
         {double BRv,dBR_dR,dBR_dZ,BPhiv,dBPhi_dR,dBPhi_dZ,BZv,dBZ_dR,dBZ_dZ;
-         if(!interp3d_grad(BRv,dBR_dR,dBR_dZ,BR,R_grid,nR,Z_grid,nZ,Phi_grid,nPhi,R,Z,phi))return;
-         if(!interp3d_grad(BPhiv,dBPhi_dR,dBPhi_dZ,BPhi,R_grid,nR,Z_grid,nZ,Phi_grid,nPhi,R,Z,phi))return;
-         if(!interp3d_grad(BZv,dBZ_dR,dBZ_dZ,BZ,R_grid,nR,Z_grid,nZ,Phi_grid,nPhi,R,Z,phi))return;
+         if(!interp3d_grad(BRv,dBR_dR,dBR_dZ,BR,R_grid,nR,Z_grid,nZ,Phi_grid,nPhi,R,Z,phi,field_period))return;
+         if(!interp3d_grad(BPhiv,dBPhi_dR,dBPhi_dZ,BPhi,R_grid,nR,Z_grid,nZ,Phi_grid,nPhi,R,Z,phi,field_period))return;
+         if(!interp3d_grad(BZv,dBZ_dR,dBZ_dZ,BZ,R_grid,nR,Z_grid,nZ,Phi_grid,nPhi,R,Z,phi,field_period))return;
          if(std::abs(BPhiv)<=1e-12){A00=A01=A10=A11=0.0;return;}
          double iBp=1.0/BPhiv,iBp2=iBp/BPhiv;
          fR=R*BRv*iBp;fZ=R*BZv*iBp;
@@ -1355,7 +1372,8 @@ static inline void progress_DX_pol_along_orbit(
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi,
-    double max_step)
+    double max_step,
+    double field_period = 2.0 * M_PI)
 {
     const double nan = std::numeric_limits<double>::quiet_NaN();
     if (n_pts < 1) return;
@@ -1373,9 +1391,9 @@ static inline void progress_DX_pol_along_orbit(
         double BRv, dBR_dR, dBR_dZ;
         double BPhiv, dBPhi_dR, dBPhi_dZ;
         double BZv, dBZ_dR, dBZ_dZ;
-        if (!interp3d_grad(BRv, dBR_dR, dBR_dZ, BR, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi)) return false;
-        if (!interp3d_grad(BPhiv, dBPhi_dR, dBPhi_dZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi)) return false;
-        if (!interp3d_grad(BZv, dBZ_dR, dBZ_dZ, BZ, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi)) return false;
+        if (!interp3d_grad(BRv, dBR_dR, dBR_dZ, BR, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi,field_period)) return false;
+        if (!interp3d_grad(BPhiv, dBPhi_dR, dBPhi_dZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi,field_period)) return false;
+        if (!interp3d_grad(BZv, dBZ_dR, dBZ_dZ, BZ, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi,field_period)) return false;
         if (std::abs(BPhiv) <= 1e-12) {
             A00 = A01 = A10 = A11 = 0.0;
             return true;
@@ -1513,7 +1531,8 @@ static inline void progress_delta_X_along_orbit(
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi,
-    double max_step)
+    double max_step,
+    double field_period = 2.0 * M_PI)
 {
     const double nan = std::numeric_limits<double>::quiet_NaN();
     if (n_pts < 1) return;
@@ -1535,9 +1554,9 @@ static inline void progress_delta_X_along_orbit(
         double BRv, dBR_dR, dBR_dZ;
         double BPhiv, dBPhi_dR, dBPhi_dZ;
         double BZv, dBZ_dR, dBZ_dZ;
-        if (!interp3d_grad(BRv, dBR_dR, dBR_dZ, BR, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi)) return false;
-        if (!interp3d_grad(BPhiv, dBPhi_dR, dBPhi_dZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi)) return false;
-        if (!interp3d_grad(BZv, dBZ_dR, dBZ_dZ, BZ, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi)) return false;
+        if (!interp3d_grad(BRv, dBR_dR, dBR_dZ, BR, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi,field_period)) return false;
+        if (!interp3d_grad(BPhiv, dBPhi_dR, dBPhi_dZ, BPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi,field_period)) return false;
+        if (!interp3d_grad(BZv, dBZ_dR, dBZ_dZ, BZ, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi,field_period)) return false;
         if (std::abs(BPhiv) <= 1e-12) return false;
 
         const double invBp = 1.0 / BPhiv;
@@ -1547,9 +1566,9 @@ static inline void progress_delta_X_along_orbit(
         A10 = BZv*invBp + R*(dBZ_dR*invBp - BZv*invBp2*dBPhi_dR);
         A11 = R*(dBZ_dZ*invBp - BZv*invBp2*dBPhi_dZ);
 
-        const double dBRv = interp3d(dBR, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi);
-        const double dBZv = interp3d(dBZ, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi);
-        const double dBPhiv = interp3d(dBPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi);
+        const double dBRv = interp3d(dBR, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi,field_period);
+        const double dBZv = interp3d(dBZ, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi,field_period);
+        const double dBPhiv = interp3d(dBPhi, R_grid,nR,Z_grid,nZ,Phi_grid,nPhi, R,Z,phi,field_period);
         if (!std::isfinite(dBRv) || !std::isfinite(dBZv) || !std::isfinite(dBPhiv)) return false;
         dF0 = R * (dBRv * BPhiv - BRv * dBPhiv) * invBp2;
         dF1 = R * (dBZv * BPhiv - BZv * dBPhiv) * invBp2;
@@ -1644,12 +1663,13 @@ static inline void evolve_delta_X_cycle_along_cycle(
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi,
-    double max_step)
+    double max_step,
+    double field_period = 2.0 * M_PI)
 {
 	    progress_delta_X_along_orbit(
 	        R_traj, Z_traj, phi_traj, n_pts, delta_X0, delta_X_out,
 	        BR, BZ, BPhi, dBR, dBZ, dBPhi,
-	        R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, max_step);
+	        R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, max_step, field_period);
 	}
 
 // Compatibility alias for older callers.
@@ -1663,12 +1683,13 @@ static inline void evolve_delta_X_cycle_along_orbit(
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi,
-    double max_step)
+    double max_step,
+    double field_period = 2.0 * M_PI)
 {
     evolve_delta_X_cycle_along_cycle(
         R_traj, Z_traj, phi_traj, n_pts, delta_X0, delta_X_out,
         BR, BZ, BPhi, dBR, dBZ, dBPhi,
-        R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, max_step);
+        R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, max_step, field_period);
 }
 
 
@@ -1684,7 +1705,8 @@ static inline FixedPointResult newton_fixed_point_span(
     const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
-    const double* Phi_grid, int nPhi)
+    const double* Phi_grid, int nPhi,
+    double field_period = 2.0 * M_PI)
 {
     FixedPointResult res;
     res.R = std::numeric_limits<double>::quiet_NaN();
@@ -1717,7 +1739,8 @@ static inline FixedPointResult newton_fixed_point_span(
         double Rf = Rq, Zf = Zq;
         double DP_cur[4];
         if (!DX_pol_span(Rf, Zf, DP_cur, phi0, map_span, DPhi,
-                         BR, BZ, BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi)) {
+                         BR, BZ, BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi,
+                         field_period)) {
             return false;
         }
         F0 = Rf - Rq;
@@ -1896,13 +1919,14 @@ static inline FixedPointResult newton_fixed_point(
     const double* BR, const double* BZ, const double* BPhi,
     const double* R_grid, int nR,
     const double* Z_grid, int nZ,
-    const double* Phi_grid, int nPhi)
+    const double* Phi_grid, int nPhi,
+    double field_period = 2.0 * M_PI)
 {
     return newton_fixed_point_span(
         R0, Z0, phi_section, double(m_turns) * 2.0 * M_PI,
         DPhi, fd_eps, max_iter, tol,
         BR, BZ, BPhi,
-        R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+        R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, field_period);
 }
 
 void find_fixed_points_batch(
@@ -1974,7 +1998,8 @@ void find_fixed_points_batch_span(
     double* DPm_out,
     double* eig_r_out,
     double* eig_i_out,
-    int*    point_type_out)
+    int*    point_type_out,
+    double field_period = 2.0 * M_PI)
 {
     if (n_threads <= 0)
         n_threads = (int)std::thread::hardware_concurrency();
@@ -1986,7 +2011,7 @@ void find_fixed_points_batch_span(
                 R_seeds[i], Z_seeds[i],
                 phi_section, map_span, DPhi, fd_eps, max_iter, tol,
                 BR, BZ, BPhi,
-                R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+                R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, field_period);
 
             R_out[i]          = r.R;
             Z_out[i]          = r.Z;
@@ -2034,7 +2059,8 @@ void trace_orbit_along_phi(
     int    n_out,
     double* R_traj, double* Z_traj, double* phi_traj,
     double* DPm_traj,  // [n_out * 4]
-    int*    alive_out)
+    int*    alive_out,
+    double field_period = 2.0 * M_PI)
 {
     constexpr double NAN_V = std::numeric_limits<double>::quiet_NaN();
 
@@ -2064,7 +2090,8 @@ void trace_orbit_along_phi(
                             double* DPm) -> bool {
         double Rf = r, Zf = z;
         return DX_pol_m_turns(Rf, Zf, DPm, mod2pi(phi_sec), m_turns_DPm, DPhi,
-                              BR, BZ, BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+                              BR, BZ, BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi,
+                              field_period);
     };
 
     // Record initial point
@@ -2088,7 +2115,7 @@ void trace_orbit_along_phi(
         while (dir > 0.0 ? phi < target - 1e-12 : phi > target + 1e-12) {
             double step = dir * std::min(step_abs, std::abs(target - phi));
             rk4_step(R, Z, phi, step, BR, BZ, BPhi,
-                     R_grid, nR, Z_grid, nZ, Phi_grid, nPhi);
+                     R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, field_period);
             phi += step;
 
             if (!std::isfinite(R) || !std::isfinite(Z) ||
@@ -2145,14 +2172,15 @@ static inline void rk4_step_beta(
     const double* Z_grid, int nZ,
     const double* Phi_grid, int nPhi,
     double beta, double R_ax, double Z_ax, double a_eff,
-    double alpha, double p0)
+    double alpha, double p0,
+    double field_period = 2.0 * M_PI)
 {
     // Effective dR/dphi and dZ/dphi with beta-corrected field
     auto deriv = [&](double r, double z, double p,
                      double& dR_out, double& dZ_out) {
-        double bp = interp3d(BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, r, z, p);
-        double br = interp3d(BR,   R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, r, z, p);
-        double bz = interp3d(BZ,   R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, r, z, p);
+        double bp = interp3d(BPhi, R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, r, z, p, field_period);
+        double br = interp3d(BR,   R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, r, z, p, field_period);
+        double bz = interp3d(BZ,   R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, r, z, p, field_period);
 
         if (!std::isfinite(bp) || !std::isfinite(br) || !std::isfinite(bz)
             || std::abs(bp) < 1e-12) {
@@ -2219,7 +2247,8 @@ static void trace_one_seed_beta(
     double alpha, double p0,
     int* poi_counts,
     double* poi_R_flat,
-    double* poi_Z_flat)
+    double* poi_Z_flat,
+    double field_period = 2.0 * M_PI)
 {
     double R = R0, Z = Z0;
     double phi = phi_start;
@@ -2236,7 +2265,7 @@ static void trace_one_seed_beta(
         rk4_step_beta(R, Z, phi, step,
                       BR, BZ, BPhi,
                       R_grid, nR, Z_grid, nZ, Phi_grid, nPhi,
-                      beta, R_ax, Z_ax, a_eff, alpha, p0);
+                      beta, R_ax, Z_ax, a_eff, alpha, p0, field_period);
         phi += step;
 
         if (n_wall > 0 && !point_in_wall(R, Z, wall_R, wall_Z, n_wall))
@@ -2279,7 +2308,8 @@ void trace_poincare_beta_sweep(
     int n_threads,
     int* poi_counts,
     double* poi_R_flat,
-    double* poi_Z_flat)
+    double* poi_Z_flat,
+    double field_period = 2.0 * M_PI)
 {
     if (n_threads <= 0)
         n_threads = (int)std::thread::hardware_concurrency();
@@ -2306,7 +2336,7 @@ void trace_poincare_beta_sweep(
                 R_grid, nR, Z_grid, nZ, Phi_grid, nPhi,
                 wall_R, wall_Z, n_wall,
                 beta, R_ax, Z_ax, a_eff, alpha_pressure, p0,
-                poi_counts, poi_R_flat, poi_Z_flat);
+                poi_counts, poi_R_flat, poi_Z_flat, field_period);
         }
     }).wait();
 }

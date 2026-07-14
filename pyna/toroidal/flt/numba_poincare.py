@@ -51,6 +51,19 @@ def field_arrays_from_field(field, *, extend_phi: bool = False) -> CylindricalFi
     return as_vector_field_cylindrical(field).cyna_arrays(extend_phi=extend_phi)
 
 
+def _require_matching_field_arrays(
+    base: CylindricalFieldArrays,
+    perturbation: CylindricalFieldArrays,
+) -> None:
+    """Require a perturbation field to use the base field's native grid/Nfp."""
+
+    if int(base.nfp) != int(perturbation.nfp):
+        raise ValueError("field and delta_field must have the same nfp")
+    for name in ("R_grid", "Z_grid", "Phi_grid"):
+        if not np.array_equal(getattr(base, name), getattr(perturbation, name)):
+            raise ValueError(f"field and delta_field must have the same {name}")
+
+
 def _close_raw_field_arrays_for_cyna(
     R_grid,
     Z_grid,
@@ -58,8 +71,14 @@ def _close_raw_field_arrays_for_cyna(
     BR_flat,
     BZ_flat,
     BPhi_flat,
+    *,
+    nfp: int = 1,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Close raw endpoint=False phi grids before passing arrays to cyna."""
+    """Close raw arrays using explicit ``nfp``; never infer it from Phi span."""
+
+    nfp = int(nfp)
+    if nfp < 1:
+        raise ValueError("nfp must be a positive integer")
 
     Rg = np.ascontiguousarray(R_grid, dtype=np.float64)
     Zg = np.ascontiguousarray(Z_grid, dtype=np.float64)
@@ -74,7 +93,13 @@ def _close_raw_field_arrays_for_cyna(
     BR3 = BR3.reshape(nR, nZ, nPhi)
     BZ3 = BZ3.reshape(nR, nZ, nPhi)
     BP3 = BP3.reshape(nR, nZ, nPhi)
-    Pg, BR3, BZ3, BP3 = close_periodic_phi_grid(Pg, BR3, BZ3, BP3)
+    Pg, BR3, BZ3, BP3 = close_periodic_phi_grid(
+        Pg,
+        BR3,
+        BZ3,
+        BP3,
+        period=2.0 * np.pi / nfp,
+    )
     return (
         Rg,
         Zg,
@@ -171,6 +196,7 @@ def trace_poincare_batch(
     wall_Z,
     *,
     direction="+",
+    nfp: int = 1,
 ):
     """Trace field lines and record a single Poincaré section in batch."""
     if not _cyna_available():
@@ -182,6 +208,7 @@ def trace_poincare_batch(
         BR_flat,
         BZ_flat,
         BPhi_flat,
+        nfp=nfp,
     )
     return _cyna_trace_poincare_batch(
         np.ascontiguousarray(R_seeds, dtype=np.float64),
@@ -199,6 +226,7 @@ def trace_poincare_batch(
         np.ascontiguousarray(wall_Z, dtype=np.float64),
         -1,
         _direction_sign(direction),
+        int(nfp),
     )
 
 
@@ -237,6 +265,7 @@ def trace_poincare_batch_field(
         wall_R,
         wall_Z,
         direction=direction,
+        nfp=arrays.nfp,
     )
 
 
@@ -254,6 +283,8 @@ def trace_poincare_bidirectional_batch(
     BPhi_flat,
     wall_R,
     wall_Z,
+    *,
+    nfp: int = 1,
 ):
     """Trace the same Poincaré section in both φ directions.
 
@@ -265,12 +296,12 @@ def trace_poincare_bidirectional_batch(
         "forward": trace_poincare_batch(
             R_seeds, Z_seeds, phi_section, N_turns, DPhi,
             R_grid, Z_grid, Phi_grid, BR_flat, BZ_flat, BPhi_flat,
-            wall_R, wall_Z, direction="+",
+            wall_R, wall_Z, direction="+", nfp=nfp,
         ),
         "backward": trace_poincare_batch(
             R_seeds, Z_seeds, phi_section, N_turns, DPhi,
             R_grid, Z_grid, Phi_grid, BR_flat, BZ_flat, BPhi_flat,
-            wall_R, wall_Z, direction="-",
+            wall_R, wall_Z, direction="-", nfp=nfp,
         ),
     }
 
@@ -304,6 +335,7 @@ def trace_poincare_bidirectional_batch_field(
         arrays.BPhi_flat,
         wall_R,
         wall_Z,
+        nfp=arrays.nfp,
     )
 
 
@@ -324,6 +356,7 @@ def trace_poincare_multi_batch(
     wall_Z,
     *,
     direction="+",
+    nfp: int = 1,
 ):
     """Trace field lines and record multiple Poincaré sections in batch."""
     if not _cyna_available():
@@ -335,6 +368,7 @@ def trace_poincare_multi_batch(
         BR_flat,
         BZ_flat,
         BPhi_flat,
+        nfp=nfp,
     )
     counts, pR, pZ = _cyna_trace_poincare_multi(
         np.ascontiguousarray(R_seeds, dtype=np.float64),
@@ -352,6 +386,7 @@ def trace_poincare_multi_batch(
         np.ascontiguousarray(wall_Z, dtype=np.float64),
         -1,
         _direction_sign(direction),
+        int(nfp),
     )
     return counts.reshape(len(R_seeds), len(phi_sections_arr)), pR, pZ
 
@@ -387,6 +422,7 @@ def trace_poincare_multi_batch_field(
         wall_R,
         wall_Z,
         direction=direction,
+        nfp=arrays.nfp,
     )
 
 
@@ -404,6 +440,8 @@ def trace_poincare_multi_bidirectional_batch(
     BPhi_flat,
     wall_R,
     wall_Z,
+    *,
+    nfp: int = 1,
 ):
     """Trace multiple Poincaré sections in both φ directions."""
 
@@ -411,12 +449,12 @@ def trace_poincare_multi_bidirectional_batch(
         "forward": trace_poincare_multi_batch(
             R_seeds, Z_seeds, phi_sections_arr, N_turns, DPhi,
             R_grid, Z_grid, Phi_grid, BR_flat, BZ_flat, BPhi_flat,
-            wall_R, wall_Z, direction="+",
+            wall_R, wall_Z, direction="+", nfp=nfp,
         ),
         "backward": trace_poincare_multi_batch(
             R_seeds, Z_seeds, phi_sections_arr, N_turns, DPhi,
             R_grid, Z_grid, Phi_grid, BR_flat, BZ_flat, BPhi_flat,
-            wall_R, wall_Z, direction="-",
+            wall_R, wall_Z, direction="-", nfp=nfp,
         ),
     }
 
@@ -450,6 +488,7 @@ def trace_poincare_multi_bidirectional_batch_field(
         arrays.BPhi_flat,
         wall_R,
         wall_Z,
+        nfp=arrays.nfp,
     )
 
 
@@ -471,6 +510,7 @@ def trace_poincare_batch_twall(
     wall_Z_all,
     *,
     direction="+",
+    nfp: int = 1,
 ):
     """Trace field lines against a toroidal 3-D wall and record a section."""
     if not _cyna_available() or _cyna_trace_poincare_batch_twall is None:
@@ -482,6 +522,7 @@ def trace_poincare_batch_twall(
         BR_flat,
         BZ_flat,
         BPhi_flat,
+        nfp=nfp,
     )
     return _cyna_trace_poincare_batch_twall(
         np.ascontiguousarray(R_seeds, dtype=np.float64),
@@ -500,6 +541,7 @@ def trace_poincare_batch_twall(
         np.ascontiguousarray(wall_Z_all, dtype=np.float64),
         -1,
         _direction_sign(direction),
+        int(nfp),
     )
 
 
@@ -537,6 +579,7 @@ def trace_poincare_batch_twall_field(
         wall_R_all,
         wall_Z_all,
         direction=direction,
+        nfp=arrays.nfp,
     )
 
 
@@ -555,6 +598,8 @@ def trace_poincare_bidirectional_batch_twall(
     wall_phi,
     wall_R_all,
     wall_Z_all,
+    *,
+    nfp: int = 1,
 ):
     """Trace one Poincaré section in both directions against a 3-D wall."""
 
@@ -562,12 +607,12 @@ def trace_poincare_bidirectional_batch_twall(
         "forward": trace_poincare_batch_twall(
             R_seeds, Z_seeds, phi_section, N_turns, DPhi,
             R_grid, Z_grid, Phi_grid, BR_flat, BZ_flat, BPhi_flat,
-            wall_phi, wall_R_all, wall_Z_all, direction="+",
+            wall_phi, wall_R_all, wall_Z_all, direction="+", nfp=nfp,
         ),
         "backward": trace_poincare_batch_twall(
             R_seeds, Z_seeds, phi_section, N_turns, DPhi,
             R_grid, Z_grid, Phi_grid, BR_flat, BZ_flat, BPhi_flat,
-            wall_phi, wall_R_all, wall_Z_all, direction="-",
+            wall_phi, wall_R_all, wall_Z_all, direction="-", nfp=nfp,
         ),
     }
 
@@ -604,6 +649,7 @@ def trace_poincare_bidirectional_batch_twall_field(
         wall_phi,
         wall_R_all,
         wall_Z_all,
+        nfp=arrays.nfp,
     )
 
 
@@ -624,6 +670,7 @@ def trace_connection_length_twall(
     wall_Z_all,
     *,
     direction="both",
+    nfp: int = 1,
 ):
     """Compute forward/backward connection lengths against a toroidal wall."""
 
@@ -636,6 +683,7 @@ def trace_connection_length_twall(
         BR_flat,
         BZ_flat,
         BPhi_flat,
+        nfp=nfp,
     )
     L_fwd, L_bwd = _cyna_trace_connection_length_twall(
         np.ascontiguousarray(R_seeds, dtype=np.float64),
@@ -652,6 +700,8 @@ def trace_connection_length_twall(
         np.ascontiguousarray(wall_phi, dtype=np.float64),
         np.ascontiguousarray(wall_R_all, dtype=np.float64),
         np.ascontiguousarray(wall_Z_all, dtype=np.float64),
+        -1,
+        int(nfp),
     )
     result = {
         "Lc_plus": np.asarray(L_fwd),
@@ -699,6 +749,7 @@ def trace_connection_length_twall_field(
         wall_R_all,
         wall_Z_all,
         direction=direction,
+        nfp=arrays.nfp,
     )
 
 
@@ -719,6 +770,7 @@ def trace_wall_hits_twall(
     wall_Z_all,
     *,
     direction="both",
+    nfp: int = 1,
 ):
     """Trace seeds to a toroidal wall and return hit points for both directions.
 
@@ -736,6 +788,7 @@ def trace_wall_hits_twall(
         BR_flat,
         BZ_flat,
         BPhi_flat,
+        nfp=nfp,
     )
     (
         L_fwd,
@@ -763,6 +816,8 @@ def trace_wall_hits_twall(
         np.ascontiguousarray(wall_phi, dtype=np.float64),
         np.ascontiguousarray(wall_R_all, dtype=np.float64),
         np.ascontiguousarray(wall_Z_all, dtype=np.float64),
+        -1,
+        int(nfp),
     )
     hit_plus = np.column_stack([R_hf, Z_hf, phi_hf])
     hit_minus = np.column_stack([R_hb, Z_hb, phi_hb])
@@ -816,6 +871,7 @@ def trace_wall_hits_twall_field(
         wall_R_all,
         wall_Z_all,
         direction=direction,
+        nfp=arrays.nfp,
     )
 
 
@@ -858,6 +914,7 @@ def trace_strike_line_twall(
     wall_Z_all,
     *,
     direction="+",
+    nfp: int = 1,
 ):
     """Trace an ordered seed bundle and return its toroidal-wall strike line."""
 
@@ -877,6 +934,7 @@ def trace_strike_line_twall(
         wall_R_all,
         wall_Z_all,
         direction="both",
+        nfp=nfp,
     )
     return strike_line_from_wall_hits(hits, direction=direction)
 
@@ -915,6 +973,7 @@ def trace_strike_line_twall_field(
         wall_R_all,
         wall_Z_all,
         direction=direction,
+        nfp=arrays.nfp,
     )
 
 
@@ -944,6 +1003,7 @@ def find_fixed_points_batch(
     max_iter = int(kwargs.pop("max_iter", 40))
     tol = float(kwargs.pop("tol", 1.0e-9))
     n_threads = int(kwargs.pop("n_threads", -1))
+    nfp = int(kwargs.pop("nfp", 1))
     if kwargs:
         unknown = ", ".join(sorted(kwargs))
         raise TypeError(f"unexpected keyword argument(s): {unknown}")
@@ -954,6 +1014,7 @@ def find_fixed_points_batch(
         BR_flat,
         BZ_flat,
         BPhi_flat,
+        nfp=nfp,
     )
     return _cyna_find_fixed_points_batch(
         np.ascontiguousarray(R_seeds, dtype=np.float64),
@@ -971,6 +1032,7 @@ def find_fixed_points_batch(
         np.ascontiguousarray(Z_grid, dtype=np.float64),
         np.ascontiguousarray(Phi_grid, dtype=np.float64),
         n_threads,
+        nfp,
     )
 
 
@@ -1002,6 +1064,7 @@ def find_fixed_points_batch_field(
         arrays.BR_flat,
         arrays.BZ_flat,
         arrays.BPhi_flat,
+        nfp=arrays.nfp,
         **kwargs,
     )
 
@@ -1031,6 +1094,7 @@ def find_fixed_points_batch_span(
     max_iter = int(kwargs.pop("max_iter", 40))
     tol = float(kwargs.pop("tol", 1.0e-9))
     n_threads = int(kwargs.pop("n_threads", -1))
+    nfp = int(kwargs.pop("nfp", 1))
     if kwargs:
         unknown = ", ".join(sorted(kwargs))
         raise TypeError(f"unexpected keyword argument(s): {unknown}")
@@ -1041,6 +1105,7 @@ def find_fixed_points_batch_span(
         BR_flat,
         BZ_flat,
         BPhi_flat,
+        nfp=nfp,
     )
     return _cyna_find_fixed_points_batch_span(
         np.ascontiguousarray(R_seeds, dtype=np.float64),
@@ -1058,6 +1123,7 @@ def find_fixed_points_batch_span(
         Z_grid,
         Phi_grid,
         n_threads,
+        nfp,
     )
 
 
@@ -1114,6 +1180,7 @@ def find_fixed_points_batch_span_field(
         arrays.BR_flat,
         arrays.BZ_flat,
         arrays.BPhi_flat,
+        nfp=arrays.nfp,
         **solver_kwargs,
     )
 
@@ -1135,6 +1202,7 @@ def trace_map_batch_span(
     wall_Z,
     *,
     n_threads: int = -1,
+    nfp: int = 1,
 ):
     """Batch trace iterates of an arbitrary toroidal-span map."""
 
@@ -1153,6 +1221,7 @@ def trace_map_batch_span(
         BR_flat,
         BZ_flat,
         BPhi_flat,
+        nfp=nfp,
     )
     return _cyna_trace_map_batch_span(
         np.ascontiguousarray(R_seeds, dtype=np.float64),
@@ -1170,6 +1239,7 @@ def trace_map_batch_span(
         np.ascontiguousarray(wall_R, dtype=np.float64),
         np.ascontiguousarray(wall_Z, dtype=np.float64),
         int(n_threads),
+        int(nfp),
     )
 
 
@@ -1223,6 +1293,7 @@ def trace_orbit_along_phi(
     dphi_out=None,
     m_turns_DPm: int = 0,
     fd_eps: float = 1e-4,
+    nfp: int = 1,
 ):
     """Trace a single orbit from ``phi_start`` to ``phi_end``.
 
@@ -1245,6 +1316,7 @@ def trace_orbit_along_phi(
         BR_flat,
         BZ_flat,
         BPhi_flat,
+        nfp=nfp,
     )
     return _cyna_trace_orbit_along_phi(
         float(R0),
@@ -1261,6 +1333,7 @@ def trace_orbit_along_phi(
         np.ascontiguousarray(R_grid, dtype=np.float64),
         np.ascontiguousarray(Z_grid, dtype=np.float64),
         np.ascontiguousarray(Phi_grid, dtype=np.float64),
+        int(nfp),
     )
 
 
@@ -1295,6 +1368,7 @@ def trace_orbit_along_phi_field(
         dphi_out=dphi_out,
         m_turns_DPm=m_turns_DPm,
         fd_eps=fd_eps,
+        nfp=arrays.nfp,
     )
 
 
@@ -1314,6 +1388,7 @@ def trace_orbit_bidirectional_along_phi(
     dphi_out=None,
     m_turns_DPm: int = 0,
     fd_eps: float = 1e-4,
+    nfp: int = 1,
 ):
     """Trace one seed in both φ directions.
 
@@ -1340,6 +1415,7 @@ def trace_orbit_bidirectional_along_phi(
             dphi_out=out_step,
             m_turns_DPm=m_turns_DPm,
             fd_eps=fd_eps,
+            nfp=nfp,
         ),
         "backward": trace_orbit_along_phi(
             R0,
@@ -1356,6 +1432,7 @@ def trace_orbit_bidirectional_along_phi(
             dphi_out=out_step,
             m_turns_DPm=m_turns_DPm,
             fd_eps=fd_eps,
+            nfp=nfp,
         ),
     }
 
@@ -1391,6 +1468,7 @@ def trace_orbit_bidirectional_along_phi_field(
         dphi_out=dphi_out,
         m_turns_DPm=m_turns_DPm,
         fd_eps=fd_eps,
+        nfp=arrays.nfp,
     )
 
 
@@ -1406,6 +1484,7 @@ def progress_DX_pol_along_orbit(
     BPhi_flat,
     *,
     max_step: float = 0.005,
+    nfp: int = 1,
 ):
     """Progress ``DX_pol(phi_e, phi_s)`` along an already sampled orbit.
 
@@ -1426,6 +1505,7 @@ def progress_DX_pol_along_orbit(
         np.ascontiguousarray(Z_grid, dtype=np.float64),
         np.ascontiguousarray(Phi_grid, dtype=np.float64),
         float(max_step),
+        int(nfp),
     )
 
 
@@ -1452,6 +1532,7 @@ def progress_DX_pol_along_orbit_field(
         arrays.BZ_flat,
         arrays.BPhi_flat,
         max_step=max_step,
+        nfp=arrays.nfp,
     )
 
 
@@ -1471,6 +1552,7 @@ def progress_delta_X_along_orbit(
     dBPhi_flat,
     *,
     max_step: float = 0.005,
+    nfp: int = 1,
 ):
     """Progress first-order ``delta_X(phi_s, phi_e)`` along a sampled orbit.
 
@@ -1495,6 +1577,7 @@ def progress_delta_X_along_orbit(
         np.ascontiguousarray(Z_grid, dtype=np.float64),
         np.ascontiguousarray(Phi_grid, dtype=np.float64),
         float(max_step),
+        int(nfp),
     )
 
 
@@ -1514,6 +1597,7 @@ def evolve_delta_X_cycle_along_cycle(
     dBPhi_flat,
     *,
     max_step: float = 0.005,
+    nfp: int = 1,
 ):
     """Evolve periodic-cycle displacement ``delta_X_cyc(phi)`` along a cycle.
 
@@ -1542,6 +1626,7 @@ def evolve_delta_X_cycle_along_cycle(
         np.ascontiguousarray(Z_grid, dtype=np.float64),
         np.ascontiguousarray(Phi_grid, dtype=np.float64),
         float(max_step),
+        int(nfp),
     )
 
 
@@ -1566,6 +1651,7 @@ def progress_delta_X_along_orbit_field(
 
     arrays = field_arrays_from_field(field, extend_phi=extend_phi)
     d_arrays = field_arrays_from_field(delta_field, extend_phi=extend_phi)
+    _require_matching_field_arrays(arrays, d_arrays)
     return progress_delta_X_along_orbit(
         R_traj,
         Z_traj,
@@ -1581,6 +1667,7 @@ def progress_delta_X_along_orbit_field(
         d_arrays.BZ_flat,
         d_arrays.BPhi_flat,
         max_step=max_step,
+        nfp=arrays.nfp,
     )
 
 
@@ -1599,6 +1686,7 @@ def evolve_delta_X_cycle_along_cycle_field(
 
     arrays = field_arrays_from_field(field, extend_phi=extend_phi)
     d_arrays = field_arrays_from_field(delta_field, extend_phi=extend_phi)
+    _require_matching_field_arrays(arrays, d_arrays)
     return evolve_delta_X_cycle_along_cycle(
         R_traj,
         Z_traj,
@@ -1614,6 +1702,7 @@ def evolve_delta_X_cycle_along_cycle_field(
         d_arrays.BZ_flat,
         d_arrays.BPhi_flat,
         max_step=max_step,
+        nfp=arrays.nfp,
     )
 
 
@@ -1638,6 +1727,7 @@ def trace_poincare_dpk_growth(
     *,
     return_period: float = 2.0 * np.pi,
     record_stride: int = 1,
+    nfp: int = 1,
 ):
     """Trace one seed and record cumulative ``DP^k`` at Poincare returns.
 
@@ -1648,6 +1738,15 @@ def trace_poincare_dpk_growth(
     """
     if not _cyna_available() or _cyna_trace_poincare_dpk_growth is None:
         raise ImportError("pyna._cyna.trace_poincare_dpk_growth is unavailable. Build cyna first.")
+    R_grid, Z_grid, Phi_grid, BR_flat, BZ_flat, BPhi_flat = _close_raw_field_arrays_for_cyna(
+        R_grid,
+        Z_grid,
+        Phi_grid,
+        BR_flat,
+        BZ_flat,
+        BPhi_flat,
+        nfp=nfp,
+    )
     return _cyna_trace_poincare_dpk_growth(
         float(R0),
         float(Z0),
@@ -1662,6 +1761,7 @@ def trace_poincare_dpk_growth(
         np.ascontiguousarray(R_grid, dtype=np.float64),
         np.ascontiguousarray(Z_grid, dtype=np.float64),
         np.ascontiguousarray(Phi_grid, dtype=np.float64),
+        int(nfp),
     )
 
 
@@ -1694,6 +1794,7 @@ def trace_poincare_dpk_growth_field(
         arrays.BPhi_flat,
         return_period=return_period,
         record_stride=record_stride,
+        nfp=arrays.nfp,
     )
 
 
@@ -1716,6 +1817,7 @@ def trace_poincare_dpk_growth_twall(
     return_period: float = 2.0 * np.pi,
     record_stride: int = 1,
     stop_at_wall: bool = True,
+    nfp: int = 1,
 ):
     """Wall-aware cumulative ``DP^k`` tracing.
 
@@ -1727,6 +1829,15 @@ def trace_poincare_dpk_growth_twall(
     """
     if not _cyna_available() or _cyna_trace_poincare_dpk_growth_twall is None:
         raise ImportError("pyna._cyna.trace_poincare_dpk_growth_twall is unavailable. Build cyna first.")
+    R_grid, Z_grid, Phi_grid, BR_flat, BZ_flat, BPhi_flat = _close_raw_field_arrays_for_cyna(
+        R_grid,
+        Z_grid,
+        Phi_grid,
+        BR_flat,
+        BZ_flat,
+        BPhi_flat,
+        nfp=nfp,
+    )
     return _cyna_trace_poincare_dpk_growth_twall(
         float(R0),
         float(Z0),
@@ -1745,6 +1856,7 @@ def trace_poincare_dpk_growth_twall(
         np.ascontiguousarray(wall_R_all, dtype=np.float64),
         np.ascontiguousarray(wall_Z_all, dtype=np.float64),
         bool(stop_at_wall),
+        int(nfp),
     )
 
 
@@ -1786,6 +1898,7 @@ def trace_poincare_dpk_growth_twall_field(
         return_period=return_period,
         record_stride=record_stride,
         stop_at_wall=stop_at_wall,
+        nfp=arrays.nfp,
     )
 
 

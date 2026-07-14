@@ -177,6 +177,10 @@ def compute_cycle_shift_from_cache(
 
     base_fc = prepare_field_cache(base_field_cache, extend_phi=True)
     pert_fc = prepare_field_cache(pert_field_cache, extend_phi=True)
+    base_nfp = int(base_fc.get("nfp", 1))
+    pert_nfp = int(pert_fc.get("nfp", 1))
+    if base_nfp != pert_nfp:
+        raise ValueError("base and perturbation fields must have the same nfp")
 
     R, Z, phi, DP, dXpol, dXcyc, dXcyc0, alive = _cyna_cycle_shift(
         float(R0), float(Z0), float(phi0),
@@ -190,6 +194,7 @@ def compute_cycle_shift_from_cache(
         _cache_array(base_fc, "R_grid"),
         _cache_array(base_fc, "Z_grid"),
         _cache_array(base_fc, "Phi_grid"),
+        base_nfp,
     )
 
     return CyclePerturbationShift(

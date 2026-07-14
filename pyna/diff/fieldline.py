@@ -211,13 +211,12 @@ from pyna.fields.cylindrical import VectorFieldCylind, close_periodic_phi_grid
 from pyna._cyna import trace_orbit_along_phi as _cyna_trace_orbit
 
 
-def _wrap_phi_for_grid(phi, phi_grid):
+def _wrap_phi_for_grid(phi, phi_grid, period=2.0 * np.pi):
     phi_arr = np.asarray(phi_grid, dtype=np.float64)
-    period = float(phi_arr[-1] - phi_arr[0])
-    return phi_arr[0] + np.mod(np.asarray(phi, dtype=float) - phi_arr[0], period)
+    return phi_arr[0] + np.mod(np.asarray(phi, dtype=float) - phi_arr[0], float(period))
 
 
-def _trace_fieldline_as_sol(R, Z, Phi, BR, BZ, BPhi, t_span, y0):
+def _trace_fieldline_as_sol(R, Z, Phi, BR, BZ, BPhi, t_span, y0, *, nfp=1):
     """Trace fieldline using cyna C++ backend; return object with .sol(t).
 
     Uses pyna._cyna.trace_orbit_along_phi as the sole fieldline tracing
@@ -225,7 +224,12 @@ def _trace_fieldline_as_sol(R, Z, Phi, BR, BZ, BPhi, t_span, y0):
     interpolant so downstream variational ODE code can call sol(t).
     """
     from scipy.interpolate import interp1d
-    Phi_ext, BR_ext, BZ_ext, BPhi_ext = close_periodic_phi_grid(Phi, BR, BZ, BPhi)
+    nfp = int(nfp)
+    if nfp < 1:
+        raise ValueError("nfp must be a positive integer")
+    Phi_ext, BR_ext, BZ_ext, BPhi_ext = close_periodic_phi_grid(
+        Phi, BR, BZ, BPhi, period=2.0 * np.pi / nfp
+    )
     dPhi = Phi_ext[1] - Phi_ext[0]
     phi_start = float(t_span[0])
     phi_span = float(t_span[-1]) - phi_start
@@ -241,7 +245,7 @@ def _trace_fieldline_as_sol(R, Z, Phi, BR, BZ, BPhi, t_span, y0):
     R_out, Z_out, Phi_out, _mono, _flags = _cyna_trace_orbit(
         R0, Z0, phi_start, phi_span, dPhi / 2,
         1, dPhi / 2, 1e-4,
-        BR_flat, BZ_flat, BPhi_flat, R_g, Z_g, Phi_g,
+        BR_flat, BZ_flat, BPhi_flat, R_g, Z_g, Phi_g, nfp,
     )
     valid = np.isfinite(R_out) & np.isfinite(Z_out) & np.isfinite(Phi_out)
     Phi_mono = np.asarray(Phi_out, dtype=np.float64)[valid]
@@ -264,13 +268,17 @@ def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(afield:VectorFieldCylind, t_spa
     
     RBRdBPhi = R[:,None,None]*BR/BPhi
     RBZdBPhi = R[:,None,None]*BZ/BPhi
-    Phi_ext, RBRdBPhi, RBZdBPhi = close_periodic_phi_grid(Phi, RBRdBPhi, RBZdBPhi)
+    Phi_ext, RBRdBPhi, RBZdBPhi = close_periodic_phi_grid(
+        Phi, RBRdBPhi, RBZdBPhi, period=afield.field_period
+    )
     RBRdBPhi_field = _FieldDifferenatiableRZ(RBRdBPhi, R, Z, Phi_ext)
     RBZdBPhi_field = _FieldDifferenatiableRZ(RBZdBPhi, R, Z, Phi_ext)
     
     dPhi = Phi_ext[1] - Phi_ext[0]
     # --- FieldlineTracer (cyna C++) entry point ---
-    fltsol = _trace_fieldline_as_sol(R, Z, Phi, BR, BZ, BPhi, t_span, y0)
+    fltsol = _trace_fieldline_as_sol(
+        R, Z, Phi, BR, BZ, BPhi, t_span, y0, nfp=afield.nfp
+    )
     XpRpZ_sols = [fltsol]
 
     # Give the lambda function according to a dataframe 
@@ -342,9 +350,9 @@ def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(afield:VectorFieldCylind, t_spa
                     term_sameord_factor = reduce(operator.mul, (y[factor_lookup_ind]**pow_int
                             for RZord, factor_lookup_ind, pow_int in sameorder_factor_params[iterm]), 1.0 )
                     diffeq_vals[2*Rord  ] += term_const * term_subord_factor * term_sameord_factor * \
-                        RBRdBPhi_field.diff_RZ_interpolator(factor_XR_num[iterm], factor_XZ_num[iterm])([*fltsol.sol(t), _wrap_phi_for_grid(t, Phi_ext) ])[0]
+                        RBRdBPhi_field.diff_RZ_interpolator(factor_XR_num[iterm], factor_XZ_num[iterm])([*fltsol.sol(t), _wrap_phi_for_grid(t, Phi_ext, afield.field_period) ])[0]
                     diffeq_vals[2*Rord+1] += term_const * term_subord_factor * term_sameord_factor * \
-                        RBZdBPhi_field.diff_RZ_interpolator(factor_XR_num[iterm], factor_XZ_num[iterm])([*fltsol.sol(t), _wrap_phi_for_grid(t, Phi_ext) ])[0]
+                        RBZdBPhi_field.diff_RZ_interpolator(factor_XR_num[iterm], factor_XZ_num[iterm])([*fltsol.sol(t), _wrap_phi_for_grid(t, Phi_ext, afield.field_period) ])[0]
             # print(diffeq_vals)
             return diffeq_vals
         # We need to solve these 2(n+1) partial derivatives together since they are correlated.
@@ -366,19 +374,23 @@ def partial_XRZ_partial_x0RZ_until_ordk_along_field_line(afield:VectorFieldCylin
     
     RBRdBPhi = R[:,None,None]*BR/BPhi
     RBZdBPhi = R[:,None,None]*BZ/BPhi
-    Phi_ext, RBRdBPhi, RBZdBPhi = close_periodic_phi_grid(Phi, RBRdBPhi, RBZdBPhi)
+    Phi_ext, RBRdBPhi, RBZdBPhi = close_periodic_phi_grid(
+        Phi, RBRdBPhi, RBZdBPhi, period=afield.field_period
+    )
     RBRdBPhi_field = _FieldDifferenatiableRZ(RBRdBPhi, R, Z, Phi_ext)
     RBZdBPhi_field = _FieldDifferenatiableRZ(RBZdBPhi, R, Z, Phi_ext)
     
     dPhi = Phi_ext[1] - Phi_ext[0]
     # --- FieldlineTracer (cyna C++) entry point ---
-    fltsol = _trace_fieldline_as_sol(R, Z, Phi, BR, BZ, BPhi, t_span, y0)
+    fltsol = _trace_fieldline_as_sol(
+        R, Z, Phi, BR, BZ, BPhi, t_span, y0, nfp=afield.nfp
+    )
     XpRpZ_sols = [fltsol,]
     
     t_eval = np.linspace( t_span[0], t_span[1], num=int( (t_span[1]-t_span[0])/ dPhi), endpoint=True)
     flt_RZPhi_eval = np.empty( (len(t_eval), 3) )
     flt_RZPhi_eval[:,:-1] = fltsol.sol(t_eval).T
-    flt_RZPhi_eval[:, -1] = _wrap_phi_for_grid(t_eval, Phi_ext)
+    flt_RZPhi_eval[:, -1] = _wrap_phi_for_grid(t_eval, Phi_ext, afield.field_period)
     
     @cache    
     def RBRdBPhi_oncycle(Rord, Zord):
@@ -442,9 +454,9 @@ def partial_XRZ_partial_x0RZ_until_ordk_along_field_line(afield:VectorFieldCylin
                     factor_pw = term[0][2]
                     term_sameord_factor = y[factor_NoInk]**factor_pw
                     diffeq_vals[2*Rord  ] += termC * term_sameord_factor * \
-                        RBRdBPhi_field.diff_RZ_interpolator(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])([*fltsol.sol(t), _wrap_phi_for_grid(t, Phi_ext) ])[0]
+                        RBRdBPhi_field.diff_RZ_interpolator(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])([*fltsol.sol(t), _wrap_phi_for_grid(t, Phi_ext, afield.field_period) ])[0]
                     diffeq_vals[2*Rord+1] += termC * term_sameord_factor * \
-                        RBZdBPhi_field.diff_RZ_interpolator(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])([*fltsol.sol(t), _wrap_phi_for_grid(t, Phi_ext) ])[0]
+                        RBZdBPhi_field.diff_RZ_interpolator(Rords_terms_XR_num[Rord][iterm], Rords_terms_XZ_num[Rord][iterm])([*fltsol.sol(t), _wrap_phi_for_grid(t, Phi_ext, afield.field_period) ])[0]
             # print(diffeq_vals)
             return diffeq_vals
         # We need to solve these 2(n+1) partial derivatives together since they are correlated.

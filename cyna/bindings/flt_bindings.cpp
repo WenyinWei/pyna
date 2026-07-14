@@ -194,24 +194,17 @@ static void validate_periodic_endpoint_planes(
     }
 }
 
-static bool span_is_twopi_fraction(double span) {
-    if (!std::isfinite(span) || span <= 0.0)
-        return false;
-    const double nfp = 2.0 * std::acos(-1.0) / span;
-    const double nfp_round = std::round(nfp);
-    if (nfp_round < 1.0)
-        return false;
-    return std::abs(nfp - nfp_round) <= std::max(1.0e-8, 1.0e-8 * std::abs(nfp_round));
-}
-
 static void validate_cyna_raw_field_arrays(
     const py::array_t<double>& BR,
     const py::array_t<double>& BZ,
     const py::array_t<double>& BPhi,
     const py::array_t<double>& R_grid,
     const py::array_t<double>& Z_grid,
-    const py::array_t<double>& Phi_grid)
+    const py::array_t<double>& Phi_grid,
+    int nfp = 1)
 {
+    if (nfp < 1)
+        throw std::runtime_error("nfp must be a positive integer");
     validate_uniform_grid_axis(R_grid, "R_grid");
     validate_uniform_grid_axis(Z_grid, "Z_grid");
     validate_grid_axis(Phi_grid, "Phi_grid", false);
@@ -221,8 +214,12 @@ static void validate_cyna_raw_field_arrays(
     if (nPhi > 1) {
         const double* phi = Phi_grid.data();
         const double span = phi[nPhi - 1] - phi[0];
-        if (!span_is_twopi_fraction(span))
-            throw std::runtime_error("Phi_grid must be a closed periodic grid spanning 2*pi/nfp");
+        const double field_period = 2.0 * std::acos(-1.0) / (double)nfp;
+        const double tol = 1e-12 * std::max(1.0, std::abs(field_period));
+        if (std::abs(span - field_period) > tol)
+            throw std::runtime_error(
+                "Phi_grid must be a closed periodic grid spanning exactly 2*pi/nfp; "
+                "nfp is explicit and is never inferred from Phi_grid");
     }
     const py::ssize_t expected = (py::ssize_t)nR * (py::ssize_t)nZ * (py::ssize_t)nPhi;
     if (BR.size() != expected || BZ.size() != expected || BPhi.size() != expected)
@@ -334,7 +331,8 @@ struct VectorFieldCylindHandle {
             buf(Phi, "Phi"), nPhi,
             buf(wall_R, "wall_R"), buf(wall_Z, "wall_Z"), n_wall,
             n_threads,
-            counts.mutable_data(), R_out.mutable_data(), Z_out.mutable_data());
+            counts.mutable_data(), R_out.mutable_data(), Z_out.mutable_data(),
+            2.0 * std::acos(-1.0) / (double)nfp);
         return py::make_tuple(counts, R_out, Z_out);
     }
 
@@ -372,7 +370,8 @@ struct VectorFieldCylindHandle {
             res_out.mutable_data(), conv_out.mutable_data(),
             DPm_out.mutable_data(),
             eigr_out.mutable_data(), eigi_out.mutable_data(),
-            ptype_out.mutable_data());
+            ptype_out.mutable_data(),
+            2.0 * std::acos(-1.0) / (double)nfp);
         return py::make_tuple(R_out, Z_out, res_out, conv_out, DPm_out, eigr_out, eigi_out, ptype_out);
     }
 };
@@ -388,8 +387,10 @@ static py::array_t<double> py_compute_A_matrix_batch(
     py::array_t<double> R_grid,
     py::array_t<double> Z_grid,
     py::array_t<double> Phi_grid,
-    double eps)
+    double eps,
+    int nfp)
 {
+    validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, nfp);
     int N    = (int)R_arr.size();
     int nR   = (int)R_grid.size();
     int nZ   = (int)Z_grid.size();
@@ -411,14 +412,15 @@ static py::array_t<double> py_compute_A_matrix_batch(
 
     // Lambda: evaluate g = [R*BR/BPhi, R*BZ/BPhi] at (R, Z, phi)
     auto g_eval = [&](double R, double Z, double phi, double& g0, double& g1) {
-        double bp = cyna::interp3d(pBPhi, pRg, nR, pZg, nZ, pPg, nPhi, R, Z, phi);
+        const double field_period = 2.0 * std::acos(-1.0) / (double)nfp;
+        double bp = cyna::interp3d(pBPhi, pRg, nR, pZg, nZ, pPg, nPhi, R, Z, phi, field_period);
         if (!std::isfinite(bp) || std::abs(bp) < 1e-30) {
             g0 = std::numeric_limits<double>::quiet_NaN();
             g1 = std::numeric_limits<double>::quiet_NaN();
             return;
         }
-        double br = cyna::interp3d(pBR, pRg, nR, pZg, nZ, pPg, nPhi, R, Z, phi);
-        double bz = cyna::interp3d(pBZ, pRg, nR, pZg, nZ, pPg, nPhi, R, Z, phi);
+        double br = cyna::interp3d(pBR, pRg, nR, pZg, nZ, pPg, nPhi, R, Z, phi, field_period);
+        double bz = cyna::interp3d(pBZ, pRg, nR, pZg, nZ, pPg, nPhi, R, Z, phi, field_period);
         g0 = R * br / bp;
         g1 = R * bz / bp;
     };
@@ -460,8 +462,10 @@ static py::array_t<double> py_progress_DX_pol_along_orbit(
     py::array_t<double> R_grid,
     py::array_t<double> Z_grid,
     py::array_t<double> Phi_grid,
-    double max_step)
+    double max_step,
+    int nfp)
 {
+    validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, nfp);
     const int n_pts = (int)R_traj.size();
     if ((int)Z_traj.size() != n_pts || (int)phi_traj.size() != n_pts) {
         throw std::runtime_error("R_traj, Z_traj and phi_traj must have the same length");
@@ -479,7 +483,8 @@ static py::array_t<double> py_progress_DX_pol_along_orbit(
         buf(R_grid,"R_grid"), (int)R_grid.size(),
         buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
         buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size(),
-        max_step);
+        max_step,
+        2.0 * std::acos(-1.0) / (double)nfp);
     return out;
 }
 
@@ -496,8 +501,11 @@ static py::array_t<double> py_progress_delta_X_along_orbit(
     py::array_t<double> R_grid,
     py::array_t<double> Z_grid,
     py::array_t<double> Phi_grid,
-    double max_step)
+    double max_step,
+    int nfp)
 {
+    validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, nfp);
+    validate_cyna_raw_field_arrays(dBR, dBZ, dBPhi, R_grid, Z_grid, Phi_grid, nfp);
     const int n_pts = (int)R_traj.size();
     if ((int)Z_traj.size() != n_pts || (int)phi_traj.size() != n_pts) {
         throw std::runtime_error("R_traj, Z_traj and phi_traj must have the same length");
@@ -520,7 +528,8 @@ static py::array_t<double> py_progress_delta_X_along_orbit(
         buf(R_grid,"R_grid"), (int)R_grid.size(),
         buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
         buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size(),
-        max_step);
+        max_step,
+        2.0 * std::acos(-1.0) / (double)nfp);
 	    return out;
 	}
 
@@ -537,8 +546,11 @@ static py::array_t<double> py_evolve_delta_X_cycle_along_cycle(
     py::array_t<double> R_grid,
     py::array_t<double> Z_grid,
     py::array_t<double> Phi_grid,
-    double max_step)
+    double max_step,
+    int nfp)
 {
+    validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, nfp);
+    validate_cyna_raw_field_arrays(dBR, dBZ, dBPhi, R_grid, Z_grid, Phi_grid, nfp);
     const int n_pts = (int)R_traj.size();
     if ((int)Z_traj.size() != n_pts || (int)phi_traj.size() != n_pts) {
         throw std::runtime_error("R_traj, Z_traj and phi_traj must have the same length");
@@ -561,7 +573,8 @@ static py::array_t<double> py_evolve_delta_X_cycle_along_cycle(
         buf(R_grid,"R_grid"), (int)R_grid.size(),
         buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
         buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size(),
-        max_step);
+        max_step,
+        2.0 * std::acos(-1.0) / (double)nfp);
     return out;
 }
 
@@ -578,11 +591,12 @@ static py::tuple py_trace_poincare_batch(
     py::array_t<double> wall_R,
     py::array_t<double> wall_Z,
     int n_threads,
-    int direction)
+    int direction,
+    int nfp)
     {
         if (n_threads <= 0)
             n_threads = (int)std::thread::hardware_concurrency();
-        validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid);
+        validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, nfp);
 
         int N_seeds = (int)R_seeds.size();
     int nR      = (int)R_grid.size();
@@ -611,7 +625,8 @@ static py::tuple py_trace_poincare_batch(
         poi_counts.mutable_data(),
         poi_R_flat.mutable_data(),
         poi_Z_flat.mutable_data(),
-        direction);
+        direction,
+        2.0 * std::acos(-1.0) / (double)nfp);
 
     return py::make_tuple(poi_counts, poi_R_flat, poi_Z_flat);
 }
@@ -629,11 +644,12 @@ static py::tuple py_trace_map_batch_span(
     py::array_t<double> Phi_grid,
     py::array_t<double> wall_R,
     py::array_t<double> wall_Z,
-    int n_threads)
+    int n_threads,
+    int nfp)
     {
         if (n_threads <= 0)
             n_threads = (int)std::thread::hardware_concurrency();
-        validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid);
+        validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, nfp);
         if (!std::isfinite(map_span) || std::abs(map_span) <= 1e-14)
             throw std::runtime_error("map_span must be finite and non-zero");
     if (N_steps <= 0)
@@ -669,7 +685,8 @@ static py::tuple py_trace_map_batch_span(
         n_threads,
         map_counts.mutable_data(),
         map_R_flat.mutable_data(),
-        map_Z_flat.mutable_data());
+        map_Z_flat.mutable_data(),
+        2.0 * std::acos(-1.0) / (double)nfp);
 
     return py::make_tuple(map_counts, map_R_flat, map_Z_flat);
 }
@@ -688,11 +705,12 @@ static py::tuple py_trace_poincare_batch_twall(
     py::array_t<double> wall_R,
     py::array_t<double> wall_Z,
     int n_threads,
-    int direction)
+    int direction,
+    int nfp)
     {
         if (n_threads <= 0)
             n_threads = (int)std::thread::hardware_concurrency();
-        validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid);
+        validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, nfp);
 
         if (wall_R.ndim() != 2 || wall_Z.ndim() != 2)
         throw std::runtime_error("wall_R and wall_Z must be 2-D arrays [n_phi_wall, n_theta_wall]");
@@ -729,7 +747,8 @@ static py::tuple py_trace_poincare_batch_twall(
         poi_counts.mutable_data(),
         poi_R_flat.mutable_data(),
         poi_Z_flat.mutable_data(),
-        direction);
+        direction,
+        2.0 * std::acos(-1.0) / (double)nfp);
 
     return py::make_tuple(poi_counts, poi_R_flat, poi_Z_flat);
 }
@@ -747,11 +766,12 @@ static py::tuple py_trace_poincare_multi(
     py::array_t<double> wall_R,
     py::array_t<double> wall_Z,
     int n_threads,
-    int direction)
+    int direction,
+    int nfp)
     {
         if (n_threads <= 0)
             n_threads = (int)std::thread::hardware_concurrency();
-        validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid);
+        validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, nfp);
 
         int N_seeds = (int)R_seeds.size();
     int n_sec   = (int)phi_sections.size();
@@ -791,7 +811,8 @@ static py::tuple py_trace_poincare_multi(
                 poi_counts.mutable_data(),
                 poi_R_flat.mutable_data(),
                 poi_Z_flat.mutable_data(),
-                direction);
+                direction,
+                2.0 * std::acos(-1.0) / (double)nfp);
         }
     }).wait();
 
@@ -818,8 +839,10 @@ static py::tuple py_trace_surface_metrics_batch_twall(
     double fd_eps_R,
     double fd_eps_Z,
     double fd_eps_phi,
-    int n_threads)
+    int n_threads,
+    int nfp)
 {
+    validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, nfp);
     if (n_threads <= 0)
         n_threads = (int)std::thread::hardware_concurrency();
     if (wall_R.ndim() != 2 || wall_Z.ndim() != 2)
@@ -854,7 +877,8 @@ static py::tuple py_trace_surface_metrics_batch_twall(
         fd_eps_R, fd_eps_Z, fd_eps_phi, n_threads,
         iota.mutable_data(), B_mean.mutable_data(), B2_mean.mutable_data(),
         B_min.mutable_data(), B_max.mutable_data(), JxB_mean.mutable_data(),
-        turns.mutable_data(), alive.mutable_data());
+        turns.mutable_data(), alive.mutable_data(),
+        2.0 * std::acos(-1.0) / (double)nfp);
 
     return py::make_tuple(iota, B_mean, B2_mean, B_min, B_max, JxB_mean, turns, alive);
 }
@@ -905,8 +929,13 @@ static py::tuple py_compute_cycle_perturbation_shift(
     py::array_t<double> BR_pert, py::array_t<double> BZ_pert, py::array_t<double> BPhi_pert,
     py::array_t<double> R_grid,
     py::array_t<double> Z_grid,
-    py::array_t<double> Phi_grid)
+    py::array_t<double> Phi_grid,
+    int nfp)
 {
+    validate_cyna_raw_field_arrays(
+        BR_base, BZ_base, BPhi_base, R_grid, Z_grid, Phi_grid, nfp);
+    validate_cyna_raw_field_arrays(
+        BR_pert, BZ_pert, BPhi_pert, R_grid, Z_grid, Phi_grid, nfp);
     const int nR = (int)R_grid.size();
     const int nZ = (int)Z_grid.size();
     const int nPhi = (int)Phi_grid.size();
@@ -920,6 +949,7 @@ static py::tuple py_compute_cycle_perturbation_shift(
     const double* br1 = buf(BR_pert, "BR_pert");
     const double* bz1 = buf(BZ_pert, "BZ_pert");
     const double* bp1 = buf(BPhi_pert, "BPhi_pert");
+    const double field_period = 2.0 * std::acos(-1.0) / (double)nfp;
 
     py::array_t<double> R_t({n_out}), Z_t({n_out}), phi_t({n_out});
     py::array_t<double> DP_t({n_out, 4});
@@ -929,9 +959,9 @@ static py::tuple py_compute_cycle_perturbation_shift(
 
     auto f_eval = [&](const double* BR, const double* BZ, const double* BPhi,
                       double R, double Z, double phi, double& fR, double& fZ) {
-        double bp = cyna::interp3d(BPhi, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi);
-        double br = cyna::interp3d(BR,   Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi);
-        double bz = cyna::interp3d(BZ,   Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi);
+        double bp = cyna::interp3d(BPhi, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi, field_period);
+        double br = cyna::interp3d(BR,   Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi, field_period);
+        double bz = cyna::interp3d(BZ,   Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi, field_period);
         if (!std::isfinite(bp) || std::abs(bp) < 1e-30 ||
             !std::isfinite(br) || !std::isfinite(bz)) {
             fR = std::numeric_limits<double>::quiet_NaN();
@@ -946,9 +976,9 @@ static py::tuple py_compute_cycle_perturbation_shift(
         double BRv, dBR_dR, dBR_dZ;
         double BZv, dBZ_dR, dBZ_dZ;
         double BPv, dBP_dR, dBP_dZ;
-        if (!cyna::interp3d_grad(BRv, dBR_dR, dBR_dZ, br0, Rg,nR,Zg,nZ,Pg,nPhi, R,Z,phi) ||
-            !cyna::interp3d_grad(BZv, dBZ_dR, dBZ_dZ, bz0, Rg,nR,Zg,nZ,Pg,nPhi, R,Z,phi) ||
-            !cyna::interp3d_grad(BPv, dBP_dR, dBP_dZ, bp0, Rg,nR,Zg,nZ,Pg,nPhi, R,Z,phi) ||
+        if (!cyna::interp3d_grad(BRv, dBR_dR, dBR_dZ, br0, Rg,nR,Zg,nZ,Pg,nPhi, R,Z,phi,field_period) ||
+            !cyna::interp3d_grad(BZv, dBZ_dR, dBZ_dZ, bz0, Rg,nR,Zg,nZ,Pg,nPhi, R,Z,phi,field_period) ||
+            !cyna::interp3d_grad(BPv, dBP_dR, dBP_dZ, bp0, Rg,nR,Zg,nZ,Pg,nPhi, R,Z,phi,field_period) ||
             std::abs(BPv) < 1e-30) {
             A[0] = A[1] = A[2] = A[3] = std::numeric_limits<double>::quiet_NaN();
             return;
@@ -962,12 +992,12 @@ static py::tuple py_compute_cycle_perturbation_shift(
     };
 
     auto delta_f_eval = [&](double R, double Z, double phi, double& dF0, double& dF1) {
-        double bp_base = cyna::interp3d(bp0, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi);
-        double br_base = cyna::interp3d(br0, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi);
-        double bz_base = cyna::interp3d(bz0, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi);
-        double bp_pert = cyna::interp3d(bp1, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi);
-        double br_pert = cyna::interp3d(br1, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi);
-        double bz_pert = cyna::interp3d(bz1, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi);
+        double bp_base = cyna::interp3d(bp0, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi, field_period);
+        double br_base = cyna::interp3d(br0, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi, field_period);
+        double bz_base = cyna::interp3d(bz0, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi, field_period);
+        double bp_pert = cyna::interp3d(bp1, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi, field_period);
+        double br_pert = cyna::interp3d(br1, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi, field_period);
+        double bz_pert = cyna::interp3d(bz1, Rg, nR, Zg, nZ, Pg, nPhi, R, Z, phi, field_period);
         if (!std::isfinite(bp_base) || std::abs(bp_base) < 1e-30 ||
             !std::isfinite(br_base) || !std::isfinite(bz_base) ||
             !std::isfinite(bp_pert) || !std::isfinite(br_pert) || !std::isfinite(bz_pert)) {
@@ -1083,8 +1113,10 @@ static py::tuple py_trace_poincare_dpk_growth(
     py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
     py::array_t<double> R_grid,
     py::array_t<double> Z_grid,
-    py::array_t<double> Phi_grid)
+    py::array_t<double> Phi_grid,
+    int nfp)
 {
+    validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, nfp);
     if (max_returns < 0)
         throw std::runtime_error("max_returns must be non-negative");
     if (record_stride <= 0)
@@ -1110,7 +1142,8 @@ static py::tuple py_trace_poincare_dpk_growth(
         n_out,
         k_t.mutable_data(),
         R_t.mutable_data(), Z_t.mutable_data(), phi_t.mutable_data(),
-        DPk_t.mutable_data(), eig_abs_t.mutable_data(), alive_t.mutable_data());
+        DPk_t.mutable_data(), eig_abs_t.mutable_data(), alive_t.mutable_data(),
+        2.0 * std::acos(-1.0) / (double)nfp);
 
     return py::make_tuple(k_t, R_t, Z_t, phi_t, DPk_t, eig_abs_t, alive_t);
 }
@@ -1128,8 +1161,10 @@ static py::tuple py_trace_poincare_dpk_growth_twall(
     py::array_t<double> wall_phi_centers,
     py::array_t<double> wall_R,
     py::array_t<double> wall_Z,
-    bool stop_at_wall)
+    bool stop_at_wall,
+    int nfp)
 {
+    validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, nfp);
     if (max_returns < 0)
         throw std::runtime_error("max_returns must be non-negative");
     if (record_stride <= 0)
@@ -1168,7 +1203,8 @@ static py::tuple py_trace_poincare_dpk_growth_twall(
         k_t.mutable_data(),
         R_t.mutable_data(), Z_t.mutable_data(), phi_t.mutable_data(),
         DPk_t.mutable_data(), eig_abs_t.mutable_data(), alive_t.mutable_data(),
-        hit_t.mutable_data(), term_t.mutable_data());
+        hit_t.mutable_data(), term_t.mutable_data(),
+        2.0 * std::acos(-1.0) / (double)nfp);
 
     return py::make_tuple(k_t, R_t, Z_t, phi_t, DPk_t, eig_abs_t, alive_t, hit_t, term_t);
 }
@@ -1191,8 +1227,10 @@ static py::tuple py_trace_poincare_beta_sweep(
     double a_eff,
     double alpha_pressure,
     double B_ref,
-    int n_threads)
+    int n_threads,
+    int nfp)
 {
+    validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, nfp);
     if (n_threads <= 0)
         n_threads = (int)std::thread::hardware_concurrency();
 
@@ -1225,7 +1263,8 @@ static py::tuple py_trace_poincare_beta_sweep(
         n_threads,
         poi_counts.mutable_data(),
         poi_R.mutable_data(),
-        poi_Z.mutable_data());
+        poi_Z.mutable_data(),
+        2.0 * std::acos(-1.0) / (double)nfp);
 
     return py::make_tuple(poi_R, poi_Z, poi_counts);
 }
@@ -1281,25 +1320,33 @@ PYBIND11_MODULE(_cyna_ext, m) {
     m.def("rk4_step_test", [](double R, double Z, double phi, double DPhi,
                                py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
                                py::array_t<double> Rg, py::array_t<double> Zg,
-                               py::array_t<double> Pg) {
+                               py::array_t<double> Pg, int nfp) {
+        validate_cyna_raw_field_arrays(BR, BZ, BPhi, Rg, Zg, Pg, nfp);
         cyna::rk4_step(R, Z, phi, DPhi,
             BR.data(), BZ.data(), BPhi.data(),
             Rg.data(), (int)Rg.size(),
             Zg.data(), (int)Zg.size(),
-            Pg.data(), (int)Pg.size());
+            Pg.data(), (int)Pg.size(),
+            2.0 * std::acos(-1.0) / (double)nfp);
         return py::make_tuple(R, Z);
-    });
+    }, py::arg("R"), py::arg("Z"), py::arg("phi"), py::arg("DPhi"),
+       py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
+       py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+       py::arg("nfp") = 1);
 
     m.def("interp3d_test", [](double R, double Z, double Phi,
                                py::array_t<double> data,
                                py::array_t<double> Rg, py::array_t<double> Zg,
-                               py::array_t<double> Pg) {
+                               py::array_t<double> Pg, int nfp) {
+        validate_cyna_raw_field_arrays(data, data, data, Rg, Zg, Pg, nfp);
         return cyna::interp3d(data.data(),
             Rg.data(), (int)Rg.size(),
             Zg.data(), (int)Zg.size(),
             Pg.data(), (int)Pg.size(),
-            R, Z, Phi);
-    });
+            R, Z, Phi, 2.0 * std::acos(-1.0) / (double)nfp);
+    }, py::arg("R"), py::arg("Z"), py::arg("Phi"), py::arg("data"),
+       py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+       py::arg("nfp") = 1);
 
 		    m.def("trace_poincare_batch", &py_trace_poincare_batch,
 	        py::arg("R_seeds"), py::arg("Z_seeds"), py::arg("phi_section"),
@@ -1309,6 +1356,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
 	        py::arg("wall_R"), py::arg("wall_Z"),
 	        py::arg("n_threads") = -1,
 	        py::arg("direction") = +1,
+	        py::arg("nfp") = 1,
 	        "Trace Poincaré section for multiple seeds against a fixed 2-D wall slice.\n"
 		        "direction=+1 traces phi-increasing; direction=-1 traces phi-decreasing.\n"
 		        "Returns (poi_counts, poi_R_flat, poi_Z_flat).");
@@ -1320,6 +1368,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
 		        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
 		        py::arg("wall_R"), py::arg("wall_Z"),
 		        py::arg("n_threads") = -1,
+		        py::arg("nfp") = 1,
 		        "Trace arbitrary toroidal-span map iterates for multiple seeds.\n"
 		        "Use map_span=2*pi/Nfp for field-period Poincare maps.\n"
 		        "Returns (map_counts, map_R_flat, map_Z_flat).");
@@ -1332,6 +1381,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
 	        py::arg("wall_phi_centers"), py::arg("wall_R"), py::arg("wall_Z"),
 	        py::arg("n_threads") = -1,
 	        py::arg("direction") = +1,
+	        py::arg("nfp") = 1,
 	        "Trace Poincaré section for multiple seeds against a toroidally varying wall.\n"
 	        "direction=+1 traces phi-increasing; direction=-1 traces phi-decreasing.\n"
 	        "Returns (poi_counts, poi_R_flat, poi_Z_flat).");
@@ -1344,6 +1394,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
 	        py::arg("wall_R"), py::arg("wall_Z"),
 	        py::arg("n_threads") = -1,
 	        py::arg("direction") = +1,
+	        py::arg("nfp") = 1,
 	        "Trace Poincaré sections for multiple seeds and multiple phi sections.\n"
 	        "direction=+1 traces phi-increasing; direction=-1 traces phi-decreasing.\n"
 	        "Returns (poi_counts [N_seeds x n_sec], poi_R_flat, poi_Z_flat).");
@@ -1356,10 +1407,10 @@ PYBIND11_MODULE(_cyna_ext, m) {
            py::array_t<double> Phi_grid,
            py::array_t<double> wall_phi_centers,
            py::array_t<double> wall_R, py::array_t<double> wall_Z,
-           int n_threads) -> py::tuple
+           int n_threads, int nfp) -> py::tuple
         {
             if (n_threads <= 0) n_threads = (int)std::thread::hardware_concurrency();
-            validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid);
+            validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, nfp);
             if (wall_R.ndim() != 2 || wall_Z.ndim() != 2)
                 throw std::runtime_error("wall_R and wall_Z must be 2-D");
             if (wall_R.shape(0) != wall_Z.shape(0) || wall_R.shape(1) != wall_Z.shape(1))
@@ -1385,7 +1436,8 @@ PYBIND11_MODULE(_cyna_ext, m) {
                 buf(wall_R,"wall_R"), buf(wall_Z,"wall_Z"), n_theta_wall,
                 n_threads,
                 L_fwd.mutable_data(),
-                L_bwd.mutable_data());
+                L_bwd.mutable_data(),
+                2.0 * std::acos(-1.0) / (double)nfp);
 
             return py::make_tuple(L_fwd, L_bwd);
         },
@@ -1395,6 +1447,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         py::arg("wall_phi_centers"), py::arg("wall_R"), py::arg("wall_Z"),
         py::arg("n_threads") = -1,
+        py::arg("nfp") = 1,
         "Compute connection length (forward + backward) for each seed against toroidal wall.\n"
         "Returns (L_fwd, L_bwd) in metres; sentinel=1e30 means no termination within max_turns.");
 
@@ -1406,10 +1459,10 @@ PYBIND11_MODULE(_cyna_ext, m) {
            py::array_t<double> Phi_grid,
            py::array_t<double> wall_phi_centers,
            py::array_t<double> wall_R, py::array_t<double> wall_Z,
-           int n_threads) -> py::tuple
+           int n_threads, int nfp) -> py::tuple
         {
             if (n_threads <= 0) n_threads = (int)std::thread::hardware_concurrency();
-            validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid);
+            validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, nfp);
             if (wall_R.ndim() != 2 || wall_Z.ndim() != 2)
                 throw std::runtime_error("wall_R and wall_Z must be 2-D");
             if (wall_R.shape(0) != wall_Z.shape(0) || wall_R.shape(1) != wall_Z.shape(1))
@@ -1439,7 +1492,8 @@ PYBIND11_MODULE(_cyna_ext, m) {
                 L_fwd.mutable_data(), L_bwd.mutable_data(),
                 R_hf.mutable_data(), Z_hf.mutable_data(), phi_hf.mutable_data(),
                 R_hb.mutable_data(), Z_hb.mutable_data(), phi_hb.mutable_data(),
-                tt_fwd.mutable_data(), tt_bwd.mutable_data());
+                tt_fwd.mutable_data(), tt_bwd.mutable_data(),
+                2.0 * std::acos(-1.0) / (double)nfp);
 
             return py::make_tuple(L_fwd, L_bwd,
                                   R_hf, Z_hf, phi_hf,
@@ -1452,6 +1506,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         py::arg("wall_phi_centers"), py::arg("wall_R"), py::arg("wall_Z"),
         py::arg("n_threads") = -1,
+        py::arg("nfp") = 1,
         "Like trace_connection_length_twall but also returns wall-hit coordinates.\n"
         "Returns (L_fwd, L_bwd, R_hit_fwd, Z_hit_fwd, phi_hit_fwd,\n"
         "                       R_hit_bwd, Z_hit_bwd, phi_hit_bwd,\n"
@@ -1466,10 +1521,10 @@ PYBIND11_MODULE(_cyna_ext, m) {
            py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
            py::array_t<double> R_grid, py::array_t<double> Z_grid,
            py::array_t<double> Phi_grid,
-           int n_threads) -> py::tuple
+           int n_threads, int nfp) -> py::tuple
         {
             if (n_threads <= 0) n_threads = (int)std::thread::hardware_concurrency();
-            validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid);
+            validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, nfp);
             int N = (int)R_seeds.size();
 
             py::array_t<double> R_out({N}), Z_out({N}), res_out({N});
@@ -1477,9 +1532,10 @@ PYBIND11_MODULE(_cyna_ext, m) {
             py::array_t<double> DPm_out({N, 4});
             py::array_t<double> eigr_out({N, 2}), eigi_out({N, 2});
 
-            cyna::find_fixed_points_batch(
+            cyna::find_fixed_points_batch_span(
                 buf(R_seeds,"R_seeds"), buf(Z_seeds,"Z_seeds"), N,
-                phi_section, m_turns, DPhi, fd_eps, max_iter, tol,
+                phi_section, double(m_turns) * 2.0 * std::acos(-1.0),
+                DPhi, fd_eps, max_iter, tol,
                 buf(BR,"BR"), buf(BZ,"BZ"), buf(BPhi,"BPhi"),
                 buf(R_grid,"R_grid"), (int)R_grid.size(),
                 buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
@@ -1489,7 +1545,8 @@ PYBIND11_MODULE(_cyna_ext, m) {
                 res_out.mutable_data(), conv_out.mutable_data(),
                 DPm_out.mutable_data(),
                 eigr_out.mutable_data(), eigi_out.mutable_data(),
-                ptype_out.mutable_data());
+                ptype_out.mutable_data(),
+                2.0 * std::acos(-1.0) / (double)nfp);
 
             return py::make_tuple(R_out, Z_out, res_out, conv_out,
                                   DPm_out, eigr_out, eigi_out, ptype_out);
@@ -1500,6 +1557,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         py::arg("n_threads") = -1,
+        py::arg("nfp") = 1,
         "Parallel Newton search for P^n fixed points (X/O points).\n"
         "Each seed is refined independently in its own thread.\n"
         "Returns (R_out, Z_out, residual, converged, DPm[N,4],\n"
@@ -1513,10 +1571,10 @@ PYBIND11_MODULE(_cyna_ext, m) {
            py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
            py::array_t<double> R_grid, py::array_t<double> Z_grid,
            py::array_t<double> Phi_grid,
-           int n_threads) -> py::tuple
+           int n_threads, int nfp) -> py::tuple
         {
             if (n_threads <= 0) n_threads = (int)std::thread::hardware_concurrency();
-            validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid);
+            validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, nfp);
             int N = (int)R_seeds.size();
 
             py::array_t<double> R_out({N}), Z_out({N}), res_out({N});
@@ -1536,7 +1594,8 @@ PYBIND11_MODULE(_cyna_ext, m) {
                 res_out.mutable_data(), conv_out.mutable_data(),
                 DPm_out.mutable_data(),
                 eigr_out.mutable_data(), eigi_out.mutable_data(),
-                ptype_out.mutable_data());
+                ptype_out.mutable_data(),
+                2.0 * std::acos(-1.0) / (double)nfp);
 
             return py::make_tuple(R_out, Z_out, res_out, conv_out,
                                   DPm_out, eigr_out, eigi_out, ptype_out);
@@ -1547,6 +1606,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         py::arg("n_threads") = -1,
+        py::arg("nfp") = 1,
         "Parallel Newton search for fixed points of an arbitrary toroidal-span map.\n"
         "Use map_span=m*2*pi/Nfp for stellarator field-period island chains.\n"
         "Returns the same tuple layout as find_fixed_points_batch.");
@@ -1556,6 +1616,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         py::arg("eps") = 1e-4,
+        py::arg("nfp") = 1,
         "Compute the 2x2 A-matrix at N orbit points using C++ trilinear interpolation.\n"
         "Returns ndarray of shape (N, 2, 2).\n"
         "A[k] = [[dg0/dR, dg0/dZ], [dg1/dR, dg1/dZ]] where g=[R*BR/BPhi, R*BZ/BPhi].");
@@ -1565,6 +1626,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         py::arg("max_step") = 0.005,
+        py::arg("nfp") = 1,
         "Progress DX_pol(phi_e, phi_s) along an already sampled orbit.\n"
         "Returns ndarray of shape (N, 2, 2), with DX_pol[0] = identity.\n"
         "The orbit samples are used as the path; this does not retrace field lines.");
@@ -1576,6 +1638,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("dBR"), py::arg("dBZ"), py::arg("dBPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         py::arg("max_step") = 0.005,
+        py::arg("nfp") = 1,
         "Progress delta_X along an already sampled orbit using\n"
         "d(delta_X)/dphi = d(RBpol/Bphi)/d(R,Z) delta_X + delta(RBpol/Bphi).\n"
         "dBR, dBZ and dBPhi are first-order delta-B component arrays.");
@@ -1587,6 +1650,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("dBR"), py::arg("dBZ"), py::arg("dBPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         py::arg("max_step") = 0.005,
+        py::arg("nfp") = 1,
 	        "Evolve an already closed periodic cycle displacement delta_X_cyc(phi).\n"
 	        "This intentionally uses the same inhomogeneous ODE as\n"
 	        "progress_delta_X_along_orbit; the difference is semantic: delta_X_cyc0\n"
@@ -1599,6 +1663,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
 	        py::arg("dBR"), py::arg("dBZ"), py::arg("dBPhi"),
 	        py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
 	        py::arg("max_step") = 0.005,
+	        py::arg("nfp") = 1,
 	        "Compatibility alias for evolve_delta_X_cycle_along_cycle.");
 
     m.def("trace_surface_metrics_batch_twall", &py_trace_surface_metrics_batch_twall,
@@ -1610,6 +1675,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("wall_phi_centers"), py::arg("wall_R"), py::arg("wall_Z"),
         py::arg("fd_eps_R") = 1e-4, py::arg("fd_eps_Z") = 1e-4, py::arg("fd_eps_phi") = 1e-4,
         py::arg("n_threads") = -1,
+        py::arg("nfp") = 1,
         "Trace flux-surface seeds and return per-surface iota, B statistics and JxB metrics.");
 
     m.def("summarize_profile_objectives", &py_summarize_profile_objectives,
@@ -1631,6 +1697,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("alpha_pressure") = 2.0,
         py::arg("B_ref") = 1.0,
         py::arg("n_threads") = -1,
+        py::arg("nfp") = 1,
         "Trace Poincare sections for multiple seeds and multiple phi sections\n"
         "with on-the-fly beta field correction (diamagnetic + Pfirsch-Schluter).\n"
         "Returns (poi_R[N,n_sec,N_turns], poi_Z[N,n_sec,N_turns], poi_counts[N,n_sec]).\n"
@@ -1642,8 +1709,9 @@ PYBIND11_MODULE(_cyna_ext, m) {
            double DPhi, double fd_eps,
            py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
            py::array_t<double> R_grid, py::array_t<double> Z_grid,
-           py::array_t<double> Phi_grid) -> py::tuple
+           py::array_t<double> Phi_grid, int nfp) -> py::tuple
 	        {
+	            validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, nfp);
 	            if (!std::isfinite(dphi_out) || std::abs(dphi_out) <= 1e-14)
 	                throw std::runtime_error("dphi_out must be finite and non-zero");
 	            if (!std::isfinite(DPhi) || std::abs(DPhi) <= 1e-14)
@@ -1664,7 +1732,8 @@ PYBIND11_MODULE(_cyna_ext, m) {
                 buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size(),
                 n_out,
                 R_t.mutable_data(), Z_t.mutable_data(), phi_t.mutable_data(),
-                DPm_t.mutable_data(), alive_t.mutable_data());
+	                DPm_t.mutable_data(), alive_t.mutable_data(),
+	                2.0 * std::acos(-1.0) / (double)nfp);
 
             return py::make_tuple(R_t, Z_t, phi_t, DPm_t, alive_t);
         },
@@ -1673,6 +1742,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("DPhi") = 0.05, py::arg("fd_eps") = 1e-4,
         py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+        py::arg("nfp") = 1,
         "Integrate field line from (R0,Z0,phi0) for phi_span radians, outputting\n"
         "(R,Z,phi,DPm[n,4],alive[n]) at evenly-spaced phi_out intervals.\n"
         "DPm(φ)=DX_pol(φ,φ+2π·m_turns_DPm) via analytic DX_pol evolution — used for cycle visualisation.");
@@ -1685,6 +1755,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("DPhi") = 0.05,
         py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+        py::arg("nfp") = 1,
         "Trace one seed and record cumulative DP^k at Poincare returns.\n"
         "Returns (k, R, Z, phi, DPk[n,4], eig_abs[n,2], alive[n]).\n"
         "This integrates the orbit and variational equation once, so k=1..500\n"
@@ -1700,6 +1771,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
         py::arg("wall_phi_centers"), py::arg("wall_R"), py::arg("wall_Z"),
         py::arg("stop_at_wall") = true,
+        py::arg("nfp") = 1,
         "Wall-aware cumulative DP^k tracing.\n"
         "Returns (k, R, Z, phi, DPk[n,4], eig_abs[n,2], alive[n], hit[4], term[1]).\n"
         "hit=[R,Z,phi,k_float] records first wall crossing. term: 0=none, 1=wall, 2=grid/nonfinite.\n"
@@ -1712,6 +1784,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         py::arg("BR_base"), py::arg("BZ_base"), py::arg("BPhi_base"),
         py::arg("BR_pert"), py::arg("BZ_pert"), py::arg("BPhi_pert"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+        py::arg("nfp") = 1,
         "Integrate the first-order field-line response along one cycle.\n"
         "Returns (R, Z, phi, DP[n,4], dXpol[n,2], dXcyc[n,2], dXcyc0[2], alive[n]).\n"
         "dXpol is the zero-initial particular solution; dXcyc is the periodic\n"
@@ -1726,9 +1799,10 @@ PYBIND11_MODULE(_cyna_ext, m) {
            py::array_t<double> DPm_init,
            py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
            py::array_t<double> R_grid, py::array_t<double> Z_grid,
-           py::array_t<double> Phi_grid)
+           py::array_t<double> Phi_grid, int nfp)
         -> py::array_t<double>
         {
+            validate_cyna_raw_field_arrays(BR, BZ, BPhi, R_grid, Z_grid, Phi_grid, nfp);
             int n_pts = (int)R_traj.size();
             py::array_t<double> DPm_out({n_pts, 4});
             cyna::evolve_DPm_along_cycle(
@@ -1739,13 +1813,15 @@ PYBIND11_MODULE(_cyna_ext, m) {
                 buf(BR,"BR"), buf(BZ,"BZ"), buf(BPhi,"BPhi"),
                 buf(R_grid,"R_grid"), (int)R_grid.size(),
                 buf(Z_grid,"Z_grid"), (int)Z_grid.size(),
-                buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size());
+                buf(Phi_grid,"Phi_grid"), (int)Phi_grid.size(),
+                2.0 * std::acos(-1.0) / (double)nfp);
             return DPm_out;
         },
         py::arg("R_traj"), py::arg("Z_traj"), py::arg("phi_traj"),
         py::arg("DPm_init"),
         py::arg("BR"), py::arg("BZ"), py::arg("BPhi"),
         py::arg("R_grid"), py::arg("Z_grid"), py::arg("Phi_grid"),
+        py::arg("nfp") = 1,
         "Integrate DPm along a known cycle orbit using the commutator ODE\n"
         "d(DPm)/dφ = J·DPm - DPm·J.  Requires only the orbit (R,Z,φ) and\n"
         "initial DPm from Newton at φ=0 — no additional field-line tracing.");
