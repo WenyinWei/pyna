@@ -9,7 +9,7 @@ already collected crossings and axis samples.
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any, Iterable, Mapping, Sequence
 
 import numpy as np
@@ -62,14 +62,47 @@ class PestSurfaceStraightFieldLineDiagnostic:
     lsmr_istop: int
     lsmr_iterations: int
     lsmr_condition_estimate: float
+    gauge_mode: str
+    diffeomorphism_backtracking_enabled: bool
+    damped: bool
+    damping_alpha: float
+    lsmr_iota: float
+    raw_best_fit_iota: float
+    raw_mde_residual_rms: float
+    raw_mde_residual_relative: float
+    raw_mde_residual_max: float
+    raw_diffeomorphism_min_jacobian: float
+    raw_diffeomorphism_max_jacobian: float
+    post_best_fit_iota: float
+    post_mde_residual_rms: float
+    post_mde_residual_relative: float
+    post_mde_residual_max: float
+    post_diffeomorphism_min_jacobian: float
+    post_diffeomorphism_max_jacobian: float
+    raw_mapped_theta_min_gap: float
+    post_mapped_theta_min_gap: float
+    nullspace_projection: str
+    nullspace_projection_rms: float
+    nullspace_projection_max_abs: float
+    material_coordinate_orientation_preserved: bool
+    material_coordinate_min_relative_jacobian: float
+    material_coordinate_max_relative_jacobian: float
 
-    def as_dict(self) -> dict[str, int | float]:
+    def as_dict(self) -> dict[str, bool | int | float | str]:
         """Return JSON-serialisable evidence for reports and generation logs."""
 
-        return {
-            name: (int(value) if name in {"surface_index", "lsmr_istop", "lsmr_iterations"} else float(value))
-            for name, value in vars(self).items()
-        }
+        integer_fields = {"surface_index", "lsmr_istop", "lsmr_iterations"}
+        result: dict[str, bool | int | float | str] = {}
+        for name, value in vars(self).items():
+            if name in integer_fields:
+                result[name] = int(value)
+            elif isinstance(value, (bool, np.bool_)):
+                result[name] = bool(value)
+            elif isinstance(value, str):
+                result[name] = value
+            else:
+                result[name] = float(value)
+        return result
 
 
 @dataclass(frozen=True)
@@ -390,8 +423,14 @@ def _straight_field_line_linear_operator(
     phi_period: float,
     theta_period: float,
     anchor_flat_index: int,
+    gauge_mode: str = "point",
 ) -> LinearOperator:
-    """Return ``[dphi + a*dtheta, -1; anchor, 0]`` and its exact adjoint."""
+    """Return the straight-angle MDE operator and its exact discrete adjoint.
+
+    ``gauge_mode="point"`` preserves the historical point anchor.  The
+    optional ``"mean"`` gauge constrains the surface mean of ``u`` and avoids
+    injecting a grid-scale delta row into finite-Krylov solves.
+    """
 
     a = np.asarray(theta_slope, dtype=np.float64)
     if a.ndim != 2:
@@ -400,7 +439,15 @@ def _straight_field_line_linear_operator(
     anchor = int(anchor_flat_index)
     if anchor < 0 or anchor >= n_grid:
         raise ValueError("anchor_flat_index is outside the surface grid")
-    anchor_weight = float(np.sqrt(max(n_grid, 1)))
+    gauge = str(gauge_mode).strip().lower()
+    if gauge not in {"point", "mean"}:
+        raise ValueError("gauge_mode must be 'point' or 'mean'")
+    root_n = float(np.sqrt(max(n_grid, 1)))
+
+    def gauge_value(u: np.ndarray) -> float:
+        if gauge == "point":
+            return root_n * float(u.ravel()[anchor])
+        return float(np.sum(u)) / root_n
 
     def matvec(vector: np.ndarray) -> np.ndarray:
         x = np.asarray(vector, dtype=np.float64)
@@ -411,7 +458,7 @@ def _straight_field_line_linear_operator(
             + a * _periodic_fft_derivative(u, axis=1, period=theta_period)
             - iota
         )
-        return np.concatenate([mde.ravel(), [anchor_weight * u.ravel()[anchor]]])
+        return np.concatenate([mde.ravel(), [gauge_value(u)]])
 
     def rmatvec(vector: np.ndarray) -> np.ndarray:
         y = np.asarray(vector, dtype=np.float64)
@@ -421,7 +468,10 @@ def _straight_field_line_linear_operator(
             -_periodic_fft_derivative(mde_test, axis=0, period=phi_period)
             - _periodic_fft_derivative(a * mde_test, axis=1, period=theta_period)
         ).ravel()
-        u_adjoint[anchor] += anchor_weight * float(y[n_grid])
+        if gauge == "point":
+            u_adjoint[anchor] += root_n * float(y[n_grid])
+        else:
+            u_adjoint += float(y[n_grid]) / root_n
         return np.concatenate([u_adjoint, [-float(np.sum(mde_test))]])
 
     return LinearOperator(
@@ -437,6 +487,7 @@ def straight_field_line_mde_adjoint_error(
     *,
     phi_period: float = TWOPI,
     theta_period: float = TWOPI,
+    gauge_mode: str = "point",
     seed: int = 1741,
 ) -> float:
     """Numerically audit the exact adjoint used by the matrix-free MDE solve."""
@@ -447,6 +498,7 @@ def straight_field_line_mde_adjoint_error(
         phi_period=float(phi_period),
         theta_period=float(theta_period),
         anchor_flat_index=0,
+        gauge_mode=gauge_mode,
     )
     rng = np.random.default_rng(int(seed))
     x = rng.standard_normal(operator.shape[1])
@@ -545,6 +597,135 @@ def _rms(values: np.ndarray) -> float:
     return float(np.sqrt(np.mean(array * array)))
 
 
+def _project_even_grid_derivative_nullspace(values: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Remove axis-Nyquist modes left null by the real FFT derivatives.
+
+    On an even grid the real skew-adjoint derivative deliberately assigns the
+    unpaired Nyquist coefficient a zero derivative.  In two dimensions this
+    leaves the phi Nyquist, theta Nyquist, and their checkerboard product in
+    the physical MDE nullspace in addition to the constant gauge.  Projecting
+    those three modes explicitly prevents a point gauge or finite Krylov solve
+    from turning a null component into a non-monotone angle map.
+    """
+
+    array = np.asarray(values, dtype=np.float64)
+    if array.ndim != 2:
+        raise ValueError("straight-angle correction must have shape (phi, theta)")
+    n_phi, n_theta = array.shape
+    patterns: list[np.ndarray] = []
+    phi_nyquist: np.ndarray | None = None
+    theta_nyquist: np.ndarray | None = None
+    if n_phi % 2 == 0:
+        phi_nyquist = ((-1.0) ** np.arange(n_phi, dtype=np.float64))[:, None]
+        patterns.append(np.broadcast_to(phi_nyquist, array.shape))
+    if n_theta % 2 == 0:
+        theta_nyquist = ((-1.0) ** np.arange(n_theta, dtype=np.float64))[None, :]
+        patterns.append(np.broadcast_to(theta_nyquist, array.shape))
+    if phi_nyquist is not None and theta_nyquist is not None:
+        patterns.append(np.broadcast_to(phi_nyquist * theta_nyquist, array.shape))
+    removed = np.zeros_like(array)
+    for pattern in patterns:
+        coefficient = float(np.mean((array - removed) * pattern))
+        removed += coefficient * pattern
+    return np.asarray(array - removed, dtype=np.float64), removed
+
+
+def _mapped_theta_forward_gaps(correction: np.ndarray, *, theta_period: float) -> np.ndarray:
+    """Return gaps in the degree-one unwrapped lift ``theta + u``."""
+
+    u = np.asarray(correction, dtype=np.float64)
+    if u.ndim != 2:
+        raise ValueError("straight-angle correction must have shape (phi, theta)")
+    base_gap = float(theta_period) / float(u.shape[1])
+    delta_u = np.roll(u, -1, axis=1) - u
+    return np.asarray(base_gap + delta_u, dtype=np.float64)
+
+
+def _best_fit_iota_residual(
+    theta_slope: np.ndarray,
+    transport_correction: np.ndarray,
+    alpha: float,
+) -> tuple[float, np.ndarray, float, float, float]:
+    """Refit the surface-constant iota and evaluate the physical MDE residual."""
+
+    a = np.asarray(theta_slope, dtype=np.float64)
+    q = a + float(alpha) * np.asarray(transport_correction, dtype=np.float64)
+    iota = float(np.mean(q))
+    residual = np.asarray(q - iota, dtype=np.float64)
+    residual_rms = _rms(residual)
+    relative = residual_rms / max(_rms(a), abs(iota), 1.0e-30)
+    return (
+        iota,
+        residual,
+        residual_rms,
+        float(relative),
+        float(np.max(np.abs(residual))),
+    )
+
+
+def _orientation_preserving_alpha_interval(
+    theta_derivative: np.ndarray,
+    correction: np.ndarray,
+    *,
+    theta_period: float,
+    minimum_jacobian: float,
+    maximum_jacobian: float | None,
+) -> tuple[float, float]:
+    """Return alpha bounds satisfying spectral and discrete orientation gates."""
+
+    derivative = np.asarray(theta_derivative, dtype=np.float64).ravel()
+    lower = 0.0
+    upper = 1.0
+    ceiling = np.inf if maximum_jacobian is None else float(maximum_jacobian)
+    for slope in derivative:
+        value = float(slope)
+        if value > 0.0:
+            lower = max(lower, (float(minimum_jacobian) - 1.0) / value)
+            if np.isfinite(ceiling):
+                upper = min(upper, (ceiling - 1.0) / value)
+        elif value < 0.0:
+            if np.isfinite(ceiling):
+                lower = max(lower, (ceiling - 1.0) / value)
+            upper = min(upper, (float(minimum_jacobian) - 1.0) / value)
+        elif not (float(minimum_jacobian) <= 1.0 <= ceiling):
+            return float("nan"), float("nan")
+
+    u = np.asarray(correction, dtype=np.float64)
+    base_gap = float(theta_period) / float(u.shape[1])
+    delta_u = (np.roll(u, -1, axis=1) - u).ravel()
+    negative = delta_u < 0.0
+    if np.any(negative):
+        # The discrete lift gate is strict.  Move the analytic zero-gap bound
+        # one representable value toward alpha=0.
+        gap_bound = float(np.min(base_gap / -delta_u[negative]))
+        upper = min(upper, float(np.nextafter(gap_bound, 0.0)))
+    lower = max(lower, 0.0)
+    upper = min(upper, 1.0)
+    if not np.isfinite(lower) or not np.isfinite(upper) or lower > upper:
+        return float("nan"), float("nan")
+    return float(lower), float(upper)
+
+
+def _constrained_l2_damping_alpha(
+    theta_slope: np.ndarray,
+    transport_correction: np.ndarray,
+    *,
+    alpha_lower: float,
+    alpha_upper: float,
+) -> float:
+    """Minimise the best-iota MDE L2 residual on a closed alpha interval."""
+
+    a = np.asarray(theta_slope, dtype=np.float64)
+    transport = np.asarray(transport_correction, dtype=np.float64)
+    a_centered = a - float(np.mean(a))
+    transport_centered = transport - float(np.mean(transport))
+    denominator = float(np.vdot(transport_centered, transport_centered).real)
+    if denominator <= np.finfo(np.float64).tiny:
+        return float(alpha_upper)
+    unconstrained = -float(np.vdot(a_centered, transport_centered).real) / denominator
+    return float(np.clip(unconstrained, float(alpha_lower), float(alpha_upper)))
+
+
 def _solve_surface_straight_angle(
     surface_index: int,
     rho_value: float,
@@ -560,7 +741,10 @@ def _solve_surface_straight_angle(
     lsmr_btol: float,
     lsmr_conlim: float,
     lsmr_maxiter: int | None,
+    gauge_mode: str,
+    diffeomorphism_backtracking: bool,
     min_theta_jacobian: float,
+    max_theta_jacobian: float | None,
     max_mde_relative_residual: float | None,
 ) -> tuple[int, np.ndarray, PestSurfaceStraightFieldLineDiagnostic]:
     a = np.asarray(theta_slope, dtype=np.float64)
@@ -569,6 +753,7 @@ def _solve_surface_straight_angle(
         phi_period=phi_period,
         theta_period=theta_period,
         anchor_flat_index=anchor_flat_index,
+        gauge_mode=gauge_mode,
     )
     rhs = np.concatenate([-a.ravel(), [0.0]])
     solution = lsmr(
@@ -579,33 +764,108 @@ def _solve_surface_straight_angle(
         conlim=float(lsmr_conlim),
         maxiter=lsmr_maxiter,
     )
-    u = np.asarray(solution[0][:-1], dtype=np.float64).reshape(a.shape)
-    iota = float(solution[0][-1])
-    # Make the requested phi=0/theta=0 gauge exact.  A constant shift is in the
-    # nullspace of the MDE, so this does not change its residual.
-    u -= float(u.ravel()[int(anchor_flat_index)])
-    residual = (
-        _periodic_fft_derivative(u, axis=0, period=phi_period)
-        + a * _periodic_fft_derivative(u, axis=1, period=theta_period)
-        - iota
-        + a
-    )
+    u_lsmr = np.asarray(solution[0][:-1], dtype=np.float64).reshape(a.shape)
+    lsmr_iota = float(solution[0][-1])
+    u, nullspace_removed = _project_even_grid_derivative_nullspace(u_lsmr)
+    # Make the selected constant gauge exact after removing the additional
+    # even-grid derivative nullspace.  Constant shifts do not change the MDE.
+    if gauge_mode == "mean":
+        u -= float(np.mean(u))
+    else:
+        u -= float(u.ravel()[int(anchor_flat_index)])
+    if not np.all(np.isfinite(u)) or not np.isfinite(lsmr_iota):
+        raise RuntimeError(f"surface {surface_index} straight-angle LSMR returned non-finite values")
+
+    u_phi = _periodic_fft_derivative(u, axis=0, period=phi_period)
+    u_theta = _periodic_fft_derivative(u, axis=1, period=theta_period)
+    transport_correction = u_phi + a * u_theta
+    (
+        raw_best_iota,
+        _raw_best_residual,
+        raw_residual_rms,
+        raw_residual_relative,
+        raw_residual_max,
+    ) = _best_fit_iota_residual(a, transport_correction, 1.0)
+    raw_theta_jacobian = 1.0 + u_theta
+    raw_minimum_jacobian = float(np.min(raw_theta_jacobian))
+    raw_maximum_jacobian = float(np.max(raw_theta_jacobian))
+    raw_minimum_gap = float(np.min(_mapped_theta_forward_gaps(u, theta_period=theta_period)))
+
+    if bool(diffeomorphism_backtracking):
+        alpha_lower, alpha_upper = _orientation_preserving_alpha_interval(
+            u_theta,
+            u,
+            theta_period=theta_period,
+            minimum_jacobian=float(min_theta_jacobian),
+            maximum_jacobian=max_theta_jacobian,
+        )
+        if not np.isfinite(alpha_lower) or not np.isfinite(alpha_upper):
+            raise RuntimeError(
+                f"surface {surface_index} has no alpha in [0,1] satisfying the "
+                "orientation-preserving theta-map constraints"
+            )
+        alpha = _constrained_l2_damping_alpha(
+            a,
+            transport_correction,
+            alpha_lower=alpha_lower,
+            alpha_upper=alpha_upper,
+        )
+        if abs(alpha) <= np.finfo(np.float64).eps:
+            alpha = 0.0
+        correction = float(alpha) * u
+        (
+            iota,
+            residual,
+            residual_rms,
+            residual_relative,
+            residual_max,
+        ) = _best_fit_iota_residual(a, transport_correction, alpha)
+    else:
+        alpha = 1.0
+        correction = u
+        iota = lsmr_iota
+        residual = np.asarray(a + transport_correction - iota, dtype=np.float64)
+        residual_rms = _rms(residual)
+        residual_relative = residual_rms / max(_rms(a), abs(iota), 1.0e-30)
+        residual_max = float(np.max(np.abs(residual)))
+
+    (
+        post_best_iota,
+        _post_best_residual,
+        post_residual_rms,
+        post_residual_relative,
+        post_residual_max,
+    ) = _best_fit_iota_residual(a, transport_correction, alpha)
+    theta_jacobian = 1.0 + float(alpha) * u_theta
     residual_rms = _rms(residual)
     residual_relative = residual_rms / max(_rms(a), abs(iota), 1.0e-30)
-    theta_jacobian = 1.0 + _periodic_fft_derivative(u, axis=1, period=theta_period)
     minimum_jacobian = float(np.min(theta_jacobian))
     maximum_jacobian = float(np.max(theta_jacobian))
-    if not np.all(np.isfinite(u)) or not np.isfinite(iota):
-        raise RuntimeError(f"surface {surface_index} straight-angle LSMR returned non-finite values")
-    if minimum_jacobian <= float(min_theta_jacobian):
+    minimum_gap = float(
+        np.min(_mapped_theta_forward_gaps(correction, theta_period=theta_period))
+    )
+    gate_tolerance = 64.0 * np.finfo(np.float64).eps
+    if minimum_jacobian < float(min_theta_jacobian) - gate_tolerance:
         raise RuntimeError(
             f"surface {surface_index} candidate PEST map is not a permitted diffeomorphism: "
-            f"min dtheta_new/dtheta={minimum_jacobian:.6e} <= {float(min_theta_jacobian):.6e}"
+            f"min dtheta_new/dtheta={minimum_jacobian:.6e} < {float(min_theta_jacobian):.6e}"
+        )
+    if max_theta_jacobian is not None and maximum_jacobian > float(max_theta_jacobian) + gate_tolerance:
+        raise RuntimeError(
+            f"surface {surface_index} candidate PEST map exceeds its Jacobian ceiling: "
+            f"max dtheta_new/dtheta={maximum_jacobian:.6e} > {float(max_theta_jacobian):.6e}"
+        )
+    if not minimum_gap > 0.0:
+        raise RuntimeError(
+            f"surface {surface_index} candidate PEST map is not discretely monotone: "
+            f"minimum unwrapped theta gap={minimum_gap:.6e}"
         )
     if max_mde_relative_residual is not None and residual_relative > float(max_mde_relative_residual):
+        qualifier = "best feasible damped " if bool(diffeomorphism_backtracking) else ""
         raise RuntimeError(
-            f"surface {surface_index} straight-angle MDE residual {residual_relative:.6e} exceeds "
-            f"{float(max_mde_relative_residual):.6e}"
+            f"surface {surface_index} {qualifier}straight-angle MDE residual "
+            f"{residual_relative:.6e} at alpha={alpha:.6e} exceeds "
+            f"{float(max_mde_relative_residual):.6e}; no permitted result is returned"
         )
     abs_radial = np.abs(np.asarray(radial_slope, dtype=np.float64))
     abs_normal = np.abs(np.asarray(normal_leakage, dtype=np.float64))
@@ -615,9 +875,9 @@ def _solve_surface_straight_angle(
         iota=iota,
         mde_residual_rms=residual_rms,
         mde_residual_relative=float(residual_relative),
-        mde_residual_max=float(np.max(np.abs(residual))),
-        theta_correction_rms=_rms(u),
-        theta_correction_max_abs=float(np.max(np.abs(u))),
+        mde_residual_max=residual_max,
+        theta_correction_rms=_rms(correction),
+        theta_correction_max_abs=float(np.max(np.abs(correction))),
         diffeomorphism_min_jacobian=minimum_jacobian,
         diffeomorphism_max_jacobian=maximum_jacobian,
         radial_leakage_rms=_rms(abs_radial),
@@ -630,8 +890,33 @@ def _solve_surface_straight_angle(
         lsmr_istop=int(solution[1]),
         lsmr_iterations=int(solution[2]),
         lsmr_condition_estimate=float(solution[6]),
+        gauge_mode=str(gauge_mode),
+        diffeomorphism_backtracking_enabled=bool(diffeomorphism_backtracking),
+        damped=bool(alpha < 1.0 - gate_tolerance),
+        damping_alpha=float(alpha),
+        lsmr_iota=lsmr_iota,
+        raw_best_fit_iota=raw_best_iota,
+        raw_mde_residual_rms=raw_residual_rms,
+        raw_mde_residual_relative=raw_residual_relative,
+        raw_mde_residual_max=raw_residual_max,
+        raw_diffeomorphism_min_jacobian=raw_minimum_jacobian,
+        raw_diffeomorphism_max_jacobian=raw_maximum_jacobian,
+        post_best_fit_iota=post_best_iota,
+        post_mde_residual_rms=post_residual_rms,
+        post_mde_residual_relative=post_residual_relative,
+        post_mde_residual_max=post_residual_max,
+        post_diffeomorphism_min_jacobian=minimum_jacobian,
+        post_diffeomorphism_max_jacobian=maximum_jacobian,
+        raw_mapped_theta_min_gap=raw_minimum_gap,
+        post_mapped_theta_min_gap=minimum_gap,
+        nullspace_projection="axis_nyquist_and_checkerboard",
+        nullspace_projection_rms=_rms(nullspace_removed),
+        nullspace_projection_max_abs=float(np.max(np.abs(nullspace_removed))),
+        material_coordinate_orientation_preserved=False,
+        material_coordinate_min_relative_jacobian=float("nan"),
+        material_coordinate_max_relative_jacobian=float("nan"),
     )
-    return int(surface_index), u, diagnostic
+    return int(surface_index), correction, diagnostic
 
 
 def reparameterize_pest_on_candidate_field(
@@ -644,6 +929,9 @@ def reparameterize_pest_on_candidate_field(
     min_relative_bphi: float = 1.0e-8,
     min_coordinate_jacobian: float = 1.0e-12,
     min_theta_jacobian: float = 1.0e-3,
+    max_theta_jacobian: float | None = None,
+    gauge_mode: str = "point",
+    diffeomorphism_backtracking: bool = False,
     max_mde_relative_residual: float | None = 1.0e-7,
     lsmr_atol: float = 1.0e-11,
     lsmr_btol: float = 1.0e-11,
@@ -662,10 +950,22 @@ def reparameterize_pest_on_candidate_field(
     ``(d_phi + a d_theta) u - iota = -a``,  ``a = d_theta/d_phi``,
 
     with a matrix-free periodic Fourier discretisation and an exact discrete
-    adjoint in LSMR.  The returned geometry is only re-sampled at uniform
-    ``theta_new = theta + u``.  No magnetic-field healing, surface displacement,
-    or radial projection is performed; measured radial leakage is retained as
-    evidence.
+    adjoint in LSMR.  With ``diffeomorphism_backtracking=True``, the raw LSMR
+    correction is scaled independently on each surface by the constrained-L2
+    optimal ``alpha`` in ``[0, 1]``.  Iota is refit as the best surface constant
+    at that alpha, while spectral Jacobian bounds and strictly positive gaps in
+    the discrete degree-one theta lift are enforced.  This is explicitly an
+    orientation-preserving approximate PEST fit: the collocated product
+    ``a*d_theta(u)`` is not dealiased.
+
+    ``gauge_mode="point"`` preserves the historical default.  The explicit
+    ``"mean"`` mode avoids driving grid-scale content with a point constraint;
+    even-grid axis-Nyquist/checkerboard derivative null modes are projected out
+    for both gauges.  The returned geometry is only re-sampled at uniform
+    ``theta_new = theta + alpha*u``.  No magnetic-field healing, surface
+    displacement, or radial projection is performed; measured radial leakage
+    is retained as evidence.  Before return, the full selected ``(rho, theta*)``
+    material-coordinate Jacobian must retain its orientation and lower bound.
 
     The default selects every surface.  Use ``surface_indices`` to exclude a
     coordinate-singular magnetic axis or to build plotting surfaces only.
@@ -696,6 +996,11 @@ def reparameterize_pest_on_candidate_field(
     selected = _normalise_surface_indices(surface_indices, n_rho)
     if int(workers) < 1:
         raise ValueError("workers must be at least one")
+    gauge = str(gauge_mode).strip().lower()
+    if gauge not in {"point", "mean"}:
+        raise ValueError("gauge_mode must be 'point' or 'mean'")
+    if not isinstance(diffeomorphism_backtracking, (bool, np.bool_)):
+        raise TypeError("diffeomorphism_backtracking must be boolean")
     for name, value in {
         "min_abs_bphi": min_abs_bphi,
         "min_relative_bphi": min_relative_bphi,
@@ -711,6 +1016,11 @@ def reparameterize_pest_on_candidate_field(
         not np.isfinite(max_mde_relative_residual) or float(max_mde_relative_residual) <= 0.0
     ):
         raise ValueError("max_mde_relative_residual must be finite and positive or None")
+    if max_theta_jacobian is not None:
+        if not np.isfinite(max_theta_jacobian) or float(max_theta_jacobian) <= 0.0:
+            raise ValueError("max_theta_jacobian must be finite and positive or None")
+        if float(max_theta_jacobian) < float(min_theta_jacobian):
+            raise ValueError("max_theta_jacobian must be at least min_theta_jacobian")
     if lsmr_maxiter is not None and int(lsmr_maxiter) < 1:
         raise ValueError("lsmr_maxiter must be positive or None")
 
@@ -816,7 +1126,10 @@ def reparameterize_pest_on_candidate_field(
             lsmr_btol=float(lsmr_btol),
             lsmr_conlim=float(lsmr_conlim),
             lsmr_maxiter=None if lsmr_maxiter is None else int(lsmr_maxiter),
+            gauge_mode=gauge,
+            diffeomorphism_backtracking=bool(diffeomorphism_backtracking),
             min_theta_jacobian=float(min_theta_jacobian),
+            max_theta_jacobian=None if max_theta_jacobian is None else float(max_theta_jacobian),
             max_mde_relative_residual=max_mde_relative_residual,
         )
 
@@ -834,12 +1147,82 @@ def reparameterize_pest_on_candidate_field(
         ir = int(surface_index)
         theta_correction[:, ir, :] = correction
         diagnostics.append(diagnostic)
-        for iphi in range(n_phi):
-            mapped_theta = theta_values + correction[iphi]
-            R_new[iphi, ir] = stitch_periodic(mapped_theta, R[iphi, ir], theta_values)
-            Z_new[iphi, ir] = stitch_periodic(mapped_theta, Z[iphi, ir], theta_values)
+        if np.any(correction != 0.0):
+            for iphi in range(n_phi):
+                mapped_theta = theta_values + correction[iphi]
+                R_new[iphi, ir] = stitch_periodic(mapped_theta, R[iphi, ir], theta_values)
+                Z_new[iphi, ir] = stitch_periodic(mapped_theta, Z[iphi, ir], theta_values)
         if not np.all(np.isfinite(R_new[:, ir, :])) or not np.all(np.isfinite(Z_new[:, ir, :])):
             raise RuntimeError(f"surface {ir} periodic theta re-sampling produced non-finite geometry")
+
+    # A positive theta-map Jacobian on every individual surface is necessary
+    # but not sufficient: independently damped alpha(rho) can still fold the
+    # interpolated (rho, theta*) material-coordinate mesh.  Recompute the full
+    # RZ Jacobian after re-sampling and fail closed on an orientation flip or a
+    # relative determinant below the same coordinate floor used on input.
+    R_new_rho = np.gradient(R_new, rho_values, axis=1, edge_order=2 if n_rho >= 3 else 1)
+    Z_new_rho = np.gradient(Z_new, rho_values, axis=1, edge_order=2 if n_rho >= 3 else 1)
+    R_new_theta = _periodic_fft_derivative(R_new, axis=2, period=TWOPI)
+    Z_new_theta = _periodic_fft_derivative(Z_new, axis=2, period=TWOPI)
+    base_coordinate_determinant = R_rho * Z_theta - R_theta * Z_rho
+    rebuilt_coordinate_determinant = (
+        R_new_rho * Z_new_theta - R_new_theta * Z_new_rho
+    )
+    rebuilt_determinant_scale = np.sqrt(
+        (R_new_rho**2 + Z_new_rho**2)
+        * (R_new_theta**2 + Z_new_theta**2)
+    )
+    rebuilt_relative_determinant = np.abs(rebuilt_coordinate_determinant) / np.maximum(
+        rebuilt_determinant_scale,
+        1.0e-300,
+    )
+    diagnostics_by_surface = {item.surface_index: item for item in diagnostics}
+    for surface_index in selected:
+        ir = int(surface_index)
+        orientation_product = (
+            base_coordinate_determinant[:, ir, :]
+            * rebuilt_coordinate_determinant[:, ir, :]
+        )
+        relative = rebuilt_relative_determinant[:, ir, :]
+        orientation_preserved = bool(
+            np.all(np.isfinite(orientation_product))
+            and np.all(orientation_product > 0.0)
+        )
+        minimum_relative = float(np.nanmin(relative))
+        maximum_relative = float(np.nanmax(relative))
+        if not orientation_preserved:
+            raise RuntimeError(
+                f"surface {ir} reparameterized (rho,theta*) material coordinates "
+                "reverse orientation"
+            )
+        if not np.all(np.isfinite(relative)) or minimum_relative <= float(min_coordinate_jacobian):
+            raise RuntimeError(
+                f"surface {ir} reparameterized (rho,theta*) material coordinates are singular: "
+                f"min relative RZ Jacobian={minimum_relative:.6e} <= "
+                f"{float(min_coordinate_jacobian):.6e}"
+            )
+        diagnostics_by_surface[ir] = replace(
+            diagnostics_by_surface[ir],
+            material_coordinate_orientation_preserved=True,
+            material_coordinate_min_relative_jacobian=minimum_relative,
+            material_coordinate_max_relative_jacobian=maximum_relative,
+        )
+    diagnostics = [diagnostics_by_surface[int(ir)] for ir in selected]
+
+    alpha_rows = sorted(
+        (
+            int(item.surface_index),
+            float(item.rho),
+            float(item.damping_alpha),
+        )
+        for item in diagnostics
+    )
+    alpha_values = np.asarray([row[2] for row in alpha_rows], dtype=np.float64)
+    alpha_differences = np.diff(alpha_values)
+    alpha_max_adjacent_jump = (
+        float(np.max(np.abs(alpha_differences))) if alpha_differences.size else 0.0
+    )
+    alpha_radial_roughness_rms = _rms(alpha_differences) if alpha_differences.size else 0.0
 
     original_source = getattr(base_coordinates, "source", None)
     source = (
@@ -860,9 +1243,12 @@ def reparameterize_pest_on_candidate_field(
     )
     metadata = {
         "schema": "pyna_candidate_field_pest_reparameterization_v1",
+        "classification": "orientation_preserving_approximate_candidate_field_PEST_fit",
         "construction": "fixed_material_surfaces_candidate_field_straight_angle",
         "field_modified": False,
         "surface_geometry_modified": False,
+        "material_surface_locus_modified": False,
+        "coordinate_parameterization_modified": bool(np.any(theta_correction != 0.0)),
         "healing_used": False,
         "surface_layout": "phi_rho_theta",
         "nfp": int(getattr(base_coordinates, "nfp", 1)),
@@ -870,7 +1256,35 @@ def reparameterize_pest_on_candidate_field(
         "base_source": original_source,
         "workers": int(workers),
         "mde_discretization": "periodic_Fourier_matrix_free_LSMR_exact_adjoint",
-        "theta_gauge": "u(phi_nearest_0,theta_nearest_0)=0",
+        "mde_nonlinear_product_dealiased": False,
+        "approximation_note": (
+            "orientation-preserving damped fit; collocated a*dtheta(u) is not dealiased"
+        ),
+        "theta_gauge_mode": gauge,
+        "theta_gauge": (
+            "surface_mean(u)=0"
+            if gauge == "mean"
+            else "u(phi_nearest_0,theta_nearest_0)=0"
+        ),
+        "derivative_nullspace_projection": "axis_nyquist_and_checkerboard",
+        "diffeomorphism_backtracking_enabled": bool(diffeomorphism_backtracking),
+        "damping_policy": "per_surface_constrained_L2_with_best_constant_iota",
+        "min_theta_jacobian": float(min_theta_jacobian),
+        "max_theta_jacobian": (
+            None if max_theta_jacobian is None else float(max_theta_jacobian)
+        ),
+        "discrete_mapped_theta_gap_required_positive": True,
+        "material_coordinate_orientation_preserved": True,
+        "material_coordinate_min_relative_jacobian": float(
+            min(item.material_coordinate_min_relative_jacobian for item in diagnostics)
+        ),
+        "material_coordinate_checked_surface_indices": [int(i) for i in selected],
+        "damping_alpha_by_surface": [
+            {"surface_index": row[0], "rho": row[1], "alpha": row[2]}
+            for row in alpha_rows
+        ],
+        "damping_alpha_max_adjacent_jump": alpha_max_adjacent_jump,
+        "damping_alpha_radial_roughness_rms": alpha_radial_roughness_rms,
     }
     return CandidateFieldPestReparameterization(
         coordinates=rebuilt,
