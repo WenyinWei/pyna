@@ -144,6 +144,26 @@ def test_trace_j_streamlines_can_continue_an_identity_bound_seed_subset():
     assert selected.metadata["integration_step_arclength"] == pytest.approx(
         full.metadata["integration_step_arclength"]
     )
+    assert selected.metadata["surface_arclength_per_turn_role"] == (
+        "global_integration_step_scale_only"
+    )
+    assert selected.metadata["surface_perimeter_normalization"] == (
+        "physical_RZ_perimeter_of_each_seed_surface_at_its_seed_phi"
+    )
+    perimeters = np.asarray(
+        selected.metadata["surface_perimeter_m_by_full_seed_line"]
+    )
+    assert perimeters.shape == (full.n_lines,)
+    polygon_scale = 2.0 * 16.0 * np.sin(np.pi / 16.0)
+    np.testing.assert_allclose(
+        perimeters,
+        polygon_scale * full.seed_rho,
+        rtol=2.0e-14,
+        atol=0.0,
+    )
+    assert selected.metadata["surface_arclength_per_turn"] == pytest.approx(
+        np.median(perimeters)
+    )
     for name in (
         "seed_R",
         "seed_Z",

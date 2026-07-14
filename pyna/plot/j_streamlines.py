@@ -1749,23 +1749,68 @@ def _prepare_pest_seed_plan(
     )
 
 
-def _median_seed_surface_perimeter(coords: SmoothPestCoordinates, seeds: Mapping[str, np.ndarray]) -> float:
-    values: list[float] = []
-    for iphi, irho in sorted({(int(ip), int(ir)) for ip, ir in zip(seeds["phi_index"], seeds["surface_index"])}):
-        R = np.asarray(coords.R_surf[iphi % coords.R_surf.shape[0], irho % coords.R_surf.shape[1]], dtype=np.float64)
-        Z = np.asarray(coords.Z_surf[iphi % coords.Z_surf.shape[0], irho % coords.Z_surf.shape[1]], dtype=np.float64)
-        finite = np.isfinite(R) & np.isfinite(Z)
-        if np.count_nonzero(finite) < 4:
-            continue
-        Rf = R[finite]
-        Zf = Z[finite]
-        step = np.sqrt(np.diff(np.r_[Rf, Rf[0]]) ** 2 + np.diff(np.r_[Zf, Zf[0]]) ** 2)
-        perimeter = float(np.nansum(step))
-        if np.isfinite(perimeter) and perimeter > 0.0:
-            values.append(perimeter)
-    if values:
-        return float(np.nanmedian(values))
-    return float(TWOPI * max(np.nanmedian(seeds["R"]), 1.0e-12))
+def _seed_surface_perimeters(
+    coords: SmoothPestCoordinates,
+    seeds: Mapping[str, np.ndarray],
+) -> np.ndarray:
+    """Return the physical seed-section perimeter for every seed row.
+
+    The integration step intentionally uses one robust median length, but a
+    seed-section return must be normalized by the perimeter of that seed's own
+    surface.  Keep the row-resolved values so downstream closure audits do not
+    silently substitute the global integration scale for the local geometry.
+    """
+
+    seed_phi = np.asarray(seeds["phi"], dtype=np.float64)
+    seed_surface = np.asarray(seeds["surface_index"], dtype=np.int64)
+    seed_R = np.asarray(seeds["R"], dtype=np.float64)
+    if not (
+        seed_phi.ndim == seed_surface.ndim == seed_R.ndim == 1
+        and seed_phi.size == seed_surface.size == seed_R.size
+    ):
+        raise ValueError("seed arrays must be aligned one-dimensional rows")
+
+    result = np.full(seed_phi.shape, np.nan, dtype=np.float64)
+    theta = np.asarray(coords.theta_vals, dtype=np.float64)
+    phi0 = float(coords.phi_vals[0]) if np.asarray(coords.phi_vals).size else 0.0
+    phi_period = float(getattr(coords, "period", TWOPI) or TWOPI)
+    cache: dict[tuple[int, float], float] = {}
+    for row, (phi_value, surface_index) in enumerate(
+        zip(seed_phi, seed_surface, strict=True)
+    ):
+        key = (int(surface_index), float(phi_value))
+        perimeter = cache.get(key)
+        if perimeter is None:
+            irho = int(surface_index) % coords.R_surf.shape[1]
+            R_ring = _surface_ring_at_phi(
+                np.asarray(coords.R_surf[:, irho, :], dtype=np.float64),
+                float(phi_value),
+                phi0=phi0,
+                phi_period=phi_period,
+            )
+            Z_ring = _surface_ring_at_phi(
+                np.asarray(coords.Z_surf[:, irho, :], dtype=np.float64),
+                float(phi_value),
+                phi0=phi0,
+                phi_period=phi_period,
+            )
+            finite = np.isfinite(R_ring) & np.isfinite(Z_ring) & np.isfinite(theta)
+            if np.count_nonzero(finite) >= 4 and np.all(finite):
+                step = np.hypot(
+                    np.diff(np.r_[R_ring, R_ring[0]]),
+                    np.diff(np.r_[Z_ring, Z_ring[0]]),
+                )
+                perimeter = float(np.sum(step))
+            else:
+                perimeter = np.nan
+            if not np.isfinite(perimeter) or perimeter <= 0.0:
+                raise ValueError(
+                    "cannot compute a finite positive perimeter for seed "
+                    f"row {row} on surface {int(surface_index)}"
+                )
+            cache[key] = perimeter
+        result[row] = perimeter
+    return result
 
 
 def _trace_j_streamlines_on_pest_serial(
@@ -1874,9 +1919,9 @@ def _trace_j_streamlines_on_pest_serial(
     full_seed_count = seed_plan.full_seed_count
     selected_seed_indices = seed_plan.selected_seed_indices
     seeds = seed_plan.seeds
-    surface_arclength_per_turn = _median_seed_surface_perimeter(
-        coords,
-        full_seeds,
+    full_seed_surface_perimeter_m = _seed_surface_perimeters(coords, full_seeds)
+    surface_arclength_per_turn = float(
+        np.median(full_seed_surface_perimeter_m)
     )
 
     seed_R = seeds["R"]
@@ -2070,6 +2115,13 @@ def _trace_j_streamlines_on_pest_serial(
         "seed_line_indices": [int(value) for value in selected_seed_indices],
         "n_points": int(n_points),
         "surface_arclength_per_turn": float(surface_arclength_per_turn),
+        "surface_arclength_per_turn_role": "global_integration_step_scale_only",
+        "surface_perimeter_m_by_full_seed_line": [
+            float(value) for value in full_seed_surface_perimeter_m
+        ],
+        "surface_perimeter_normalization": (
+            "physical_RZ_perimeter_of_each_seed_surface_at_its_seed_phi"
+        ),
         "integration_step_arclength": float(abs(h_base)),
         "max_surface_distance": None if max_surface_distance is None else float(max_surface_distance),
         "snap_cartesian_to_surface": bool(snap_cartesian_to_surface) if not constrain_to_surface else False,
