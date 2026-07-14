@@ -22,10 +22,41 @@ class SmoothPestCoordinates:
     axis_R: Optional[np.ndarray] = None
     axis_Z: Optional[np.ndarray] = None
     source: Optional[str] = None
+    nfp: int = 1
+    toroidal_period: Optional[float] = None
+
+    def __post_init__(self) -> None:
+        periods = int(self.nfp)
+        if periods <= 0:
+            raise ValueError("nfp must be positive")
+        object.__setattr__(self, "nfp", periods)
+        if self.toroidal_period is not None:
+            domain_period = float(self.toroidal_period)
+            if not np.isfinite(domain_period) or domain_period <= 0.0:
+                raise ValueError("toroidal_period must be positive and finite")
+            object.__setattr__(self, "toroidal_period", domain_period)
 
     @property
     def period(self) -> float:
-        return 2.0 * np.pi
+        """Period of the stored toroidal mesh, not necessarily the full torus."""
+
+        return 2.0 * np.pi if self.toroidal_period is None else float(self.toroidal_period)
+
+    @property
+    def field_period_rad(self) -> float:
+        """Physical stellarator field-period angle ``2*pi/nfp``."""
+
+        return 2.0 * np.pi / float(self.nfp)
+
+    @property
+    def field_periods(self) -> int:
+        """Alias matching :class:`pyna.fields.VectorFieldCylind`."""
+
+        return int(self.nfp)
+
+    @property
+    def stores_one_field_period(self) -> bool:
+        return bool(np.isclose(self.period, self.field_period_rad, rtol=1.0e-12, atol=1.0e-14))
 
 
 @dataclass(frozen=True)
@@ -83,17 +114,31 @@ def load_smooth_pest_coordinates(path: Union[str, Path]) -> SmoothPestCoordinate
     """Load a ``*_pest_coordinates_smooth.npz`` surface-coordinate bundle."""
 
     path = Path(path)
-    data = np.load(path, allow_pickle=True)
-    return SmoothPestCoordinates(
-        R_surf=np.asarray(data["R_surf"], dtype=np.float64),
-        Z_surf=np.asarray(data["Z_surf"], dtype=np.float64),
-        rho_vals=np.asarray(data["rho_vals"], dtype=np.float64),
-        theta_vals=np.asarray(data["theta_vals"], dtype=np.float64),
-        phi_vals=np.asarray(data["phi_vals"], dtype=np.float64),
-        axis_R=np.asarray(data["axis_R"], dtype=np.float64) if "axis_R" in data.files else None,
-        axis_Z=np.asarray(data["axis_Z"], dtype=np.float64) if "axis_Z" in data.files else None,
-        source=str(path),
-    )
+    with np.load(path, allow_pickle=True) as data:
+        if "nfp" in data.files:
+            nfp_value = data["nfp"]
+        elif "field_periods" in data.files:
+            nfp_value = data["field_periods"]
+        else:
+            nfp_value = 1
+        nfp = int(np.asarray(nfp_value).item())
+        period_value = None
+        for key in ("toroidal_period", "phi_period", "period"):
+            if key in data.files:
+                period_value = float(np.asarray(data[key]).item())
+                break
+        return SmoothPestCoordinates(
+            R_surf=np.asarray(data["R_surf"], dtype=np.float64),
+            Z_surf=np.asarray(data["Z_surf"], dtype=np.float64),
+            rho_vals=np.asarray(data["rho_vals"], dtype=np.float64),
+            theta_vals=np.asarray(data["theta_vals"], dtype=np.float64),
+            phi_vals=np.asarray(data["phi_vals"], dtype=np.float64),
+            axis_R=np.asarray(data["axis_R"], dtype=np.float64) if "axis_R" in data.files else None,
+            axis_Z=np.asarray(data["axis_Z"], dtype=np.float64) if "axis_Z" in data.files else None,
+            source=str(path),
+            nfp=nfp,
+            toroidal_period=period_value,
+        )
 
 
 def periodic_phi_slice(values: np.ndarray, phi: float, *, period: float = 2.0 * np.pi) -> np.ndarray:
@@ -115,7 +160,7 @@ def smooth_pest_derivatives(coords: SmoothPestCoordinates) -> tuple[np.ndarray, 
     Z = np.asarray(coords.Z_surf, dtype=np.float64)
     rho = np.asarray(coords.rho_vals, dtype=np.float64)
     theta_step = 2.0 * np.pi / R.shape[2]
-    phi_step = 2.0 * np.pi / R.shape[0]
+    phi_step = float(coords.period) / R.shape[0]
     dR_drho = np.gradient(R, rho, axis=1, edge_order=2)
     dZ_drho = np.gradient(Z, rho, axis=1, edge_order=2)
     dR_dtheta = (np.roll(R, -1, axis=2) - np.roll(R, 1, axis=2)) / (2.0 * theta_step)

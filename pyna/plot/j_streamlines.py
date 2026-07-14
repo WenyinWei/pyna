@@ -163,7 +163,7 @@ class GriddedPestVectorField:
         Jz: np.ndarray | None = None,
         Jtheta: np.ndarray | None = None,
         Jphi: np.ndarray | None = None,
-        nfp: int = 1,
+        nfp: int | None = None,
         source: str | None = None,
     ) -> "GriddedPestVectorField":
         coords = _as_pest_coordinates(pest)
@@ -178,7 +178,7 @@ class GriddedPestVectorField:
             Jphi=None if Jphi is None else np.asarray(Jphi, dtype=np.float64),
             phi_vals=np.asarray(coords.phi_vals, dtype=np.float64),
             theta_vals=np.asarray(coords.theta_vals, dtype=np.float64),
-            nfp=int(nfp),
+            nfp=int(getattr(coords, "nfp", 1) if nfp is None else nfp),
             phi_period=float(getattr(coords, "period", TWOPI) or TWOPI),
             source=source,
         )
@@ -671,6 +671,8 @@ def _pest_from_mapping(pest: Mapping[str, object], *, source: str | None = None)
     axis_R = pest.get("axis_R", pest.get("R_AX"))
     axis_Z = pest.get("axis_Z", pest.get("Z_AX"))
     src = source if source is not None else str(pest.get("source", "")) or None
+    nfp_value = pest.get("nfp", pest.get("field_periods", 1))
+    period_value = pest.get("toroidal_period", pest.get("phi_period", pest.get("period")))
     return SmoothPestCoordinates(
         R_surf=np.asarray(pest["R_surf"], dtype=np.float64),
         Z_surf=np.asarray(pest["Z_surf"], dtype=np.float64),
@@ -680,6 +682,8 @@ def _pest_from_mapping(pest: Mapping[str, object], *, source: str | None = None)
         axis_R=np.asarray(axis_R, dtype=np.float64) if axis_R is not None else None,
         axis_Z=np.asarray(axis_Z, dtype=np.float64) if axis_Z is not None else None,
         source=src,
+        nfp=int(np.asarray(nfp_value).item()),
+        toroidal_period=None if period_value is None else float(np.asarray(period_value).item()),
     )
 
 

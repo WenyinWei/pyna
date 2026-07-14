@@ -15,9 +15,246 @@ References:
 """
 
 import warnings
+from dataclasses import dataclass, field
+from typing import Any, Mapping
 import numpy as np
 import scipy.interpolate as interp
 from scipy.interpolate import interpn, RegularGridInterpolator
+from scipy.spatial import cKDTree
+
+
+@dataclass(frozen=True)
+class PestCoordinateProjection:
+    """Inverse projection of cylindrical points onto a sampled 3-D PEST mesh."""
+
+    rho: np.ndarray
+    theta: np.ndarray
+    phi: np.ndarray
+    residual_distance: np.ndarray
+    valid: np.ndarray
+    nearest_radial_index: np.ndarray
+    nearest_theta_index: np.ndarray
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+
+    def as_summary_dict(self) -> dict[str, Any]:
+        finite = np.asarray(self.residual_distance)[np.asarray(self.valid)]
+        return {
+            "schema": "pyna_pest_coordinate_projection_v1",
+            "shape": list(np.asarray(self.rho).shape),
+            "valid_count": int(np.count_nonzero(self.valid)),
+            "valid_fraction": float(np.mean(self.valid)),
+            "residual_distance_median": (
+                float(np.median(finite)) if finite.size else None
+            ),
+            "residual_distance_p95": (
+                float(np.percentile(finite, 95.0)) if finite.size else None
+            ),
+            "residual_distance_max": (
+                float(np.max(finite)) if finite.size else None
+            ),
+            "metadata": dict(self.metadata),
+        }
+
+
+def project_cylindrical_points_to_pest(
+    pest,
+    R,
+    Z,
+    phi,
+    *,
+    max_distance: float | None = None,
+    local_refinement: bool = True,
+    workers: int = -1,
+) -> PestCoordinateProjection:
+    """Map cylindrical points to ``(rho, theta*, phi)`` on sampled PEST surfaces.
+
+    ``pest`` must expose the :class:`SmoothPestCoordinates` layout
+    ``(phi, rho, theta)``.  Each toroidal section is inverted jointly in
+    ``(R,Z)`` using a nearest PEST node followed by one local Jacobian step.
+    The returned residual is a physical distance in the same units as ``R``
+    and ``Z``; callers should set ``max_distance`` for production gating.
+    """
+
+    R_surface = np.asarray(pest.R_surf, dtype=np.float64)
+    Z_surface = np.asarray(pest.Z_surf, dtype=np.float64)
+    rho_values = np.asarray(pest.rho_vals, dtype=np.float64)
+    theta_values = np.asarray(pest.theta_vals, dtype=np.float64)
+    phi_values = np.asarray(pest.phi_vals, dtype=np.float64)
+    if R_surface.shape != Z_surface.shape or R_surface.ndim != 3:
+        raise ValueError("PEST surfaces must have shape (phi, rho, theta)")
+    if R_surface.shape != (
+        phi_values.size,
+        rho_values.size,
+        theta_values.size,
+    ):
+        raise ValueError("PEST surface arrays do not match their coordinate axes")
+    if rho_values.size < 3 or np.any(np.diff(rho_values) <= 0.0):
+        raise ValueError("PEST rho values must contain at least three increasing values")
+    if theta_values.size < 4:
+        raise ValueError("PEST theta grid must contain at least four points")
+    theta_step = 2.0 * np.pi / theta_values.size
+    if not np.allclose(
+        np.mod(theta_values - theta_values[0], 2.0 * np.pi),
+        np.arange(theta_values.size) * theta_step,
+        rtol=0.0,
+        atol=1.0e-10,
+    ):
+        raise ValueError("PEST theta grid must be uniform and endpoint-excluded")
+    if max_distance is not None and (
+        not np.isfinite(max_distance) or float(max_distance) <= 0.0
+    ):
+        raise ValueError("max_distance must be finite and positive")
+
+    R_points, Z_points, phi_points = np.broadcast_arrays(
+        np.asarray(R, dtype=np.float64),
+        np.asarray(Z, dtype=np.float64),
+        np.asarray(phi, dtype=np.float64),
+    )
+    shape = R_points.shape
+    flat_R = R_points.ravel()
+    flat_Z = Z_points.ravel()
+    flat_phi = phi_points.ravel()
+    mapped_rho = np.full(flat_R.shape, np.nan, dtype=np.float64)
+    mapped_theta = np.full(flat_R.shape, np.nan, dtype=np.float64)
+    residual = np.full(flat_R.shape, np.nan, dtype=np.float64)
+    nearest_rho = np.full(flat_R.shape, -1, dtype=np.int64)
+    nearest_theta = np.full(flat_R.shape, -1, dtype=np.int64)
+    full_period = float(getattr(pest, "period", 2.0 * np.pi) or 2.0 * np.pi)
+    rho_step = float(np.median(np.diff(rho_values)))
+
+    def periodic_slice(values: np.ndarray, angle: float) -> np.ndarray:
+        u = np.mod(float(angle), full_period) * values.shape[0] / full_period
+        i0 = int(np.floor(u)) % values.shape[0]
+        fraction = u - np.floor(u)
+        return (
+            (1.0 - fraction) * values[i0]
+            + fraction * values[(i0 + 1) % values.shape[0]]
+        )
+
+    finite_input = np.isfinite(flat_R) & np.isfinite(flat_Z) & np.isfinite(flat_phi)
+    for angle in np.unique(flat_phi[finite_input]):
+        selected = finite_input & np.isclose(
+            flat_phi, angle, rtol=0.0, atol=1.0e-14
+        )
+        R_section = periodic_slice(R_surface, float(angle))
+        Z_section = periodic_slice(Z_surface, float(angle))
+        query = np.column_stack([flat_R[selected], flat_Z[selected]])
+        tree = cKDTree(
+            np.column_stack([R_section.ravel(), Z_section.ravel()])
+        )
+        _distance0, nearest = tree.query(query, k=1, workers=int(workers))
+        irho = nearest // theta_values.size
+        itheta = nearest % theta_values.size
+        rho_current = rho_values[irho].copy()
+        theta_current = theta_values[itheta].copy()
+
+        def interpolator(values: np.ndarray) -> RegularGridInterpolator:
+            extended = np.concatenate([values, values[:, :1]], axis=1)
+            theta_extended = np.concatenate(
+                [theta_values, [theta_values[0] + 2.0 * np.pi]]
+            )
+            return RegularGridInterpolator(
+                (rho_values, theta_extended),
+                extended,
+                bounds_error=False,
+                fill_value=None,
+            )
+
+        R_interp = interpolator(R_section)
+        Z_interp = interpolator(Z_section)
+        if local_refinement:
+            R_rho = np.gradient(
+                R_section, rho_values, axis=0, edge_order=2
+            )
+            Z_rho = np.gradient(
+                Z_section, rho_values, axis=0, edge_order=2
+            )
+            R_theta = (
+                np.roll(R_section, -1, axis=1)
+                - np.roll(R_section, 1, axis=1)
+            ) / (2.0 * theta_step)
+            Z_theta = (
+                np.roll(Z_section, -1, axis=1)
+                - np.roll(Z_section, 1, axis=1)
+            ) / (2.0 * theta_step)
+            R_rho_interp = interpolator(R_rho)
+            Z_rho_interp = interpolator(Z_rho)
+            R_theta_interp = interpolator(R_theta)
+            Z_theta_interp = interpolator(Z_theta)
+            for _ in range(5):
+                coordinates = np.column_stack(
+                    [rho_current, np.mod(theta_current, 2.0 * np.pi)]
+                )
+                R_at = R_interp(coordinates)
+                Z_at = Z_interp(coordinates)
+                Rr = R_rho_interp(coordinates)
+                Zr = Z_rho_interp(coordinates)
+                Rt = R_theta_interp(coordinates)
+                Zt = Z_theta_interp(coordinates)
+                delta_R = query[:, 0] - R_at
+                delta_Z = query[:, 1] - Z_at
+                determinant = Rr * Zt - Rt * Zr
+                delta_rho = np.divide(
+                    delta_R * Zt - delta_Z * Rt,
+                    determinant,
+                    out=np.zeros_like(delta_R),
+                    where=np.abs(determinant) > 1.0e-12,
+                )
+                delta_theta = np.divide(
+                    Rr * delta_Z - Zr * delta_R,
+                    determinant,
+                    out=np.zeros_like(delta_R),
+                    where=np.abs(determinant) > 1.0e-12,
+                )
+                rho_current = np.clip(
+                    rho_current + np.clip(delta_rho, -rho_step, rho_step),
+                    rho_values[0],
+                    rho_values[-1],
+                )
+                theta_current = np.mod(
+                    theta_current
+                    + np.clip(delta_theta, -theta_step, theta_step),
+                    2.0 * np.pi,
+                )
+        coordinates = np.column_stack([rho_current, theta_current])
+        reconstructed_R = R_interp(coordinates)
+        reconstructed_Z = Z_interp(coordinates)
+        section_residual = np.hypot(
+            query[:, 0] - reconstructed_R,
+            query[:, 1] - reconstructed_Z,
+        )
+        target = np.flatnonzero(selected)
+        mapped_rho[target] = rho_current
+        mapped_theta[target] = theta_current
+        residual[target] = section_residual
+        nearest_rho[target] = irho
+        nearest_theta[target] = itheta
+
+    valid = (
+        finite_input
+        & np.isfinite(mapped_rho)
+        & (mapped_rho >= rho_values[0])
+        & (mapped_rho <= rho_values[-1])
+    )
+    if max_distance is not None:
+        valid &= residual <= float(max_distance)
+    metadata = {
+        "method": "section_KD_tree_plus_local_PEST_Jacobian",
+        "surface_layout": "phi_rho_theta",
+        "local_refinement": bool(local_refinement),
+        "max_distance": None if max_distance is None else float(max_distance),
+        "source": getattr(pest, "source", None),
+    }
+    return PestCoordinateProjection(
+        rho=mapped_rho.reshape(shape),
+        theta=mapped_theta.reshape(shape),
+        phi=np.mod(phi_points, full_period),
+        residual_distance=residual.reshape(shape),
+        valid=valid.reshape(shape),
+        nearest_radial_index=nearest_rho.reshape(shape),
+        nearest_theta_index=nearest_theta.reshape(shape),
+        metadata=metadata,
+    )
 
 
 # ---------------------------------------------------------------------------
