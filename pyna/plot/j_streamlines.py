@@ -1672,6 +1672,36 @@ def trace_j_streamlines_on_pest(
 
     coords = _as_pest_coordinates(pest)
     _validate_pest(coords)
+    field_eval = _as_vector_field_evaluator(field)
+    coords_nfp = int(coords.nfp)
+    field_nfp = int(field_eval.nfp)
+    if coords_nfp != field_nfp:
+        raise ValueError(
+            "PEST/current field-period mismatch: "
+            f"coords.nfp={coords_nfp}, field.nfp={field_nfp}"
+        )
+    expected_period = TWOPI / float(coords_nfp)
+    if not coords.stores_one_field_period or not np.isclose(
+        coords.period,
+        expected_period,
+        rtol=1.0e-12,
+        atol=1.0e-14,
+    ):
+        raise ValueError(
+            "PEST coordinates must explicitly store one field period: "
+            f"coords.period={coords.period}, expected 2*pi/nfp={expected_period}"
+        )
+    if not np.isclose(
+        field_eval.field_period_rad,
+        expected_period,
+        rtol=1.0e-12,
+        atol=1.0e-14,
+    ):
+        raise ValueError(
+            "current field has inconsistent nfp and field_period_rad: "
+            f"nfp={field_nfp}, field_period_rad={field_eval.field_period_rad}, "
+            f"expected={expected_period}"
+        )
     n_phi, n_rho, _n_theta = coords.R_surf.shape
     phi_period = float(getattr(coords, "period", TWOPI) or TWOPI)
     phi_range_norm = _normalize_phi_range(phi_range, period=phi_period)
@@ -1719,7 +1749,6 @@ def trace_j_streamlines_on_pest(
     seed_Z = seeds["Z"]
     seed_phi = seeds["phi"]
     n_seed = seed_R.size
-    field_eval = _as_vector_field_evaluator(field)
     n_steps = max(int(round(float(n_turns) * max(int(steps_per_turn), 1))), 1)
     n_points = 2 * n_steps + 1 if bidirectional else n_steps + 1
     surface_arclength_per_turn = _median_seed_surface_perimeter(coords, seeds)

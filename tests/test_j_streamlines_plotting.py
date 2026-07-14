@@ -20,21 +20,30 @@ from pyna.plot.j_streamlines import (
 from pyna.toroidal.diagnostics.mgrid import SmoothPestCoordinates
 
 
-def _toy_pest(n_phi=8, n_rho=3, n_theta=16):
-    phi = np.linspace(0.0, 2.0 * np.pi, n_phi, endpoint=False)
+def _toy_pest(n_phi=8, n_rho=3, n_theta=16, *, nfp=1):
+    period = 2.0 * np.pi / int(nfp)
+    phi = np.linspace(0.0, period, n_phi, endpoint=False)
     rho = np.linspace(0.08, 0.24, n_rho)
     theta = np.linspace(0.0, 2.0 * np.pi, n_theta, endpoint=False)
     R = 1.0 + rho[None, :, None] * np.cos(theta)[None, None, :]
     Z = rho[None, :, None] * np.sin(theta)[None, None, :]
     R = np.repeat(R, n_phi, axis=0)
     Z = np.repeat(Z, n_phi, axis=0)
-    return SmoothPestCoordinates(R_surf=R, Z_surf=Z, rho_vals=rho, theta_vals=theta, phi_vals=phi)
+    return SmoothPestCoordinates(
+        R_surf=R,
+        Z_surf=Z,
+        rho_vals=rho,
+        theta_vals=theta,
+        phi_vals=phi,
+        nfp=nfp,
+        toroidal_period=period,
+    )
 
 
-def _toroidal_current_field():
+def _toroidal_current_field(*, nfp=1):
     R = np.linspace(0.65, 1.35, 17)
     Z = np.linspace(-0.35, 0.35, 19)
-    Phi = np.linspace(0.0, 2.0 * np.pi, 12, endpoint=False)
+    Phi = np.linspace(0.0, 2.0 * np.pi / int(nfp), 12, endpoint=False)
     shape = (R.size, Z.size, Phi.size)
     return VectorFieldCylind(
         R=R,
@@ -44,6 +53,7 @@ def _toroidal_current_field():
         BZ=np.zeros(shape),
         BPhi=np.ones(shape),
         name="J_total",
+        nfp=nfp,
     )
 
 
@@ -127,6 +137,63 @@ def test_trace_j_streamlines_accepts_surface_native_evaluator():
     np.testing.assert_allclose(lines.Z, np.repeat(lines.seed_Z[:, None], lines.n_points, axis=1), atol=2.0e-4)
 
 
+def test_trace_j_streamlines_uses_explicit_nfp5_native_period_contract():
+    pest = _toy_pest(n_phi=10, n_rho=3, n_theta=24, nfp=5)
+    field = _toroidal_current_field(nfp=5)
+
+    lines = trace_j_streamlines_on_pest(
+        field,
+        pest,
+        surface_index=-1,
+        phi_indices=[0, 5],
+        seed_count=2,
+        n_turns=0.04,
+        steps_per_turn=40,
+    )
+
+    assert pest.stores_one_field_period
+    assert lines.metadata["nfp"] == 5
+    assert lines.metadata["field_period_rad"] == pytest.approx(2.0 * np.pi / 5.0)
+    assert np.all(lines.seed_phi < 2.0 * np.pi / 5.0)
+
+
+def test_trace_j_streamlines_rejects_nfp_mismatch_without_phi_inference():
+    pest = _toy_pest(nfp=5)
+
+    with pytest.raises(ValueError, match=r"coords\.nfp=5, field\.nfp=1"):
+        trace_j_streamlines_on_pest(
+            _toroidal_current_field(nfp=1),
+            pest,
+            phi_indices=[0],
+            seed_count=1,
+            n_turns=0.01,
+            steps_per_turn=16,
+        )
+
+
+def test_trace_j_streamlines_rejects_nfp5_coordinates_storing_full_torus():
+    native = _toy_pest(nfp=5)
+    full_torus_metadata = SmoothPestCoordinates(
+        R_surf=native.R_surf,
+        Z_surf=native.Z_surf,
+        rho_vals=native.rho_vals,
+        theta_vals=native.theta_vals,
+        phi_vals=native.phi_vals,
+        nfp=5,
+        toroidal_period=2.0 * np.pi,
+    )
+
+    with pytest.raises(ValueError, match="must explicitly store one field period"):
+        trace_j_streamlines_on_pest(
+            _toroidal_current_field(nfp=5),
+            full_torus_metadata,
+            phi_indices=[0],
+            seed_count=1,
+            n_turns=0.01,
+            steps_per_turn=16,
+        )
+
+
 def test_trace_j_streamlines_accepts_gridded_pest_vector_field():
     pest = _toy_pest()
     shape = pest.R_surf.shape
@@ -195,7 +262,7 @@ def test_trace_j_streamlines_supports_multiple_surfaces_and_phi_sector():
 
 
 def test_trace_gridded_pest_field_keeps_pure_poloidal_current_on_seed_section():
-    pest = _toy_pest(n_phi=10, n_rho=3, n_theta=32)
+    pest = _toy_pest(n_phi=10, n_rho=3, n_theta=32, nfp=5)
     shape = pest.R_surf.shape
     field = GriddedPestVectorField.from_pest_coordinates(
         pest,
@@ -246,7 +313,7 @@ def test_vmec_current_fourier_evaluates_radially_interpolated_modes():
 
 
 def test_vmec_current_fourier_to_pest_field_keeps_poloidal_vmec_current_closed():
-    pest = _toy_pest(n_phi=10, n_rho=3, n_theta=32)
+    pest = _toy_pest(n_phi=10, n_rho=3, n_theta=32, nfp=5)
     shape = pest.R_surf.shape
     current = VmecCurrentFourier(
         s=np.array([0.0, 1.0]),

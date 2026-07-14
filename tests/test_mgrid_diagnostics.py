@@ -1,5 +1,6 @@
 import matplotlib
 import numpy as np
+import pytest
 
 matplotlib.use("Agg")
 
@@ -97,6 +98,67 @@ def test_pest_current_components_for_constant_toroidal_current():
         np.testing.assert_allclose(section.Jrho[1:][finite], 0.0, atol=1.0e-10)
         np.testing.assert_allclose(section.Jtheta[1:][finite], 0.0, atol=1.0e-10)
         np.testing.assert_allclose((section.Jphi[1:] * section.R[1:])[finite], J0, rtol=1.0e-12)
+
+
+def test_pest_diagnostics_wrap_coordinate_arrays_over_native_field_period():
+    from pyna.io import MGridCurrent
+    from pyna.toroidal.diagnostics import (
+        SmoothPestCoordinates,
+        compute_pest_current_components,
+        periodic_phi_slice,
+        surface_fourier_spectrum,
+    )
+
+    nfp = 5
+    period = 2.0 * np.pi / nfp
+    nphi = 8
+    phi = np.arange(nphi, dtype=np.float64) * period / nphi
+    rho = np.linspace(0.0, 1.0, 4)
+    theta = np.arange(32, dtype=np.float64) * 2.0 * np.pi / 32
+    phase = 2.0 * np.pi * phi / period
+    minor_radius = 0.25 * rho[None, :, None] * (1.0 + 0.25 * np.cos(phase)[:, None, None])
+    R_surf = 1.4 + minor_radius * np.cos(theta)[None, None, :]
+    Z_surf = minor_radius * np.sin(theta)[None, None, :]
+    coords = SmoothPestCoordinates(
+        R_surf=R_surf,
+        Z_surf=Z_surf,
+        rho_vals=rho,
+        theta_vals=theta,
+        phi_vals=phi,
+        axis_R=np.full(nphi, 1.4),
+        axis_Z=np.zeros(nphi),
+        nfp=nfp,
+        toroidal_period=period,
+    )
+    R = np.linspace(1.0, 1.8, 20)
+    Z = np.linspace(-0.4, 0.4, 18)
+    shape = (nphi, Z.size, R.size)
+    current = MGridCurrent(
+        R=R,
+        Z=Z,
+        phi=phi,
+        JR=np.zeros(shape),
+        JPhi=np.ones(shape),
+        JZ=np.zeros(shape),
+        nfp=nfp,
+        period=period,
+    )
+
+    section_deg = 81.0
+    section_phi = np.deg2rad(section_deg)
+    diag = compute_pest_current_components(current, coords, [section_deg])
+    expected_R = periodic_phi_slice(coords.R_surf, section_phi, period=period)
+    np.testing.assert_allclose(diag.sections[0].R, expected_R, rtol=0.0, atol=1.0e-14)
+
+    spectrum = surface_fourier_spectrum(
+        coords,
+        rho_values=[1.0],
+        sections_deg=[section_deg],
+        mode_max=4,
+        high_modes=(2, 3, 4),
+    )[0]
+    expected_scale = 1.0 + 0.25 * np.cos(2.0 * np.pi / nphi)
+    assert spectrum["amplitudes"][1] == pytest.approx(0.25 * expected_scale)
 
 
 def test_plot_pest_current_components_smoke():

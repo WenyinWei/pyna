@@ -184,14 +184,14 @@ def compute_pest_current_components(
     for section_deg in sections_deg:
         phi = np.deg2rad(float(section_deg))
         iphi = mgrid_toroidal_index(current, phi)
-        Rsec = periodic_phi_slice(coords.R_surf, phi)
-        Zsec = periodic_phi_slice(coords.Z_surf, phi)
-        dR_drho = periodic_phi_slice(deriv[0], phi)
-        dZ_drho = periodic_phi_slice(deriv[1], phi)
-        dR_dtheta = periodic_phi_slice(deriv[2], phi)
-        dZ_dtheta = periodic_phi_slice(deriv[3], phi)
-        dR_dphi = periodic_phi_slice(deriv[4], phi)
-        dZ_dphi = periodic_phi_slice(deriv[5], phi)
+        Rsec = periodic_phi_slice(coords.R_surf, phi, period=coords.period)
+        Zsec = periodic_phi_slice(coords.Z_surf, phi, period=coords.period)
+        dR_drho = periodic_phi_slice(deriv[0], phi, period=coords.period)
+        dZ_drho = periodic_phi_slice(deriv[1], phi, period=coords.period)
+        dR_dtheta = periodic_phi_slice(deriv[2], phi, period=coords.period)
+        dZ_dtheta = periodic_phi_slice(deriv[3], phi, period=coords.period)
+        dR_dphi = periodic_phi_slice(deriv[4], phi, period=coords.period)
+        dZ_dphi = periodic_phi_slice(deriv[5], phi, period=coords.period)
 
         JR = sample_plane_bilinear(current.JR[iphi], current.R, current.Z, Rsec, Zsec)
         JPhi = sample_plane_bilinear(current.JPhi[iphi], current.R, current.Z, Rsec, Zsec)
@@ -254,14 +254,22 @@ def surface_fourier_spectrum(
         irho = int(np.argmin(np.abs(coords.rho_vals - rho)))
         for section_deg in sections_deg:
             phi = np.deg2rad(float(section_deg))
-            Rsec = periodic_phi_slice(coords.R_surf, phi)[irho]
-            Zsec = periodic_phi_slice(coords.Z_surf, phi)[irho]
+            Rsec = periodic_phi_slice(coords.R_surf, phi, period=coords.period)[irho]
+            Zsec = periodic_phi_slice(coords.Z_surf, phi, period=coords.period)[irho]
             if coords.axis_R is not None and coords.axis_Z is not None:
-                axis_R = float(periodic_phi_slice(coords.axis_R[:, None], phi).ravel()[0])
-                axis_Z = float(periodic_phi_slice(coords.axis_Z[:, None], phi).ravel()[0])
+                axis_R = float(
+                    periodic_phi_slice(coords.axis_R[:, None], phi, period=coords.period).ravel()[0]
+                )
+                axis_Z = float(
+                    periodic_phi_slice(coords.axis_Z[:, None], phi, period=coords.period).ravel()[0]
+                )
             else:
-                axis_R = float(np.nanmean(periodic_phi_slice(coords.R_surf, phi)[0]))
-                axis_Z = float(np.nanmean(periodic_phi_slice(coords.Z_surf, phi)[0]))
+                axis_R = float(
+                    np.nanmean(periodic_phi_slice(coords.R_surf, phi, period=coords.period)[0])
+                )
+                axis_Z = float(
+                    np.nanmean(periodic_phi_slice(coords.Z_surf, phi, period=coords.period)[0])
+                )
             w = (Rsec - axis_R) + 1j * (Zsec - axis_Z)
             coeff = np.fft.fft(w) / w.size
             amps = np.abs(coeff[: mode_max + 1])
