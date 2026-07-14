@@ -2,6 +2,8 @@ import matplotlib
 
 matplotlib.use("Agg")
 
+import multiprocessing as mp
+
 import numpy as np
 import pytest
 
@@ -245,6 +247,102 @@ def test_trace_j_streamlines_uses_explicit_nfp5_native_period_contract():
     assert lines.metadata["nfp"] == 5
     assert lines.metadata["field_period_rad"] == pytest.approx(2.0 * np.pi / 5.0)
     assert np.all(lines.seed_phi < 2.0 * np.pi / 5.0)
+
+
+def _assert_pest_streamlines_bitwise_equal(left, right, *, parallel=False):
+    for name in (
+        "R",
+        "Z",
+        "phi",
+        "theta",
+        "x",
+        "y",
+        "z",
+        "seed_R",
+        "seed_Z",
+        "seed_phi",
+        "seed_rho",
+        "seed_theta",
+        "seed_surface_index",
+        "seed_phi_index",
+    ):
+        np.testing.assert_array_equal(getattr(left, name), getattr(right, name))
+    left_metadata = dict(left.metadata)
+    right_metadata = dict(right.metadata)
+    parallel_contract = right_metadata.pop("parallel_trace", None)
+    assert left_metadata == right_metadata
+    if parallel:
+        assert parallel_contract is not None
+        assert parallel_contract["process_start_method"] == "fork"
+        assert parallel_contract["partition_axis"] == "seed_surface_index"
+        assert sum(parallel_contract["seed_line_count_by_chunk"]) == right.n_lines
+    else:
+        assert parallel_contract is None
+
+
+def test_trace_j_streamlines_workers_one_is_the_default_bitwise_path():
+    common = {
+        "surface_index": [0, 1, 2],
+        "phi_indices": [0],
+        "seed_count": 4,
+        "seed_spacing": "theta",
+        "n_turns": 0.08,
+        "steps_per_turn": 40,
+    }
+    default = trace_j_streamlines_on_pest(
+        _toroidal_current_field(),
+        _toy_pest(),
+        **common,
+    )
+    explicit = trace_j_streamlines_on_pest(
+        _toroidal_current_field(),
+        _toy_pest(),
+        workers=1,
+        **common,
+    )
+    _assert_pest_streamlines_bitwise_equal(default, explicit)
+
+
+@pytest.mark.skipif("fork" not in mp.get_all_start_methods(), reason="requires POSIX fork")
+@pytest.mark.parametrize("bidirectional", [False, True])
+def test_trace_j_streamlines_parallel_surface_chunks_preserve_nfp5_subset_identity(
+    bidirectional,
+):
+    pest = _toy_pest(n_phi=10, n_rho=4, n_theta=24, nfp=5)
+    field = _toroidal_current_field(nfp=5)
+    selected_indices = [20, 0, 17, 7, 13, 4]
+    common = {
+        "surface_index": [0, 1, 2, 3],
+        "phi_indices": [0, 5],
+        "seed_count": 3,
+        "seed_spacing": "theta",
+        "seed_line_indices": selected_indices,
+        "n_turns": 0.08,
+        "steps_per_turn": 40,
+        "bidirectional": bidirectional,
+    }
+    serial = trace_j_streamlines_on_pest(field, pest, workers=1, **common)
+    parallel = trace_j_streamlines_on_pest(field, pest, workers=4, **common)
+
+    _assert_pest_streamlines_bitwise_equal(serial, parallel, parallel=True)
+    assert parallel.metadata["nfp"] == 5
+    assert parallel.metadata["field_period_rad"] == pytest.approx(2.0 * np.pi / 5.0)
+    assert parallel.metadata["full_seed_line_count"] == 24
+    assert parallel.metadata["seed_line_indices"] == selected_indices
+
+
+@pytest.mark.parametrize("workers", [0, -1, 2.0, True])
+def test_trace_j_streamlines_rejects_nonpositive_or_inexact_workers(workers):
+    error = TypeError if workers in (2.0, True) else ValueError
+    with pytest.raises(error, match="workers"):
+        trace_j_streamlines_on_pest(
+            _toroidal_current_field(),
+            _toy_pest(),
+            surface_index=[0, 1],
+            phi_indices=[0],
+            seed_count=2,
+            workers=workers,
+        )
 
 
 def test_trace_j_streamlines_rejects_nfp_mismatch_without_phi_inference():

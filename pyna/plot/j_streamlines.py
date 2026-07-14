@@ -1,8 +1,11 @@
 """PEST-seeded current streamline plotting helpers."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+import multiprocessing as mp
+import operator
 from pathlib import Path
+from threading import Lock
 from typing import Callable, Mapping, Protocol, Sequence
 
 import numpy as np
@@ -13,6 +16,12 @@ from pyna.toroidal.diagnostics.mgrid import SmoothPestCoordinates, smooth_pest_d
 
 
 TWOPI = 2.0 * np.pi
+
+
+_PEST_TRACE_FORK_LOCK = Lock()
+_PEST_TRACE_FORK_FIELD: object | None = None
+_PEST_TRACE_FORK_PEST: object | None = None
+_PEST_TRACE_FORK_KWARGS: dict[str, object] | None = None
 
 
 def _cylindrical_to_cartesian(R: np.ndarray, Z: np.ndarray, phi: np.ndarray) -> np.ndarray:
@@ -1021,8 +1030,16 @@ class _PestSurfaceEvaluator:
     phi_period: float
 
     @classmethod
-    def from_pest(cls, pest: SmoothPestCoordinates, surface_index: int) -> "_PestSurfaceEvaluator":
-        deriv = smooth_pest_derivatives(pest)
+    def from_pest(
+        cls,
+        pest: SmoothPestCoordinates,
+        surface_index: int,
+        *,
+        derivatives: tuple[np.ndarray, ...] | None = None,
+    ) -> "_PestSurfaceEvaluator":
+        deriv = smooth_pest_derivatives(pest) if derivatives is None else derivatives
+        if len(deriv) != 6:
+            raise ValueError("PEST derivative bundle must contain six arrays")
         ir = int(surface_index) % pest.R_surf.shape[1]
         phi_vals = np.asarray(pest.phi_vals, dtype=np.float64)
         theta_vals = np.asarray(pest.theta_vals, dtype=np.float64)
@@ -1605,6 +1622,133 @@ def _seed_points(
     }
 
 
+@dataclass(frozen=True)
+class _PestSeedPlan:
+    phi_period: float
+    phi_range: tuple[float, float, float] | None
+    phi_indices: np.ndarray
+    phi_values: np.ndarray
+    surface_indices: np.ndarray
+    full_seeds: dict[str, np.ndarray]
+    selected_seed_indices: np.ndarray
+    seeds: dict[str, np.ndarray]
+
+    @property
+    def full_seed_count(self) -> int:
+        return int(self.full_seeds["R"].size)
+
+
+@dataclass(frozen=True)
+class _PestTraceRawDiagnostics:
+    seed_leakage: np.ndarray
+    seed_tangent_fraction: np.ndarray
+    trajectory_leakage: np.ndarray
+    trajectory_tangent_fraction: np.ndarray
+
+
+def _prepare_pest_seed_plan(
+    coords: SmoothPestCoordinates,
+    *,
+    surface_index: int | Sequence[int] | None,
+    phi_indices: Sequence[int] | None,
+    phi_values: Sequence[float] | None,
+    phi_range: Sequence[float] | None,
+    phi_seed_count: int | None,
+    clip_phi_range: bool,
+    seed_count: int,
+    seed_spacing: str,
+    seed_line_indices: Sequence[int] | None,
+    theta_offset: float,
+) -> _PestSeedPlan:
+    """Build the complete deterministic seed grid and an optional row subset."""
+
+    n_phi, n_rho, _n_theta = coords.R_surf.shape
+    phi_period = float(getattr(coords, "period", TWOPI) or TWOPI)
+    phi_range_norm = _normalize_phi_range(phi_range, period=phi_period)
+    default_phi = [0] if n_phi < 4 else [0, n_phi // 4, n_phi // 2, (3 * n_phi) // 4]
+    if phi_indices is not None and phi_values is not None:
+        raise ValueError("provide either phi_indices or phi_values, not both")
+    if phi_values is not None:
+        seed_phi_values = np.asarray(list(phi_values), dtype=np.float64)
+        if seed_phi_values.size == 0:
+            raise ValueError("phi_values must not be empty")
+        if not np.all(np.isfinite(seed_phi_values)):
+            raise ValueError("phi_values must be finite")
+        if phi_range_norm is not None and bool(clip_phi_range):
+            keep = _phi_in_range(seed_phi_values, phi_range_norm, period=phi_period)
+            seed_phi_values = seed_phi_values[keep]
+            if seed_phi_values.size == 0:
+                raise ValueError("no phi_values lie inside phi_range")
+        phi_idx = _nearest_phi_indices(
+            np.asarray(coords.phi_vals, dtype=np.float64),
+            seed_phi_values,
+            period=phi_period,
+        )
+    elif phi_range_norm is not None and phi_indices is None:
+        n_phi_seed = max(
+            int(phi_seed_count) if phi_seed_count is not None else min(4, n_phi),
+            1,
+        )
+        start, _end, span = phi_range_norm
+        seed_phi_values = float(start) + (
+            np.arange(n_phi_seed, dtype=np.float64) + 0.5
+        ) * float(span) / float(n_phi_seed)
+        phi_idx = _nearest_phi_indices(
+            np.asarray(coords.phi_vals, dtype=np.float64),
+            seed_phi_values,
+            period=phi_period,
+        )
+    else:
+        phi_idx = _normalize_indices(phi_indices, n_phi, default=default_phi)
+        seed_phi_values = np.asarray(coords.phi_vals, dtype=np.float64)[phi_idx]
+        if phi_range_norm is not None and bool(clip_phi_range):
+            keep = _phi_in_range(seed_phi_values, phi_range_norm, period=phi_period)
+            phi_idx = phi_idx[keep]
+            seed_phi_values = seed_phi_values[keep]
+            if seed_phi_values.size == 0:
+                raise ValueError("no selected phi_indices lie inside phi_range")
+    surf_idx = _normalize_indices(surface_index, n_rho, default=[n_rho - 1])
+    full_seeds = _seed_points(
+        coords,
+        surface_indices=surf_idx,
+        phi_indices=phi_idx,
+        phi_values=seed_phi_values,
+        seed_count=int(seed_count),
+        theta_offset=float(theta_offset),
+        seed_spacing=str(seed_spacing),
+    )
+    full_seed_count = int(full_seeds["R"].size)
+    if seed_line_indices is None:
+        selected_seed_indices = np.arange(full_seed_count, dtype=np.int64)
+    else:
+        raw_seed_indices = np.asarray(list(seed_line_indices))
+        if raw_seed_indices.ndim != 1 or raw_seed_indices.size == 0:
+            raise ValueError("seed_line_indices must be a non-empty 1-D sequence")
+        if raw_seed_indices.dtype.kind not in {"i", "u"}:
+            raise ValueError("seed_line_indices must contain only integers")
+        selected_seed_indices = raw_seed_indices.astype(np.int64, copy=False)
+        if np.any(selected_seed_indices < 0) or np.any(
+            selected_seed_indices >= full_seed_count
+        ):
+            raise ValueError("seed_line_indices must lie inside the complete seed grid")
+        if np.unique(selected_seed_indices).size != selected_seed_indices.size:
+            raise ValueError("seed_line_indices must be unique")
+    seeds = {
+        key: np.asarray(values)[selected_seed_indices]
+        for key, values in full_seeds.items()
+    }
+    return _PestSeedPlan(
+        phi_period=phi_period,
+        phi_range=phi_range_norm,
+        phi_indices=phi_idx,
+        phi_values=seed_phi_values,
+        surface_indices=surf_idx,
+        full_seeds=full_seeds,
+        selected_seed_indices=selected_seed_indices,
+        seeds=seeds,
+    )
+
+
 def _median_seed_surface_perimeter(coords: SmoothPestCoordinates, seeds: Mapping[str, np.ndarray]) -> float:
     values: list[float] = []
     for iphi, irho in sorted({(int(ip), int(ir)) for ip, ir in zip(seeds["phi_index"], seeds["surface_index"])}):
@@ -1624,7 +1768,7 @@ def _median_seed_surface_perimeter(coords: SmoothPestCoordinates, seeds: Mapping
     return float(TWOPI * max(np.nanmedian(seeds["R"]), 1.0e-12))
 
 
-def trace_j_streamlines_on_pest(
+def _trace_j_streamlines_on_pest_serial(
     field: VectorFieldCylind | object,
     pest: SmoothPestCoordinates | Mapping[str, object] | str | Path,
     *,
@@ -1646,7 +1790,8 @@ def trace_j_streamlines_on_pest(
     constrain_to_surface: bool = True,
     max_surface_distance: float | None = None,
     snap_cartesian_to_surface: bool = True,
-) -> PestSeededStreamlines:
+    _return_diagnostics: bool = False,
+) -> PestSeededStreamlines | tuple[PestSeededStreamlines, _PestTraceRawDiagnostics]:
     """Trace current streamlines from PEST-surface seeds.
 
     ``field`` is usually a :class:`pyna.fields.VectorFieldCylind`; it is treated
@@ -1707,76 +1852,32 @@ def trace_j_streamlines_on_pest(
             f"nfp={field_nfp}, field_period_rad={field_eval.field_period_rad}, "
             f"expected={expected_period}"
         )
-    n_phi, n_rho, _n_theta = coords.R_surf.shape
-    phi_period = float(getattr(coords, "period", TWOPI) or TWOPI)
-    phi_range_norm = _normalize_phi_range(phi_range, period=phi_period)
-    default_phi = [0] if n_phi < 4 else [0, n_phi // 4, n_phi // 2, (3 * n_phi) // 4]
-    if phi_indices is not None and phi_values is not None:
-        raise ValueError("provide either phi_indices or phi_values, not both")
-    if phi_values is not None:
-        seed_phi_values = np.asarray(list(phi_values), dtype=np.float64)
-        if seed_phi_values.size == 0:
-            raise ValueError("phi_values must not be empty")
-        if not np.all(np.isfinite(seed_phi_values)):
-            raise ValueError("phi_values must be finite")
-        if phi_range_norm is not None and bool(clip_phi_range):
-            keep = _phi_in_range(seed_phi_values, phi_range_norm, period=phi_period)
-            seed_phi_values = seed_phi_values[keep]
-            if seed_phi_values.size == 0:
-                raise ValueError("no phi_values lie inside phi_range")
-        phi_idx = _nearest_phi_indices(np.asarray(coords.phi_vals, dtype=np.float64), seed_phi_values, period=phi_period)
-    elif phi_range_norm is not None and phi_indices is None:
-        n_phi_seed = max(int(phi_seed_count) if phi_seed_count is not None else min(4, n_phi), 1)
-        start, _end, span = phi_range_norm
-        seed_phi_values = float(start) + (np.arange(n_phi_seed, dtype=np.float64) + 0.5) * float(span) / float(n_phi_seed)
-        phi_idx = _nearest_phi_indices(np.asarray(coords.phi_vals, dtype=np.float64), seed_phi_values, period=phi_period)
-    else:
-        phi_idx = _normalize_indices(phi_indices, n_phi, default=default_phi)
-        seed_phi_values = np.asarray(coords.phi_vals, dtype=np.float64)[phi_idx]
-        if phi_range_norm is not None and bool(clip_phi_range):
-            keep = _phi_in_range(seed_phi_values, phi_range_norm, period=phi_period)
-            phi_idx = phi_idx[keep]
-            seed_phi_values = seed_phi_values[keep]
-            if seed_phi_values.size == 0:
-                raise ValueError("no selected phi_indices lie inside phi_range")
-    surf_idx = _normalize_indices(surface_index, n_rho, default=[n_rho - 1])
-    full_seeds = _seed_points(
+    seed_plan = _prepare_pest_seed_plan(
         coords,
-        surface_indices=surf_idx,
-        phi_indices=phi_idx,
-        phi_values=seed_phi_values,
+        surface_index=surface_index,
+        phi_indices=phi_indices,
+        phi_values=phi_values,
+        phi_range=phi_range,
+        phi_seed_count=phi_seed_count,
+        clip_phi_range=bool(clip_phi_range),
         seed_count=int(seed_count),
-        theta_offset=float(theta_offset),
         seed_spacing=str(seed_spacing),
+        seed_line_indices=seed_line_indices,
+        theta_offset=float(theta_offset),
     )
-
-    full_seed_count = int(full_seeds["R"].size)
+    phi_period = seed_plan.phi_period
+    phi_range_norm = seed_plan.phi_range
+    phi_idx = seed_plan.phi_indices
+    seed_phi_values = seed_plan.phi_values
+    surf_idx = seed_plan.surface_indices
+    full_seeds = seed_plan.full_seeds
+    full_seed_count = seed_plan.full_seed_count
+    selected_seed_indices = seed_plan.selected_seed_indices
+    seeds = seed_plan.seeds
     surface_arclength_per_turn = _median_seed_surface_perimeter(
         coords,
         full_seeds,
     )
-    if seed_line_indices is None:
-        selected_seed_indices = np.arange(full_seed_count, dtype=np.int64)
-    else:
-        raw_seed_indices = np.asarray(list(seed_line_indices))
-        if raw_seed_indices.ndim != 1 or raw_seed_indices.size == 0:
-            raise ValueError("seed_line_indices must be a non-empty 1-D sequence")
-        if raw_seed_indices.dtype.kind not in {"i", "u"}:
-            raise ValueError("seed_line_indices must contain only integers")
-        selected_seed_indices = raw_seed_indices.astype(np.int64, copy=False)
-        if (
-            np.any(selected_seed_indices < 0)
-            or np.any(selected_seed_indices >= full_seed_count)
-        ):
-            raise ValueError(
-                "seed_line_indices must lie inside the complete seed grid"
-            )
-        if np.unique(selected_seed_indices).size != selected_seed_indices.size:
-            raise ValueError("seed_line_indices must be unique")
-    seeds = {
-        key: np.asarray(values)[selected_seed_indices]
-        for key, values in full_seeds.items()
-    }
 
     seed_R = seeds["R"]
     seed_Z = seeds["Z"]
@@ -1793,8 +1894,13 @@ def trace_j_streamlines_on_pest(
     # surfaces.  The integrator uses the selected rows, while the section-level
     # tangent/leakage diagnostics below intentionally retain the complete-grid
     # contract and therefore iterate over ``surf_idx``.
+    surface_derivatives = smooth_pest_derivatives(coords)
     surface_evals = {
-        int(ir): _PestSurfaceEvaluator.from_pest(coords, int(ir))
+        int(ir): _PestSurfaceEvaluator.from_pest(
+            coords,
+            int(ir),
+            derivatives=surface_derivatives,
+        )
         for ir in surf_idx
     }
     _, _, seed_leakage, seed_tangent_fraction = _pest_surface_rhs(
@@ -1984,7 +2090,7 @@ def trace_j_streamlines_on_pest(
         "trajectory_surface_tangent_fraction_median": _nan_stat(trajectory_tangent_fraction_samples),
         "trajectory_surface_tangent_fraction_p05": _nan_stat(trajectory_tangent_fraction_samples, percentile=5.0),
     }
-    return PestSeededStreamlines(
+    streamlines = PestSeededStreamlines(
         R=R,
         Z=z,
         phi=phi,
@@ -2000,6 +2106,363 @@ def trace_j_streamlines_on_pest(
         seed_surface_index=seeds["surface_index"],
         seed_phi_index=seeds["phi_index"],
         metadata=metadata,
+    )
+    if not bool(_return_diagnostics):
+        return streamlines
+    trajectory_leakage = (
+        np.stack(trajectory_leakage_samples, axis=0)
+        if trajectory_leakage_samples
+        else np.empty((0, n_seed), dtype=np.float64)
+    )
+    trajectory_tangent_fraction = (
+        np.stack(trajectory_tangent_fraction_samples, axis=0)
+        if trajectory_tangent_fraction_samples
+        else np.empty((0, n_seed), dtype=np.float64)
+    )
+    return streamlines, _PestTraceRawDiagnostics(
+        seed_leakage=np.asarray(seed_leakage, dtype=np.float64),
+        seed_tangent_fraction=np.asarray(seed_tangent_fraction, dtype=np.float64),
+        trajectory_leakage=trajectory_leakage,
+        trajectory_tangent_fraction=trajectory_tangent_fraction,
+    )
+
+
+def _exact_positive_worker_count(workers: int) -> int:
+    if isinstance(workers, (bool, np.bool_)):
+        raise TypeError("workers must be an exact positive integer")
+    try:
+        value = operator.index(workers)
+    except TypeError as exc:
+        raise TypeError("workers must be an exact positive integer") from exc
+    if value <= 0:
+        raise ValueError("workers must be positive")
+    return int(value)
+
+
+def _pest_trace_surface_chunks(
+    plan: _PestSeedPlan,
+    workers: int,
+) -> list[list[int]]:
+    selected = np.asarray(plan.selected_seed_indices, dtype=np.int64)
+    selected_surfaces = np.asarray(plan.seeds["surface_index"], dtype=np.int64)
+    active_surfaces = [
+        int(surface)
+        for surface in plan.surface_indices
+        if np.any(selected_surfaces == int(surface))
+    ]
+    chunk_count = min(int(workers), len(active_surfaces))
+    if chunk_count <= 1:
+        return [[int(value) for value in selected]]
+    chunks: list[list[int]] = []
+    for surface_chunk in np.array_split(
+        np.asarray(active_surfaces, dtype=np.int64),
+        chunk_count,
+    ):
+        mask = np.isin(selected_surfaces, surface_chunk)
+        chunks.append([int(value) for value in selected[mask]])
+    return [chunk for chunk in chunks if chunk]
+
+
+def _trace_pest_surface_chunk_fork(
+    seed_line_indices: Sequence[int],
+) -> tuple[PestSeededStreamlines, _PestTraceRawDiagnostics]:
+    if (
+        _PEST_TRACE_FORK_FIELD is None
+        or _PEST_TRACE_FORK_PEST is None
+        or _PEST_TRACE_FORK_KWARGS is None
+    ):
+        raise RuntimeError("parallel PEST trace fork context is unavailable")
+    result = _trace_j_streamlines_on_pest_serial(
+        _PEST_TRACE_FORK_FIELD,
+        _PEST_TRACE_FORK_PEST,
+        seed_line_indices=seed_line_indices,
+        _return_diagnostics=True,
+        **_PEST_TRACE_FORK_KWARGS,
+    )
+    if not isinstance(result, tuple):
+        raise RuntimeError("parallel PEST trace worker lost diagnostics")
+    return result
+
+
+def _pest_parallel_trace_metadata(
+    plan: _PestSeedPlan,
+    chunks: Sequence[Sequence[int]],
+    *,
+    requested_workers: int,
+    process_start_method: str | None,
+) -> dict[str, object]:
+    return {
+        "schema": "pyna.pest_surface_parallel_trace.v1",
+        "requested_workers": int(requested_workers),
+        "used_workers": int(len(chunks)),
+        "execution_mode": (
+            "fork_process_pool" if process_start_method is not None else "serial_single_surface"
+        ),
+        "process_start_method": process_start_method,
+        "partition_axis": "seed_surface_index",
+        "surface_indices_by_chunk": [
+            sorted(
+                {
+                    int(plan.full_seeds["surface_index"][int(seed_index)])
+                    for seed_index in chunk
+                }
+            )
+            for chunk in chunks
+        ],
+        "seed_line_count_by_chunk": [int(len(chunk)) for chunk in chunks],
+        "seed_line_indices_by_chunk": [
+            [int(seed_index) for seed_index in chunk] for chunk in chunks
+        ],
+        "merge_order": "requested_complete_seed_grid_row_order",
+    }
+
+
+def _merge_parallel_pest_streamlines(
+    plan: _PestSeedPlan,
+    chunks: Sequence[Sequence[int]],
+    results: Sequence[tuple[PestSeededStreamlines, _PestTraceRawDiagnostics]],
+    *,
+    requested_workers: int,
+) -> PestSeededStreamlines:
+    if len(chunks) != len(results) or not results:
+        raise RuntimeError("parallel PEST trace lost surface chunks")
+    concatenated_indices = np.asarray(
+        [int(value) for chunk in chunks for value in chunk],
+        dtype=np.int64,
+    )
+    selected_indices = np.asarray(plan.selected_seed_indices, dtype=np.int64)
+    if (
+        concatenated_indices.size != selected_indices.size
+        or np.unique(concatenated_indices).size != selected_indices.size
+        or set(concatenated_indices.tolist()) != set(selected_indices.tolist())
+    ):
+        raise RuntimeError("parallel PEST trace changed complete seed identities")
+    concatenated_position = {
+        int(seed_index): int(position)
+        for position, seed_index in enumerate(concatenated_indices)
+    }
+    order = np.asarray(
+        [concatenated_position[int(seed_index)] for seed_index in selected_indices],
+        dtype=np.int64,
+    )
+
+    lines = [result[0] for result in results]
+    diagnostics = [result[1] for result in results]
+    for chunk, item in zip(chunks, lines):
+        metadata = item.metadata
+        if metadata.get("seed_line_indices") != [int(value) for value in chunk]:
+            raise RuntimeError("parallel PEST trace worker changed seed identities")
+        if int(metadata.get("full_seed_line_count", -1)) != plan.full_seed_count:
+            raise RuntimeError("parallel PEST trace worker changed the complete seed grid")
+        if item.n_lines != len(chunk):
+            raise RuntimeError("parallel PEST trace worker returned the wrong row count")
+
+    trajectory_names = ("R", "Z", "phi", "theta", "x", "y", "z")
+    seed_names = (
+        "seed_R",
+        "seed_Z",
+        "seed_phi",
+        "seed_rho",
+        "seed_theta",
+        "seed_surface_index",
+        "seed_phi_index",
+    )
+    merged_arrays = {
+        name: np.concatenate(
+            [np.asarray(getattr(item, name)) for item in lines], axis=0
+        )[order]
+        for name in (*trajectory_names, *seed_names)
+    }
+    seed_leakage = np.concatenate(
+        [np.asarray(item.seed_leakage) for item in diagnostics], axis=0
+    )[order]
+    seed_tangent_fraction = np.concatenate(
+        [np.asarray(item.seed_tangent_fraction) for item in diagnostics], axis=0
+    )[order]
+    trajectory_sample_counts = {
+        int(item.trajectory_leakage.shape[0]) for item in diagnostics
+    }
+    if len(trajectory_sample_counts) != 1 or any(
+        item.trajectory_leakage.shape != item.trajectory_tangent_fraction.shape
+        for item in diagnostics
+    ):
+        raise RuntimeError("parallel PEST trace worker diagnostics are inconsistent")
+    trajectory_leakage = np.concatenate(
+        [item.trajectory_leakage for item in diagnostics], axis=1
+    )[:, order]
+    trajectory_tangent_fraction = np.concatenate(
+        [item.trajectory_tangent_fraction for item in diagnostics], axis=1
+    )[:, order]
+
+    metadata = dict(lines[0].metadata)
+    R = np.asarray(merged_arrays["R"], dtype=np.float64)
+    Z = np.asarray(merged_arrays["Z"], dtype=np.float64)
+    metadata.update(
+        {
+            "n_seed_lines": int(selected_indices.size),
+            "full_seed_line_count": int(plan.full_seed_count),
+            "seed_line_indices": [int(value) for value in selected_indices],
+            "finite_fraction": float(
+                np.count_nonzero(np.isfinite(R) & np.isfinite(Z))
+                / max(R.size, 1)
+            ),
+            "seed_normal_leakage_abs_over_norm_median": _nan_stat(
+                [seed_leakage]
+            ),
+            "seed_normal_leakage_abs_over_norm_p95": _nan_stat(
+                [seed_leakage], percentile=95.0
+            ),
+            "seed_surface_tangent_fraction_median": _nan_stat(
+                [seed_tangent_fraction]
+            ),
+            "seed_surface_tangent_fraction_p05": _nan_stat(
+                [seed_tangent_fraction], percentile=5.0
+            ),
+            "trajectory_normal_leakage_abs_over_norm_median": _nan_stat(
+                [trajectory_leakage]
+            ),
+            "trajectory_normal_leakage_abs_over_norm_p95": _nan_stat(
+                [trajectory_leakage], percentile=95.0
+            ),
+            "trajectory_surface_tangent_fraction_median": _nan_stat(
+                [trajectory_tangent_fraction]
+            ),
+            "trajectory_surface_tangent_fraction_p05": _nan_stat(
+                [trajectory_tangent_fraction], percentile=5.0
+            ),
+            "parallel_trace": _pest_parallel_trace_metadata(
+                plan,
+                chunks,
+                requested_workers=requested_workers,
+                process_start_method="fork",
+            ),
+        }
+    )
+    return replace(lines[0], **merged_arrays, metadata=metadata)
+
+
+def trace_j_streamlines_on_pest(
+    field: VectorFieldCylind | object,
+    pest: SmoothPestCoordinates | Mapping[str, object] | str | Path,
+    *,
+    surface_index: int | Sequence[int] | None = -1,
+    phi_indices: Sequence[int] | None = None,
+    phi_values: Sequence[float] | None = None,
+    phi_range: Sequence[float] | None = None,
+    phi_seed_count: int | None = None,
+    clip_phi_range: bool = True,
+    seed_count: int = 12,
+    seed_spacing: str = "arclength",
+    seed_line_indices: Sequence[int] | None = None,
+    n_turns: float = 0.2,
+    steps_per_turn: int = 512,
+    bidirectional: bool = True,
+    theta_offset: float = 0.0,
+    min_field_norm: float = 1.0e-14,
+    min_tangent_norm: float | None = None,
+    constrain_to_surface: bool = True,
+    max_surface_distance: float | None = None,
+    snap_cartesian_to_surface: bool = True,
+    workers: int = 1,
+) -> PestSeededStreamlines:
+    """Trace current streamlines from a deterministic PEST-surface seed grid.
+
+    ``workers=1`` follows the historical serial path.  On POSIX systems,
+    ``workers>1`` partitions selected seed rows by magnetic surface and uses a
+    fork process pool.  Every worker calls the same serial tracer with the
+    complete surface request, so the normalized-arclength step and explicit
+    ``nfp``/one-field-period contract are unchanged.  Results are restored to
+    the original complete-seed-grid order, including adaptive subsets selected
+    with ``seed_line_indices``.
+    """
+
+    worker_count = _exact_positive_worker_count(workers)
+    kwargs: dict[str, object] = {
+        "surface_index": surface_index,
+        "phi_indices": phi_indices,
+        "phi_values": phi_values,
+        "phi_range": phi_range,
+        "phi_seed_count": phi_seed_count,
+        "clip_phi_range": bool(clip_phi_range),
+        "seed_count": int(seed_count),
+        "seed_spacing": str(seed_spacing),
+        "n_turns": float(n_turns),
+        "steps_per_turn": int(steps_per_turn),
+        "bidirectional": bool(bidirectional),
+        "theta_offset": float(theta_offset),
+        "min_field_norm": float(min_field_norm),
+        "min_tangent_norm": min_tangent_norm,
+        "constrain_to_surface": bool(constrain_to_surface),
+        "max_surface_distance": max_surface_distance,
+        "snap_cartesian_to_surface": bool(snap_cartesian_to_surface),
+    }
+    if worker_count == 1:
+        result = _trace_j_streamlines_on_pest_serial(
+            field,
+            pest,
+            seed_line_indices=seed_line_indices,
+            **kwargs,
+        )
+        if isinstance(result, tuple):
+            raise RuntimeError("serial PEST trace unexpectedly returned diagnostics")
+        return result
+
+    if "fork" not in mp.get_all_start_methods():
+        raise RuntimeError("parallel PEST tracing requires POSIX fork support")
+    if mp.current_process().daemon:
+        raise RuntimeError("parallel PEST tracing cannot spawn from a daemon process")
+    coords = _as_pest_coordinates(pest)
+    _validate_pest(coords)
+    plan = _prepare_pest_seed_plan(
+        coords,
+        surface_index=surface_index,
+        phi_indices=phi_indices,
+        phi_values=phi_values,
+        phi_range=phi_range,
+        phi_seed_count=phi_seed_count,
+        clip_phi_range=bool(clip_phi_range),
+        seed_count=int(seed_count),
+        seed_spacing=str(seed_spacing),
+        seed_line_indices=seed_line_indices,
+        theta_offset=float(theta_offset),
+    )
+    chunks = _pest_trace_surface_chunks(plan, worker_count)
+    if len(chunks) == 1:
+        result = _trace_j_streamlines_on_pest_serial(
+            field,
+            pest,
+            seed_line_indices=seed_line_indices,
+            **kwargs,
+        )
+        if isinstance(result, tuple):
+            raise RuntimeError("serial PEST trace unexpectedly returned diagnostics")
+        metadata = dict(result.metadata)
+        metadata["parallel_trace"] = _pest_parallel_trace_metadata(
+            plan,
+            chunks,
+            requested_workers=worker_count,
+            process_start_method=None,
+        )
+        return replace(result, metadata=metadata)
+
+    global _PEST_TRACE_FORK_FIELD, _PEST_TRACE_FORK_PEST, _PEST_TRACE_FORK_KWARGS
+    with _PEST_TRACE_FORK_LOCK:
+        _PEST_TRACE_FORK_FIELD = field
+        _PEST_TRACE_FORK_PEST = pest
+        _PEST_TRACE_FORK_KWARGS = kwargs
+        try:
+            context = mp.get_context("fork")
+            with context.Pool(processes=len(chunks)) as pool:
+                results = pool.map(_trace_pest_surface_chunk_fork, chunks)
+        finally:
+            _PEST_TRACE_FORK_FIELD = None
+            _PEST_TRACE_FORK_PEST = None
+            _PEST_TRACE_FORK_KWARGS = None
+    return _merge_parallel_pest_streamlines(
+        plan,
+        chunks,
+        results,
+        requested_workers=worker_count,
     )
 
 
