@@ -1636,6 +1636,7 @@ def trace_j_streamlines_on_pest(
     clip_phi_range: bool = True,
     seed_count: int = 12,
     seed_spacing: str = "arclength",
+    seed_line_indices: Sequence[int] | None = None,
     n_turns: float = 0.2,
     steps_per_turn: int = 512,
     bidirectional: bool = True,
@@ -1665,7 +1666,11 @@ def trace_j_streamlines_on_pest(
     are distributed by cross-section arclength instead of raw theta index.
     ``phi_range`` limits the toroidal sector used for automatically generated
     seed values and, by default, stops each line once it leaves that sector.
-    ``n_turns`` keeps the historical pyna.plot meaning: it is a multiplier of
+    ``seed_line_indices`` optionally selects rows from that complete,
+    deterministic seed grid after construction.  It is intended for adaptive
+    continuation of previously identified seed lines: indices are unique,
+    preserve the requested order, and retain the integration step computed
+    from the complete seed grid.  ``n_turns`` keeps the historical pyna.plot meaning: it is a multiplier of
     ``steps_per_turn`` in normalized seed-surface arclength, not a literal
     toroidal turn count.
     """
@@ -1735,7 +1740,7 @@ def trace_j_streamlines_on_pest(
             if seed_phi_values.size == 0:
                 raise ValueError("no selected phi_indices lie inside phi_range")
     surf_idx = _normalize_indices(surface_index, n_rho, default=[n_rho - 1])
-    seeds = _seed_points(
+    full_seeds = _seed_points(
         coords,
         surface_indices=surf_idx,
         phi_indices=phi_idx,
@@ -1745,13 +1750,40 @@ def trace_j_streamlines_on_pest(
         seed_spacing=str(seed_spacing),
     )
 
+    full_seed_count = int(full_seeds["R"].size)
+    surface_arclength_per_turn = _median_seed_surface_perimeter(
+        coords,
+        full_seeds,
+    )
+    if seed_line_indices is None:
+        selected_seed_indices = np.arange(full_seed_count, dtype=np.int64)
+    else:
+        raw_seed_indices = np.asarray(list(seed_line_indices))
+        if raw_seed_indices.ndim != 1 or raw_seed_indices.size == 0:
+            raise ValueError("seed_line_indices must be a non-empty 1-D sequence")
+        if raw_seed_indices.dtype.kind not in {"i", "u"}:
+            raise ValueError("seed_line_indices must contain only integers")
+        selected_seed_indices = raw_seed_indices.astype(np.int64, copy=False)
+        if (
+            np.any(selected_seed_indices < 0)
+            or np.any(selected_seed_indices >= full_seed_count)
+        ):
+            raise ValueError(
+                "seed_line_indices must lie inside the complete seed grid"
+            )
+        if np.unique(selected_seed_indices).size != selected_seed_indices.size:
+            raise ValueError("seed_line_indices must be unique")
+    seeds = {
+        key: np.asarray(values)[selected_seed_indices]
+        for key, values in full_seeds.items()
+    }
+
     seed_R = seeds["R"]
     seed_Z = seeds["Z"]
     seed_phi = seeds["phi"]
     n_seed = seed_R.size
     n_steps = max(int(round(float(n_turns) * max(int(steps_per_turn), 1))), 1)
     n_points = 2 * n_steps + 1 if bidirectional else n_steps + 1
-    surface_arclength_per_turn = _median_seed_surface_perimeter(coords, seeds)
     h_base = float(surface_arclength_per_turn) / max(int(steps_per_turn), 1)
     tangent_floor = float(min_field_norm if min_tangent_norm is None else min_tangent_norm)
     trajectory_leakage_samples: list[np.ndarray] = []
@@ -1923,6 +1955,8 @@ def trace_j_streamlines_on_pest(
         "phi_range": None if phi_range_norm is None else [float(phi_range_norm[0]), float(phi_range_norm[1])],
         "clip_phi_range": bool(clip_phi_range),
         "n_seed_lines": int(n_seed),
+        "full_seed_line_count": int(full_seed_count),
+        "seed_line_indices": [int(value) for value in selected_seed_indices],
         "n_points": int(n_points),
         "surface_arclength_per_turn": float(surface_arclength_per_turn),
         "integration_step_arclength": float(abs(h_base)),

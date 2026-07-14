@@ -116,6 +116,62 @@ def test_trace_j_streamlines_on_pest_uses_vector_field_and_seed_controls():
     np.testing.assert_allclose(lines.theta, np.repeat(lines.seed_theta[:, None], lines.n_points, axis=1), atol=2.0e-4)
 
 
+def test_trace_j_streamlines_can_continue_an_identity_bound_seed_subset():
+    pest = _toy_pest()
+    field = _toroidal_current_field()
+    common = {
+        "surface_index": [0, 1, 2],
+        "phi_indices": [0],
+        "seed_count": 4,
+        "seed_spacing": "theta",
+        "n_turns": 0.08,
+        "steps_per_turn": 40,
+    }
+    full = trace_j_streamlines_on_pest(field, pest, **common)
+    selected_indices = [1, 6, 11]
+    selected = trace_j_streamlines_on_pest(
+        field,
+        pest,
+        seed_line_indices=selected_indices,
+        **common,
+    )
+
+    assert selected.n_lines == len(selected_indices)
+    assert selected.metadata["full_seed_line_count"] == full.n_lines
+    assert selected.metadata["seed_line_indices"] == selected_indices
+    assert selected.metadata["integration_step_arclength"] == pytest.approx(
+        full.metadata["integration_step_arclength"]
+    )
+    for name in (
+        "seed_R",
+        "seed_Z",
+        "seed_phi",
+        "seed_rho",
+        "seed_theta",
+        "seed_surface_index",
+        "seed_phi_index",
+    ):
+        np.testing.assert_allclose(
+            getattr(selected, name),
+            getattr(full, name)[selected_indices],
+        )
+
+
+@pytest.mark.parametrize("indices", [[], [0, 0], [-1], [12], [0.5]])
+def test_trace_j_streamlines_rejects_invalid_seed_subset(indices):
+    with pytest.raises(ValueError, match="seed_line_indices"):
+        trace_j_streamlines_on_pest(
+            _toroidal_current_field(),
+            _toy_pest(),
+            surface_index=[0, 1, 2],
+            phi_indices=[0],
+            seed_count=4,
+            seed_line_indices=indices,
+            n_turns=0.02,
+            steps_per_turn=20,
+        )
+
+
 def test_trace_j_streamlines_accepts_surface_native_evaluator():
     pest = _toy_pest()
 
