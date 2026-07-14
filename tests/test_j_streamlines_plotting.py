@@ -157,6 +157,40 @@ def test_trace_j_streamlines_can_continue_an_identity_bound_seed_subset():
         )
 
 
+def test_trace_j_streamlines_subset_may_omit_requested_surfaces():
+    pest = _toy_pest()
+    field = _toroidal_current_field()
+    common = {
+        "surface_index": [0, 1, 2],
+        "phi_indices": [0],
+        "seed_count": 4,
+        "seed_spacing": "theta",
+        "n_turns": 0.08,
+        "steps_per_turn": 40,
+    }
+    full = trace_j_streamlines_on_pest(field, pest, **common)
+    # Rows 4:8 belong only to surface 1.  Adaptive continuation can naturally
+    # reach this state after all seeds on the other requested surfaces close.
+    selected_indices = [4, 5, 6, 7]
+    selected = trace_j_streamlines_on_pest(
+        field,
+        pest,
+        seed_line_indices=selected_indices,
+        **common,
+    )
+
+    assert selected.metadata["surface_indices"] == [0, 1, 2]
+    assert selected.metadata["full_seed_line_count"] == full.n_lines
+    assert selected.metadata["seed_line_indices"] == selected_indices
+    assert selected.seed_surface_index.tolist() == [1, 1, 1, 1]
+    assert selected.metadata["integration_step_arclength"] == pytest.approx(
+        full.metadata["integration_step_arclength"]
+    )
+    assert selected.metadata["normal_leakage_abs_over_norm_p95"] == pytest.approx(
+        full.metadata["normal_leakage_abs_over_norm_p95"]
+    )
+
+
 @pytest.mark.parametrize("indices", [[], [0, 0], [-1], [12], [0.5]])
 def test_trace_j_streamlines_rejects_invalid_seed_subset(indices):
     with pytest.raises(ValueError, match="seed_line_indices"):

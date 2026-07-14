@@ -1788,9 +1788,14 @@ def trace_j_streamlines_on_pest(
     tangent_floor = float(min_field_norm if min_tangent_norm is None else min_tangent_norm)
     trajectory_leakage_samples: list[np.ndarray] = []
     trajectory_tangent_fraction_samples: list[np.ndarray] = []
+    # Keep evaluators for the complete requested surface grid, even when
+    # ``seed_line_indices`` selects unresolved rows from only a subset of those
+    # surfaces.  The integrator uses the selected rows, while the section-level
+    # tangent/leakage diagnostics below intentionally retain the complete-grid
+    # contract and therefore iterate over ``surf_idx``.
     surface_evals = {
         int(ir): _PestSurfaceEvaluator.from_pest(coords, int(ir))
-        for ir in np.unique(seeds["surface_index"])
+        for ir in surf_idx
     }
     _, _, seed_leakage, seed_tangent_fraction = _pest_surface_rhs(
         surface_evals,
