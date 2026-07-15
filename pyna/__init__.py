@@ -11,7 +11,7 @@ toroidal  : Toroidal geometry and field-line utilities
     ``pyna.coord`` has been removed. ``pyna.mag`` remains as a
     compatibility facade; prefer ``pyna.toroidal.control`` in new code.
 """
-__version__ = "0.8.55"
+__version__ = "0.8.56"
 
 from importlib import import_module
 
