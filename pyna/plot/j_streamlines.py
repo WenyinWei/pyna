@@ -789,6 +789,92 @@ def _nan_stat(values: list[np.ndarray], *, percentile: float | None = None) -> f
     return float(np.nanpercentile(finite, float(percentile)))
 
 
+def _finite_stat_by_seed_line(
+    values: np.ndarray,
+    *,
+    percentile: float | None = None,
+) -> list[float | None]:
+    """Return one finite-sample statistic for every seed-line column."""
+
+    arr = np.asarray(values, dtype=np.float64)
+    if arr.ndim != 2:
+        raise ValueError("seed-line diagnostics must have shape (n_samples, n_seed_lines)")
+    result: list[float | None] = []
+    for column in range(arr.shape[1]):
+        finite = arr[:, column][np.isfinite(arr[:, column])]
+        if finite.size == 0:
+            result.append(None)
+        elif percentile is None:
+            result.append(float(np.median(finite)))
+        else:
+            result.append(float(np.percentile(finite, float(percentile))))
+    return result
+
+
+def _pest_trace_line_diagnostics_metadata(
+    *,
+    seed_line_indices: np.ndarray,
+    seed_leakage: np.ndarray,
+    seed_tangent_fraction: np.ndarray,
+    trajectory_leakage: np.ndarray,
+    trajectory_tangent_fraction: np.ndarray,
+) -> dict[str, object]:
+    """Build compact per-line diagnostics for identity-preserving continuation.
+
+    The pooled scalar diagnostics remain useful for a single uniform trace.
+    Adaptive continuation, however, retraces only unresolved seed rows, so a
+    maximum over stage-level percentiles is not a statistic of the completed
+    seed ensemble.  These summaries preserve row identity without retaining
+    every RK stage sample in public metadata.
+    """
+
+    indices = np.asarray(seed_line_indices, dtype=np.int64)
+    seed_leak = np.asarray(seed_leakage, dtype=np.float64).reshape(1, -1)
+    seed_tangent = np.asarray(seed_tangent_fraction, dtype=np.float64).reshape(1, -1)
+    trajectory_leak = np.asarray(trajectory_leakage, dtype=np.float64)
+    trajectory_tangent = np.asarray(trajectory_tangent_fraction, dtype=np.float64)
+    expected = int(indices.size)
+    if (
+        seed_leak.shape[1] != expected
+        or seed_tangent.shape[1] != expected
+        or trajectory_leak.ndim != 2
+        or trajectory_tangent.ndim != 2
+        or trajectory_leak.shape[1] != expected
+        or trajectory_tangent.shape[1] != expected
+    ):
+        raise RuntimeError("PEST trace diagnostics lost seed-line identity")
+    return {
+        "schema": "pyna.pest_trace_line_diagnostics.v1",
+        "seed_line_indices": [int(value) for value in indices],
+        "aggregation_contract": (
+            "each_list_entry_belongs_to_the_same_seed_line_index; aggregate_"
+            "completed_adaptive_rows_with_equal_seed_line_weight"
+        ),
+        "seed_normal_leakage_abs_over_norm": _finite_stat_by_seed_line(seed_leak),
+        "seed_surface_tangent_fraction": _finite_stat_by_seed_line(seed_tangent),
+        "trajectory_normal_leakage_abs_over_norm_median": (
+            _finite_stat_by_seed_line(trajectory_leak)
+        ),
+        "trajectory_normal_leakage_abs_over_norm_p95": (
+            _finite_stat_by_seed_line(trajectory_leak, percentile=95.0)
+        ),
+        "trajectory_surface_tangent_fraction_median": (
+            _finite_stat_by_seed_line(trajectory_tangent)
+        ),
+        "trajectory_surface_tangent_fraction_p05": (
+            _finite_stat_by_seed_line(trajectory_tangent, percentile=5.0)
+        ),
+        "trajectory_normal_leakage_finite_sample_count": [
+            int(value)
+            for value in np.count_nonzero(np.isfinite(trajectory_leak), axis=0)
+        ],
+        "trajectory_surface_tangent_finite_sample_count": [
+            int(value)
+            for value in np.count_nonzero(np.isfinite(trajectory_tangent), axis=0)
+        ],
+    }
+
+
 def _periodic_surface_bilinear(
     values: np.ndarray,
     phi: np.ndarray,
@@ -2092,6 +2178,24 @@ def _trace_j_streamlines_on_pest_serial(
         trace_parameter = "normalized_cartesian_arclength"
         trace_mode = "cartesian_surface_projected" if use_surface_projected_cartesian else "raw_cartesian_unconstrained"
 
+    trajectory_leakage = (
+        np.stack(trajectory_leakage_samples, axis=0)
+        if trajectory_leakage_samples
+        else np.empty((0, n_seed), dtype=np.float64)
+    )
+    trajectory_tangent_fraction = (
+        np.stack(trajectory_tangent_fraction_samples, axis=0)
+        if trajectory_tangent_fraction_samples
+        else np.empty((0, n_seed), dtype=np.float64)
+    )
+    line_diagnostics = _pest_trace_line_diagnostics_metadata(
+        seed_line_indices=selected_seed_indices,
+        seed_leakage=seed_leakage,
+        seed_tangent_fraction=seed_tangent_fraction,
+        trajectory_leakage=trajectory_leakage,
+        trajectory_tangent_fraction=trajectory_tangent_fraction,
+    )
+
     metadata: dict[str, object] = {
         "schema": "pyna_pest_seeded_j_streamlines_v1",
         "trace_backend": trace_backend,
@@ -2141,6 +2245,7 @@ def _trace_j_streamlines_on_pest_serial(
         "trajectory_normal_leakage_abs_over_norm_p95": _nan_stat(trajectory_leakage_samples, percentile=95.0),
         "trajectory_surface_tangent_fraction_median": _nan_stat(trajectory_tangent_fraction_samples),
         "trajectory_surface_tangent_fraction_p05": _nan_stat(trajectory_tangent_fraction_samples, percentile=5.0),
+        "line_diagnostics": line_diagnostics,
     }
     streamlines = PestSeededStreamlines(
         R=R,
@@ -2161,16 +2266,6 @@ def _trace_j_streamlines_on_pest_serial(
     )
     if not bool(_return_diagnostics):
         return streamlines
-    trajectory_leakage = (
-        np.stack(trajectory_leakage_samples, axis=0)
-        if trajectory_leakage_samples
-        else np.empty((0, n_seed), dtype=np.float64)
-    )
-    trajectory_tangent_fraction = (
-        np.stack(trajectory_tangent_fraction_samples, axis=0)
-        if trajectory_tangent_fraction_samples
-        else np.empty((0, n_seed), dtype=np.float64)
-    )
     return streamlines, _PestTraceRawDiagnostics(
         seed_leakage=np.asarray(seed_leakage, dtype=np.float64),
         seed_tangent_fraction=np.asarray(seed_tangent_fraction, dtype=np.float64),
@@ -2381,6 +2476,13 @@ def _merge_parallel_pest_streamlines(
             ),
             "trajectory_surface_tangent_fraction_p05": _nan_stat(
                 [trajectory_tangent_fraction], percentile=5.0
+            ),
+            "line_diagnostics": _pest_trace_line_diagnostics_metadata(
+                seed_line_indices=selected_indices,
+                seed_leakage=seed_leakage,
+                seed_tangent_fraction=seed_tangent_fraction,
+                trajectory_leakage=trajectory_leakage,
+                trajectory_tangent_fraction=trajectory_tangent_fraction,
             ),
             "parallel_trace": _pest_parallel_trace_metadata(
                 plan,

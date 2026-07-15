@@ -164,6 +164,20 @@ def test_trace_j_streamlines_can_continue_an_identity_bound_seed_subset():
     assert selected.metadata["surface_arclength_per_turn"] == pytest.approx(
         np.median(perimeters)
     )
+    diagnostics = selected.metadata["line_diagnostics"]
+    assert diagnostics["schema"] == "pyna.pest_trace_line_diagnostics.v1"
+    assert diagnostics["seed_line_indices"] == selected_indices
+    for key in (
+        "seed_normal_leakage_abs_over_norm",
+        "seed_surface_tangent_fraction",
+        "trajectory_normal_leakage_abs_over_norm_median",
+        "trajectory_normal_leakage_abs_over_norm_p95",
+        "trajectory_surface_tangent_fraction_median",
+        "trajectory_surface_tangent_fraction_p05",
+        "trajectory_normal_leakage_finite_sample_count",
+        "trajectory_surface_tangent_finite_sample_count",
+    ):
+        assert len(diagnostics[key]) == len(selected_indices)
     for name in (
         "seed_R",
         "seed_Z",
@@ -349,6 +363,9 @@ def test_trace_j_streamlines_parallel_surface_chunks_preserve_nfp5_subset_identi
     assert parallel.metadata["field_period_rad"] == pytest.approx(2.0 * np.pi / 5.0)
     assert parallel.metadata["full_seed_line_count"] == 24
     assert parallel.metadata["seed_line_indices"] == selected_indices
+    assert parallel.metadata["line_diagnostics"]["seed_line_indices"] == (
+        selected_indices
+    )
 
 
 @pytest.mark.parametrize("workers", [0, -1, 2.0, True])
