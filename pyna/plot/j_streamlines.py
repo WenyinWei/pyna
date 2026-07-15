@@ -67,6 +67,31 @@ class PestSeededStreamlines:
 
 
 @dataclass(frozen=True)
+class PestSurfaceFaceFluxes:
+    r"""Periodic 2-D RT0 face data for one PEST surface.
+
+    Both flux arrays have shape ``(n_phi_cells, n_theta_cells)``.  Entry
+    ``theta_upper_face_flux[j, i]`` is :math:`\sqrt{g}J^\theta` on the upper
+    theta face of cell ``(j, i)``; ``phi_upper_face_flux[j, i]`` is
+    :math:`\sqrt{g}J^\phi` on its upper phi face.  The lower-face value is the
+    preceding periodic cell's upper-face value.  A common scalar factor is
+    immaterial to streamlines, but the two components must use the same
+    normalization.
+
+    ``theta_faces`` and ``phi_faces`` include both endpoints.  The former must
+    span exactly ``2*pi`` and the latter exactly one explicitly declared field
+    period.  No field-period information is inferred from either grid.
+    """
+
+    theta_upper_face_flux: np.ndarray
+    phi_upper_face_flux: np.ndarray
+    theta_faces: np.ndarray
+    phi_faces: np.ndarray
+    nfp: int
+    phi_period: float
+
+
+@dataclass(frozen=True)
 class PlotlyStreamlineStyle:
     """Visual controls for 3-D Plotly J/B streamline overlays."""
 
@@ -562,6 +587,17 @@ class _PestSurfaceFieldProtocol(Protocol):
         ...
 
 
+class _PestSurfaceFaceFluxProtocol(Protocol):
+    nfp: int
+    field_period_rad: float
+
+    def evaluate_pest_surface_face_fluxes(
+        self,
+        surface_index: int,
+    ) -> PestSurfaceFaceFluxes:
+        ...
+
+
 @dataclass(frozen=True)
 class _CallableVectorFieldEvaluator:
     fn: Callable[[np.ndarray, np.ndarray, np.ndarray], np.ndarray]
@@ -655,6 +691,49 @@ class _PestSurfaceFieldAdapter:
             return None
         return self.field.evaluate_pest_surface_tangent_components(int(surface_index), theta, phi)
 
+    def evaluate_pest_surface_face_fluxes(
+        self,
+        surface_index: int,
+    ) -> PestSurfaceFaceFluxes:
+        if not hasattr(self.field, "evaluate_pest_surface_face_fluxes"):
+            raise TypeError(
+                "face_flux_event integration requires "
+                "evaluate_pest_surface_face_fluxes(surface_index)"
+            )
+        return self.field.evaluate_pest_surface_face_fluxes(int(surface_index))
+
+
+@dataclass(frozen=True)
+class _PestSurfaceFaceFluxAdapter:
+    field: _PestSurfaceFaceFluxProtocol
+    nfp: int
+    field_period_rad: float
+
+    @classmethod
+    def from_field(
+        cls,
+        field: _PestSurfaceFaceFluxProtocol,
+    ) -> "_PestSurfaceFaceFluxAdapter":
+        if not hasattr(field, "nfp") or not hasattr(field, "field_period_rad"):
+            raise TypeError(
+                "face-flux surface fields must explicitly provide nfp and "
+                "field_period_rad"
+            )
+        nfp = int(field.nfp)
+        if nfp <= 0:
+            raise ValueError("face-flux surface field nfp must be positive")
+        return cls(
+            field=field,
+            nfp=nfp,
+            field_period_rad=float(field.field_period_rad),
+        )
+
+    def evaluate_pest_surface_face_fluxes(
+        self,
+        surface_index: int,
+    ) -> PestSurfaceFaceFluxes:
+        return self.field.evaluate_pest_surface_face_fluxes(int(surface_index))
+
 
 def _as_vector_field_evaluator(field: object):
     if isinstance(field, VectorFieldCylind):
@@ -663,6 +742,8 @@ def _as_vector_field_evaluator(field: object):
         return _CartesianVectorFieldEvaluator(field)
     if hasattr(field, "evaluate_pest_surface"):
         return _PestSurfaceFieldAdapter.from_field(field)  # type: ignore[arg-type]
+    if hasattr(field, "evaluate_pest_surface_face_fluxes"):
+        return _PestSurfaceFaceFluxAdapter.from_field(field)  # type: ignore[arg-type]
     if callable(field):
         nfp = max(int(getattr(field, "nfp", 1)), 1)
         return _CallableVectorFieldEvaluator(
@@ -1555,7 +1636,17 @@ def _surface_points_from_theta_phi(
         selected = surface_indices == int(ir)
         if not np.any(selected):
             continue
-        R[selected], Z[selected], *_ = surface_eval.evaluate(phi[selected], theta[selected])
+        theta_local = np.asarray(theta[selected], dtype=np.float64)
+        phi_local = np.asarray(phi[selected], dtype=np.float64)
+        finite = np.isfinite(theta_local) & np.isfinite(phi_local)
+        R_local = np.full(theta_local.shape, np.nan, dtype=np.float64)
+        Z_local = np.full(theta_local.shape, np.nan, dtype=np.float64)
+        if np.any(finite):
+            R_local[finite], Z_local[finite], *_ = surface_eval.evaluate(
+                phi_local[finite], theta_local[finite]
+            )
+        R[selected] = R_local
+        Z[selected] = Z_local
     return R, Z
 
 
@@ -1899,6 +1990,574 @@ def _seed_surface_perimeters(
     return result
 
 
+def _validated_pest_surface_face_fluxes(
+    value: object,
+    *,
+    surface_index: int,
+    expected_nfp: int,
+    expected_phi_period: float,
+) -> PestSurfaceFaceFluxes:
+    """Validate the explicit periodic-grid contract used by the event tracer."""
+
+    if not isinstance(value, PestSurfaceFaceFluxes):
+        raise TypeError(
+            "evaluate_pest_surface_face_fluxes(surface_index) must return "
+            "PestSurfaceFaceFluxes"
+        )
+    theta_flux = np.asarray(value.theta_upper_face_flux, dtype=np.float64)
+    phi_flux = np.asarray(value.phi_upper_face_flux, dtype=np.float64)
+    theta_faces = np.asarray(value.theta_faces, dtype=np.float64)
+    phi_faces = np.asarray(value.phi_faces, dtype=np.float64)
+    if theta_flux.ndim != 2 or phi_flux.shape != theta_flux.shape:
+        raise ValueError(
+            "PEST surface upper-face flux arrays must share shape "
+            "(n_phi_cells, n_theta_cells)"
+        )
+    n_phi, n_theta = theta_flux.shape
+    if n_phi < 1 or n_theta < 1:
+        raise ValueError("PEST surface face-flux grids must contain at least one cell")
+    if theta_faces.shape != (n_theta + 1,) or phi_faces.shape != (n_phi + 1,):
+        raise ValueError(
+            "theta_faces and phi_faces must include both endpoints of every cell"
+        )
+    if not (
+        np.all(np.isfinite(theta_flux))
+        and np.all(np.isfinite(phi_flux))
+        and np.all(np.isfinite(theta_faces))
+        and np.all(np.isfinite(phi_faces))
+    ):
+        raise ValueError("PEST surface face-flux data must be finite")
+    if np.any(np.diff(theta_faces) <= 0.0) or np.any(np.diff(phi_faces) <= 0.0):
+        raise ValueError("PEST surface face grids must be strictly increasing")
+    if int(value.nfp) != int(expected_nfp):
+        raise ValueError(
+            "PEST face-flux/current field-period mismatch on surface "
+            f"{int(surface_index)}: fluxes.nfp={int(value.nfp)}, "
+            f"field.nfp={int(expected_nfp)}"
+        )
+    if not np.isclose(
+        float(value.phi_period),
+        float(expected_phi_period),
+        rtol=1.0e-12,
+        atol=1.0e-14,
+    ):
+        raise ValueError(
+            "PEST face-flux phi_period is inconsistent with explicit nfp on "
+            f"surface {int(surface_index)}"
+        )
+    if not np.isclose(
+        float(theta_faces[-1] - theta_faces[0]),
+        TWOPI,
+        rtol=1.0e-12,
+        atol=1.0e-14,
+    ):
+        raise ValueError("theta_faces must span exactly one 2*pi poloidal period")
+    if not np.isclose(
+        float(phi_faces[-1] - phi_faces[0]),
+        float(expected_phi_period),
+        rtol=1.0e-12,
+        atol=1.0e-14,
+    ):
+        raise ValueError("phi_faces must span exactly one explicit field period")
+    return PestSurfaceFaceFluxes(
+        theta_upper_face_flux=theta_flux,
+        phi_upper_face_flux=phi_flux,
+        theta_faces=theta_faces,
+        phi_faces=phi_faces,
+        nfp=int(value.nfp),
+        phi_period=float(value.phi_period),
+    )
+
+
+def _periodic_cell_index(value: float, faces: np.ndarray) -> int:
+    period = float(faces[-1] - faces[0])
+    wrapped = float(faces[0] + np.mod(float(value) - float(faces[0]), period))
+    return int(np.clip(np.searchsorted(faces, wrapped, side="right") - 1, 0, faces.size - 2))
+
+
+def _unwrapped_cell_bounds(value: float, faces: np.ndarray, index: int) -> tuple[float, float]:
+    period = float(faces[-1] - faces[0])
+    lower_base = float(faces[int(index)])
+    cycle = int(np.floor((float(value) - lower_base) / period + 64.0 * np.finfo(float).eps))
+    lower = lower_base + float(cycle) * period
+    return lower, lower + float(faces[int(index) + 1] - faces[int(index)])
+
+
+def _rt0_surface_cell_components(
+    fluxes: PestSurfaceFaceFluxes,
+    *,
+    phi_cell: int,
+    theta_cell: int,
+    theta: float,
+    phi: float,
+) -> tuple[float, float, tuple[float, float], tuple[float, float]]:
+    """Evaluate the separable 2-D RT0 field inside one periodic cell."""
+
+    theta_faces = np.asarray(fluxes.theta_faces, dtype=np.float64)
+    phi_faces = np.asarray(fluxes.phi_faces, dtype=np.float64)
+    theta_upper = np.asarray(fluxes.theta_upper_face_flux, dtype=np.float64)
+    phi_upper = np.asarray(fluxes.phi_upper_face_flux, dtype=np.float64)
+    n_phi, n_theta = theta_upper.shape
+    it = int(theta_cell) % n_theta
+    ip = int(phi_cell) % n_phi
+    theta_lower, theta_upper_bound = _unwrapped_cell_bounds(theta, theta_faces, it)
+    phi_lower, phi_upper_bound = _unwrapped_cell_bounds(phi, phi_faces, ip)
+    theta_fraction = (float(theta) - theta_lower) / (theta_upper_bound - theta_lower)
+    phi_fraction = (float(phi) - phi_lower) / (phi_upper_bound - phi_lower)
+    qtheta_lower = float(theta_upper[ip, (it - 1) % n_theta])
+    qtheta_upper = float(theta_upper[ip, it])
+    qphi_lower = float(phi_upper[(ip - 1) % n_phi, it])
+    qphi_upper = float(phi_upper[ip, it])
+    qtheta = (1.0 - theta_fraction) * qtheta_lower + theta_fraction * qtheta_upper
+    qphi = (1.0 - phi_fraction) * qphi_lower + phi_fraction * qphi_upper
+    return (
+        float(qtheta),
+        float(qphi),
+        (qtheta_lower, qtheta_upper),
+        (qphi_lower, qphi_upper),
+    )
+
+
+def _linear_rt0_time_to_face(
+    coordinate: float,
+    lower: float,
+    upper: float,
+    lower_flux: float,
+    upper_flux: float,
+    *,
+    direction: float,
+    min_flux: float,
+) -> tuple[float, int]:
+    """Return exact positive time and crossed side for ``x'=a+b*x``."""
+
+    width = float(upper - lower)
+    fraction = (float(coordinate) - float(lower)) / width
+    q0 = (1.0 - fraction) * float(lower_flux) + fraction * float(upper_flux)
+    f0 = float(direction) * q0
+    if not np.isfinite(f0) or abs(f0) <= float(min_flux):
+        return float("inf"), 0
+    if f0 > 0.0:
+        target = float(upper)
+        target_flux = float(direction) * float(upper_flux)
+        side = 1
+    else:
+        target = float(lower)
+        target_flux = float(direction) * float(lower_flux)
+        side = -1
+    if target_flux * f0 <= 0.0 or abs(target_flux) <= float(min_flux):
+        # A zero or sign reversal is approached asymptotically before the face.
+        return float("inf"), 0
+    slope = float(direction) * (float(upper_flux) - float(lower_flux)) / width
+    distance = target - float(coordinate)
+    scale = max(abs(f0), abs(target_flux), float(min_flux))
+    if abs(slope) * width <= 64.0 * np.finfo(float).eps * scale:
+        time = distance / f0
+    else:
+        time = float(np.log(target_flux / f0) / slope)
+    if not np.isfinite(time) or time <= 64.0 * np.finfo(float).eps:
+        return float("inf"), 0
+    return float(time), side
+
+
+def _initial_rt0_surface_cell(
+    fluxes: PestSurfaceFaceFluxes,
+    *,
+    theta: float,
+    phi: float,
+    direction: float,
+    min_flux: float,
+) -> tuple[int, int]:
+    """Choose the deterministic upwind cell for a seed lying on a face."""
+
+    theta_faces = np.asarray(fluxes.theta_faces, dtype=np.float64)
+    phi_faces = np.asarray(fluxes.phi_faces, dtype=np.float64)
+    it = _periodic_cell_index(theta, theta_faces)
+    ip = _periodic_cell_index(phi, phi_faces)
+    theta_period = float(theta_faces[-1] - theta_faces[0])
+    phi_period = float(phi_faces[-1] - phi_faces[0])
+    theta_wrapped = float(theta_faces[0] + np.mod(theta - theta_faces[0], theta_period))
+    phi_wrapped = float(phi_faces[0] + np.mod(phi - phi_faces[0], phi_period))
+    theta_on_face = bool(
+        np.min(np.abs(theta_faces - theta_wrapped))
+        <= 128.0 * np.finfo(float).eps * max(1.0, theta_period)
+    )
+    phi_on_face = bool(
+        np.min(np.abs(phi_faces - phi_wrapped))
+        <= 128.0 * np.finfo(float).eps * max(1.0, phi_period)
+    )
+    theta_adjusted = False
+    phi_adjusted = False
+    for _ in range(3):
+        qtheta, qphi, _theta_pair, _phi_pair = _rt0_surface_cell_components(
+            fluxes,
+            phi_cell=ip,
+            theta_cell=it,
+            theta=theta,
+            phi=phi,
+        )
+        changed = False
+        if (
+            theta_on_face
+            and not theta_adjusted
+            and float(direction) * qtheta < -float(min_flux)
+        ):
+            next_it = (it - 1) % (theta_faces.size - 1)
+            changed |= next_it != it
+            it = next_it
+            theta_adjusted = True
+        if (
+            phi_on_face
+            and not phi_adjusted
+            and float(direction) * qphi < -float(min_flux)
+        ):
+            next_ip = (ip - 1) % (phi_faces.size - 1)
+            changed |= next_ip != ip
+            ip = next_ip
+            phi_adjusted = True
+        if not changed:
+            break
+    return int(it), int(ip)
+
+
+def _integrate_rt0_surface_face_events(
+    fluxes: PestSurfaceFaceFluxes,
+    *,
+    theta0: float,
+    phi0: float,
+    direction: float,
+    max_events: int,
+    min_flux: float,
+    phi_range: tuple[float, float, float] | None,
+    clip_phi_range: bool,
+) -> tuple[np.ndarray, np.ndarray, str, int, int]:
+    """Trace one line through exact RT0 cell-face events."""
+
+    theta_out = np.full(int(max_events) + 1, np.nan, dtype=np.float64)
+    phi_out = np.full(int(max_events) + 1, np.nan, dtype=np.float64)
+    theta_out[0] = float(theta0)
+    phi_out[0] = float(phi0)
+    if not (np.isfinite(theta0) and np.isfinite(phi0)):
+        return theta_out, phi_out, "nonfinite_seed", 0, 0
+    theta = float(theta0)
+    phi = float(phi0)
+    theta_cell, phi_cell = _initial_rt0_surface_cell(
+        fluxes,
+        theta=theta,
+        phi=phi,
+        direction=float(direction),
+        min_flux=float(min_flux),
+    )
+    corner_count = 0
+    completed = 0
+    status = "max_events"
+    for event in range(1, int(max_events) + 1):
+        qtheta, qphi, theta_pair, phi_pair = _rt0_surface_cell_components(
+            fluxes,
+            phi_cell=phi_cell,
+            theta_cell=theta_cell,
+            theta=theta,
+            phi=phi,
+        )
+        theta_lower, theta_upper = _unwrapped_cell_bounds(
+            theta, np.asarray(fluxes.theta_faces), theta_cell
+        )
+        phi_lower, phi_upper = _unwrapped_cell_bounds(
+            phi, np.asarray(fluxes.phi_faces), phi_cell
+        )
+        theta_time, theta_side = _linear_rt0_time_to_face(
+            theta,
+            theta_lower,
+            theta_upper,
+            theta_pair[0],
+            theta_pair[1],
+            direction=float(direction),
+            min_flux=float(min_flux),
+        )
+        phi_time, phi_side = _linear_rt0_time_to_face(
+            phi,
+            phi_lower,
+            phi_upper,
+            phi_pair[0],
+            phi_pair[1],
+            direction=float(direction),
+            min_flux=float(min_flux),
+        )
+        event_time = min(theta_time, phi_time)
+        if not np.isfinite(event_time):
+            status = "stagnation"
+            break
+        corner_tolerance = 256.0 * np.finfo(float).eps * max(1.0, abs(event_time))
+        cross_theta = bool(abs(theta_time - event_time) <= corner_tolerance)
+        cross_phi = bool(abs(phi_time - event_time) <= corner_tolerance)
+        if not (cross_theta or cross_phi):
+            status = "event_resolution_failure"
+            break
+
+        # The two RT0 components are separable in a reference cell, so both
+        # coordinates have exact exponential (or constant-speed) updates.
+        def advance(
+            coordinate: float,
+            lower: float,
+            upper: float,
+            pair: tuple[float, float],
+        ) -> float:
+            width = upper - lower
+            slope = float(direction) * (pair[1] - pair[0]) / width
+            f0 = float(direction) * (
+                pair[0] + (pair[1] - pair[0]) * (coordinate - lower) / width
+            )
+            if abs(slope) * width <= 64.0 * np.finfo(float).eps * max(
+                abs(f0), float(min_flux)
+            ):
+                return float(coordinate + f0 * event_time)
+            equilibrium = coordinate - f0 / slope
+            return float(equilibrium + (coordinate - equilibrium) * np.exp(slope * event_time))
+
+        theta = advance(theta, theta_lower, theta_upper, theta_pair)
+        phi = advance(phi, phi_lower, phi_upper, phi_pair)
+        if not (np.isfinite(theta) and np.isfinite(phi)):
+            status = "nonfinite_evolution"
+            break
+        if cross_theta:
+            theta = float(theta_upper if theta_side > 0 else theta_lower)
+            theta_cell = (theta_cell + theta_side) % (
+                np.asarray(fluxes.theta_faces).size - 1
+            )
+        if cross_phi:
+            phi = float(phi_upper if phi_side > 0 else phi_lower)
+            phi_cell = (phi_cell + phi_side) % (
+                np.asarray(fluxes.phi_faces).size - 1
+            )
+        if cross_theta and cross_phi:
+            corner_count += 1
+        if bool(clip_phi_range) and not bool(
+            _phi_in_range(
+                np.asarray([phi]),
+                phi_range,
+                period=float(fluxes.phi_period),
+            )[0]
+        ):
+            status = "left_phi_range"
+            break
+        theta_out[event] = theta
+        phi_out[event] = phi
+        completed = event
+    return theta_out, phi_out, status, completed, corner_count
+
+
+def _trace_j_streamlines_on_pest_face_flux_event(
+    *,
+    field: object,
+    field_eval: object,
+    coords: SmoothPestCoordinates,
+    plan: _PestSeedPlan,
+    surface_evals: Mapping[int, _PestSurfaceEvaluator],
+    n_turns: float,
+    steps_per_turn: int,
+    bidirectional: bool,
+    min_field_norm: float,
+    constrain_to_surface: bool,
+    clip_phi_range: bool,
+    full_seed_surface_perimeter_m: np.ndarray,
+    surface_arclength_per_turn: float,
+    seed_count: int,
+    seed_spacing: str,
+    phi_seed_count: int,
+    phi_values: np.ndarray,
+    phi_indices: np.ndarray,
+    surface_indices: np.ndarray,
+    _return_diagnostics: bool,
+) -> PestSeededStreamlines | tuple[PestSeededStreamlines, _PestTraceRawDiagnostics]:
+    if not bool(constrain_to_surface):
+        raise ValueError("face_flux_event integration is intrinsically PEST-surface constrained")
+    if not hasattr(field_eval, "evaluate_pest_surface_face_fluxes"):
+        raise TypeError(
+            "face_flux_event integration requires an explicit surface field "
+            "protocol with evaluate_pest_surface_face_fluxes(surface_index)"
+        )
+    if not hasattr(field, "nfp") or not hasattr(field, "field_period_rad"):
+        raise TypeError(
+            "face_flux_event integration requires explicit field nfp and "
+            "field_period_rad attributes"
+        )
+    max_events = max(int(round(float(n_turns) * max(int(steps_per_turn), 1))), 1)
+    seeds = plan.seeds
+    n_seed = int(np.asarray(seeds["R"]).size)
+    flux_by_surface = {
+        int(ir): _validated_pest_surface_face_fluxes(
+            field_eval.evaluate_pest_surface_face_fluxes(int(ir)),
+            surface_index=int(ir),
+            expected_nfp=int(field_eval.nfp),
+            expected_phi_period=float(field_eval.field_period_rad),
+        )
+        for ir in np.unique(np.asarray(seeds["surface_index"], dtype=np.int64))
+    }
+
+    def integrate(direction: float) -> tuple[np.ndarray, np.ndarray, list[str], np.ndarray, np.ndarray]:
+        theta_rows: list[np.ndarray] = []
+        phi_rows: list[np.ndarray] = []
+        statuses: list[str] = []
+        counts: list[int] = []
+        corners: list[int] = []
+        for ir, theta0, phi0 in zip(
+            np.asarray(seeds["surface_index"], dtype=np.int64),
+            np.asarray(seeds["theta"], dtype=np.float64),
+            np.asarray(seeds["phi"], dtype=np.float64),
+            strict=True,
+        ):
+            theta_row, phi_row, status, count, corner_count = (
+                _integrate_rt0_surface_face_events(
+                    flux_by_surface[int(ir)],
+                    theta0=float(theta0),
+                    phi0=float(phi0),
+                    direction=float(direction),
+                    max_events=max_events,
+                    min_flux=float(min_field_norm),
+                    phi_range=plan.phi_range,
+                    clip_phi_range=bool(clip_phi_range),
+                )
+            )
+            theta_rows.append(theta_row)
+            phi_rows.append(phi_row)
+            statuses.append(status)
+            counts.append(int(count))
+            corners.append(int(corner_count))
+        return (
+            np.stack(theta_rows),
+            np.stack(phi_rows),
+            statuses,
+            np.asarray(counts, dtype=np.int64),
+            np.asarray(corners, dtype=np.int64),
+        )
+
+    forward_theta, forward_phi, forward_status, forward_count, forward_corners = integrate(1.0)
+    backward_status: list[str] | None = None
+    backward_count: np.ndarray | None = None
+    backward_corners: np.ndarray | None = None
+    if bool(bidirectional):
+        backward_theta, backward_phi, backward_status, backward_count, backward_corners = integrate(-1.0)
+        theta = np.concatenate([backward_theta[:, :0:-1], forward_theta], axis=1)
+        phi = np.concatenate([backward_phi[:, :0:-1], forward_phi], axis=1)
+    else:
+        theta = forward_theta
+        phi = forward_phi
+    R, z = _surface_points_from_theta_phi(
+        surface_evals,
+        np.asarray(seeds["surface_index"], dtype=np.int64),
+        theta,
+        phi,
+    )
+    xyz = _cylindrical_to_cartesian(R, z, phi)
+    x, y = xyz[..., 0], xyz[..., 1]
+    n_points = int(theta.shape[1])
+    nan_seed = np.full(n_seed, np.nan, dtype=np.float64)
+    trajectory_rows = max_events * (2 if bool(bidirectional) else 1)
+    nan_trajectory = np.full((trajectory_rows, n_seed), np.nan, dtype=np.float64)
+    selected_indices = np.asarray(plan.selected_seed_indices, dtype=np.int64)
+    line_diagnostics = _pest_trace_line_diagnostics_metadata(
+        seed_line_indices=selected_indices,
+        seed_leakage=nan_seed,
+        seed_tangent_fraction=nan_seed,
+        trajectory_leakage=nan_trajectory,
+        trajectory_tangent_fraction=nan_trajectory,
+    )
+    event_metadata: dict[str, object] = {
+        "schema": "pyna.pest_surface_face_flux_event.v1",
+        "point_semantics": "seed_then_exact_rt0_cell_face_crossings",
+        "flux_layout": "periodic_upper_faces_phi_cell_theta_cell",
+        "flux_components": "sqrt_g_Jtheta_and_sqrt_g_Jphi_common_normalization",
+        "corner_policy": "simultaneous_diagonal_upwind_transition",
+        "max_events_per_direction": int(max_events),
+        "forward_status_by_seed_line": list(forward_status),
+        "forward_event_count_by_seed_line": [int(value) for value in forward_count],
+        "forward_corner_count_by_seed_line": [int(value) for value in forward_corners],
+    }
+    if backward_status is not None and backward_count is not None and backward_corners is not None:
+        event_metadata.update(
+            {
+                "backward_status_by_seed_line": list(backward_status),
+                "backward_event_count_by_seed_line": [int(value) for value in backward_count],
+                "backward_corner_count_by_seed_line": [int(value) for value in backward_corners],
+            }
+        )
+    metadata: dict[str, object] = {
+        "schema": "pyna_pest_seeded_j_streamlines_v1",
+        "trace_backend": "pyna.plot.j_streamlines.python_rt0_pest_surface_face_flux_event",
+        "trace_mode": "pest_surface_face_flux_event",
+        "trace_parameter": "exact_rt0_cell_face_crossing_event",
+        "integration_backend": "face_flux_event",
+        "surface_constraint": True,
+        "field_type": type(field).__name__,
+        "nfp": int(field_eval.nfp),
+        "field_period_rad": float(field_eval.field_period_rad),
+        "pest_source": coords.source,
+        "n_turns": float(n_turns),
+        "steps_per_turn": int(steps_per_turn),
+        "seed_count": int(seed_count),
+        "seed_spacing": str(seed_spacing),
+        "phi_seed_count": int(phi_seed_count),
+        "phi_values": [float(value) for value in phi_values],
+        "phi_range": None if plan.phi_range is None else [float(plan.phi_range[0]), float(plan.phi_range[1])],
+        "clip_phi_range": bool(clip_phi_range),
+        "n_seed_lines": int(n_seed),
+        "full_seed_line_count": int(plan.full_seed_count),
+        "seed_line_indices": [int(value) for value in selected_indices],
+        "n_points": n_points,
+        "surface_arclength_per_turn": float(surface_arclength_per_turn),
+        "surface_arclength_per_turn_role": "seed_geometry_only_not_event_step_scale",
+        "surface_perimeter_m_by_full_seed_line": [
+            float(value) for value in full_seed_surface_perimeter_m
+        ],
+        "surface_perimeter_normalization": "physical_RZ_perimeter_of_each_seed_surface_at_its_seed_phi",
+        "integration_step_arclength": None,
+        "max_surface_distance": None,
+        "snap_cartesian_to_surface": False,
+        "bidirectional": bool(bidirectional),
+        "surface_indices": [int(value) for value in surface_indices],
+        "phi_indices": [int(value) for value in phi_indices],
+        "finite_fraction": float(np.count_nonzero(np.isfinite(R) & np.isfinite(z)) / max(R.size, 1)),
+        "normal_leakage_abs_over_norm_median": float("nan"),
+        "normal_leakage_abs_over_norm_p95": float("nan"),
+        "surface_tangent_fraction_median": float("nan"),
+        "surface_tangent_fraction_p05": float("nan"),
+        "seed_normal_leakage_abs_over_norm_median": float("nan"),
+        "seed_normal_leakage_abs_over_norm_p95": float("nan"),
+        "seed_surface_tangent_fraction_median": float("nan"),
+        "seed_surface_tangent_fraction_p05": float("nan"),
+        "trajectory_normal_leakage_abs_over_norm_median": float("nan"),
+        "trajectory_normal_leakage_abs_over_norm_p95": float("nan"),
+        "trajectory_surface_tangent_fraction_median": float("nan"),
+        "trajectory_surface_tangent_fraction_p05": float("nan"),
+        "line_diagnostics": line_diagnostics,
+        "face_flux_event": event_metadata,
+    }
+    streamlines = PestSeededStreamlines(
+        R=R,
+        Z=z,
+        phi=phi,
+        theta=theta,
+        x=x,
+        y=y,
+        z=z,
+        seed_R=np.asarray(seeds["R"], dtype=np.float64),
+        seed_Z=np.asarray(seeds["Z"], dtype=np.float64),
+        seed_phi=np.asarray(seeds["phi"], dtype=np.float64),
+        seed_rho=np.asarray(seeds["rho"], dtype=np.float64),
+        seed_theta=np.asarray(seeds["theta"], dtype=np.float64),
+        seed_surface_index=np.asarray(seeds["surface_index"], dtype=np.int64),
+        seed_phi_index=np.asarray(seeds["phi_index"], dtype=np.int64),
+        metadata=metadata,
+    )
+    if not bool(_return_diagnostics):
+        return streamlines
+    return streamlines, _PestTraceRawDiagnostics(
+        seed_leakage=nan_seed,
+        seed_tangent_fraction=nan_seed,
+        trajectory_leakage=nan_trajectory,
+        trajectory_tangent_fraction=nan_trajectory,
+    )
+
+
 def _trace_j_streamlines_on_pest_serial(
     field: VectorFieldCylind | object,
     pest: SmoothPestCoordinates | Mapping[str, object] | str | Path,
@@ -1921,6 +2580,7 @@ def _trace_j_streamlines_on_pest_serial(
     constrain_to_surface: bool = True,
     max_surface_distance: float | None = None,
     snap_cartesian_to_surface: bool = True,
+    integration_backend: str = "rk4",
     _return_diagnostics: bool = False,
 ) -> PestSeededStreamlines | tuple[PestSeededStreamlines, _PestTraceRawDiagnostics]:
     """Trace current streamlines from PEST-surface seeds.
@@ -1935,6 +2595,15 @@ def _trace_j_streamlines_on_pest_serial(
     stepping in ``(theta, phi)``.  Set ``constrain_to_surface=False`` to integrate
     in physical Cartesian space; the PEST mesh is then used only for seeding and
     section projection.
+
+    ``integration_backend="face_flux_event"`` selects an independent discrete
+    tracer for surface-native RT0 face data.  That backend requires
+    ``evaluate_pest_surface_face_fluxes(surface_index)`` and explicit ``nfp`` /
+    ``field_period_rad`` attributes; its points are exact cell-face events and
+    its angles remain unwrapped across periodic seams.  For this backend,
+    ``round(n_turns * steps_per_turn)`` is the maximum number of face events in
+    each requested direction, rather than an arclength step count.  The default
+    ``"rk4"`` path is unchanged.
 
     ``surface_index`` may select one or more magnetic surfaces.  ``seed_count``
     is the number of poloidal seeds per selected surface and toroidal seed
@@ -1953,6 +2622,9 @@ def _trace_j_streamlines_on_pest_serial(
 
     coords = _as_pest_coordinates(pest)
     _validate_pest(coords)
+    backend = str(integration_backend).strip().lower()
+    if backend not in {"rk4", "face_flux_event"}:
+        raise ValueError("integration_backend must be 'rk4' or 'face_flux_event'")
     field_eval = _as_vector_field_evaluator(field)
     coords_nfp = int(coords.nfp)
     field_nfp = int(field_eval.nfp)
@@ -2025,7 +2697,14 @@ def _trace_j_streamlines_on_pest_serial(
     # surfaces.  The integrator uses the selected rows, while the section-level
     # tangent/leakage diagnostics below intentionally retain the complete-grid
     # contract and therefore iterate over ``surf_idx``.
-    surface_derivatives = smooth_pest_derivatives(coords)
+    if backend == "face_flux_event":
+        # Event tracing needs only R(theta, phi) and Z(theta, phi) for output;
+        # it must not manufacture a radial derivative merely to draw one
+        # independently supplied surface flux field.
+        zeros = np.zeros_like(np.asarray(coords.R_surf, dtype=np.float64))
+        surface_derivatives = (zeros, zeros, zeros, zeros, zeros, zeros)
+    else:
+        surface_derivatives = smooth_pest_derivatives(coords)
     surface_evals = {
         int(ir): _PestSurfaceEvaluator.from_pest(
             coords,
@@ -2034,6 +2713,29 @@ def _trace_j_streamlines_on_pest_serial(
         )
         for ir in surf_idx
     }
+    if backend == "face_flux_event":
+        return _trace_j_streamlines_on_pest_face_flux_event(
+            field=field,
+            field_eval=field_eval,
+            coords=coords,
+            plan=seed_plan,
+            surface_evals=surface_evals,
+            n_turns=float(n_turns),
+            steps_per_turn=int(steps_per_turn),
+            bidirectional=bool(bidirectional),
+            min_field_norm=float(min_field_norm),
+            constrain_to_surface=bool(constrain_to_surface),
+            clip_phi_range=bool(clip_phi_range),
+            full_seed_surface_perimeter_m=full_seed_surface_perimeter_m,
+            surface_arclength_per_turn=float(surface_arclength_per_turn),
+            seed_count=int(seed_count),
+            seed_spacing=str(seed_spacing),
+            phi_seed_count=int(seed_phi_values.size),
+            phi_values=seed_phi_values,
+            phi_indices=phi_idx,
+            surface_indices=surf_idx,
+            _return_diagnostics=bool(_return_diagnostics),
+        )
     _, _, seed_leakage, seed_tangent_fraction = _pest_surface_rhs(
         surface_evals,
         seeds["surface_index"],
@@ -2492,6 +3194,24 @@ def _merge_parallel_pest_streamlines(
             ),
         }
     )
+    if "face_flux_event" in lines[0].metadata:
+        event_items = [item.metadata.get("face_flux_event") for item in lines]
+        if not all(isinstance(item, Mapping) for item in event_items):
+            raise RuntimeError("parallel face-flux event metadata is inconsistent")
+        first_event = dict(event_items[0])  # type: ignore[arg-type]
+        for key in tuple(first_event):
+            if not str(key).endswith("_by_seed_line"):
+                continue
+            values: list[object] = []
+            for chunk, event_item in zip(chunks, event_items, strict=True):
+                chunk_values = list(event_item[key])  # type: ignore[index]
+                if len(chunk_values) != len(chunk):
+                    raise RuntimeError(
+                        "parallel face-flux event evidence lost seed-line identity"
+                    )
+                values.extend(chunk_values)
+            first_event[key] = [values[int(position)] for position in order]
+        metadata["face_flux_event"] = first_event
     return replace(lines[0], **merged_arrays, metadata=metadata)
 
 
@@ -2517,11 +3237,14 @@ def trace_j_streamlines_on_pest(
     constrain_to_surface: bool = True,
     max_surface_distance: float | None = None,
     snap_cartesian_to_surface: bool = True,
+    integration_backend: str = "rk4",
     workers: int = 1,
 ) -> PestSeededStreamlines:
     """Trace current streamlines from a deterministic PEST-surface seed grid.
 
-    ``workers=1`` follows the historical serial path.  On POSIX systems,
+    ``integration_backend="rk4"`` preserves the historical path.
+    ``integration_backend="face_flux_event"`` traces explicit periodic PEST
+    surface RT0 face data by exact cell-crossing events.  On POSIX systems,
     ``workers>1`` partitions selected seed rows by magnetic surface and uses a
     fork process pool.  Every worker calls the same serial tracer with the
     complete surface request, so the normalized-arclength step and explicit
@@ -2549,6 +3272,7 @@ def trace_j_streamlines_on_pest(
         "constrain_to_surface": bool(constrain_to_surface),
         "max_surface_distance": max_surface_distance,
         "snap_cartesian_to_surface": bool(snap_cartesian_to_surface),
+        "integration_backend": str(integration_backend),
     }
     if worker_count == 1:
         result = _trace_j_streamlines_on_pest_serial(
@@ -3133,7 +3857,8 @@ def plot_j_streamline_seed_sections(
     if rho_max <= rho_min:
         rho_max = rho_min + 1.0
     use_pest_projection = (
-        streamlines.metadata.get("trace_mode") == "pest_surface_constrained"
+        streamlines.metadata.get("trace_mode")
+        in {"pest_surface_constrained", "pest_surface_face_flux_event"}
         and np.shape(streamlines.theta) == np.shape(streamlines.R)
     )
     use_cartesian_projection = bool(project_cartesian_to_pest) and not use_pest_projection

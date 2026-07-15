@@ -332,6 +332,7 @@ def test_trace_j_streamlines_workers_one_is_the_default_bitwise_path():
         _toroidal_current_field(),
         _toy_pest(),
         workers=1,
+        integration_backend="rk4",
         **common,
     )
     _assert_pest_streamlines_bitwise_equal(default, explicit)
