@@ -25,3 +25,7 @@ from pyna.toroidal.coords.vmec import (
     VmecPestCoordinateBuild,
     build_vmec_pest_coordinates_from_wout,
 )
+from pyna.toroidal.coords.vmec_axis import (
+    VmecMagneticAxisBuild,
+    build_vmec_magnetic_axis_from_wout,
+)
