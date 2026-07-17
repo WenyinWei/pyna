@@ -1,5 +1,10 @@
 # Field-Line Tracing Policy
 
+Academic prose, documentation, and plot labels always spell **PEST** in all
+capitals; lower-case `pest` is limited to code identifiers and literal paths.
+The coordinate-module boundary is documented in
+[`pyna/toroidal/coords/README.md`](pyna/toroidal/coords/README.md).
+
 `pyna`/`cyna` is the owner of production magnetic-field-line tracing.
 
 Use `pyna._cyna.trace_poincare_multi`, `trace_poincare_batch`, or the canonical
