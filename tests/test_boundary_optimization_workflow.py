@@ -234,6 +234,7 @@ def test_plot_boundary_response_optimization_history_runs_headless():
 
     assert axes.shape == (2, 2)
     assert len(fig.axes) == 4
+    assert [text.get_text() for text in axes[1, 1].texts] == ["no active bounds"]
     plt.close(fig)
 
 

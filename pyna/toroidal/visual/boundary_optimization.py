@@ -215,6 +215,18 @@ def plot_boundary_response_optimization_history(
     ax_bounds.set_ylabel("count")
     ax_bounds.grid(True, axis="y", alpha=0.25)
     ax_bounds.legend(loc="best", fontsize=8, frameon=False)
+    if not np.any(lower_counts) and not np.any(upper_counts):
+        ax_bounds.text(
+            0.5,
+            0.5,
+            "no active bounds",
+            transform=ax_bounds.transAxes,
+            ha="center",
+            va="center",
+            color="0.45",
+            fontsize=9,
+        )
+        ax_bounds.set_ylim(0.0, 1.0)
 
     if title:
         fig.suptitle(title)
