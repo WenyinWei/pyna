@@ -1,5 +1,7 @@
 """Generic plotting helpers for pyna objects."""
 
+from importlib import import_module
+
 from pyna.plot.island import plot_island, island_section_points
 from pyna.plot.island_chain import plot_island_chain, island_chain_section_points
 from pyna.plot.xo_points import draw_xo_points, XO_STYLE
@@ -80,6 +82,28 @@ from pyna.plot.j_streamlines import (
     vmec_current_fourier_to_pest_field,
 )
 
+
+_LAZY_PLOT_MODULES = (
+    "pyna.plot.poincare_topology",
+    "pyna.plot.boundary_optimization",
+    "pyna.plot.boundary_topology_case",
+    "pyna.plot.wall_heat",
+    "pyna.toroidal.visual.boundary_topology",
+    "pyna.toroidal.visual.heat_distribution",
+)
+
+
+def __getattr__(name):
+    """Resolve specialized figure helpers without loading them all eagerly."""
+
+    for module_name in _LAZY_PLOT_MODULES:
+        module = import_module(module_name)
+        if name in getattr(module, "__all__", ()):
+            value = getattr(module, name)
+            globals()[name] = value
+            return value
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 __all__ = [
     # Island / IslandChain
     "plot_island",
@@ -91,12 +115,55 @@ __all__ = [
     "plot_poincare",
     "plot_poincare_data",
     "plot_poincare_beta_grid",
+    "PoincareCurvedIslandBar",
+    "PoincareDPKClassification",
+    "PoincareFixedPointValidation",
+    "PoincareIslandSecondaryCoordinates",
+    "PoincareTopologyFigureStyle",
+    "PoincareTopologyReportPayload",
+    "PoincareTraceQuality",
+    "circular_flux_coordinate_island_bars",
+    "draw_poincare_curved_island_bars",
+    "draw_poincare_phase_response_arrows",
+    "draw_poincare_island_secondary_contours",
+    "draw_poincare_island_secondary_points",
+    "draw_poincare_island_secondary_trace_lines",
+    "fixed_point_phase_comparison_markers",
+    "fixed_point_centered_island_bars",
+    "plot_poincare_topology_map",
+    "plot_poincare_topology_payload_map",
+    "plot_poincare_topology_payload_report",
+    "plot_poincare_topology_report",
+    "poincare_dpk_classification",
+    "poincare_fixed_point_validation",
+    "poincare_island_secondary_coordinates",
+    "poincare_phase_response_radial_deltas",
+    "poincare_topology_report_payload",
+    "poincare_trace_index_from_counts",
+    "poincare_trace_quality",
+    "sample_fixed_s_theta_curve",
+    "save_poincare_topology_figure",
     "beta_physics_rows",
     "beta_ramp_scan_rows",
     "plot_beta_physics_dashboard",
     "plot_beta_ramp_scan_summary",
     "read_beta_physics_csv",
     "plot_boundary_island_sections",
+    "BoundaryResponseOptimizationObservableRow",
+    "BoundaryResponseOptimizationSummary",
+    "boundary_response_optimization_summary",
+    "plot_boundary_response_optimization_history",
+    "save_boundary_optimization_figure",
+    "plot_boundary_response_matrix_audit",
+    "plot_boundary_topology_control_audit",
+    "BoundaryTopologyComparisonSummary",
+    "DPKRecurrenceProfile",
+    "boundary_dpk_recurrence_profile",
+    "boundary_topology_comparison_summary",
+    "plot_boundary_dpk_recurrence_profile",
+    "plot_boundary_topology_comparison",
+    "plot_heat_distribution_control_history",
+    "plot_heat_distribution_control_result",
     "draw_pest_grid",
     "draw_rmp_island_width_bars",
     "draw_reduced_stable_manifolds",
@@ -108,6 +175,22 @@ __all__ = [
     "plot_mgrid_current_cylindrical_components",
     "plot_pest_current_components",
     "plot_surface_fourier_ripple_summary",
+    "CameraProjection",
+    "WallHeatFootprint",
+    "WallSurfaceHeat",
+    "camera_frame",
+    "camera_project_cylindrical",
+    "camera_xyz_from_cylindrical",
+    "cylindrical_to_cartesian",
+    "plot_wall_heat_camera",
+    "plot_wall_heat_camera_surface",
+    "plot_wall_heat_camera_views",
+    "plot_wall_heat_footprint",
+    "project_camera_points",
+    "project_strike_points_camera",
+    "wall_surface_heat_from_footprint",
+    "wall_heat_footprint_from_hits",
+    "write_wall_heat_surface_plotly_html",
     "SECTION_ORBIT_COLORS",
     "apply_section_limits",
     "branch_payload_point_subset",

@@ -1,4 +1,6 @@
 """pyna.toroidal.visual — publication-quality toroidal equilibrium visualization."""
+from importlib import import_module
+
 from .equilibrium import plot_nested_flux_surfaces, BPOL_CMAP, ISLAND_CMAPS
 from .RMP_spectrum import (
     island_fixed_points,
@@ -44,12 +46,20 @@ from .RMP_spectrum import (
     plot_mn_heatmap_radial,
 )
 from .magnetic_spectrum import (
+    IsoThetaBarSpec,
+    MAGNETIC_SECTION_OVERLAYS,
+    MagneticSectionOverlaySpec,
     PoincareRationalTrace,
     RadialModeSpectrum,
     RationalSurfaceMarker,
     SectionIslandBar,
     SpectrumSurfaceMatrix,
+    draw_magnetic_section_overlays,
+    draw_magnetic_surface_grid,
+    draw_section_xo_points,
     island_bars_on_section,
+    magnetic_section_overlay_spec,
+    magnetic_section_overlay_specs,
     overlay_island_bars_on_section,
     overlay_poincare_rational_trace,
     overlay_radial_mode_island_bars,
@@ -60,6 +70,7 @@ from .magnetic_spectrum import (
     plot_chirikov_overlaps,
     plot_island_chains_on_section,
     plot_island_phase_scan,
+    plot_magnetic_section_overlay_grid,
     plot_radial_mode_heatmap,
     plot_radial_mode_pcolormesh,
     plot_rational_surface_map,
@@ -108,6 +119,26 @@ except ModuleNotFoundError as exc:
     STABLE_CMAPS = []
     PUBLICATION_RC = {}
 
+
+_LAZY_VISUAL_MODULES = (
+    "boundary_topology",
+    "heat_distribution",
+    "boundary_optimization",
+    "poincare_topology",
+)
+
+
+def __getattr__(name):
+    """Resolve specialized visual layers independently on first use."""
+
+    for module_name in _LAZY_VISUAL_MODULES:
+        module = import_module(f"{__name__}.{module_name}")
+        if name in getattr(module, "__all__", ()):
+            value = getattr(module, name)
+            globals()[name] = value
+            return value
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 __all__ = [
     "plot_nested_flux_surfaces",
     "BPOL_CMAP",
@@ -153,12 +184,20 @@ __all__ = [
     "compute_mn_spectrum",
     "plot_mn_heatmap",
     "plot_mn_heatmap_radial",
+    "IsoThetaBarSpec",
+    "MAGNETIC_SECTION_OVERLAYS",
+    "MagneticSectionOverlaySpec",
     "PoincareRationalTrace",
     "RadialModeSpectrum",
     "RationalSurfaceMarker",
     "SectionIslandBar",
     "SpectrumSurfaceMatrix",
+    "draw_magnetic_section_overlays",
+    "draw_magnetic_surface_grid",
+    "draw_section_xo_points",
     "island_bars_on_section",
+    "magnetic_section_overlay_spec",
+    "magnetic_section_overlay_specs",
     "overlay_island_bars_on_section",
     "overlay_poincare_rational_trace",
     "overlay_radial_mode_island_bars",
@@ -169,6 +208,7 @@ __all__ = [
     "plot_chirikov_overlaps",
     "plot_island_chains_on_section",
     "plot_island_phase_scan",
+    "plot_magnetic_section_overlay_grid",
     "plot_radial_mode_heatmap",
     "plot_radial_mode_pcolormesh",
     "plot_rational_surface_map",
@@ -179,6 +219,45 @@ __all__ = [
     "radial_mode_spectrum",
     "rational_surface_markers",
     "spectrum_surface_matrix",
+    "BoundaryTopologyComparisonSummary",
+    "DPKRecurrenceProfile",
+    "boundary_dpk_recurrence_profile",
+    "boundary_topology_comparison_summary",
+    "plot_boundary_dpk_recurrence_profile",
+    "plot_boundary_topology_comparison",
+    "plot_heat_distribution_control_history",
+    "plot_heat_distribution_control_result",
+    "BoundaryResponseOptimizationObservableRow",
+    "BoundaryResponseOptimizationSummary",
+    "boundary_response_optimization_summary",
+    "plot_boundary_response_optimization_history",
+    "PoincareCurvedIslandBar",
+    "PoincareDPKClassification",
+    "PoincareFixedPointValidation",
+    "PoincareIslandSecondaryCoordinates",
+    "PoincareTopologyFigureStyle",
+    "PoincareTopologyReportPayload",
+    "PoincareTraceQuality",
+    "circular_flux_coordinate_island_bars",
+    "draw_poincare_curved_island_bars",
+    "draw_poincare_phase_response_arrows",
+    "draw_poincare_island_secondary_contours",
+    "draw_poincare_island_secondary_points",
+    "draw_poincare_island_secondary_trace_lines",
+    "fixed_point_phase_comparison_markers",
+    "fixed_point_centered_island_bars",
+    "plot_poincare_topology_map",
+    "plot_poincare_topology_payload_map",
+    "plot_poincare_topology_payload_report",
+    "plot_poincare_topology_report",
+    "poincare_dpk_classification",
+    "poincare_fixed_point_validation",
+    "poincare_island_secondary_coordinates",
+    "poincare_phase_response_radial_deltas",
+    "poincare_topology_report_payload",
+    "poincare_trace_index_from_counts",
+    "poincare_trace_quality",
+    "sample_fixed_s_theta_curve",
     "plot_equilibrium_cross_section",
     "plot_poincare_orbits",
     "plot_xcycle_marker",

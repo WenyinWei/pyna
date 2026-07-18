@@ -1,4 +1,6 @@
 """pyna.toroidal.coils — toroidal coil geometry and vacuum fields."""
+from importlib import import_module
+
 from pyna.toroidal.coils.base import CoilFieldVacuum, CoilFieldSuperposition, CoilFieldScaled
 from pyna.toroidal.coils.coil import (
     BRBZ_induced_by_current_loop,
@@ -23,3 +25,17 @@ from pyna.toroidal.coils.accel import (
     CircularCoilTemplate,
     get_template,
 )
+
+
+def __getattr__(name):
+    """Load boundary-local coil construction only when it is requested."""
+
+    module = import_module("pyna.toroidal.coils.boundary_local")
+    if name == "boundary_local":
+        globals()[name] = module
+        return module
+    if name in module.__all__:
+        value = getattr(module, name)
+        globals()[name] = value
+        return value
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
