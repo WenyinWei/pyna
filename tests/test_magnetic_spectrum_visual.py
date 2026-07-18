@@ -10,12 +10,18 @@ from pyna.toroidal.perturbation_spectrum import (
     analyze_resonant_island_chains_multi_n,
 )
 from pyna.toroidal.visual.magnetic_spectrum import (
+    IsoThetaBarSpec,
+    MagneticSectionOverlaySpec,
     apply_radial_mode_overlays,
     apply_rational_surface_overlays,
     PoincareRationalTrace,
+    draw_magnetic_section_overlays,
     island_bars_on_section,
+    magnetic_section_overlay_spec,
+    magnetic_section_overlay_specs,
     overlay_q_profile,
     overlay_island_bars_on_section,
+    plot_magnetic_section_overlay_grid,
     plot_island_chains_on_section,
     plot_radial_mode_heatmap,
     plot_rational_surface_map,
@@ -89,6 +95,24 @@ def _stack_spectrum():
     )
 
 
+def _nfp_stack_spectrum():
+    phi = np.linspace(0.0, np.pi, 8, endpoint=False)
+    theta = np.linspace(0.0, 2.0 * np.pi, 48, endpoint=False)
+    radial = np.array([0.2, 0.3, 0.4])
+    resonant = np.array([1.0, 2.0, 1.5]) * 1.0e-4 * np.exp(0.2j)
+    opposite = np.array([0.4, 0.8, 0.6]) * 1.0e-4 * np.exp(-0.35j)
+    return RadialPerturbationFourierSpectrum(
+        m=np.array([3, -3, 3, -3]),
+        n=np.array([-2, 2, 2, -2]),
+        dBr=np.column_stack([resonant, resonant.conjugate(), opposite, opposite.conjugate()]),
+        dBr_grid=np.zeros((3, phi.size, theta.size), dtype=complex),
+        theta=theta,
+        phi=phi,
+        radial_labels=radial,
+        field_periods=2,
+    )
+
+
 def test_island_bars_use_one_bar_per_o_point():
     R, Z, phi, theta, radial = _surface()
     bars = island_bars_on_section(R, Z, phi, theta, radial, [_chain()], phi_section=0.0)
@@ -130,6 +154,124 @@ def test_island_bars_follow_constant_theta_curves_on_shaped_sections():
     assert artists
     curved_lines = [artist for artist in artists if hasattr(artist, "get_xdata")]
     assert any(len(line.get_xdata()) == 21 for line in curved_lines)
+    plt.close(fig)
+
+
+def test_magnetic_section_overlay_spec_and_renderer_are_composable():
+    import matplotlib.pyplot as plt
+
+    R, Z, phi, theta, radial = _shaped_surface()
+    chain = _chain()
+    spec = magnetic_section_overlay_spec(
+        R,
+        Z,
+        phi,
+        theta,
+        radial,
+        [chain],
+        phi_section=phi[1],
+        n_path=19,
+    )
+
+    assert isinstance(spec, MagneticSectionOverlaySpec)
+    assert spec.phi_index == 1
+    assert spec.R_section.shape == (radial.size, theta.size)
+    assert len(spec.island_bars) == chain.m
+    assert isinstance(spec.island_bars[0], IsoThetaBarSpec)
+    assert spec.island_bars[0].R_path is not None
+    assert spec.island_bars[0].R_path.size == 19
+
+    t = np.linspace(0.0, 1.0, 8)
+    poincare = np.column_stack((3.0 + 0.12 * t, 0.05 * np.sin(2.0 * np.pi * t)))
+    stable = np.column_stack((3.0 + 0.03 * t, 0.025 * t))
+    unstable = np.column_stack((3.0 + 0.03 * t, -0.025 * t))
+
+    fig, ax = plt.subplots()
+    payload = draw_magnetic_section_overlays(
+        ax,
+        spec,
+        overlays=("pest", "points", "stable", "unstable", "bars", "xo"),
+        poincare_points=poincare,
+        stable_segments=[stable],
+        unstable_segments=[unstable],
+        x_points=np.array([[3.02, 0.01]]),
+        o_points=np.array([[3.04, -0.01]]),
+        island_bar_kwargs={"show_labels": False, "show_O": False, "show_X": False},
+    )
+
+    assert len(payload["pest_grid"]) > 0
+    assert payload["poincare"] is not None
+    assert len(payload["stable_manifolds"]) == 1
+    assert len(payload["unstable_manifolds"]) == 1
+    assert len(payload["island_bars"]) == chain.m
+    assert len(payload["x_points"]) == 1
+    assert len(payload["o_points"]) == 1
+
+    empty_payload = draw_magnetic_section_overlays(
+        ax,
+        spec,
+        overlays=("points", "xo"),
+        poincare_points=[],
+        x_points=[],
+        o_points=[],
+    )
+    assert empty_payload["poincare"] is None
+    assert empty_payload["x_points"] == []
+    assert empty_payload["o_points"] == []
+    plt.close(fig)
+
+
+def test_magnetic_section_overlay_grid_builds_compact_2x2_layout():
+    import matplotlib.pyplot as plt
+
+    R, Z, phi, theta, radial = _shaped_surface()
+    chain = _chain()
+    phi_sections = phi[[0, 2, 4, 6]]
+    t = np.linspace(0.0, 1.0, 10)
+    poincare_by_section = []
+    for phase in np.linspace(0.0, np.pi, phi_sections.size):
+        points = np.column_stack((3.0 + 0.10 * t, 0.04 * np.sin(2.0 * np.pi * t + phase)))
+        poincare_by_section.append((points[:, 0], points[:, 1]))
+    x_by_section = [np.array([[3.0 + 0.01 * idx, 0.01]]) for idx in range(phi_sections.size)]
+    o_by_section = [np.array([[3.0 + 0.01 * idx, -0.01]]) for idx in range(phi_sections.size)]
+
+    specs = magnetic_section_overlay_specs(
+        R,
+        Z,
+        phi,
+        theta,
+        radial,
+        [chain],
+        phi_sections=phi_sections,
+        n_path=11,
+    )
+    assert [spec.phi_index for spec in specs] == [0, 2, 4, 6]
+
+    fig, axes, payloads = plot_magnetic_section_overlay_grid(
+        R,
+        Z,
+        phi,
+        theta,
+        radial,
+        [chain],
+        phi_sections=phi_sections,
+        poincare_points=poincare_by_section,
+        x_points=x_by_section,
+        o_points=o_by_section,
+        overlays=("pest", "points", "bars", "xo"),
+        ncols=2,
+        compact=True,
+        island_bar_kwargs={"show_labels": False, "show_O": False, "show_X": False},
+    )
+
+    assert axes.shape == (2, 2)
+    assert len(payloads) == 4
+    assert fig.subplotpars.wspace == 0.0
+    assert fig.subplotpars.hspace == 0.0
+    assert all(payload["poincare"] is not None for payload in payloads)
+    assert all(len(payload["island_bars"]) == chain.m for payload in payloads)
+    assert all(len(payload["x_points"]) == 1 for payload in payloads)
+    assert all(len(payload["o_points"]) == 1 for payload in payloads)
     plt.close(fig)
 
 
@@ -322,6 +464,100 @@ def test_spectrum_matrix_and_radial_mode_extractors():
     assert signed_m.fourier_n.tolist() == [2, -2]
     np.testing.assert_allclose(signed_m.amplitude[:, 0], 0.0)
     np.testing.assert_allclose(signed_m.amplitude[:, 1], [0.5e-4, 1.2e-4, 1.0e-4])
+
+
+def test_nfp_spectrum_visuals_use_signed_nardon_modes_and_labels():
+    import matplotlib.pyplot as plt
+
+    spectrum = _nfp_stack_spectrum()
+    resonant = spectrum.dBr[:, spectrum.nardon_mode_index(3, -4)]
+    opposite = spectrum.dBr[:, spectrum.nardon_mode_index(3, 4)]
+
+    default_matrix = spectrum_surface_matrix(spectrum, radial_index=1, m_values=[3])
+    assert default_matrix.n_values[[0, -1]].tolist() == [-4, 4]
+
+    matrix = spectrum_surface_matrix(
+        spectrum,
+        radial_index=1,
+        m_values=[-3, 3],
+        n_values=[-4, 4],
+    )
+    np.testing.assert_allclose(
+        matrix.coefficient,
+        [[opposite[1].conjugate(), resonant[1].conjugate()], [resonant[1], opposite[1]]],
+    )
+
+    negative_branch = radial_mode_spectrum(spectrum, fixed_n=4, mode_values=[-3, 3])
+    assert negative_branch.fourier_n.tolist() == [-4, -4]
+    np.testing.assert_allclose(
+        negative_branch.coefficient,
+        np.column_stack([opposite.conjugate(), resonant]),
+    )
+
+    positive_branch = radial_mode_spectrum(
+        spectrum,
+        fixed_n=4,
+        mode_values=[-3, 3],
+        resonant_sign=1,
+    )
+    assert positive_branch.fourier_n.tolist() == [4, 4]
+    np.testing.assert_allclose(
+        positive_branch.coefficient,
+        np.column_stack([resonant.conjugate(), opposite]),
+    )
+
+    fixed_m = radial_mode_spectrum(spectrum, fixed_m=3)
+    assert fixed_m.mode_values.tolist() == [4]
+    assert fixed_m.fourier_n.tolist() == [-4]
+    np.testing.assert_allclose(fixed_m.coefficient[:, 0], resonant)
+
+    fig, ax = plot_spectrum_heatmap(
+        spectrum,
+        radial_index=1,
+        m_values=[-3, 3],
+        n_values=[-4, 4],
+        log_scale=False,
+        show_island_boxes=False,
+    )
+    assert ax.get_xlabel() == r"$n_N$"
+    plt.close(fig)
+
+    fig, ax, _ = plot_radial_mode_heatmap(
+        spectrum,
+        fixed_n=4,
+        mode_values=[3],
+        overlays="none",
+        log_scale=False,
+    )
+    assert "n_0=4" in ax.get_title()
+    assert "n_N=-4" in ax.get_title()
+    plt.close(fig)
+
+
+def test_nfp_resonant_radial_profile_uses_chain_nardon_branch():
+    import matplotlib.pyplot as plt
+
+    spectrum = _nfp_stack_spectrum()
+    resonant = spectrum.dBr[:, spectrum.nardon_mode_index(3, -4)]
+    chain = ResonantIslandChain(
+        m=3,
+        n=4,
+        radial_label=0.3,
+        q=0.75,
+        q_prime=2.0,
+        coefficient=resonant[1],
+        b_res=2.0 * abs(resonant[1]),
+        half_width=0.03,
+        coefficient_n=-4,
+    )
+
+    fig, ax = plot_resonant_radial_profiles(spectrum, [chain])
+
+    profile_lines = [line for line in ax.lines if line.get_label() == "(3,-4)"]
+    assert len(profile_lines) == 1
+    np.testing.assert_allclose(profile_lines[0].get_ydata(), 2.0 * np.abs(resonant))
+    assert "n_N" in ax.get_ylabel()
+    plt.close(fig)
 
 
 def test_multi_n_resonant_chain_analysis():

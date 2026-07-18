@@ -11,8 +11,11 @@ Multi-mode control handles this by solving a constrained optimization.
 
 Physics background
 ------------------
-The external coil system produces an additional perturbation δb_mn. The total
-resonant driving term at the q=m/n surface becomes:
+The external coil system produces an additional perturbation δb_mn. In this
+legacy module ``n`` is the positive resonance-family label ``n0``.  For
+positive ``q=m/n0`` the returned complex amplitude is Nardon's signed Fourier
+coefficient ``(m, n_N=-n0)`` in the basis ``exp(i*(m*theta+n_N*phi))``.  The
+total resonant driving term at the q=m/n0 surface becomes:
 
     b_mn_total = b_mn_natural + δb_mn(I_coil)
 
@@ -39,16 +42,24 @@ def compute_resonant_amplitude(
     n_theta: int = 64,
     n_phi: int = 64,
 ) -> complex:
-    """Compute the (m,n) Fourier component of a perturbation field at a resonant surface.
+    """Compute the positive-``q`` resonant radial-field Fourier proxy.
 
     Integrates the normal (radial) component of the perturbation field along
-    the q=m/n flux surface and extracts the (m,n) Fourier coefficient.
+    the ``q=m/n0`` flux surface.  ``n`` is the positive family label ``n0``;
+    the integral extracts Nardon's signed coefficient ``(m, n_N=-n0)``:
 
     The resonant amplitude is:
 
-        b̃_mn = (1 / (2π)²) ∫₀²π ∫₀²π B_r(θ,φ) exp(-i(mθ - nφ)) dθ dφ
+        b̃_(m,-n0) = (1 / (2π)²) ∫₀²π ∫₀²π
+                      B_r(θ,φ) exp(-i(mθ - n0φ)) dθ dφ
 
     evaluated on the flux surface at r = r_res = sqrt(S_res) * r0.
+
+    This older circular-surface helper projects geometric ``B_r`` and is not a
+    substitute for
+    ``pyna.toroidal.control.boundary_perturbation_candidates.perturbation_candidate_nardon_response``,
+    which evaluates Nardon's
+    ``tilde_b^1=B^1/B^3`` on healed ``B0`` surfaces with provenance checks.
 
     Parameters
     ----------
@@ -59,7 +70,8 @@ def compute_resonant_amplitude(
     S_res : float
         Normalised flux coordinate of the resonant surface (ψ_norm ∈ [0,1]).
     m, n : int
-        Poloidal and toroidal mode numbers.
+        Positive poloidal mode number and positive resonance-family label
+        ``n0``.  The corresponding Nardon Fourier index is ``n_N=-n0``.
     equilibrium : SimpleStellarator
         The equilibrium object (provides R0, r0).
     n_theta, n_phi : int
@@ -68,7 +80,7 @@ def compute_resonant_amplitude(
     Returns
     -------
     complex
-        The complex amplitude b̃_mn = |b̃_mn| · exp(i·phase_mn).
+        The complex amplitude ``b̃_(m,-n0)``.
     """
     R0 = equilibrium.R0
     r0 = equilibrium.r0

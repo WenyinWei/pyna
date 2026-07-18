@@ -11,6 +11,7 @@ from pyna.toroidal.visual.RMP_spectrum import (
     deformed_surface_map_residual,
     fieldline_velocity_spectrum_on_circular_surface,
     find_resonant_components_analytic,
+    island_fixed_points,
     NonResonantFieldlineResponse,
     plot_perturbation_order_summary,
     project_fixed_points_to_deformed_surface,
@@ -316,6 +317,34 @@ def test_m1_radial_rmp_template_controls_resonant_phase():
 
     assert np.angle(component.b_mn) == pytest.approx(phase, abs=1.0e-12)
     assert abs(component.b_mn) == pytest.approx(5.0e-4, rel=1.0e-12)
+
+
+def test_rmp_opoint_phase_uses_nardon_m_minus_n_branch():
+    eq = simple_stellarator(
+        R0=3.0, r0=0.3, B0=2.5, q0=1.5, q1=4.5,
+        m_h=3, n_h=3, epsilon_h=0.0,
+    )
+    phase = 0.43
+    component = find_resonant_components_analytic(
+        eq,
+        radial_rmp_field_template(2, 1, amplitude=1.0e-3, phase=phase, axis_R=eq.R0),
+        base_m=2,
+        base_n=1,
+        max_harmonic=1,
+        n_theta=128,
+        n_phi=64,
+        min_amplitude=1.0e-16,
+    )[0]
+    phi = 0.71
+    points = island_fixed_points(component.m, component.n, component.b_mn, phi)
+    theta_o = points["theta_O"][0, 0]
+    residual = _wrap_to_pi(component.m * theta_o - component.n * phi + np.angle(component.b_mn))
+    assert residual == pytest.approx(-np.pi / 2.0, abs=1.0e-12)
+    assert component.opoint_theta == pytest.approx(
+        island_fixed_points(component.m, component.n, component.b_mn, 0.0)["theta_O"][0, 0]
+        % (2.0 * np.pi / component.m),
+        abs=1.0e-12,
+    )
 
 
 def test_mixed_rmp_nrmp_workflow_classifies_modes_and_deforms_surface():

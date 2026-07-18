@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from collections.abc import Mapping
 from typing import Iterable, Sequence
 
 import numpy as np
@@ -44,9 +45,25 @@ class SectionIslandBar:
     Z_path: np.ndarray | None = None
 
 
+IsoThetaBarSpec = SectionIslandBar
+
+
+@dataclass(frozen=True)
+class MagneticSectionOverlaySpec:
+    """Axes-independent geometry for one magnetic Poincare section overlay."""
+
+    phi_section: float
+    phi_index: int
+    R_section: np.ndarray
+    Z_section: np.ndarray
+    theta: np.ndarray
+    radial_labels: np.ndarray
+    island_bars: tuple[SectionIslandBar, ...] = ()
+
+
 @dataclass(frozen=True)
 class SpectrumSurfaceMatrix:
-    """Packed ``(m, n)`` spectrum expanded to a rectangular plotting matrix."""
+    """Packed ``(m, n_N)`` spectrum expanded to a rectangular plotting matrix."""
 
     m_values: np.ndarray
     n_values: np.ndarray
@@ -65,7 +82,11 @@ class SpectrumSurfaceMatrix:
 
 @dataclass(frozen=True)
 class RadialModeSpectrum:
-    """Radial stack for a fixed physical ``n`` or fixed physical ``m`` family."""
+    """Radial stack for a fixed ``n_0=|n_N|`` or fixed ``m`` family.
+
+    ``fourier_n`` is the signed full-torus Nardon index ``n_N``.  The field name
+    is retained for compatibility with existing visualization consumers.
+    """
 
     fixed_axis: str
     fixed_value: int
@@ -122,6 +143,15 @@ RADIAL_MODE_OVERLAYS = (
     "poincare",
 )
 
+MAGNETIC_SECTION_OVERLAYS = (
+    "pest_grid",
+    "poincare",
+    "stable_manifolds",
+    "unstable_manifolds",
+    "island_bars",
+    "xo",
+)
+
 _RATIONAL_OVERLAY_ALIASES = {
     "q": "q_profile",
     "q_profile": "q_profile",
@@ -152,6 +182,32 @@ _RADIAL_MODE_OVERLAY_ALIASES = {
     "poincare_points": "poincare",
 }
 
+_MAGNETIC_SECTION_OVERLAY_ALIASES = {
+    "grid": "pest_grid",
+    "pest": "pest_grid",
+    "pest_grid": "pest_grid",
+    "coordinate_grid": "pest_grid",
+    "magnetic_grid": "pest_grid",
+    "flux_surfaces": "pest_grid",
+    "points": "poincare",
+    "poincare": "poincare",
+    "poincare_points": "poincare",
+    "stable": "stable_manifolds",
+    "stable_manifold": "stable_manifolds",
+    "stable_manifolds": "stable_manifolds",
+    "unstable": "unstable_manifolds",
+    "unstable_manifold": "unstable_manifolds",
+    "unstable_manifolds": "unstable_manifolds",
+    "manifolds": "stable_manifolds",
+    "bars": "island_bars",
+    "island_bars": "island_bars",
+    "island_width_bars": "island_bars",
+    "iso_theta_bars": "island_bars",
+    "fixed_points": "xo",
+    "x_o": "xo",
+    "xo": "xo",
+}
+
 
 def _normalize_overlay_names(overlays, aliases: dict[str, str], default: Sequence[str]) -> tuple[str, ...]:
     if overlays is None:
@@ -175,6 +231,44 @@ def _normalize_overlay_names(overlays, aliases: dict[str, str], default: Sequenc
         if canonical not in out:
             out.append(canonical)
     return tuple(name for name in default if name in out)
+
+
+def _normalize_magnetic_section_overlays(overlays) -> tuple[str, ...]:
+    """Normalize overlay selectors for section-level R/Z figures."""
+
+    if overlays is None:
+        names = list(MAGNETIC_SECTION_OVERLAYS)
+    else:
+        if isinstance(overlays, str):
+            key = overlays.lower().replace("-", "_")
+            if key == "all":
+                names = list(MAGNETIC_SECTION_OVERLAYS)
+            elif key in {"none", "off", "false"}:
+                names = []
+            elif key == "manifolds":
+                names = ["stable_manifolds", "unstable_manifolds"]
+            elif key == "topology":
+                names = ["stable_manifolds", "unstable_manifolds", "island_bars", "xo"]
+            else:
+                names = [key]
+        else:
+            names = []
+            for raw in overlays:
+                key = str(raw).lower().replace("-", "_")
+                if key == "manifolds":
+                    names.extend(["stable_manifolds", "unstable_manifolds"])
+                elif key == "topology":
+                    names.extend(["stable_manifolds", "unstable_manifolds", "island_bars", "xo"])
+                else:
+                    names.append(key)
+    out = []
+    for name in names:
+        canonical = _MAGNETIC_SECTION_OVERLAY_ALIASES.get(name)
+        if canonical is None:
+            raise ValueError(f"unknown magnetic section overlay {name!r}")
+        if canonical not in out:
+            out.append(canonical)
+    return tuple(name for name in MAGNETIC_SECTION_OVERLAYS if name in out)
 
 
 def _surface_radial_index(
@@ -207,7 +301,7 @@ def _default_n_values(
     *,
     n_max: int | None,
 ) -> np.ndarray:
-    n_lim = int(np.max(np.abs(spectrum.n)) if n_max is None else n_max)
+    n_lim = int(np.max(np.abs(spectrum.nardon_n)) if n_max is None else n_max)
     return np.arange(-n_lim, n_lim + 1, dtype=int)
 
 
@@ -221,11 +315,11 @@ def _mode_coeff_matrix(
     data = np.zeros((len(m_values), len(n_values)), dtype=complex)
     for i, m_val in enumerate(m_values):
         for j, n_val in enumerate(n_values):
-            idx = spectrum.mode_index(int(m_val), int(n_val))
-            if idx is None:
-                continue
-            coeff = spectrum.dBr[idx] if spectrum.dBr.ndim == 1 else spectrum.dBr[int(radial_index), idx]
-            data[i, j] = coeff
+            data[i, j] = spectrum.nardon_mode_coefficient(
+                int(m_val),
+                int(n_val),
+                radial_index=int(radial_index),
+            )
     return data
 
 
@@ -495,11 +589,11 @@ def overlay_surface_resonance_line(
     zorder: float = 7.0,
     halo: bool = True,
 ):
-    """Overlay the resonant branch on a surface ``(Fourier n, m)`` spectrum.
+    """Overlay the resonant branch on a surface ``(n_N, m)`` spectrum.
 
-    The spectrum convention is ``exp(i(m theta + n_F phi))``.  For the usual
-    RMP coefficient ``b_{m,-n}`` and physical ``q=m/n``, the default
-    ``resonant_sign=-1`` draws ``m=-q n_F``.
+    The Nardon convention is ``exp(i(m theta* + n_N phi))`` and resonance is
+    ``q=-m/n_N``.  The default ``resonant_sign=-1`` therefore draws
+    ``m=-q n_N``.
     """
 
     q = float(q_value)
@@ -540,11 +634,11 @@ def spectrum_surface_matrix(
     n_max: int | None = None,
     positive_m: bool = True,
 ) -> SpectrumSurfaceMatrix:
-    """Return a rectangular ``(m, n)`` matrix for one radial surface.
+    """Return a rectangular ``(m, n_N)`` matrix for one radial surface.
 
     Missing packed modes are filled with zero coefficients.  By default the
     matrix follows the magnetic-confinement convention ``m > 0`` and includes
-    both signs of Fourier ``n``.
+    both signs of the full-torus Nardon index ``n_N``.
     """
 
     ridx, label = _surface_radial_index(spectrum, radial_index)
@@ -584,7 +678,7 @@ def plot_spectrum_heatmap(
     cmap: str = "magma",
     title: str | None = None,
 ):
-    """Plot ``|tilde_b^1_{mn}|`` for one radial surface.
+    """Plot ``|tilde_b^1_{m,n_N}|`` for one radial surface.
 
     ``renderer="pcolormesh"`` is the default because it also handles nonuniform
     axes and matches radial profile maps.  ``renderer="imshow"`` remains
@@ -652,7 +746,7 @@ def plot_spectrum_heatmap(
         raise ValueError("renderer must be 'imshow' or 'pcolormesh'")
     fig.colorbar(im, ax=ax, pad=0.02, label=label)
     ax.axvline(0.0, color="white", lw=0.7, alpha=0.65)
-    ax.set_xlabel("n")
+    ax.set_xlabel(r"$n_N$")
     ax.set_ylabel("m")
     if title is None:
         title = f"Magnetic perturbation spectrum at radial index {matrix.radial_index}"
@@ -669,7 +763,11 @@ def plot_spectrum_heatmap(
         m_set = set(matrix.m_values.tolist())
         n_set = set(matrix.n_values.tolist())
         for chain in chains:
-            n_plot = resonant_sign * chain.n
+            n_plot = (
+                int(chain.nardon_n)
+                if chain.coefficient_n is not None
+                else (-1 if int(np.sign(resonant_sign)) < 0 else 1) * int(chain.n)
+            )
             if chain.m not in m_set or n_plot not in n_set:
                 continue
             rect = plt.Rectangle(
@@ -686,7 +784,7 @@ def plot_spectrum_heatmap(
                 text = ax.text(
                     n_plot,
                     chain.m,
-                    f"{chain.m}/{chain.n}",
+                    f"({chain.m},{n_plot})",
                     ha="center",
                     va="center",
                     fontsize=7,
@@ -729,7 +827,7 @@ def plot_spectrum_bar3d(
     cmap: str = "magnetic",
     title: str | None = None,
 ):
-    """Plot one radial surface of ``|tilde_b^1_{mn}|`` as an interactive Plotly 3-D bar chart."""
+    """Plot one surface of ``|tilde_b^1_{m,n_N}|`` as an interactive Plotly 3-D bar chart."""
 
     if ax is not None:
         raise ValueError("plot_spectrum_bar3d now returns a Plotly figure and does not accept a Matplotlib ax")
@@ -846,7 +944,7 @@ def plot_spectrum_bar3d(
             (x1, y1, z1),
             (x0, y1, z1),
         )
-        text = f"m={int(m0)}<br>n={int(n0)}<br>|b|={float(amp):.4e}<br>{z_label_text}={float(value):.4e}"
+        text = f"m={int(m0)}<br>n_N={int(n0)}<br>|b|={float(amp):.4e}<br>{z_label_text}={float(value):.4e}"
         for vertex_i, (x, y, z) in enumerate(vertices):
             xs.append(x)
             ys.append(y)
@@ -914,7 +1012,7 @@ def plot_spectrum_bar3d(
         plot_bgcolor="white",
         scene={
             "xaxis": {
-                "title": "n",
+                "title": "n_N",
                 "range": x_range,
                 "backgroundcolor": "white",
                 "gridcolor": "#e5e7eb",
@@ -957,12 +1055,12 @@ def radial_mode_spectrum(
     mode_values: Sequence[int] | None = None,
     resonant_sign: int = -1,
 ) -> RadialModeSpectrum:
-    """Extract a radial ``mode x surface`` matrix for one physical mode family.
+    """Extract a radial ``mode x surface`` matrix for one Nardon mode family.
 
-    Pass ``fixed_n`` to inspect signed poloidal rows at the same Fourier
-    toroidal index ``resonant_sign*fixed_n``.  Pass ``fixed_m`` to inspect
-    signed toroidal rows at the same positive poloidal index.  The two sides of
-    a signed axis are actual Fourier rows; they are not forced to be conjugate.
+    Pass positive ``fixed_n=n_0`` to inspect poloidal rows at signed Nardon
+    index ``n_N=resonant_sign*n_0``.  Pass ``fixed_m`` to inspect positive
+    ``n_0=|n_N|`` families at one poloidal index.  Opposite signed branches are
+    looked up independently; they are not forced to be conjugate.
     """
 
     if (fixed_n is None) == (fixed_m is None):
@@ -975,7 +1073,7 @@ def radial_mode_spectrum(
     if fixed_n is not None:
         fixed = int(fixed_n)
         if fixed <= 0:
-            raise ValueError("fixed_n must be a positive physical toroidal mode number")
+            raise ValueError("fixed_n must be a positive Nardon resonance-family number n_0")
         modes = np.asarray(mode_values if mode_values is not None else _positive_mode_values(spectrum.m), dtype=int)
         fourier_m = modes.copy()
         fourier_n = np.full(modes.shape, sign * fixed, dtype=int)
@@ -985,7 +1083,10 @@ def radial_mode_spectrum(
         fixed = int(fixed_m)
         if fixed <= 0:
             raise ValueError("fixed_m must be a positive poloidal mode number")
-        modes = np.asarray(mode_values if mode_values is not None else _positive_mode_values(spectrum.n), dtype=int)
+        modes = np.asarray(
+            mode_values if mode_values is not None else _positive_mode_values(spectrum.resonance_family_n0),
+            dtype=int,
+        )
         fourier_m = np.full(modes.shape, fixed, dtype=int)
         fourier_n = sign * modes
         fixed_axis = "m"
@@ -993,7 +1094,7 @@ def radial_mode_spectrum(
 
     coeff = np.zeros((radial.size, modes.size), dtype=complex)
     for j, (m_val, n_val) in enumerate(zip(fourier_m, fourier_n)):
-        idx = spectrum.mode_index(int(m_val), int(n_val))
+        idx = spectrum.nardon_mode_index(int(m_val), int(n_val))
         if idx is not None:
             coeff[:, j] = spectrum.dBr[:, idx]
 
@@ -1014,7 +1115,7 @@ def _chains_for_radial_map(
     radial_map: RadialModeSpectrum,
 ) -> list[ResonantIslandChain]:
     if radial_map.fixed_axis == "n":
-        return [chain for chain in chains if int(chain.n) == radial_map.fixed_value]
+        return [chain for chain in chains if int(chain.resonance_family_n0) == radial_map.fixed_value]
     return [chain for chain in chains if int(chain.m) == radial_map.fixed_value]
 
 
@@ -1028,10 +1129,16 @@ def _radial_axis_convention(axis_convention: str) -> str:
         "physical": "physical",
         "physical_n": "physical",
         "n_phys": "physical",
+        "n0": "physical",
+        "resonance_family": "physical",
         "fourier": "fourier",
         "fourier_n": "fourier",
         "n_fourier": "fourier",
         "nf": "fourier",
+        "nardon": "fourier",
+        "nardon_n": "fourier",
+        "signed": "fourier",
+        "signed_n": "fourier",
     }
     if key not in aliases:
         raise ValueError("axis_convention must be 'physical' or 'fourier'")
@@ -1046,9 +1153,9 @@ def _radial_axis_values(radial_map: RadialModeSpectrum, axis_convention: str) ->
     return np.asarray(radial_map.mode_values, dtype=float)
 
 
-def _fixed_fourier_n(radial_map: RadialModeSpectrum) -> int:
+def _fixed_nardon_n(radial_map: RadialModeSpectrum) -> int:
     if radial_map.fixed_axis != "n" or radial_map.fourier_n.size == 0:
-        raise ValueError("fixed Fourier n is only defined for fixed-n radial maps")
+        raise ValueError("fixed Nardon n_N is only defined for fixed-n radial maps")
     return int(radial_map.fourier_n[0])
 
 
@@ -1056,8 +1163,8 @@ def _radial_axis_label(radial_map: RadialModeSpectrum, axis_convention: str) -> 
     if radial_map.fixed_axis == "n":
         return "m"
     if _radial_axis_convention(axis_convention) == "fourier":
-        return "n"
-    return r"physical $n=-n_F$"
+        return r"$n_N$"
+    return r"$n_0=|n_N|$"
 
 
 def _rational_surface_label(m: int, n: int, *, prefix: str = "q=") -> str:
@@ -1082,7 +1189,8 @@ def _signed_q_profile_label(axis: str, coefficient: float) -> str:
         factor = f"{float(coefficient):.3g}"
     if axis == "m":
         return rf"$m={factor}q(s)$"
-    return rf"$n={factor}/q(s)$"
+    symbol = "n_0" if axis == "n_0" else "n_N"
+    return rf"${symbol}={factor}/q(s)$"
 
 
 def _radial_resonance_curve(
@@ -1097,7 +1205,7 @@ def _radial_resonance_curve(
     if q_arr.shape != radial_map.radial_labels.shape:
         raise ValueError("q_profile must have the same shape as spectrum.radial_labels")
     if radial_map.fixed_axis == "n":
-        return -float(_fixed_fourier_n(radial_map)) * q_arr
+        return -float(_fixed_nardon_n(radial_map)) * q_arr
     with np.errstate(divide="ignore", invalid="ignore"):
         curve = float(radial_map.fixed_value) / q_arr
     if _radial_axis_convention(axis_convention) == "fourier":
@@ -1107,14 +1215,16 @@ def _radial_resonance_curve(
 
 def _radial_chain_x(chain: ResonantIslandChain, radial_map: RadialModeSpectrum, axis_convention: str) -> float:
     if radial_map.fixed_axis == "n":
-        n_fourier = _fixed_fourier_n(radial_map)
-        return -float(np.sign(n_fourier) or 1.0) * float(chain.m)
+        n_nardon = _fixed_nardon_n(radial_map)
+        return -float(np.sign(n_nardon) or 1.0) * float(chain.m)
     if _radial_axis_convention(axis_convention) == "fourier":
-        hits = np.where(np.asarray(radial_map.mode_values, dtype=int) == int(chain.n))[0]
+        hits = np.where(
+            np.asarray(radial_map.mode_values, dtype=int) == int(chain.resonance_family_n0)
+        )[0]
         if hits.size:
             return float(radial_map.fourier_n[int(hits[0])])
-        return -float(chain.n)
-    return float(chain.n)
+        return float(chain.nardon_n)
+    return float(chain.resonance_family_n0)
 
 
 def overlay_radial_resonance_curve(
@@ -1139,12 +1249,12 @@ def overlay_radial_resonance_curve(
     line_label = label
     if line_label is None:
         if radial_map.fixed_axis == "n":
-            n_fourier = _fixed_fourier_n(radial_map)
-            line_label = _signed_q_profile_label("m", -float(n_fourier))
+            n_nardon = _fixed_nardon_n(radial_map)
+            line_label = _signed_q_profile_label("m", -float(n_nardon))
         elif _radial_axis_convention(axis_convention) == "fourier":
-            line_label = _signed_q_profile_label("n", -float(radial_map.fixed_value))
+            line_label = _signed_q_profile_label("n_N", -float(radial_map.fixed_value))
         else:
-            line_label = _signed_q_profile_label("n", float(radial_map.fixed_value))
+            line_label = _signed_q_profile_label("n_0", float(radial_map.fixed_value))
     (line,) = ax.plot(
         curve,
         radial_map.radial_labels,
@@ -1691,12 +1801,11 @@ def plot_radial_mode_heatmap(
 ):
     """Plot fixed-``n`` or fixed-``m`` radial magnetic-spectrum maps.
 
-    With ``fixed_n``, the selected Fourier row is ``n_F=resonant_sign*n`` and
-    the horizontal axis is Fourier ``m``; the positive-q resonant branch is
-    ``m=-n_F*q(s)``.  With ``fixed_m``, ``axis_convention="physical"`` plots
-    the physical toroidal number ``n_phys=-n_F`` while
-    ``axis_convention="fourier"`` plots the actual Fourier index ``n_F`` and
-    draws the branch ``n_F=-m/q(s)``.  Island bars span
+    With ``fixed_n=n_0``, the selected branch is
+    ``n_N=resonant_sign*n_0`` and the horizontal axis is ``m``; resonance is
+    ``m=-n_N*q(s)``.  With ``fixed_m``, ``axis_convention="physical"`` plots
+    the positive family ``n_0=|n_N|`` while the compatibility spelling
+    ``axis_convention="fourier"`` plots signed ``n_N=-m/q(s)``.  Island bars span
     ``s_res +/- half_width`` at the corresponding low-order rational surface.
     """
 
@@ -1794,11 +1903,14 @@ def plot_radial_mode_heatmap(
     ax.set_ylabel("radial label")
     if title is None:
         if radial_map.fixed_axis == "n":
-            title = f"Radial spectrum at fixed physical n={radial_map.fixed_value} (Fourier n_F={_fixed_fourier_n(radial_map)})"
+            title = (
+                f"Radial spectrum at fixed n_0={radial_map.fixed_value} "
+                f"(Nardon n_N={_fixed_nardon_n(radial_map)})"
+            )
         elif axis_key == "fourier":
-            title = f"Radial spectrum at fixed Fourier m={radial_map.fixed_value}"
+            title = f"Radial spectrum at fixed m={radial_map.fixed_value} on signed Nardon n_N"
         else:
-            title = f"Radial spectrum at fixed physical m={radial_map.fixed_value}"
+            title = f"Radial spectrum at fixed m={radial_map.fixed_value} by n_0=|n_N|"
     ax.set_title(title)
     ax.grid(True, alpha=0.18)
     if curve is not None:
@@ -1821,7 +1933,7 @@ def plot_resonant_radial_profiles(
     max_modes: int = 10,
     title: str = r"Resonant spectrum and island-width estimates",
 ):
-    """Plot radial profiles of ``2|tilde_b^1_{m,-n}|`` for resonant chains."""
+    """Plot radial profiles of ``2|tilde_b^1_{m,n_N}|`` for resonant chains."""
 
     import matplotlib.pyplot as plt
 
@@ -1836,12 +1948,12 @@ def plot_resonant_radial_profiles(
     ordered = sorted(chains, key=lambda c: c.b_res, reverse=True)[: int(max_modes)]
     colors = plt.rcParams["axes.prop_cycle"].by_key().get("color", ["C0"])
     for i, chain in enumerate(ordered):
-        idx = spectrum.mode_index(chain.m, -chain.n)
+        idx = spectrum.nardon_mode_index(chain.m, chain.nardon_n)
         if idx is None:
             continue
         color = colors[i % len(colors)]
         profile = 2.0 * np.abs(spectrum.dBr[:, idx])
-        ax.plot(radial, profile, marker="o", ms=3.5, color=color, label=f"({chain.m},{chain.n})")
+        ax.plot(radial, profile, marker="o", ms=3.5, color=color, label=f"({chain.m},{chain.nardon_n})")
         ax.axvline(chain.radial_label, color=color, lw=0.9, alpha=0.55)
         ax.annotate(
             f"w={chain.half_width:.2e}\nphase={np.degrees(chain.phase):.1f} deg",
@@ -1853,7 +1965,7 @@ def plot_resonant_radial_profiles(
         )
     ax.set_yscale("log")
     ax.set_xlabel("s")
-    ax.set_ylabel(r"$\tilde{b}^{1}_{res}=2|\tilde{b}^{1}_{m,-n}|$")
+    ax.set_ylabel(r"$\tilde{b}^{1}_{res}=2|\tilde{b}^{1}_{m,n_N}|$")
     ax.set_title(title)
     ax.grid(True, which="both", alpha=0.25)
     if ordered:
@@ -2000,6 +2112,533 @@ def island_bars_on_section(
                 )
             )
     return bars
+
+
+def magnetic_section_overlay_spec(
+    R_surf: np.ndarray,
+    Z_surf: np.ndarray,
+    phi_vals: np.ndarray,
+    theta_vals: np.ndarray,
+    radial_labels: np.ndarray,
+    chains: Sequence[ResonantIslandChain] = (),
+    *,
+    phi_section: float = 0.0,
+    max_chains: int | None = None,
+    width_scale: float = 1.0,
+    n_path: int = 33,
+    clip_to_radial_domain: bool = False,
+) -> MagneticSectionOverlaySpec:
+    """Build axes-independent geometry for one R/Z Poincare section.
+
+    The returned spec contains the nearest available toroidal surface cut and
+    optional curved iso-theta island-width bars.  Rendering is intentionally left
+    to :func:`draw_magnetic_section_overlays`.
+    """
+
+    R, Z, phi, theta = prepare_surface_arrays(R_surf, Z_surf, phi_vals, theta_vals)
+    radial = np.asarray(radial_labels, dtype=float)
+    if radial.shape != (R.shape[1],):
+        raise ValueError("radial_labels must match the radial surface count")
+    iphi = int(np.argmin(np.abs(np.angle(np.exp(1j * (phi - float(phi_section)))))))
+    ordered = list(chains)
+    if max_chains is not None:
+        ordered = sorted(ordered, key=lambda chain: chain.b_res, reverse=True)[: int(max_chains)]
+    bars = island_bars_on_section(
+        R_surf,
+        Z_surf,
+        phi_vals,
+        theta_vals,
+        radial,
+        ordered,
+        phi_section=phi[iphi],
+        width_scale=width_scale,
+        n_path=n_path,
+        clip_to_radial_domain=clip_to_radial_domain,
+    )
+    return MagneticSectionOverlaySpec(
+        phi_section=float(phi[iphi]),
+        phi_index=iphi,
+        R_section=np.asarray(R[iphi], dtype=float),
+        Z_section=np.asarray(Z[iphi], dtype=float),
+        theta=np.asarray(theta, dtype=float),
+        radial_labels=radial,
+        island_bars=tuple(bars),
+    )
+
+
+def magnetic_section_overlay_specs(
+    R_surf: np.ndarray,
+    Z_surf: np.ndarray,
+    phi_vals: np.ndarray,
+    theta_vals: np.ndarray,
+    radial_labels: np.ndarray,
+    chains: Sequence[ResonantIslandChain] = (),
+    *,
+    phi_sections: Sequence[float],
+    max_chains: int | None = None,
+    width_scale: float = 1.0,
+    n_path: int = 33,
+    clip_to_radial_domain: bool = False,
+) -> list[MagneticSectionOverlaySpec]:
+    """Build overlay specs for multiple toroidal sections."""
+
+    return [
+        magnetic_section_overlay_spec(
+            R_surf,
+            Z_surf,
+            phi_vals,
+            theta_vals,
+            radial_labels,
+            chains,
+            phi_section=float(phi_section),
+            max_chains=max_chains,
+            width_scale=width_scale,
+            n_path=n_path,
+            clip_to_radial_domain=clip_to_radial_domain,
+        )
+        for phi_section in np.asarray(phi_sections, dtype=float).ravel()
+    ]
+
+
+def draw_magnetic_surface_grid(
+    ax,
+    spec: MagneticSectionOverlaySpec,
+    *,
+    radial_indices: Sequence[int] | None = None,
+    theta_values: Sequence[float] | None = None,
+    max_radial_lines: int = 9,
+    color: str = "0.55",
+    linewidth: float = 0.52,
+    alpha: float = 0.28,
+    zorder: float = 1.0,
+):
+    """Draw low-contrast magnetic-coordinate grid curves for one section spec."""
+
+    R = np.asarray(spec.R_section, dtype=float)
+    Z = np.asarray(spec.Z_section, dtype=float)
+    radial = np.asarray(spec.radial_labels, dtype=float)
+    theta = np.asarray(spec.theta, dtype=float)
+    if R.shape != Z.shape or R.shape != (radial.size, theta.size):
+        raise ValueError("spec surface arrays must have shape (n_radial, n_theta)")
+    if radial_indices is None:
+        n_keep = min(max(1, int(max_radial_lines)), radial.size)
+        ridx = np.unique(np.round(np.linspace(0, radial.size - 1, n_keep)).astype(int))
+    else:
+        ridx = np.asarray(radial_indices, dtype=int)
+    artists = []
+    for ir in ridx:
+        if ir < 0 or ir >= radial.size:
+            raise IndexError("radial_indices contains an out-of-range index")
+        artists.extend(
+            ax.plot(
+                np.r_[R[ir], R[ir, 0]],
+                np.r_[Z[ir], Z[ir, 0]],
+                color=color,
+                lw=float(linewidth),
+                alpha=float(alpha),
+                zorder=zorder,
+            )
+        )
+    if theta_values is None:
+        theta_arr = np.linspace(0.0, TWOPI, 8, endpoint=False)
+    else:
+        theta_arr = np.asarray(theta_values, dtype=float).ravel()
+    for theta0 in theta_arr:
+        R_line, Z_line = _surface_curve_fixed_theta(
+            R,
+            Z,
+            theta,
+            radial,
+            s_values=radial,
+            theta0=float(theta0),
+        )
+        artists.extend(
+            ax.plot(
+                R_line,
+                Z_line,
+                color=color,
+                lw=float(linewidth),
+                alpha=float(alpha),
+                zorder=zorder,
+            )
+        )
+    return artists
+
+
+def _rz_arrays(points) -> tuple[np.ndarray, np.ndarray]:
+    if points is None:
+        return np.empty(0, dtype=float), np.empty(0, dtype=float)
+    if isinstance(points, tuple) and len(points) >= 2:
+        R = np.asarray(points[0], dtype=float).ravel()
+        Z = np.asarray(points[1], dtype=float).ravel()
+        if R.shape != Z.shape:
+            raise ValueError("R and Z point arrays must have the same shape")
+        return R, Z
+    try:
+        arr = np.asarray(points, dtype=float)
+    except (TypeError, ValueError):
+        seq = list(points)
+        if not seq:
+            return np.empty(0, dtype=float), np.empty(0, dtype=float)
+        return (
+            np.asarray([float(getattr(point, "R")) for point in seq], dtype=float),
+            np.asarray([float(getattr(point, "Z")) for point in seq], dtype=float),
+        )
+    if arr.size == 0:
+        return np.empty(0, dtype=float), np.empty(0, dtype=float)
+    if arr.ndim == 1 and arr.size >= 2:
+        return arr[:1], arr[1:2]
+    if arr.ndim == 2 and arr.shape[1] >= 2:
+        return np.asarray(arr[:, 0], dtype=float), np.asarray(arr[:, 1], dtype=float)
+    raise ValueError("points must be an (N, 2) array, an (R, Z) tuple, or objects exposing R/Z")
+
+
+def _draw_section_point_cloud(
+    ax,
+    points,
+    *,
+    values=None,
+    color: str = "0.12",
+    cmap: str = "viridis",
+    point_size: float = 0.65,
+    alpha: float = 0.46,
+    rasterized: bool = True,
+    zorder: float = 3.0,
+    **kwargs,
+):
+    R, Z = _rz_arrays(points)
+    if R.size == 0:
+        return None
+    from pyna.plot.section_geometry import draw_poincare_points
+
+    return draw_poincare_points(
+        ax,
+        R,
+        Z,
+        values=values,
+        color=color,
+        cmap=cmap,
+        point_size=point_size,
+        alpha=alpha,
+        rasterized=rasterized,
+        zorder=int(zorder),
+        **kwargs,
+    )
+
+
+def draw_section_xo_points(
+    ax,
+    *,
+    x_points=None,
+    o_points=None,
+    x_color: str = "#d32f2f",
+    o_color: str = "#1565c0",
+    x_marker_size: float = 7.0,
+    o_marker_size: float = 5.2,
+    x_marker_width: float = 1.65,
+    o_marker_width: float = 0.95,
+    edge_color: str = "white",
+    zorder: float = 9.5,
+):
+    """Draw X/O fixed-point arrays or point objects on a section axis."""
+
+    artists = {"x_points": [], "o_points": []}
+    x_R, x_Z = _rz_arrays(x_points)
+    if x_R.size:
+        artists["x_points"].extend(
+            ax.plot(
+                x_R,
+                x_Z,
+                "x",
+                color=x_color,
+                ms=float(x_marker_size),
+                mew=float(x_marker_width),
+                ls="None",
+                zorder=zorder,
+            )
+        )
+    o_R, o_Z = _rz_arrays(o_points)
+    if o_R.size:
+        artists["o_points"].extend(
+            ax.plot(
+                o_R,
+                o_Z,
+                "o",
+                color=o_color,
+                mec=edge_color,
+                mew=float(o_marker_width),
+                ms=float(o_marker_size),
+                ls="None",
+                zorder=zorder,
+            )
+        )
+    return artists
+
+
+def draw_magnetic_section_overlays(
+    ax,
+    spec: MagneticSectionOverlaySpec,
+    *,
+    overlays: Sequence[str] | str | None = None,
+    poincare_points=None,
+    poincare_values=None,
+    stable_segments=None,
+    unstable_segments=None,
+    x_points=None,
+    o_points=None,
+    island_bars: Sequence[SectionIslandBar] | None = None,
+    pest_grid_kwargs: dict | None = None,
+    poincare_kwargs: dict | None = None,
+    stable_manifold_kwargs: dict | None = None,
+    unstable_manifold_kwargs: dict | None = None,
+    island_bar_kwargs: dict | None = None,
+    xo_kwargs: dict | None = None,
+) -> dict[str, object]:
+    """Render named section overlays from precomputed geometry and data arrays."""
+
+    names = _normalize_magnetic_section_overlays(overlays)
+    payload: dict[str, object] = {
+        "spec": spec,
+        "pest_grid": [],
+        "poincare": None,
+        "stable_manifolds": [],
+        "unstable_manifolds": [],
+        "island_bars": [],
+        "x_points": [],
+        "o_points": [],
+    }
+    for name in names:
+        if name == "pest_grid":
+            kwargs = {} if pest_grid_kwargs is None else dict(pest_grid_kwargs)
+            payload["pest_grid"] = draw_magnetic_surface_grid(ax, spec, **kwargs)
+        elif name == "poincare":
+            if poincare_points is None:
+                continue
+            kwargs = {} if poincare_kwargs is None else dict(poincare_kwargs)
+            payload["poincare"] = _draw_section_point_cloud(
+                ax,
+                poincare_points,
+                values=poincare_values,
+                **kwargs,
+            )
+        elif name in {"stable_manifolds", "unstable_manifolds"}:
+            segments = stable_segments if name == "stable_manifolds" else unstable_segments
+            if segments is None:
+                continue
+            from pyna.toroidal.visual.tokamak_manifold import draw_manifold_segments
+
+            kwargs = (
+                {}
+                if (stable_manifold_kwargs if name == "stable_manifolds" else unstable_manifold_kwargs) is None
+                else dict(stable_manifold_kwargs if name == "stable_manifolds" else unstable_manifold_kwargs)
+            )
+            kwargs.setdefault("fig", ax.figure)
+            kwargs.setdefault("unstable", name == "unstable_manifolds")
+            payload[name] = draw_manifold_segments(ax, segments, **kwargs)
+        elif name == "island_bars":
+            bars = tuple(spec.island_bars if island_bars is None else island_bars)
+            if not bars:
+                continue
+            kwargs = {} if island_bar_kwargs is None else dict(island_bar_kwargs)
+            payload["island_bars"] = overlay_island_bars_on_section(ax, bars, **kwargs)
+        elif name == "xo":
+            if x_points is None and o_points is None:
+                continue
+            kwargs = {} if xo_kwargs is None else dict(xo_kwargs)
+            markers = draw_section_xo_points(ax, x_points=x_points, o_points=o_points, **kwargs)
+            payload["x_points"] = markers["x_points"]
+            payload["o_points"] = markers["o_points"]
+    return payload
+
+
+def _surface_limits_from_specs(
+    specs: Sequence[MagneticSectionOverlaySpec],
+    *,
+    pad_fraction: float = 0.035,
+) -> tuple[float, float, float, float] | None:
+    R_parts = [np.asarray(spec.R_section, dtype=float).ravel() for spec in specs]
+    Z_parts = [np.asarray(spec.Z_section, dtype=float).ravel() for spec in specs]
+    if not R_parts:
+        return None
+    R_all = np.concatenate(R_parts)
+    Z_all = np.concatenate(Z_parts)
+    finite = np.isfinite(R_all) & np.isfinite(Z_all)
+    if not np.any(finite):
+        return None
+    R_all = R_all[finite]
+    Z_all = Z_all[finite]
+    rmin = float(np.min(R_all))
+    rmax = float(np.max(R_all))
+    zmin = float(np.min(Z_all))
+    zmax = float(np.max(Z_all))
+    rpad = max(1.0e-9, float(pad_fraction) * max(rmax - rmin, 1.0e-9))
+    zpad = max(1.0e-9, float(pad_fraction) * max(zmax - zmin, 1.0e-9))
+    return rmin - rpad, rmax + rpad, zmin - zpad, zmax + zpad
+
+
+def _looks_like_per_section_payload(value) -> bool:
+    if isinstance(value, tuple) and len(value) >= 2:
+        try:
+            first = np.asarray(value[0], dtype=float)
+            second = np.asarray(value[1], dtype=float)
+        except (TypeError, ValueError):
+            return False
+        return first.shape == second.shape and first.ndim >= 1
+    try:
+        arr = np.asarray(value, dtype=float)
+    except (TypeError, ValueError):
+        return False
+    return arr.ndim >= 2
+
+
+def _section_payload(value, phi: float, index: int, n_sections: int):
+    if value is None:
+        return None
+    if isinstance(value, Mapping):
+        if phi in value:
+            return value[phi]
+        if not value:
+            return None
+        key = min(value, key=lambda candidate: abs(np.angle(np.exp(1j * (float(candidate) - float(phi))))))
+        return value[key]
+    if isinstance(value, tuple) and len(value) >= 2:
+        try:
+            first = np.asarray(value[0], dtype=float)
+            second = np.asarray(value[1], dtype=float)
+        except (TypeError, ValueError):
+            first = second = None
+        if first is not None and first.shape == second.shape and first.ndim >= 2 and first.shape[0] == int(n_sections):
+            return first[int(index)], second[int(index)]
+    if isinstance(value, (list, tuple)) and len(value) == int(n_sections):
+        if _looks_like_per_section_payload(value[0]):
+            return value[int(index)]
+    return value
+
+
+def _section_title(phi: float, title):
+    if title is None:
+        return rf"$\phi={np.degrees(float(phi)):.1f}^\circ$"
+    return str(title)
+
+
+def plot_magnetic_section_overlay_grid(
+    R_surf: np.ndarray,
+    Z_surf: np.ndarray,
+    phi_vals: np.ndarray,
+    theta_vals: np.ndarray,
+    radial_labels: np.ndarray,
+    chains: Sequence[ResonantIslandChain] = (),
+    *,
+    phi_sections: Sequence[float],
+    poincare_points=None,
+    poincare_values=None,
+    stable_segments=None,
+    unstable_segments=None,
+    x_points=None,
+    o_points=None,
+    overlays: Sequence[str] | str | None = None,
+    ncols: int = 2,
+    fig=None,
+    axes=None,
+    figsize: tuple[float, float] | None = None,
+    compact: bool = True,
+    share_axes: bool = True,
+    panel_height: float = 3.0,
+    data_limits: tuple[float, float, float, float] | None = None,
+    pad_fraction: float = 0.035,
+    max_chains: int | None = None,
+    width_scale: float = 1.0,
+    n_path: int = 33,
+    clip_to_radial_domain: bool = False,
+    pest_grid_kwargs: dict | None = None,
+    poincare_kwargs: dict | None = None,
+    stable_manifold_kwargs: dict | None = None,
+    unstable_manifold_kwargs: dict | None = None,
+    island_bar_kwargs: dict | None = None,
+    xo_kwargs: dict | None = None,
+    titles: Sequence[str] | None = None,
+    title_inside: bool = False,
+    xlabel: str = "R",
+    ylabel: str = "Z",
+) -> tuple[object, np.ndarray, list[dict[str, object]]]:
+    """Compose a compact multi-section Poincare/spectrum-overlay figure."""
+
+    phi_arr = np.asarray(phi_sections, dtype=float).ravel()
+    if phi_arr.size == 0:
+        raise ValueError("phi_sections must not be empty")
+    specs = magnetic_section_overlay_specs(
+        R_surf,
+        Z_surf,
+        phi_vals,
+        theta_vals,
+        radial_labels,
+        chains,
+        phi_sections=phi_arr,
+        max_chains=max_chains,
+        width_scale=width_scale,
+        n_path=n_path,
+        clip_to_radial_domain=clip_to_radial_domain,
+    )
+    limits = data_limits if data_limits is not None else _surface_limits_from_specs(specs, pad_fraction=pad_fraction)
+    if axes is None:
+        from pyna.plot.section_geometry import create_section_grid
+
+        fig, axes = create_section_grid(
+            phi_arr,
+            ncols=ncols,
+            figsize=figsize,
+            data_limits=limits,
+            panel_height=panel_height,
+            compact=compact,
+            share_axes=share_axes,
+        )
+    else:
+        axes = np.asarray(axes, dtype=object)
+        if fig is None:
+            fig = axes.ravel()[0].figure
+    from pyna.plot.section_geometry import apply_section_limits, format_section_axis, trim_compact_tick_labels
+
+    axes_flat = axes.ravel()
+    if axes_flat.size < phi_arr.size:
+        raise ValueError("axes does not contain enough panels for phi_sections")
+    payloads: list[dict[str, object]] = []
+    title_list = None if titles is None else list(titles)
+    for index, spec in enumerate(specs):
+        ax = axes_flat[index]
+        payloads.append(
+            draw_magnetic_section_overlays(
+                ax,
+                spec,
+                overlays=overlays,
+                poincare_points=_section_payload(poincare_points, spec.phi_section, index, phi_arr.size),
+                poincare_values=_section_payload(poincare_values, spec.phi_section, index, phi_arr.size),
+                stable_segments=_section_payload(stable_segments, spec.phi_section, index, phi_arr.size),
+                unstable_segments=_section_payload(unstable_segments, spec.phi_section, index, phi_arr.size),
+                x_points=_section_payload(x_points, spec.phi_section, index, phi_arr.size),
+                o_points=_section_payload(o_points, spec.phi_section, index, phi_arr.size),
+                pest_grid_kwargs=pest_grid_kwargs,
+                poincare_kwargs=poincare_kwargs,
+                stable_manifold_kwargs=stable_manifold_kwargs,
+                unstable_manifold_kwargs=unstable_manifold_kwargs,
+                island_bar_kwargs=island_bar_kwargs,
+                xo_kwargs=xo_kwargs,
+            )
+        )
+        title = None if title_list is None else title_list[index]
+        format_section_axis(
+            ax,
+            section_phi=spec.phi_section,
+            title=_section_title(spec.phi_section, title),
+            title_inside=title_inside,
+            grid=False,
+        )
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+    for ax in axes_flat[phi_arr.size:]:
+        ax.set_visible(False)
+    apply_section_limits(axes, limits)
+    trim_compact_tick_labels(axes, phi_arr.size, ncols=ncols)
+    return fig, axes, payloads
 
 
 def overlay_island_bars_on_section(
@@ -2200,6 +2839,9 @@ def plot_chirikov_overlaps(
 
 
 __all__ = [
+    "IsoThetaBarSpec",
+    "MAGNETIC_SECTION_OVERLAYS",
+    "MagneticSectionOverlaySpec",
     "PoincareRationalTrace",
     "RADIAL_MODE_OVERLAYS",
     "RATIONAL_SURFACE_OVERLAYS",
@@ -2209,7 +2851,12 @@ __all__ = [
     "SpectrumSurfaceMatrix",
     "apply_radial_mode_overlays",
     "apply_rational_surface_overlays",
+    "draw_magnetic_section_overlays",
+    "draw_magnetic_surface_grid",
+    "draw_section_xo_points",
     "island_bars_on_section",
+    "magnetic_section_overlay_spec",
+    "magnetic_section_overlay_specs",
     "overlay_island_bars_on_section",
     "overlay_poincare_rational_trace",
     "overlay_q_profile",
@@ -2222,6 +2869,7 @@ __all__ = [
     "plot_chirikov_overlaps",
     "plot_island_chains_on_section",
     "plot_island_phase_scan",
+    "plot_magnetic_section_overlay_grid",
     "plot_radial_mode_heatmap",
     "plot_radial_mode_pcolormesh",
     "plot_rational_surface_map",

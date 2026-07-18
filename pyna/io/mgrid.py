@@ -160,6 +160,31 @@ def load_vmec_mgrid(
     )
 
 
+def mgrid_to_vector_field(field: MGridField, *, label: str | None = None):
+    """Convert an ``MGridField`` into canonical ``VectorFieldCylind`` order.
+
+    VMEC mgrid component arrays are stored as ``(phi, Z, R)``.  Pyna's regular
+    cylindrical field object stores components as ``(R, Z, Phi)``.  Keeping this
+    conversion explicit avoids silent dimension swaps in tracing and spectrum
+    workflows.
+    """
+
+    from pyna.fields import VectorFieldCylind
+
+    period = float(field.period)
+    field_periods = 1 if np.isclose(period, 2.0 * np.pi, rtol=0.0, atol=1.0e-12) else int(field.nfp)
+    return VectorFieldCylind(
+        R=np.asarray(field.R, dtype=np.float64),
+        Z=np.asarray(field.Z, dtype=np.float64),
+        Phi=np.asarray(field.phi, dtype=np.float64),
+        BR=np.transpose(np.asarray(field.BR, dtype=np.float64), (2, 1, 0)),
+        BZ=np.transpose(np.asarray(field.BZ, dtype=np.float64), (2, 1, 0)),
+        BPhi=np.transpose(np.asarray(field.BPhi, dtype=np.float64), (2, 1, 0)),
+        nfp=field_periods,
+        label=field.mode if label is None else label,
+    )
+
+
 def compute_current_density_cylindrical(field: MGridField) -> MGridCurrent:
     """Compute ``J = curl(B) / mu0`` on a cylindrical mgrid lattice."""
 
@@ -248,6 +273,7 @@ __all__ = [
     "MGridCurrent",
     "read_mgrid_variables",
     "load_vmec_mgrid",
+    "mgrid_to_vector_field",
     "compute_current_density_cylindrical",
     "toroidal_index",
     "mgrid_toroidal_index",

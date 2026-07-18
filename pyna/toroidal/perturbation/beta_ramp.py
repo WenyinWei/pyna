@@ -22,9 +22,13 @@ from pyna.toroidal.perturbation_spectrum import (
     ResonantIslandChain,
     analyze_resonant_island_chains_multi_n,
     chirikov_overlaps,
+    cylindrical_field_grid_signature,
     nardon_radial_perturbation,
+    nardon_radial_perturbation_from_decomposition,
     radial_perturbation_Fourier_spectrum,
+    require_matching_field_signature,
     sample_cylindrical_vector_grid_on_surfaces,
+    surface_coordinate_signature,
 )
 
 
@@ -377,6 +381,37 @@ class BetaRampState:
     def public_metadata(self, *, allow_keys: Iterable[str] | None = None) -> dict[str, Any]:
         return scrub_beta_metadata(self.metadata, allow_keys=allow_keys)
 
+    def field_signature(self) -> dict[str, Any]:
+        """Return a path-free signature for this state's field grid."""
+
+        if not self.has_field_grid:
+            raise ValueError("state does not contain a field grid")
+        return cylindrical_field_grid_signature(
+            _require_array(self.R_grid, "R_grid"),
+            _require_array(self.Z_grid, "Z_grid"),
+            _require_array(self.Phi_grid, "Phi_grid"),
+            _require_array(self.BR, "BR"),
+            _require_array(self.BPhi, "BPhi"),
+            _require_array(self.BZ, "BZ"),
+            field_periods=self.field_periods,
+        )
+
+    def surface_signature(self, *, background_field_signature: Any = None) -> dict[str, Any]:
+        """Return a path-free signature for this state's surface coordinate grid."""
+
+        if not self.has_surfaces:
+            raise ValueError("state does not contain surface coordinates")
+        if background_field_signature is None:
+            background_field_signature = dict(self.metadata).get("background_field_signature")
+        return surface_coordinate_signature(
+            _require_array(self.R_surf, "R_surf"),
+            _require_array(self.Z_surf, "Z_surf"),
+            _require_array(self.phi_vals, "phi_vals"),
+            _require_array(self.theta_vals, "theta_vals"),
+            _require_array(self.radial_labels, "radial_labels"),
+            background_field_signature=background_field_signature,
+        )
+
     def delta_to(self, reference: "BetaRampState", **kwargs) -> "BetaRampState":
         """Return ``self - reference`` as a perturbation state."""
 
@@ -396,6 +431,10 @@ class BetaRampSurfaceFieldSamples:
     phi_vals: np.ndarray
     theta_vals: np.ndarray
     radial_labels: np.ndarray
+    tilde_b1: np.ndarray | None = None
+    surface_signature: Mapping[str, Any] | None = None
+    background_field_signature: Mapping[str, Any] | None = None
+    delta_field_signature: Mapping[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -532,6 +571,9 @@ def delta_beta_ramp_state(
         "source_label": state.label,
         "reference_label": reference.label,
     }
+    surface_signature = dict(surface_state.metadata).get("surface_signature")
+    if surface_signature is not None:
+        md["surface_signature"] = surface_signature
     if state.beta is not None and reference.beta is not None:
         md["beta_delta"] = float(state.beta) - float(reference.beta)
     if metadata:
@@ -577,16 +619,89 @@ def sample_beta_ramp_delta_on_surfaces(
         raise ValueError("state must contain a field grid or a precomputed perturbation field")
     if not denom_source.has_field_grid:
         raise ValueError("denominator_state/reference must contain a field grid")
+    if perturbation.field_periods != denom_source.field_periods:
+        raise ValueError("field_periods differs between perturbation and denominator field")
+    for name in ("R_grid", "Z_grid", "Phi_grid"):
+        if not _same_1d_grid(getattr(perturbation, name), getattr(denom_source, name), name):
+            raise ValueError(f"{name} differs between perturbation and denominator field")
 
     R_surf = _require_array(perturbation.R_surf, "R_surf")
     Z_surf = _require_array(perturbation.Z_surf, "Z_surf")
     phi_vals = _require_array(perturbation.phi_vals, "phi_vals")
     theta_vals = _require_array(perturbation.theta_vals, "theta_vals")
     radial_labels = _require_array(perturbation.radial_labels, "radial_labels")
-    delta_BR, delta_BPhi, delta_BZ = sample_cylindrical_vector_grid_on_surfaces(
+    background_signature = denom_source.field_signature()
+    delta_signature = perturbation.field_signature()
+    provided_surface_signature = dict(perturbation.metadata).get("surface_signature")
+    if radial_labels.size < 2:
+        delta_BR, delta_BPhi, delta_BZ = sample_cylindrical_vector_grid_on_surfaces(
+            _require_array(perturbation.R_grid, "R_grid"),
+            _require_array(perturbation.Z_grid, "Z_grid"),
+            _require_array(perturbation.Phi_grid, "Phi_grid"),
+            _require_array(perturbation.BR, "BR"),
+            _require_array(perturbation.BPhi, "BPhi"),
+            _require_array(perturbation.BZ, "BZ"),
+            R_surf,
+            Z_surf,
+            phi_vals,
+            theta_vals,
+            field_periods=perturbation.field_periods,
+        )
+        _denom_BR, denom_BPhi, _denom_BZ = sample_cylindrical_vector_grid_on_surfaces(
+            _require_array(denom_source.R_grid, "denominator.R_grid"),
+            _require_array(denom_source.Z_grid, "denominator.Z_grid"),
+            _require_array(denom_source.Phi_grid, "denominator.Phi_grid"),
+            _require_array(denom_source.BR, "denominator.BR"),
+            _require_array(denom_source.BPhi, "denominator.BPhi"),
+            _require_array(denom_source.BZ, "denominator.BZ"),
+            R_surf,
+            Z_surf,
+            phi_vals,
+            theta_vals,
+            field_periods=denom_source.field_periods,
+        )
+        if provided_surface_signature is None:
+            surface_signature = surface_coordinate_signature(
+                R_surf,
+                Z_surf,
+                phi_vals,
+                theta_vals,
+                radial_labels,
+                background_field_signature=background_signature,
+            )
+        else:
+            surface_signature = dict(provided_surface_signature)
+            bound_background = surface_signature.get(
+                "background_field_signature",
+                surface_signature.get("field_signature"),
+            )
+            if bound_background is not None:
+                require_matching_field_signature(
+                    bound_background,
+                    background_signature,
+                    context="surface background field",
+                )
+        return BetaRampSurfaceFieldSamples(
+            delta_BR=delta_BR,
+            delta_BZ=delta_BZ,
+            delta_BPhi=delta_BPhi,
+            denominator_BPhi=denom_BPhi,
+            R_surf=R_surf,
+            Z_surf=Z_surf,
+            phi_vals=phi_vals,
+            theta_vals=theta_vals,
+            radial_labels=radial_labels,
+            surface_signature=surface_signature,
+            background_field_signature=background_signature,
+            delta_field_signature=delta_signature,
+        )
+    projection = nardon_radial_perturbation_from_decomposition(
         _require_array(perturbation.R_grid, "R_grid"),
         _require_array(perturbation.Z_grid, "Z_grid"),
         _require_array(perturbation.Phi_grid, "Phi_grid"),
+        _require_array(denom_source.BR, "denominator.BR"),
+        _require_array(denom_source.BPhi, "denominator.BPhi"),
+        _require_array(denom_source.BZ, "denominator.BZ"),
         _require_array(perturbation.BR, "BR"),
         _require_array(perturbation.BPhi, "BPhi"),
         _require_array(perturbation.BZ, "BZ"),
@@ -594,31 +709,26 @@ def sample_beta_ramp_delta_on_surfaces(
         Z_surf,
         phi_vals,
         theta_vals,
+        radial_labels,
         field_periods=perturbation.field_periods,
-    )
-    _denom_BR, denom_BPhi, _denom_BZ = sample_cylindrical_vector_grid_on_surfaces(
-        _require_array(denom_source.R_grid, "denominator.R_grid"),
-        _require_array(denom_source.Z_grid, "denominator.Z_grid"),
-        _require_array(denom_source.Phi_grid, "denominator.Phi_grid"),
-        _require_array(denom_source.BR, "denominator.BR"),
-        _require_array(denom_source.BPhi, "denominator.BPhi"),
-        _require_array(denom_source.BZ, "denominator.BZ"),
-        R_surf,
-        Z_surf,
-        phi_vals,
-        theta_vals,
-        field_periods=denom_source.field_periods,
+        background_field_signature=background_signature,
+        delta_field_signature=delta_signature,
+        surface_signature=provided_surface_signature,
     )
     return BetaRampSurfaceFieldSamples(
-        delta_BR=delta_BR,
-        delta_BZ=delta_BZ,
-        delta_BPhi=delta_BPhi,
-        denominator_BPhi=denom_BPhi,
-        R_surf=R_surf,
-        Z_surf=Z_surf,
-        phi_vals=phi_vals,
-        theta_vals=theta_vals,
-        radial_labels=radial_labels,
+        delta_BR=projection.delta_BR,
+        delta_BZ=projection.delta_BZ,
+        delta_BPhi=projection.delta_BPhi,
+        denominator_BPhi=projection.background_BPhi,
+        R_surf=projection.R_surf,
+        Z_surf=projection.Z_surf,
+        phi_vals=projection.phi_vals,
+        theta_vals=projection.theta_vals,
+        radial_labels=projection.radial_labels,
+        tilde_b1=projection.tilde_b1,
+        surface_signature=projection.surface_signature,
+        background_field_signature=projection.background_field_signature,
+        delta_field_signature=projection.delta_field_signature,
     )
 
 
@@ -843,17 +953,20 @@ def diagnose_beta_ramp_state(
     if not state.has_surfaces:
         raise ValueError("state must contain surface coordinates")
     samples = sample_beta_ramp_delta_on_surfaces(state, reference=reference)
-    tilde_b1 = nardon_radial_perturbation(
-        samples.R_surf,
-        samples.Z_surf,
-        samples.phi_vals,
-        samples.theta_vals,
-        samples.delta_BR,
-        samples.delta_BZ,
-        samples.delta_BPhi,
-        samples.radial_labels,
-        denominator_B_phi=samples.denominator_BPhi,
-    )
+    if samples.tilde_b1 is None:
+        tilde_b1 = nardon_radial_perturbation(
+            samples.R_surf,
+            samples.Z_surf,
+            samples.phi_vals,
+            samples.theta_vals,
+            samples.delta_BR,
+            samples.delta_BZ,
+            samples.delta_BPhi,
+            samples.radial_labels,
+            denominator_B_phi=samples.denominator_BPhi,
+        )
+    else:
+        tilde_b1 = samples.tilde_b1
     spectrum = radial_perturbation_Fourier_spectrum(
         tilde_b1,
         samples.theta_vals,
@@ -862,6 +975,11 @@ def diagnose_beta_ramp_state(
         m_max=m_max,
         n_max=n_max,
         min_amplitude=min_amplitude,
+        metadata={
+            "surface_signature": samples.surface_signature,
+            "background_field_signature": samples.background_field_signature,
+            "delta_field_signature": samples.delta_field_signature,
+        },
     )
     q_profile = state.q_values()
     iota_profile = state.iota_values()

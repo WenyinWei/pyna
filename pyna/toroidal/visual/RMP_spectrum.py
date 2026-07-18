@@ -1,7 +1,7 @@
 """RMP Fourier spectrum analysis and island width visualization.
 
 For a StellaratorSimple, compute resonant components analytically:
-  - Resonant surface location from q(ψ) = n/m
+  - Resonant surface location from q(ψ) = m/n0
   - Island half-width via Rutherford formula
   - O-point phase from the RMP field structure
 
@@ -395,11 +395,11 @@ class FieldlineVelocitySpectrum:
     poloidal_spectrum: Any
 
     def poloidal_coefficients_for_radial_modes(self) -> np.ndarray:
-        """Return poloidal-velocity coefficients aligned with ``radial_spectrum`` modes."""
+        """Return coefficients aligned by signed Nardon Fourier indices."""
 
         return np.asarray([
-            self.poloidal_spectrum.mode_coefficient(int(m), int(n))
-            for m, n in zip(self.radial_spectrum.m, self.radial_spectrum.n)
+            self.poloidal_spectrum.nardon_mode_coefficient(int(m), int(nardon_n))
+            for m, nardon_n in zip(self.radial_spectrum.m, self.radial_spectrum.nardon_n)
         ], dtype=complex)
 
     def split(self, resonance_tol: float = 1.0e-9):
@@ -437,11 +437,11 @@ class FieldlineVelocitySpectrum:
         split = self.split(resonance_tol=resonance_tol)
         keep = split.nonresonant_mask
         detuning = np.asarray(self.radial_spectrum.m, dtype=float) * float(self.iota) + np.asarray(
-            self.radial_spectrum.n, dtype=float
+            self.radial_spectrum.nardon_n, dtype=float
         )
         deformation = fieldline_deformation_spectrum(
             self.radial_spectrum.m[keep],
-            self.radial_spectrum.n[keep],
+            self.radial_spectrum.nardon_n[keep],
             self.radial_spectrum.dBr[keep],
             dtheta[keep],
             iota=self.iota,
@@ -527,7 +527,7 @@ def rmp_nrmp_mode_rows(
             raise ValueError("radial_index is required for radial-stack spectra")
         coeffs = coeffs[int(radial_index)]
     rows: list[RMPnRMPModeRow] = []
-    for m_val, n_val, coeff in zip(spectrum.m, spectrum.n, coeffs):
+    for m_val, n_val, coeff in zip(spectrum.m, spectrum.nardon_n, coeffs):
         coeff = complex(coeff)
         amp = abs(coeff)
         if amp < float(min_amplitude):
@@ -728,6 +728,8 @@ class FixedPointPhaseComparison:
     radial_error: float
     map_span: float
     phi: float
+    m: Optional[int] = None
+    n: Optional[int] = None
 
     @property
     def predicted_theta_deg(self) -> float:
@@ -1396,6 +1398,7 @@ def compare_cyna_fixed_points_for_component(
         cache["Z_grid"],
         cache["Phi_grid"],
         int(n_threads),
+        int(cache["nfp"]),
     )
 
     R_out, Z_out, residual, converged, _DPm, _eig_r, _eig_i, point_type = out
@@ -1434,6 +1437,8 @@ def compare_cyna_fixed_points_for_component(
             radial_error=radial_error,
             map_span=map_span,
             phi=float(phi),
+            m=int(component.m),
+            n=int(component.n),
         ))
     return rows
 
@@ -1589,14 +1594,13 @@ def find_resonant_components_analytic(
                 # Project onto outward radial direction
                 dBpsi[i, j] = db[0] * np.cos(theta_arr[i]) + db[1] * np.sin(theta_arr[i])
 
-        # 2D FFT → b_{m_k, n_k}
+        # Nardon forward transform: b_mn = integral b exp[-i(m theta+n phi)].
         b_fft = np.fft.fft2(dBpsi) / (n_theta * n_phi)
         m_freq = np.fft.fftfreq(n_theta, 1/n_theta).astype(int)
         n_freq = np.fft.fftfreq(n_phi,   1/n_phi).astype(int)
 
-        # DFT convention: exp(-2πi*k*j/N), so cos(m*θ - n*φ) gives components
-        # at (m_freq=+m, n_freq=-n) and (m_freq=-m, n_freq=+n).
-        # We want the (+m, -n) component (forward-running wave).
+        # The resonant positive-q branch is Nardon's (m_k, -n_k).  A real
+        # field has its conjugate at (-m_k, +n_k), not at (m_k, +n_k).
         m_idx_arr = np.where(m_freq == m_k)[0]
         n_idx_arr = np.where(n_freq == -n_k)[0]  # note: -n_k (conjugate convention)
 
@@ -1624,17 +1628,13 @@ def find_resonant_components_analytic(
         # Convert to meters: r ≈ sqrt(ψ) * r0
         half_width_r = half_width_psi * eq.r0 / (2.0 * np.sqrt(max(psi_res, 0.01)))
 
-        # O-point phase (derived from stability analysis of island Hamiltonian)
-        # Fixed points where δBψ = 2|b|cos(mθ + arg(b)) = 0, i.e., mθ + arg(b) = ±π/2
-        # For q' > 0 (normal shear):
-        #   O-point (stable):   mθ_O + arg(b) = -π/2  →  θ_O = (-π/2 - arg(b)) / m
-        #   X-point (unstable): mθ_X + arg(b) = +π/2  →  θ_X = (+π/2 - arg(b)) / m
-        # Reference: Nardon (2007) thesis, App. A; Rutherford (1973)
+        # Reuse the section-phase convention used by the public fixed-point API.
         phi_mn = np.angle(b_mn)
-        # Determine sign of q' to handle reversed-shear case
         q_prime_sign = 1 if (getattr(eq, 'q1', 1.0) - getattr(eq, 'q0', 0.5)) >= 0 else -1
-        opoint_theta = ((-np.pi/2) * q_prime_sign - phi_mn) / m_k % (2 * np.pi / m_k)
-        xpoint_theta = ((+np.pi/2) * q_prime_sign - phi_mn) / m_k % (2 * np.pi / m_k)
+        fixed_points = island_fixed_points(m_k, n_k, b_mn, 0.0, q_prime_sign=q_prime_sign)
+        # Preserve this function's historical primary-branch range [0, 2*pi/m).
+        opoint_theta = float(fixed_points["theta_O"][0, 0] % (TWOPI / m_k))
+        xpoint_theta = float(fixed_points["theta_X"][0, 0] % (TWOPI / m_k))
 
         if verbose:
             print(f"  k={k}: ({m_k},{n_k}) ψ_res={psi_res:.3f} q_res={q_res:.3f} "
