@@ -200,6 +200,20 @@ class PoincareSectionTraces:
 
 
 @dataclass(frozen=True)
+class SignedMapSpan:
+    """Field-period span with the toroidal sign of physical forward tracing."""
+
+    map_span: float
+    field_period: float
+    bphi_sign: int
+    direction: str
+    sample_count: int
+    bphi_median: float
+    bphi_min_abs: float
+    metadata: dict = field(default_factory=dict, compare=False, repr=False)
+
+
+@dataclass(frozen=True)
 class BoundaryIslandOrbit:
     """One ordered fixed-point orbit under a toroidal-span map.
 
@@ -512,6 +526,99 @@ def _resolve_field_period(field, field_period: float | None) -> float:
     if not np.isfinite(span) or abs(span) <= 1.0e-14:
         raise ValueError("field_period must be a nonzero finite toroidal angle")
     return span
+
+
+def _sample_bphi_for_signed_span(
+    field,
+    *,
+    sample_R: Sequence[float] | None,
+    sample_Z: Sequence[float] | None,
+    phi: float | Sequence[float],
+    bphi_values: Sequence[float] | None,
+) -> np.ndarray:
+    if bphi_values is not None:
+        return np.asarray(bphi_values, dtype=float).ravel()
+    if sample_R is not None or sample_Z is not None:
+        if sample_R is None or sample_Z is None:
+            raise ValueError("sample_R and sample_Z must be supplied together")
+        R = np.asarray(sample_R, dtype=float).ravel()
+        Z = np.asarray(sample_Z, dtype=float).ravel()
+        if R.size != Z.size:
+            raise ValueError("sample_R and sample_Z must have the same length")
+        if R.size == 0:
+            raise ValueError("sample points must not be empty")
+        phi_arr = np.asarray(phi, dtype=float)
+        if phi_arr.ndim == 0:
+            phi_arr = np.full(R.shape, float(phi_arr))
+        else:
+            phi_arr = np.broadcast_to(phi_arr.ravel(), R.shape)
+        if not hasattr(field, "interpolate_at"):
+            raise TypeError("field must provide interpolate_at when sample points are used")
+        _BR, _BZ, BPhi = field.interpolate_at(R, Z, phi_arr)
+        return np.asarray(BPhi, dtype=float).ravel()
+    values = getattr(field, "BPhi", None)
+    if values is None:
+        raise ValueError("provide bphi_values or sample points for signed map-span inference")
+    return np.asarray(values, dtype=float).ravel()
+
+
+def infer_signed_field_period_map_span(
+    field,
+    *,
+    field_period: float | None = None,
+    sample_R: Sequence[float] | None = None,
+    sample_Z: Sequence[float] | None = None,
+    phi: float | Sequence[float] = 0.0,
+    bphi_values: Sequence[float] | None = None,
+    min_abs_BPhi: float = 1.0e-12,
+    allow_mixed_sign: bool = False,
+) -> SignedMapSpan:
+    """Infer the signed one-field-period map span from the sign of ``BPhi``.
+
+    Positive ``BPhi`` means physical forward tracing advances to larger toroidal
+    angle, while negative ``BPhi`` means the physical-forward return map has a
+    negative ``map_span``.  Pass representative boundary seeds through
+    ``sample_R``/``sample_Z`` when the design target is a local edge topology.
+    """
+
+    period = abs(_resolve_field_period(field, field_period))
+    bphi = _sample_bphi_for_signed_span(
+        field,
+        sample_R=sample_R,
+        sample_Z=sample_Z,
+        phi=phi,
+        bphi_values=bphi_values,
+    )
+    finite = bphi[np.isfinite(bphi)]
+    threshold = abs(float(min_abs_BPhi))
+    strong = finite[np.abs(finite) > threshold]
+    if strong.size == 0:
+        raise ValueError("BPhi samples are empty or too close to zero for signed map-span inference")
+    n_pos = int(np.count_nonzero(strong > 0.0))
+    n_neg = int(np.count_nonzero(strong < 0.0))
+    if n_pos and n_neg and not allow_mixed_sign:
+        raise ValueError("BPhi samples contain mixed signs; choose local samples or allow_mixed_sign=True")
+    median = float(np.nanmedian(strong))
+    if n_pos and n_neg:
+        sign = 1 if n_pos >= n_neg else -1
+    else:
+        sign = 1 if median > 0.0 else -1
+    direction = "+" if sign > 0 else "-"
+    return SignedMapSpan(
+        map_span=float(sign) * float(period),
+        field_period=float(period),
+        bphi_sign=int(sign),
+        direction=direction,
+        sample_count=int(strong.size),
+        bphi_median=median,
+        bphi_min_abs=float(np.nanmin(np.abs(strong))),
+        metadata={
+            "allow_mixed_sign": bool(allow_mixed_sign),
+            "min_abs_BPhi": threshold,
+            "positive_sample_count": n_pos,
+            "negative_sample_count": n_neg,
+        },
+    )
 
 
 def _fixed_point_monodromy_map_span(
@@ -3401,7 +3508,7 @@ def find_boundary_island_fixed_points_field(
                 metadata={
                     "map_power": int(map_power),
                     "field_period": float(field_period_value),
-                    "nfp": float(2.0 * np.pi / float(field_period_value)),
+                    "nfp": float(2.0 * np.pi / abs(float(field_period_value))),
                     "map_span": float(field_period_value),
                     "base_map_span": float(field_period_value),
                     "monodromy_field_period": float(map_power) * float(field_period_value),
@@ -3430,7 +3537,7 @@ def find_boundary_island_fixed_points_field(
         "n_seeds": int(seed_R.size),
         "candidate_strategy": strategy,
         "field_period": float(field_period_value),
-        "nfp": float(2.0 * np.pi / float(field_period_value)),
+        "nfp": float(2.0 * np.pi / abs(float(field_period_value))),
         "seed_wall_fraction": (
             _fraction_stats(seed_wall_fraction)
             if seed_wall_fraction is not None
@@ -4217,11 +4324,26 @@ def boundary_island_topology_payload_field(
     *,
     map_powers: int | Iterable[int] = (2, 3, 4, 5, 6, 7, 8, 9, 10),
     wall_by_sec: Sequence[tuple[Sequence[float], Sequence[float]]] | None = None,
+    physical_forward: bool = False,
+    signed_map_span_kwargs: dict | None = None,
     search_kwargs: dict | None = None,
     shape_kwargs: dict | None = None,
     manifold_kwargs: dict | None = None,
 ) -> dict:
     """Build topoquest-ready boundary island-chain overlay payloads."""
+
+    search_opts = dict(search_kwargs or {})
+    shape_opts = dict(shape_kwargs or {})
+    manifold_opts = dict(manifold_kwargs or {})
+    signed_span: SignedMapSpan | None = None
+    if physical_forward:
+        signed_span = infer_signed_field_period_map_span(field, **dict(signed_map_span_kwargs or {}))
+        if "field_period" not in search_opts:
+            search_opts["field_period"] = float(signed_span.map_span)
+        if "field_period" not in shape_opts:
+            shape_opts["field_period"] = float(signed_span.map_span)
+        if "field_period" not in manifold_opts and "map_span" not in manifold_opts:
+            manifold_opts["field_period"] = float(signed_span.map_span)
 
     search = find_boundary_island_fixed_points_multi_section_field(
         field,
@@ -4229,7 +4351,7 @@ def boundary_island_topology_payload_field(
         phi_sections,
         wall_by_sec=wall_by_sec,
         map_powers=map_powers,
-        **(search_kwargs or {}),
+        **search_opts,
     )
     edge_state_by_sec = trace_boundary_island_shapes_multi_section_field(
         field,
@@ -4238,21 +4360,33 @@ def boundary_island_topology_payload_field(
         phi_sections,
         wall_by_sec=wall_by_sec,
         map_powers=map_powers,
-        **(shape_kwargs or {}),
+        **shape_opts,
     )
     manifolds_by_sec = trace_fixed_point_manifolds_multi_section_field(
         field,
         search.fp_by_sec,
         phi_sections,
         wall_by_sec=wall_by_sec,
-        **(manifold_kwargs or {}),
+        **manifold_opts,
     )
+    diagnostics = dict(search.diagnostics)
+    if signed_span is not None:
+        diagnostics["physical_forward_map_span"] = {
+            "map_span": float(signed_span.map_span),
+            "field_period": float(signed_span.field_period),
+            "direction": signed_span.direction,
+            "bphi_sign": int(signed_span.bphi_sign),
+            "sample_count": int(signed_span.sample_count),
+            "bphi_median": float(signed_span.bphi_median),
+            "bphi_min_abs": float(signed_span.bphi_min_abs),
+            **dict(signed_span.metadata),
+        }
     return {
         "fp_by_sec": search.fp_by_sec,
         "edge_state_by_sec": edge_state_by_sec,
         "manifolds_by_sec": manifolds_by_sec,
         "fixed_points": search.fixed_points,
-        "diagnostics": search.diagnostics,
+        "diagnostics": diagnostics,
     }
 
 
@@ -4265,6 +4399,7 @@ __all__ = [
     "BoundaryIslandSeedCandidates",
     "BoundaryIslandSearchResult",
     "PoincareSectionTraces",
+    "SignedMapSpan",
     "assemble_boundary_island_chains",
     "assemble_boundary_island_chains_field",
     "boundary_island_edge_state_payload",
@@ -4276,6 +4411,7 @@ __all__ = [
     "fixed_points_by_section_payload",
     "find_boundary_island_fixed_points_field",
     "find_boundary_island_fixed_points_multi_section_field",
+    "infer_signed_field_period_map_span",
     "refine_fixed_points_monodromy_span_field",
     "trace_boundary_island_shapes_field",
     "trace_boundary_island_shapes_multi_section_field",

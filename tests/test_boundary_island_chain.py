@@ -6,9 +6,12 @@ from pyna.topo.toroidal import FixedPoint
 from pyna.toroidal.flt import (
     AdaptivePoincareSectionTraces,
     BoundaryIslandOrbit,
+    BoundaryIslandSearchResult,
     PoincareSectionTraces,
+    SignedMapSpan,
     assemble_boundary_island_chains,
     boundary_island_edge_state_payload,
+    boundary_island_topology_payload_field,
     boundary_recurrence_seed_candidates_field,
     boundary_seed_grid,
     boundary_wall_fractions,
@@ -20,6 +23,7 @@ from pyna.toroidal.flt import (
     trace_adaptive_poincare_sections_from_same_orbits_field,
     vector_field_cylind_from_field,
     find_boundary_island_fixed_points_field,
+    infer_signed_field_period_map_span,
     refine_fixed_points_monodromy_span_field,
     trace_map_batch_span,
     trace_map_batch_span_field,
@@ -107,6 +111,178 @@ def _phi_dependent_field_period_field(*, nfp: int = 2):
         BPhi=np.ones_like(RR),
         nfp=nfp,
     )
+
+
+def _signed_bphi_field(*, sign: float = 1.0, nfp: int = 2):
+    R = np.linspace(0.82, 1.18, 9)
+    Z = np.linspace(-0.18, 0.18, 7)
+    period = 2.0 * np.pi / int(nfp)
+    Phi = np.linspace(0.0, period, 5, endpoint=False)
+    RR, ZZ, PP = np.meshgrid(R, Z, Phi, indexing="ij")
+    return VectorFieldCylind(
+        R=R,
+        Z=Z,
+        Phi=Phi,
+        BR=np.zeros_like(RR),
+        BZ=np.zeros_like(RR),
+        BPhi=float(sign) * (1.0 + 0.02 * (RR - 1.0) + 0.01 * np.cos(int(nfp) * PP)),
+        nfp=nfp,
+    )
+
+
+def test_infer_signed_field_period_map_span_uses_bphi_sign_and_nfp():
+    positive = _signed_bphi_field(sign=1.0, nfp=2)
+    span = infer_signed_field_period_map_span(positive)
+
+    assert isinstance(span, SignedMapSpan)
+    assert span.map_span == pytest.approx(np.pi)
+    assert span.field_period == pytest.approx(np.pi)
+    assert span.direction == "+"
+    assert span.bphi_sign == 1
+    assert span.sample_count == positive.BPhi.size
+
+    negative = _signed_bphi_field(sign=-1.0, nfp=2)
+    local = infer_signed_field_period_map_span(
+        negative,
+        sample_R=[0.95, 1.0, 1.05],
+        sample_Z=[-0.03, 0.0, 0.02],
+        phi=0.2,
+    )
+
+    assert local.map_span == pytest.approx(-np.pi)
+    assert local.field_period == pytest.approx(np.pi)
+    assert local.direction == "-"
+    assert local.bphi_sign == -1
+    assert local.sample_count == 3
+    assert local.bphi_median < 0.0
+
+
+def test_infer_signed_field_period_map_span_rejects_ambiguous_bphi_samples():
+    field = _signed_bphi_field(sign=1.0, nfp=3)
+
+    with pytest.raises(ValueError, match="mixed signs"):
+        infer_signed_field_period_map_span(field, bphi_values=[1.0, -2.0, 3.0])
+
+    inferred = infer_signed_field_period_map_span(
+        field,
+        field_period=-2.0 * np.pi / 3.0,
+        bphi_values=[1.0, -2.0, -3.0],
+        allow_mixed_sign=True,
+    )
+
+    assert inferred.map_span == pytest.approx(-2.0 * np.pi / 3.0)
+    assert inferred.direction == "-"
+    assert inferred.metadata["negative_sample_count"] == 2
+
+    with pytest.raises(ValueError, match="too close to zero"):
+        infer_signed_field_period_map_span(field, bphi_values=[0.0, 1.0e-14], min_abs_BPhi=1.0e-12)
+
+
+def test_boundary_island_topology_payload_physical_forward_injects_signed_span(monkeypatch):
+    field = _signed_bphi_field(sign=-1.0, nfp=2)
+    phi_sections = [0.0, 0.5 * np.pi]
+    captured: dict[str, object] = {}
+
+    def fake_search(field_arg, axis_by_sec, sections, *, wall_by_sec=None, map_powers=None, **kwargs):
+        captured["search_field_period"] = kwargs.get("field_period")
+        captured["search_map_powers"] = tuple(map_powers)
+        return BoundaryIslandSearchResult(
+            fixed_points=(),
+            fp_by_sec={float(phi): {"xpts": [], "opts": []} for phi in sections},
+            seed_R=np.empty(0),
+            seed_Z=np.empty(0),
+            diagnostics={"field_period": kwargs.get("field_period")},
+        )
+
+    def fake_shapes(field_arg, fp_by_sec, axis_by_sec, sections, *, wall_by_sec=None, map_powers=None, **kwargs):
+        captured["shape_field_period"] = kwargs.get("field_period")
+        captured["shape_map_powers"] = tuple(map_powers)
+        return [
+            {"closed_core": [], "boundary_island": [], "open_loss": [], "chaotic_edge": [], "counts": {}}
+            for _phi in sections
+        ]
+
+    def fake_manifolds(field_arg, fp_by_sec, sections, *, wall_by_sec=None, **kwargs):
+        captured["manifold_field_period"] = kwargs.get("field_period")
+        captured["manifold_map_span"] = kwargs.get("map_span")
+        return {float(phi): [] for phi in sections}
+
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain.find_boundary_island_fixed_points_multi_section_field",
+        fake_search,
+    )
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain.trace_boundary_island_shapes_multi_section_field",
+        fake_shapes,
+    )
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain.trace_fixed_point_manifolds_multi_section_field",
+        fake_manifolds,
+    )
+
+    payload = boundary_island_topology_payload_field(
+        field,
+        [(1.0, 0.0), (1.0, 0.0)],
+        phi_sections,
+        map_powers=(4,),
+        physical_forward=True,
+        signed_map_span_kwargs={"bphi_values": [-1.0, -1.1, -0.9]},
+    )
+
+    assert captured["search_map_powers"] == (4,)
+    assert captured["shape_map_powers"] == (4,)
+    assert captured["search_field_period"] == pytest.approx(-np.pi)
+    assert captured["shape_field_period"] == pytest.approx(-np.pi)
+    assert captured["manifold_field_period"] == pytest.approx(-np.pi)
+    assert captured["manifold_map_span"] is None
+    assert payload["diagnostics"]["physical_forward_map_span"]["direction"] == "-"
+    assert payload["diagnostics"]["physical_forward_map_span"]["field_period"] == pytest.approx(np.pi)
+
+
+def test_boundary_island_topology_payload_respects_explicit_manifold_map_span(monkeypatch):
+    field = _signed_bphi_field(sign=-1.0, nfp=2)
+    captured: dict[str, object] = {}
+
+    def fake_search(field_arg, axis_by_sec, sections, *, wall_by_sec=None, map_powers=None, **kwargs):
+        return BoundaryIslandSearchResult(
+            fixed_points=(),
+            fp_by_sec={float(phi): {"xpts": [], "opts": []} for phi in sections},
+            seed_R=np.empty(0),
+            seed_Z=np.empty(0),
+            diagnostics={},
+        )
+
+    def fake_shapes(field_arg, fp_by_sec, axis_by_sec, sections, *, wall_by_sec=None, map_powers=None, **kwargs):
+        return []
+
+    def fake_manifolds(field_arg, fp_by_sec, sections, *, wall_by_sec=None, **kwargs):
+        captured.update(kwargs)
+        return {}
+
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain.find_boundary_island_fixed_points_multi_section_field",
+        fake_search,
+    )
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain.trace_boundary_island_shapes_multi_section_field",
+        fake_shapes,
+    )
+    monkeypatch.setattr(
+        "pyna.toroidal.flt.island_chain.trace_fixed_point_manifolds_multi_section_field",
+        fake_manifolds,
+    )
+
+    boundary_island_topology_payload_field(
+        field,
+        [(1.0, 0.0)],
+        [0.0],
+        physical_forward=True,
+        signed_map_span_kwargs={"bphi_values": [-1.0]},
+        manifold_kwargs={"map_span": -2.5},
+    )
+
+    assert captured["map_span"] == pytest.approx(-2.5)
+    assert "field_period" not in captured
 
 
 def _orbit_fp(phi, R, Z, kind, map_power):
@@ -863,6 +1039,7 @@ def test_raw_trace_map_batch_span_closes_endpoint_false_phi_grid():
         np.empty(0),
         np.empty(0),
         n_threads=1,
+        nfp=field.nfp,
     )
 
     np.testing.assert_array_equal(counts_raw, counts_obj)
@@ -893,7 +1070,9 @@ def test_raw_find_fixed_points_batch_closes_endpoint_false_phi_grid(monkeypatch)
         Z_grid,
         Phi_grid,
         n_threads,
+        nfp,
     ):
+        captured["nfp"] = nfp
         captured["Phi_grid"] = np.asarray(Phi_grid)
         captured["BR"] = np.asarray(BR_flat).reshape(len(R_grid), len(Z_grid), len(Phi_grid))
         n = len(R_seeds)
@@ -928,11 +1107,147 @@ def test_raw_find_fixed_points_batch_closes_endpoint_false_phi_grid(monkeypatch)
         max_iter=7,
         tol=3.0e-8,
         n_threads=1,
+        nfp=field.nfp,
     )
 
     assert captured["Phi_grid"][-1] == pytest.approx(np.pi)
     assert captured["Phi_grid"].size == arrays.Phi_grid.size + 1
     np.testing.assert_allclose(captured["BR"][:, :, -1], captured["BR"][:, :, 0])
+    assert captured["nfp"] == field.nfp
+
+
+def test_raw_trace_poincare_dpk_growth_closes_endpoint_false_phi_grid(monkeypatch):
+    import pyna.toroidal.flt.numba_poincare as mod
+
+    field = _phi_dependent_field_period_field(nfp=2)
+    arrays = field.cyna_arrays(extend_phi=False)
+    captured = {}
+
+    def fake_dpk(
+        R0,
+        Z0,
+        phi_start,
+        max_returns,
+        return_period,
+        record_stride,
+        DPhi,
+        BR_flat,
+        BZ_flat,
+        BPhi_flat,
+        R_grid,
+        Z_grid,
+        Phi_grid,
+        nfp,
+    ):
+        captured["nfp"] = nfp
+        captured["Phi_grid"] = np.asarray(Phi_grid)
+        captured["BR"] = np.asarray(BR_flat).reshape(len(R_grid), len(Z_grid), len(Phi_grid))
+        return (
+            np.asarray([1], dtype=np.int32),
+            np.asarray([R0], dtype=float),
+            np.asarray([Z0], dtype=float),
+            np.asarray([phi_start + return_period], dtype=float),
+            np.eye(2, dtype=float).reshape(1, 4),
+            np.ones((1, 2), dtype=float),
+            np.asarray([1], dtype=np.int32),
+        )
+
+    monkeypatch.setattr(mod, "_cyna_available", lambda: True)
+    monkeypatch.setattr(mod, "_cyna_trace_poincare_dpk_growth", fake_dpk)
+
+    mod.trace_poincare_dpk_growth(
+        1.0,
+        0.0,
+        0.0,
+        1,
+        0.01,
+        arrays.R_grid,
+        arrays.Z_grid,
+        arrays.Phi_grid,
+        arrays.BR_flat,
+        arrays.BZ_flat,
+        arrays.BPhi_flat,
+        return_period=np.pi,
+        nfp=field.nfp,
+    )
+
+    assert captured["Phi_grid"][-1] == pytest.approx(np.pi)
+    assert captured["Phi_grid"].size == arrays.Phi_grid.size + 1
+    np.testing.assert_allclose(captured["BR"][:, :, -1], captured["BR"][:, :, 0])
+    assert captured["nfp"] == field.nfp
+
+
+def test_raw_trace_poincare_dpk_growth_twall_closes_endpoint_false_phi_grid(monkeypatch):
+    import pyna.toroidal.flt.numba_poincare as mod
+
+    field = _phi_dependent_field_period_field(nfp=2)
+    arrays = field.cyna_arrays(extend_phi=False)
+    captured = {}
+
+    def fake_dpk_twall(
+        R0,
+        Z0,
+        phi_start,
+        max_returns,
+        return_period,
+        record_stride,
+        DPhi,
+        BR_flat,
+        BZ_flat,
+        BPhi_flat,
+        R_grid,
+        Z_grid,
+        Phi_grid,
+        wall_phi,
+        wall_R_all,
+        wall_Z_all,
+        stop_at_wall,
+        nfp,
+    ):
+        captured["nfp"] = nfp
+        captured["Phi_grid"] = np.asarray(Phi_grid)
+        captured["BZ"] = np.asarray(BZ_flat).reshape(len(R_grid), len(Z_grid), len(Phi_grid))
+        return (
+            np.asarray([1], dtype=np.int32),
+            np.asarray([R0], dtype=float),
+            np.asarray([Z0], dtype=float),
+            np.asarray([phi_start + return_period], dtype=float),
+            np.eye(2, dtype=float).reshape(1, 4),
+            np.ones((1, 2), dtype=float),
+            np.asarray([1], dtype=np.int32),
+            np.asarray([np.nan, np.nan, np.nan, np.nan], dtype=float),
+            np.asarray([0], dtype=np.int32),
+        )
+
+    wall_phi = np.asarray([0.0, 0.5 * np.pi], dtype=float)
+    wall_R = np.asarray([[0.8, 1.2, 1.2, 0.8], [0.8, 1.2, 1.2, 0.8]], dtype=float)
+    wall_Z = np.asarray([[-0.2, -0.2, 0.2, 0.2], [-0.2, -0.2, 0.2, 0.2]], dtype=float)
+    monkeypatch.setattr(mod, "_cyna_available", lambda: True)
+    monkeypatch.setattr(mod, "_cyna_trace_poincare_dpk_growth_twall", fake_dpk_twall)
+
+    mod.trace_poincare_dpk_growth_twall(
+        1.0,
+        0.0,
+        0.0,
+        1,
+        0.01,
+        arrays.R_grid,
+        arrays.Z_grid,
+        arrays.Phi_grid,
+        arrays.BR_flat,
+        arrays.BZ_flat,
+        arrays.BPhi_flat,
+        wall_phi,
+        wall_R,
+        wall_Z,
+        return_period=np.pi,
+        nfp=field.nfp,
+    )
+
+    assert captured["Phi_grid"][-1] == pytest.approx(np.pi)
+    assert captured["Phi_grid"].size == arrays.Phi_grid.size + 1
+    np.testing.assert_allclose(captured["BZ"][:, :, -1], captured["BZ"][:, :, 0])
+    assert captured["nfp"] == field.nfp
 
 
 def test_find_fixed_points_batch_span_field_fallback_preserves_solver_kwargs(monkeypatch):
@@ -992,6 +1307,7 @@ def test_find_fixed_points_batch_span_field_fallback_preserves_solver_kwargs(mon
         "max_iter": 17,
         "tol": pytest.approx(3.0e-8),
         "n_threads": 5,
+        "nfp": 2,
     }
 
 
