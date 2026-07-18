@@ -83,7 +83,10 @@ RMPs, Islands and Poincare Analysis
 -----------------------------------
 
 Start with the resonance analysis notebook when studying magnetic topology.  It
-now covers divergence-free RMP templates, the important ``m=1`` branch, ``cyna``
+begins with an executable convention lock reproducing Nardon's Eqs. (3.3)-(3.17),
+including signed ``(m,n)`` indices, conjugacy, resonant-branch selection, island
+half-width, and Chirikov overlap.  It then covers divergence-free RMP templates,
+the important ``m=1`` branch, ``cyna``
 fixed-point validation, multi-component contravariant ``B^r`` magnetic-spectrum
 atlases, modular ``q``/``m/n`` resonance maps with optional Poincare and island
 overlays, mixed RMP/nRMP spectra, total nRMP response from all non-resonant
