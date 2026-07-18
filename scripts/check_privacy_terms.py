@@ -19,6 +19,7 @@ DEFAULT_SKIP_DIRS = {
     ".ruff_cache",
     ".tox",
     ".venv",
+    ".xmake",
     "__pycache__",
     "build",
     "dist",
