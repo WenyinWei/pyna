@@ -47,41 +47,39 @@
 
 .. code-block:: python
 
-   from pyna.flt import FieldLineTracer, get_backend
-   from pyna.topo.poincare import PoincareAccumulator, poincare_from_fieldlines
-   from pyna.topo.section import ToroidalSection
+   from pyna.flt import get_backend
+   from pyna.topo.poincare import PoincareToroidalSection, poincare_from_fieldlines
 
-   # Use the canonical topology section type; ``pyna.topo.poincare`` keeps
-   # backward-compatible aliases for accumulator-only workflows.
-   section = ToroidalSection(0.0)
+   # The accumulator section detects crossings between sampled 3-D points.
+   section = PoincareToroidalSection(0.0)
 
-   # --- define the ODE right-hand side: dR/dφ, dZ/dφ ---
-   def field_rhs(phi, RZ):
-       R, Z = RZ
+   # --- unit tangent in cylindrical coordinates: dR/dl, dZ/dl, dφ/dl ---
+   def field_rhs(rzphi):
+       R, Z, _phi = rzphi
        BR, BZ = eq.BR_BZ(R, Z)
        Bphi   = eq.Bphi(R)
-       return [R * BR / Bphi, R * BZ / Bphi]
+       Bnorm  = np.sqrt(BR**2 + BZ**2 + Bphi**2)
+       return [BR / Bnorm, BZ / Bnorm, Bphi / (R * Bnorm)]
 
    # --- seed 8 field lines radially outward from the axis ---
    R_starts = np.linspace(Rmaxis + 0.05, Rmaxis + 0.45, 8)
    Z_starts = np.zeros(8)
 
-   # --- integrate 300 toroidal turns per line ---
-   backend = get_backend('cpu')
-   flt = FieldLineTracer(field_rhs, backend=backend)
+   # --- integrate about 80 toroidal turns per line ---
+   n_turns = 80
+   flt = get_backend('cpu', field_func=field_rhs, dt=0.08)
    pacc = poincare_from_fieldlines(
        field_func=field_rhs,
        start_pts=np.column_stack([R_starts, Z_starts, np.zeros_like(R_starts)]),
        sections=[section],
-       t_max=300 * 2 * np.pi,
+       t_max=n_turns * 2 * np.pi * Rmaxis,
        backend=flt,
    )
-   poincare_pts = [pacc.crossing_array(0)[:, :2]]
+   poincare_pts = pacc.crossing_array(0)[:, :2]
 
    # --- plot ---
    fig, ax = plt.subplots(figsize=(6, 6))
-   for Rs, Zs in poincare_pts:
-       ax.scatter(Rs, Zs, s=0.8, color='steelblue')
+   ax.scatter(poincare_pts[:, 0], poincare_pts[:, 1], s=0.8, color='steelblue')
    ax.set_xlabel('R (m)')
    ax.set_ylabel('Z (m)')
    ax.set_aspect('equal')
