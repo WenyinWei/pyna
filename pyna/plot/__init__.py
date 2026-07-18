@@ -3,6 +3,7 @@
 from pyna.plot.island import plot_island, island_section_points
 from pyna.plot.island_chain import plot_island_chain, island_chain_section_points
 from pyna.plot.xo_points import draw_xo_points, XO_STYLE
+from pyna.plot.poincare import plot_poincare, plot_poincare_data
 from pyna.plot.poincare_beta import plot_poincare_beta_grid
 from pyna.plot.beta_ramp import (
     beta_physics_rows,
@@ -87,6 +88,8 @@ __all__ = [
     "island_chain_section_points",
     "draw_xo_points",
     "XO_STYLE",
+    "plot_poincare",
+    "plot_poincare_data",
     "plot_poincare_beta_grid",
     "beta_physics_rows",
     "beta_ramp_scan_rows",
