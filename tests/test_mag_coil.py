@@ -23,6 +23,20 @@ def test_current_loop_on_axis_BZ():
     assert abs(BZ - BZ_analytic) / abs(BZ_analytic) < 1e-3
 
 
+def test_current_loop_exact_axis_limit_is_finite():
+    """The exact R=0 axis limit should use the analytic finite value."""
+    a = 0.7
+    I = 500.0
+    Z_test = np.array([-0.3, 0.0, 0.4])
+
+    BR, BZ = BRBZ_induced_by_current_loop(a, 0.0, I, np.zeros_like(Z_test), Z_test)
+
+    BZ_analytic = mu_0 * I * a**2 / (2 * (a**2 + Z_test**2) ** 1.5)
+    np.testing.assert_allclose(BR, 0.0, atol=1.0e-15)
+    np.testing.assert_allclose(BZ, BZ_analytic, rtol=1.0e-12)
+    assert np.all(np.isfinite(BZ))
+
+
 def test_current_loop_on_axis_BR_small():
     """B_R near the axis should be much smaller than B_Z (axisymmetry)."""
     a = 1.0

@@ -60,15 +60,22 @@ def BRBZ_induced_by_current_loop(
     from scipy.constants import mu_0, pi
     from scipy.special import ellipk, ellipe
 
-    R = np.asarray(R, dtype=float)
-    Z = np.asarray(Z, dtype=float)
+    R, Z = np.broadcast_arrays(np.asarray(R, dtype=float), np.asarray(Z, dtype=float))
     Z_rel = Z - Z_o
-    denom = (R + a) ** 2 + Z_rel ** 2
-    m = 4 * a * R / denom
+    axis = np.abs(R) <= max(abs(float(a)), 1.0) * 1.0e-14
+    R_safe = np.where(axis, max(abs(float(a)), 1.0) * 1.0e-14, R)
+    denom = (R_safe + a) ** 2 + Z_rel ** 2
+    m = 4 * a * R_safe / denom
     coeff = mu_0 * I / (2 * pi) / np.sqrt(denom)
-    d2 = (a - R) ** 2 + Z_rel ** 2
-    BR = coeff * Z_rel / R * (-ellipk(m) + (a**2 + R**2 + Z_rel**2) / d2 * ellipe(m))
-    BZ = coeff * (ellipk(m) + (a**2 - R**2 - Z_rel**2) / d2 * ellipe(m))
+    d2 = (a - R_safe) ** 2 + Z_rel ** 2
+    BR = coeff * Z_rel / R_safe * (
+        -ellipk(m) + (a**2 + R_safe**2 + Z_rel**2) / d2 * ellipe(m)
+    )
+    BZ = coeff * (ellipk(m) + (a**2 - R_safe**2 - Z_rel**2) / d2 * ellipe(m))
+    if np.any(axis):
+        BR = np.where(axis, 0.0, BR)
+        BZ_axis = mu_0 * I * a**2 / (2.0 * (a**2 + Z_rel**2) ** 1.5)
+        BZ = np.where(axis, BZ_axis, BZ)
     return BR, BZ
 
 
