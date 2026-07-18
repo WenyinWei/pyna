@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.9.0](https://github.com/WenyinWei/pyna/compare/v0.8.18...v0.9.0) (2026-07-18)
+
+
+### Features
+
+* **boundary:** add reusable field and coil bases ([a7f6974](https://github.com/WenyinWei/pyna/commit/a7f6974da646ffd5d80aafea8865ad472053b9e3))
+* **boundary:** compose topology cases and heat targets ([2cc65a4](https://github.com/WenyinWei/pyna/commit/2cc65a4e718f73a833ec157db255b0f3e008976c))
+* **control:** add modular boundary response design ([7622b48](https://github.com/WenyinWei/pyna/commit/7622b480d08aaa361ca590a89fef7123bfd3aa1f))
+* **control:** add optional Topoquest FPT adapter ([c9df70b](https://github.com/WenyinWei/pyna/commit/c9df70b8180a4c4db26fe3a7819f9ef6e31d4b72))
+* **field-lines:** preserve signed native-period maps ([583ac66](https://github.com/WenyinWei/pyna/commit/583ac66b58eeba5ccf3f0e42b76dd9a92cb0d9a2))
+* **fields:** centralize toroidal periodicity ([7189e90](https://github.com/WenyinWei/pyna/commit/7189e90939d85cb3cfd93f9c151d934d5589a3c3))
+* **heat:** add modular strike and FusionSC backends ([b345753](https://github.com/WenyinWei/pyna/commit/b34575364232260f51ae01da99d5e40e21ec216b))
+* **pest:** preserve orientation in candidate-field fits ([26093fc](https://github.com/WenyinWei/pyna/commit/26093fca8b8b85705c5499813e6696636616c3b3))
+* **plot:** add lazy boundary topology facades ([62ea609](https://github.com/WenyinWei/pyna/commit/62ea60903607b3178b478e95fa5ab26b7f5942a4))
+* **plot:** support adaptive PEST seed tracing ([e5f4f38](https://github.com/WenyinWei/pyna/commit/e5f4f3858ebbf1034a8c1ce94acbbe15ca86a17c))
+* **reports:** add synthetic topology audit workflows ([c9f58fe](https://github.com/WenyinWei/pyna/commit/c9f58fe201d153750d18bd4ba8b4bb6ec59d9e9f))
+* **spectrum:** bind Nardon diagnostics to field provenance ([cf75f55](https://github.com/WenyinWei/pyna/commit/cf75f5513f3696813a11eadf3e0533456b6a3533))
+* **streamlines:** trace PEST face-flux events ([75325d4](https://github.com/WenyinWei/pyna/commit/75325d44618517e13ec1460854d02ef124cc2218))
+* **topology:** add nonlinear boundary validation ([3e14c76](https://github.com/WenyinWei/pyna/commit/3e14c7690ed03f20e83a13cac928ff716c5486d0))
+* **workflows:** add audited W7-X topology reports ([d881bfd](https://github.com/WenyinWei/pyna/commit/d881bfd15f5b0cd0906c394a442fee06fa8753df))
+
+
+### Bug Fixes
+
+* **coils:** handle current-loop axis limit ([483e63b](https://github.com/WenyinWei/pyna/commit/483e63bcd963b5da3c8524491b1d51fca3c2a040))
+* **pest:** enforce explicit native-period Nfp ([f514707](https://github.com/WenyinWei/pyna/commit/f51470703c6e9855d8bb01741261e8cb8eea6daa))
+* **pest:** retain per-surface return scales ([6f388d9](https://github.com/WenyinWei/pyna/commit/6f388d90279b7397749ae3f99d4f61633a42245d))
+* **plot:** preserve full surface grid in adaptive traces ([365ac1a](https://github.com/WenyinWei/pyna/commit/365ac1acde7d6293eb6fbdb4578983ff99cd5924))
+* **streamlines:** preserve adaptive seed diagnostics ([becc548](https://github.com/WenyinWei/pyna/commit/becc548997d748f236f26692197bdc9ebe2c3cc2))
+
+
+### Performance Improvements
+
+* **pest:** parallelize surface streamline tracing ([9624eae](https://github.com/WenyinWei/pyna/commit/9624eaedb7ae8b582f60fa546803817e916957e0))
+
+
+### Documentation
+
+* add localized tutorial notebooks ([b425935](https://github.com/WenyinWei/pyna/commit/b425935e02725cdc8d39fc9dd05b2217eeb1a8fe))
+* **quickstart:** fix field-line tracing example ([abd36fb](https://github.com/WenyinWei/pyna/commit/abd36fb5276d0fe12e4d1fcc3799a4dfc86ea0e9))
+* refine localized tutorials and pages build ([83a60da](https://github.com/WenyinWei/pyna/commit/83a60daf591aeebfb991cb5aadee9204b7ef690e))
+* **tutorial:** lock Nardon spectrum conventions ([e315dbe](https://github.com/WenyinWei/pyna/commit/e315dbe91474f8c6e26cf99ed6b847a44b68e3da))
+
 ## [Unreleased]
 
 ## [0.8.22] - 2026-07-01
