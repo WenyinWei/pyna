@@ -24,7 +24,7 @@ from typing import Optional, List, Tuple
 
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
-from pyna.fields.cylindrical import close_periodic_phi_grid
+from pyna._cyna.utils import prepare_field_cache
 
 warnings.filterwarnings("ignore")
 
@@ -163,15 +163,16 @@ class _FC:
     """Flat contiguous arrays extracted from a field_cache dict."""
 
     def __init__(self, fc: dict):
-        self.Rg  = np.ascontiguousarray(fc["R_grid"], dtype=np.float64)
-        self.Zg  = np.ascontiguousarray(fc["Z_grid"], dtype=np.float64)
-        self.nfp = int(fc.get("nfp", fc.get("field_periods", 1)))
-        if self.nfp < 1:
-            raise ValueError("field-cache nfp must be a positive integer")
-        self.phi_period = 2.0 * np.pi / self.nfp
-        Pg, BR, BZ, BPhi = close_periodic_phi_grid(
-            fc["Phi_grid"], fc["BR"], fc["BZ"], fc["BPhi"],
-            period=self.phi_period,
+        prepared = prepare_field_cache(fc, extend_phi=True)
+        self.Rg = prepared["R_grid"]
+        self.Zg = prepared["Z_grid"]
+        self.nfp = int(prepared["nfp"])
+        self.phi_period = float(prepared["field_period"])
+        Pg, BR, BZ, BPhi = (
+            prepared["Phi_grid"],
+            prepared["BR"],
+            prepared["BZ"],
+            prepared["BPhi"],
         )
         self.dphi = float(Pg[1] - Pg[0]) if len(Pg) > 1 else 0.0
         self.Pg_ext = np.ascontiguousarray(Pg, dtype=np.float64)

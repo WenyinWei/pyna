@@ -95,7 +95,8 @@ def test_vfield_to_from_npz_roundtrip():
         v2 = VectorFieldCylind.from_npz(path + ".npz")
     assert np.allclose(v.VPhi, v2.VPhi)
     assert np.allclose(v.R, v2.R)
-    assert v.field_periods == v2.field_periods
+    assert v.nfp == v2.nfp
+    assert v.field_period == pytest.approx(v2.field_period)
 
 
 def test_sfield_to_from_npz_roundtrip():

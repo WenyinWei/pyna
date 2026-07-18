@@ -170,7 +170,7 @@ def test_vector_field_periodic_endpoint_false_field_period_wraps():
         BR=BR,
         BZ=np.zeros_like(BR),
         BPhi=np.ones_like(BR),
-        field_periods=nfp,
+        nfp=nfp,
     )
 
     phis = np.array([period - 1.0e-8, period + 0.5 * period])
@@ -181,7 +181,7 @@ def test_vector_field_periodic_endpoint_false_field_period_wraps():
     np.testing.assert_allclose(values[:, 0], [1.0, -1.0], atol=1.0e-6)
 
 
-def test_vector_field_nfp_alias_and_phi_grid_validation():
+def test_vector_field_nfp_and_phi_grid_validation():
     from pyna.fields import VectorFieldCylind, validate_phi_grid
 
     nfp = 2
@@ -201,13 +201,12 @@ def test_vector_field_nfp_alias_and_phi_grid_validation():
     )
 
     assert field.nfp == nfp
-    assert field.field_periods == nfp
     assert field.field_period_rad == pytest.approx(period)
     assert field.field_period == pytest.approx(period)
     cache = field.cyna_arrays().as_field_cache()
     assert cache["nfp"] == nfp
-    assert cache["field_period_rad"] == pytest.approx(period)
-    assert cache["field_periods"] == nfp
+    assert cache["field_period"] == pytest.approx(period)
+    assert "field_periods" not in cache
     np.testing.assert_allclose(validate_phi_grid(Phi, nfp=nfp), Phi)
 
     with pytest.raises(ValueError, match="strictly increasing"):
@@ -220,7 +219,7 @@ def test_vector_field_nfp_alias_and_phi_grid_validation():
             BPhi=np.ones((3, 3, 3)),
             nfp=nfp,
         )
-    with pytest.raises(ValueError, match="within one field period"):
+    with pytest.raises(ValueError, match="stored toroidal domain"):
         VectorFieldCylind(
             R=R,
             Z=Z,
@@ -230,6 +229,43 @@ def test_vector_field_nfp_alias_and_phi_grid_validation():
             BPhi=np.ones((3, 3, 4)),
             nfp=nfp,
         )
+
+
+def test_field_interpolation_wraps_at_field_period_and_integer_multiples():
+    from pyna.fields import ScalarFieldCylind, VectorFieldCylind
+
+    nfp = 5
+    field_period = 2.0 * np.pi / nfp
+    R = np.linspace(0.8, 1.2, 3)
+    Z = np.linspace(-0.1, 0.1, 3)
+    Phi = np.linspace(0.0, field_period, 12, endpoint=False)
+    _, _, PP = np.meshgrid(R, Z, Phi, indexing="ij")
+    scalar_values = np.cos(nfp * PP)
+    vector = VectorFieldCylind(
+        R=R,
+        Z=Z,
+        Phi=Phi,
+        BR=scalar_values,
+        BZ=np.zeros_like(scalar_values),
+        BPhi=np.ones_like(scalar_values),
+        nfp=nfp,
+    )
+    scalar = ScalarFieldCylind(R, Z, Phi, scalar_values, nfp=nfp)
+    phi_query = np.array(
+        [
+            0.0,
+            field_period,
+            2.0 * field_period,
+            2.0 * np.pi,
+            -field_period,
+        ]
+    )
+    points = np.column_stack(
+        [np.ones(phi_query.size), np.zeros(phi_query.size), phi_query]
+    )
+
+    np.testing.assert_allclose(vector(points)[:, 0], 1.0, atol=1.0e-12)
+    np.testing.assert_allclose(scalar(points), 1.0, atol=1.0e-12)
 
 
 def test_vector_field_closed_phi_endpoint_requires_matching_slices():
@@ -257,7 +293,7 @@ def test_scalar_field_periodic_endpoint_false_field_period_wraps():
     Phi = np.linspace(0.0, period, 16, endpoint=False)
     _, _, PP = np.meshgrid(R, Z, Phi, indexing="ij")
     value = np.cos(2.0 * PP)
-    field = ScalarFieldCylind(R=R, Z=Z, Phi=Phi, value=value, field_periods=nfp)
+    field = ScalarFieldCylind(R=R, Z=Z, Phi=Phi, value=value, nfp=nfp)
 
     phis = np.array([period - 1.0e-8, period + 0.5 * period])
     pts = np.column_stack([np.ones_like(phis), np.zeros_like(phis), phis])

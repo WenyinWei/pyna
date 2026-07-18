@@ -10,6 +10,7 @@ from pyna.fields.cylindrical import (
     as_vector_field_cylindrical,
     close_periodic_phi_grid,
 )
+from pyna.fields.periodicity import ToroidalPeriodicity, normalize_nfp
 from pyna.toroidal.geometry import coerce_toroidal_surface_arrays
 from pyna._cyna import (
     is_available as _cyna_available,
@@ -76,9 +77,8 @@ def _close_raw_field_arrays_for_cyna(
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Close raw arrays using explicit ``nfp``; never infer it from Phi span."""
 
-    nfp = int(nfp)
-    if nfp < 1:
-        raise ValueError("nfp must be a positive integer")
+    nfp = normalize_nfp(nfp)
+    periodicity = ToroidalPeriodicity(nfp=nfp, origin=float(np.asarray(Phi_grid)[0]))
 
     Rg = np.ascontiguousarray(R_grid, dtype=np.float64)
     Zg = np.ascontiguousarray(Z_grid, dtype=np.float64)
@@ -98,7 +98,7 @@ def _close_raw_field_arrays_for_cyna(
         BR3,
         BZ3,
         BP3,
-        period=2.0 * np.pi / nfp,
+        periodicity=periodicity,
     )
     return (
         Rg,

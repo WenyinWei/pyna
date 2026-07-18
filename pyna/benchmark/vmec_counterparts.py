@@ -20,6 +20,7 @@ import time
 from typing import Any, Callable, Mapping, Sequence
 
 import numpy as np
+from pyna.fields.periodicity import ToroidalPeriodicity
 from numpy.typing import NDArray
 
 
@@ -853,7 +854,7 @@ def _geometry_phi_values(path: Path, values: Sequence[float] | None) -> NDArray[
             raise ValueError("geometry_phi must contain at least one toroidal angle")
         return np.ascontiguousarray(arr, dtype=np.float64)
     nfp = _read_wout_nfp(path)
-    period = 2.0 * np.pi / max(int(nfp), 1)
+    period = ToroidalPeriodicity(nfp=nfp).field_period
     return np.ascontiguousarray(np.linspace(0.0, period, 5, endpoint=True, dtype=np.float64)[:-1])
 
 

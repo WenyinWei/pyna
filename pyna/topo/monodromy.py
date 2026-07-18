@@ -1350,25 +1350,16 @@ def monodromy_matrix(
 
 
 
-    from pyna.fields.cylindrical import close_periodic_phi_grid
+    from pyna._cyna.utils import prepare_field_cache
 
-    # Extract grid
-
-    BR, BZ, BPhi = cache['BR'], cache['BZ'], cache['BPhi']
-
-    R_grid, Z_grid, Phi_grid = cache['R_grid'], cache['Z_grid'], cache['Phi_grid']
-
-    nfp = int(cache.get('nfp', cache.get('field_periods', 1)))
-    if nfp < 1:
-        raise ValueError("field-cache nfp must be a positive integer")
-
-
-
-    # Close Phi_grid by the actual cache period, which may be one field period.
-
-    Phi_ext, BR_ext, BZ_ext, BPhi_ext = close_periodic_phi_grid(
-        Phi_grid, BR, BZ, BPhi, period=2.0 * np.pi / nfp
+    prepared = prepare_field_cache(cache, extend_phi=True)
+    BR_ext, BZ_ext, BPhi_ext = prepared['BR'], prepared['BZ'], prepared['BPhi']
+    R_grid, Z_grid, Phi_ext = (
+        prepared['R_grid'],
+        prepared['Z_grid'],
+        prepared['Phi_grid'],
     )
+    nfp = int(prepared['nfp'])
 
     # Flatten to 1-D (required by cyna C++ API)
 

@@ -1158,7 +1158,7 @@ def test_sample_cylindrical_vector_grid_rejects_axis_order_swaps():
         )
 
 
-def test_sample_cylindrical_vector_grid_on_surfaces_respects_field_periods():
+def test_sample_cylindrical_vector_grid_on_surfaces_respects_nfp():
     nfp = 2
     field_period = 2.0 * np.pi / nfp
     grid_R = np.linspace(0.8, 1.2, 5)
@@ -1188,7 +1188,7 @@ def test_sample_cylindrical_vector_grid_on_surfaces_respects_field_periods():
         Z,
         phi,
         theta,
-        field_periods=nfp,
+        nfp=nfp,
     )
 
     expected_phi = np.broadcast_to(phi[:, None, None], R.shape)

@@ -5,7 +5,7 @@ import pytest
 matplotlib.use("Agg")
 
 
-def _write_linear_bphi_mgrid(path, *, nphi=8, nz=7, nr=9, a=0.3):
+def _write_linear_bphi_mgrid(path, *, nphi=8, nz=7, nr=9, a=0.3, nfp=1):
     from scipy.io import netcdf_file
 
     R = np.linspace(1.0, 1.8, nr)
@@ -24,7 +24,7 @@ def _write_linear_bphi_mgrid(path, *, nphi=8, nz=7, nr=9, a=0.3):
             ("ir", "i", nr),
             ("jz", "i", nz),
             ("kp", "i", nphi),
-            ("nfp", "i", 1),
+            ("nfp", "i", nfp),
             ("nextcur", "i", 1),
             ("rmin", "f8", R[0]),
             ("rmax", "f8", R[-1]),
@@ -183,11 +183,32 @@ def test_mgrid_to_vector_field_uses_canonical_r_z_phi_order(tmp_path):
 
     assert isinstance(vector, VectorFieldCylind)
     assert vector.shape == (8, 5, 6)
-    assert vector.field_periods == 1
+    assert vector.nfp == 1
+    assert vector.field_period == pytest.approx(2.0 * np.pi)
     assert vector.label == "synthetic"
     np.testing.assert_allclose(vector.BPhi[3, 2, 4], field.BPhi[4, 2, 3])
     np.testing.assert_allclose(vector.BR[3, 2, 4], field.BR[4, 2, 3])
     np.testing.assert_allclose(vector.BZ[3, 2, 4], field.BZ[4, 2, 3])
+
+
+def test_full_torus_mgrid_keeps_physical_nfp_and_cyna_uses_native_period(tmp_path):
+    from pyna.io import load_vmec_mgrid, mgrid_to_vector_field
+
+    nfp = 5
+    native_nphi = 6
+    path = tmp_path / "full_torus.nc"
+    _write_linear_bphi_mgrid(path, nphi=native_nphi, nz=5, nr=8, nfp=nfp)
+    loaded = load_vmec_mgrid(path, full_torus=True)
+    vector = mgrid_to_vector_field(loaded)
+    arrays = vector.cyna_arrays(extend_phi=True)
+
+    assert vector.nfp == nfp
+    assert vector.field_period == pytest.approx(2.0 * np.pi / nfp)
+    assert vector.periodicity.domain_period == pytest.approx(2.0 * np.pi)
+    assert vector.periodicity.domain_period_count == nfp
+    assert arrays.nfp == nfp
+    assert arrays.Phi_grid.size == native_nphi + 1
+    assert arrays.Phi_grid[-1] == pytest.approx(2.0 * np.pi / nfp)
 
 
 def test_pest_current_components_for_constant_toroidal_current():

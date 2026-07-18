@@ -9,6 +9,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from pyna._cyna.utils import prepare_field_cache
+from pyna.fields.periodicity import ToroidalPeriodicity, normalize_nfp
 from pyna.topo.fpt import CyclePerturbationShift, compute_cycle_shift_from_cache
 
 
@@ -39,17 +40,14 @@ def field_period_cache_from_components(
     BR: NDArray[np.float64],
     BZ: NDArray[np.float64],
     BPhi: NDArray[np.float64],
-    n_fp: int,
+    nfp: int,
 ) -> dict[str, NDArray[np.float64]]:
     """Build a native one-field-period cyna cache with explicit ``nfp``."""
 
     phi = np.asarray(Phi, dtype=np.float64)
-    n_periods = int(n_fp)
-    if n_periods <= 0:
-        raise ValueError("n_fp must be positive")
+    n_periods = normalize_nfp(nfp)
     if phi.ndim != 1 or phi.size == 0:
         raise ValueError("Phi must be a non-empty 1-D grid")
-    period = 2.0 * np.pi / float(n_periods)
     def _component(name: str, values: NDArray[np.float64]) -> NDArray[np.float64]:
         arr = np.asarray(values, dtype=np.float64)
         expected = (np.asarray(R).size, np.asarray(Z).size, phi.size)
@@ -105,7 +103,7 @@ def axis_cycle_shift_from_fields(
     base_field: Any,
     delta_field: Any,
     *,
-    n_fp: int,
+    nfp: int,
     field_periods: float = 1.0,
     steps_per_field_period: int = 200,
     fd_eps: float = 1.0e-4,
@@ -115,7 +113,8 @@ def axis_cycle_shift_from_fields(
     phi_native = np.asarray(phi_grid, dtype=np.float64)
     if phi_native.ndim != 1 or phi_native.size == 0:
         raise ValueError("phi_grid must be a non-empty 1-D grid")
-    period = 2.0 * np.pi / max(int(n_fp), 1)
+    periodicity = ToroidalPeriodicity(nfp=nfp)
+    period = periodicity.field_period
     span_periods = float(field_periods)
     if span_periods <= 0.0:
         raise ValueError("field_periods must be positive")
@@ -125,8 +124,9 @@ def axis_cycle_shift_from_fields(
 
     axis_R_arr = np.broadcast_to(np.asarray(axis_R, dtype=np.float64), phi_native.shape)
     axis_Z_arr = np.broadcast_to(np.asarray(axis_Z, dtype=np.float64), phi_native.shape)
-    seed_phi = float(phi_native[0] % period)
-    seed_idx = int(np.argmin(np.abs(np.mod(phi_native, period) - seed_phi)))
+    phi_wrapped = periodicity.wrap(phi_native)
+    seed_phi = float(phi_wrapped[0])
+    seed_idx = int(np.argmin(np.abs(phi_wrapped - seed_phi)))
     phi_span = period * span_periods
     n_steps = max(int(round(steps_per_period * span_periods)), 16)
     dphi = phi_span / float(n_steps)
@@ -144,7 +144,7 @@ def axis_cycle_shift_from_fields(
     delta_R, delta_Z, finite_fraction = _delta_cycle_shift_on_queries(
         cycle_shift,
         seed_phi,
-        np.mod(phi_native - seed_phi, period),
+        periodicity.wrap(phi_native - seed_phi),
     )
     shifted_R = axis_R_arr + delta_R
     shifted_Z = axis_Z_arr + delta_Z
@@ -186,7 +186,7 @@ def cycle_points_shift_from_fields(
     base_field: Any,
     delta_field: Any,
     *,
-    n_fp: int,
+    nfp: int,
     field_periods: float = 1.0,
     steps_per_field_period: int = 200,
     fd_eps: float = 1.0e-4,
@@ -199,18 +199,19 @@ def cycle_points_shift_from_fields(
     phi_arr = np.asarray(phi_sections, dtype=np.float64)
     if phi_arr.ndim != 1 or phi_arr.size == 0:
         raise ValueError("phi_sections must be a non-empty 1-D sequence")
-    period = 2.0 * np.pi / max(int(n_fp), 1)
+    periodicity = ToroidalPeriodicity(nfp=nfp)
+    period = periodicity.field_period
     span_periods = float(field_periods)
     if span_periods <= 0.0:
         raise ValueError("field_periods must be positive")
     steps_per_period = int(steps_per_field_period)
     if steps_per_period <= 0:
         raise ValueError("steps_per_field_period must be positive")
-    seed_phi = float(phi_arr[0] % period)
+    seed_phi = float(periodicity.wrap(phi_arr[0]))
     phi_span = period * span_periods
     n_steps = max(int(round(steps_per_period * span_periods)), 16)
     dphi = phi_span / float(n_steps)
-    rel_queries = np.mod(phi_arr - seed_phi, period)
+    rel_queries = periodicity.wrap(phi_arr - seed_phi)
     sections = [np.empty((seeds.shape[0], 2), dtype=np.float64) for _ in phi_arr]
     cycle_shifts: list[CyclePerturbationShift] = []
     finite_fractions: list[float] = []

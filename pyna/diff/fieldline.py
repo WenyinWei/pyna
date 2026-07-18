@@ -208,6 +208,7 @@ from pyna.topo._rk4 import rk4_integrate as solve_ivp  # retained for variationa
 from functools import reduce
 import operator
 from pyna.fields.cylindrical import VectorFieldCylind, close_periodic_phi_grid
+from pyna.fields.periodicity import ToroidalPeriodicity
 from pyna._cyna import trace_orbit_along_phi as _cyna_trace_orbit
 
 
@@ -216,7 +217,18 @@ def _wrap_phi_for_grid(phi, phi_grid, period=2.0 * np.pi):
     return phi_arr[0] + np.mod(np.asarray(phi, dtype=float) - phi_arr[0], float(period))
 
 
-def _trace_fieldline_as_sol(R, Z, Phi, BR, BZ, BPhi, t_span, y0, *, nfp=1):
+def _trace_fieldline_as_sol(
+    R,
+    Z,
+    Phi,
+    BR,
+    BZ,
+    BPhi,
+    t_span,
+    y0,
+    *,
+    periodicity: ToroidalPeriodicity | None = None,
+):
     """Trace fieldline using cyna C++ backend; return object with .sol(t).
 
     Uses pyna._cyna.trace_orbit_along_phi as the sole fieldline tracing
@@ -224,11 +236,10 @@ def _trace_fieldline_as_sol(R, Z, Phi, BR, BZ, BPhi, t_span, y0, *, nfp=1):
     interpolant so downstream variational ODE code can call sol(t).
     """
     from scipy.interpolate import interp1d
-    nfp = int(nfp)
-    if nfp < 1:
-        raise ValueError("nfp must be a positive integer")
+    periodicity = periodicity or ToroidalPeriodicity()
+    nfp = periodicity.nfp
     Phi_ext, BR_ext, BZ_ext, BPhi_ext = close_periodic_phi_grid(
-        Phi, BR, BZ, BPhi, period=2.0 * np.pi / nfp
+        Phi, BR, BZ, BPhi, periodicity=periodicity
     )
     dPhi = Phi_ext[1] - Phi_ext[0]
     phi_start = float(t_span[0])
@@ -269,7 +280,7 @@ def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(afield:VectorFieldCylind, t_spa
     RBRdBPhi = R[:,None,None]*BR/BPhi
     RBZdBPhi = R[:,None,None]*BZ/BPhi
     Phi_ext, RBRdBPhi, RBZdBPhi = close_periodic_phi_grid(
-        Phi, RBRdBPhi, RBZdBPhi, period=afield.field_period
+        Phi, RBRdBPhi, RBZdBPhi, periodicity=afield.periodicity
     )
     RBRdBPhi_field = _FieldDifferenatiableRZ(RBRdBPhi, R, Z, Phi_ext)
     RBZdBPhi_field = _FieldDifferenatiableRZ(RBZdBPhi, R, Z, Phi_ext)
@@ -277,7 +288,7 @@ def RZ_partial_derivative_of_map_4_Flow_Phi_as_t(afield:VectorFieldCylind, t_spa
     dPhi = Phi_ext[1] - Phi_ext[0]
     # --- FieldlineTracer (cyna C++) entry point ---
     fltsol = _trace_fieldline_as_sol(
-        R, Z, Phi, BR, BZ, BPhi, t_span, y0, nfp=afield.nfp
+        R, Z, Phi, BR, BZ, BPhi, t_span, y0, periodicity=afield.periodicity
     )
     XpRpZ_sols = [fltsol]
 
@@ -375,7 +386,7 @@ def partial_XRZ_partial_x0RZ_until_ordk_along_field_line(afield:VectorFieldCylin
     RBRdBPhi = R[:,None,None]*BR/BPhi
     RBZdBPhi = R[:,None,None]*BZ/BPhi
     Phi_ext, RBRdBPhi, RBZdBPhi = close_periodic_phi_grid(
-        Phi, RBRdBPhi, RBZdBPhi, period=afield.field_period
+        Phi, RBRdBPhi, RBZdBPhi, periodicity=afield.periodicity
     )
     RBRdBPhi_field = _FieldDifferenatiableRZ(RBRdBPhi, R, Z, Phi_ext)
     RBZdBPhi_field = _FieldDifferenatiableRZ(RBZdBPhi, R, Z, Phi_ext)
@@ -383,7 +394,7 @@ def partial_XRZ_partial_x0RZ_until_ordk_along_field_line(afield:VectorFieldCylin
     dPhi = Phi_ext[1] - Phi_ext[0]
     # --- FieldlineTracer (cyna C++) entry point ---
     fltsol = _trace_fieldline_as_sol(
-        R, Z, Phi, BR, BZ, BPhi, t_span, y0, nfp=afield.nfp
+        R, Z, Phi, BR, BZ, BPhi, t_span, y0, periodicity=afield.periodicity
     )
     XpRpZ_sols = [fltsol,]
     

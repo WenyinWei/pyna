@@ -59,7 +59,7 @@ def _outward_field(nfp=1):
         BR=fR / RR,
         BZ=np.zeros_like(RR),
         BPhi=np.ones_like(RR),
-        field_periods=int(nfp),
+        nfp=int(nfp),
     )
 
 
@@ -77,7 +77,7 @@ def _field_period_modulated_radial_field(nfp=2):
         BR=dR_dphi / RR,
         BZ=np.zeros_like(RR),
         BPhi=np.ones_like(RR),
-        field_periods=int(nfp),
+        nfp=int(nfp),
     )
 
 
@@ -108,7 +108,7 @@ def _field_period_strong_phi_field(nfp=2):
         BR=fR / RR,
         BZ=fZ / RR,
         BPhi=np.ones_like(RR),
-        field_periods=int(nfp),
+        nfp=int(nfp),
     )
 
 
@@ -150,7 +150,7 @@ def test_toroidal_component_surface_validation_and_aliases():
     fp_Z = wall_Z[:4]
     fp_wall = ToroidalWall(fp_phi, fp_R, fp_Z, nfp=2)
     assert fp_wall.field_period == pytest.approx(np.pi)
-    with pytest.raises(ValueError, match="within one field period"):
+    with pytest.raises(ValueError, match="stored toroidal domain"):
         ToroidalWall(wall_phi, wall_R, wall_Z, nfp=2)
 
 

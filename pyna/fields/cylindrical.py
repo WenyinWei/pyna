@@ -12,17 +12,7 @@ from scipy.interpolate import RegularGridInterpolator
 from pyna.fields.base import ScalarField3D, VectorField3D
 from pyna.fields.properties import FieldProperty
 from pyna.fields.coords import Coords3DCylindrical as _CylCoords3D
-
-
-def _extend_endpoint_false_periodic_phi(
-    phi: np.ndarray,
-    values: np.ndarray,
-    period: float,
-) -> tuple[np.ndarray, np.ndarray]:
-    """Close a uniform endpoint=False field-period grid for interpolation."""
-
-    phi_ext, value_ext = close_periodic_phi_grid(phi, values, period=period)
-    return phi_ext, value_ext
+from pyna.fields.periodicity import ToroidalPeriodicity, normalize_nfp
 
 
 def _periodic_endpoint_values_match(values: tuple[np.ndarray, ...]) -> bool:
@@ -37,24 +27,30 @@ def _periodic_endpoint_values_match(values: tuple[np.ndarray, ...]) -> bool:
     return True
 
 
-def _normalize_field_periods(field_periods: int = 1, nfp: int | None = None) -> int:
-    periods = int(field_periods)
-    if nfp is not None:
-        nfp_i = int(nfp)
-        if nfp_i < 1:
-            raise ValueError("nfp must be a positive integer")
-        if periods not in (1, nfp_i):
-            raise ValueError("field_periods and nfp disagree")
-        periods = nfp_i
-    if periods < 1:
-        raise ValueError("field_periods must be a positive integer")
-    return periods
+def _resolve_periodicity(
+    *,
+    nfp: int | None,
+    periodicity: ToroidalPeriodicity | None,
+    origin: float = 0.0,
+) -> ToroidalPeriodicity:
+    """Resolve canonical periodicity for a cylindrical grid."""
+
+    canonical_nfp = None if nfp is None else normalize_nfp(nfp)
+    resolved_nfp = canonical_nfp or 1
+    if periodicity is None:
+        return ToroidalPeriodicity(nfp=resolved_nfp, origin=origin)
+    if not isinstance(periodicity, ToroidalPeriodicity):
+        raise TypeError("periodicity must be ToroidalPeriodicity")
+    if canonical_nfp is not None and periodicity.nfp != resolved_nfp:
+        raise ValueError("nfp disagrees with periodicity")
+    return periodicity
 
 
 def validate_phi_grid(
     phi: np.ndarray,
     *,
     nfp: int = 1,
+    periodicity: ToroidalPeriodicity | None = None,
     name: str = "Phi",
     allow_single: bool = True,
 ) -> np.ndarray:
@@ -81,16 +77,22 @@ def validate_phi_grid(
     dphi = np.diff(phi_arr)
     if np.any(dphi <= 0.0):
         raise ValueError(f"{name} must be strictly increasing")
-    nfp_i = _normalize_field_periods(nfp)
-    if nfp_i > 1:
-        period = 2.0 * np.pi / nfp_i
-        tol = max(1.0e-10, 1.0e-10 * abs(period))
-        if phi_arr[0] < -tol or phi_arr[-1] > period + tol:
-            raise ValueError(
-                f"{name} for nfp={nfp_i} must lie within one field period [0, 2*pi/nfp]"
-            )
-        if (phi_arr[-1] - phi_arr[0]) > period + tol:
-            raise ValueError(f"{name} span exceeds one field period for nfp={nfp_i}")
+    resolved = _resolve_periodicity(
+        nfp=None if periodicity is not None else nfp,
+        periodicity=periodicity,
+        origin=float(phi_arr[0]),
+    )
+    domain_period = float(resolved.domain_period)
+    tol = max(1.0e-10, 1.0e-10 * abs(domain_period))
+    lower = float(resolved.origin)
+    upper = lower + domain_period
+    if phi_arr[0] < lower - tol or phi_arr[-1] > upper + tol:
+        raise ValueError(
+            f"{name} must lie within the stored toroidal domain "
+            f"[{lower}, {upper}] for nfp={resolved.nfp}"
+        )
+    if (phi_arr[-1] - phi_arr[0]) > domain_period + tol:
+        raise ValueError(f"{name} span exceeds the stored toroidal domain")
     return np.ascontiguousarray(phi_arr, dtype=np.float64)
 
 
@@ -98,12 +100,12 @@ def _validate_closed_periodic_endpoint(
     phi: np.ndarray,
     values: tuple[np.ndarray, ...],
     *,
-    nfp: int,
+    periodicity: ToroidalPeriodicity,
     name: str,
 ) -> None:
     if phi.size < 2:
         return
-    period = 2.0 * np.pi / max(int(nfp), 1)
+    period = float(periodicity.domain_period)
     tol = max(1.0e-10, 1.0e-10 * abs(period))
     if abs(float(phi[-1] - phi[0]) - period) > tol:
         return
@@ -115,14 +117,15 @@ def close_periodic_phi_grid(
     phi: np.ndarray,
     *values: np.ndarray,
     period: Optional[float] = None,
+    nfp: int | None = None,
+    periodicity: ToroidalPeriodicity | None = None,
 ) -> tuple[np.ndarray, ...]:
     """Return a phi grid closed by a duplicate first slice.
 
-    ``period`` is explicit; when omitted it means a full-torus period of
-    ``2*pi`` for legacy callers.  A native stellarator field-period grid must
-    therefore pass ``period=2*pi/nfp`` (normally via
-    :meth:`VectorFieldCylind.cyna_arrays`).  The period is never inferred from
-    the grid span.
+    High-level callers should pass ``periodicity`` or ``nfp``.  ``period`` is
+    retained for raw-array compatibility; when all metadata is omitted it
+    means a full-torus period of ``2*pi``.  The period is never inferred from
+    an endpoint=False grid span.
     """
 
     phi_arr = np.asarray(phi, dtype=np.float64)
@@ -131,7 +134,21 @@ def close_periodic_phi_grid(
         raise ValueError("phi grid must be one-dimensional")
     if phi_arr.size == 0:
         return (np.ascontiguousarray(phi_arr, dtype=np.float64), *value_arrs)
-    if period is None:
+    if periodicity is not None and not isinstance(periodicity, ToroidalPeriodicity):
+        raise TypeError("periodicity must be ToroidalPeriodicity")
+    if periodicity is not None:
+        if nfp is not None and int(nfp) != periodicity.nfp:
+            raise ValueError("nfp disagrees with periodicity")
+        resolved = float(periodicity.domain_period)
+        if period is not None and not np.isclose(float(period), resolved):
+            raise ValueError("period disagrees with periodicity")
+        period = resolved
+    elif nfp is not None:
+        native = ToroidalPeriodicity(int(nfp)).field_period_rad
+        if period is not None and not np.isclose(float(period), native):
+            raise ValueError("period disagrees with nfp")
+        period = native
+    elif period is None:
         period = 2.0 * np.pi
     period = float(period)
     if not np.isfinite(period) or period <= 0.0:
@@ -169,7 +186,7 @@ def close_periodic_phi_grid(
     if abs(implied_endpoint - endpoint) > tol:
         raise ValueError(
             "endpoint=False phi grid does not cover the explicit period; "
-            "pass period=2*pi/nfp from VectorFieldCylind.nfp"
+            "pass a field periodicity object or explicit nfp"
         )
 
     phi_ext = np.ascontiguousarray(np.append(phi_arr, endpoint), dtype=np.float64)
@@ -186,16 +203,14 @@ def close_periodic_field_cache_phi(field_cache: Mapping[str, Any]) -> dict[str, 
 
     out = dict(field_cache)
     phi_raw = np.asarray(field_cache["Phi_grid"], dtype=np.float64)
-    nfp = int(field_cache.get("nfp", field_cache.get("field_periods", 1)))
-    if nfp < 1:
-        raise ValueError("nfp must be a positive integer")
-    period = 2.0 * np.pi / nfp
+    periodicity = ToroidalPeriodicity.from_object(field_cache)
+    nfp = periodicity.nfp
     Phi, BR, BZ, BPhi = close_periodic_phi_grid(
         phi_raw,
         field_cache["BR"],
         field_cache["BZ"],
         field_cache["BPhi"],
-        period=period,
+        periodicity=periodicity,
     )
     out["Phi_grid"] = np.ascontiguousarray(Phi, dtype=np.float64)
     out["BR"] = np.ascontiguousarray(BR, dtype=np.float64)
@@ -203,8 +218,13 @@ def close_periodic_field_cache_phi(field_cache: Mapping[str, Any]) -> dict[str, 
     out["BPhi"] = np.ascontiguousarray(BPhi, dtype=np.float64)
     out["R_grid"] = np.ascontiguousarray(field_cache["R_grid"], dtype=np.float64)
     out["Z_grid"] = np.ascontiguousarray(field_cache["Z_grid"], dtype=np.float64)
+    out.pop("field_periods", None)
+    out.pop("field_period_rad", None)
     out["nfp"] = nfp
-    out["field_periods"] = nfp
+    out["field_period"] = periodicity.field_period
+    out["domain_period"] = periodicity.domain_period
+    out["domain_period_count"] = periodicity.domain_period_count
+    out["phi_origin"] = periodicity.origin
     return out
 
 
@@ -224,16 +244,30 @@ class CylindricalFieldArrays:
     BZ: np.ndarray
     BPhi: np.ndarray
     nfp: int = 1
+    domain_period: float | None = None
+    phi_origin: float = 0.0
+
+    def __post_init__(self) -> None:
+        resolved = ToroidalPeriodicity(
+            nfp=self.nfp,
+            domain_period=self.domain_period,
+            origin=self.phi_origin,
+        )
+        object.__setattr__(self, "nfp", resolved.nfp)
+        object.__setattr__(self, "domain_period", resolved.domain_period)
+        object.__setattr__(self, "phi_origin", resolved.origin)
 
     @property
-    def field_periods(self) -> int:
-        """Legacy alias for ``nfp``."""
-
-        return int(self.nfp)
+    def periodicity(self) -> ToroidalPeriodicity:
+        return ToroidalPeriodicity(
+            nfp=self.nfp,
+            domain_period=self.domain_period,
+            origin=self.phi_origin,
+        )
 
     @property
     def field_period_rad(self) -> float:
-        return 2.0 * np.pi / max(int(self.nfp), 1)
+        return self.periodicity.field_period_rad
 
     @property
     def field_period(self) -> float:
@@ -255,7 +289,7 @@ class CylindricalFieldArrays:
     def shape(self) -> tuple[int, int, int]:
         return self.BR.shape
 
-    def as_field_cache(self) -> dict[str, np.ndarray]:
+    def as_field_cache(self) -> dict[str, Any]:
         return {
             "BR": self.BR,
             "BZ": self.BZ,
@@ -264,8 +298,10 @@ class CylindricalFieldArrays:
             "Z_grid": self.Z_grid,
             "Phi_grid": self.Phi_grid,
             "nfp": int(self.nfp),
-            "field_period_rad": float(self.field_period_rad),
-            "field_periods": int(self.nfp),
+            "field_period": float(self.field_period),
+            "domain_period": float(self.domain_period),
+            "domain_period_count": int(self.periodicity.domain_period_count),
+            "phi_origin": float(self.phi_origin),
         }
 
     def cyna_component_args(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -291,8 +327,6 @@ class ScalarFieldCylind(ScalarField3D):
     nfp : int
         Number of toroidal field periods. If greater than one, ``Phi`` covers
         one angular field period, ``2*pi/nfp``.
-    field_periods : int
-        Legacy alias for ``nfp``.
     name, units : str
     properties : FieldProperty
     """
@@ -309,7 +343,7 @@ class ScalarFieldCylind(ScalarField3D):
         "_nPhi",
         "_axisymmetric",
         "_interp",
-        "_nfp",
+        "_periodicity",
     )
 
     def __init__(
@@ -318,30 +352,41 @@ class ScalarFieldCylind(ScalarField3D):
         Z: np.ndarray,
         Phi: np.ndarray,
         value: np.ndarray,
-        field_periods: int = 1,
         nfp: int | None = None,
         name: str = "",
         units: str = "",
         properties: FieldProperty = FieldProperty.NONE,
         *,
+        periodicity: ToroidalPeriodicity | None = None,
         axisymmetric: bool = False,
     ) -> None:
         super().__init__(properties=properties, name=name, units=units,
                          coords=_CylCoords3D())
-        field_periods = _normalize_field_periods(field_periods, nfp)
         R_arr = np.asarray(R, dtype=np.float64)
         Z_arr = np.asarray(Z, dtype=np.float64)
-        Phi_arr = validate_phi_grid(Phi, nfp=field_periods)
+        Phi_raw = np.asarray(Phi, dtype=np.float64)
+        phi_origin = float(Phi_raw[0]) if Phi_raw.size else 0.0
+        resolved_periodicity = _resolve_periodicity(
+            nfp=nfp,
+            periodicity=periodicity,
+            origin=phi_origin,
+        )
+        Phi_arr = validate_phi_grid(Phi_raw, periodicity=resolved_periodicity)
         value_arr = np.asarray(value, dtype=np.float64)
         shape = (len(R_arr), len(Z_arr), len(Phi_arr))
         if value_arr.shape != shape:
             raise ValueError(f"value shape {value_arr.shape} mismatch; expected {shape}")
-        _validate_closed_periodic_endpoint(Phi_arr, (value_arr,), nfp=field_periods, name="ScalarFieldCylind")
+        _validate_closed_periodic_endpoint(
+            Phi_arr,
+            (value_arr,),
+            periodicity=resolved_periodicity,
+            name="ScalarFieldCylind",
+        )
         self._R = R_arr
         self._Z = Z_arr
         self._Phi = Phi_arr
         self._value = value_arr
-        self._nfp = int(field_periods)
+        self._periodicity = resolved_periodicity
         self._shape = shape
         self._nR = int(shape[0])
         self._nZ = int(shape[1])
@@ -364,21 +409,24 @@ class ScalarFieldCylind(ScalarField3D):
     @property
     def B(self) -> np.ndarray: return self._value
     @property
-    def nfp(self) -> int: return int(self._nfp)
+    def nfp(self) -> int: return int(self._periodicity.nfp)
     @property
-    def field_period_rad(self) -> float: return 2.0 * np.pi / max(int(self.nfp), 1)
+    def periodicity(self) -> ToroidalPeriodicity: return self._periodicity
+    @property
+    def field_period_rad(self) -> float: return self.periodicity.field_period_rad
     @property
     def field_period(self) -> float: return self.field_period_rad
-    @property
-    def field_periods(self) -> int: return int(self.nfp)
 
     def _build_interp(self):
         if self._interp is None:
             phi = self._Phi
             value = self._value
-            if self.nfp > 1:
-                period = 2.0 * np.pi / max(int(self.nfp), 1)
-                phi, value = _extend_endpoint_false_periodic_phi(phi, value, period)
+            if phi.size > 1:
+                phi, value = close_periodic_phi_grid(
+                    phi,
+                    value,
+                    periodicity=self.periodicity,
+                )
             self._interp = RegularGridInterpolator(
                 (self._R, self._Z, phi), value,
                 method='linear', bounds_error=False, fill_value=np.nan)
@@ -387,9 +435,9 @@ class ScalarFieldCylind(ScalarField3D):
         """Evaluate at coords, shape (..., 3) = (R, Z, phi)."""
         self._build_interp()
         coords = np.asarray(coords, dtype=float)
-        if self.nfp > 1:
+        if not self.is_axisymmetric:
             coords = coords.copy()
-            coords[..., 2] = coords[..., 2] % self.field_period_rad
+            coords[..., 2] = self.periodicity.wrap(coords[..., 2])
         shape = coords.shape[:-1]
         pts = coords.reshape(-1, 3)
         return self._interp(pts).reshape(shape)
@@ -412,8 +460,9 @@ class ScalarFieldCylind(ScalarField3D):
             Phi=self._Phi,
             value=self._value,
             nfp=self.nfp,
-            field_period_rad=self.field_period_rad,
-            field_periods=self.nfp,
+            field_period=self.field_period,
+            domain_period=self.periodicity.domain_period,
+            phi_origin=self.periodicity.origin,
             name=self.name,
             units=self.units,
         )
@@ -421,8 +470,16 @@ class ScalarFieldCylind(ScalarField3D):
     @classmethod
     def from_npz(cls, path: str) -> "ScalarFieldCylind":
         d = np.load(path, allow_pickle=True)
+        nfp = int(d.get('nfp', d.get('field_periods', 1)))
+        periodicity = ToroidalPeriodicity(
+            nfp=nfp,
+            domain_period=float(
+                d.get('domain_period', ToroidalPeriodicity(nfp).field_period)
+            ),
+            origin=float(d.get('phi_origin', 0.0)),
+        )
         return cls(R=d['R'], Z=d['Z'], Phi=d['Phi'], value=d['value'],
-                   nfp=int(d.get('nfp', d.get('field_periods', 1))),
+                   periodicity=periodicity,
                    name=str(d.get('name', '')), units=str(d.get('units', '')))
 
     @property
@@ -497,7 +554,7 @@ class ScalarFieldCylind(ScalarField3D):
             name=f"-({self.name})" if self.name else "",
             units=self.units,
             properties=self.properties,
-            field_periods=self.field_periods,
+            periodicity=self.periodicity,
         )
 
 
@@ -520,8 +577,6 @@ class VectorFieldCylind(VectorField3D):
     nfp : int, optional
         Number of toroidal field periods.  If ``nfp > 1``, ``Phi`` must cover
         one angular field period, ``2*pi/nfp``, not a full torus.
-    field_periods : int
-        Legacy alias for ``nfp``.
     name, units : str
     properties : FieldProperty
     """
@@ -544,7 +599,7 @@ class VectorFieldCylind(VectorField3D):
         "_interp_VPhi",
         "phi",
         "label",
-        "_nfp",
+        "_periodicity",
     )
 
     component_order = ("R", "Z", "Phi")
@@ -564,8 +619,8 @@ class VectorFieldCylind(VectorField3D):
         BPhi: Optional[np.ndarray] = None,
         phi: float = 0.0,
         label: Optional[str] = None,
-        field_periods: int = 1,
         nfp: int | None = None,
+        periodicity: ToroidalPeriodicity | None = None,
         name: str = "",
         units: str = "",
         properties: FieldProperty = FieldProperty.NONE,
@@ -586,8 +641,6 @@ class VectorFieldCylind(VectorField3D):
             BPhi = VPhi
         if BR is None or BZ is None or BPhi is None:
             raise TypeError("VectorFieldCylind requires BR, BZ, BPhi components")
-        field_periods = _normalize_field_periods(field_periods, nfp)
-
         BR_arr = np.asarray(BR, dtype=float)
         BZ_arr = np.asarray(BZ, dtype=float)
         BPhi_arr = np.asarray(BPhi, dtype=float)
@@ -599,7 +652,14 @@ class VectorFieldCylind(VectorField3D):
 
         if BR_arr.ndim == 2:
             section = True if section_mode is None else bool(section_mode)
-            Phi_arr = validate_phi_grid([phi] if Phi is None else Phi, nfp=field_periods)
+            phi_raw = np.asarray([phi] if Phi is None else Phi, dtype=np.float64)
+            phi_origin = float(phi_raw[0]) if phi_raw.size else float(phi)
+            resolved_periodicity = _resolve_periodicity(
+                nfp=nfp,
+                periodicity=periodicity,
+                origin=phi_origin,
+            )
+            Phi_arr = validate_phi_grid(phi_raw, periodicity=resolved_periodicity)
             if Phi_arr.size != 1:
                 raise ValueError("2-D VectorFieldCylind sections require exactly one Phi value")
             BR_3d = BR_arr[:, :, np.newaxis]
@@ -607,14 +667,24 @@ class VectorFieldCylind(VectorField3D):
             BPhi_3d = BPhi_arr[:, :, np.newaxis]
         elif BR_arr.ndim == 3:
             section = False if section_mode is None else bool(section_mode)
+            phi_origin = float(phi)
+            if Phi is not None:
+                phi_input = np.asarray(Phi, dtype=np.float64)
+                if phi_input.size:
+                    phi_origin = float(phi_input[0])
+            resolved_periodicity = _resolve_periodicity(
+                nfp=nfp,
+                periodicity=periodicity,
+                origin=phi_origin,
+            )
             if Phi is None:
                 if BR_arr.shape[2] == 1:
                     Phi_arr = np.asarray([phi], dtype=float)
                 else:
-                    period = 2.0 * np.pi / field_periods
+                    period = float(resolved_periodicity.domain_period)
                     Phi_arr = np.linspace(0.0, period, BR_arr.shape[2], endpoint=False)
             else:
-                Phi_arr = validate_phi_grid(Phi, nfp=field_periods)
+                Phi_arr = validate_phi_grid(Phi, periodicity=resolved_periodicity)
             if Phi_arr.size != BR_arr.shape[2]:
                 raise ValueError(
                     f"Phi length {Phi_arr.size} does not match component nPhi={BR_arr.shape[2]}"
@@ -636,7 +706,7 @@ class VectorFieldCylind(VectorField3D):
         self.phi = float(phi)
         self.label = label
         self._section_mode = section
-        self._nfp = int(field_periods)
+        self._periodicity = resolved_periodicity
         self._axisymmetric = bool(axisymmetric)
         shape = (len(self._R), len(self._Z), len(self._Phi))
         for arr, nm in [(self._VR, 'VR'), (self._VZ, 'VZ'), (self._VPhi, 'VPhi')]:
@@ -645,7 +715,7 @@ class VectorFieldCylind(VectorField3D):
         _validate_closed_periodic_endpoint(
             self._Phi,
             (self._VR, self._VZ, self._VPhi),
-            nfp=self.nfp,
+            periodicity=self.periodicity,
             name="VectorFieldCylind",
         )
         self._shape = shape[:2] if section else shape
@@ -674,13 +744,13 @@ class VectorFieldCylind(VectorField3D):
     @property
     def nPhi(self) -> int: return self._nPhi
     @property
-    def nfp(self) -> int: return int(self._nfp)
+    def nfp(self) -> int: return int(self._periodicity.nfp)
     @property
-    def field_period_rad(self) -> float: return 2.0 * np.pi / max(int(self.nfp), 1)
+    def periodicity(self) -> ToroidalPeriodicity: return self._periodicity
+    @property
+    def field_period_rad(self) -> float: return self.periodicity.field_period_rad
     @property
     def field_period(self) -> float: return self.field_period_rad
-    @property
-    def field_periods(self) -> int: return int(self.nfp)
 
     # Both naming conventions
     @property
@@ -750,11 +820,14 @@ class VectorFieldCylind(VectorField3D):
             vr = self._VR
             vz = self._VZ
             vphi = self._VPhi
-            if self.nfp > 1:
-                period = 2.0 * np.pi / max(int(self.nfp), 1)
-                phi, vr = _extend_endpoint_false_periodic_phi(phi, vr, period)
-                _, vz = _extend_endpoint_false_periodic_phi(self._Phi, vz, period)
-                _, vphi = _extend_endpoint_false_periodic_phi(self._Phi, vphi, period)
+            if phi.size > 1:
+                phi, vr, vz, vphi = close_periodic_phi_grid(
+                    phi,
+                    vr,
+                    vz,
+                    vphi,
+                    periodicity=self.periodicity,
+                )
             axes = (self._R, self._Z, phi)
             self._interp_VR   = RegularGridInterpolator(axes, vr,   **kw)
             self._interp_VZ   = RegularGridInterpolator(axes, vz,   **kw)
@@ -773,9 +846,9 @@ class VectorFieldCylind(VectorField3D):
         # New-style single-coords call
         self._build_interps()
         coords = np.asarray(coords_or_R, dtype=float)
-        if self.nfp > 1:
+        if not self.is_axisymmetric and not self.is_section:
             coords = coords.copy()
-            coords[..., 2] = coords[..., 2] % self.field_period_rad
+            coords[..., 2] = self.periodicity.wrap(coords[..., 2])
         shape = coords.shape[:-1]
         pts = coords.reshape(-1, 3)
         VR   = self._interp_VR(pts).reshape(shape)
@@ -806,7 +879,7 @@ class VectorFieldCylind(VectorField3D):
             BZ=z,
             BPhi=z,
             phi=getattr(other, "phi", 0.0),
-            field_periods=other.field_periods,
+            periodicity=other.periodicity,
             label=label,
             section_mode=other.is_section,
         )
@@ -822,10 +895,12 @@ class VectorFieldCylind(VectorField3D):
         BPhi: np.ndarray,
         *,
         label: str = "",
-        field_periods: int = 1,
+        nfp: int = 1,
+        periodicity: ToroidalPeriodicity | None = None,
     ) -> "VectorFieldCylind":
         return cls(R=R, Z=Z, Phi=Phi, BR=BR, BZ=BZ, BPhi=BPhi,
-                   label=label, field_periods=field_periods)
+                   label=label, nfp=None if periodicity is not None else nfp,
+                   periodicity=periodicity)
 
     @classmethod
     def from_field_cache(
@@ -840,7 +915,7 @@ class VectorFieldCylind(VectorField3D):
         Phi = cache.get("Phi_grid", cache.get("Phi"))
         if R is None or Z is None or Phi is None:
             raise KeyError("field cache must provide R_grid/Z_grid/Phi_grid or R/Z/Phi")
-        nfp = int(cache.get("nfp", cache.get("field_periods", 1)))
+        periodicity = ToroidalPeriodicity.from_object(cache)
         if phi_idx is None:
             return cls(
                 R=R,
@@ -849,7 +924,7 @@ class VectorFieldCylind(VectorField3D):
                 BR=cache["BR"],
                 BZ=cache["BZ"],
                 BPhi=cache["BPhi"],
-                nfp=nfp,
+                periodicity=periodicity,
                 label=label or str(cache.get("label", "")),
             )
         phi_idx_i = int(phi_idx)
@@ -860,7 +935,7 @@ class VectorFieldCylind(VectorField3D):
             BZ=np.asarray(cache["BZ"])[:, :, phi_idx_i],
             BPhi=np.asarray(cache["BPhi"])[:, :, phi_idx_i],
             phi=float(np.asarray(Phi)[phi_idx_i]),
-            nfp=nfp,
+            periodicity=periodicity,
             label=label or f"cache_phi{phi_idx_i}",
             section_mode=True,
         )
@@ -880,6 +955,7 @@ class VectorFieldCylind(VectorField3D):
                 BZ=self.BZ[::skip, ::skip],
                 BPhi=self.BPhi[::skip, ::skip],
                 phi=self.phi,
+                periodicity=self.periodicity,
                 label=self.label,
                 section_mode=True,
             )
@@ -891,7 +967,7 @@ class VectorFieldCylind(VectorField3D):
             BZ=self.BZ[::skip, ::skip, :],
             BPhi=self.BPhi[::skip, ::skip, :],
             phi=self.phi,
-            field_periods=self.field_periods,
+            periodicity=self.periodicity,
             label=self.label,
         )
 
@@ -924,7 +1000,7 @@ class VectorFieldCylind(VectorField3D):
             section=self.is_section,
             name=f"|{self.name}|" if self.name else "",
             units=self.units,
-            field_periods=self.field_periods,
+            periodicity=self.periodicity,
         )
 
     norm = magnitude
@@ -950,7 +1026,7 @@ class VectorFieldCylind(VectorField3D):
             name=f"-({self.name})" if self.name else "",
             units=self.units,
             properties=self.properties,
-            field_periods=self.field_periods,
+            periodicity=self.periodicity,
         )
 
     def __mul__(self, other: Any) -> "VectorFieldCylind":
@@ -963,7 +1039,7 @@ class VectorFieldCylind(VectorField3D):
         return _vector_scalar_binary_op(self, other, np.divide, "/")
 
     def cyna_arrays(self, *, extend_phi: bool = False) -> CylindricalFieldArrays:
-        """Return contiguous arrays for cyna without exposing tuple order."""
+        """Return one-native-period contiguous arrays for the cyna bridge."""
 
         BR, BZ, BPhi = self.components_3d
         Rg = np.ascontiguousarray(self.R_arr, dtype=np.float64)
@@ -973,10 +1049,45 @@ class VectorFieldCylind(VectorField3D):
         BZ3 = np.asarray(BZ, dtype=np.float64)
         BP3 = np.asarray(BPhi, dtype=np.float64)
 
+        domain_closed = bool(
+            Pg.size > 1
+            and np.isclose(
+                Pg[-1] - Pg[0],
+                self.periodicity.domain_period,
+                rtol=1.0e-12,
+                atol=1.0e-14,
+            )
+        )
+        native_count = self.periodicity.native_sample_count(
+            Pg.size,
+            endpoint_included=domain_closed,
+        )
+        if self.periodicity.domain_period_count > 1:
+            native_intervals = native_count - 1 if domain_closed else native_count
+            reference = (BR3[:, :, :native_intervals], BZ3[:, :, :native_intervals], BP3[:, :, :native_intervals])
+            for period_index in range(1, self.periodicity.domain_period_count):
+                start = period_index * native_intervals
+                stop = start + native_intervals
+                candidate = (BR3[:, :, start:stop], BZ3[:, :, start:stop], BP3[:, :, start:stop])
+                if not all(
+                    np.allclose(left, right, rtol=1.0e-9, atol=1.0e-12)
+                    for left, right in zip(reference, candidate)
+                ):
+                    raise ValueError(
+                        "stored toroidal domains are inconsistent with the declared nfp symmetry"
+                    )
+            Pg = Pg[:native_count]
+            BR3 = BR3[:, :, :native_count]
+            BZ3 = BZ3[:, :, :native_count]
+            BP3 = BP3[:, :, :native_count]
+        native_periodicity = ToroidalPeriodicity(
+            nfp=self.nfp,
+            origin=self.periodicity.origin,
+        )
+
         if extend_phi and Pg.size > 0:
-            period = 2.0 * np.pi / max(int(self.nfp), 1)
             Pg, BR3, BZ3, BP3 = close_periodic_phi_grid(
-                Pg, BR3, BZ3, BP3, period=period
+                Pg, BR3, BZ3, BP3, periodicity=native_periodicity
             )
 
         return CylindricalFieldArrays(
@@ -987,6 +1098,8 @@ class VectorFieldCylind(VectorField3D):
             BZ=np.ascontiguousarray(BZ3, dtype=np.float64),
             BPhi=np.ascontiguousarray(BP3, dtype=np.float64),
             nfp=int(self.nfp),
+            domain_period=native_periodicity.domain_period,
+            phi_origin=native_periodicity.origin,
         )
 
     def to_field_cache(self, *, extend_phi: bool = False) -> dict[str, np.ndarray]:
@@ -1042,8 +1155,9 @@ class VectorFieldCylind(VectorField3D):
             VZ=self._VZ,
             VPhi=self._VPhi,
             nfp=self.nfp,
-            field_period_rad=self.field_period_rad,
-            field_periods=self.nfp,
+            field_period=self.field_period,
+            domain_period=self.periodicity.domain_period,
+            phi_origin=self.periodicity.origin,
             name=self.name,
             units=self.units,
         )
@@ -1055,8 +1169,16 @@ class VectorFieldCylind(VectorField3D):
         VR = d.get('VR', d.get('BR'))
         VZ = d.get('VZ', d.get('BZ'))
         VP = d.get('VPhi', d.get('BPhi'))
+        nfp = int(d.get('nfp', d.get('field_periods', 1)))
+        periodicity = ToroidalPeriodicity(
+            nfp=nfp,
+            domain_period=float(
+                d.get('domain_period', ToroidalPeriodicity(nfp).field_period)
+            ),
+            origin=float(d.get('phi_origin', 0.0)),
+        )
         return cls(R=d['R'], Z=d['Z'], Phi=d['Phi'], VR=VR, VZ=VZ, VPhi=VP,
-                   nfp=int(d.get('nfp', d.get('field_periods', 1))),
+                   periodicity=periodicity,
                    name=str(d.get('name', '')), units=str(d.get('units', '')))
 
     def __repr__(self) -> str:
@@ -1084,7 +1206,7 @@ class VectorFieldCylindAxisym(VectorFieldCylind):
         Phi = np.array([0.0])
         def _e(a): return np.asarray(a, dtype=float)[:, :, np.newaxis]
         super().__init__(R, Z, Phi, _e(BR), _e(BZ), _e(BPhi),
-                         field_periods=1, name=name, units=units,
+                         nfp=1, name=name, units=units,
                          properties=properties, section_mode=False,
                          axisymmetric=True)
 
@@ -1116,7 +1238,7 @@ class ScalarFieldCylindAxisym(ScalarFieldCylind):
             raise TypeError("ScalarFieldCylindAxisym requires a value array")
         Phi = np.array([0.0])
         value_3d = np.asarray(value_2d, dtype=float)[:, :, np.newaxis]
-        super().__init__(R, Z, Phi, value_3d, field_periods=1,
+        super().__init__(R, Z, Phi, value_3d, nfp=1,
                          name=name, units=units, properties=properties,
                          axisymmetric=True)
 
@@ -1172,18 +1294,27 @@ def _binary_grid(a: Any, b: Any) -> tuple[np.ndarray, np.ndarray, np.ndarray, bo
     return a.R, a.Z, a_phi, False, section
 
 
-def _binary_field_periods(a: Any, b: Any, *, axisym: bool = False) -> int:
+def _binary_periodicity(
+    a: Any,
+    b: Any,
+    *,
+    axisym: bool = False,
+) -> ToroidalPeriodicity:
     if axisym:
-        return 1
-    a_periods = int(getattr(a, "field_periods", getattr(a, "nfp", 1)))
-    b_periods = int(getattr(b, "field_periods", getattr(b, "nfp", 1)))
+        return ToroidalPeriodicity()
+    a_periodicity = ToroidalPeriodicity.from_object(a)
+    b_periodicity = ToroidalPeriodicity.from_object(b)
     if _field_is_axisym(a):
-        return b_periods
+        return b_periodicity
     if _field_is_axisym(b):
-        return a_periods
-    if a_periods != b_periods:
-        raise ValueError("field_periods differ")
-    return a_periods
+        return a_periodicity
+    if a_periodicity.nfp != b_periodicity.nfp:
+        raise ValueError("nfp differs")
+    if not np.isclose(a_periodicity.domain_period, b_periodicity.domain_period):
+        raise ValueError("stored toroidal domains differ")
+    if not np.isclose(a_periodicity.origin, b_periodicity.origin):
+        raise ValueError("toroidal domain origins differ")
+    return a_periodicity
 
 
 def _broadcast_scalar_values(field: ScalarFieldCylind, Phi: np.ndarray) -> np.ndarray:
@@ -1219,14 +1350,14 @@ def _make_scalar_result(
     name: str = "",
     units: str = "",
     properties: FieldProperty = FieldProperty.NONE,
-    field_periods: int = 1,
+    periodicity: ToroidalPeriodicity | None = None,
 ) -> ScalarFieldCylind:
     value = np.asarray(value, dtype=float)
     if axisym:
         return ScalarFieldCylindAxisym(R, Z, value[:, :, 0], name=name, units=units,
                                       properties=properties)
     return ScalarFieldCylind(R, Z, Phi, value, name=name, units=units,
-                             properties=properties, field_periods=field_periods)
+                             properties=properties, periodicity=periodicity)
 
 
 def _make_vector_result(
@@ -1242,7 +1373,7 @@ def _make_vector_result(
     name: str = "",
     units: str = "",
     properties: FieldProperty = FieldProperty.NONE,
-    field_periods: int = 1,
+    periodicity: ToroidalPeriodicity | None = None,
 ) -> VectorFieldCylind:
     BR = np.asarray(BR, dtype=float)
     BZ = np.asarray(BZ, dtype=float)
@@ -1255,10 +1386,10 @@ def _make_vector_result(
         return VectorFieldCylind(R, Z, BR=BR[:, :, 0], BZ=BZ[:, :, 0],
                                  BPhi=BPhi[:, :, 0], phi=float(Phi[0]),
                                  section_mode=True, name=name, units=units,
-                                 properties=properties, field_periods=field_periods)
+                                 properties=properties, periodicity=periodicity)
     return VectorFieldCylind(R=R, Z=Z, Phi=Phi, BR=BR, BZ=BZ, BPhi=BPhi,
                              name=name, units=units, properties=properties,
-                             field_periods=field_periods)
+                             periodicity=periodicity)
 
 
 def as_scalar_field_cylindrical(field_like: Any) -> ScalarFieldCylind:
@@ -1273,7 +1404,13 @@ def as_scalar_field_cylindrical(field_like: Any) -> ScalarFieldCylind:
             raise KeyError("scalar field cache must provide R/Z and value")
         if Phi is None:
             return ScalarFieldCylindAxisym(R, Z, value)
-        return ScalarFieldCylind(R, Z, Phi, value)
+        return ScalarFieldCylind(
+            R,
+            Z,
+            Phi,
+            value,
+            periodicity=ToroidalPeriodicity.from_object(field_like),
+        )
     raise TypeError("expected ScalarFieldCylind-compatible object")
 
 
@@ -1286,22 +1423,22 @@ def _scalar_binary_op(self: ScalarFieldCylind, other: Any, op, opname: str, *, r
             name=f"({self.name}{opname}{other})" if self.name else "",
             units=self.units,
             properties=self.properties,
-            field_periods=self.field_periods,
+            periodicity=self.periodicity,
         )
     other = as_scalar_field_cylindrical(other)
     R, Z, Phi, axisym, section = _binary_grid(self, other)
-    field_periods = _binary_field_periods(self, other, axisym=axisym)
+    periodicity = _binary_periodicity(self, other, axisym=axisym)
     a = _broadcast_scalar_values(self, Phi)
     b = _broadcast_scalar_values(other, Phi)
     value = op(b, a) if reverse else op(a, b)
     return _make_scalar_result(R, Z, Phi, value, axisym=axisym, section=section,
-                               units=self.units, field_periods=field_periods)
+                               units=self.units, periodicity=periodicity)
 
 
 def _vector_binary_op(self: VectorFieldCylind, other: Any, op, opname: str, *, reverse: bool = False) -> VectorFieldCylind:
     other = as_vector_field_cylindrical(other)
     R, Z, Phi, axisym, section = _binary_grid(self, other)
-    field_periods = _binary_field_periods(self, other, axisym=axisym)
+    periodicity = _binary_periodicity(self, other, axisym=axisym)
     aR, aZ, aP = _broadcast_vector_components(self, Phi)
     bR, bZ, bP = _broadcast_vector_components(other, Phi)
     if reverse:
@@ -1310,7 +1447,7 @@ def _vector_binary_op(self: VectorFieldCylind, other: Any, op, opname: str, *, r
         BR, BZ, BPhi = op(aR, bR), op(aZ, bZ), op(aP, bP)
     return _make_vector_result(R, Z, Phi, BR, BZ, BPhi, axisym=axisym,
                                section=section, units=self.units,
-                               field_periods=field_periods)
+                               periodicity=periodicity)
 
 
 def _vector_scalar_binary_op(self: VectorFieldCylind, other: Any, op, opname: str) -> VectorFieldCylind:
@@ -1323,34 +1460,34 @@ def _vector_scalar_binary_op(self: VectorFieldCylind, other: Any, op, opname: st
             section=self.is_section,
             units=self.units,
             properties=self.properties,
-            field_periods=self.field_periods,
+            periodicity=self.periodicity,
         )
     scalar = as_scalar_field_cylindrical(other)
     R, Z, Phi, axisym, section = _binary_grid(self, scalar)
-    field_periods = _binary_field_periods(self, scalar, axisym=axisym)
+    periodicity = _binary_periodicity(self, scalar, axisym=axisym)
     vR, vZ, vP = _broadcast_vector_components(self, Phi)
     s = _broadcast_scalar_values(scalar, Phi)
     return _make_vector_result(R, Z, Phi, op(vR, s), op(vZ, s), op(vP, s),
                                axisym=axisym, section=section, units=self.units,
-                               properties=self.properties, field_periods=field_periods)
+                               properties=self.properties, periodicity=periodicity)
 
 
 def _vector_dot(self: VectorFieldCylind, other: Any) -> ScalarFieldCylind:
     other = as_vector_field_cylindrical(other)
     R, Z, Phi, axisym, section = _binary_grid(self, other)
-    field_periods = _binary_field_periods(self, other, axisym=axisym)
+    periodicity = _binary_periodicity(self, other, axisym=axisym)
     aR, aZ, aP = _broadcast_vector_components(self, Phi)
     bR, bZ, bP = _broadcast_vector_components(other, Phi)
     value = aR * bR + aZ * bZ + aP * bP
     return _make_scalar_result(R, Z, Phi, value, axisym=axisym, section=section,
                                name=f"{self.name}·{other.name}" if self.name or other.name else "",
-                               units="", field_periods=field_periods)
+                               units="", periodicity=periodicity)
 
 
 def _vector_cross(self: VectorFieldCylind, other: Any) -> VectorFieldCylind:
     other = as_vector_field_cylindrical(other)
     R, Z, Phi, axisym, section = _binary_grid(self, other)
-    field_periods = _binary_field_periods(self, other, axisym=axisym)
+    periodicity = _binary_periodicity(self, other, axisym=axisym)
     aR, aZ, aP = _broadcast_vector_components(self, Phi)
     bR, bZ, bP = _broadcast_vector_components(other, Phi)
     BR = aP * bZ - aZ * bP
@@ -1358,7 +1495,7 @@ def _vector_cross(self: VectorFieldCylind, other: Any) -> VectorFieldCylind:
     BPhi = aZ * bR - aR * bZ
     return _make_vector_result(R, Z, Phi, BR, BZ, BPhi, axisym=axisym,
                                section=section, units=self.units,
-                               field_periods=field_periods)
+                               periodicity=periodicity)
 
 
 def as_vector_field_cylindrical(field_like: Any, *, label: str = "") -> VectorFieldCylind:
@@ -1384,7 +1521,7 @@ def as_vector_field_cylindrical(field_like: Any, *, label: str = "") -> VectorFi
             BR=getattr(field_like, "BR"),
             BZ=getattr(field_like, "BZ"),
             BPhi=getattr(field_like, "BPhi"),
-            field_periods=getattr(field_like, "field_periods", getattr(field_like, "nfp", 1)),
+            periodicity=ToroidalPeriodicity.from_object(field_like),
             label=label or getattr(field_like, "label", "") or getattr(field_like, "name", ""),
         )
 

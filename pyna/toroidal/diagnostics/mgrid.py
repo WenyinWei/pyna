@@ -7,6 +7,7 @@ from typing import Optional, Sequence, Union
 
 import numpy as np
 
+from pyna.fields.periodicity import ToroidalPeriodicity
 from pyna.io.mgrid import MGridCurrent, mgrid_toroidal_index, sample_plane_bilinear
 
 
@@ -26,37 +27,44 @@ class SmoothPestCoordinates:
     toroidal_period: Optional[float] = None
 
     def __post_init__(self) -> None:
-        periods = int(self.nfp)
-        if periods <= 0:
-            raise ValueError("nfp must be positive")
-        object.__setattr__(self, "nfp", periods)
-        if self.toroidal_period is not None:
-            domain_period = float(self.toroidal_period)
-            if not np.isfinite(domain_period) or domain_period <= 0.0:
-                raise ValueError("toroidal_period must be positive and finite")
-            object.__setattr__(self, "toroidal_period", domain_period)
+        periodicity = ToroidalPeriodicity(
+            nfp=self.nfp,
+            domain_period=self.toroidal_period,
+        )
+        object.__setattr__(self, "nfp", periodicity.nfp)
+        object.__setattr__(self, "toroidal_period", periodicity.domain_period)
+
+    @property
+    def periodicity(self) -> ToroidalPeriodicity:
+        return ToroidalPeriodicity(
+            nfp=self.nfp,
+            domain_period=self.toroidal_period,
+        )
 
     @property
     def period(self) -> float:
         """Period of the stored toroidal mesh, not necessarily the full torus."""
 
-        return 2.0 * np.pi if self.toroidal_period is None else float(self.toroidal_period)
+        return float(self.periodicity.domain_period)
 
     @property
     def field_period_rad(self) -> float:
         """Physical stellarator field-period angle ``2*pi/nfp``."""
 
-        return 2.0 * np.pi / float(self.nfp)
+        return self.periodicity.field_period
 
     @property
-    def field_periods(self) -> int:
-        """Alias matching :class:`pyna.fields.VectorFieldCylind`."""
-
-        return int(self.nfp)
+    def field_period(self) -> float:
+        return self.periodicity.field_period
 
     @property
     def stores_one_field_period(self) -> bool:
-        return bool(np.isclose(self.period, self.field_period_rad, rtol=1.0e-12, atol=1.0e-14))
+        return self.periodicity.stores_one_field_period
+
+    def phi_slice(self, values: np.ndarray, phi: float) -> np.ndarray:
+        """Interpolate a toroidal slice using this coordinate grid's domain."""
+
+        return periodic_phi_slice(values, phi, period=self.period)
 
 
 @dataclass(frozen=True)
@@ -505,14 +513,14 @@ def compute_pest_current_components(
     for section_deg in sections_deg:
         phi = np.deg2rad(float(section_deg))
         iphi = mgrid_toroidal_index(current, phi)
-        Rsec = periodic_phi_slice(coords.R_surf, phi, period=coords.period)
-        Zsec = periodic_phi_slice(coords.Z_surf, phi, period=coords.period)
-        dR_drho = periodic_phi_slice(deriv[0], phi, period=coords.period)
-        dZ_drho = periodic_phi_slice(deriv[1], phi, period=coords.period)
-        dR_dtheta = periodic_phi_slice(deriv[2], phi, period=coords.period)
-        dZ_dtheta = periodic_phi_slice(deriv[3], phi, period=coords.period)
-        dR_dphi = periodic_phi_slice(deriv[4], phi, period=coords.period)
-        dZ_dphi = periodic_phi_slice(deriv[5], phi, period=coords.period)
+        Rsec = coords.phi_slice(coords.R_surf, phi)
+        Zsec = coords.phi_slice(coords.Z_surf, phi)
+        dR_drho = coords.phi_slice(deriv[0], phi)
+        dZ_drho = coords.phi_slice(deriv[1], phi)
+        dR_dtheta = coords.phi_slice(deriv[2], phi)
+        dZ_dtheta = coords.phi_slice(deriv[3], phi)
+        dR_dphi = coords.phi_slice(deriv[4], phi)
+        dZ_dphi = coords.phi_slice(deriv[5], phi)
 
         JR = sample_plane_bilinear(current.JR[iphi], current.R, current.Z, Rsec, Zsec)
         JPhi = sample_plane_bilinear(current.JPhi[iphi], current.R, current.Z, Rsec, Zsec)

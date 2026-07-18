@@ -59,9 +59,13 @@ class TestPrepareFieldCache:
 
     def test_all_c_contiguous(self, dummy_fc):
         result = prepare_field_cache(dummy_fc)
-        for key, arr in result.items():
+        array_keys = ("BR", "BZ", "BPhi", "R_grid", "Z_grid", "Phi_grid")
+        for key in array_keys:
+            arr = result[key]
             assert arr.flags['C_CONTIGUOUS'], f"{key} not C-contiguous"
             assert arr.dtype == np.float64, f"{key} not float64"
+        assert result["nfp"] == 1
+        assert result["field_period"] == pytest.approx(2.0 * np.pi)
 
     def test_float32_input(self, dummy_fc):
         dummy_fc['BR'] = dummy_fc['BR'].astype(np.float32)

@@ -11,6 +11,8 @@ from typing import Callable, Mapping, Protocol, Sequence
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 
+from pyna.fields.periodicity import ToroidalPeriodicity, normalize_nfp
+
 from pyna.fields import VectorFieldCartesian, VectorFieldCylind
 from pyna.toroidal.diagnostics.mgrid import SmoothPestCoordinates, smooth_pest_derivatives
 
@@ -156,10 +158,9 @@ def plotly_streamline_style(name: str = "stellarator_j_b") -> PlotlyStreamlineSt
 def field_period_phi_range(nfp: int, *, period_index: int = 0, start: float = 0.0) -> tuple[float, float]:
     """Return the toroidal angle range for one field period."""
 
-    nfp_int = max(int(nfp), 1)
-    width = TWOPI / float(nfp_int)
-    phi0 = float(start) + int(period_index) * width
-    return float(phi0), float(phi0 + width)
+    periodicity = ToroidalPeriodicity(nfp=normalize_nfp(nfp), origin=float(start))
+    phi0 = periodicity.origin + int(period_index) * periodicity.field_period
+    return float(phi0), float(phi0 + periodicity.field_period)
 
 
 @dataclass(frozen=True)
@@ -182,7 +183,15 @@ class GriddedPestVectorField:
 
     @property
     def field_period_rad(self) -> float:
-        return TWOPI / max(int(self.nfp), 1)
+        return self.periodicity.field_period
+
+    @property
+    def field_period(self) -> float:
+        return self.periodicity.field_period
+
+    @property
+    def periodicity(self) -> ToroidalPeriodicity:
+        return ToroidalPeriodicity(nfp=self.nfp, domain_period=self.phi_period)
 
     @classmethod
     def from_pest_coordinates(
@@ -523,7 +532,7 @@ class _PeriodicVectorFieldEvaluator:
         Z = np.asarray(arrays.Z_grid, dtype=np.float64)
         Phi = np.asarray(arrays.Phi_grid, dtype=np.float64)
         nfp = max(int(getattr(field, "nfp", arrays.nfp)), 1)
-        field_period_rad = float(TWOPI / nfp)
+        field_period_rad = float(field.field_period)
         kw = dict(method="linear", bounds_error=False, fill_value=np.nan)
         axes = (R, Z, Phi)
         return cls(
@@ -623,7 +632,9 @@ class _PestSurfaceFieldAdapter:
         return cls(
             field=field,
             nfp=nfp,
-            field_period_rad=float(getattr(field, "field_period_rad", TWOPI / nfp)),
+            field_period_rad=float(
+                getattr(field, "field_period", ToroidalPeriodicity(nfp).field_period)
+            ),
         )
 
     def __call__(self, R: np.ndarray, Z: np.ndarray, phi: np.ndarray) -> np.ndarray:
@@ -749,7 +760,9 @@ def _as_vector_field_evaluator(field: object):
         return _CallableVectorFieldEvaluator(
             field,  # type: ignore[arg-type]
             nfp=nfp,
-            field_period_rad=float(getattr(field, "field_period_rad", TWOPI / nfp)),
+            field_period_rad=float(
+                getattr(field, "field_period", ToroidalPeriodicity(nfp).field_period)
+            ),
         )
     raise TypeError("field must be a VectorFieldCylind or a compatible vector-field evaluator")
 
@@ -2633,7 +2646,7 @@ def _trace_j_streamlines_on_pest_serial(
             "PEST/current field-period mismatch: "
             f"coords.nfp={coords_nfp}, field.nfp={field_nfp}"
         )
-    expected_period = TWOPI / float(coords_nfp)
+    expected_period = coords.field_period
     if not coords.stores_one_field_period or not np.isclose(
         coords.period,
         expected_period,

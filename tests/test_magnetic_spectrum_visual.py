@@ -109,7 +109,7 @@ def _nfp_stack_spectrum():
         theta=theta,
         phi=phi,
         radial_labels=radial,
-        field_periods=2,
+        nfp=2,
     )
 
 

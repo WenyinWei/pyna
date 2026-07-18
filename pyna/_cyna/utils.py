@@ -56,25 +56,7 @@ def prepare_field_cache(
     """
     from pyna.fields.cylindrical import (
         as_vector_field_cylindrical,
-        close_periodic_field_cache_phi,
     )
-
-    if isinstance(field_cache, Mapping):
-        if extend_phi:
-            return close_periodic_field_cache_phi(field_cache)
-        nfp = int(field_cache.get("nfp", field_cache.get("field_periods", 1)))
-        if nfp < 1:
-            raise ValueError("nfp must be a positive integer")
-        return {
-            "BR": ensure_c_double(np.asarray(field_cache["BR"], dtype=np.float64)),
-            "BZ": ensure_c_double(np.asarray(field_cache["BZ"], dtype=np.float64)),
-            "BPhi": ensure_c_double(np.asarray(field_cache["BPhi"], dtype=np.float64)),
-            "R_grid": ensure_c_double(np.asarray(field_cache["R_grid"], dtype=np.float64)),
-            "Z_grid": ensure_c_double(np.asarray(field_cache["Z_grid"], dtype=np.float64)),
-            "Phi_grid": ensure_c_double(np.asarray(field_cache["Phi_grid"], dtype=np.float64)),
-            "nfp": nfp,
-            "field_periods": nfp,
-        }
 
     field = as_vector_field_cylindrical(field_cache)
     arrays = field.cyna_arrays(extend_phi=extend_phi)

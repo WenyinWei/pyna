@@ -11,10 +11,10 @@ from pyna.toroidal.flt import (
 )
 
 
-def _constant_fields(n_fp=5):
+def _constant_fields(nfp=5):
     R = np.linspace(0.8, 1.2, 5)
     Z = np.linspace(-0.2, 0.2, 5)
-    Phi = np.linspace(0.0, 2.0 * np.pi / n_fp, 8, endpoint=False)
+    Phi = np.linspace(0.0, 2.0 * np.pi / nfp, 8, endpoint=False)
     shape = (R.size, Z.size, Phi.size)
     base = VectorFieldCylind(
         R,
@@ -23,7 +23,7 @@ def _constant_fields(n_fp=5):
         BR=np.zeros(shape),
         BZ=np.zeros(shape),
         BPhi=np.ones(shape),
-        field_periods=n_fp,
+        nfp=nfp,
     )
     delta = VectorFieldCylind.zero_like(base, label="zero_delta")
     return base, delta
@@ -59,7 +59,7 @@ def test_cyna_trace_uses_field_period_phi_grid_period():
         BR=eps * np.cos(2.0 * PP),
         BZ=np.zeros_like(RR),
         BPhi=np.ones_like(RR),
-        field_periods=nfp,
+        nfp=nfp,
     )
 
     R_t, Z_t, _phi_t, _DP_t, alive = trace_orbit_along_phi_field(
@@ -126,8 +126,8 @@ def test_axis_cycle_shift_zero_delta_if_cyna_available():
     if not cyna.is_available() or cyna.compute_cycle_perturbation_shift is None:
         pytest.skip("cyna cycle perturbation shift is unavailable")
 
-    n_fp = 5
-    base, delta = _constant_fields(n_fp=n_fp)
+    nfp = 5
+    base, delta = _constant_fields(nfp=nfp)
     phi = np.asarray(base.Phi, dtype=float)
     axis_R = np.full(phi.shape, 1.0)
     axis_Z = np.zeros(phi.shape)
@@ -138,7 +138,7 @@ def test_axis_cycle_shift_zero_delta_if_cyna_available():
         phi,
         base,
         delta,
-        n_fp=n_fp,
+        nfp=nfp,
         field_periods=1.0,
         steps_per_field_period=32,
         fd_eps=1.0e-4,
@@ -176,7 +176,7 @@ def test_axis_cycle_shift_adds_delta_to_each_query_axis_sample(monkeypatch):
         phi,
         object(),
         object(),
-        n_fp=3,
+        nfp=3,
     )
 
     np.testing.assert_allclose(shifted.axis_R, axis_R + 0.01)
@@ -190,17 +190,17 @@ def test_cycle_points_shift_zero_delta_if_cyna_available():
     if not cyna.is_available() or cyna.compute_cycle_perturbation_shift is None:
         pytest.skip("cyna cycle perturbation shift is unavailable")
 
-    n_fp = 5
-    base, delta = _constant_fields(n_fp=n_fp)
+    nfp = 5
+    base, delta = _constant_fields(nfp=nfp)
     seeds = np.asarray([[0.95, -0.02], [1.05, 0.03]], dtype=float)
-    phi_sections = [0.0, 0.25 * 2.0 * np.pi / n_fp]
+    phi_sections = [0.0, 0.25 * 2.0 * np.pi / nfp]
 
     shifted = cycle_points_shift_from_fields(
         seeds,
         phi_sections,
         base,
         delta,
-        n_fp=n_fp,
+        nfp=nfp,
         field_periods=1.0,
         steps_per_field_period=32,
         fd_eps=1.0e-4,

@@ -12,7 +12,8 @@ from typing import Any, Mapping, Sequence
 
 import numpy as np
 
-from pyna.fields.cylindrical import _normalize_field_periods, validate_phi_grid
+from pyna.fields.cylindrical import validate_phi_grid
+from pyna.fields.periodicity import ToroidalPeriodicity, normalize_nfp
 
 
 @dataclass(frozen=True)
@@ -42,7 +43,7 @@ class ToroidalComponentSurface:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        nfp = _normalize_field_periods(self.nfp)
+        nfp = normalize_nfp(self.nfp)
         phi = validate_phi_grid(self.phi, nfp=nfp, name="surface phi")
         R = np.asarray(self.R, dtype=np.float64)
         Z = np.asarray(self.Z, dtype=np.float64)
@@ -66,7 +67,11 @@ class ToroidalComponentSurface:
 
     @property
     def field_period(self) -> float:
-        return 2.0 * np.pi / max(int(self.nfp), 1)
+        return self.periodicity.field_period
+
+    @property
+    def periodicity(self) -> ToroidalPeriodicity:
+        return ToroidalPeriodicity(nfp=self.nfp, origin=float(self.phi[0]))
 
     @property
     def n_phi(self) -> int:
@@ -105,7 +110,7 @@ class ToroidalComponentSurface:
         if index is None:
             if phi is None:
                 raise ValueError("section requires either index or phi")
-            phi_mod = float(phi) % self.field_period
+            phi_mod = float(self.periodicity.wrap(phi))
             index = min(range(self.n_phi), key=lambda i: abs(float(self.phi[i]) - phi_mod))
         idx = int(index) % self.n_phi
         return self.R[idx].copy(), self.Z[idx].copy()

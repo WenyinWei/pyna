@@ -7,6 +7,8 @@ from typing import Any, Optional, Union
 
 import numpy as np
 
+from pyna.fields.periodicity import ToroidalPeriodicity, normalize_nfp
+
 MU0 = 4.0e-7 * np.pi
 
 
@@ -33,6 +35,14 @@ class MGridField:
     @property
     def shape(self) -> tuple[int, int, int]:
         return tuple(int(v) for v in self.BR.shape)
+
+    @property
+    def periodicity(self) -> ToroidalPeriodicity:
+        return ToroidalPeriodicity(nfp=self.nfp, domain_period=self.period)
+
+    @property
+    def field_period(self) -> float:
+        return self.periodicity.field_period
 
 
 @dataclass(frozen=True)
@@ -130,8 +140,8 @@ def load_vmec_mgrid(
     rmax = float(np.asarray(data["rmax"]).item())
     zmin = float(np.asarray(data["zmin"]).item())
     zmax = float(np.asarray(data["zmax"]).item())
-    nfp = int(np.asarray(data.get("nfp", 1)).item())
-    native_period = 2.0 * np.pi / max(nfp, 1)
+    nfp = normalize_nfp(int(np.asarray(data.get("nfp", 1)).item()))
+    native_period = ToroidalPeriodicity(nfp).field_period
     period = native_period
 
     if full_torus and nfp > 1:
@@ -171,8 +181,6 @@ def mgrid_to_vector_field(field: MGridField, *, label: str | None = None):
 
     from pyna.fields import VectorFieldCylind
 
-    period = float(field.period)
-    field_periods = 1 if np.isclose(period, 2.0 * np.pi, rtol=0.0, atol=1.0e-12) else int(field.nfp)
     return VectorFieldCylind(
         R=np.asarray(field.R, dtype=np.float64),
         Z=np.asarray(field.Z, dtype=np.float64),
@@ -180,7 +188,7 @@ def mgrid_to_vector_field(field: MGridField, *, label: str | None = None):
         BR=np.transpose(np.asarray(field.BR, dtype=np.float64), (2, 1, 0)),
         BZ=np.transpose(np.asarray(field.BZ, dtype=np.float64), (2, 1, 0)),
         BPhi=np.transpose(np.asarray(field.BPhi, dtype=np.float64), (2, 1, 0)),
-        nfp=field_periods,
+        periodicity=field.periodicity,
         label=field.mode if label is None else label,
     )
 

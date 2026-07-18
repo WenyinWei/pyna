@@ -6,6 +6,7 @@ from math import gcd
 from typing import Iterable, Sequence
 
 import numpy as np
+from pyna.fields.periodicity import ToroidalPeriodicity
 
 from pyna.topo.toroidal import FixedPoint
 from pyna.topo._monodromy_classification import classify_monodromy_2x2
@@ -521,8 +522,7 @@ def _resolve_field_period(field, field_period: float | None) -> float:
         if value is not None:
             span = float(value)
         else:
-            nfp = int(getattr(field, "nfp", 1))
-            span = 2.0 * np.pi / float(nfp)
+            span = ToroidalPeriodicity(nfp=getattr(field, "nfp", 1)).field_period
     if not np.isfinite(span) or abs(span) <= 1.0e-14:
         raise ValueError("field_period must be a nonzero finite toroidal angle")
     return span
@@ -3100,7 +3100,7 @@ def boundary_recurrence_seed_candidates_field(
             "n_base_seeds": int(base_R.size),
             "N_turns": int(N_turns),
             "field_period": float(field_period_value),
-            "nfp": float(2.0 * np.pi / float(field_period_value)),
+            "nfp": int(ToroidalPeriodicity.from_field_period(field_period_value).nfp),
             "candidate_order": order,
             "candidate_wall_fraction_min": (
                 None if candidate_wall_fraction_min is None else float(candidate_wall_fraction_min)
@@ -3508,7 +3508,7 @@ def find_boundary_island_fixed_points_field(
                 metadata={
                     "map_power": int(map_power),
                     "field_period": float(field_period_value),
-                    "nfp": float(2.0 * np.pi / abs(float(field_period_value))),
+                    "nfp": int(ToroidalPeriodicity.from_field_period(field_period_value).nfp),
                     "map_span": float(field_period_value),
                     "base_map_span": float(field_period_value),
                     "monodromy_field_period": float(map_power) * float(field_period_value),
@@ -3537,7 +3537,7 @@ def find_boundary_island_fixed_points_field(
         "n_seeds": int(seed_R.size),
         "candidate_strategy": strategy,
         "field_period": float(field_period_value),
-        "nfp": float(2.0 * np.pi / abs(float(field_period_value))),
+        "nfp": int(ToroidalPeriodicity.from_field_period(field_period_value).nfp),
         "seed_wall_fraction": (
             _fraction_stats(seed_wall_fraction)
             if seed_wall_fraction is not None

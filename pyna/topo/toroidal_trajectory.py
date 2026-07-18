@@ -10,6 +10,7 @@ import numpy as np
 from dataclasses import dataclass, field
 from typing import Callable, Optional, Tuple
 
+from pyna.fields.periodicity import ToroidalPeriodicity
 from pyna.topo._base import Trajectory
 
 
@@ -57,8 +58,8 @@ class ToroidalTrajectory(Trajectory):
         return_first: bool = False,
     ) -> Tuple[np.ndarray, np.ndarray] | Tuple[float, float]:
         """Return (R, Z) points where the trajectory crosses phi_target."""
-        Np = self.metadata.get('Np', 1)
-        phi_period = 2.0 * np.pi / Np
+        nfp = self.metadata.get('nfp', self.metadata.get('Np', 1))
+        phi_period = ToroidalPeriodicity(nfp=nfp).field_period
         phi_t = phi_target % phi_period
 
         shifted = self.phi - phi_t
@@ -107,8 +108,8 @@ class ToroidalTrajectory(Trajectory):
         area = 0.5 * abs(np.sum(R_s * np.roll(Z_s, -1) - np.roll(R_s, -1) * Z_s))
         return float(area), float(np.mean(R_s))
 
-    def volume(self, R_ax: float, Z_ax: float, Np: int = 2, n_sections: int = 8) -> float:
-        phi_period = 2.0 * np.pi / Np
+    def volume(self, R_ax: float, Z_ax: float, nfp: int = 2, n_sections: int = 8) -> float:
+        phi_period = ToroidalPeriodicity(nfp=nfp).field_period
         phis = np.linspace(0.0, phi_period, n_sections, endpoint=False)
         V_sum, n_valid = 0.0, 0
         for phi in phis:
@@ -120,8 +121,8 @@ class ToroidalTrajectory(Trajectory):
             return 0.0
         return phi_period * V_sum / n_valid
 
-    def r_eff(self, R_ax: float, Z_ax: float, Np: int = 2) -> float:
-        V = self.volume(R_ax, Z_ax, Np)
+    def r_eff(self, R_ax: float, Z_ax: float, nfp: int = 2) -> float:
+        V = self.volume(R_ax, Z_ax, nfp)
         return float(np.sqrt(max(V, 0.0) / (2.0 * np.pi ** 2 * R_ax)))
 
     def save(self, path: str) -> None:

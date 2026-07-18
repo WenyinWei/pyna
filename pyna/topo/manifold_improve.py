@@ -9,7 +9,7 @@ result.
 """
 
 import numpy as np
-from pyna.fields.cylindrical import close_periodic_phi_grid
+from pyna._cyna.utils import prepare_field_cache
 from pyna.topo._rk4 import rk4_integrate as solve_ivp
 
 
@@ -345,15 +345,10 @@ class _AcceleratedManifoldBase(_ManifoldBase):
         import numpy as np
         from scipy.interpolate import RegularGridInterpolator
 
-        BR, BZ_arr, BPhi_arr = cache['BR'], cache['BZ'], cache['BPhi']
-        R_grid, Z_grid, Phi_grid = cache['R_grid'], cache['Z_grid'], cache['Phi_grid']
-        self._nfp = int(cache.get('nfp', cache.get('field_periods', 1)))
-        if self._nfp < 1:
-            raise ValueError("field-cache nfp must be a positive integer")
-        Phi_ext, BR_ext, BZ_ext, BPhi_ext = close_periodic_phi_grid(
-            Phi_grid, BR, BZ_arr, BPhi_arr,
-            period=2.0 * np.pi / self._nfp,
-        )
+        prepared = prepare_field_cache(cache, extend_phi=True)
+        BR_ext, BZ_ext, BPhi_ext = prepared['BR'], prepared['BZ'], prepared['BPhi']
+        R_grid, Z_grid, Phi_ext = prepared['R_grid'], prepared['Z_grid'], prepared['Phi_grid']
+        self._nfp = int(prepared['nfp'])
         phi0 = float(Phi_ext[0])
         phi_period = float(Phi_ext[-1] - Phi_ext[0])
         kwi = dict(method='linear', bounds_error=False, fill_value=np.nan)

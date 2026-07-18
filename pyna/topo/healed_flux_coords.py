@@ -26,6 +26,7 @@ from dataclasses import dataclass
 from typing import Callable, Optional, Sequence, Tuple, List, Any, Dict
 
 import numpy as np
+from pyna.fields.periodicity import ToroidalPeriodicity
 from scipy.interpolate import CubicSpline, PchipInterpolator
 
 
@@ -50,7 +51,8 @@ def _forward_span_nfp(phi_src: float, phi_tgt: float, nfp: int) -> float:
     integer k.  This returns the smallest positive span that reaches φ_tgt or
     any of its periodic images.
     """
-    period = 2.0 * np.pi / nfp
+    periodicity = ToroidalPeriodicity(nfp=nfp)
+    period = periodicity.field_period
     phi_tgt_w = float(phi_tgt % (2.0 * np.pi))
     best = float('inf')
     for k in range(nfp + 1):  # check up to one extra period

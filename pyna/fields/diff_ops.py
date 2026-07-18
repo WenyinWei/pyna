@@ -81,7 +81,7 @@ def _scalar_result_like(field, value, *, name="", units="", properties=FieldProp
         return ScalarFieldCylindAxisym(field.R, field.Z, np.asarray(value)[:, :, 0],
                                       name=name, units=units, properties=properties)
     return ScalarFieldCylind(field.R, field.Z, field.Phi, value,
-                             field_periods=getattr(field, "field_periods", 1),
+                             periodicity=field.periodicity,
                              name=name, units=units, properties=properties)
 
 
@@ -94,11 +94,11 @@ def _vector_result_like(field, BR, BZ, BPhi, *, name="", units="", properties=Fi
     if getattr(field, "is_section", False):
         return VectorFieldCylind(field.R, field.Z, BR=BR[:, :, 0], BZ=BZ[:, :, 0],
                                  BPhi=BPhi[:, :, 0], phi=float(field.Phi[0]),
-                                 field_periods=getattr(field, "field_periods", 1),
+                                 periodicity=field.periodicity,
                                  name=name, units=units, properties=properties,
                                  section_mode=True)
     return VectorFieldCylind(field.R, field.Z, field.Phi, BR, BZ, BPhi,
-                             field_periods=getattr(field, "field_periods", 1),
+                             periodicity=field.periodicity,
                              name=name, units=units, properties=properties)
 
 

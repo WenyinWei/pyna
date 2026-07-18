@@ -14,7 +14,6 @@ from pyna.io.mgrid import MGridCurrent, mgrid_toroidal_index
 from pyna.toroidal.diagnostics.mgrid import (
     PestCurrentComponents,
     SmoothPestCoordinates,
-    periodic_phi_slice,
 )
 
 
@@ -104,8 +103,8 @@ def plot_mgrid_current_cylindrical_components(
                 iphi = mgrid_toroidal_index(current, phi)
                 values = getattr(current, comp)[iphi] / 1.0e3
                 if coords is not None:
-                    Rlcfs = periodic_phi_slice(coords.R_surf, phi)[-1]
-                    Zlcfs = periodic_phi_slice(coords.Z_surf, phi)[-1]
+                    Rlcfs = coords.phi_slice(coords.R_surf, phi)[-1]
+                    Zlcfs = coords.phi_slice(coords.Z_surf, phi)[-1]
                     RR, ZZ = np.meshgrid(current.R, current.Z)
                     path = MplPath(np.column_stack([np.r_[Rlcfs, Rlcfs[0]], np.r_[Zlcfs, Zlcfs[0]]]))
                     inside = path.contains_points(np.column_stack([RR.ravel(), ZZ.ravel()])).reshape(RR.shape)

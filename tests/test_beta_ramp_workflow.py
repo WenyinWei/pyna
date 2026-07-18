@@ -125,7 +125,7 @@ def test_beta_ramp_state_from_field_mapping_and_native_field_period_sampling():
 
     base = BetaRampState.from_field_mapping(
         base_payload,
-        field_periods=nfp,
+        nfp=nfp,
         R_surf=R_surf,
         Z_surf=Z_surf,
         phi_vals=phi,
@@ -136,7 +136,7 @@ def test_beta_ramp_state_from_field_mapping_and_native_field_period_sampling():
     )
     state = BetaRampState.from_field_mapping(
         state_payload,
-        field_periods=nfp,
+        nfp=nfp,
         R_surf=R_surf,
         Z_surf=Z_surf,
         phi_vals=phi,
@@ -152,7 +152,7 @@ def test_beta_ramp_state_from_field_mapping_and_native_field_period_sampling():
     np.testing.assert_allclose(samples.delta_BR, np.cos(2.0 * expected_phi), atol=1.0e-2)
     np.testing.assert_allclose(samples.delta_BZ, np.sin(2.0 * expected_phi), atol=1.0e-2)
     np.testing.assert_allclose(samples.denominator_BPhi, 1.0, atol=1.0e-12)
-    assert state.field_periods == nfp
+    assert state.nfp == nfp
     assert state.public_metadata()["source_path"] == "<redacted>"
 
 

@@ -88,7 +88,7 @@ def test_axi_grid_properties(axivf3d):
     assert axivf3d.BR.shape == (30, 30, 1)
 
 
-def test_vector_field_arithmetic_preserves_field_periods_on_non_square_grid():
+def test_vector_field_arithmetic_preserves_nfp_on_non_square_grid():
     nfp = 3
     period = 2.0 * np.pi / nfp
     R = np.linspace(0.8, 1.2, 5)
@@ -108,11 +108,11 @@ def test_vector_field_arithmetic_preserves_field_periods_on_non_square_grid():
     zero = VectorFieldCylind.zero_like(field)
 
     for derived in (field - zero, field + zero, field * 2.0, -field, field.cross(field)):
-        assert derived.field_periods == nfp
+        assert derived.nfp == nfp
         assert derived.field_period == pytest.approx(period)
 
     for derived_scalar in (field.magnitude(), field.dot(field)):
-        assert derived_scalar.field_periods == nfp
+        assert derived_scalar.nfp == nfp
         assert derived_scalar.field_period == pytest.approx(period)
 
 

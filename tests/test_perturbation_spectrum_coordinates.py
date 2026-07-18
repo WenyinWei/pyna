@@ -58,13 +58,13 @@ def test_nfp2_one_period_recovers_physical_modes_and_shifted_phase():
         grid,
         theta,
         phi,
-        field_periods=2,
+        nfp=2,
         m_max=4,
         n_max=6,
         min_amplitude=1.0e-12,
     )
 
-    assert spectrum.field_periods == 2
+    assert spectrum.nfp == 2
     assert spectrum.dBr_grid.shape == (32, 64)
     assert np.all(spectrum.physical_n % 2 == 0)
     for m, physical_n, coefficient in modes:
@@ -94,7 +94,7 @@ def test_nardon_indices_preserve_conjugates_and_distinguish_opposite_n_branches(
         grid,
         theta,
         phi,
-        field_periods=2,
+        nfp=2,
         m_max=4,
         n_max=6,
         min_amplitude=1.0e-12,
@@ -105,7 +105,7 @@ def test_nardon_indices_preserve_conjugates_and_distinguish_opposite_n_branches(
     conjugate = spectrum.nardon_mode_index(-m, -nardon_n)
     assert plus is not None and minus is not None and conjugate is not None
     assert spectrum.nardon_n[plus] == nardon_n
-    assert spectrum.field_period_harmonic[plus] == nardon_n // spectrum.field_periods
+    assert spectrum.field_period_harmonic[plus] == nardon_n // spectrum.nfp
     assert spectrum.physical_n[plus] == -nardon_n  # Historical compatibility API.
     assert spectrum.resonance_family_n0[plus] == nardon_n
     np.testing.assert_allclose(spectrum.dBr[plus], coefficient_plus, atol=2.0e-13)
@@ -129,7 +129,7 @@ def test_wrapped_shifted_origins_infer_field_period_and_preserve_phase():
         min_amplitude=1.0e-12,
     )
 
-    assert spectrum.field_periods == 2
+    assert spectrum.nfp == 2
     np.testing.assert_allclose(
         spectrum.physical_mode_coefficient(3, 4),
         coefficient,
@@ -235,7 +235,7 @@ def test_nfp2_physical_modes_feed_existing_resonance_callers():
         theta,
         phi,
         radial_labels=radial,
-        field_periods=2,
+        nfp=2,
         m_max=6,
         n_max=4,
         min_amplitude=1.0e-12,
@@ -273,8 +273,8 @@ def test_one_field_period_domain_infers_nfp_but_rejects_explicit_mismatch():
         n_max=5,
         min_amplitude=1.0e-12,
     )
-    assert inferred.field_periods == 2
+    assert inferred.nfp == 2
     np.testing.assert_allclose(inferred.physical_mode_coefficient(2, 4), 1.0 + 0.0j)
 
-    with pytest.raises(ValueError, match="set field_periods"):
-        radial_perturbation_Fourier_spectrum(grid, theta, phi, field_periods=1)
+    with pytest.raises(ValueError, match="set nfp"):
+        radial_perturbation_Fourier_spectrum(grid, theta, phi, nfp=1)

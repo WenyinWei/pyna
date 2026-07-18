@@ -1,5 +1,6 @@
 """pyna.fields — unified field hierarchy for scalar, vector, and tensor fields."""
 from pyna.fields.properties import FieldProperty
+from pyna.fields.periodicity import ToroidalPeriodicity, normalize_nfp
 from pyna.fields.base import (
     Field,
     ScalarField,
@@ -69,6 +70,7 @@ __all__ = [
     "Tensor2FieldCylind", "Tensor2FieldCylindAxisym",
     "TensorField4DRank2",
     "FieldProperty",
+    "ToroidalPeriodicity", "normalize_nfp",
     "VectorFieldCartesian", "as_vector_field_cartesian",
     "CylindricalFieldArrays",
     "ScalarFieldCylind", "ScalarFieldCylindAxisym",

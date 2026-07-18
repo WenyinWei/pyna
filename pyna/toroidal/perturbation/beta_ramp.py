@@ -14,7 +14,7 @@ from typing import Any
 
 import numpy as np
 
-from pyna.fields import VectorFieldCylind
+from pyna.fields import VectorFieldCylind, normalize_nfp
 from pyna.toroidal._periodic_grid import prepare_surface_arrays
 from pyna.toroidal.perturbation_spectrum import (
     ChirikovOverlap,
@@ -156,7 +156,7 @@ class BetaRampState:
     BR: np.ndarray | None = None
     BZ: np.ndarray | None = None
     BPhi: np.ndarray | None = None
-    field_periods: int = 1
+    nfp: int = 1
     R_surf: np.ndarray | None = None
     Z_surf: np.ndarray | None = None
     phi_vals: np.ndarray | None = None
@@ -179,10 +179,8 @@ class BetaRampState:
                 name,
                 _array_or_none(getattr(self, name), name=name, dtype=float),
             )
-        field_periods = int(self.field_periods)
-        if field_periods < 1:
-            raise ValueError("field_periods must be positive")
-        object.__setattr__(self, "field_periods", field_periods)
+        nfp = normalize_nfp(self.nfp)
+        object.__setattr__(self, "nfp", nfp)
         object.__setattr__(self, "metadata", dict(self.metadata or {}))
 
         has_any_grid = any(
@@ -256,7 +254,7 @@ class BetaRampState:
             BR=BR,
             BZ=BZ,
             BPhi=BPhi,
-            field_periods=field.field_periods,
+            nfp=field.nfp,
             R_surf=R_surf,
             Z_surf=Z_surf,
             phi_vals=phi_vals,
@@ -274,7 +272,7 @@ class BetaRampState:
         *,
         beta: float | None = None,
         label: str = "",
-        field_periods: int | None = None,
+        nfp: int | None = None,
         R_key: str | None = None,
         Z_key: str | None = None,
         Phi_key: str | None = None,
@@ -303,9 +301,9 @@ class BetaRampState:
         BR = _mapping_value(payload, BR_key, ("BR", "B0_R"), "BR")
         BZ = _mapping_value(payload, BZ_key, ("BZ", "B0_Z"), "BZ")
         BPhi = _mapping_value(payload, BPhi_key, ("BPhi", "B_phi", "B0_Phi"), "BPhi")
-        periods = field_periods
+        periods = nfp
         if periods is None:
-            periods = int(payload.get("field_periods", payload.get("nfp", 1)))
+            periods = int(payload.get("nfp", payload.get("field_periods", 1)))
         return cls(
             beta=beta,
             label=label or str(payload.get("label", "")),
@@ -315,7 +313,7 @@ class BetaRampState:
             BR=BR,
             BZ=BZ,
             BPhi=BPhi,
-            field_periods=int(periods),
+            nfp=int(periods),
             R_surf=_mapping_optional(payload, R_surf, ("R_surf",)),
             Z_surf=_mapping_optional(payload, Z_surf, ("Z_surf",)),
             phi_vals=_mapping_optional(payload, phi_vals, ("phi_vals", "section_phi")),
@@ -349,7 +347,7 @@ class BetaRampState:
             "BR": _require_array(self.BR, "BR"),
             "BZ": _require_array(self.BZ, "BZ"),
             "BPhi": _require_array(self.BPhi, "BPhi"),
-            "field_periods": int(self.field_periods),
+            "nfp": int(self.nfp),
             "label": self.label,
         }
 
@@ -393,7 +391,7 @@ class BetaRampState:
             _require_array(self.BR, "BR"),
             _require_array(self.BPhi, "BPhi"),
             _require_array(self.BZ, "BZ"),
-            field_periods=self.field_periods,
+            nfp=self.nfp,
         )
 
     def surface_signature(self, *, background_field_signature: Any = None) -> dict[str, Any]:
@@ -558,8 +556,8 @@ def delta_beta_ramp_state(
 
     if not state.has_field_grid or not reference.has_field_grid:
         raise ValueError("state and reference must both contain field grids")
-    if state.field_periods != reference.field_periods:
-        raise ValueError("field_periods differs between state and reference")
+    if state.nfp != reference.nfp:
+        raise ValueError("nfp differs between state and reference")
     for name in ("R_grid", "Z_grid", "Phi_grid"):
         if not _same_1d_grid(getattr(state, name), getattr(reference, name), name):
             raise ValueError(f"{name} differs between state and reference")
@@ -587,7 +585,7 @@ def delta_beta_ramp_state(
         BR=_require_array(state.BR, "BR") - _require_array(reference.BR, "reference.BR"),
         BZ=_require_array(state.BZ, "BZ") - _require_array(reference.BZ, "reference.BZ"),
         BPhi=_require_array(state.BPhi, "BPhi") - _require_array(reference.BPhi, "reference.BPhi"),
-        field_periods=state.field_periods,
+        nfp=state.nfp,
         R_surf=surface_state.R_surf,
         Z_surf=surface_state.Z_surf,
         phi_vals=surface_state.phi_vals,
@@ -619,8 +617,8 @@ def sample_beta_ramp_delta_on_surfaces(
         raise ValueError("state must contain a field grid or a precomputed perturbation field")
     if not denom_source.has_field_grid:
         raise ValueError("denominator_state/reference must contain a field grid")
-    if perturbation.field_periods != denom_source.field_periods:
-        raise ValueError("field_periods differs between perturbation and denominator field")
+    if perturbation.nfp != denom_source.nfp:
+        raise ValueError("nfp differs between perturbation and denominator field")
     for name in ("R_grid", "Z_grid", "Phi_grid"):
         if not _same_1d_grid(getattr(perturbation, name), getattr(denom_source, name), name):
             raise ValueError(f"{name} differs between perturbation and denominator field")
@@ -645,7 +643,7 @@ def sample_beta_ramp_delta_on_surfaces(
             Z_surf,
             phi_vals,
             theta_vals,
-            field_periods=perturbation.field_periods,
+            nfp=perturbation.nfp,
         )
         _denom_BR, denom_BPhi, _denom_BZ = sample_cylindrical_vector_grid_on_surfaces(
             _require_array(denom_source.R_grid, "denominator.R_grid"),
@@ -658,7 +656,7 @@ def sample_beta_ramp_delta_on_surfaces(
             Z_surf,
             phi_vals,
             theta_vals,
-            field_periods=denom_source.field_periods,
+            nfp=denom_source.nfp,
         )
         if provided_surface_signature is None:
             surface_signature = surface_coordinate_signature(
@@ -710,7 +708,7 @@ def sample_beta_ramp_delta_on_surfaces(
         phi_vals,
         theta_vals,
         radial_labels,
-        field_periods=perturbation.field_periods,
+        nfp=perturbation.nfp,
         background_field_signature=background_signature,
         delta_field_signature=delta_signature,
         surface_signature=provided_surface_signature,

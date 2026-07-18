@@ -11,6 +11,8 @@ from typing import Any, Iterable
 
 import numpy as np
 
+from pyna.fields.periodicity import ToroidalPeriodicity, normalize_nfp
+
 from pyna.toroidal._periodic_grid import (
     TWOPI,
     drop_endpoint,
@@ -107,7 +109,7 @@ def cylindrical_field_grid_signature(
     field_phi: np.ndarray,
     field_Z: np.ndarray,
     *,
-    field_periods: int = 1,
+    nfp: int = 1,
     metadata: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Return a path-free signature for a cylindrical vector-field grid.
@@ -121,9 +123,9 @@ def cylindrical_field_grid_signature(
     axis_phi = np.asarray(grid_phi, dtype=np.float64)
     if axis_R.ndim != 1 or axis_Z.ndim != 1 or axis_phi.ndim != 1:
         raise ValueError("grid_R, grid_Z, and grid_phi must be one-dimensional")
-    field_periods_i = int(field_periods)
-    if field_periods_i < 1:
-        raise ValueError("field_periods must be positive")
+    nfp_i = int(nfp)
+    if nfp_i < 1:
+        raise ValueError("nfp must be positive")
     shape = (axis_R.size, axis_Z.size, axis_phi.size)
     components = {
         "R": np.asarray(field_R),
@@ -137,7 +139,7 @@ def cylindrical_field_grid_signature(
         "schema_name": _SIGNATURE_SCHEMA_NAME,
         "schema_version": _SIGNATURE_SCHEMA_VERSION,
         "kind": "cylindrical_field_grid",
-        "field_periods": field_periods_i,
+        "nfp": nfp_i,
         "grid": {
             "R": _array_summary(axis_R),
             "Z": _array_summary(axis_Z),
@@ -169,7 +171,7 @@ def _cylindrical_field_grid_identity_signature(field_signature: Any) -> dict[str
         "schema_name": field_signature.get("schema_name"),
         "schema_version": field_signature.get("schema_version"),
         "kind": field_signature.get("kind"),
-        "field_periods": field_signature.get("field_periods"),
+        "nfp": field_signature.get("nfp"),
         "grid": field_signature.get("grid"),
     }
 
@@ -580,7 +582,7 @@ def integrable_field_decomposition_from_grids(
     delta_B_phi: np.ndarray,
     delta_B_Z: np.ndarray,
     *,
-    field_periods: int = 1,
+    nfp: int = 1,
     surface_signature: Mapping[str, Any] | None = None,
     q_profile: MagneticCoordinateProfile | None = None,
     iota_profile: MagneticCoordinateProfile | None = None,
@@ -607,7 +609,7 @@ def integrable_field_decomposition_from_grids(
         total_B_R,
         total_B_phi,
         total_B_Z,
-        field_periods=field_periods,
+        nfp=nfp,
         metadata=total_metadata,
     )
     background_sig = cylindrical_field_grid_signature(
@@ -617,7 +619,7 @@ def integrable_field_decomposition_from_grids(
         background_B_R,
         background_B_phi,
         background_B_Z,
-        field_periods=field_periods,
+        nfp=nfp,
         metadata=background_metadata,
     )
     delta_sig = cylindrical_field_grid_signature(
@@ -627,7 +629,7 @@ def integrable_field_decomposition_from_grids(
         delta_B_R,
         delta_B_phi,
         delta_B_Z,
-        field_periods=field_periods,
+        nfp=nfp,
         metadata=delta_metadata,
     )
     residual_summary = _field_decomposition_residual_summary(
@@ -685,19 +687,19 @@ class RadialPerturbationFourierSpectrum:
     phi: np.ndarray
     radial_labels: np.ndarray | None = None
     metadata: Mapping[str, Any] = field(default_factory=dict)
-    field_periods: int = 1
+    nfp: int = 1
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "metadata", dict(self.metadata or {}))
-        if isinstance(self.field_periods, (bool, np.bool_)):
-            raise ValueError("field_periods must be a positive integer")
+        if isinstance(self.nfp, (bool, np.bool_)):
+            raise ValueError("nfp must be a positive integer")
         try:
-            field_periods = int(self.field_periods)
+            nfp = int(self.nfp)
         except (TypeError, ValueError, OverflowError) as exc:
-            raise ValueError("field_periods must be a positive integer") from exc
-        if field_periods < 1 or float(self.field_periods) != float(field_periods):
-            raise ValueError("field_periods must be a positive integer")
-        object.__setattr__(self, "field_periods", field_periods)
+            raise ValueError("nfp must be a positive integer") from exc
+        if nfp < 1 or float(self.nfp) != float(nfp):
+            raise ValueError("nfp must be a positive integer")
+        object.__setattr__(self, "nfp", nfp)
 
     @property
     def field_period_harmonic(self) -> np.ndarray:
@@ -714,10 +716,10 @@ class RadialPerturbationFourierSpectrum:
         """Signed Nardon toroidal index in ``exp(i * (m*theta + n*phi))``.
 
         A one-field-period FFT has local harmonic ``k``; its full-torus
-        Nardon index is ``n = field_periods * k``.
+        Nardon index is ``n = nfp * k``.
         """
 
-        return self.field_periods * np.asarray(self.n, dtype=int)
+        return self.nfp * np.asarray(self.n, dtype=int)
 
     @property
     def physical_n(self) -> np.ndarray:
@@ -877,7 +879,7 @@ class NardonRadialPerturbationProjection:
     def fourier_spectrum(
         self,
         *,
-        field_periods: int | None = None,
+        nfp: int | None = None,
         m_max: int | None = None,
         n_max: int | None = None,
         min_amplitude: float = 0.0,
@@ -899,7 +901,7 @@ class NardonRadialPerturbationProjection:
             self.phi_vals,
             radial_labels=self.radial_labels,
             layout="phi-radial-theta",
-            field_periods=field_periods,
+            nfp=nfp,
             m_max=m_max,
             n_max=n_max,
             min_amplitude=min_amplitude,
@@ -1490,7 +1492,7 @@ def surface_field_alignment_diagnostics(
     theta_vals: np.ndarray,
     radial_labels: np.ndarray,
     *,
-    field_periods: int = 1,
+    nfp: int = 1,
     iota_profile: np.ndarray | None = None,
     bounds_error: bool = False,
     fill_value: float | None = np.nan,
@@ -1517,7 +1519,7 @@ def surface_field_alignment_diagnostics(
         theta_vals,
         bounds_error=bounds_error,
         fill_value=fill_value,
-        field_periods=field_periods,
+        nfp=nfp,
     )
     B1, B3 = contravariant_radial_component(
         R_surf,
@@ -1634,7 +1636,7 @@ def nardon_radial_perturbation_from_decomposition(
     theta_vals: np.ndarray,
     radial_labels: np.ndarray,
     *,
-    field_periods: int = 1,
+    nfp: int = 1,
     bounds_error: bool = False,
     fill_value: float | None = np.nan,
     background_field_signature: Mapping[str, Any] | None = None,
@@ -1664,7 +1666,7 @@ def nardon_radial_perturbation_from_decomposition(
             B0_R,
             B0_phi,
             B0_Z,
-            field_periods=field_periods,
+            nfp=nfp,
         )
     )
     delta_sig = (
@@ -1677,7 +1679,7 @@ def nardon_radial_perturbation_from_decomposition(
             delta_B_R,
             delta_B_phi,
             delta_B_Z,
-            field_periods=field_periods,
+            nfp=nfp,
         )
     )
     if surface_signature is None:
@@ -1714,7 +1716,7 @@ def nardon_radial_perturbation_from_decomposition(
         theta_vals,
         bounds_error=bounds_error,
         fill_value=fill_value,
-        field_periods=field_periods,
+        nfp=nfp,
     )
     background_BR, background_BPhi, background_BZ = sample_cylindrical_vector_grid_on_surfaces(
         grid_R,
@@ -1729,7 +1731,7 @@ def nardon_radial_perturbation_from_decomposition(
         theta_vals,
         bounds_error=bounds_error,
         fill_value=fill_value,
-        field_periods=field_periods,
+        nfp=nfp,
     )
     delta_B1, _delta_B3 = contravariant_radial_component(
         R_surf,
@@ -1798,7 +1800,7 @@ def nardon_radial_perturbation_from_healed_surfaces(
     denominator_B_R: np.ndarray | None = None,
     denominator_B_phi: np.ndarray | None = None,
     denominator_B_Z: np.ndarray | None = None,
-    field_periods: int = 1,
+    nfp: int = 1,
     bounds_error: bool = False,
     fill_value: float | None = np.nan,
     surface_signature: Mapping[str, Any] | None = None,
@@ -1828,7 +1830,7 @@ def nardon_radial_perturbation_from_healed_surfaces(
             total_B_R,
             total_B_phi,
             total_B_Z,
-            field_periods=field_periods,
+            nfp=nfp,
         )
     )
     background_sig = None
@@ -1845,7 +1847,7 @@ def nardon_radial_perturbation_from_healed_surfaces(
                 denominator_B_R,
                 denominator_B_phi,
                 denominator_B_Z,
-                field_periods=field_periods,
+                nfp=nfp,
             )
         )
     elif background_field_signature is not None:
@@ -1885,7 +1887,7 @@ def nardon_radial_perturbation_from_healed_surfaces(
         theta_vals,
         bounds_error=bounds_error,
         fill_value=fill_value,
-        field_periods=field_periods,
+        nfp=nfp,
     )
     total_B1, total_B3 = contravariant_radial_component(
         R_surf,
@@ -1917,7 +1919,7 @@ def nardon_radial_perturbation_from_healed_surfaces(
             theta_vals,
             bounds_error=bounds_error,
             fill_value=fill_value,
-            field_periods=field_periods,
+            nfp=nfp,
         )
         _background_B1, background_B3 = contravariant_radial_component(
             R_surf,
@@ -1983,19 +1985,11 @@ def _fourier_layout(layout: str | Iterable[str] | None, ndim: int) -> str | None
     return canonical
 
 
-def _positive_field_periods(value: int) -> int:
-    if isinstance(value, (bool, np.bool_)):
-        raise ValueError("field_periods must be a positive integer")
-    try:
-        result = int(value)
-    except (TypeError, ValueError, OverflowError) as exc:
-        raise ValueError("field_periods must be a positive integer") from exc
-    if result < 1 or float(value) != float(result):
-        raise ValueError("field_periods must be a positive integer")
-    return result
+def _positive_nfp(value: int) -> int:
+    return normalize_nfp(value)
 
 
-def _infer_field_periods(phi_vals: np.ndarray) -> int:
+def _infer_nfp(phi_vals: np.ndarray) -> int:
     phi = np.asarray(phi_vals, dtype=np.float64)
     if phi.ndim != 1 or phi.size < 3:
         raise ValueError("phi_vals must be one-dimensional with at least three points")
@@ -2010,7 +2004,7 @@ def _infer_field_periods(phi_vals: np.ndarray) -> int:
         atol=1.0e-12,
     ):
         raise ValueError(
-            "field_periods is required when the toroidal domain cannot be inferred "
+            "nfp is required when the toroidal domain cannot be inferred "
             "from a uniform phi_vals axis"
         )
 
@@ -2031,7 +2025,7 @@ def _infer_field_periods(phi_vals: np.ndarray) -> int:
             candidates.add(candidate)
     if len(candidates) != 1:
         raise ValueError(
-            "field_periods is required because the toroidal domain is not an "
+            "nfp is required because the toroidal domain is not an "
             "unambiguous integer field period"
         )
     return candidates.pop()
@@ -2062,7 +2056,7 @@ def _prepare_fourier_axis(
     ):
         raise ValueError(
             f"{name} must uniformly sample exactly one period ({period:.16g}); "
-            "set field_periods to match the toroidal domain"
+            "set nfp to match the toroidal domain"
         )
     return axis, has_endpoint, raw.size
 
@@ -2110,7 +2104,7 @@ def radial_perturbation_Fourier_spectrum(
     *,
     radial_labels: np.ndarray | None = None,
     layout: str | Iterable[str] | None = None,
-    field_periods: int | None = None,
+    nfp: int | None = None,
     m_max: int | None = None,
     n_max: int | None = None,
     min_amplitude: float = 0.0,
@@ -2121,7 +2115,7 @@ def radial_perturbation_Fourier_spectrum(
     The Nardon convention is
     ``f(theta, phi) = sum tilde_b1_mn exp(i * (m * theta + nardon_n * phi))``.
     A stored one-field-period FFT harmonic ``k`` maps explicitly to
-    ``nardon_n = field_periods * k``.  The spectrum's ``n`` and
+    ``nardon_n = nfp * k``.  The spectrum's ``n`` and
     :attr:`RadialPerturbationFourierSpectrum.physical_n` are retained
     compatibility APIs; ``physical_n = -nardon_n``.
 
@@ -2130,7 +2124,7 @@ def radial_perturbation_Fourier_spectrum(
     ``"phi-radial-theta"`` for a 3-D stack.  When omitted, layout is inferred
     only if exactly one leading axis matches ``phi_vals``; equal-length
     candidates are rejected as ambiguous.  ``phi_vals`` must sample exactly
-    one domain of length ``2*pi/field_periods``.  When ``field_periods`` is
+    one domain of length ``2*pi/nfp``.  When ``nfp`` is
     omitted, it is inferred only when the uniform angular span identifies one
     integer field period unambiguously.  ``n_max`` limits the magnitude of the
     Nardon toroidal index, not local field-period harmonics.
@@ -2143,7 +2137,7 @@ def radial_perturbation_Fourier_spectrum(
             "or (n_phi, n_r, n_theta)"
     )
     resolved_layout = _fourier_layout(layout, grid.ndim)
-    nfp = _infer_field_periods(phi_vals) if field_periods is None else _positive_field_periods(field_periods)
+    nfp = _infer_nfp(phi_vals) if nfp is None else _positive_nfp(nfp)
     theta, theta_has_endpoint, theta_input_size = _prepare_fourier_axis(
         theta_vals,
         TWOPI,
@@ -2151,7 +2145,7 @@ def radial_perturbation_Fourier_spectrum(
     )
     phi, phi_has_endpoint, phi_input_size = _prepare_fourier_axis(
         phi_vals,
-        TWOPI / float(nfp),
+        ToroidalPeriodicity(nfp).field_period,
         "phi_vals",
     )
     grid = _strip_grid_axis_endpoint(
@@ -2260,7 +2254,7 @@ def radial_perturbation_Fourier_spectrum(
         phi=phi,
         radial_labels=labels,
         metadata={} if metadata is None else metadata,
-        field_periods=nfp,
+        nfp=nfp,
     )
 
 
@@ -2772,11 +2766,11 @@ def sample_cylindrical_vector_grid_on_surfaces(
     *,
     bounds_error: bool = False,
     fill_value: float | None = np.nan,
-    field_periods: int = 1,
+    nfp: int = 1,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Sample a rectilinear cylindrical vector grid on ``(phi, radial, theta)`` surfaces.
 
-    ``field_periods`` lets the field grid describe one native field period while
+    ``nfp`` lets the field grid describe one native field period while
     the surface coordinates span the full torus.
     """
 
@@ -2788,16 +2782,16 @@ def sample_cylindrical_vector_grid_on_surfaces(
     axis_phi = np.asarray(grid_phi, dtype=np.float64)
     if axis_phi.ndim != 1 or axis_phi.size < 2:
         raise ValueError("grid_phi must be one-dimensional with at least two points")
-    field_periods_i = int(field_periods)
-    if field_periods_i < 1:
-        raise ValueError("field_periods must be positive")
-    field_period = TWOPI / float(field_periods_i)
+    nfp_i = int(nfp)
+    if nfp_i < 1:
+        raise ValueError("nfp must be positive")
+    field_period = ToroidalPeriodicity(nfp_i).field_period
     phi0 = float(axis_phi[0])
     phi_stripped, phi_has_endpoint = strip_periodic_endpoint(axis_phi, field_period, "grid_phi")
     phi_span = float(phi_stripped[-1] - phi_stripped[0])
     tol = max(1.0e-10, 1.0e-10 * abs(field_period))
     if phi_span > field_period + tol:
-        raise ValueError("grid_phi span exceeds one field period for field_periods")
+        raise ValueError("grid_phi span exceeds one field period for nfp")
 
     def extend(values: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         vals = np.asarray(values)
