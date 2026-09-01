@@ -1,8 +1,8 @@
 """Tests for pyna.mag.coil analytic coil field formulas."""
 import numpy as np
 import pytest
-from scipy.constants import mu_0, pi
-from pyna.toroidal.coils.coil import BRBZ_induced_by_current_loop
+from scipy.constants import pi
+from pyna.toroidal.coils.coil import BRBZ_induced_by_current_loop, MU0_VACUUM_H_M
 
 
 # On-axis (R->0) check is singular; instead test the well-known on-axis formula
@@ -18,7 +18,7 @@ def test_current_loop_on_axis_BZ():
     R_small = 1e-4  # near axis
     Z_test = 0.5
     BR, BZ = BRBZ_induced_by_current_loop(a, Z_o, I, R_small, Z_test)
-    BZ_analytic = mu_0 * I * a**2 / (2 * (a**2 + Z_test**2) ** 1.5)
+    BZ_analytic = MU0_VACUUM_H_M * I * a**2 / (2 * (a**2 + Z_test**2) ** 1.5)
     # Should agree to 0.1%
     assert abs(BZ - BZ_analytic) / abs(BZ_analytic) < 1e-3
 
@@ -31,7 +31,7 @@ def test_current_loop_exact_axis_limit_is_finite():
 
     BR, BZ = BRBZ_induced_by_current_loop(a, 0.0, I, np.zeros_like(Z_test), Z_test)
 
-    BZ_analytic = mu_0 * I * a**2 / (2 * (a**2 + Z_test**2) ** 1.5)
+    BZ_analytic = MU0_VACUUM_H_M * I * a**2 / (2 * (a**2 + Z_test**2) ** 1.5)
     np.testing.assert_allclose(BR, 0.0, atol=1.0e-15)
     np.testing.assert_allclose(BZ, BZ_analytic, rtol=1.0e-12)
     assert np.all(np.isfinite(BZ))

@@ -4,6 +4,7 @@ from importlib import import_module
 from pyna.toroidal.coils.base import CoilFieldVacuum, CoilFieldSuperposition, CoilFieldScaled
 from pyna.toroidal.coils.coil import (
     BRBZ_induced_by_current_loop,
+    BRBZ_induced_by_rectangular_winding_pack_gauss_legendre,
     BRBZ_induced_by_thick_finitelen_solenoid,
     CoilFieldAnalyticCircular,
     CoilFieldAnalyticRectangularSection,
