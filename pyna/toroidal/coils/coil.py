@@ -1,11 +1,19 @@
 """Analytic magnetic field formulas for current loops and solenoids.
 
 Ported from ``mhdpy.field.axisym`` (Wenyin Wei, EAST/Tsinghua).
-All functions are pure NumPy/SciPy with no external data dependencies.
+The production rectangular winding-pack solver uses float64 CUDA when
+available and a NumPy/SciPy threaded fallback otherwise.
 """
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
+from importlib.util import find_spec
+import os
+
 import numpy as np
+
+
+MU0_VACUUM_H_M = 4.0e-7 * np.pi
 
 
 def BRBZ_induced_by_current_loop(
@@ -57,7 +65,6 @@ def BRBZ_induced_by_current_loop(
       Taylor & Francis, p. 291.
     * R. A. Schill Jr., *IEEE Trans. Magn.* 39, 961 (2003).
     """
-    from scipy.constants import mu_0, pi
     from scipy.special import ellipk, ellipe
 
     R, Z = np.broadcast_arrays(np.asarray(R, dtype=float), np.asarray(Z, dtype=float))
@@ -66,7 +73,7 @@ def BRBZ_induced_by_current_loop(
     R_safe = np.where(axis, max(abs(float(a)), 1.0) * 1.0e-14, R)
     denom = (R_safe + a) ** 2 + Z_rel ** 2
     m = 4 * a * R_safe / denom
-    coeff = mu_0 * I / (2 * pi) / np.sqrt(denom)
+    coeff = MU0_VACUUM_H_M * I / (2 * np.pi) / np.sqrt(denom)
     d2 = (a - R_safe) ** 2 + Z_rel ** 2
     BR = coeff * Z_rel / R_safe * (
         -ellipk(m) + (a**2 + R_safe**2 + Z_rel**2) / d2 * ellipe(m)
@@ -74,12 +81,13 @@ def BRBZ_induced_by_current_loop(
     BZ = coeff * (ellipk(m) + (a**2 - R_safe**2 - Z_rel**2) / d2 * ellipe(m))
     if np.any(axis):
         BR = np.where(axis, 0.0, BR)
-        BZ_axis = mu_0 * I * a**2 / (2.0 * (a**2 + Z_rel**2) ** 1.5)
+        BZ_axis = MU0_VACUUM_H_M * I * a**2 / (2.0 * (a**2 + Z_rel**2) ** 1.5)
         BZ = np.where(axis, BZ_axis, BZ)
     return BR, BZ
 
 
-def BRBZ_induced_by_thick_finitelen_solenoid(
+# DO NOT USE: retained only to document and reproduce the rejected PF1 archive.
+def _BRBZ_induced_by_thick_finitelen_solenoid_legacy_nonconverged(
     a: float,
     b: float,
     Z_solenoid_lowend: float,
@@ -89,15 +97,17 @@ def BRBZ_induced_by_thick_finitelen_solenoid(
     R: float | np.ndarray,
     Z: float | np.ndarray,
 ) -> tuple[float, float]:
-    """Magnetic field of a thick finite-length solenoid.
+    """Rejected legacy Labinac-integral implementation; do not use.
 
-    Uses the Labinac et al. (2006) formula based on Bessel functions
-    and Struve functions.
-
-    .. note::
-
-        The integral may be numerically unstable for extreme aspect
-        ratios.  Use with caution near the solenoid boundary.
+    This implementation was inherited from MHDpy and is retained privately
+    only for forensic reproduction.  Its 2025 substitution
+    ``k = x / (1 - x)`` maps the infinite interval to ``x in [0, 1]`` and
+    then calls ``quad(..., limit=200)``.  Inside the winding-pack Z interval,
+    the BZ factor tends to the non-decaying constant 2 as ``k -> infinity``.
+    The transformed endpoint therefore remains strongly oscillatory, exhausts
+    the subdivision limit, and returns a false horizontal BZ-error band whose
+    edges coincide with the two coil Z faces.  It must not generate vacuum
+    field archives or production solver inputs.
 
     Parameters
     ----------
@@ -137,7 +147,7 @@ def BRBZ_induced_by_thick_finitelen_solenoid(
     # Handle field points below the lower end by symmetry
     if Z < Z_solenoid_lowend:
         Z_mid = Z_solenoid_lowend + L / 2
-        BR, BZ = BRBZ_induced_by_thick_finitelen_solenoid(
+        BR, BZ = _BRBZ_induced_by_thick_finitelen_solenoid_legacy_nonconverged(
             a, b, Z_solenoid_lowend, L, I, N, R, Z_mid + (Z_mid - Z)
         )
         return -BR, BZ
@@ -178,6 +188,201 @@ def BRBZ_induced_by_thick_finitelen_solenoid(
     return BR, BZ
 
 
+def BRBZ_induced_by_rectangular_winding_pack_gauss_legendre(
+    Rc: float,
+    Zc: float,
+    width_R: float,
+    height_Z: float,
+    turns: int,
+    current_per_turn: float,
+    R: float | np.ndarray,
+    Z: float | np.ndarray,
+    *,
+    quadrature_order: int = 32,
+    max_workers: int | None = None,
+    backend: str = "auto",
+) -> tuple[np.ndarray, np.ndarray]:
+    """Field of a uniformly filled rectangular PF winding pack.
+
+    Tensor-product Gauss--Legendre quadrature area-averages exact circular-loop
+    Biot--Savart fields.  The weighted filament currents sum to
+    ``turns * current_per_turn``; no oscillatory infinite-interval integral is
+    used.  ``backend='auto'`` uses the float64 CUDA analytic-loop kernel when
+    CuPy and a CUDA device are available, otherwise CPU threads.
+
+    The returned components are ordered ``(B_R, B_Z)``.  Positive current is
+    physical ``+e_phi`` and produces positive ``B_Z`` on axis; this is directly
+    compatible with the left-handed storage order ``(R, Z, phi)`` and performs
+    no handedness-sensitive cross product.
+    """
+    Rc = float(Rc)
+    Zc = float(Zc)
+    width_R = float(width_R)
+    height_Z = float(height_Z)
+    turns = int(turns)
+    current_per_turn = float(current_per_turn)
+    order = int(quadrature_order)
+    backend = str(backend).lower()
+    if Rc <= 0.0 or width_R <= 0.0 or height_Z <= 0.0:
+        raise ValueError("rectangular winding-pack dimensions must be positive")
+    if turns <= 0 or order < 2:
+        raise ValueError("turns and quadrature_order must be positive")
+    if backend not in {"auto", "cpu", "cuda"}:
+        raise ValueError("backend must be 'auto', 'cpu', or 'cuda'")
+
+    R_target, Z_target = np.broadcast_arrays(
+        np.asarray(R, dtype=float), np.asarray(Z, dtype=float)
+    )
+    if np.any(R_target < 0.0):
+        raise ValueError("cylindrical target radius must be nonnegative")
+
+    nodes, weights = np.polynomial.legendre.leggauss(order)
+    source_R = Rc + 0.5 * width_R * nodes
+    source_Z = Zc + 0.5 * height_Z * nodes
+    area_weights = 0.5 * weights
+
+    use_cuda = False
+    accel = None
+    if backend != "cpu":
+        if find_spec("cupy") is not None:
+            try:
+                from pyna.toroidal.coils import accel
+
+                use_cuda = bool(accel._CUPY_AVAILABLE)
+                if use_cuda:
+                    use_cuda = accel.cp.cuda.runtime.getDeviceCount() > 0
+            except (ImportError, RuntimeError):
+                use_cuda = False
+        if backend == "cuda" and not use_cuda:
+            raise RuntimeError("backend='cuda' requires CuPy and a CUDA device")
+    if np.any(R_target == 0.0):
+        use_cuda = False
+
+    if use_cuda:
+        source_radii = np.repeat(source_R, order)
+        source_heights = np.tile(source_Z, order)
+        source_currents = (
+            turns
+            * current_per_turn
+            * np.repeat(area_weights, order)
+            * np.tile(area_weights, order)
+        )
+        centers = np.column_stack(
+            [
+                np.zeros(order * order),
+                np.zeros(order * order),
+                source_heights,
+            ]
+        )
+        normals = np.zeros((order * order, 3), dtype=float)
+        normals[:, 2] = 1.0
+        field_points = np.column_stack(
+            [
+                R_target.ravel(),
+                np.zeros(R_target.size),
+                Z_target.ravel(),
+            ]
+        )
+        field = accel.analytic_coil_field_batched_gpu(
+            centers,
+            source_radii,
+            normals,
+            source_currents,
+            field_points,
+        )
+        BR = field[:, 0].reshape(R_target.shape)
+        BZ = field[:, 2].reshape(R_target.shape)
+        if not np.all(np.isfinite(BR)) or not np.all(np.isfinite(BZ)):
+            raise FloatingPointError(
+                "rectangular winding-pack field is non-finite; target may intersect a quadrature filament"
+            )
+        return BR, BZ
+
+    def radial_slice(index: int) -> tuple[np.ndarray, np.ndarray]:
+        BR_slice = np.zeros(R_target.shape, dtype=float)
+        BZ_slice = np.zeros(R_target.shape, dtype=float)
+        for source_z, weight_z in zip(source_Z, area_weights):
+            filament_current = (
+                turns
+                * current_per_turn
+                * float(area_weights[index])
+                * float(weight_z)
+            )
+            BR_loop, BZ_loop = BRBZ_induced_by_current_loop(
+                float(source_R[index]),
+                float(source_z),
+                filament_current,
+                R_target,
+                Z_target,
+            )
+            BR_slice += BR_loop
+            BZ_slice += BZ_loop
+        return BR_slice, BZ_slice
+
+    if max_workers is None:
+        workers = min(order, 16, os.cpu_count() or 1)
+    else:
+        workers = int(max_workers)
+        if workers == -1:
+            workers = min(order, 16, os.cpu_count() or 1)
+        elif workers < 1:
+            raise ValueError("max_workers must be positive or -1")
+        else:
+            workers = min(workers, order)
+
+    if workers == 1:
+        slices = [radial_slice(index) for index in range(order)]
+    else:
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            slices = list(executor.map(radial_slice, range(order)))
+
+    BR = np.zeros(R_target.shape, dtype=float)
+    BZ = np.zeros(R_target.shape, dtype=float)
+    for BR_slice, BZ_slice in slices:
+        BR += BR_slice
+        BZ += BZ_slice
+    if not np.all(np.isfinite(BR)) or not np.all(np.isfinite(BZ)):
+        raise FloatingPointError(
+            "rectangular winding-pack field is non-finite; target may intersect a quadrature filament"
+        )
+    return BR, BZ
+
+
+def BRBZ_induced_by_thick_finitelen_solenoid(
+    a: float,
+    b: float,
+    Z_solenoid_lowend: float,
+    L: float,
+    I: float,
+    N: float,
+    R: float | np.ndarray,
+    Z: float | np.ndarray,
+    *,
+    quadrature_order: int = 32,
+    max_workers: int | None = None,
+    backend: str = "auto",
+) -> tuple[np.ndarray, np.ndarray]:
+    """Compatibility name backed by the production Gauss--Legendre solver.
+
+    The historical public signature is preserved, but this function no longer
+    calls the rejected Labinac infinite-interval quadrature.  ``a`` and ``b``
+    are the inner and outer winding-pack radii.
+    """
+    return BRBZ_induced_by_rectangular_winding_pack_gauss_legendre(
+        0.5 * (float(a) + float(b)),
+        float(Z_solenoid_lowend) + 0.5 * float(L),
+        float(b) - float(a),
+        float(L),
+        int(N),
+        float(I),
+        R,
+        Z,
+        quadrature_order=quadrature_order,
+        max_workers=max_workers,
+        backend=backend,
+    )
+
+
 def BRBZ_induced_by_thick_finitelen_solenoid_multiprocessing(
     R: np.ndarray,
     Z: np.ndarray,
@@ -187,8 +392,12 @@ def BRBZ_induced_by_thick_finitelen_solenoid_multiprocessing(
     dZ: float,
     turn: int,
     I: float,
+    *,
+    quadrature_order: int = 32,
+    n_jobs: int = -1,
+    backend: str = "auto",
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Parallel evaluation of :func:`BRBZ_induced_by_thick_finitelen_solenoid` on a grid.
+    """Evaluate the production winding-pack field on an ``(R, Z)`` grid.
 
     Parameters
     ----------
@@ -211,36 +420,30 @@ def BRBZ_induced_by_thick_finitelen_solenoid_multiprocessing(
         Arrays of shape ``(len(R), len(Z))``.  Grid points inside
         the solenoid body are set to NaN.
     """
-    from joblib import Parallel, delayed
-
     R = np.asarray(R, dtype=float)
     Z = np.asarray(Z, dtype=float)
-    BR_o = np.zeros((len(R), len(Z)))
-    BZ_o = np.zeros((len(R), len(Z)))
-
-    def _task(iR: int, iZ: int, Rval: float, Zval: float):
-        if Rc - dR <= Rval <= Rc + dR and Zc - dZ <= Zval <= Zc + dZ:
-            return iR, iZ, np.nan, np.nan
-        br, bz = BRBZ_induced_by_thick_finitelen_solenoid(
-            Rc - dR / 2, Rc + dR / 2, Zc - dZ / 2, dZ, I, turn, Rval, Zval
-        )
-        return iR, iZ, br, bz
-
-    tasks = [
-        (iR, iZ, float(Rval), float(Zval))
-        for iR, Rval in enumerate(R)
-        for iZ, Zval in enumerate(Z)
-    ]
-
-    results = Parallel(n_jobs=-1, backend="loky", verbose=0)(
-        delayed(_task)(*t) for t in tasks
+    RR, ZZ = np.meshgrid(R, Z, indexing="ij")
+    BR_o, BZ_o = BRBZ_induced_by_rectangular_winding_pack_gauss_legendre(
+        Rc,
+        Zc,
+        2.0 * dR,
+        2.0 * dZ,
+        turn,
+        I,
+        RR,
+        ZZ,
+        quadrature_order=quadrature_order,
+        max_workers=n_jobs,
+        backend=backend,
     )
-
-    for res in results:
-        if res is not None:
-            iR, iZ, br, bz = res
-            BR_o[iR, iZ] = br
-            BZ_o[iR, iZ] = bz
+    inside = (
+        (RR >= Rc - dR)
+        & (RR <= Rc + dR)
+        & (ZZ >= Zc - dZ)
+        & (ZZ <= Zc + dZ)
+    )
+    BR_o = np.where(inside, np.nan, BR_o)
+    BZ_o = np.where(inside, np.nan, BZ_o)
 
     return BR_o, BZ_o
 
@@ -338,9 +541,8 @@ def _build_rotation(normal):
 class CoilFieldAnalyticRectangularSection(CoilFieldVacuum):
     """Vacuum field of a tokamak PF coil with rectangular cross-section.
 
-    Uses the exact Labinac (2006) formula for a thick, finite-length axisymmetric solenoid.
-    This is more accurate than the thin-wire approximation for PF coils whose
-    cross-sectional dimensions are not negligible.
+    Uses tensor-product Gauss--Legendre quadrature of exact circular-loop
+    Biot--Savart fields over the uniformly filled winding pack.
 
     Parameters
     ----------
@@ -360,14 +562,8 @@ class CoilFieldAnalyticRectangularSection(CoilFieldVacuum):
         Current per turn (A). Positive current in the +phi direction
         produces positive B_Z on axis.
 
-    Notes
-    -----
-    The underlying formula is from:
-    * V. Labinac, N. Erceg, D. Kotnik-Karuza, *Am. J. Phys.* 74, 621 (2006).
-      https://doi.org/10.1119/1.2198885
-
-    For evaluation on a 2D (R, Z) grid, use :meth:`B_at_grid` with joblib
-    parallelism, which masks grid points inside the coil body as NaN.
+    For evaluation on a 2D (R, Z) grid, :meth:`B_at_grid` uses CUDA when
+    available (CPU threads otherwise) and masks points inside the coil body.
     """
 
     def __init__(
@@ -427,30 +623,22 @@ class CoilFieldAnalyticRectangularSection(CoilFieldVacuum):
         -------
         (BR, BZ, Bphi) : tuple of ndarray
         """
-        R = np.asarray(R, dtype=float)
-        Z_arr = np.asarray(Z, dtype=float)
-        shape = np.broadcast(R, Z_arr).shape
-        R_flat = R.ravel() if R.ndim > 0 else np.array([float(R)])
-        Z_flat = Z_arr.ravel() if Z_arr.ndim > 0 else np.array([float(Z_arr)])
-
-        BR_out = np.empty(len(R_flat))
-        BZ_out = np.empty(len(R_flat))
-        for i, (Rv, Zv) in enumerate(zip(R_flat, Z_flat)):
-            br, bz = BRBZ_induced_by_thick_finitelen_solenoid(
-                self._Rc - self._dR,
-                self._Rc + self._dR,
-                self._Zc - self._dZ,
-                2 * self._dZ,
-                self._I,
-                self._turns,
-                Rv,
-                Zv,
-            )
-            BR_out[i] = br
-            BZ_out[i] = bz
-
-        Bphi = np.zeros_like(BR_out)
-        return BR_out.reshape(shape), BZ_out.reshape(shape), Bphi.reshape(shape)
+        R_eval, Z_eval = np.broadcast_arrays(
+            np.asarray(R, dtype=float), np.asarray(Z, dtype=float)
+        )
+        BR_out, BZ_out = BRBZ_induced_by_rectangular_winding_pack_gauss_legendre(
+            self._Rc,
+            self._Zc,
+            2.0 * self._dR,
+            2.0 * self._dZ,
+            self._turns,
+            self._I,
+            R_eval,
+            Z_eval,
+            max_workers=1,
+            backend="cpu",
+        )
+        return BR_out, BZ_out, np.zeros_like(BR_out)
 
     def B_at_grid(
         self,
@@ -468,7 +656,8 @@ class CoilFieldAnalyticRectangularSection(CoilFieldVacuum):
         R : 1-D array of radial grid values (m).
         Z : 1-D array of axial grid values (m).
         n_jobs : int
-            Number of parallel jobs (joblib). -1 uses all CPUs.
+            CPU worker count; ``-1`` selects the automatic count.  Ignored
+            when the CUDA backend is active.
 
         Returns
         -------
@@ -483,6 +672,7 @@ class CoilFieldAnalyticRectangularSection(CoilFieldVacuum):
             self._dZ,
             self._turns,
             self._I,
+            n_jobs=n_jobs,
         )
 
     def divergence_free(self) -> bool:
