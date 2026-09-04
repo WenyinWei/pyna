@@ -23,6 +23,13 @@ def _direction(value: object) -> Literal["+", "-"]:
     return direction
 
 
+def _distance_mode(value: object) -> Literal["xyz", "rz"]:
+    mode = str(value).strip().lower()
+    if mode not in {"xyz", "rz"}:
+        raise ValueError("distance_mode must be 'xyz' or 'rz'")
+    return mode
+
+
 def _nonnegative_integer(value: object, name: str) -> int:
     if isinstance(value, (bool, np.bool_)):
         raise ValueError(f"{name} must be a non-negative integer")
@@ -47,6 +54,19 @@ def _cylindrical_to_cartesian(point_RZPhi: object) -> np.ndarray:
     if R <= 0.0:
         raise ValueError("strike R must be positive")
     return np.asarray([R * np.cos(phi), R * np.sin(phi), Z], dtype=float)
+
+
+def strike_distance_coordinates(
+    point_RZPhi_m_rad: object,
+    distance_mode: object,
+) -> np.ndarray:
+    """Return physical coordinates used by a strike target/trust metric."""
+
+    point = _finite_vector(point_RZPhi_m_rad, 3, "point_RZPhi_m_rad")
+    mode = _distance_mode(distance_mode)
+    if mode == "rz":
+        return point[:2].copy()
+    return _cylindrical_to_cartesian(point)
 
 
 @dataclass(frozen=True)
@@ -88,6 +108,7 @@ class ManifoldStrikeMatch:
     target_distance_m: float
     connection_length_m: float
     bundle_seed_index: int
+    distance_mode: Literal["xyz", "rz"] = "xyz"
 
     def __post_init__(self) -> None:
         if not isinstance(self.label, ManifoldStrikeLabel):
@@ -113,10 +134,22 @@ class ManifoldStrikeMatch:
             "bundle_seed_index",
             _nonnegative_integer(self.bundle_seed_index, "bundle_seed_index"),
         )
+        object.__setattr__(self, "distance_mode", _distance_mode(self.distance_mode))
 
     @property
     def point_xyz_m(self) -> np.ndarray:
         return _cylindrical_to_cartesian(self.point_RZPhi_m_rad)
+
+    @property
+    def point_RZ_m(self) -> np.ndarray:
+        return self.point_RZPhi_m_rad[:2].copy()
+
+    @property
+    def distance_coordinates_m(self) -> np.ndarray:
+        return strike_distance_coordinates(
+            self.point_RZPhi_m_rad,
+            self.distance_mode,
+        )
 
 
 @dataclass(frozen=True)
@@ -210,4 +243,5 @@ __all__ = [
     "ManifoldStrikeLabel",
     "ManifoldStrikeMatch",
     "ManifoldStrikeRefreshReport",
+    "strike_distance_coordinates",
 ]

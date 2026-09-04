@@ -22,6 +22,7 @@ from pyna.topo.manifold_strike_contracts import (
     ManifoldStrikeLabel,
     ManifoldStrikeMatch,
     ManifoldStrikeRefreshReport,
+    strike_distance_coordinates,
 )
 from pyna.toroidal.control.strike_heat import StrikeSeedBundle, WallStrikeSamples
 from pyna.toroidal.geometry import project_points_to_toroidal_surface
@@ -199,20 +200,30 @@ def local_wall_plane_from_strike(
 def select_manifold_strike_match(
     bundle: StrikeSeedBundle,
     strikes: WallStrikeSamples,
-    target_xyz_m: object,
+    target_position_m: object,
+    *,
+    distance_mode: Literal["xyz", "rz"] = "xyz",
 ) -> ManifoldStrikeMatch:
-    """Select the resolved first-wall hit nearest a physical target in 3-D."""
+    """Select the resolved first-wall hit nearest a physical target."""
 
     seed_orders = _validate_pair(bundle, strikes)
-    target = _finite_vector(target_xyz_m, 3, "target_xyz_m")
+    mode = str(distance_mode).strip().lower()
+    coordinate_size = 3 if mode == "xyz" else 2 if mode == "rz" else 0
+    if coordinate_size == 0:
+        raise ValueError("distance_mode must be 'xyz' or 'rz'")
+    target = _finite_vector(
+        target_position_m,
+        coordinate_size,
+        "target_position_m",
+    )
     if strikes.R.size == 0:
         raise ValueError("manifold strike bundle has no resolved first-wall hits")
     points_RZPhi = np.column_stack((strikes.R, strikes.Z, strikes.phi))
-    points_xyz = np.asarray(
-        [_cylindrical_to_cartesian(point) for point in points_RZPhi],
+    points = np.asarray(
+        [strike_distance_coordinates(point, mode) for point in points_RZPhi],
         dtype=float,
     )
-    distances = np.linalg.norm(points_xyz - target[None, :], axis=1)
+    distances = np.linalg.norm(points - target[None, :], axis=1)
     strike_index = int(np.argmin(distances))
     bundle_seed_index = int(strikes.seed_index[strike_index])
     return ManifoldStrikeMatch(
@@ -225,6 +236,7 @@ def select_manifold_strike_match(
         target_distance_m=float(distances[strike_index]),
         connection_length_m=float(strikes.connection_length[strike_index]),
         bundle_seed_index=bundle_seed_index,
+        distance_mode=mode,
     )
 
 
@@ -232,7 +244,7 @@ def refresh_manifold_strike_match(
     previous_match: ManifoldStrikeMatch,
     candidate_bundle: StrikeSeedBundle,
     candidate_strikes: WallStrikeSamples,
-    target_xyz_m: object,
+    target_position_m: object,
     *,
     maximum_hit_displacement_m: float,
 ) -> ManifoldStrikeRefreshReport:
@@ -241,7 +253,12 @@ def refresh_manifold_strike_match(
     if not isinstance(previous_match, ManifoldStrikeMatch):
         raise TypeError("previous_match must be ManifoldStrikeMatch")
     seed_orders = _validate_pair(candidate_bundle, candidate_strikes)
-    target = _finite_vector(target_xyz_m, 3, "target_xyz_m")
+    coordinate_size = 3 if previous_match.distance_mode == "xyz" else 2
+    target = _finite_vector(
+        target_position_m,
+        coordinate_size,
+        "target_position_m",
+    )
     maximum = float(maximum_hit_displacement_m)
     if not np.isfinite(maximum) or maximum < 0.0:
         raise ValueError(
@@ -293,9 +310,16 @@ def refresh_manifold_strike_match(
         ],
         dtype=float,
     )
-    point_xyz = _cylindrical_to_cartesian(point)
-    target_distance = float(np.linalg.norm(point_xyz - target))
-    displacement = float(np.linalg.norm(point_xyz - previous_match.point_xyz_m))
+    point_coordinates = strike_distance_coordinates(
+        point,
+        previous_match.distance_mode,
+    )
+    target_distance = float(np.linalg.norm(point_coordinates - target))
+    displacement = float(
+        np.linalg.norm(
+            point_coordinates - previous_match.distance_coordinates_m
+        )
+    )
     candidate_match = ManifoldStrikeMatch(
         label=label,
         point_RZPhi_m_rad=point,
@@ -304,6 +328,7 @@ def refresh_manifold_strike_match(
             candidate_strikes.connection_length[strike_index]
         ),
         bundle_seed_index=bundle_seed_index,
+        distance_mode=previous_match.distance_mode,
     )
     accepted = displacement <= maximum
     return ManifoldStrikeRefreshReport(
@@ -327,4 +352,5 @@ __all__ = [
     "manifold_branch_strike_seed_bundle",
     "refresh_manifold_strike_match",
     "select_manifold_strike_match",
+    "strike_distance_coordinates",
 ]

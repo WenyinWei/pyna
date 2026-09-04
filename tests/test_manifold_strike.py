@@ -91,6 +91,43 @@ def test_strike_selection_uses_physical_xyz_and_sparse_seed_order():
     assert match.target_distance_m == pytest.approx(1.0e-3)
 
 
+def test_axisymmetric_strike_metric_uses_only_poloidal_coordinates():
+    bundle = manifold_branch_strike_seed_bundle(_branch())
+    strikes = _strikes(bundle)
+
+    match = select_manifold_strike_match(
+        bundle,
+        strikes,
+        np.array([2.1, -0.5]),
+        distance_mode="rz",
+    )
+    candidate = WallStrikeSamples(
+        label=bundle.label,
+        mode="chaotic_manifold",
+        R=np.array([2.1]),
+        Z=np.array([-0.5]),
+        phi=np.array([2.4]),
+        weights=np.array([1.0]),
+        connection_length=np.array([12.0]),
+        seed_index=np.array([1]),
+        direction=bundle.direction,
+        unresolved_weight=1.0,
+        metadata=bundle.metadata,
+    )
+    report = refresh_manifold_strike_match(
+        match,
+        bundle,
+        candidate,
+        np.array([2.1, -0.5]),
+        maximum_hit_displacement_m=0.0,
+    )
+
+    assert match.distance_mode == "rz"
+    np.testing.assert_allclose(match.distance_coordinates_m, [2.1, -0.5])
+    assert report.accepted
+    assert report.hit_displacement_m == pytest.approx(0.0)
+
+
 def test_strike_refresh_tracks_seed_order_across_candidate_reordering():
     branch = _branch()
     bundle = manifold_branch_strike_seed_bundle(branch)

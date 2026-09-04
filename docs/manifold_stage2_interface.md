@@ -207,7 +207,11 @@ accepted branch reference into the existing ordered Cyna strike-seed contract,
 including the sparse production seed orders.  `select_manifold_strike_match`
 chooses a resolved first-wall hit by physical Cartesian distance to a target;
 its identity is `(branch label, trace direction, seed order)`, not the current
-dense-array index.
+dense-array index.  The match records its physical distance metric explicitly:
+`rz` ignores the symmetry-degenerate toroidal phase for an axisymmetric
+tokamak, while `xyz` retains the full three-dimensional hit position for QA or
+other non-axisymmetric configurations.  Selection and refresh must use the
+same metric.
 
 On a candidate field, `refresh_manifold_strike_match` looks up that exact seed
 order and requires it to produce a Cyna first-wall hit within a physical 3-D
