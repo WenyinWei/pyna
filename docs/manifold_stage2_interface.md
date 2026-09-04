@@ -84,3 +84,62 @@ this avoids assigning a spurious derivative to eigenvector ordering and sign.
 This formulation is intended for isolated elliptic or hyperbolic points.  It
 must not be used at a parabolic point where `M-I` is singular; those topologies
 require a later augmented continuation system.
+
+## Invariant-manifold generations
+
+`pyna.topo.jax_manifold` is a sibling backend to the production Cyna tracer;
+it does not replace or wrap Cyna.  A differentiable inner-loop branch can be
+built as follows:
+
+```python
+from pyna.topo.jax_manifold import (
+    fundamental_segment_distances,
+    hyperbolic_directions,
+    manifold_seed_segment,
+    trace_manifold_generations,
+)
+
+directions = hyperbolic_directions(state.monodromy)
+distances = fundamental_segment_distances(
+    directions.unstable_expansion,
+    minimum_distance=1e-6,
+    maximum_distance=1e-3,
+    n_seeds=24,
+)
+seeds = manifold_seed_segment(
+    state.position,
+    directions.unstable_direction,
+    distances,
+    side=1,
+)
+generations = trace_manifold_generations(
+    field_fn,
+    params,
+    seeds,
+    stability="unstable",
+    phi_span=2 * pi / nfp,
+    n_generations=12,
+)
+```
+
+The returned array has axes `(generation, seed, RZ)`, including the initial
+seed segment at generation zero.  Stable branches use the negative-time map;
+their discrete inverse-map anchor must be refreshed in the outer loop before
+the seeds are constructed.
+
+The two backend tracks have distinct jobs:
+
+- JAX supplies fixed-shape, differentiable generations for the Stage-2 inner
+  objective.  JAX may itself execute on a CUDA device when a CUDA-enabled JAX
+  runtime is installed.
+- Cyna, on either its CPU or CUDA build, supplies high-throughput wall-aware
+  branches, strike points, and accepted-step validation.
+- `compare_cyna_manifold_generations` compares the same fixed seed and
+  generation labels across both discretizations.  A failed count or tolerance
+  check invalidates the inner-loop candidate and triggers an outer refresh.
+
+These paths are parallel implementations of the same labelled return-map
+problem; they need not execute concurrently.  Eigensystem branch selection,
+orientation references, seed distances, side labels, and sample
+correspondences remain frozen between outer refreshes.  Gradients continue
+through the X-line position and all JAX field-line integrations.
