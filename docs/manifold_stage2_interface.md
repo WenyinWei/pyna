@@ -164,6 +164,13 @@ distances, and an availability mask for samples terminated by a wall or domain
 limit.  A direction from the preceding accepted state can be supplied to lock
 the eigenvector sign and reject a branch whose tangent no longer aligns.
 
+When retracing a retained subset of a seed segment,
+`trace_fixed_point_manifolds_field` accepts `seed_orders` alongside explicit
+`seed_distances`.  The orders are production identities, not dense array
+indices: a retained pair labelled 3 and 7 remains 3 and 7 on the candidate
+field.  Empty wall- or domain-limited traces still return every label array
+with zero length so disappearance is handled by the correspondence gate.
+
 PyNA also owns the two operations that change or validate inner-loop labels:
 
 - `nearest_available_manifold_sample` chooses a target label from a production

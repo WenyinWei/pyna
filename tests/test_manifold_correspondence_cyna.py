@@ -94,6 +94,7 @@ def test_production_payload_labels_match_jax_branch(stability):
         N_turns=N_GENERATIONS,
         DPhi=PHI_SPAN / N_STEPS_PER_SPAN,
         seed_distances=np.array([1.0e-3, 2.0e-3]),
+        seed_orders=np.array([3, 7]),
         refine_stable_inverse_anchor=False,
     )[0]
     branch = manifold_branch_reference_from_trace(
@@ -125,7 +126,54 @@ def test_production_payload_labels_match_jax_branch(stability):
 
     assert branch.complete
     assert branch.origin_label == "9:P0"
+    np.testing.assert_array_equal(branch.seed_orders, [3, 7])
     assert report.accepted
     assert report.n_compared == (N_GENERATIONS + 1) * 2
     assert report.max_deviation_m <= report.absolute_tolerance_m
 
+
+def test_production_seed_orders_are_validated_before_tracing():
+    with pytest.raises(ValueError, match="requires explicit seed_distances"):
+        trace_fixed_point_manifolds_field(None, [], seed_orders=[2])
+    with pytest.raises(ValueError, match="align"):
+        trace_fixed_point_manifolds_field(
+            None,
+            [],
+            seed_distances=[1.0e-3],
+            seed_orders=[2, 3],
+        )
+    with pytest.raises(ValueError, match="unique non-negative"):
+        trace_fixed_point_manifolds_field(
+            None,
+            [],
+            seed_distances=[1.0e-3, 2.0e-3],
+            seed_orders=[2, 2],
+        )
+
+
+def test_production_empty_limit_trace_keeps_all_label_arrays_aligned():
+    _require_cyna()
+    expansion = np.exp(RATE * PHI_SPAN)
+    fixed_point = FixedPoint(
+        phi=0.0,
+        R=1.0,
+        Z=0.0,
+        kind="X",
+        DPm=np.diag([expansion, 1.0 / expansion]),
+    )
+    payload = trace_fixed_point_manifolds_field(
+        _cyna_field(),
+        [fixed_point],
+        phi_section=0.0,
+        map_span=PHI_SPAN,
+        N_turns=1,
+        DPhi=PHI_SPAN / N_STEPS_PER_SPAN,
+        seed_distances=[1.0e-3],
+        RZlimit=(2.0, 3.0, 2.0, 3.0),
+        refine_stable_inverse_anchor=False,
+    )[0]
+
+    for prefix in ("u", "s"):
+        assert payload[f"{prefix}_R"].size == 0
+        assert payload[f"{prefix}_point_side"].size == 0
+        assert payload[f"{prefix}_point_seed_side"].size == 0
