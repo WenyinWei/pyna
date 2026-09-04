@@ -3,11 +3,13 @@ import pytest
 
 from pyna.topo.manifold_correspondence import ManifoldBranchReference
 from pyna.topo.manifold_strike import (
+    local_wall_plane_from_strike,
     manifold_branch_strike_seed_bundle,
     refresh_manifold_strike_match,
     select_manifold_strike_match,
 )
 from pyna.toroidal.control.strike_heat import WallStrikeSamples
+from pyna.toroidal.geometry import ToroidalWall
 
 
 def _branch(*, stability="unstable", seed_orders=(2, 5), shift=0.0):
@@ -146,3 +148,49 @@ def test_strike_refresh_rejects_unresolved_exact_seed_and_large_motion():
     assert not moved.accepted
     assert moved.candidate_match is not None
     assert moved.rejection_reason == "strike_displacement_exceeds_limit"
+
+
+def test_local_wall_plane_rotates_periodic_projection_to_unwrapped_hit():
+    nfp = 4
+    period = 2.0 * np.pi / nfp
+    phi = np.linspace(0.0, period, 6, endpoint=False)
+    theta = np.linspace(0.0, 2.0 * np.pi, 64, endpoint=False)
+    wall_R = np.broadcast_to(2.0 + 0.4 * np.cos(theta), (phi.size, theta.size))
+    wall_Z = np.broadcast_to(0.4 * np.sin(theta), (phi.size, theta.size))
+    wall = ToroidalWall(phi, wall_R, wall_Z, nfp=nfp)
+    bundle = manifold_branch_strike_seed_bundle(_branch())
+    hit_phi = period + 0.2
+    hit = WallStrikeSamples(
+        label=bundle.label,
+        mode="chaotic_manifold",
+        R=np.array([2.4]),
+        Z=np.array([0.0]),
+        phi=np.array([hit_phi]),
+        weights=np.array([1.0]),
+        connection_length=np.array([10.0]),
+        seed_index=np.array([0]),
+        direction=bundle.direction,
+        unresolved_weight=1.0,
+        metadata=bundle.metadata,
+    )
+    match = select_manifold_strike_match(
+        bundle,
+        hit,
+        _xyz(2.4, 0.0, hit_phi),
+    )
+
+    plane = local_wall_plane_from_strike(
+        match,
+        wall,
+        maximum_projection_distance_m=1.0e-10,
+    )
+
+    np.testing.assert_allclose(
+        plane.point_xyz_m,
+        _xyz(2.4, 0.0, hit_phi),
+        atol=1.0e-14,
+    )
+    np.testing.assert_allclose(np.linalg.norm(plane.normal_xyz), 1.0)
+    assert plane.wall_phi_rad == pytest.approx(hit_phi)
+    assert plane.wall_s == pytest.approx(0.0, abs=1.0e-14)
+    assert plane.level_set_params.shape == (6,)

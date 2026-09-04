@@ -20,6 +20,7 @@ import numpy as np
 
 from pyna.topo.manifold_correspondence import ManifoldBranchReference
 from pyna.toroidal.control.strike_heat import StrikeSeedBundle, WallStrikeSamples
+from pyna.toroidal.geometry import project_points_to_toroidal_surface
 
 
 def _nonempty_label(value: object, name: str) -> str:
@@ -215,6 +216,47 @@ class ManifoldStrikeRefreshReport:
         object.__setattr__(self, "rejection_reason", reason)
 
 
+@dataclass(frozen=True)
+class LocalWallPlane:
+    """Outer-frozen tangent plane at one production wall strike."""
+
+    strike_label: ManifoldStrikeLabel
+    point_xyz_m: np.ndarray
+    normal_xyz: np.ndarray
+    wall_phi_rad: float
+    wall_s: float
+    projection_distance_m: float
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.strike_label, ManifoldStrikeLabel):
+            raise TypeError("strike_label must be ManifoldStrikeLabel")
+        point = _finite_vector(self.point_xyz_m, 3, "point_xyz_m")
+        normal = _finite_vector(self.normal_xyz, 3, "normal_xyz")
+        normal_norm = float(np.linalg.norm(normal))
+        if normal_norm <= 0.0:
+            raise ValueError("normal_xyz must be non-zero")
+        wall_phi = float(self.wall_phi_rad)
+        wall_s = float(self.wall_s)
+        distance = float(self.projection_distance_m)
+        if not np.isfinite(wall_phi):
+            raise ValueError("wall_phi_rad must be finite")
+        if not np.isfinite(wall_s) or not 0.0 <= wall_s <= 1.0:
+            raise ValueError("wall_s must lie in [0, 1]")
+        if not np.isfinite(distance) or distance < 0.0:
+            raise ValueError("projection_distance_m must be non-negative and finite")
+        object.__setattr__(self, "point_xyz_m", point.copy())
+        object.__setattr__(self, "normal_xyz", normal / normal_norm)
+        object.__setattr__(self, "wall_phi_rad", wall_phi)
+        object.__setattr__(self, "wall_s", wall_s)
+        object.__setattr__(self, "projection_distance_m", distance)
+
+    @property
+    def level_set_params(self) -> np.ndarray:
+        """Return ``(point_xyz, unit_normal_xyz)`` for the JAX level set."""
+
+        return np.concatenate((self.point_xyz_m, self.normal_xyz))
+
+
 def manifold_branch_strike_seed_bundle(
     branch: ManifoldBranchReference,
     *,
@@ -265,6 +307,70 @@ def manifold_branch_strike_seed_bundle(
             "seed_order": branch.seed_orders.copy(),
             "jax_seed_index": np.arange(branch.n_seeds, dtype=int),
         },
+    )
+
+
+def local_wall_plane_from_strike(
+    strike_match: ManifoldStrikeMatch,
+    wall: object,
+    *,
+    maximum_projection_distance_m: float,
+) -> LocalWallPlane:
+    """Freeze the continuously projected wall tangent at one Cyna hit.
+
+    Toroidal wall geometry may cover only one field period.  Projection is
+    performed in that periodic sector, then its point and normal are rotated
+    back to the unwrapped physical hit angle returned by Cyna.
+    """
+
+    if not isinstance(strike_match, ManifoldStrikeMatch):
+        raise TypeError("strike_match must be ManifoldStrikeMatch")
+    maximum = float(maximum_projection_distance_m)
+    if not np.isfinite(maximum) or maximum < 0.0:
+        raise ValueError(
+            "maximum_projection_distance_m must be non-negative and finite"
+        )
+    hit_R, hit_Z, hit_phi = strike_match.point_RZPhi_m_rad
+    projection = project_points_to_toroidal_surface(
+        [hit_R],
+        [hit_Z],
+        [hit_phi],
+        wall,
+    )
+    distance = float(projection.distance[0])
+    if distance > maximum:
+        raise ValueError(
+            "production strike is farther from the wall projection than "
+            "maximum_projection_distance_m"
+        )
+
+    wrapped_phi = float(projection.phi[0])
+    rotation_angle = float(hit_phi - wrapped_phi)
+    cos_rotation = np.cos(rotation_angle)
+    sin_rotation = np.sin(rotation_angle)
+    rotation = np.asarray(
+        [
+            [cos_rotation, -sin_rotation, 0.0],
+            [sin_rotation, cos_rotation, 0.0],
+            [0.0, 0.0, 1.0],
+        ]
+    )
+    projected_R = float(projection.R[0])
+    projected_Z = float(projection.Z[0])
+    wrapped_point = np.asarray(
+        [
+            projected_R * np.cos(wrapped_phi),
+            projected_R * np.sin(wrapped_phi),
+            projected_Z,
+        ]
+    )
+    return LocalWallPlane(
+        strike_label=strike_match.label,
+        point_xyz_m=rotation @ wrapped_point,
+        normal_xyz=rotation @ projection.normal[0],
+        wall_phi_rad=float(hit_phi),
+        wall_s=float(projection.s[0]),
+        projection_distance_m=distance,
     )
 
 
@@ -391,9 +497,11 @@ def refresh_manifold_strike_match(
 
 
 __all__ = [
+    "LocalWallPlane",
     "ManifoldStrikeLabel",
     "ManifoldStrikeMatch",
     "ManifoldStrikeRefreshReport",
+    "local_wall_plane_from_strike",
     "manifold_branch_strike_seed_bundle",
     "refresh_manifold_strike_match",
     "select_manifold_strike_match",

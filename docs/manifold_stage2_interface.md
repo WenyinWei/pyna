@@ -226,3 +226,11 @@ iterations.  Residual, window, and transversality diagnostics are returned;
 the outer loop must reject a failed or tangent crossing and compare every
 accepted JAX hit with the exact Cyna first-wall hit.  The discrete questions of
 which seed hits and whether this is the first hit remain production decisions.
+
+For a sampled tokamak or QA wall, `local_wall_plane_from_strike` continuously
+projects the Cyna hit onto the toroidal surface and freezes its local tangent
+plane.  If the wall stores one field period, the projected point and normal are
+rotated back to Cyna's unwrapped physical hit angle.  This gives JAX a smooth
+local level set without pretending that discrete wall-cell or closest-segment
+selection is differentiable.  The plane is valid only inside the outer strike
+trust region and is rebuilt after each accepted production refresh.
