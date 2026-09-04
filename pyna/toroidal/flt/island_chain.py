@@ -3882,7 +3882,15 @@ def trace_fixed_point_manifolds_field(
         eigenvalue_sign: float,
         origin_R: float,
         origin_Z: float,
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    ) -> tuple[
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+    ]:
         seed_R = np.asarray(seed_R, dtype=float).ravel()
         seed_Z = np.asarray(seed_Z, dtype=float).ravel()
         seed_distance = np.asarray(seed_distance, dtype=float).ravel()
@@ -3890,7 +3898,15 @@ def trace_fixed_point_manifolds_field(
         seed_order = np.asarray(seed_order, dtype=int).ravel()
         if seed_R.size == 0:
             empty = np.empty(0, dtype=float)
-            return empty, empty, empty, np.empty(0, dtype=int), np.empty(0, dtype=int), empty
+            return (
+                empty,
+                empty,
+                empty,
+                np.empty(0, dtype=int),
+                np.empty(0, dtype=int),
+                empty,
+                empty,
+            )
 
         def _inside_limits(r: float, z: float) -> bool:
             if not (np.isfinite(r) and np.isfinite(z)):
@@ -3906,6 +3922,7 @@ def trace_fixed_point_manifolds_field(
         generation_out: list[int] = []
         seed_order_out: list[int] = []
         side_out: list[float] = []
+        seed_side_out: list[float] = []
         sign = -1.0 if float(eigenvalue_sign) < 0.0 else 1.0
         max_turns = 0
         for seed_i in range(seed_R.size):
@@ -3932,6 +3949,7 @@ def trace_fixed_point_manifolds_field(
                 generation_out.append(int(generation))
                 seed_order_out.append(int(seed_order[int(seed_i)]))
                 side_out.append(float(side))
+                seed_side_out.append(float(seed_side[int(seed_i)]))
                 last_R = float(r)
                 last_Z = float(z)
                 return True
@@ -3983,6 +4001,7 @@ def trace_fixed_point_manifolds_field(
             np.asarray(generation_out, dtype=int),
             np.asarray(seed_order_out, dtype=int),
             np.asarray(side_out, dtype=float),
+            np.asarray(seed_side_out, dtype=float),
         )
 
     manifolds: list[dict[str, np.ndarray]] = []
@@ -4174,7 +4193,15 @@ def trace_fixed_point_manifolds_field(
                 if seed_s_R.size
                 else []
             )
-        u_R, u_Z, u_lpol, u_generation, u_point_seed_order, u_point_side = _flatten_carousel(
+        (
+            u_R,
+            u_Z,
+            u_lpol,
+            u_generation,
+            u_point_seed_order,
+            u_point_side,
+            u_point_seed_side,
+        ) = _flatten_carousel(
             u_traces,
             seed_R=seed_u_R,
             seed_Z=seed_u_Z,
@@ -4185,7 +4212,15 @@ def trace_fixed_point_manifolds_field(
             origin_R=R0,
             origin_Z=Z0,
         )
-        s_R, s_Z, s_lpol, s_generation, s_point_seed_order, s_point_side = _flatten_carousel(
+        (
+            s_R,
+            s_Z,
+            s_lpol,
+            s_generation,
+            s_point_seed_order,
+            s_point_side,
+            s_point_seed_side,
+        ) = _flatten_carousel(
             s_traces,
             seed_R=seed_s_R,
             seed_Z=seed_s_Z,
@@ -4244,6 +4279,7 @@ def trace_fixed_point_manifolds_field(
             "u_generation": u_generation,
             "u_point_seed_order": u_point_seed_order,
             "u_point_side": u_point_side,
+            "u_point_seed_side": u_point_seed_side,
             "s_seed_R": seed_s_R.copy(),
             "s_seed_Z": seed_s_Z.copy(),
             "s_seed_distance": seed_s_distance.copy(),
@@ -4257,6 +4293,7 @@ def trace_fixed_point_manifolds_field(
             "s_generation": s_generation,
             "s_point_seed_order": s_point_seed_order,
             "s_point_side": s_point_side,
+            "s_point_seed_side": s_point_seed_side,
             "seed_spacing": seed_spacing,
             "seed_generation_order": "side_then_generation_then_distance",
             "seed_generation_semantics": (

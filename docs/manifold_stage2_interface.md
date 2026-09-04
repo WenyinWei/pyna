@@ -143,3 +143,37 @@ problem; they need not execute concurrently.  Eigensystem branch selection,
 orientation references, seed distances, side labels, and sample
 correspondences remain frozen between outer refreshes.  Gradients continue
 through the X-line position and all JAX field-line integrations.
+
+## Outer correspondence and acceptance
+
+The production manifold payload preserves both notions of side:
+
+- `*_point_side` is the physical side occupied on a particular generation;
+- `*_point_seed_side` is the initial signed seed segment used by the JAX
+  branch.
+
+They differ on every odd generation when the relevant map eigenvalue is
+negative.  Keeping both prevents an orientation-reversing saddle from silently
+switching the ESSOS branch label.
+
+`pyna.topo.manifold_correspondence.manifold_branch_reference_from_trace`
+converts one Cyna payload into a dense `(generation, seed, RZ)` reference.  The
+record includes X-line identity, section and map span, stable or unstable
+anchor, normalized direction, expansion, initial side, seed orders and
+distances, and an availability mask for samples terminated by a wall or domain
+limit.  A direction from the preceding accepted state can be supplied to lock
+the eigenvector sign and reject a branch whose tangent no longer aligns.
+
+PyNA also owns the two operations that change or validate inner-loop labels:
+
+- `nearest_available_manifold_sample` chooses a target label from a production
+  trace and reports the corresponding JAX seed-axis index.
+- `compare_jax_manifold_branch` compares all available fixed labels and rejects
+  excessive JAX/Cyna deviation, non-finite JAX output, or incomplete production
+  traces when completeness is required.
+
+ESSOS may consume the resulting direction, seed distances, side, generation,
+and seed index.  It must not independently infer those quantities from nearest
+points during a gradient evaluation.  After an accepted coil step, PyNA/Cyna
+rebuilds the record, validates the same label, and only then permits an outer
+refresh or relabelling decision.

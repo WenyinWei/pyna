@@ -1949,6 +1949,15 @@ def test_trace_fixed_point_manifolds_handles_orientation_reversing_saddle(monkey
     assert man["stable_orientation_reversing"] is True
     expected_dist = np.unique(np.round(man["u_seed_distance"], decimals=14))
 
+    for prefix in ("u", "s"):
+        generation = np.asarray(man[f"{prefix}_generation"], dtype=int)
+        physical_side = np.sign(man[f"{prefix}_point_side"]).astype(int)
+        seed_side = np.sign(man[f"{prefix}_point_seed_side"]).astype(int)
+        np.testing.assert_array_equal(
+            physical_side,
+            seed_side * (-1) ** generation,
+        )
+
     def branch_offsets(prefix: str, coord: str, generation: int, side_sign: float) -> np.ndarray:
         gen = np.asarray(man[f"{prefix}_generation"])
         side = np.asarray(man[f"{prefix}_point_side"])
