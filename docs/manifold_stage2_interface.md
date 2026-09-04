@@ -253,3 +253,30 @@ differentiable local-plane hit with the exact Cyna hit using the match's `rz` or
 `xyz` metric, and also requires the moving periodic point and implicit wall
 event to converge with finite diagnostics inside the frozen event window.
 Spatial proximity alone cannot pass the correspondence gate.
+
+`trace_manifold_strike_bundle` is the multi-strike differentiable primitive.
+It validates an ordered set of exact strike labels and wall planes, solves the
+moving periodic X-line once, reconstructs the complete accepted seed segment,
+and vectorizes the local implicit wall events.  Array row order is exactly the
+input label order; strings and discrete identity remain outside the JAX pytree.
+This makes a smooth ESSOS heat surrogate practical without weakening the
+single-strike ownership rules.
+
+## Production manifold heat gate
+
+`pyna.topo.manifold_heat.validate_manifold_heat_load` is the authoritative
+outer counterpart to that smooth surrogate.  Absolute per-seed powers must be
+supplied in the branch's sparse seed-order sequence together with quantitative
+provenance.  Cyna retraces every global first-wall hit, PyNA accounts for
+unresolved power, bins the resolved power on the complete toroidal wall with
+the standard `BoundaryTopologyHeatState`, and verifies discrete power
+conservation.
+
+Acceptance requires every requested seed label to remain resolved, unresolved
+power to stay below its declared tolerance, every hit to admit an accurate
+continuous wall projection, and the production peak heat flux to remain below
+the physical limit.  When previous strike matches are supplied, their exact
+labels are refreshed under a hit-displacement trust radius rather than
+reselected.  An accepted report returns the updated matches and local wall
+planes for the next ESSOS inner solve; a rejected report retains the production
+strike and heat diagnostics for rollback decisions.
