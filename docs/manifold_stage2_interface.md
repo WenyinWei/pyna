@@ -61,3 +61,21 @@ No wall-hit event or nearest-manifold-branch operation is placed in the inner
 differentiable path at this stage.  Those non-smooth observables are evaluated
 by PyNA/Cyna in the outer validation loop until smooth surrogates and persistent
 branch tracking are available.
+
+## Periodic points
+
+`pyna.topo.jax_periodic.solve_periodic_point` solves
+
+```text
+P^m(x, params) - x = 0
+```
+
+with a fixed-count Newton method.  Its derivative is defined implicitly with
+`jax.lax.custom_root`, so gradients do not pass through the Newton iterations.
+The accompanying `periodic_point_state` reports the residual, monodromy,
+Greene residue, eigenpairs, and hyperbolicity margin.  The outer Stage-2 loop
+must reject or refresh a point whose residual is not converged.
+
+This formulation is intended for isolated elliptic or hyperbolic points.  It
+must not be used at a parabolic point where `M-I` is singular; those topologies
+require a later augmented continuation system.
