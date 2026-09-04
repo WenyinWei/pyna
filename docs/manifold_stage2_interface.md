@@ -198,3 +198,22 @@ and seed index.  It must not independently infer those quantities from nearest
 points during a gradient evaluation.  After an accepted coil step, PyNA/Cyna
 rebuilds the record, validates the same label, and only then permits an outer
 refresh or relabelling decision.
+
+## First-wall strike identity
+
+`pyna.topo.manifold_strike` extends the same fixed-label rule from section
+samples to divertor strikes.  `manifold_branch_strike_seed_bundle` converts one
+accepted branch reference into the existing ordered Cyna strike-seed contract,
+including the sparse production seed orders.  `select_manifold_strike_match`
+chooses a resolved first-wall hit by physical Cartesian distance to a target;
+its identity is `(branch label, trace direction, seed order)`, not the current
+dense-array index.
+
+On a candidate field, `refresh_manifold_strike_match` looks up that exact seed
+order and requires it to produce a Cyna first-wall hit within a physical 3-D
+trust radius.  A missing seed, unresolved wall hit, changed branch identity, or
+excessive strike motion is a structured rejection.  It never substitutes a
+nearby strike.  This module contains no JAX dependency: it is the production
+selection and refresh half of the interface.  A differentiable wall-crossing
+solver must consume this frozen identity and remain subject to Cyna parity at
+accepted outer steps.
