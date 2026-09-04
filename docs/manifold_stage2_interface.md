@@ -214,11 +214,11 @@ other non-axisymmetric configurations.  Selection and refresh must use the
 same metric.
 
 On a candidate field, `refresh_manifold_strike_match` looks up that exact seed
-order and requires it to produce a Cyna first-wall hit within a physical 3-D
-trust radius.  A missing seed, unresolved wall hit, changed branch identity, or
-excessive strike motion is a structured rejection.  It never substitutes a
-nearby strike.  This module contains no JAX dependency: it is the production
-selection and refresh half of the interface.
+order and requires it to produce a Cyna first-wall hit within the selected
+physical-metric trust radius.  A missing seed, unresolved wall hit, changed
+branch identity, or excessive strike motion is a structured rejection.  It
+never substitutes a nearby strike.  This module contains no JAX dependency: it
+is the production selection and refresh half of the interface.
 
 `pyna.topo.jax_strike` supplies the parallel differentiable event solve.  Given
 a Cartesian field, one frozen launch seed, a smooth wall level set `g`, and the
@@ -247,3 +247,9 @@ manifold launch motion, field-line evolution, and motion of the strike angle.
 The function rejects mismatched branch, direction, seed, or wall-plane labels
 before tracing; its periodic-point and wall-event convergence diagnostics still
 have to pass at the outer boundary.
+
+`compare_jax_manifold_strike` implements that outer boundary.  It compares the
+differentiable local-plane hit with the exact Cyna hit using the match's `rz` or
+`xyz` metric, and also requires the moving periodic point and implicit wall
+event to converge with finite diagnostics inside the frozen event window.
+Spatial proximity alone cannot pass the correspondence gate.

@@ -20,6 +20,9 @@ from pyna.topo.manifold_strike_contracts import (
     ManifoldStrikeLabel,
     ManifoldStrikeMatch,
 )
+from pyna.topo.manifold_strike_correspondence import (
+    compare_jax_manifold_strike,
+)
 
 
 def _constant_poloidal_slope_field(xyz, params):
@@ -328,8 +331,15 @@ def test_labelled_manifold_strike_tracks_moving_xline_and_exact_seed():
     np.testing.assert_allclose(
         state.intersection.point_xyz,
         match.point_xyz_m,
-        atol=2.0e-11,
+        rtol=0.0,
+        atol=1.0e-10,
     )
+    correspondence = compare_jax_manifold_strike(
+        match,
+        state,
+        absolute_tolerance_m=1.0e-10,
+    )
+    assert correspondence.accepted
 
     moved_center = params.at[1:].add(jnp.array([2.0e-4, -3.0e-4]))
     moved = _trace_labelled_strike(moved_center)
