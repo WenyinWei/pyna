@@ -9,7 +9,11 @@ jax = pytest.importorskip("jax")
 jax.config.update("jax_enable_x64", True)
 import jax.numpy as jnp
 
-from pyna.topo.jax_periodic import periodic_point_state, solve_periodic_point
+from pyna.topo.jax_periodic import (
+    periodic_orbit_trajectory_state,
+    periodic_point_state,
+    solve_periodic_point,
+)
 
 
 def _shifted_hyperbolic_field(xyz, params):
@@ -154,6 +158,48 @@ def test_map_power_tracks_same_root_and_accumulates_monodromy():
     )
     np.testing.assert_allclose(state.position, params[1:], atol=3e-14)
     np.testing.assert_allclose(state.monodromy, expected, rtol=2e-11, atol=2e-14)
+
+
+def test_periodic_orbit_trajectory_is_closed_and_differentiable():
+    params = jnp.array([0.25, 1.02, -0.02])
+    phi_start = 0.23
+    phi_span = 0.6
+
+    def trajectory(dynamic_params):
+        return periodic_orbit_trajectory_state(
+            _shifted_hyperbolic_field,
+            dynamic_params,
+            jnp.array([0.95, 0.05]),
+            phi_start=phi_start,
+            phi_span=phi_span,
+            map_power=2,
+            n_steps_per_span=32,
+            newton_iterations=4,
+        )
+
+    state = jax.jit(trajectory)(params)
+    assert state.phi.shape == (65,)
+    assert state.point_RZPhi.shape == (65, 3)
+    assert state.point_xyz.shape == (65, 3)
+    np.testing.assert_allclose(
+        state.point_RZPhi[:, :2],
+        np.broadcast_to(np.asarray(params[1:]), (65, 2)),
+        atol=3e-14,
+    )
+    np.testing.assert_allclose(
+        np.asarray(state.phi)[[0, -1]],
+        [phi_start, phi_start + 1.2],
+    )
+    np.testing.assert_allclose(state.closure_error, state.periodic_point.residual_norm)
+
+    center_gradient = jax.jacfwd(
+        lambda dynamic_params: trajectory(dynamic_params).point_RZPhi[17, :2]
+    )(params)
+    np.testing.assert_allclose(
+        center_gradient,
+        [[0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+        atol=3e-13,
+    )
 
 
 def test_periodic_point_validates_static_solver_configuration():

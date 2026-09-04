@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import operator
 from collections.abc import Callable
-from typing import Any
+from typing import Any, NamedTuple
 
 try:
     import jax
@@ -32,6 +32,13 @@ except ImportError as exc:  # pragma: no cover - exercised without the extra
 
 
 CartesianField = Callable[[Any, Any], Any]
+
+
+class FixedPhiTrajectory(NamedTuple):
+    """Uniform differentiable samples of one fixed-phi field-line trace."""
+
+    phi: Any
+    rz: Any
 
 
 def cylindrical_field_components(
@@ -148,6 +155,66 @@ def poincare_map(
     return jax.lax.fori_loop(0, steps, rk4_step, rz_initial)
 
 
+def fixed_phi_trajectory(
+    field_fn: CartesianField,
+    params: Any,
+    rz0: Any,
+    *,
+    phi_span: Any,
+    phi_start: Any = 0.0,
+    n_steps: int = 256,
+    bphi_floor: float = 0.0,
+) -> FixedPhiTrajectory:
+    """Trace and retain every RK4 state of a fixed-phi field-line map.
+
+    The returned arrays include both endpoints and have shapes
+    ``(n_steps + 1,)`` and ``(n_steps + 1, 2)``.  They use the same discrete
+    RK4 update as :func:`poincare_map`, so the last trajectory state is exactly
+    the corresponding map value up to backend arithmetic.
+    """
+
+    try:
+        steps = operator.index(n_steps)
+    except TypeError as exc:
+        raise TypeError("n_steps must be an integer") from exc
+    if steps <= 0:
+        raise ValueError("n_steps must be positive")
+    if bphi_floor < 0.0:
+        raise ValueError("bphi_floor must be non-negative")
+
+    rz_initial = jnp.asarray(rz0)
+    if rz_initial.shape != (2,):
+        raise ValueError("rz0 must have shape (2,)")
+
+    phi0 = jnp.asarray(phi_start, dtype=rz_initial.dtype)
+    step_size = jnp.asarray(phi_span, dtype=rz_initial.dtype) / steps
+
+    def rhs(phi: Any, rz: Any) -> Any:
+        return fixed_phi_rhs(
+            phi,
+            rz,
+            params,
+            field_fn=field_fn,
+            bphi_floor=bphi_floor,
+        )
+
+    def rk4_step(rz: Any, index: Any) -> tuple[Any, Any]:
+        phi = phi0 + step_size * index
+        k1 = rhs(phi, rz)
+        k2 = rhs(phi + 0.5 * step_size, rz + 0.5 * step_size * k1)
+        k3 = rhs(phi + 0.5 * step_size, rz + 0.5 * step_size * k2)
+        k4 = rhs(phi + step_size, rz + step_size * k3)
+        next_rz = rz + (step_size / 6.0) * (
+            k1 + 2.0 * k2 + 2.0 * k3 + k4
+        )
+        return next_rz, next_rz
+
+    _, traced_rz = jax.lax.scan(rk4_step, rz_initial, jnp.arange(steps))
+    phi = phi0 + step_size * jnp.arange(steps + 1, dtype=rz_initial.dtype)
+    rz = jnp.concatenate((rz_initial[None, :], traced_rz), axis=0)
+    return FixedPhiTrajectory(phi=phi, rz=rz)
+
+
 def poincare_map_jacobian(
     field_fn: CartesianField,
     params: Any,
@@ -176,7 +243,9 @@ def poincare_map_jacobian(
 
 __all__ = [
     "CartesianField",
+    "FixedPhiTrajectory",
     "cylindrical_field_components",
+    "fixed_phi_trajectory",
     "fixed_phi_rhs",
     "poincare_map",
     "poincare_map_jacobian",

@@ -25,7 +25,11 @@ except ImportError as exc:  # pragma: no cover - exercised without the extra
         "install the optional 'pyna-chaos[jax]' dependencies"
     ) from exc
 
-from pyna.toroidal.flt.jax_poincare import CartesianField, poincare_map
+from pyna.toroidal.flt.jax_poincare import (
+    CartesianField,
+    fixed_phi_trajectory,
+    poincare_map,
+)
 
 
 class PeriodicPointState(NamedTuple):
@@ -49,6 +53,16 @@ class PeriodicPointState(NamedTuple):
     eigenvalues: Any
     eigenvectors: Any
     converged: Any
+
+
+class PeriodicOrbitTrajectoryState(NamedTuple):
+    """Implicit periodic point and its differentiable fixed-phi trajectory."""
+
+    periodic_point: PeriodicPointState
+    phi: Any
+    point_RZPhi: Any
+    point_xyz: Any
+    closure_error: Any
 
 
 def _positive_integer(value: int, name: str) -> int:
@@ -244,8 +258,77 @@ def periodic_point_state(
     )
 
 
+def periodic_orbit_trajectory_state(
+    field_fn: CartesianField,
+    params: Any,
+    initial_guess: Any,
+    *,
+    phi_span: Any,
+    phi_start: Any = 0.0,
+    map_power: int = 1,
+    n_steps_per_span: int = 256,
+    newton_iterations: int = 8,
+    newton_damping: float = 1.0,
+    bphi_floor: float = 0.0,
+    residual_tolerance: float = 1.0e-10,
+) -> PeriodicOrbitTrajectoryState:
+    """Solve and uniformly sample one complete labelled periodic orbit.
+
+    ``map_power`` determines both the periodic-point equation and the number of
+    traced field periods.  The trajectory includes its launch and closing
+    endpoints.  Its root is implicitly differentiated, while every retained
+    RK4 state remains in the ordinary JAX derivative path.
+    """
+
+    power = _positive_integer(map_power, "map_power")
+    steps = _positive_integer(n_steps_per_span, "n_steps_per_span")
+    periodic_point = periodic_point_state(
+        field_fn,
+        params,
+        initial_guess,
+        phi_span=phi_span,
+        phi_start=phi_start,
+        map_power=power,
+        n_steps_per_span=steps,
+        newton_iterations=newton_iterations,
+        newton_damping=newton_damping,
+        bphi_floor=bphi_floor,
+        residual_tolerance=residual_tolerance,
+    )
+    trajectory = fixed_phi_trajectory(
+        field_fn,
+        params,
+        periodic_point.position,
+        phi_span=jnp.asarray(phi_span) * power,
+        phi_start=phi_start,
+        n_steps=steps * power,
+        bphi_floor=bphi_floor,
+    )
+    point_RZPhi = jnp.column_stack(
+        (trajectory.rz[:, 0], trajectory.rz[:, 1], trajectory.phi)
+    )
+    cos_phi = jnp.cos(trajectory.phi)
+    sin_phi = jnp.sin(trajectory.phi)
+    point_xyz = jnp.column_stack(
+        (
+            trajectory.rz[:, 0] * cos_phi,
+            trajectory.rz[:, 0] * sin_phi,
+            trajectory.rz[:, 1],
+        )
+    )
+    return PeriodicOrbitTrajectoryState(
+        periodic_point=periodic_point,
+        phi=trajectory.phi,
+        point_RZPhi=point_RZPhi,
+        point_xyz=point_xyz,
+        closure_error=jnp.linalg.norm(trajectory.rz[-1] - trajectory.rz[0]),
+    )
+
+
 __all__ = [
+    "PeriodicOrbitTrajectoryState",
     "PeriodicPointState",
+    "periodic_orbit_trajectory_state",
     "periodic_point_state",
     "solve_periodic_point",
 ]

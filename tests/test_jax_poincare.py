@@ -11,6 +11,7 @@ import jax.numpy as jnp
 
 from pyna.toroidal.flt.jax_poincare import (
     cylindrical_field_components,
+    fixed_phi_trajectory,
     poincare_map,
     poincare_map_jacobian,
 )
@@ -77,6 +78,50 @@ def test_helical_map_is_jittable_and_differentiable_in_field_parameter():
         jax.jacfwd(mapped, argnums=1)(rz0, 0.3),
         [0.0, phi_span],
         atol=1e-13,
+    )
+
+
+def test_fixed_phi_trajectory_matches_map_and_retains_parameter_gradient():
+    rz0 = jnp.array([1.4, -0.2])
+    phi_start = 0.17
+    phi_span = 0.8
+
+    def traced(pitch):
+        return fixed_phi_trajectory(
+            _helical_field,
+            pitch,
+            rz0,
+            phi_start=phi_start,
+            phi_span=phi_span,
+            n_steps=16,
+        )
+
+    trajectory = jax.jit(traced)(0.3)
+    expected_phi = np.linspace(phi_start, phi_start + phi_span, 17)
+    expected_rz = np.column_stack(
+        (
+            np.full(17, float(rz0[0])),
+            float(rz0[1]) + 0.3 * (expected_phi - phi_start),
+        )
+    )
+    np.testing.assert_allclose(trajectory.phi, expected_phi, atol=1e-15)
+    np.testing.assert_allclose(trajectory.rz, expected_rz, atol=2e-15)
+    np.testing.assert_allclose(
+        trajectory.rz[-1],
+        poincare_map(
+            _helical_field,
+            0.3,
+            rz0,
+            phi_start=phi_start,
+            phi_span=phi_span,
+            n_steps=16,
+        ),
+        atol=0.0,
+    )
+    np.testing.assert_allclose(
+        jax.jacfwd(lambda pitch: traced(pitch).rz[:, 1])(0.3),
+        expected_phi - phi_start,
+        atol=2e-15,
     )
 
 
