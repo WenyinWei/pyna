@@ -11,13 +11,13 @@ from pyna.topo.xline_clearance import validate_periodic_xline_clearance
 from pyna.toroidal.geometry import ToroidalComponentSurface
 
 
-def _branch(anchor=(1.05, 0.0)):
+def _branch(anchor=(1.05, 0.0), *, section_phi=0.2, map_span=0.8):
     return ManifoldBranchReference(
         origin_label="xline",
         stability="unstable",
         seed_side=1,
-        section_phi=0.2,
-        map_span=0.8,
+        section_phi=section_phi,
+        map_span=map_span,
         anchor_RZ_m=np.asarray(anchor),
         direction_RZ=np.asarray([1.0, 0.0]),
         expansion=1.2,
@@ -29,12 +29,12 @@ def _branch(anchor=(1.05, 0.0)):
     )
 
 
-def _wall():
-    phi = np.linspace(0.0, 2.0 * np.pi, 8, endpoint=False)
+def _wall(nfp=1):
+    phi = np.linspace(0.0, 2.0 * np.pi / nfp, 8, endpoint=False)
     theta = np.linspace(0.0, 2.0 * np.pi, 128, endpoint=False)
     R = np.broadcast_to(1.0 + 0.3 * np.cos(theta), (phi.size, theta.size))
     Z = np.broadcast_to(0.3 * np.sin(theta), (phi.size, theta.size))
-    return ToroidalComponentSurface(phi=phi, R=R, Z=Z, nfp=1)
+    return ToroidalComponentSurface(phi=phi, R=R, Z=Z, nfp=nfp)
 
 
 def _constant_orbit_trace(
@@ -104,6 +104,22 @@ def test_production_clearance_uses_native_cyna_grid_trace():
     assert report.accepted
     assert report.point_RZPhi_m_rad.shape[0] == 81
     assert report.minimum_clearance_m == pytest.approx(0.25, abs=2.0e-4)
+
+
+def test_production_clearance_preserves_sign_across_nfp_seams():
+    report = validate_periodic_xline_clearance(
+        object(),
+        _branch(map_span=2.0 * np.pi + 0.4),
+        _wall(nfp=2),
+        DPhi=0.01,
+        required_minimum_clearance_m=0.2,
+        maximum_closure_error_m=1.0e-6,
+        trace_function=_constant_orbit_trace,
+    )
+
+    assert report.accepted
+    assert report.point_RZPhi_m_rad[-1, 2] > 2.0 * np.pi
+    np.testing.assert_allclose(report.signed_clearance_m, 0.25, atol=2.0e-4)
 
 
 def test_production_clearance_rejects_outside_orbit_with_signed_distance():

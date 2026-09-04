@@ -117,10 +117,33 @@ def _signed_clearance_from_projection(
     point_xyz = np.column_stack(
         (radius * np.cos(phi), radius * np.sin(phi), height)
     )
+    wrapped_xyz = np.asarray(projection.xyz, dtype=float)
+    wrapped_normal = np.asarray(projection.normal, dtype=float)
+    rotation_angle = phi - np.asarray(projection.phi, dtype=float)
+    cos_rotation = np.cos(rotation_angle)
+    sin_rotation = np.sin(rotation_angle)
+    projected_xyz = wrapped_xyz.copy()
+    projected_xyz[:, 0] = (
+        cos_rotation * wrapped_xyz[:, 0]
+        - sin_rotation * wrapped_xyz[:, 1]
+    )
+    projected_xyz[:, 1] = (
+        sin_rotation * wrapped_xyz[:, 0]
+        + cos_rotation * wrapped_xyz[:, 1]
+    )
+    normal = wrapped_normal.copy()
+    normal[:, 0] = (
+        cos_rotation * wrapped_normal[:, 0]
+        - sin_rotation * wrapped_normal[:, 1]
+    )
+    normal[:, 1] = (
+        sin_rotation * wrapped_normal[:, 0]
+        + cos_rotation * wrapped_normal[:, 1]
+    )
     outward_offset = np.einsum(
         "ij,ij->i",
-        point_xyz - np.asarray(projection.xyz, dtype=float),
-        np.asarray(projection.normal, dtype=float),
+        point_xyz - projected_xyz,
+        normal,
     )
     distance = np.asarray(projection.distance, dtype=float)
     return np.where(outward_offset <= 0.0, distance, -distance)
@@ -140,8 +163,10 @@ def validate_periodic_xline_clearance(
     """Validate one complete production X-line orbit against a toroidal wall.
 
     Clearance is positive on the inward side of the oriented wall and negative
-    outside it.  The trajectory output interval equals ``DPhi``; callers must
-    converge this sampling just as they converge the production field grid.
+    outside it.  Periodic wall projections are rotated back to each sample's
+    signed, unwrapped toroidal phase before assigning that sign.  The trajectory
+    output interval equals ``DPhi``; callers must converge this sampling just as
+    they converge the production field grid.
     """
 
     if not isinstance(branch_reference, ManifoldBranchReference):
