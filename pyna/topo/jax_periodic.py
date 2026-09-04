@@ -1,9 +1,9 @@
 """Implicitly differentiable periodic points of fixed-phi magnetic maps.
 
 The nonlinear solve is used to locate a periodic point, but derivatives are
-defined by the root equation ``P^m(x, params) - x = 0`` through
-``jax.lax.custom_root``.  Consequently Stage-2 coil derivatives do not
-backpropagate through the Newton iterations.
+defined by the root equation ``P^m(x, params) - x = 0`` through an explicit
+custom JVP implementing the implicit-function theorem.  Consequently Stage-2
+coil derivatives do not backpropagate through the Newton iterations.
 
 This optional module requires JAX and builds on
 ``pyna.toroidal.flt.jax_poincare``.  Hyperbolic points are the initial scope;
@@ -110,42 +110,70 @@ def solve_periodic_point(
     if not 0.0 < newton_damping <= 1.0:
         raise ValueError("newton_damping must lie in (0, 1]")
 
-    guess = jnp.asarray(initial_guess)
+    guess = jax.lax.stop_gradient(jnp.asarray(initial_guess))
     if guess.shape != (2,):
         raise ValueError("initial_guess must have shape (2,)")
+    span = jnp.asarray(phi_span, dtype=guess.dtype)
+    start = jnp.asarray(phi_start, dtype=guess.dtype)
 
-    def displacement(rz):
+    def displacement(rz, active_params, active_span, active_start):
         return _periodic_map(
             field_fn,
-            params,
+            active_params,
             rz,
-            phi_span=phi_span,
-            phi_start=phi_start,
+            phi_span=active_span,
+            phi_start=active_start,
             map_power=power,
             n_steps_per_span=steps,
             bphi_floor=bphi_floor,
         ) - rz
 
-    def newton_solve(function, starting_point):
+    def newton_solve(active_params, active_span, active_start):
         def newton_step(_, position):
-            residual = function(position)
-            jacobian = jax.jacfwd(function)(position)
+            residual = displacement(
+                position,
+                active_params,
+                active_span,
+                active_start,
+            )
+            jacobian = jax.jacfwd(displacement, argnums=0)(
+                position,
+                active_params,
+                active_span,
+                active_start,
+            )
             correction = jnp.linalg.solve(jacobian, residual)
             return position - newton_damping * correction
 
-        return jax.lax.fori_loop(0, iterations, newton_step, starting_point)
+        return jax.lax.fori_loop(0, iterations, newton_step, guess)
 
-    def tangent_solve(linear_function, right_hand_side):
-        basis = jnp.eye(right_hand_side.shape[0], dtype=right_hand_side.dtype)
-        matrix = jax.vmap(linear_function, out_axes=1)(basis)
-        return jnp.linalg.solve(matrix, right_hand_side)
+    @jax.custom_jvp
+    def implicit_solve(active_params, active_span, active_start):
+        return newton_solve(active_params, active_span, active_start)
 
-    return jax.lax.custom_root(
-        displacement,
-        guess,
-        newton_solve,
-        tangent_solve,
-    )
+    @implicit_solve.defjvp
+    def implicit_solve_jvp(primals, tangents):
+        active_params, active_span, active_start = primals
+        params_tangent, span_tangent, start_tangent = tangents
+        position = implicit_solve(active_params, active_span, active_start)
+        jacobian = jax.jacfwd(displacement, argnums=0)(
+            position,
+            active_params,
+            active_span,
+            active_start,
+        )
+
+        def residual_at_position(parameters, map_span, map_start):
+            return displacement(position, parameters, map_span, map_start)
+
+        _, right_hand_side = jax.jvp(
+            residual_at_position,
+            (active_params, active_span, active_start),
+            (params_tangent, span_tangent, start_tangent),
+        )
+        return position, -jnp.linalg.solve(jacobian, right_hand_side)
+
+    return implicit_solve(params, span, start)
 
 
 def periodic_point_state(

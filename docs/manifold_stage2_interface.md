@@ -70,11 +70,12 @@ branch tracking are available.
 P^m(x, params) - x = 0
 ```
 
-with a fixed-count Newton method.  Its derivative is defined implicitly with
-`jax.lax.custom_root`, so gradients do not pass through the Newton iterations.
-The accompanying `periodic_point_state` reports the residual, monodromy,
-Greene residue, eigenpairs, and hyperbolicity margin.  The outer Stage-2 loop
-must reject or refresh a point whose residual is not converged.
+with a fixed-count Newton method.  Its custom JVP applies the implicit-function
+theorem directly to the converged root equation, so gradients do not pass
+through the Newton iterations.  The initial guess is therefore nondifferentiable
+outer-loop state.  The accompanying `periodic_point_state` reports the residual,
+monodromy, Greene residue, eigenpairs, and hyperbolicity margin.  The outer
+Stage-2 loop must reject or refresh a point whose residual is not converged.
 
 Eigenvectors are stop-gradient diagnostic data for outer-loop manifold branch
 seeding.  The root, monodromy invariants, and eigenvalues remain differentiable;

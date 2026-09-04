@@ -61,6 +61,23 @@ def test_periodic_point_uses_implicit_parameter_derivative():
     np.testing.assert_allclose(jax.jacrev(_solve)(params), expected, atol=3e-13)
 
 
+def test_periodic_point_initial_guess_is_nondifferentiable_outer_state():
+    params = jnp.array([0.32, 1.04, 0.035])
+
+    def solve_from_guess(initial_guess):
+        return solve_periodic_point(
+            _shifted_hyperbolic_field,
+            params,
+            initial_guess,
+            phi_span=0.7,
+            n_steps_per_span=128,
+            newton_iterations=4,
+        )
+
+    derivative = jax.jacfwd(solve_from_guess)(jnp.array([0.91, -0.08]))
+    np.testing.assert_allclose(derivative, 0.0, atol=0.0)
+
+
 def test_periodic_point_state_reports_monodromy_and_classification_data():
     params = jnp.array([0.32, 1.04, 0.035])
     phi_span = 0.7
