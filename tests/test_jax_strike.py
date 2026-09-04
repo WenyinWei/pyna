@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import numpy as np
 import pytest
 
@@ -23,6 +25,7 @@ from pyna.topo.manifold_strike_contracts import (
     ManifoldStrikeMatch,
 )
 from pyna.topo.manifold_strike_correspondence import (
+    compare_jax_manifold_strike_bundle,
     compare_jax_manifold_strike,
 )
 
@@ -592,3 +595,37 @@ def test_labelled_strike_bundle_solves_one_xline_and_validates_labels(monkeypatc
             (planes[0], planes[0]),
             maximum_phi_shift=0.2,
         )
+
+
+def test_labelled_strike_bundle_has_ordered_outer_correspondence_gate():
+    params = jnp.array([0.4, 1.0, -0.05])
+    _branch, matches, _planes = _manifold_strike_bundle_reference()
+    bundle = _trace_labelled_bundle(params)
+
+    accepted = compare_jax_manifold_strike_bundle(
+        matches,
+        bundle,
+        absolute_tolerance_m=1.0e-10,
+    )
+    assert accepted.accepted
+    assert accepted.rejection_reason is None
+    assert accepted.max_deviation_m < 1.0e-10
+    assert accepted.labels == tuple(match.label for match in matches)
+    assert all(report.accepted for report in accepted.strike_reports)
+
+    moved_point = matches[1].point_RZPhi_m_rad.copy()
+    moved_point[0] += 1.0e-3
+    moved_matches = (
+        matches[0],
+        replace(matches[1], point_RZPhi_m_rad=moved_point),
+    )
+    rejected = compare_jax_manifold_strike_bundle(
+        moved_matches,
+        bundle,
+        absolute_tolerance_m=1.0e-6,
+    )
+    assert not rejected.accepted
+    assert rejected.strike_reports[0].accepted
+    assert not rejected.strike_reports[1].accepted
+    assert rejected.max_deviation_m == pytest.approx(1.0e-3)
+    assert matches[1].label.key in rejected.rejection_reason

@@ -260,7 +260,10 @@ moving periodic X-line once, reconstructs the complete accepted seed segment,
 and vectorizes the local implicit wall events.  Array row order is exactly the
 input label order; strings and discrete identity remain outside the JAX pytree.
 This makes a smooth ESSOS heat surrogate practical without weakening the
-single-strike ownership rules.
+single-strike ownership rules.  `compare_jax_manifold_strike_bundle` applies
+the existing convergence, event-window, transversality, and spatial-parity
+gate to every ordered label and reports both the limiting label and maximum
+JAX/Cyna deviation.
 
 ## Production manifold heat gate
 

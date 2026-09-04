@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from types import SimpleNamespace
 from typing import Any, Literal
 
 import numpy as np
@@ -33,6 +34,48 @@ class ManifoldStrikeCorrespondenceReport:
     absolute_tolerance_m: float
     accepted: bool
     rejection_reason: str | None = None
+
+
+@dataclass(frozen=True)
+class ManifoldStrikeBundleCorrespondenceReport:
+    """Ordered per-label parity reports for one differentiable strike bundle."""
+
+    labels: tuple[ManifoldStrikeLabel, ...]
+    strike_reports: tuple[ManifoldStrikeCorrespondenceReport, ...]
+    max_deviation_m: float
+    absolute_tolerance_m: float
+    accepted: bool
+    rejection_reason: str | None = None
+
+    def __post_init__(self) -> None:
+        labels = tuple(self.labels)
+        reports = tuple(self.strike_reports)
+        tolerance = float(self.absolute_tolerance_m)
+        maximum = float(self.max_deviation_m)
+        accepted = bool(self.accepted)
+        reason = None if self.rejection_reason is None else str(
+            self.rejection_reason
+        )
+        if not labels or len(labels) != len(reports):
+            raise ValueError("labels and strike_reports must be non-empty and aligned")
+        if tuple(report.label for report in reports) != labels:
+            raise ValueError("strike report labels do not preserve bundle order")
+        if not np.isfinite(tolerance) or tolerance < 0.0:
+            raise ValueError("absolute_tolerance_m must be non-negative and finite")
+        expected_maximum = float(max(report.deviation_m for report in reports))
+        if maximum != expected_maximum:
+            raise ValueError("max_deviation_m disagrees with strike reports")
+        if accepted:
+            if reason is not None or not all(report.accepted for report in reports):
+                raise ValueError("an accepted bundle requires every strike report")
+        elif reason is None:
+            raise ValueError("a rejected bundle requires rejection_reason")
+        object.__setattr__(self, "labels", labels)
+        object.__setattr__(self, "strike_reports", reports)
+        object.__setattr__(self, "max_deviation_m", maximum)
+        object.__setattr__(self, "absolute_tolerance_m", tolerance)
+        object.__setattr__(self, "accepted", accepted)
+        object.__setattr__(self, "rejection_reason", reason)
 
 
 def _scalar(value: object, name: str) -> float:
@@ -153,7 +196,95 @@ def compare_jax_manifold_strike(
     )
 
 
+def compare_jax_manifold_strike_bundle(
+    production_matches: Any,
+    jax_strike_bundle_state: Any,
+    *,
+    absolute_tolerance_m: float,
+) -> ManifoldStrikeBundleCorrespondenceReport:
+    """Compare ordered JAX local events with the same exact Cyna labels."""
+
+    try:
+        matches = tuple(production_matches)
+    except TypeError as exc:
+        raise TypeError("production_matches must be an iterable") from exc
+    if not matches:
+        raise ValueError("production_matches must not be empty")
+    if not all(isinstance(match, ManifoldStrikeMatch) for match in matches):
+        raise TypeError("production_matches must contain ManifoldStrikeMatch values")
+    labels = tuple(match.label for match in matches)
+    if len(set(labels)) != len(labels):
+        raise ValueError("production strike labels must be unique")
+    try:
+        periodic = jax_strike_bundle_state.periodic_point
+        intersections = jax_strike_bundle_state.intersections
+    except AttributeError as exc:
+        raise TypeError(
+            "jax_strike_bundle_state must provide periodic_point and intersections"
+        ) from exc
+    intersection_fields = (
+        "point_RZPhi",
+        "converged",
+        "within_window",
+        "wall_residual",
+        "transversality",
+        "phi_shift_from_guess",
+    )
+    arrays = {}
+    for name in intersection_fields:
+        try:
+            value = np.asarray(getattr(intersections, name))
+        except AttributeError as exc:
+            raise TypeError(
+                "bundle intersections must provide wall-event diagnostics"
+            ) from exc
+        if value.ndim < 1 or value.shape[0] != len(matches):
+            raise TypeError(
+                "bundle intersection rows must align with production_matches"
+            )
+        arrays[name] = value
+
+    reports = []
+    for index, match in enumerate(matches):
+        intersection = SimpleNamespace(
+            **{name: value[index] for name, value in arrays.items()}
+        )
+        state = SimpleNamespace(
+            periodic_point=periodic,
+            intersection=intersection,
+        )
+        reports.append(
+            compare_jax_manifold_strike(
+                match,
+                state,
+                absolute_tolerance_m=absolute_tolerance_m,
+            )
+        )
+    strike_reports = tuple(reports)
+    first_rejected = next(
+        (report for report in strike_reports if not report.accepted),
+        None,
+    )
+    reason = (
+        None
+        if first_rejected is None
+        else f"{first_rejected.label.key}:{first_rejected.rejection_reason}"
+    )
+    return ManifoldStrikeBundleCorrespondenceReport(
+        labels=labels,
+        strike_reports=strike_reports,
+        max_deviation_m=float(
+            max(report.deviation_m for report in strike_reports)
+        ),
+        absolute_tolerance_m=float(absolute_tolerance_m),
+        accepted=first_rejected is None,
+        rejection_reason=reason,
+    )
+
+
 __all__ = [
+    "ManifoldStrikeBundleCorrespondenceReport",
     "ManifoldStrikeCorrespondenceReport",
     "compare_jax_manifold_strike",
+    "compare_jax_manifold_strike_bundle",
 ]
