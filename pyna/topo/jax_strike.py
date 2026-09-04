@@ -60,6 +60,20 @@ class ManifoldStrikeState(NamedTuple):
     intersection: WallIntersectionState
 
 
+class ManifoldStrikeBundleState(NamedTuple):
+    """One moving X-line and ordered arrays of exact labelled strikes.
+
+    Rows in ``seed_RZ`` and every leaf of ``intersections`` retain the order of
+    the ``strike_matches`` and ``wall_planes`` supplied to
+    :func:`trace_manifold_strike_bundle`.  Labels remain frozen outer-loop data
+    rather than entering the JAX pytree.
+    """
+
+    periodic_point: PeriodicPointState
+    seed_RZ: Any
+    intersections: WallIntersectionState
+
+
 def _positive_integer(value: int, name: str) -> int:
     try:
         result = operator.index(value)
@@ -372,6 +386,67 @@ def wall_intersection_state(
     )
 
 
+def _validate_strike_pair(
+    branch_reference: ManifoldBranchReference,
+    strike_match: ManifoldStrikeMatch,
+    wall_plane: LocalWallPlane,
+) -> int:
+    if not isinstance(strike_match, ManifoldStrikeMatch):
+        raise TypeError("strike_match must be ManifoldStrikeMatch")
+    if not isinstance(wall_plane, LocalWallPlane):
+        raise TypeError("wall_plane must be LocalWallPlane")
+    if strike_match.label != wall_plane.strike_label:
+        raise ValueError("wall_plane belongs to a different strike label")
+    if strike_match.label.branch_label != branch_reference.label:
+        raise ValueError("strike_match belongs to a different manifold branch")
+    map_direction = 1.0 if branch_reference.map_span > 0.0 else -1.0
+    physical_sign = map_direction * (
+        1.0 if branch_reference.stability == "unstable" else -1.0
+    )
+    expected_direction = "+" if physical_sign > 0.0 else "-"
+    if strike_match.label.direction != expected_direction:
+        raise ValueError("strike direction disagrees with the manifold branch")
+    signed_reference_span = (
+        wall_plane.wall_phi_rad - branch_reference.section_phi
+    ) * physical_sign
+    if signed_reference_span <= 0.0:
+        raise ValueError("production wall hit lies opposite the branch trace direction")
+    return branch_reference.seed_index(strike_match.label.seed_order)
+
+
+def _periodic_point_and_seed_segment(
+    field_fn: CartesianField,
+    params: Any,
+    branch_reference: ManifoldBranchReference,
+    *,
+    n_steps_per_span: int,
+    xline_newton_iterations: int,
+    xline_newton_damping: float,
+    bphi_floor: float,
+    xline_residual_tolerance: float,
+):
+    periodic = periodic_point_state(
+        field_fn,
+        params,
+        branch_reference.anchor_RZ_m,
+        phi_span=branch_reference.map_span,
+        phi_start=branch_reference.section_phi,
+        map_power=1,
+        n_steps_per_span=n_steps_per_span,
+        newton_iterations=xline_newton_iterations,
+        newton_damping=xline_newton_damping,
+        bphi_floor=bphi_floor,
+        residual_tolerance=xline_residual_tolerance,
+    )
+    seeds = manifold_seed_segment(
+        periodic.position,
+        branch_reference.direction_RZ,
+        branch_reference.seed_distances_m,
+        side=branch_reference.seed_side,
+    )
+    return periodic, seeds
+
+
 def trace_manifold_strike(
     field_fn: CartesianField,
     params: Any,
@@ -401,46 +476,17 @@ def trace_manifold_strike(
 
     if not isinstance(branch_reference, ManifoldBranchReference):
         raise TypeError("branch_reference must be ManifoldBranchReference")
-    if not isinstance(strike_match, ManifoldStrikeMatch):
-        raise TypeError("strike_match must be ManifoldStrikeMatch")
-    if not isinstance(wall_plane, LocalWallPlane):
-        raise TypeError("wall_plane must be LocalWallPlane")
-    if strike_match.label != wall_plane.strike_label:
-        raise ValueError("wall_plane belongs to a different strike label")
-    if strike_match.label.branch_label != branch_reference.label:
-        raise ValueError("strike_match belongs to a different manifold branch")
-    map_direction = 1.0 if branch_reference.map_span > 0.0 else -1.0
-    physical_sign = map_direction * (
-        1.0 if branch_reference.stability == "unstable" else -1.0
-    )
-    expected_direction = "+" if physical_sign > 0.0 else "-"
-    if strike_match.label.direction != expected_direction:
-        raise ValueError("strike direction disagrees with the manifold branch")
-    signed_reference_span = (
-        wall_plane.wall_phi_rad - branch_reference.section_phi
-    ) * physical_sign
-    if signed_reference_span <= 0.0:
-        raise ValueError("production wall hit lies opposite the branch trace direction")
-    seed_index = branch_reference.seed_index(strike_match.label.seed_order)
+    seed_index = _validate_strike_pair(branch_reference, strike_match, wall_plane)
 
-    periodic = periodic_point_state(
+    periodic, seeds = _periodic_point_and_seed_segment(
         field_fn,
         params,
-        branch_reference.anchor_RZ_m,
-        phi_span=branch_reference.map_span,
-        phi_start=branch_reference.section_phi,
-        map_power=1,
+        branch_reference,
         n_steps_per_span=n_steps_per_span,
-        newton_iterations=xline_newton_iterations,
-        newton_damping=xline_newton_damping,
+        xline_newton_iterations=xline_newton_iterations,
+        xline_newton_damping=xline_newton_damping,
         bphi_floor=bphi_floor,
-        residual_tolerance=xline_residual_tolerance,
-    )
-    seeds = manifold_seed_segment(
-        periodic.position,
-        branch_reference.direction_RZ,
-        branch_reference.seed_distances_m,
-        side=branch_reference.seed_side,
+        xline_residual_tolerance=xline_residual_tolerance,
     )
     seed = seeds[seed_index]
     intersection = wall_intersection_state(
@@ -466,12 +512,115 @@ def trace_manifold_strike(
     )
 
 
+def trace_manifold_strike_bundle(
+    field_fn: CartesianField,
+    params: Any,
+    branch_reference: ManifoldBranchReference,
+    strike_matches: Any,
+    wall_planes: Any,
+    *,
+    n_steps_per_span: int = 256,
+    xline_newton_iterations: int = 8,
+    xline_newton_damping: float = 1.0,
+    wall_n_steps: int = 2048,
+    wall_newton_iterations: int = 8,
+    wall_newton_damping: float = 1.0,
+    maximum_phi_shift: float,
+    bphi_floor: float = 0.0,
+    xline_residual_tolerance: float = 1.0e-10,
+    wall_residual_tolerance: float = 1.0e-10,
+    minimum_abs_transversality: float = 1.0e-8,
+) -> ManifoldStrikeBundleState:
+    """Trace an ordered bundle of exact production-labelled wall strikes.
+
+    All strikes must belong to the same branch and have unique labels.  The
+    moving periodic X-line and complete seed segment are evaluated once; local
+    wall events are then vectorized over the frozen production matches and
+    tangent planes.  This is the differentiable inner-loop primitive for a
+    multi-strike heat-load surrogate.  Production first-hit identity remains a
+    Cyna/PyNA outer-loop responsibility.
+    """
+
+    if not isinstance(branch_reference, ManifoldBranchReference):
+        raise TypeError("branch_reference must be ManifoldBranchReference")
+    try:
+        matches = tuple(strike_matches)
+    except TypeError as exc:
+        raise TypeError("strike_matches must be an iterable") from exc
+    try:
+        planes = tuple(wall_planes)
+    except TypeError as exc:
+        raise TypeError("wall_planes must be an iterable") from exc
+    if not matches:
+        raise ValueError("strike_matches and wall_planes must be non-empty")
+    if len(matches) != len(planes):
+        raise ValueError("strike_matches and wall_planes must have equal length")
+    labels = [match.label for match in matches if isinstance(match, ManifoldStrikeMatch)]
+    if len(labels) == len(matches) and len(set(labels)) != len(labels):
+        raise ValueError("strike labels must be unique within a bundle")
+    seed_indices = [
+        _validate_strike_pair(branch_reference, match, plane)
+        for match, plane in zip(matches, planes, strict=True)
+    ]
+
+    periodic, seeds = _periodic_point_and_seed_segment(
+        field_fn,
+        params,
+        branch_reference,
+        n_steps_per_span=n_steps_per_span,
+        xline_newton_iterations=xline_newton_iterations,
+        xline_newton_damping=xline_newton_damping,
+        bphi_floor=bphi_floor,
+        xline_residual_tolerance=xline_residual_tolerance,
+    )
+    selected_seeds = seeds[jnp.asarray(seed_indices)]
+    plane_params = jnp.asarray(
+        [plane.level_set_params for plane in planes],
+        dtype=selected_seeds.dtype,
+    )
+    phi_guesses = jnp.asarray(
+        [plane.wall_phi_rad for plane in planes],
+        dtype=selected_seeds.dtype,
+    )
+
+    def trace_one(seed, local_plane_params, phi_guess):
+        return wall_intersection_state(
+            field_fn,
+            params,
+            seed,
+            local_wall_plane_level_set,
+            local_plane_params,
+            phi_start=branch_reference.section_phi,
+            phi_guess=phi_guess,
+            n_steps=wall_n_steps,
+            newton_iterations=wall_newton_iterations,
+            newton_damping=wall_newton_damping,
+            maximum_phi_shift=maximum_phi_shift,
+            bphi_floor=bphi_floor,
+            residual_tolerance=wall_residual_tolerance,
+            minimum_abs_transversality=minimum_abs_transversality,
+        )
+
+    intersections = jax.vmap(trace_one)(
+        selected_seeds,
+        plane_params,
+        phi_guesses,
+    )
+    return ManifoldStrikeBundleState(
+        periodic_point=periodic,
+        seed_RZ=selected_seeds,
+        intersections=intersections,
+    )
+
+
 __all__ = [
+    "ManifoldStrikeBundleState",
     "ManifoldStrikeState",
     "WallIntersectionState",
     "WallLevelSet",
     "local_wall_plane_level_set",
     "solve_wall_intersection",
     "trace_manifold_strike",
+    "trace_manifold_strike_bundle",
     "wall_intersection_state",
 ]
