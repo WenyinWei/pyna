@@ -9,7 +9,17 @@ jax = pytest.importorskip("jax")
 jax.config.update("jax_enable_x64", True)
 import jax.numpy as jnp
 
-from pyna.topo.jax_strike import solve_wall_intersection, wall_intersection_state
+from pyna.topo.jax_strike import (
+    solve_wall_intersection,
+    trace_manifold_strike,
+    wall_intersection_state,
+)
+from pyna.topo.manifold_correspondence import ManifoldBranchReference
+from pyna.topo.manifold_strike_contracts import (
+    LocalWallPlane,
+    ManifoldStrikeLabel,
+    ManifoldStrikeMatch,
+)
 
 
 def _constant_poloidal_slope_field(xyz, params):
@@ -34,6 +44,10 @@ def _constant_poloidal_slope_field(xyz, params):
 def _radial_wall(rz, phi, wall_params):
     del phi
     return rz[0] - wall_params[0]
+
+
+def _xyz(R, Z, phi):
+    return np.array([R * np.cos(phi), R * np.sin(phi), Z])
 
 
 def _solve(params, wall_params, rz0, phi_start):
@@ -218,4 +232,165 @@ def test_wall_intersection_validates_static_configuration():
     with pytest.raises(ValueError, match="scalar"):
         solve_wall_intersection(
             **{**kwargs, "wall_level_set_fn": lambda rz, phi, wall: rz}
+        )
+
+
+def _shifted_hyperbolic_field(xyz, params):
+    rate, center_r, center_z = params
+    x, y, z = xyz
+    radius = jnp.sqrt(x * x + y * y)
+    cos_phi = x / radius
+    sin_phi = y / radius
+    b_r = rate * (radius - center_r)
+    b_z = -rate * (z - center_z)
+    b_phi = radius
+    return jnp.array(
+        [
+            b_r * cos_phi - b_phi * sin_phi,
+            b_r * sin_phi + b_phi * cos_phi,
+            b_z,
+        ]
+    )
+
+
+def _manifold_strike_reference():
+    rate = 0.4
+    center = np.array([1.0, -0.05])
+    distance = 0.01
+    map_span = 0.5
+    wall_R = 1.2
+    phi_start = 0.1
+    hit_phi = phi_start + np.log((wall_R - center[0]) / distance) / rate
+    hit_xyz = _xyz(wall_R, center[1], hit_phi)
+    label = ManifoldStrikeLabel(
+        branch_label="1:P0.unstable.plus",
+        direction="+",
+        seed_order=7,
+    )
+    branch = ManifoldBranchReference(
+        origin_label="1:P0",
+        stability="unstable",
+        seed_side=1,
+        section_phi=phi_start,
+        map_span=map_span,
+        anchor_RZ_m=center,
+        direction_RZ=np.array([1.0, 0.0]),
+        expansion=np.exp(rate * map_span),
+        orientation_reversing=False,
+        seed_orders=np.array([7]),
+        seed_distances_m=np.array([distance]),
+        points_RZ_m=np.array([[[center[0] + distance, center[1]]]]),
+        available=np.ones((1, 1), dtype=bool),
+    )
+    match = ManifoldStrikeMatch(
+        label=label,
+        point_RZPhi_m_rad=np.array([wall_R, center[1], hit_phi]),
+        target_distance_m=0.0,
+        connection_length_m=12.0,
+        bundle_seed_index=0,
+    )
+    plane = LocalWallPlane(
+        strike_label=label,
+        point_xyz_m=hit_xyz,
+        normal_xyz=np.array([np.cos(hit_phi), np.sin(hit_phi), 0.0]),
+        wall_phi_rad=hit_phi,
+        wall_s=0.25,
+        projection_distance_m=0.0,
+    )
+    return branch, match, plane
+
+
+def _trace_labelled_strike(params):
+    branch, match, plane = _manifold_strike_reference()
+    return trace_manifold_strike(
+        _shifted_hyperbolic_field,
+        params,
+        branch,
+        match,
+        plane,
+        n_steps_per_span=64,
+        xline_newton_iterations=4,
+        wall_n_steps=512,
+        wall_newton_iterations=5,
+        maximum_phi_shift=0.2,
+    )
+
+
+def test_labelled_manifold_strike_tracks_moving_xline_and_exact_seed():
+    params = jnp.array([0.4, 1.0, -0.05])
+    branch, match, _plane = _manifold_strike_reference()
+    state = jax.jit(_trace_labelled_strike)(params)
+
+    assert bool(state.periodic_point.converged)
+    assert bool(state.intersection.converged)
+    np.testing.assert_allclose(state.periodic_point.position, params[1:], atol=2.0e-13)
+    np.testing.assert_allclose(state.seed_RZ, [1.01, -0.05], atol=2.0e-13)
+    np.testing.assert_allclose(
+        state.intersection.point_xyz,
+        match.point_xyz_m,
+        atol=2.0e-11,
+    )
+
+    moved_center = params.at[1:].add(jnp.array([2.0e-4, -3.0e-4]))
+    moved = _trace_labelled_strike(moved_center)
+    np.testing.assert_allclose(
+        moved.periodic_point.position - state.periodic_point.position,
+        [2.0e-4, -3.0e-4],
+        atol=2.0e-12,
+    )
+    np.testing.assert_allclose(
+        moved.seed_RZ - state.seed_RZ,
+        [2.0e-4, -3.0e-4],
+        atol=2.0e-12,
+    )
+
+
+def test_labelled_manifold_strike_gradient_matches_finite_difference():
+    params = jnp.array([0.4, 1.0, -0.05])
+
+    def hit_xyz(active_params):
+        return _trace_labelled_strike(active_params).intersection.point_xyz
+
+    forward = jax.jacfwd(hit_xyz)(params)
+    reverse = jax.jacrev(hit_xyz)(params)
+    delta = 2.0e-6
+    direction = jnp.array([0.3, -0.2, 0.4])
+    finite_difference = (
+        hit_xyz(params + delta * direction)
+        - hit_xyz(params - delta * direction)
+    ) / (2.0 * delta)
+
+    np.testing.assert_allclose(reverse, forward, rtol=2.0e-9, atol=2.0e-10)
+    np.testing.assert_allclose(
+        forward @ direction,
+        finite_difference,
+        rtol=2.0e-7,
+        atol=2.0e-8,
+    )
+
+
+def test_labelled_manifold_strike_rejects_mismatched_outer_identity():
+    params = jnp.array([0.4, 1.0, -0.05])
+    branch, match, plane = _manifold_strike_reference()
+    wrong_label = ManifoldStrikeLabel(
+        branch_label=match.label.branch_label,
+        direction=match.label.direction,
+        seed_order=9,
+    )
+    wrong_match = ManifoldStrikeMatch(
+        label=wrong_label,
+        point_RZPhi_m_rad=match.point_RZPhi_m_rad,
+        target_distance_m=0.0,
+        connection_length_m=match.connection_length_m,
+        bundle_seed_index=0,
+    )
+
+    with pytest.raises(ValueError, match="different strike label"):
+        trace_manifold_strike(
+            _shifted_hyperbolic_field,
+            params,
+            branch,
+            wrong_match,
+            plane,
+            maximum_phi_shift=0.2,
         )

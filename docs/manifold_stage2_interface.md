@@ -234,3 +234,12 @@ rotated back to Cyna's unwrapped physical hit angle.  This gives JAX a smooth
 local level set without pretending that discrete wall-cell or closest-segment
 selection is differentiable.  The plane is valid only inside the outer strike
 trust region and is rebuilt after each accepted production refresh.
+
+`trace_manifold_strike` closes the differentiable chain.  It continues the
+periodic X-line on the live field, reconstructs the frozen sparse seed order
+from the accepted eigendirection and distance, and sends that moving seed to
+the local implicit wall event.  Thus coil derivatives include X-line motion,
+manifold launch motion, field-line evolution, and motion of the strike angle.
+The function rejects mismatched branch, direction, seed, or wall-plane labels
+before tracing; its periodic-point and wall-event convergence diagnostics still
+have to pass at the outer boundary.

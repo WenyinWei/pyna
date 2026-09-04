@@ -30,6 +30,10 @@ except ImportError as exc:  # pragma: no cover - exercised without the extra
     ) from exc
 
 from pyna.toroidal.flt.jax_poincare import CartesianField, poincare_map
+from pyna.topo.jax_manifold import manifold_seed_segment
+from pyna.topo.jax_periodic import PeriodicPointState, periodic_point_state
+from pyna.topo.manifold_correspondence import ManifoldBranchReference
+from pyna.topo.manifold_strike_contracts import LocalWallPlane, ManifoldStrikeMatch
 
 
 WallLevelSet = Callable[[Any, Any, Any], Any]
@@ -48,6 +52,14 @@ class WallIntersectionState(NamedTuple):
     converged: Any
 
 
+class ManifoldStrikeState(NamedTuple):
+    """Moving X-line, exact labelled seed, and local wall intersection."""
+
+    periodic_point: PeriodicPointState
+    seed_RZ: Any
+    intersection: WallIntersectionState
+
+
 def _positive_integer(value: int, name: str) -> int:
     try:
         result = operator.index(value)
@@ -56,6 +68,18 @@ def _positive_integer(value: int, name: str) -> int:
     if result <= 0:
         raise ValueError(f"{name} must be positive")
     return result
+
+
+def local_wall_plane_level_set(rz: Any, phi: Any, plane_params: Any) -> Any:
+    """Signed Cartesian distance to an outer-frozen local wall plane."""
+
+    values = jnp.asarray(plane_params)
+    if values.shape != (6,):
+        raise ValueError("local wall plane parameters must have shape (6,)")
+    point = values[:3]
+    normal = values[3:]
+    xyz = jnp.stack((rz[0] * jnp.cos(phi), rz[0] * jnp.sin(phi), rz[1]))
+    return jnp.dot(xyz - point, normal)
 
 
 def _wall_residual(
@@ -348,9 +372,106 @@ def wall_intersection_state(
     )
 
 
+def trace_manifold_strike(
+    field_fn: CartesianField,
+    params: Any,
+    branch_reference: ManifoldBranchReference,
+    strike_match: ManifoldStrikeMatch,
+    wall_plane: LocalWallPlane,
+    *,
+    n_steps_per_span: int = 256,
+    xline_newton_iterations: int = 8,
+    xline_newton_damping: float = 1.0,
+    wall_n_steps: int = 2048,
+    wall_newton_iterations: int = 8,
+    wall_newton_damping: float = 1.0,
+    maximum_phi_shift: float,
+    bphi_floor: float = 0.0,
+    xline_residual_tolerance: float = 1.0e-10,
+    wall_residual_tolerance: float = 1.0e-10,
+    minimum_abs_transversality: float = 1.0e-8,
+) -> ManifoldStrikeState:
+    """Trace the exact production-labelled manifold seed to its local wall.
+
+    Branch identity, eigendirection, seed distance/order, Cyna hit angle, and
+    wall tangent plane are frozen outer state.  The periodic X-line, local seed
+    origin, field-line trajectory, event angle, and hit point remain in the JAX
+    derivative path.
+    """
+
+    if not isinstance(branch_reference, ManifoldBranchReference):
+        raise TypeError("branch_reference must be ManifoldBranchReference")
+    if not isinstance(strike_match, ManifoldStrikeMatch):
+        raise TypeError("strike_match must be ManifoldStrikeMatch")
+    if not isinstance(wall_plane, LocalWallPlane):
+        raise TypeError("wall_plane must be LocalWallPlane")
+    if strike_match.label != wall_plane.strike_label:
+        raise ValueError("wall_plane belongs to a different strike label")
+    if strike_match.label.branch_label != branch_reference.label:
+        raise ValueError("strike_match belongs to a different manifold branch")
+    map_direction = 1.0 if branch_reference.map_span > 0.0 else -1.0
+    physical_sign = map_direction * (
+        1.0 if branch_reference.stability == "unstable" else -1.0
+    )
+    expected_direction = "+" if physical_sign > 0.0 else "-"
+    if strike_match.label.direction != expected_direction:
+        raise ValueError("strike direction disagrees with the manifold branch")
+    signed_reference_span = (
+        wall_plane.wall_phi_rad - branch_reference.section_phi
+    ) * physical_sign
+    if signed_reference_span <= 0.0:
+        raise ValueError("production wall hit lies opposite the branch trace direction")
+    seed_index = branch_reference.seed_index(strike_match.label.seed_order)
+
+    periodic = periodic_point_state(
+        field_fn,
+        params,
+        branch_reference.anchor_RZ_m,
+        phi_span=branch_reference.map_span,
+        phi_start=branch_reference.section_phi,
+        map_power=1,
+        n_steps_per_span=n_steps_per_span,
+        newton_iterations=xline_newton_iterations,
+        newton_damping=xline_newton_damping,
+        bphi_floor=bphi_floor,
+        residual_tolerance=xline_residual_tolerance,
+    )
+    seeds = manifold_seed_segment(
+        periodic.position,
+        branch_reference.direction_RZ,
+        branch_reference.seed_distances_m,
+        side=branch_reference.seed_side,
+    )
+    seed = seeds[seed_index]
+    intersection = wall_intersection_state(
+        field_fn,
+        params,
+        seed,
+        local_wall_plane_level_set,
+        wall_plane.level_set_params,
+        phi_start=branch_reference.section_phi,
+        phi_guess=wall_plane.wall_phi_rad,
+        n_steps=wall_n_steps,
+        newton_iterations=wall_newton_iterations,
+        newton_damping=wall_newton_damping,
+        maximum_phi_shift=maximum_phi_shift,
+        bphi_floor=bphi_floor,
+        residual_tolerance=wall_residual_tolerance,
+        minimum_abs_transversality=minimum_abs_transversality,
+    )
+    return ManifoldStrikeState(
+        periodic_point=periodic,
+        seed_RZ=seed,
+        intersection=intersection,
+    )
+
+
 __all__ = [
+    "ManifoldStrikeState",
     "WallIntersectionState",
     "WallLevelSet",
+    "local_wall_plane_level_set",
     "solve_wall_intersection",
+    "trace_manifold_strike",
     "wall_intersection_state",
 ]
