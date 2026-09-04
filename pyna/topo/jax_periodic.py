@@ -29,7 +29,14 @@ from pyna.toroidal.flt.jax_poincare import CartesianField, poincare_map
 
 
 class PeriodicPointState(NamedTuple):
-    """Differentiable diagnostics for one periodic point on a section."""
+    """Diagnostics for one periodic point on a section.
+
+    The root, residual, monodromy, trace, determinant, Greene residue,
+    hyperbolicity margin, and eigenvalues remain in the JAX derivative path.
+    Eigenvectors are stop-gradient outer-loop data because JAX does not define
+    derivatives for non-symmetric eigenvectors and their branch choice is not
+    smooth at degeneracies.
+    """
 
     position: Any
     residual: Any
@@ -192,7 +199,8 @@ def periodic_point_state(
     monodromy = jax.jacfwd(mapped)(position)
     trace = jnp.trace(monodromy)
     determinant = jnp.linalg.det(monodromy)
-    eigenvalues, eigenvectors = jnp.linalg.eig(monodromy)
+    eigenvalues = jnp.linalg.eigvals(monodromy)
+    _, eigenvectors = jnp.linalg.eig(jax.lax.stop_gradient(monodromy))
     return PeriodicPointState(
         position=position,
         residual=residual,

@@ -93,6 +93,31 @@ def test_periodic_point_state_reports_monodromy_and_classification_data():
     assert float(state.greene_residue) < 0.0
 
 
+def test_periodic_point_state_trace_supports_reverse_mode():
+    params = jnp.array([0.32, 1.04, 0.035])
+    phi_span = 0.7
+
+    def trace(dynamic_params):
+        return periodic_point_state(
+            _shifted_hyperbolic_field,
+            dynamic_params,
+            jnp.array([0.91, -0.08]),
+            phi_span=phi_span,
+            n_steps_per_span=128,
+            newton_iterations=4,
+        ).trace
+
+    expected = jnp.array(
+        [2.0 * phi_span * jnp.sinh(params[0] * phi_span), 0.0, 0.0]
+    )
+    np.testing.assert_allclose(
+        jax.grad(trace)(params),
+        expected,
+        rtol=2e-11,
+        atol=1e-14,
+    )
+
+
 def test_map_power_tracks_same_root_and_accumulates_monodromy():
     params = jnp.array([0.25, 1.02, -0.02])
     state = periodic_point_state(

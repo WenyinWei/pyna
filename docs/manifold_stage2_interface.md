@@ -76,6 +76,10 @@ The accompanying `periodic_point_state` reports the residual, monodromy,
 Greene residue, eigenpairs, and hyperbolicity margin.  The outer Stage-2 loop
 must reject or refresh a point whose residual is not converged.
 
+Eigenvectors are stop-gradient diagnostic data for outer-loop manifold branch
+seeding.  The root, monodromy invariants, and eigenvalues remain differentiable;
+this avoids assigning a spurious derivative to eigenvector ordering and sign.
+
 This formulation is intended for isolated elliptic or hyperbolic points.  It
 must not be used at a parabolic point where `M-I` is singular; those topologies
 require a later augmented continuation system.
