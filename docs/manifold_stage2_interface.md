@@ -171,6 +171,10 @@ PyNA also owns the two operations that change or validate inner-loop labels:
 - `compare_jax_manifold_branch` compares all available fixed labels and rejects
   excessive JAX/Cyna deviation, non-finite JAX output, or incomplete production
   traces when completeness is required.
+- `refresh_manifold_sample_match` carries the exact selected label to a new
+  production trace.  It returns a structured rejection instead of choosing a
+  nearest replacement when identity changes, the sample disappears, or its
+  displacement exceeds the outer trust limit.
 
 ESSOS may consume the resulting direction, seed distances, side, generation,
 and seed index.  It must not independently infer those quantities from nearest

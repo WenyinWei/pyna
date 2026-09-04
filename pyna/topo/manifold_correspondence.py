@@ -306,6 +306,47 @@ class ManifoldCorrespondenceReport:
     accepted: bool
 
 
+@dataclass(frozen=True)
+class ManifoldSampleRefreshReport:
+    """Result of carrying one fixed sample label to a production candidate."""
+
+    previous_match: ManifoldSampleMatch
+    candidate_match: ManifoldSampleMatch | None
+    sample_displacement_m: float
+    maximum_sample_displacement_m: float
+    accepted: bool
+    rejection_reason: str | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.previous_match, ManifoldSampleMatch):
+            raise TypeError("previous_match must be ManifoldSampleMatch")
+        if self.candidate_match is not None and not isinstance(
+            self.candidate_match,
+            ManifoldSampleMatch,
+        ):
+            raise TypeError("candidate_match must be ManifoldSampleMatch or None")
+        displacement = float(self.sample_displacement_m)
+        maximum = float(self.maximum_sample_displacement_m)
+        if np.isnan(displacement) or displacement < 0.0:
+            raise ValueError("sample_displacement_m must be non-negative or infinity")
+        if not np.isfinite(maximum) or maximum < 0.0:
+            raise ValueError(
+                "maximum_sample_displacement_m must be non-negative and finite"
+            )
+        reason = None if self.rejection_reason is None else str(self.rejection_reason)
+        if bool(self.accepted):
+            if self.candidate_match is None or reason is not None:
+                raise ValueError("an accepted refresh requires a candidate and no reason")
+            if displacement > maximum:
+                raise ValueError("accepted refresh exceeds its displacement limit")
+        elif reason is None:
+            raise ValueError("a rejected refresh requires rejection_reason")
+        object.__setattr__(self, "sample_displacement_m", displacement)
+        object.__setattr__(self, "maximum_sample_displacement_m", maximum)
+        object.__setattr__(self, "accepted", bool(self.accepted))
+        object.__setattr__(self, "rejection_reason", reason)
+
+
 def _payload_origin_label(payload: Mapping[str, object]) -> str:
     explicit = payload.get("manifold_origin_label")
     if explicit is not None:
@@ -615,6 +656,80 @@ def nearest_available_manifold_sample(
     )
 
 
+def refresh_manifold_sample_match(
+    previous_match: ManifoldSampleMatch,
+    candidate_branch: ManifoldBranchReference,
+    target_RZ_m: object,
+    *,
+    maximum_sample_displacement_m: float,
+) -> ManifoldSampleRefreshReport:
+    """Carry one exact outer label to a newly traced production branch.
+
+    This function never chooses a nearest replacement.  Identity changes,
+    missing seed orders or generations, wall-terminated points, and excessive
+    displacement all reject the refresh.  A separate explicit outer decision
+    may select a new label after such a rejection.
+    """
+
+    if not isinstance(previous_match, ManifoldSampleMatch):
+        raise TypeError("previous_match must be ManifoldSampleMatch")
+    if not isinstance(candidate_branch, ManifoldBranchReference):
+        raise TypeError("candidate_branch must be ManifoldBranchReference")
+    target = _finite_vector(target_RZ_m, "target_RZ_m")
+    maximum = float(maximum_sample_displacement_m)
+    if not np.isfinite(maximum) or maximum < 0.0:
+        raise ValueError(
+            "maximum_sample_displacement_m must be non-negative and finite"
+        )
+
+    label = previous_match.label
+    if (
+        label.origin_label != candidate_branch.origin_label
+        or label.stability != candidate_branch.stability
+        or label.seed_side != candidate_branch.seed_side
+    ):
+        return ManifoldSampleRefreshReport(
+            previous_match=previous_match,
+            candidate_match=None,
+            sample_displacement_m=float("inf"),
+            maximum_sample_displacement_m=maximum,
+            accepted=False,
+            rejection_reason="branch_identity_mismatch",
+        )
+
+    try:
+        candidate_point = candidate_branch.point(label)
+        seed_index = candidate_branch.seed_index(label.seed_order)
+    except KeyError:
+        return ManifoldSampleRefreshReport(
+            previous_match=previous_match,
+            candidate_match=None,
+            sample_displacement_m=float("inf"),
+            maximum_sample_displacement_m=maximum,
+            accepted=False,
+            rejection_reason="sample_unavailable",
+        )
+
+    displacement = float(
+        np.linalg.norm(candidate_point - previous_match.point_RZ_m)
+    )
+    candidate_match = ManifoldSampleMatch(
+        label=label,
+        point_RZ_m=candidate_point,
+        distance_m=float(np.linalg.norm(candidate_point - target)),
+        jax_seed_index=seed_index,
+    )
+    accepted = displacement <= maximum
+    return ManifoldSampleRefreshReport(
+        previous_match=previous_match,
+        candidate_match=candidate_match,
+        sample_displacement_m=displacement,
+        maximum_sample_displacement_m=maximum,
+        accepted=accepted,
+        rejection_reason=None if accepted else "sample_displacement_exceeds_limit",
+    )
+
+
 def compare_jax_manifold_branch(
     branch: ManifoldBranchReference,
     jax_generations: object,
@@ -676,7 +791,9 @@ __all__ = [
     "ManifoldCorrespondenceReport",
     "ManifoldSampleLabel",
     "ManifoldSampleMatch",
+    "ManifoldSampleRefreshReport",
     "compare_jax_manifold_branch",
     "manifold_branch_reference_from_trace",
     "nearest_available_manifold_sample",
+    "refresh_manifold_sample_match",
 ]

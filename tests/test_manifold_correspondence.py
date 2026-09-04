@@ -12,6 +12,7 @@ from pyna.topo.manifold_correspondence import (
     compare_jax_manifold_branch,
     manifold_branch_reference_from_trace,
     nearest_available_manifold_sample,
+    refresh_manifold_sample_match,
 )
 
 
@@ -203,3 +204,61 @@ def test_reference_rejects_a_branch_direction_identity_change():
             minimum_direction_alignment=0.8,
         )
 
+
+def test_refresh_preserves_exact_label_and_rejects_disappearance_or_jump():
+    branch = manifold_branch_reference_from_trace(
+        _synthetic_unstable_payload(),
+        stability="unstable",
+        seed_side=1,
+        n_generations=2,
+        direction_reference=np.array([1.0, 0.0]),
+    )
+    previous = nearest_available_manifold_sample(branch, np.array([1.08, 0.0]))
+    shift = np.array([1.0e-3, -2.0e-3])
+    candidate = replace(
+        branch,
+        anchor_RZ_m=branch.anchor_RZ_m + shift,
+        points_RZ_m=branch.points_RZ_m + shift,
+    )
+    accepted = refresh_manifold_sample_match(
+        previous,
+        candidate,
+        np.array([1.08, 0.0]),
+        maximum_sample_displacement_m=5.0e-3,
+    )
+
+    assert accepted.accepted
+    assert accepted.candidate_match is not None
+    assert accepted.candidate_match.label == previous.label
+    assert accepted.candidate_match.jax_seed_index == previous.jax_seed_index
+    assert accepted.sample_displacement_m == pytest.approx(np.linalg.norm(shift))
+
+    jumped = replace(
+        branch,
+        anchor_RZ_m=branch.anchor_RZ_m + 0.1,
+        points_RZ_m=branch.points_RZ_m + 0.1,
+    )
+    rejected_jump = refresh_manifold_sample_match(
+        previous,
+        jumped,
+        np.array([1.08, 0.0]),
+        maximum_sample_displacement_m=5.0e-3,
+    )
+    assert not rejected_jump.accepted
+    assert rejected_jump.rejection_reason == "sample_displacement_exceeds_limit"
+
+    availability = branch.available.copy()
+    availability[
+        previous.label.generation_index,
+        previous.jax_seed_index,
+    ] = False
+    missing = replace(branch, available=availability)
+    rejected_missing = refresh_manifold_sample_match(
+        previous,
+        missing,
+        np.array([1.08, 0.0]),
+        maximum_sample_displacement_m=5.0e-3,
+    )
+    assert not rejected_missing.accepted
+    assert rejected_missing.candidate_match is None
+    assert rejected_missing.rejection_reason == "sample_unavailable"
