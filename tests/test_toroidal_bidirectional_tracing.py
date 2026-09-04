@@ -262,6 +262,41 @@ def test_toroidal_wall_hits_and_strike_line_object_api():
     np.testing.assert_allclose(strike_obj["R"], np.array([1.2]), atol=2.0e-3)
 
 
+def test_toroidal_wall_hit_phi_preserves_signed_multi_turn_flight_angle():
+    _skip_without_cyna()
+    field = _outward_field()
+    wall_phi, wall_R, wall_Z = _toroidal_wall()
+    phi_start = 0.37
+
+    hits = trace_wall_hits_twall_field(
+        field,
+        np.array([0.81, 1.19]),
+        np.array([0.0, 0.0]),
+        phi_start,
+        2,
+        0.01,
+        wall_phi,
+        wall_R,
+        wall_Z,
+    )
+
+    expected_span = (1.20 - 0.81) / 0.05
+    assert int(hits["term_plus"][0]) == 1
+    assert int(hits["term_minus"][1]) == 1
+    np.testing.assert_allclose(
+        hits["hit_plus"][0, 2],
+        phi_start + expected_span,
+        atol=2.0e-3,
+    )
+    np.testing.assert_allclose(
+        hits["hit_minus"][1, 2],
+        phi_start - expected_span,
+        atol=2.0e-3,
+    )
+    assert hits["hit_plus"][0, 2] > 2.0 * np.pi
+    assert hits["hit_minus"][1, 2] < -2.0 * np.pi
+
+
 def test_wall_trace_post_compute_views_and_cache(tmp_path, monkeypatch):
     wall_hits = {
         "Lc_plus": np.asarray([1.0, 2.0]),

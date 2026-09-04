@@ -1511,6 +1511,7 @@ PYBIND11_MODULE(_cyna_ext, m) {
         "Returns (L_fwd, L_bwd, R_hit_fwd, Z_hit_fwd, phi_hit_fwd,\n"
         "                       R_hit_bwd, Z_hit_bwd, phi_hit_bwd,\n"
         "                       term_type_fwd, term_type_bwd).\n"
+        "Hit phi values are signed, unwrapped integration angles.\n"
         "term_type: 0=no hit, 1=wall polygon, 2=field grid exit, 3=non-finite.\n"
         "NaN hit coords when term_type=0.");
 

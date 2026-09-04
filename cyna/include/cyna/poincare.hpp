@@ -764,6 +764,10 @@ void trace_connection_length_twall(
 //   L_fwd, L_bwd, R_hit_fwd, Z_hit_fwd, phi_hit_fwd,
 //                 R_hit_bwd, Z_hit_bwd, phi_hit_bwd,
 //   term_type_fwd, term_type_bwd  (int arrays)
+//
+// Hit phi values are signed, unwrapped integration angles.  Field and wall
+// interpolation wrap their inputs internally, while callers need the complete
+// flight angle to reproduce a multi-turn first-wall intersection.
 // ---------------------------------------------------------------------------
 void trace_wall_hits_twall(
     const double* R_seeds, const double* Z_seeds, int N_seeds,
@@ -805,7 +809,7 @@ void trace_wall_hits_twall(
         pool.parallelize_loop(0, N_seeds, [&](int i_start, int i_end) {
             for (int i = i_start; i < i_end; ++i) {
                 double R = R_seeds[i], Z = Z_seeds[i];
-                double phi = mod2pi(phi_start);
+                double phi = phi_start;
                 double arc = 0.0;
                 double phi_total = 0.0;
                 double phi_limit = max_turns * 2.0 * M_PI;
@@ -831,7 +835,7 @@ void trace_wall_hits_twall(
                     rk4_step(R, Z, phi, phi_step_dir,
                              BR, BZ, BPhi,
                              R_grid, nR, Z_grid, nZ, Phi_grid, nPhi, field_period);
-                    phi = mod2pi(phi + phi_step_dir);
+                    phi += phi_step_dir;
                     phi_total += step;
 
                     bool hit = false;
@@ -865,7 +869,7 @@ void trace_wall_hits_twall(
                             for (int b = 0; b < 14; ++b) {
                                 double rM = 0.5*(rA+rB);
                                 double zM = 0.5*(zA+zB);
-                                double pM = mod2pi(0.5*(pA+pB));
+                                double pM = 0.5*(pA+pB);
                                 bool inside_M = point_in_toroidal_wall(rM, zM, pM,
                                         wall_phi_centers, wall_R, wall_Z,
                                         n_phi_wall, n_theta_wall);
@@ -874,7 +878,7 @@ void trace_wall_hits_twall(
                             }
                             R_hit_out[i]   = 0.5*(rA+rB);
                             Z_hit_out[i]   = 0.5*(zA+zB);
-                            phi_hit_out[i] = mod2pi(0.5*(pA+pB));
+                            phi_hit_out[i] = 0.5*(pA+pB);
                         } else if (hit_type == 2) {
                             // Grid boundary exit: bisect using grid bounds as criterion.
                             // The field grid ends before the physical wall (common for HFS),
@@ -886,7 +890,7 @@ void trace_wall_hits_twall(
                             for (int b = 0; b < 14; ++b) {
                                 double rM = 0.5*(rA+rB);
                                 double zM = 0.5*(zA+zB);
-                                double pM = mod2pi(0.5*(pA+pB));
+                                double pM = 0.5*(pA+pB);
                                 bool in_grid = (rM >= R_grid[0] && rM <= R_grid[nR-1] &&
                                                 zM >= Z_grid[0] && zM <= Z_grid[nZ-1]);
                                 if (in_grid) { rA=rM; zA=zM; pA=pM; }
@@ -894,7 +898,7 @@ void trace_wall_hits_twall(
                             }
                             R_hit_out[i]   = 0.5*(rA+rB);
                             Z_hit_out[i]   = 0.5*(zA+zB);
-                            phi_hit_out[i] = mod2pi(0.5*(pA+pB));
+                            phi_hit_out[i] = 0.5*(pA+pB);
                         } else {
                             // Non-finite: report last finite position
                             R_hit_out[i]   = R_prev;

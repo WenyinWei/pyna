@@ -774,6 +774,9 @@ def trace_wall_hits_twall(
 ):
     """Trace seeds to a toroidal wall and return hit points for both directions.
 
+    Hit-point ``phi`` values retain the signed, unwrapped integration angle so
+    a multi-turn first-wall hit can be reproduced by another tracer.
+
     ``term_plus`` / ``term_minus`` use cyna's convention:
     ``0`` no termination, ``1`` wall polygon, ``2`` field-grid exit,
     ``3`` non-finite field.
@@ -879,7 +882,8 @@ def strike_line_from_wall_hits(wall_hits: dict, *, direction="+", wall_term: int
     """Extract strike points from a ``trace_wall_hits_twall`` result.
 
     The returned arrays preserve seed order, which is usually the right ordering
-    for a bundle launched from an ordered curve.
+    for a bundle launched from an ordered curve.  ``phi`` remains a signed,
+    unwrapped integration angle.
     """
 
     suffix = "plus" if _direction_sign(direction) > 0 else "minus"
