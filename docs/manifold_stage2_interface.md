@@ -214,6 +214,15 @@ order and requires it to produce a Cyna first-wall hit within a physical 3-D
 trust radius.  A missing seed, unresolved wall hit, changed branch identity, or
 excessive strike motion is a structured rejection.  It never substitutes a
 nearby strike.  This module contains no JAX dependency: it is the production
-selection and refresh half of the interface.  A differentiable wall-crossing
-solver must consume this frozen identity and remain subject to Cyna parity at
-accepted outer steps.
+selection and refresh half of the interface.
+
+`pyna.topo.jax_strike` supplies the parallel differentiable event solve.  Given
+a Cartesian field, one frozen launch seed, a smooth wall level set `g`, and the
+production hit angle as an initial guess, it solves
+`g(R(phi), Z(phi), phi) = 0` in a fixed local angle window.  Its custom JVP uses
+the implicit-function theorem, so gradients include both launch-point motion
+and the moving intersection angle without differentiating through Newton
+iterations.  Residual, window, and transversality diagnostics are returned;
+the outer loop must reject a failed or tangent crossing and compare every
+accepted JAX hit with the exact Cyna first-wall hit.  The discrete questions of
+which seed hits and whether this is the first hit remain production decisions.
