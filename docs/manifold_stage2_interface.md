@@ -183,6 +183,16 @@ PyNA also owns the two operations that change or validate inner-loop labels:
   nearest replacement when identity changes, the sample disappears, or its
   displacement exceeds the outer trust limit.
 
+`pyna.topo.manifold_refresh.refresh_manifold_branch_reference_field` performs
+the production half of an accepted-step refresh.  Starting from the preceding
+branch anchor, it continues the X-point on the candidate cylindrical field,
+recomputes its Cyna monodromy, requires it to remain hyperbolic and inside an
+anchor trust radius, retraces the same sparse seed orders, and locks the new
+eigendirection against the preceding tangent.  Backend absence is an
+environment error; loss of convergence, hyperbolicity, domain coverage, or
+correspondence is returned as a structured `ManifoldProductionRefreshReport`
+rejection for optimizer rollback.
+
 ESSOS may consume the resulting direction, seed distances, side, generation,
 and seed index.  It must not independently infer those quantities from nearest
 points during a gradient evaluation.  After an accepted coil step, PyNA/Cyna
