@@ -29,7 +29,11 @@ except ImportError as exc:  # pragma: no cover - exercised without the extra
         "install the optional 'pyna-chaos[jax]' dependencies"
     ) from exc
 
-from pyna.toroidal.flt.jax_poincare import CartesianField, poincare_map
+from pyna.toroidal.flt.jax_poincare import (
+    CartesianField,
+    fixed_phi_trajectory,
+    poincare_map,
+)
 from pyna.topo.jax_manifold import manifold_seed_segment
 from pyna.topo.jax_periodic import PeriodicPointState, periodic_point_state
 from pyna.topo.manifold_correspondence import ManifoldBranchReference
@@ -72,6 +76,15 @@ class ManifoldStrikeBundleState(NamedTuple):
     periodic_point: PeriodicPointState
     seed_RZ: Any
     intersections: WallIntersectionState
+
+
+class ManifoldStrikeTrajectoryBundleState(NamedTuple):
+    """Ordered strikes plus full differentiable seed-to-wall trajectories."""
+
+    strike_bundle: ManifoldStrikeBundleState
+    phi: Any
+    point_RZPhi: Any
+    point_xyz: Any
 
 
 def _positive_integer(value: int, name: str) -> int:
@@ -613,14 +626,101 @@ def trace_manifold_strike_bundle(
     )
 
 
+def trace_manifold_strike_bundle_trajectories(
+    field_fn: CartesianField,
+    params: Any,
+    branch_reference: ManifoldBranchReference,
+    strike_matches: Any,
+    wall_planes: Any,
+    *,
+    n_steps_per_span: int = 256,
+    xline_newton_iterations: int = 8,
+    xline_newton_damping: float = 1.0,
+    wall_n_steps: int = 2048,
+    wall_newton_iterations: int = 8,
+    wall_newton_damping: float = 1.0,
+    maximum_phi_shift: float,
+    bphi_floor: float = 0.0,
+    xline_residual_tolerance: float = 1.0e-10,
+    wall_residual_tolerance: float = 1.0e-10,
+    minimum_abs_transversality: float = 1.0e-8,
+) -> ManifoldStrikeTrajectoryBundleState:
+    """Trace every RK4 state from exact labelled seeds to moving wall events.
+
+    The event solve and retained trajectory use the same ``wall_n_steps`` RK4
+    discretization.  Consequently each final retained state matches its
+    corresponding implicit-event state up to backend arithmetic.  Every row
+    preserves the input strike-label order; global first-hit identity remains
+    frozen production data.
+    """
+
+    strikes = trace_manifold_strike_bundle(
+        field_fn,
+        params,
+        branch_reference,
+        strike_matches,
+        wall_planes,
+        n_steps_per_span=n_steps_per_span,
+        xline_newton_iterations=xline_newton_iterations,
+        xline_newton_damping=xline_newton_damping,
+        wall_n_steps=wall_n_steps,
+        wall_newton_iterations=wall_newton_iterations,
+        wall_newton_damping=wall_newton_damping,
+        maximum_phi_shift=maximum_phi_shift,
+        bphi_floor=bphi_floor,
+        xline_residual_tolerance=xline_residual_tolerance,
+        wall_residual_tolerance=wall_residual_tolerance,
+        minimum_abs_transversality=minimum_abs_transversality,
+    )
+    section_phi = jnp.asarray(
+        branch_reference.section_phi,
+        dtype=strikes.seed_RZ.dtype,
+    )
+
+    def trace_one(seed, event_phi):
+        return fixed_phi_trajectory(
+            field_fn,
+            params,
+            seed,
+            phi_start=section_phi,
+            phi_span=event_phi - section_phi,
+            n_steps=wall_n_steps,
+            bphi_floor=bphi_floor,
+        )
+
+    trajectories = jax.vmap(trace_one)(
+        strikes.seed_RZ,
+        strikes.intersections.phi,
+    )
+    radius = trajectories.rz[..., 0]
+    height = trajectories.rz[..., 1]
+    point_RZPhi = jnp.stack((radius, height, trajectories.phi), axis=-1)
+    point_xyz = jnp.stack(
+        (
+            radius * jnp.cos(trajectories.phi),
+            radius * jnp.sin(trajectories.phi),
+            height,
+        ),
+        axis=-1,
+    )
+    return ManifoldStrikeTrajectoryBundleState(
+        strike_bundle=strikes,
+        phi=trajectories.phi,
+        point_RZPhi=point_RZPhi,
+        point_xyz=point_xyz,
+    )
+
+
 __all__ = [
     "ManifoldStrikeBundleState",
     "ManifoldStrikeState",
+    "ManifoldStrikeTrajectoryBundleState",
     "WallIntersectionState",
     "WallLevelSet",
     "local_wall_plane_level_set",
     "solve_wall_intersection",
     "trace_manifold_strike",
     "trace_manifold_strike_bundle",
+    "trace_manifold_strike_bundle_trajectories",
     "wall_intersection_state",
 ]

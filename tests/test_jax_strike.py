@@ -16,6 +16,7 @@ from pyna.topo.jax_strike import (
     solve_wall_intersection,
     trace_manifold_strike,
     trace_manifold_strike_bundle,
+    trace_manifold_strike_bundle_trajectories,
     wall_intersection_state,
 )
 from pyna.topo.manifold_correspondence import ManifoldBranchReference
@@ -396,6 +397,22 @@ def _trace_labelled_bundle(params):
     )
 
 
+def _trace_labelled_trajectory_bundle(params):
+    branch, matches, planes = _manifold_strike_bundle_reference()
+    return trace_manifold_strike_bundle_trajectories(
+        _shifted_hyperbolic_field,
+        params,
+        branch,
+        matches,
+        planes,
+        n_steps_per_span=64,
+        xline_newton_iterations=4,
+        wall_n_steps=128,
+        wall_newton_iterations=5,
+        maximum_phi_shift=0.2,
+    )
+
+
 def test_labelled_manifold_strike_tracks_moving_xline_and_exact_seed():
     params = jnp.array([0.4, 1.0, -0.05])
     branch, match, _plane = _manifold_strike_reference()
@@ -629,3 +646,45 @@ def test_labelled_strike_bundle_has_ordered_outer_correspondence_gate():
     assert not rejected.strike_reports[1].accepted
     assert rejected.max_deviation_m == pytest.approx(1.0e-3)
     assert matches[1].label.key in rejected.rejection_reason
+
+
+def test_labelled_strike_bundle_retains_differentiable_event_trajectories():
+    params = jnp.array([0.4, 1.0, -0.05])
+    state = jax.jit(_trace_labelled_trajectory_bundle)(params)
+
+    assert state.phi.shape == (2, 129)
+    assert state.point_RZPhi.shape == (2, 129, 3)
+    assert state.point_xyz.shape == (2, 129, 3)
+    np.testing.assert_allclose(
+        state.point_RZPhi[:, 0, :2],
+        state.strike_bundle.seed_RZ,
+        atol=0.0,
+    )
+    np.testing.assert_allclose(state.phi[:, 0], 0.1, atol=0.0)
+    np.testing.assert_allclose(
+        state.point_RZPhi[:, -1],
+        state.strike_bundle.intersections.point_RZPhi,
+        atol=2.0e-13,
+    )
+    np.testing.assert_allclose(
+        state.point_xyz[:, -1],
+        state.strike_bundle.intersections.point_xyz,
+        atol=2.0e-13,
+    )
+
+    def interior_points(active_params):
+        return _trace_labelled_trajectory_bundle(active_params).point_xyz[:, 64]
+
+    direction = jnp.array([0.2, -0.3, 0.4])
+    derivative = jax.jacfwd(interior_points)(params)
+    delta = 2.0e-6
+    finite_difference = (
+        interior_points(params + delta * direction)
+        - interior_points(params - delta * direction)
+    ) / (2.0 * delta)
+    np.testing.assert_allclose(
+        jnp.einsum("sxp,p->sx", derivative, direction),
+        finite_difference,
+        rtol=1.0e-6,
+        atol=3.0e-8,
+    )

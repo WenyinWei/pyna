@@ -265,6 +265,14 @@ the existing convergence, event-window, transversality, and spatial-parity
 gate to every ordered label and reports both the limiting label and maximum
 JAX/Cyna deviation.
 
+`trace_manifold_strike_bundle_trajectories` retains every fixed-step RK4 state
+between each exact seed and its implicitly moving local wall event.  It uses
+the same integration count as the event solve, so the last retained state and
+the reported intersection agree to backend precision.  Interior samples stay
+in the derivative path through both field-line deformation and motion of the
+terminal event phase; this is the PyNA primitive used by ESSOS to penalize
+unintended pre-strike wall approaches without changing branch or seed identity.
+
 ## Production manifold heat gate
 
 `pyna.topo.manifold_heat.validate_manifold_heat_load` is the authoritative
