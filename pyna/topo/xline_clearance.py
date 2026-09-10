@@ -111,6 +111,11 @@ def _signed_clearance_from_projection(
     point_RZPhi_m_rad: np.ndarray,
     projection: Any,
 ) -> np.ndarray:
+    signed_distance = getattr(projection, "signed_distance", None)
+    if signed_distance is not None:
+        return np.asarray(signed_distance, dtype=float)
+    # Compatibility with projections from older backends. Native PyNA
+    # projections use polygon containment, including at concave vertices.
     radius = point_RZPhi_m_rad[:, 0]
     height = point_RZPhi_m_rad[:, 1]
     phi = point_RZPhi_m_rad[:, 2]
