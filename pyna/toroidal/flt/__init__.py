@@ -47,6 +47,13 @@ from pyna.toroidal.flt.numba_poincare import (
     field_arrays_from_field,
     field_arrays_from_interpolators,
 )
+from pyna.toroidal.flt.axisym_tau import (
+    AXISYM_TAU_RETURN_BRANCH,
+    AxisymTauOrbit,
+    AxisymTauOrbitJVP,
+    trace_axisym_tau_closed_orbit,
+    trace_axisym_tau_closed_orbit_jvp,
+)
 from pyna.toroidal.flt.trajectory import (
     DenseFieldLineTrajectory,
     build_prefect_fieldline_flow,
@@ -164,6 +171,11 @@ __all__ = [
     "vector_field_cylind_from_field",
     "field_arrays_from_field",
     "field_arrays_from_interpolators",
+    "AxisymTauOrbit",
+    "AxisymTauOrbitJVP",
+    "AXISYM_TAU_RETURN_BRANCH",
+    "trace_axisym_tau_closed_orbit",
+    "trace_axisym_tau_closed_orbit_jvp",
     "DenseFieldLineTrajectory",
     "ToroidalWallTraceData",
     "trace_fieldline_trajectory",
