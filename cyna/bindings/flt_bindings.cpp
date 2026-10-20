@@ -24,6 +24,8 @@
 #include "cyna/axisym_tau.hpp"
 #include "cyna/objectives.hpp"
 #include "cyna/coil_field.hpp"
+#include "cyna/coil_field_grid.hpp"
+#include "coil_field_grid_bindings.hpp"
 
 namespace py = pybind11;
 
@@ -1556,6 +1558,7 @@ static py::tuple py_trace_poincare_beta_sweep(
 PYBIND11_MODULE(_cyna_ext, m) {
     m.attr("__version__") = "0.2.0";
     m.attr("available")   = true;
+    cyna::bindings::bind_coil_field_grid(m);
 
     py::class_<VectorFieldCylindHandle>(m, "VectorFieldCylind")
         .def(py::init<

@@ -29,6 +29,7 @@ bottlenecks:
 |-----------|------------|-------------|
 | Field-line tracing (RK4 / Ascent ODE) | `pyna.flt` | `cyna/flt.hpp` |
 | Regular-grid interpolation | `pyna.coord` | `cyna/interpolate.hpp` |
+| Coil-set cylindrical field grid | `pyna.toroidal.flt` | `cyna/coil_field_grid.hpp` |
 | NumPy `.npz` I/O | `numpy` | `cyna/io.hpp` |
 | FPT cycle shift `delta_X_pol`, `delta_X_cyc` | `pyna.topo.fpt` | `cyna/poincare.hpp` |
 
@@ -42,6 +43,7 @@ cyna/
 ├── include/
 │   ├── cyna/
 │   │   ├── flt.hpp          ← Field-Line Tracing (RK4 + Ascent ODE)
+│   │   ├── coil_field_grid.hpp ← Biot-Savart coil grid fill (OpenMP CPU)
 │   │   ├── interpolate.hpp  ← RegularGridInterpolator
 │   │   └── io.hpp           ← npz I/O helpers
 │   └── BS_thread_pool.hpp   ← thread-pool (header-only, bundled)
@@ -121,6 +123,15 @@ BR, BZ, BPhi, R_grid, Z_grid, Phi_grid
 
 Important exported functions:
 
+- `coil_field_grid`: exact finite-segment Biot-Savart sum of a coil set on
+  a cylindrical `(nR, nZ, nPhi)` grid, float64, OpenMP over grid rows, no
+  CUDA required.  The stable Python entry point is
+  `pyna.toroidal.flt.build_coil_field_grid`; it accepts `(K, S, 3)` coil
+  polylines or pivot2t's `(K, S, 2, 3)` segment endpoints, a closed
+  `Phi_grid` spanning `2*pi/nfp` (or an open grid with
+  `phi_closed=False`), and returns the flat `BR`, `BZ`, `BPhi` arrays
+  consumed by the tracing kernels.  A pure-NumPy reference backend is kept
+  for CPU-only fallback and cross-checks.
 - `trace_orbit_along_phi`: field-line trace with DPm samples.
 - `compute_A_matrix_batch`: batch finite-difference Jacobian of
   `f=(R*BR/BPhi, R*BZ/BPhi)`.
