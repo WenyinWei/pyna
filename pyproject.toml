@@ -73,12 +73,17 @@ exclude = ["notebooks*"]
 
 # Tell pip/wheel this package contains compiled extensions
 # so it builds a platform-specific wheel (not a universal py3-none-any).
+#
+# CPU-only is the default and the supported PyPI wheel mode: the wheel
+# build passes CYNA_WITH_CUDA=0, so no CUDA toolkit or NVIDIA GPU is
+# needed.  The test command must prove that the coil-grid and Poincare
+# C++ kernels are present, not merely that the module imports.
 [tool.cibuildwheel]
 build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
 skip = ["*-win32", "*-musllinux*", "*-manylinux_i686"]
 before-build = "pip install pybind11"
 environment = { CYNA_WITH_CUDA = "0" }
-test-command = "python -c \"import pyna._cyna as c; assert c.is_available()\""
+test-command = "python -c \"import pyna._cyna as c; assert c.is_available() and c.coil_field_grid is not None and c.trace_poincare_batch is not None\""
 
 [tool.cibuildwheel.macos]
 environment = { CYNA_WITH_CUDA = "0", MACOSX_DEPLOYMENT_TARGET = "11.0" }

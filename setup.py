@@ -12,9 +12,12 @@ wheel is not available for the current platform, pip builds from the sdist;
 that path requires xmake, a C++17 compiler, and pybind11 headers. ``setup.py``
 can bootstrap xmake and a minimal compiler toolchain on common platforms.
 
-CUDA support is controlled by ``CYNA_WITH_CUDA``. Binary wheel CI sets it to
-``0`` for CPU-only wheels; local source builds auto-enable CUDA when ``nvcc`` is
-on PATH unless ``CYNA_WITH_CUDA=0`` is set explicitly.
+The build is CPU-only by default: the mandatory ``_cyna_ext`` extension always
+contains the C++ coil-field-grid and Poincare kernels, requires only a C++17
+compiler and OpenMP, and never links against CUDA.  The optional
+``_cyna_cuda_backend`` is built only when ``CYNA_WITH_CUDA=1`` is set
+explicitly.  Binary wheel CI sets ``CYNA_WITH_CUDA=0``, so the published
+wheels expose the CPU tracing path without a CUDA toolkit.
 """
 
 from __future__ import annotations
@@ -329,21 +332,21 @@ def _install_cxx_compiler() -> bool:
 # ── CUDA (optional) ───────────────────────────────────────────────────────────
 
 def _has_cuda() -> bool:
+    """Return True only when the optional CUDA backend was requested.
+
+    CUDA is deliberately opt-in: a standard pip install on a machine that
+    happens to have nvcc on PATH must still produce the CPU-only default.
+    Set CYNA_WITH_CUDA=1 to build _cyna_cuda_backend as well.
+    """
+
     override = os.environ.get("CYNA_WITH_CUDA")
-    if override is not None:
-        return override.strip().lower() in {"1", "true", "yes", "on", "y"}
+    if override is None:
+        return False
+    return override.strip().lower() in {"1", "true", "yes", "on", "y"}
+
+
+def _nvcc_available() -> bool:
     return shutil.which("nvcc") is not None
-
-
-def _cuda_explicitly_enabled() -> bool:
-    override = os.environ.get("CYNA_WITH_CUDA")
-    return override is not None and override.strip().lower() in {
-        "1",
-        "true",
-        "yes",
-        "on",
-        "y",
-    }
 
 
 def _extension_artifacts(directory: Path) -> list[Path]:
@@ -473,8 +476,18 @@ def _build_cyna() -> bool:
     else:
         env["CYNA_PY_LIB_WIN"] = ""
 
-    # CUDA option: xmake custom option uses --with-cuda=y / n
-    cuda_enabled = _has_cuda()
+    # CUDA option: xmake custom option uses --with-cuda=y / n.
+    # CPU is the default; CUDA requires an explicit opt-in so a local nvcc
+    # installation never changes the build result of a standard install.
+    cuda_requested = _has_cuda()
+    cuda_enabled = cuda_requested
+    if cuda_requested and not _nvcc_available():
+        print(
+            "[cyna-build] ERROR: CYNA_WITH_CUDA=1 but nvcc is not on PATH. "
+            "Install the CUDA toolkit or unset CYNA_WITH_CUDA for a CPU-only build.",
+            flush=True,
+        )
+        return False
     cuda_flag = ["--with-cuda=y"] if cuda_enabled else ["--with-cuda=n"]
 
     print(f"[cyna-build] Building cyna in {CYNA_DIR} …", flush=True)
@@ -489,15 +502,10 @@ def _build_cyna() -> bool:
         base_cfg.append(f"--target_minver={env['MACOSX_DEPLOYMENT_TARGET']}")
     rc = _run(base_cfg + cuda_flag, cwd=str(CYNA_DIR), env=env)
     if rc != 0:
-        if cuda_enabled:
-            if _cuda_explicitly_enabled():
-                print("[cyna-build] CUDA config failed.", flush=True)
-                return False
-            print("[cyna-build] Config with CUDA failed, retrying without ...", flush=True)
-            rc = _run(base_cfg + ["--with-cuda=n"], cwd=str(CYNA_DIR), env=env)
-            cuda_enabled = False
-    if rc != 0:
-        print("[cyna-build] xmake config failed.", flush=True)
+        if cuda_requested:
+            print("[cyna-build] CUDA config failed (CYNA_WITH_CUDA=1).", flush=True)
+        else:
+            print("[cyna-build] xmake config failed.", flush=True)
         return False
 
     # Build the mandatory CPU core extension first.  The optional CUDA backend
@@ -509,11 +517,12 @@ def _build_cyna() -> bool:
     if cuda_enabled:
         rc = _run([xmake, "build", "cyna_cuda_backend"], cwd=str(CYNA_DIR), env=env)
         if rc != 0:
-            message = "[cyna-build] optional CUDA backend build failed."
-            if _cuda_explicitly_enabled():
-                print(message, flush=True)
-                return False
-            print(message + " Continuing with CPU-only cyna.", flush=True)
+            print(
+                "[cyna-build] optional CUDA backend build failed "
+                "(CYNA_WITH_CUDA=1).",
+                flush=True,
+            )
+            return False
 
     # The xmake after_build hook copies _cyna_ext.{pyd,so} into pyna/_cyna/.
     # Verify the file landed there.

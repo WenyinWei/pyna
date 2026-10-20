@@ -1,6 +1,7 @@
 include README.md
 include LICENSE
 include FIELD_LINE_TRACING_POLICY.md
+include CPU_TRACING_BENCHMARK.md
 recursive-include cyna *.lua *.md *.cpp *.cu *.hpp *.h
 exclude pyna/_cyna/_cyna_ext*.so
 exclude pyna/_cyna/_cyna_ext*.pyd

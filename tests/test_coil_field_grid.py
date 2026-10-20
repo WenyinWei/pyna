@@ -6,7 +6,8 @@ Coverage:
 * closed/open phi periodicity and the nfp span contract
 * cyna vs NumPy reference agreement
 * the pivot2t adapter call pattern (K, S, 2, 3 segment endpoints) and a
-  downstream Poincare trace with the produced grid.
+  downstream Poincare trace with the produced grid
+* cyna as the default backend and a loud warning on the test-only NumPy path.
 """
 from __future__ import annotations
 
@@ -16,6 +17,7 @@ import numpy as np
 import pytest
 from scipy.special import ellipe, ellipk
 
+import pyna.toroidal.flt.coil_field_grid as coil_grid_module
 from pyna.toroidal.flt.coil_field_grid import build_coil_field_grid
 
 
@@ -117,19 +119,45 @@ def test_numpy_fallback_matches_analytic_loop():
     radius = 1.5
     current = 1234.5
     segments = _circle_polyline(radius, n=20001)[None, ...]
-    result = build_coil_field_grid(
-        segments,
-        [current],
-        [1.7],
-        [0.3],
-        [0.0, 2.0 * np.pi],
-        nfp=1,
-        backend="numpy",
-    )
+    with pytest.warns(RuntimeWarning, match="NumPy reference backend"):
+        result = build_coil_field_grid(
+            segments,
+            [current],
+            [1.7],
+            [0.3],
+            [0.0, 2.0 * np.pi],
+            nfp=1,
+            backend="numpy",
+        )
     br_exact, bz_exact = _exact_loop_field(radius, 1.7, 0.3, current)
     assert result["backend"] == "numpy-reference"
     assert abs(result["BR"][0, 0, 0] - br_exact) / abs(br_exact) < 1.0e-6
     assert abs(result["BZ"][0, 0, 0] - bz_exact) / abs(bz_exact) < 1.0e-6
+
+
+def test_auto_backend_warns_and_falls_back_when_kernel_missing(monkeypatch):
+    """The reference path must never be silent, even when auto-selected."""
+
+    segments = _circle_polyline(1.4, n=41)[None, ...]
+    monkeypatch.setattr(coil_grid_module, "_cyna_kernel", lambda: None)
+    with pytest.warns(RuntimeWarning, match="NumPy reference backend"):
+        result = build_coil_field_grid(
+            segments,
+            [1.0],
+            [1.7],
+            [0.0],
+            [0.0],
+            nfp=1,
+            backend="auto",
+        )
+    assert result["backend"] == "numpy-reference"
+
+
+@requires_cyna
+def test_auto_backend_uses_cyna_cpu():
+    segments = _circle_polyline(1.4, n=41)[None, ...]
+    result = build_coil_field_grid(segments, [1.0], [1.7], [0.0], [0.0])
+    assert result["backend"] == "cyna-cpu"
 
 
 # ---------------------------------------------------------------------------
@@ -207,9 +235,10 @@ def test_cyna_and_numpy_backends_agree():
     native = build_coil_field_grid(
         segments, currents, R_grid, Z_grid, Phi_grid, backend="cyna"
     )
-    reference = build_coil_field_grid(
-        segments, currents, R_grid, Z_grid, Phi_grid, backend="numpy"
-    )
+    with pytest.warns(RuntimeWarning, match="NumPy reference backend"):
+        reference = build_coil_field_grid(
+            segments, currents, R_grid, Z_grid, Phi_grid, backend="numpy"
+        )
     assert native["backend"] == "cyna-cpu"
     for key in ("BR", "BZ", "BPhi"):
         scale = max(1.0e-30, float(np.max(np.abs(reference[key]))))

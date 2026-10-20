@@ -99,8 +99,10 @@ jobs:
           CIBW_ENVIRONMENT_PASS_WINDOWS: "PATH"
 
           # ── Test each wheel immediately after building ────────────────────
+          # The CPU wheel must expose both the coil-grid builder and the
+          # Poincare tracer; an import-only smoke test is not sufficient.
           CIBW_TEST_COMMAND: >
-            python -c "import pyna._cyna as c; assert c.is_available(), 'cyna not available'"
+            python -c "import pyna._cyna as c; assert c.is_available(), 'cyna not available'; assert c.coil_field_grid is not None, 'CPU coil_field_grid missing'; assert c.trace_poincare_batch is not None, 'CPU Poincare tracer missing'"
           # arm64 wheels built on x86 runner cannot be executed
           CIBW_TEST_SKIP: "*-macosx_*_arm64 *-macosx_arm64"
 

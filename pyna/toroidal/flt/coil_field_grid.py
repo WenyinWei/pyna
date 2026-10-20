@@ -2,9 +2,10 @@
 
 This module is the stable pyna entry point for filling a cylindrical
 (nR, nZ, nPhi) field grid from a set of filamentary coils.  The heavy
-Biot-Savart sum runs in the cyna C++ extension (OpenMP, float64); a pure
-NumPy reference implementation is kept as a CPU-only fallback so that the
-wrapper never depends on CUDA, JAX, or a GPU.
+Biot-Savart sum runs in the cyna C++ extension (OpenMP, float64), which is
+the default backend and needs no CUDA, JAX, or GPU.  A pure-NumPy reference
+implementation is kept for tests and correctness cross-checks only; it is
+much slower and emits a warning whenever it is selected.
 
 Conventions
 -----------
@@ -34,11 +35,21 @@ The returned dictionary uses the same keys as the pivot2t adapter
 """
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 
 __all__ = ["build_coil_field_grid"]
 
 _MU0_OVER_4PI = 1.0e-7  # T m / A
+
+_REFERENCE_WARNING = (
+    "build_coil_field_grid is using the NumPy reference backend. This path is "
+    "intended for tests and correctness cross-checks only: it is orders of "
+    "magnitude slower than the cyna C++ CPU kernel and is not a supported "
+    "production field-line-tracing backend. Install a CPU wheel or rebuild "
+    "cyna so backend='auto' selects the C++ kernel."
+)
 
 
 def _require_axis(values, name: str, *, positive: bool = False) -> np.ndarray:
@@ -194,11 +205,13 @@ def build_coil_field_grid(
     phi_closed : bool or None, default None
         None auto-detects from the span.  True requires the closed cyna
         layout, False treats every plane as distinct (pivot2t layout).
-    backend : {"auto", "cyna", "cpu", "numpy"}, default "auto"
+    backend : {"auto", "cyna", "cpu", "numpy", "reference"}, default "auto"
         "auto" uses the cyna C++ kernel when the compiled extension is
-        importable and otherwise falls back to the NumPy reference.
-        "cyna"/"cpu" require the cyna kernel; "numpy" forces the
-        reference.  No backend imports CUDA.
+        importable.  If the kernel is missing it emits a RuntimeWarning
+        and falls back to the NumPy reference.  "cyna"/"cpu" require the
+        cyna kernel; "numpy"/"reference" force the reference (test-only).
+        Every NumPy-reference use emits a RuntimeWarning because that path
+        is not a supported production backend.  No backend imports CUDA.
     n_threads : int, default -1
         OpenMP thread count for the cyna kernel (-1 = library default).
 
@@ -235,7 +248,9 @@ def build_coil_field_grid(
 
     backend_key = str(backend).lower()
     if backend_key not in ("auto", "cyna", "cpu", "numpy", "reference"):
-        raise ValueError("backend must be 'auto', 'cyna', 'cpu' or 'numpy'")
+        raise ValueError(
+            "backend must be 'auto', 'cyna', 'cpu', 'numpy' or 'reference'"
+        )
 
     kernel = _cyna_kernel() if backend_key in ("auto", "cyna", "cpu") else None
     if kernel is not None:
@@ -249,9 +264,11 @@ def build_coil_field_grid(
     elif backend_key in ("cyna", "cpu"):
         raise RuntimeError(
             "the compiled cyna extension does not provide coil_field_grid; "
-            "rebuild it or pass backend='numpy'"
+            "install a CPU wheel or rebuild cyna, or pass backend='numpy' "
+            "for a test-only reference calculation"
         )
     else:
+        warnings.warn(_REFERENCE_WARNING, RuntimeWarning, stacklevel=2)
         BR, BZ, BPhi = _numpy_reference(
             seg, cur, Rg, Zg, Pg, phi_closed=closed
         )
