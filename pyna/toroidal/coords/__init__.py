@@ -21,3 +21,11 @@ from pyna.toroidal.pest_coords import (
     reparameterize_pest_on_candidate_field,
     straight_field_line_mde_adjoint_error,
 )
+from pyna.toroidal.coords.vmec import (
+    VmecPestCoordinateBuild,
+    build_vmec_pest_coordinates_from_wout,
+)
+from pyna.toroidal.coords.vmec_axis import (
+    VmecMagneticAxisBuild,
+    build_vmec_magnetic_axis_from_wout,
+)
