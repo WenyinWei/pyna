@@ -573,7 +573,7 @@ def trace_manifold_strike_bundle(
         raise ValueError("strike labels must be unique within a bundle")
     seed_indices = [
         _validate_strike_pair(branch_reference, match, plane)
-        for match, plane in zip(matches, planes, strict=True)
+        for match, plane in zip(matches, planes)
     ]
 
     periodic, seeds = _periodic_point_and_seed_segment(

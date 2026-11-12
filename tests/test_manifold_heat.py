@@ -129,7 +129,7 @@ def test_production_heat_gate_preserves_labels_power_and_wall_planes():
     assert tuple(match.label.seed_order for match in report.strike_matches) == (4, 9)
     assert all(
         match.label == plane.strike_label
-        for match, plane in zip(report.strike_matches, report.wall_planes, strict=True)
+        for match, plane in zip(report.strike_matches, report.wall_planes)
     )
     assert report.unresolved_power_W == pytest.approx(0.0)
     assert report.peak_heat_flux_W_m2 == pytest.approx(12.0)

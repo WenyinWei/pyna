@@ -24,6 +24,8 @@ def main():
         f"pyna does not come from the installed distribution: {package_file}"
     )
     assert cyna.is_available(), "The wheel's native extension did not load"
+    assert callable(cyna.coil_field_grid), "The CPU coil-field kernel is missing"
+    assert callable(cyna.trace_poincare_batch), "The CPU Poincare tracer is missing"
     extension = cyna._cyna_ext
     extension_file = Path(extension.__file__).resolve()
     assert extension_file.parent == package_file.parent / "_cyna", (

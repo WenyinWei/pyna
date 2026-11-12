@@ -121,11 +121,11 @@ An install that cannot build or load `_cyna_ext` fails; this prevents downstream
 projects from silently running without the production tracing backend.
 
 Published PyPI wheels are CPU-only and do not link against CUDA; the wheel CI
-sets `CYNA_WITH_CUDA=0` explicitly. For local source builds, leaving
-`CYNA_WITH_CUDA` unset attempts to build an optional runtime CUDA backend when
-`nvcc` is available. The main `_cyna_ext` module remains CPU-only and falls back
-cleanly if that backend is absent. Set `CYNA_WITH_CUDA=0` to force a CPU-only
-local build, or `CYNA_WITH_CUDA=1` to require the CUDA backend build. Check
+sets `CYNA_WITH_CUDA=0` explicitly. Local source builds also default to CPU-only,
+even when `nvcc` is available. Set `CYNA_WITH_CUDA=1` to additionally require
+the optional runtime CUDA backend; this needs a CUDA toolkit. The main
+`_cyna_ext` module remains CPU-only and falls back cleanly if that backend is
+absent. Check
 `pyna._cyna.cuda_backend_available()` at runtime when you need to know whether
 the optional backend loaded.
 

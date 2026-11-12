@@ -7,8 +7,8 @@ set_version("0.6.0")
 
 set_languages("c++17")
 
--- Optional CUDA (off by default in xmake; setup.py enables it when nvcc is
--- present unless CYNA_WITH_CUDA=0 is set).
+-- Optional CUDA (off by default; setup.py enables it only when
+-- CYNA_WITH_CUDA=1 is explicitly requested).
 option("with-cuda")
     set_default(false)
     set_showmenu(true)
@@ -89,12 +89,10 @@ target("cyna_python")
     -- Compiler flags
     set_languages("c++17")
     add_cxxflags("/O2", "/openmp",  {tools = {"cl"}})
-    if is_plat("macosx") then
-        add_cxxflags("-O3", {tools = {"gcc"}})
-    else
-        add_cxxflags("-O3", "-fopenmp", {tools = {"gcc"}})
+    add_cxxflags("-O3", {tools = {"gcc", "gxx", "clang", "clangxx"}})
+    if not is_plat("macosx") then
+        add_cxxflags("-fopenmp", {tools = {"gcc", "gxx"}})
     end
-    add_cxxflags("-O3", {tools = {"clang"}})
     if is_plat("linux") then
         add_syslinks("gomp")
     end

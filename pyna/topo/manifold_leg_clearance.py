@@ -118,7 +118,7 @@ class ManifoldLegClearanceReport:
             ):
                 raise ValueError("accepted clearance requires all matches and planes")
             for leg, match, plane in zip(
-                self.legs, self.strike_matches, self.wall_planes, strict=True,
+                self.legs, self.strike_matches, self.wall_planes,
             ):
                 if leg.label != match.label or leg.label != plane.strike_label:
                     raise ValueError("accepted clearance changed ordered labels")
