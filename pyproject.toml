@@ -91,7 +91,8 @@ test-command = "python {project}/tests/wheel_smoke.py"
 manylinux-x86_64-image = "manylinux2014"
 manylinux-aarch64-image = "manylinux2014"
 inherit.environment = "append"
-environment = { PATH = "/root/.local/bin:$PATH" }
+# Resolve build/test dependencies using wheels compatible with each glibc image.
+environment = { PATH = "/root/.local/bin:$PATH", PIP_ONLY_BINARY = ":all:" }
 
 [tool.cibuildwheel.macos]
 inherit.environment = "append"
