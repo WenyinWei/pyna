@@ -63,6 +63,12 @@ coil_circular_field           = getattr(_cyna_ext, "coil_circular_field", None)
 coil_biot_savart              = getattr(_cyna_ext, "coil_biot_savart",     None)
 cuda_backend_available        = getattr(_cyna_ext, "cuda_backend_available", lambda: False)
 VectorFieldCylind             = getattr(_cyna_ext, "VectorFieldCylind",             None)
+trace_axisym_tau_closed_orbit = getattr(
+    _cyna_ext, "trace_axisym_tau_closed_orbit", None
+)
+trace_axisym_tau_closed_orbit_jvp = getattr(
+    _cyna_ext, "trace_axisym_tau_closed_orbit_jvp", None
+)
 trace_poincare_batch = _cyna_ext.trace_poincare_batch
 trace_poincare_multi = _cyna_ext.trace_poincare_multi
 trace_poincare_batch_twall    = getattr(_cyna_ext, "trace_poincare_batch_twall",    None)
@@ -114,6 +120,8 @@ __all__ = [
     "coil_biot_savart",
     "cuda_backend_available",
     "VectorFieldCylind",
+    "trace_axisym_tau_closed_orbit",
+    "trace_axisym_tau_closed_orbit_jvp",
     "trace_poincare_batch",
     "trace_poincare_multi",
     "trace_poincare_batch_twall",

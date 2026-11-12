@@ -21,6 +21,7 @@
 #include <dlfcn.h>
 #endif
 #include "cyna/poincare.hpp"
+#include "cyna/axisym_tau.hpp"
 #include "cyna/objectives.hpp"
 #include "cyna/coil_field.hpp"
 
@@ -379,6 +380,289 @@ struct VectorFieldCylindHandle {
 // ---------------------------------------------------------------------------
 // compute_A_matrix_batch
 // ---------------------------------------------------------------------------
+static py::dict py_trace_axisym_tau_closed_orbit(
+    const VectorFieldCylindHandle& field,
+    double seed_R,
+    double section_Z,
+    double step_tau,
+    double maximum_tau,
+    double closure_tolerance,
+    double minimum_seed_poloidal_field,
+    double phi_start)
+{
+    if (!std::isfinite(seed_R) || !std::isfinite(section_Z) ||
+        !std::isfinite(phi_start))
+        throw std::runtime_error(
+            "seed_R, section_Z, and phi_start must be finite");
+    if (!std::isfinite(step_tau) || !(step_tau > 0.0) ||
+        !std::isfinite(maximum_tau) || !(maximum_tau > step_tau))
+        throw std::runtime_error(
+            "step_tau must be finite and positive, and maximum_tau must exceed it");
+    if (!std::isfinite(closure_tolerance) || !(closure_tolerance > 0.0))
+        throw std::runtime_error(
+            "closure_tolerance must be finite and positive");
+    if (!std::isfinite(minimum_seed_poloidal_field) ||
+        minimum_seed_poloidal_field < 0.0)
+        throw std::runtime_error(
+            "minimum_seed_poloidal_field must be finite and nonnegative");
+    const double requested_steps = std::ceil(maximum_tau / step_tau);
+    if (!std::isfinite(requested_steps) || requested_steps > 100000000.0)
+        throw std::runtime_error(
+            "maximum_tau/step_tau requests too many stored orbit nodes");
+
+    cyna::AxisymTauOrbitResult traced;
+    {
+        py::gil_scoped_release release;
+        traced = cyna::trace_axisym_tau_closed_orbit(
+            seed_R,
+            section_Z,
+            phi_start,
+            step_tau,
+            maximum_tau,
+            closure_tolerance,
+            minimum_seed_poloidal_field,
+            field.BR.data(),
+            field.BZ.data(),
+            field.BPhi.data(),
+            field.R.data(),
+            field.nR,
+            field.Z.data(),
+            field.nZ,
+            field.Phi.data(),
+            field.nPhi,
+            field.nfp);
+    }
+
+    const py::ssize_t node_count =
+        static_cast<py::ssize_t>(traced.tau.size());
+    py::array_t<double> tau({node_count});
+    py::array_t<double> path({node_count, static_cast<py::ssize_t>(3)});
+    py::array_t<double> weights({
+        static_cast<py::ssize_t>(traced.weights_B2_dtau.size())});
+    std::copy(traced.tau.begin(), traced.tau.end(), tau.mutable_data());
+    for (py::ssize_t index = 0; index < node_count; ++index) {
+        const auto& state = traced.path[static_cast<std::size_t>(index)];
+        path.mutable_data()[3 * index] = state.R;
+        path.mutable_data()[3 * index + 1] = state.Z;
+        path.mutable_data()[3 * index + 2] = state.phi;
+    }
+    std::copy(
+        traced.weights_B2_dtau.begin(),
+        traced.weights_B2_dtau.end(),
+        weights.mutable_data());
+
+    py::dict result;
+    result["status_code"] = static_cast<int>(traced.status);
+    result["status"] = cyna::axisym_tau_orbit_status_name(traced.status);
+    result["closed"] = traced.status == cyna::AxisymTauOrbitStatus::closed;
+    result["tau"] = tau;
+    result["path_R_Z_phi"] = path;
+    result["weights_B2_dtau"] = weights;
+    result["period_tau"] = traced.period_tau;
+    result["return_defect"] = traced.return_defect;
+    result["gauge_measure_B2_dtau"] = traced.gauge_measure_B2_dtau;
+    result["phi_advance"] = traced.phi_advance;
+    result["opposite_section_crossed"] = traced.opposite_section_crossed;
+    result["accepted_steps"] = traced.accepted_steps;
+    const auto extremum_dict = [](const cyna::AxisymTauBExtremumEvent& event) {
+        py::dict value;
+        value["certified"] = event.certified;
+        value["tau"] = event.tau;
+        value["position_R_Z_phi"] = py::make_tuple(
+            event.position.R, event.position.Z, event.position.phi);
+        value["B"] = event.B;
+        value["d2_B2_dtau2"] = event.d2_B2_dtau2;
+        value["interval_index"] = event.interval_index;
+        value["interval_fraction"] = event.interval_fraction;
+        return value;
+    };
+    result["B_minimum_event"] = extremum_dict(traced.B_minimum);
+    result["B_maximum_event"] = extremum_dict(traced.B_maximum);
+    result["production_cyna_executed"] = true;
+    result["component_order"] = py::make_tuple("R", "Z", "Phi");
+    return result;
+}
+
+static py::dict py_trace_axisym_tau_closed_orbit_jvp(
+    const VectorFieldCylindHandle& field,
+    const VectorFieldCylindHandle& field_direction,
+    double seed_R,
+    double section_Z,
+    double step_tau,
+    double maximum_tau,
+    double closure_tolerance,
+    int return_direction,
+    double minimum_seed_poloidal_field,
+    double phi_start,
+    double seed_R_jvp,
+    double section_Z_jvp,
+    double phi_start_jvp)
+{
+    if (!std::isfinite(seed_R) || !std::isfinite(section_Z) ||
+        !std::isfinite(phi_start) || !std::isfinite(seed_R_jvp) ||
+        !std::isfinite(section_Z_jvp) || !std::isfinite(phi_start_jvp))
+        throw std::runtime_error("tau JVP seed, section, and directions must be finite");
+    if (!std::isfinite(step_tau) || !(step_tau > 0.0) ||
+        !std::isfinite(maximum_tau) || !(maximum_tau > step_tau))
+        throw std::runtime_error(
+            "step_tau must be finite and positive, and maximum_tau must exceed it");
+    if (!std::isfinite(closure_tolerance) || !(closure_tolerance > 0.0))
+        throw std::runtime_error("closure_tolerance must be finite and positive");
+    if (!std::isfinite(minimum_seed_poloidal_field) ||
+        minimum_seed_poloidal_field < 0.0)
+        throw std::runtime_error(
+            "minimum_seed_poloidal_field must be finite and nonnegative");
+    if (return_direction != -1 && return_direction != 1)
+        throw std::runtime_error("return_direction must be -1 or +1");
+    const double requested_steps = std::ceil(maximum_tau / step_tau);
+    if (!std::isfinite(requested_steps) || requested_steps > 100000000.0)
+        throw std::runtime_error(
+            "maximum_tau/step_tau requests too many stored orbit nodes");
+    if (field.nR != field_direction.nR ||
+        field.nZ != field_direction.nZ ||
+        field.nPhi != field_direction.nPhi || field.nfp != field_direction.nfp)
+        throw std::runtime_error(
+            "field and field_direction must use the same cyna grid and nfp");
+    const auto same_axis = [](const py::array_t<double>& left,
+                              const py::array_t<double>& right) {
+        return left.size() == right.size() &&
+            std::equal(left.data(), left.data() + left.size(), right.data());
+    };
+    if (!same_axis(field.R, field_direction.R) ||
+        !same_axis(field.Z, field_direction.Z) ||
+        !same_axis(field.Phi, field_direction.Phi))
+        throw std::runtime_error(
+            "field and field_direction must use identical cyna grid coordinates");
+
+    cyna::AxisymTauOrbitJVPResult traced;
+    {
+        py::gil_scoped_release release;
+        traced = cyna::trace_axisym_tau_closed_orbit_jvp(
+            seed_R,
+            section_Z,
+            phi_start,
+            seed_R_jvp,
+            section_Z_jvp,
+            phi_start_jvp,
+            return_direction,
+            step_tau,
+            maximum_tau,
+            closure_tolerance,
+            minimum_seed_poloidal_field,
+            field.BR.data(),
+            field.BZ.data(),
+            field.BPhi.data(),
+            field_direction.BR.data(),
+            field_direction.BZ.data(),
+            field_direction.BPhi.data(),
+            field.R.data(),
+            field.nR,
+            field.Z.data(),
+            field.nZ,
+            field.Phi.data(),
+            field.nPhi,
+            field.nfp);
+    }
+
+    const auto& orbit = traced.orbit;
+    const py::ssize_t node_count = static_cast<py::ssize_t>(orbit.tau.size());
+    py::array_t<double> tau({node_count});
+    py::array_t<double> path({node_count, static_cast<py::ssize_t>(3)});
+    py::array_t<double> weights({
+        static_cast<py::ssize_t>(orbit.weights_B2_dtau.size())});
+    py::array_t<double> tau_jvp({
+        static_cast<py::ssize_t>(traced.tau_jvp.size())});
+    py::array_t<double> path_jvp({
+        static_cast<py::ssize_t>(traced.path_jvp.size()),
+        static_cast<py::ssize_t>(3)});
+    py::array_t<double> weights_jvp({
+        static_cast<py::ssize_t>(traced.weights_B2_dtau_jvp.size())});
+    std::copy(orbit.tau.begin(), orbit.tau.end(), tau.mutable_data());
+    std::copy(
+        orbit.weights_B2_dtau.begin(), orbit.weights_B2_dtau.end(),
+        weights.mutable_data());
+    std::copy(
+        traced.tau_jvp.begin(), traced.tau_jvp.end(), tau_jvp.mutable_data());
+    std::copy(
+        traced.weights_B2_dtau_jvp.begin(),
+        traced.weights_B2_dtau_jvp.end(),
+        weights_jvp.mutable_data());
+    for (py::ssize_t index = 0; index < node_count; ++index) {
+        const auto& state = orbit.path[static_cast<std::size_t>(index)];
+        path.mutable_data()[3 * index] = state.R;
+        path.mutable_data()[3 * index + 1] = state.Z;
+        path.mutable_data()[3 * index + 2] = state.phi;
+        const auto& tangent = traced.path_jvp[static_cast<std::size_t>(index)];
+        path_jvp.mutable_data()[3 * index] = tangent.R;
+        path_jvp.mutable_data()[3 * index + 1] = tangent.Z;
+        path_jvp.mutable_data()[3 * index + 2] = tangent.phi;
+    }
+    py::array_t<double> return_displacement_jvp({static_cast<py::ssize_t>(2)});
+    return_displacement_jvp.mutable_data()[0] = traced.return_displacement_jvp.R;
+    return_displacement_jvp.mutable_data()[1] = traced.return_displacement_jvp.Z;
+
+    py::dict result;
+    result["status_code"] = static_cast<int>(orbit.status);
+    result["status"] = cyna::axisym_tau_orbit_status_name(orbit.status);
+    result["closed"] = orbit.status == cyna::AxisymTauOrbitStatus::closed;
+    result["tau"] = tau;
+    result["path_R_Z_phi"] = path;
+    result["weights_B2_dtau"] = weights;
+    result["period_tau"] = orbit.period_tau;
+    result["return_defect"] = orbit.return_defect;
+    result["gauge_measure_B2_dtau"] = orbit.gauge_measure_B2_dtau;
+    result["phi_advance"] = orbit.phi_advance;
+    result["opposite_section_crossed"] = orbit.opposite_section_crossed;
+    result["accepted_steps"] = orbit.accepted_steps;
+    result["tau_jvp"] = tau_jvp;
+    result["path_R_Z_phi_jvp"] = path_jvp;
+    result["weights_B2_dtau_jvp"] = weights_jvp;
+    result["period_tau_jvp"] = traced.period_tau_jvp;
+    result["gauge_measure_B2_dtau_jvp"] = traced.gauge_measure_B2_dtau_jvp;
+    result["phi_advance_jvp"] = traced.phi_advance_jvp;
+    result["return_displacement_R_Z_jvp"] = return_displacement_jvp;
+    result["event_fraction"] = traced.event_fraction;
+    result["event_fraction_jvp"] = traced.event_fraction_jvp;
+    const auto extremum_dict = [](
+        const cyna::AxisymTauBExtremumEvent& event,
+        const cyna::AxisymTauBExtremumEventJVP& tangent) {
+        py::dict value;
+        const bool tangent_certified = event.certified &&
+            std::isfinite(tangent.tau_jvp) && std::isfinite(tangent.B_jvp) &&
+            std::isfinite(tangent.position_jvp.R) &&
+            std::isfinite(tangent.position_jvp.Z) &&
+            std::isfinite(tangent.position_jvp.phi);
+        value["certified"] = event.certified;
+        value["tangent_certified"] = tangent_certified;
+        value["tau"] = event.tau;
+        value["position_R_Z_phi"] = py::make_tuple(
+            event.position.R, event.position.Z, event.position.phi);
+        value["B"] = event.B;
+        value["d2_B2_dtau2"] = event.d2_B2_dtau2;
+        value["interval_index"] = event.interval_index;
+        value["interval_fraction"] = event.interval_fraction;
+        value["tau_jvp"] = tangent.tau_jvp;
+        value["position_R_Z_phi_jvp"] = py::make_tuple(
+            tangent.position_jvp.R,
+            tangent.position_jvp.Z,
+            tangent.position_jvp.phi);
+        value["B_jvp"] = tangent.B_jvp;
+        return value;
+    };
+    result["B_minimum_event"] = extremum_dict(
+        orbit.B_minimum, traced.B_minimum_jvp);
+    result["B_maximum_event"] = extremum_dict(
+        orbit.B_maximum, traced.B_maximum_jvp);
+    result["return_direction"] = traced.section_direction;
+    result["return_branch"] =
+        "first_same_direction_return_after_opposite_crossing";
+    result["phase_parameterization"] = "baseline_normalized_tau";
+    result["production_cyna_executed"] = true;
+    result["production_cyna_tangent_executed"] = true;
+    result["component_order"] = py::make_tuple("R", "Z", "Phi");
+    return result;
+}
+
 static py::array_t<double> py_compute_A_matrix_batch(
     py::array_t<double> R_arr,
     py::array_t<double> Z_arr,
@@ -1317,6 +1601,42 @@ PYBIND11_MODULE(_cyna_ext, m) {
     });
 
     // Debug: one RK4 step
+    m.def(
+        "trace_axisym_tau_closed_orbit",
+        &py_trace_axisym_tau_closed_orbit,
+        py::arg("field"),
+        py::arg("seed_R"),
+        py::arg("section_Z"),
+        py::arg("step_tau"),
+        py::arg("maximum_tau"),
+        py::arg("closure_tolerance"),
+        py::arg("minimum_seed_poloidal_field") = 1.0e-9,
+        py::arg("phi_start") = 0.0,
+        "Trace the full directed first return of an axisymmetric field in "
+        "physical tau. Equations are dR/dtau=BR, dZ/dtau=BZ, and "
+        "dphi/dtau=BPhi/R. The returned dict includes nonnegative nodal "
+        "trapezoidal B^2 dtau weights and an explicit status.");
+
+    m.def(
+        "trace_axisym_tau_closed_orbit_jvp",
+        &py_trace_axisym_tau_closed_orbit_jvp,
+        py::arg("field"),
+        py::arg("field_direction"),
+        py::arg("seed_R"),
+        py::arg("section_Z"),
+        py::arg("step_tau"),
+        py::arg("maximum_tau"),
+        py::arg("closure_tolerance"),
+        py::arg("return_direction"),
+        py::arg("minimum_seed_poloidal_field") = 1.0e-9,
+        py::arg("phi_start") = 0.0,
+        py::arg("seed_R_jvp") = 0.0,
+        py::arg("section_Z_jvp") = 0.0,
+        py::arg("phi_start_jvp") = 0.0,
+        "Propagate one axisymmetric physical-tau closed orbit and its true "
+        "tangent-linear JVP through RK4, the directed Hermite return event, "
+        "and normalized-phase B^2 dtau quadrature.");
+
     m.def("rk4_step_test", [](double R, double Z, double phi, double DPhi,
                                py::array_t<double> BR, py::array_t<double> BZ, py::array_t<double> BPhi,
                                py::array_t<double> Rg, py::array_t<double> Zg,

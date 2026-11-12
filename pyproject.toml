@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61", "wheel", "pybind11>=2.11"]
+requires = ["setuptools>=77.0.3", "wheel", "pybind11>=3.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -14,6 +14,13 @@ keywords = ["dynamical systems", "chaos", "plasma physics", "MHD", "Poincaré ma
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: Implementation :: CPython",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS",
@@ -21,11 +28,11 @@ classifiers = [
 ]
 dependencies = [
     "numpy>=1.22",
-    "scipy>=1.8,<1.16",
+    "scipy>=1.8",
     "matplotlib>=3.5",
     "sympy>=1.10",
     "deprecated>=1.2",
-    "h5py>=3.0,<3.15",
+    "h5py>=3.0",
     "joblib>=1.2",
     "plotly>=5.20",
     "eval-type-backport; python_version < '3.10'",
@@ -71,17 +78,30 @@ exclude = ["notebooks*"]
 [tool.setuptools.package-data]
 "pyna._cyna" = ["*.pyd", "*.so", "*.so.*"]
 
-# Tell pip/wheel this package contains compiled extensions
-# so it builds a platform-specific wheel (not a universal py3-none-any).
+# Build selectors and installed-wheel checks shared by release CI and local
+# cibuildwheel runs. setup.py declares the compiled extension for wheel tagging.
 [tool.cibuildwheel]
-build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
+build = "cp39-* cp310-* cp311-* cp312-* cp313-* cp314-*"
 skip = ["*-win32", "*-musllinux*", "*-manylinux_i686"]
-before-build = "pip install pybind11"
-environment = { CYNA_WITH_CUDA = "0" }
-test-command = "python -c \"import pyna._cyna as c; assert c.is_available()\""
+environment = { CYNA_WITH_CUDA = "0", CYNA_SKIP_TOOL_INSTALL = "1" }
+test-command = "python {project}/tests/wheel_smoke.py"
+
+[tool.cibuildwheel.linux]
+manylinux-x86_64-image = "manylinux2014"
+manylinux-aarch64-image = "manylinux2014"
+inherit.environment = "append"
+environment = { PATH = "/root/.local/bin:$PATH" }
 
 [tool.cibuildwheel.macos]
-environment = { CYNA_WITH_CUDA = "0", MACOSX_DEPLOYMENT_TARGET = "11.0" }
+inherit.environment = "append"
+environment = { MACOSX_DEPLOYMENT_TARGET = "11.0" }
+
+# CPython 3.14 is unavailable in manylinux2014; retain the older baseline for
+# 3.9–3.13 rather than unnecessarily raising their glibc requirement.
+[[tool.cibuildwheel.overrides]]
+select = "cp314-*"
+manylinux-x86_64-image = "manylinux_2_28"
+manylinux-aarch64-image = "manylinux_2_28"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
