@@ -5,24 +5,36 @@ on:
     branches: [master]
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   release-please:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
         with:
           release-type: python
-          # release-please reads version from pyproject.toml [project].version
-          # and updates it automatically based on conventional commits:
-          #   feat:           → minor bump  (0.4.x → 0.5.0)
-          #   fix/refactor/
-          #   perf/build/ci/
-          #   chore/docs:     → patch bump  (0.4.1 → 0.4.2)
-          #   feat!: or
-          #   BREAKING CHANGE → major bump  (0.4.x → 1.0.0)
-          # On merge of the Release PR, it creates a vX.Y.Z tag which
-          # triggers wheels.yml to build and publish to PyPI.
+
+  build-release:
+    name: Dispatch wheels for the new release
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+    steps:
+      # Tags made with GITHUB_TOKEN do not trigger push workflows. An explicit
+      # workflow_dispatch does, and keeps PyPI OIDC in its non-reusable workflow.
+      - name: Build and publish the exact release tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: gh workflow run wheels.yml --ref "$RELEASE_TAG" -f upload=yes

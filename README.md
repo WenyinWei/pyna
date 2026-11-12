@@ -67,9 +67,34 @@ long-term cache file format.
 ### cyna C++ tracing core
 
 `pyna._cyna` is part of the supported runtime surface, not an optional extra.
-PyPI releases are built as platform wheels for Linux, Windows, and macOS across
-CPython 3.9, 3.10, 3.11, 3.12, and 3.13. On those platforms, `pip install
-pyna-chaos` should install a wheel with `_cyna_ext` already included.
+Release CI builds and smoke-tests wheels containing `_cyna_ext` for this matrix:
+
+| Platform | Architectures | CPython versions | Wheel baseline |
+|----------|---------------|------------------|----------------|
+| Linux | x86_64, aarch64 | 3.9–3.13 | manylinux2014 (glibc 2.17+) |
+| Linux | x86_64, aarch64 | 3.14 | manylinux_2_28 (glibc 2.28+) |
+| macOS | Intel x86_64, Apple arm64 | 3.9–3.14 | macOS 11+ |
+| Windows | x86_64 | 3.9–3.14 | 64-bit Windows |
+
+The Python classifiers describe compatibility in package directories; adding a
+classifier does not create a wheel or change pip's wheel selection. Pip uses
+`Requires-Python` (`>=3.9`) and the wheel's Python, ABI, and platform tags.
+The build matrix is defined in `pyproject.toml`. Binary installation also
+requires that the matching release wheels have been uploaded and that suitable
+dependency wheels are available; dependencies can have newer OS requirements.
+To require binary wheels for the whole installation, use:
+
+```bash
+python -m pip install --upgrade pip
+python -m pip install --only-binary=:all: pyna-chaos
+```
+
+Musl-based Linux (including Alpine), 32-bit systems, Windows arm64, PyPy, and
+free-threaded CPython are outside the automated wheel matrix. Python 3.15 is
+also outside this matrix: as of 2026-11-12, [h5py's PyPI releases](https://pypi.org/project/h5py/#files)
+provide no CPython 3.15 wheels. Source installation on untested environments may
+require additional toolchain or dependency work; `Requires-Python` alone is
+not a promise that every newer interpreter or platform has been validated.
 
 If no wheel matches your platform, pip falls back to the source distribution and
 builds `cyna` locally with xmake:

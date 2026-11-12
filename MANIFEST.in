@@ -1,6 +1,8 @@
 include README.md
 include LICENSE
 include FIELD_LINE_TRACING_POLICY.md
+include tests/wheel_smoke.py
 recursive-include cyna *.lua *.md *.cpp *.cu *.hpp *.h
-exclude pyna/_cyna/_cyna_ext*.so
-exclude pyna/_cyna/_cyna_ext*.pyd
+prune cyna/build
+prune cyna/.xmake
+recursive-exclude pyna/_cyna *.so *.so.* *.pyd *.dll *.dylib
