@@ -61,6 +61,7 @@ def get_version() -> str:
 
 coil_circular_field           = getattr(_cyna_ext, "coil_circular_field", None)
 coil_biot_savart              = getattr(_cyna_ext, "coil_biot_savart",     None)
+coil_field_grid               = getattr(_cyna_ext, "coil_field_grid",      None)
 cuda_backend_available        = getattr(_cyna_ext, "cuda_backend_available", lambda: False)
 VectorFieldCylind             = getattr(_cyna_ext, "VectorFieldCylind",             None)
 trace_axisym_tau_closed_orbit = getattr(
@@ -118,6 +119,7 @@ __all__ = [
     "get_version",
     "coil_circular_field",
     "coil_biot_savart",
+    "coil_field_grid",
     "cuda_backend_available",
     "VectorFieldCylind",
     "trace_axisym_tau_closed_orbit",

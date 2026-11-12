@@ -29,6 +29,7 @@ bottlenecks:
 |-----------|------------|-------------|
 | Field-line tracing (RK4 / Ascent ODE) | `pyna.flt` | `cyna/flt.hpp` |
 | Regular-grid interpolation | `pyna.coord` | `cyna/interpolate.hpp` |
+| Coil-set cylindrical field grid | `pyna.toroidal.flt` | `cyna/coil_field_grid.hpp` |
 | NumPy `.npz` I/O | `numpy` | `cyna/io.hpp` |
 | FPT cycle shift `delta_X_pol`, `delta_X_cyc` | `pyna.topo.fpt` | `cyna/poincare.hpp` |
 
@@ -42,6 +43,7 @@ cyna/
 ├── include/
 │   ├── cyna/
 │   │   ├── flt.hpp          ← Field-Line Tracing (RK4 + Ascent ODE)
+│   │   ├── coil_field_grid.hpp ← Biot-Savart coil grid fill (OpenMP CPU)
 │   │   ├── interpolate.hpp  ← RegularGridInterpolator
 │   │   └── io.hpp           ← npz I/O helpers
 │   └── BS_thread_pool.hpp   ← thread-pool (header-only, bundled)
@@ -74,11 +76,25 @@ xmake build flt3d
 xmake run flt3d
 ```
 
-### Python extension
+### Python extension (CPU-only by default)
+
+No NVIDIA GPU or CUDA toolkit is required.  The mandatory `_cyna_ext`
+extension always contains the C++ CPU coil-field-grid builder and the C++
+Poincare tracer.
 
 ```bash
 cd ..
-pip install -e .
+CYNA_WITH_CUDA=0 pip install -e .       # editable CPU build
+CYNA_WITH_CUDA=0 pip install .          # standard CPU install
+CYNA_WITH_CUDA=0 python -m build        # CPU wheel + sdist
+```
+
+`CYNA_WITH_CUDA=0` is the default even when `nvcc` is on `PATH`; CUDA is
+opt-in and never changes the result of a standard install.  For a CPU-only
+wheel matrix:
+
+```bash
+CIBW_BUILD="cp312-*" cibuildwheel --output-dir dist
 ```
 
 Then from Python:
@@ -103,12 +119,15 @@ Those published wheels are CPU-only and do not depend on CUDA. Platforms not
 covered by those wheels build from the source distribution and therefore need
 xmake plus a C++17 compiler locally.
 
-CUDA support is not the PyPI wheel default. The wheel CI sets
-`CYNA_WITH_CUDA=0`; local source builds try to build `_cyna_cuda_backend.*` when
-`nvcc` is available unless `CYNA_WITH_CUDA=0` is set. The main `_cyna_ext`
-module does not link against CUDA and loads that backend only when a CUDA-capable
-coil-field call is made. Set `CYNA_WITH_CUDA=1` to require the backend build, or
-pass `--with-cuda=y` in a manual xmake build.
+CUDA is an explicit opt-in.  The wheel CI sets `CYNA_WITH_CUDA=0`; a local
+source build also stays CPU-only unless `CYNA_WITH_CUDA=1` is set.  With
+`CYNA_WITH_CUDA=1`, `nvcc` must be on `PATH` and the optional
+`_cyna_cuda_backend.*` is built in addition to `_cyna_ext`.  The main
+`_cyna_ext` module never links against CUDA.  Pass `--with-cuda=y` only for a
+manual CUDA build.
+
+Measured CPU-vs-NumPy grid and trace timings are in
+[CPU_TRACING_BENCHMARK.md](../CPU_TRACING_BENCHMARK.md).
 
 ## Python acceleration surface
 
@@ -121,6 +140,17 @@ BR, BZ, BPhi, R_grid, Z_grid, Phi_grid
 
 Important exported functions:
 
+- `coil_field_grid`: exact finite-segment Biot-Savart sum of a coil set on
+  a cylindrical `(nR, nZ, nPhi)` grid, float64, OpenMP over grid rows, no
+  CUDA required.  The stable Python entry point is
+  `pyna.toroidal.flt.build_coil_field_grid`; it accepts `(K, S, 3)` coil
+  polylines or pivot2t's `(K, S, 2, 3)` segment endpoints, a closed
+  `Phi_grid` spanning `2*pi/nfp` (or an open grid with
+  `phi_closed=False`), and returns the flat `BR`, `BZ`, `BPhi` arrays
+  consumed by the tracing kernels.  `backend="auto"` (the default) selects
+  this C++ CPU kernel.  A pure-NumPy reference backend is kept for tests
+  and cross-checks only; it emits a `RuntimeWarning` and is not a supported
+  production tracing path.
 - `trace_orbit_along_phi`: field-line trace with DPm samples.
 - `compute_A_matrix_batch`: batch finite-difference Jacobian of
   `f=(R*BR/BPhi, R*BZ/BPhi)`.

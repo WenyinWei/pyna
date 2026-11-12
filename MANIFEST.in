@@ -1,6 +1,7 @@
 include README.md
 include LICENSE
 include FIELD_LINE_TRACING_POLICY.md
+include CPU_TRACING_BENCHMARK.md
 include tests/wheel_smoke.py
 recursive-include cyna *.lua *.md *.cpp *.cu *.hpp *.h
 prune cyna/build

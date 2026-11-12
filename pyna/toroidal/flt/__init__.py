@@ -125,7 +125,10 @@ from pyna.toroidal.flt.adaptive_density import (
     wall_fraction_theta,
 )
 
+from pyna.toroidal.flt.coil_field_grid import build_coil_field_grid
+
 __all__ = [
+    "build_coil_field_grid",
     "precompile_tracer",
     "trace_poincare_batch",
     "trace_poincare_batch_field",
