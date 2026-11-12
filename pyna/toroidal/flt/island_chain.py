@@ -3829,6 +3829,7 @@ def trace_fixed_point_manifolds_field(
     DPhi: float = 0.01,
     fd_eps: float = 1.0e-4,
     seed_distances: Sequence[float] | None = None,
+    seed_orders: Sequence[int] | None = None,
     eps_min: float = 1.0e-6,
     eps_max: float = 1.0e-3,
     n_eps: int = 24,
@@ -3861,15 +3862,44 @@ def trace_fixed_point_manifolds_field(
     if N_turns <= 0:
         raise ValueError("N_turns must be positive")
     user_seed_distances = seed_distances is not None
+    provided_seed_orders: np.ndarray | None = None
     if not user_seed_distances:
+        if seed_orders is not None:
+            raise ValueError("seed_orders requires explicit seed_distances")
         if n_eps <= 0:
             raise ValueError("n_eps must be positive")
         distances = None
     else:
-        distances = np.asarray(seed_distances, dtype=float).ravel()
-        distances = distances[np.isfinite(distances) & (distances > 0.0)]
+        raw_distances = np.asarray(seed_distances, dtype=float).ravel()
+        valid_distances = np.isfinite(raw_distances) & (raw_distances > 0.0)
+        distances = raw_distances[valid_distances]
         if distances.size == 0:
             raise ValueError("seed_distances must contain positive finite values")
+        if seed_orders is not None:
+            raw_orders = np.asarray(seed_orders)
+            if raw_orders.ndim != 1:
+                raw_orders = raw_orders.ravel()
+            if raw_orders.size != raw_distances.size:
+                raise ValueError("seed_orders must align with seed_distances")
+            try:
+                numeric_orders = np.asarray(raw_orders, dtype=float)
+            except (TypeError, ValueError) as exc:
+                raise ValueError("seed_orders must contain integers") from exc
+            if (
+                not np.all(np.isfinite(numeric_orders))
+                or not np.all(numeric_orders == np.rint(numeric_orders))
+            ):
+                raise ValueError("seed_orders must contain integers")
+            provided_seed_orders = np.asarray(
+                np.rint(numeric_orders[valid_distances]),
+                dtype=int,
+            )
+            if (
+                np.any(provided_seed_orders < 0)
+                or np.unique(provided_seed_orders).size
+                != provided_seed_orders.size
+            ):
+                raise ValueError("seed_orders must be unique non-negative integers")
 
     def _flatten_carousel(
         traces: list[tuple[np.ndarray, np.ndarray]],
@@ -3882,7 +3912,15 @@ def trace_fixed_point_manifolds_field(
         eigenvalue_sign: float,
         origin_R: float,
         origin_Z: float,
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    ) -> tuple[
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+    ]:
         seed_R = np.asarray(seed_R, dtype=float).ravel()
         seed_Z = np.asarray(seed_Z, dtype=float).ravel()
         seed_distance = np.asarray(seed_distance, dtype=float).ravel()
@@ -3890,7 +3928,15 @@ def trace_fixed_point_manifolds_field(
         seed_order = np.asarray(seed_order, dtype=int).ravel()
         if seed_R.size == 0:
             empty = np.empty(0, dtype=float)
-            return empty, empty, empty, np.empty(0, dtype=int), np.empty(0, dtype=int), empty
+            return (
+                empty,
+                empty,
+                empty,
+                np.empty(0, dtype=int),
+                np.empty(0, dtype=int),
+                empty,
+                empty,
+            )
 
         def _inside_limits(r: float, z: float) -> bool:
             if not (np.isfinite(r) and np.isfinite(z)):
@@ -3906,6 +3952,7 @@ def trace_fixed_point_manifolds_field(
         generation_out: list[int] = []
         seed_order_out: list[int] = []
         side_out: list[float] = []
+        seed_side_out: list[float] = []
         sign = -1.0 if float(eigenvalue_sign) < 0.0 else 1.0
         max_turns = 0
         for seed_i in range(seed_R.size):
@@ -3932,6 +3979,7 @@ def trace_fixed_point_manifolds_field(
                 generation_out.append(int(generation))
                 seed_order_out.append(int(seed_order[int(seed_i)]))
                 side_out.append(float(side))
+                seed_side_out.append(float(seed_side[int(seed_i)]))
                 last_R = float(r)
                 last_Z = float(z)
                 return True
@@ -3975,7 +4023,15 @@ def trace_fixed_point_manifolds_field(
 
         if not R_out:
             empty = np.empty(0, dtype=float)
-            return empty, empty, empty, np.empty(0, dtype=int), np.empty(0, dtype=int), empty
+            return (
+                empty,
+                empty,
+                empty,
+                np.empty(0, dtype=int),
+                np.empty(0, dtype=int),
+                empty,
+                empty,
+            )
         return (
             np.asarray(R_out, dtype=float),
             np.asarray(Z_out, dtype=float),
@@ -3983,6 +4039,7 @@ def trace_fixed_point_manifolds_field(
             np.asarray(generation_out, dtype=int),
             np.asarray(seed_order_out, dtype=int),
             np.asarray(side_out, dtype=float),
+            np.asarray(seed_side_out, dtype=float),
         )
 
     manifolds: list[dict[str, np.ndarray]] = []
@@ -4064,17 +4121,30 @@ def trace_fixed_point_manifolds_field(
             )
             seed_spacing = "eigenvalue_geometric"
 
-        def _signed_seed_offsets(seed_distances: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        def _signed_seed_offsets(
+            seed_distances: np.ndarray,
+            distance_orders: np.ndarray,
+        ) -> tuple[np.ndarray, np.ndarray]:
             sign = np.asarray([-1.0, 1.0], dtype=float)
             offsets = (sign[:, None] * seed_distances[None, :]).ravel()
             order = np.broadcast_to(
-                np.arange(seed_distances.size, dtype=int),
+                distance_orders,
                 (sign.size, seed_distances.size),
             ).ravel()
             return offsets, order
 
-        du, u_seed_order = _signed_seed_offsets(u_distances)
-        ds, s_seed_order = _signed_seed_offsets(s_distances)
+        u_distance_orders = (
+            np.arange(u_distances.size, dtype=int)
+            if provided_seed_orders is None
+            else provided_seed_orders
+        )
+        s_distance_orders = (
+            np.arange(s_distances.size, dtype=int)
+            if provided_seed_orders is None
+            else provided_seed_orders
+        )
+        du, u_seed_order = _signed_seed_offsets(u_distances, u_distance_orders)
+        ds, s_seed_order = _signed_seed_offsets(s_distances, s_distance_orders)
         seed_u_R = R0 + du * unstable[0]
         seed_u_Z = Z0 + du * unstable[1]
         seed_s_R = stable_origin_R + ds * stable_trace_vec[0]
@@ -4174,7 +4244,15 @@ def trace_fixed_point_manifolds_field(
                 if seed_s_R.size
                 else []
             )
-        u_R, u_Z, u_lpol, u_generation, u_point_seed_order, u_point_side = _flatten_carousel(
+        (
+            u_R,
+            u_Z,
+            u_lpol,
+            u_generation,
+            u_point_seed_order,
+            u_point_side,
+            u_point_seed_side,
+        ) = _flatten_carousel(
             u_traces,
             seed_R=seed_u_R,
             seed_Z=seed_u_Z,
@@ -4185,7 +4263,15 @@ def trace_fixed_point_manifolds_field(
             origin_R=R0,
             origin_Z=Z0,
         )
-        s_R, s_Z, s_lpol, s_generation, s_point_seed_order, s_point_side = _flatten_carousel(
+        (
+            s_R,
+            s_Z,
+            s_lpol,
+            s_generation,
+            s_point_seed_order,
+            s_point_side,
+            s_point_seed_side,
+        ) = _flatten_carousel(
             s_traces,
             seed_R=seed_s_R,
             seed_Z=seed_s_Z,
@@ -4244,6 +4330,7 @@ def trace_fixed_point_manifolds_field(
             "u_generation": u_generation,
             "u_point_seed_order": u_point_seed_order,
             "u_point_side": u_point_side,
+            "u_point_seed_side": u_point_seed_side,
             "s_seed_R": seed_s_R.copy(),
             "s_seed_Z": seed_s_Z.copy(),
             "s_seed_distance": seed_s_distance.copy(),
@@ -4257,6 +4344,7 @@ def trace_fixed_point_manifolds_field(
             "s_generation": s_generation,
             "s_point_seed_order": s_point_seed_order,
             "s_point_side": s_point_side,
+            "s_point_seed_side": s_point_seed_side,
             "seed_spacing": seed_spacing,
             "seed_generation_order": "side_then_generation_then_distance",
             "seed_generation_semantics": (

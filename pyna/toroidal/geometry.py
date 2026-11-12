@@ -205,7 +205,10 @@ class ToroidalSurfaceProjection:
     ``s`` is normalized closed poloidal arclength on the wall section
     interpolated at each query ``phi``.  The projected cylindrical and
     Cartesian points therefore do not snap to either toroidal sections or
-    poloidal vertices.
+    poloidal vertices. ``signed_distance`` is positive inside the interpolated
+    section polygon and negative outside, including at concave vertices. It
+    measures closest-segment distance within that section, not the globally
+    shortest three-dimensional distance to the toroidal surface.
     """
 
     R: np.ndarray
@@ -219,6 +222,7 @@ class ToroidalSurfaceProjection:
     phi_lower_index: np.ndarray
     phi_upper_index: np.ndarray
     phi_fraction: np.ndarray
+    signed_distance: np.ndarray | None = None
 
 
 def coerce_toroidal_surface_arrays(
@@ -404,6 +408,21 @@ def project_points_to_toroidal_surface(
     projected_Z = candidate_Z[row_index, segment_index]
     distance = np.sqrt(distance_sq[row_index, segment_index])
 
+    # A normal at a closest polygon vertex is not a reliable containment
+    # test: the query can lie along an incident edge's extension, where a
+    # roundoff-sized normal dot product would flip a finite clearance.
+    # Ray crossing uses the entire interpolated section and is independent
+    # of winding and signed/unwrapped toroidal phase.
+    crosses_height = (section_Z > query_Z[:, None]) != (next_Z > query_Z[:, None])
+    crossing_R = section_R + (
+        (query_Z[:, None] - section_Z) * delta_R
+        / np.where(crosses_height, delta_Z, 1.0)
+    )
+    inside = np.count_nonzero(
+        crosses_height & (query_R[:, None] < crossing_R), axis=1,
+    ) % 2 == 1
+    signed_distance = np.where(inside, distance, -distance)
+
     segment_length = np.sqrt(segment_length_sq)
     cumulative = np.cumsum(segment_length, axis=1) - segment_length
     perimeter = np.sum(segment_length, axis=1)
@@ -469,6 +488,7 @@ def project_points_to_toroidal_surface(
         phi_lower_index=lower.astype(int),
         phi_upper_index=upper_wrapped.astype(int),
         phi_fraction=alpha,
+        signed_distance=signed_distance,
     )
 
 

@@ -138,7 +138,12 @@ class StrikeSeedBundle:
 
 @dataclass(frozen=True)
 class WallStrikeSamples:
-    """Resolved first-wall strikes from one ordered seed bundle."""
+    """Resolved first-wall strikes from one ordered seed bundle.
+
+    ``phi`` stores the signed, unwrapped integration angle of each first hit.
+    Periodic field and wall evaluators may wrap it internally, but retaining the
+    turn count is required to reproduce the same trajectory segment.
+    """
 
     label: str
     mode: str
